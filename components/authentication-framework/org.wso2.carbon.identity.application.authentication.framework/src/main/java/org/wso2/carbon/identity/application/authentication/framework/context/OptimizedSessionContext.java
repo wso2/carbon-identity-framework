@@ -32,7 +32,9 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.OptimizedAuthenticatedIdPData;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.io.Serializable;
@@ -182,10 +184,18 @@ public class OptimizedSessionContext implements Serializable {
                 throw new SessionDataStorageOptimizationClientException(String.format(
                         "Cannot find the Identity Provider by the name: %s tenant domain: %s", idPName, tenantDomain));
             }
+        } catch (IdentityProviderManagementClientException e) {
+            throw new SessionDataStorageOptimizationClientException(String.format(
+                    "IDP management client error while retrieving the Identity Provider by name: %s " +
+                            "tenant domain: %s", idPName, tenantDomain), e);
+        } catch (IdentityProviderManagementServerException e) {
+            throw new SessionDataStorageOptimizationServerException(String.format(
+                    "IDP management server error while retrieving the Identity Provider by name: %s " +
+                            "tenant domain: %s", idPName, tenantDomain), e);
         } catch (IdentityProviderManagementException e) {
             throw new SessionDataStorageOptimizationServerException(String.format(
-                    "IdentityProviderManagementException while retrieving the Identity Provider by name: %s " +
-                            "tenant domain: %s", idPName, tenantDomain), e);
+                    "Error while retrieving the Identity Provider by name: %s tenant domain: %s", idPName,
+                    tenantDomain), e);
         }
         return idp;
     }
