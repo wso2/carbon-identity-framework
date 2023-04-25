@@ -27,7 +27,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 
@@ -135,10 +137,19 @@ public class OptimizedSequenceConfig implements Serializable {
                         String.format("Cannot find the Service Provider by the resource ID: %s " +
                                 "tenant domain: %s", resourceId, tenantDomain));
             }
+        } catch (IdentityApplicationManagementClientException e) {
+            throw new SessionDataStorageOptimizationClientException(
+                    String.format("Application management client error occurred while retrieving the " +
+                            "service provider by resource id: %s " + "tenant domain: %s",
+                            this.applicationResourceId, tenantDomain), e);
+        } catch (IdentityApplicationManagementServerException e) {
+            throw new SessionDataStorageOptimizationServerException(
+                    String.format("Application management server error occurred while retrieving the service provider" +
+                            " by resource id: %s " + "tenant domain: %s", this.applicationResourceId, tenantDomain), e);
         } catch (IdentityApplicationManagementException e) {
             throw new SessionDataStorageOptimizationServerException(
-                    String.format("Error occurred while retrieving the service provider by resource id: %s " +
-                            "tenant domain: %s", this.applicationResourceId, tenantDomain), e);
+                    String.format("Application management error occurred while retrieving the service provider" +
+                            " by resource id: %s " + "tenant domain: %s", this.applicationResourceId, tenantDomain), e);
         }
         return new ApplicationConfig(serviceProvider, tenantDomain);
     }

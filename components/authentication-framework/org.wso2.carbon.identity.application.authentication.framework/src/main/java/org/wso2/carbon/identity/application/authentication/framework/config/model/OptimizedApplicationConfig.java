@@ -30,7 +30,9 @@ import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.io.Serializable;
@@ -260,10 +262,18 @@ public class OptimizedApplicationConfig implements Serializable {
                                     federatedIdPResourceIds.get(i), tenantDomain));
                 }
                 idPs[i] = idp;
+            } catch (IdentityProviderManagementClientException e) {
+                throw new SessionDataStorageOptimizationClientException(
+                        String.format("IDP management client error. Failed to get the IdP by the name: %s " +
+                                        "Tenant Domain: %s", federatedIdPResourceIds.get(i), tenantDomain), e);
+            } catch (IdentityProviderManagementServerException e) {
+                throw new SessionDataStorageOptimizationServerException(
+                        String.format("IDP management server error. Failed to get the IdP by the name: %s " +
+                                        "Tenant Domain: %s", federatedIdPResourceIds.get(i), tenantDomain), e);
             } catch (IdentityProviderManagementException e) {
                 throw new SessionDataStorageOptimizationServerException(
-                        String.format("Failed to get the IdP by the name: %s Tenant Domain: %s",
-                                federatedIdPResourceIds.get(i), tenantDomain), e);
+                        String.format("IDP management error. Failed to get the IdP by the name: %s " +
+                                        "Tenant Domain: %s", federatedIdPResourceIds.get(i), tenantDomain), e);
             }
         }
         return idPs;

@@ -34,11 +34,15 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.util.ArrayList;
@@ -250,8 +254,18 @@ public class AuthenticationContextLoader {
             }
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
                     optApplicationConfig.getAuthenticationSteps(tenantDomain));
-        } catch (IdentityApplicationManagementException | FrameworkException e) {
+        } catch (IdentityApplicationManagementClientException e) {
+            throw new SessionDataStorageOptimizationClientException(
+                    String.format("Application management client error occurred while retrieving the service provider" +
+                                    " by resource id: %s tenant domain: %s",
+                            optApplicationConfig.getServiceProviderResourceId(), tenantDomain), e);
+        } catch (IdentityApplicationManagementServerException | FrameworkException e) {
             throw new SessionDataStorageOptimizationServerException(
+                    String.format("Server occurred while retrieving the service provider by resource id: %s tenant " +
+                                    "domain: %s", optApplicationConfig.getServiceProviderResourceId(),
+                            tenantDomain), e);
+        } catch (IdentityApplicationManagementException e) {
+            throw new SessionDataStorageOptimizationException(
                     String.format("Error occurred while retrieving the service provider by resource id: %s " +
                             "tenant domain: %s", optApplicationConfig.getServiceProviderResourceId(), tenantDomain), e);
         }
@@ -270,6 +284,14 @@ public class AuthenticationContextLoader {
                 throw new SessionDataStorageOptimizationClientException(String.format(
                         "Cannot find the Identity Provider by the name: %s tenant domain: %s", idPName, tenantDomain));
             }
+        } catch (IdentityProviderManagementClientException e) {
+            throw new SessionDataStorageOptimizationClientException(String.format(
+                    "IDP management client exception caught. Failed to get the Identity Provider " +
+                            "by name: %s tenant domain: %s", idPName, tenantDomain), e);
+        } catch (IdentityProviderManagementServerException e) {
+            throw new SessionDataStorageOptimizationServerException(String.format(
+                    "IDP management server exception caught. Failed to get the Identity Provider " +
+                            "by name: %s tenant domain: %s", idPName, tenantDomain), e);
         } catch (IdentityProviderManagementException e) {
             throw new SessionDataStorageOptimizationServerException(String.format(
                     "Failed to get the Identity Provider by name: %s tenant domain: %s", idPName, tenantDomain), e);
@@ -294,6 +316,14 @@ public class AuthenticationContextLoader {
                         String.format("Cannot find the Identity Provider by the resource ID: %s " +
                                 "tenant domain: %s", resourceId, tenantDomain));
             }
+        } catch (IdentityProviderManagementClientException e) {
+            throw new SessionDataStorageOptimizationClientException(
+                    String.format("IDP management client error. Failed to get the Identity Provider by " +
+                                    "resource id: %s tenant domain: %s", resourceId, tenantDomain), e);
+        } catch (IdentityProviderManagementServerException e) {
+            throw new SessionDataStorageOptimizationServerException(
+                    String.format("IDP management server error. Failed to get the Identity Provider by " +
+                                    "resource id: %s tenant domain: %s", resourceId, tenantDomain), e);
         } catch (IdentityProviderManagementException e) {
             throw new SessionDataStorageOptimizationServerException(
                     String.format("Failed to get the Identity Provider by resource id: %s tenant domain: %s",
