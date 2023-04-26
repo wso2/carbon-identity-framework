@@ -873,7 +873,7 @@ public class IdentityApplicationManagementUtil {
                 .SSO_DEFAULT_SIGNING_ALGORITHM))) {
             return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_SIGNING_ALGORITHM).trim();
         } else {
-            return IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA1;
+            return IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA256;
         }
     }
 
@@ -885,7 +885,7 @@ public class IdentityApplicationManagementUtil {
                 .SSO_DEFAULT_DIGEST_ALGORITHM))) {
             return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_DIGEST_ALGORITHM).trim();
         } else {
-            return IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA1;
+            return IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA256;
         }
     }
 

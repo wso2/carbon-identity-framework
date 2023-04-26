@@ -51,8 +51,9 @@ public class IdentityCoreConstants {
     public final static String MULTI_ATTRIBUTE_SEPARATOR = "MultiAttributeSeparator";
     public final static String MULTI_ATTRIBUTE_SEPARATOR_DEFAULT = ",,,";
 
-    public static final String XML_SIGNATURE_ALGORITHM_RSA_SHA1_URI = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
-    public static final String XML_DIGEST_ALGORITHM_SHA1 = "http://www.w3.org/2000/09/xmldsig#sha1";
+    public static final String XML_SIGNATURE_ALGORITHM_RSA_SHA256_URI = "http://www.w3.org/2001/04/xmldsig-more#rsa" +
+            "-sha256";
+    public static final String XML_DIGEST_ALGORITHM_SHA256 = "http://www.w3.org/2001/04/xmlenc#sha256";
     public static final String XML_ASSERTION_ENCRYPTION_ALGORITHM_AES256 = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
     public static final String XML_KEY_ENCRYPTION_ALGORITHM_RSAOAEP = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
 
