@@ -189,12 +189,12 @@ public class SQLQueries {
 
     // Store federated authentication session details to map the session context key with the idp session index.
     public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO_WITH_TENANT = "INSERT INTO " +
-            "IDN_FED_AUTH_SESSION_MAPPING (IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, " +
+            "IDN_FED_AUTH_SESSION_MAPPING (IDP_SESSION_ID, SESSION_ID, IDP_NAME, AUTHENTICATOR_ID, " +
             "PROTOCOL_TYPE, TENANT_ID) VALUES (?, ?, ?, ?, ?, ?)";
 
     // Store federated authentication session details to map the session context key with the idp session index.
     public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO_WITH_IDP_ID = "INSERT INTO " +
-            "IDN_FED_AUTH_SESSION_MAPPING (IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, " +
+            "IDN_FED_AUTH_SESSION_MAPPING (IDP_SESSION_ID, SESSION_ID, IDP_NAME, AUTHENTICATOR_ID, " +
             "PROTOCOL_TYPE, IDP_ID) VALUES (?, ?, ?, ?, ?, ?)";
 
     // Store federated authentication session details to map the session context key with the idp session index.
