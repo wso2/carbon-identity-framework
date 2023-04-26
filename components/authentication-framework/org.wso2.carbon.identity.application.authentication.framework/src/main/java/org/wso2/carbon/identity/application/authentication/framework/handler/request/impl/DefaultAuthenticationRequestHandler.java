@@ -658,8 +658,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
         } else {
             if (log.isDebugEnabled()) {
-                log.debug(String.format("Federated auth session with the id: %s already " +
-                        "exists.", authHistory.getIdpSessionIndex()));
+                log.debug("Federated auth session with the id: "+ authHistory.getIdpSessionIndex() +" already " +
+                        "exists.");
             }
             userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
         }
@@ -674,8 +674,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory, tenantId);
         } else {
             if (log.isDebugEnabled()) {
-                log.debug(String.format("Federated auth session with the id: %s already " +
-                        "exists.", authHistory.getIdpSessionIndex()));
+                log.debug("Federated auth session with the id: "+ authHistory.getIdpSessionIndex() +" already " +
+                        "exists.");
             }
             userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory,
                     tenantId);
@@ -706,13 +706,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex(), tenantId, idpId)) {
             if (log.isDebugEnabled()) {
-                log.debug(String.format("Federated auth session with the id: %s already exists for IDP Id: %s",
+                log.debug(String.format("Federated auth session with the session id: %s and idp id: %s already exists.",
                         authHistory.getIdpSessionIndex(), idpId));
             }
             userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory, tenantId, idpId);
         } else {
-            userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory,
-                    tenantId, idpId);
+            userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory, tenantId, idpId);
         }
     }
 
