@@ -103,14 +103,14 @@ public class SAMLSSOServiceProviderDO implements Serializable {
             signingAlgorithmUri = IdentityUtil.getProperty(IdentityConstants.ServerConfig
                     .SSO_DEFAULT_SIGNING_ALGORITHM).trim();
         } else {
-            signingAlgorithmUri = IdentityCoreConstants.XML_SIGNATURE_ALGORITHM_RSA_SHA1_URI;
+            signingAlgorithmUri = IdentityCoreConstants.XML_SIGNATURE_ALGORITHM_RSA_SHA256_URI;
         }
         if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
                 .SSO_DEFAULT_DIGEST_ALGORITHM))) {
             digestAlgorithmUri = IdentityUtil.getProperty(IdentityConstants.ServerConfig
                     .SSO_DEFAULT_DIGEST_ALGORITHM).trim();
         } else {
-            digestAlgorithmUri = IdentityCoreConstants.XML_DIGEST_ALGORITHM_SHA1;
+            digestAlgorithmUri = IdentityCoreConstants.XML_DIGEST_ALGORITHM_SHA256;
         }
         if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
                 .SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM))) {
