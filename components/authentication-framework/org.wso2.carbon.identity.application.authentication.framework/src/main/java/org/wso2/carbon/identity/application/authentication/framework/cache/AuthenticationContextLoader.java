@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -203,9 +202,9 @@ public class AuthenticationContextLoader {
         if (context.getSequenceConfig() != null) {
             ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
             if (applicationConfig != null) {
-                OptimizedApplicationConfig optApplicationConfig = new OptimizedApplicationConfig(applicationConfig,
-                        context.getTenantDomain());
-                context.getSequenceConfig().setOptApplicationConfig(optApplicationConfig);
+                OptimizedApplicationConfig optimizedApplicationConfig =
+                        new OptimizedApplicationConfig(applicationConfig, context.getTenantDomain());
+                context.getSequenceConfig().setOptimizedApplicationConfig(optimizedApplicationConfig);
                 context.getSequenceConfig().setApplicationConfig(null);
             }
         }
@@ -216,22 +215,23 @@ public class AuthenticationContextLoader {
 
         if (context.getSequenceConfig() != null) {
             ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
-            OptimizedApplicationConfig optApplicationConfig = context.getSequenceConfig().getOptApplicationConfig();
-            if (applicationConfig == null && optApplicationConfig != null) {
-                ServiceProvider serviceProvider = reconstructServiceProvider(optApplicationConfig,
+            OptimizedApplicationConfig optimizedApplicationConfig = context.getSequenceConfig().
+                    getOptimizedApplicationConfig();
+            if (applicationConfig == null && optimizedApplicationConfig != null) {
+                ServiceProvider serviceProvider = reconstructServiceProvider(optimizedApplicationConfig,
                         context.getTenantDomain());
                 ApplicationConfig appConfig = new ApplicationConfig(serviceProvider, context.getTenantDomain());
-                appConfig.setMappedSubjectIDSelected(optApplicationConfig.isMappedSubjectIDSelected());
-                appConfig.setClaimMappings(optApplicationConfig.getClaimMappings());
-                appConfig.setRoleMappings(optApplicationConfig.getRoleMappings());
-                appConfig.setMandatoryClaims(optApplicationConfig.getMandatoryClaims());
-                appConfig.setRequestedClaims(optApplicationConfig.getRequestedClaims());
+                appConfig.setMappedSubjectIDSelected(optimizedApplicationConfig.isMappedSubjectIDSelected());
+                appConfig.setClaimMappings(optimizedApplicationConfig.getClaimMappings());
+                appConfig.setRoleMappings(optimizedApplicationConfig.getRoleMappings());
+                appConfig.setMandatoryClaims(optimizedApplicationConfig.getMandatoryClaims());
+                appConfig.setRequestedClaims(optimizedApplicationConfig.getRequestedClaims());
                 context.getSequenceConfig().setApplicationConfig(appConfig);
             }
         }
     }
 
-    private ServiceProvider reconstructServiceProvider(OptimizedApplicationConfig optApplicationConfig,
+    private ServiceProvider reconstructServiceProvider(OptimizedApplicationConfig optimizedApplicationConfig,
                                                        String tenantDomain)
             throws SessionDataStorageOptimizationException {
 
@@ -240,34 +240,34 @@ public class AuthenticationContextLoader {
                 FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
         try {
             serviceProvider = applicationManager.getApplicationByResourceId(
-                    optApplicationConfig.getServiceProviderResourceId(), tenantDomain);
+                    optimizedApplicationConfig.getServiceProviderResourceId(), tenantDomain);
             if (serviceProvider == null) {
                 throw new SessionDataStorageOptimizationClientException(
                         String.format("Cannot find the Service Provider by the resource ID: %s tenant domain: %s",
-                                optApplicationConfig.getServiceProviderResourceId(), tenantDomain));
+                                optimizedApplicationConfig.getServiceProviderResourceId(), tenantDomain));
             }
             if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
                 throw new SessionDataStorageOptimizationClientException(
                         String.format("Cannot find the LocalAndOutBoundAuthenticationConfig for the " +
                                         "Service Provider by the resource ID: %s tenant domain: %s",
-                                optApplicationConfig.getServiceProviderResourceId(), tenantDomain));
+                                optimizedApplicationConfig.getServiceProviderResourceId(), tenantDomain));
             }
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
-                    optApplicationConfig.getAuthenticationSteps(tenantDomain));
+                    optimizedApplicationConfig.getAuthenticationSteps(tenantDomain));
         } catch (IdentityApplicationManagementClientException e) {
             throw new SessionDataStorageOptimizationClientException(
                     String.format("Application management client error occurred while retrieving the service provider" +
                                     " by resource id: %s tenant domain: %s",
-                            optApplicationConfig.getServiceProviderResourceId(), tenantDomain), e);
+                            optimizedApplicationConfig.getServiceProviderResourceId(), tenantDomain), e);
         } catch (IdentityApplicationManagementServerException | FrameworkException e) {
             throw new SessionDataStorageOptimizationServerException(
                     String.format("Server occurred while retrieving the service provider by resource id: %s tenant " +
-                                    "domain: %s", optApplicationConfig.getServiceProviderResourceId(),
+                                    "domain: %s", optimizedApplicationConfig.getServiceProviderResourceId(),
                             tenantDomain), e);
         } catch (IdentityApplicationManagementException e) {
             throw new SessionDataStorageOptimizationException(
-                    String.format("Error occurred while retrieving the service provider by resource id: %s " +
-                            "tenant domain: %s", optApplicationConfig.getServiceProviderResourceId(), tenantDomain), e);
+                    String.format("Error occurred while retrieving the service provider by resource id: %s tenant " +
+                            "domain: %s", optimizedApplicationConfig.getServiceProviderResourceId(), tenantDomain), e);
         }
         return serviceProvider;
     }
@@ -302,10 +302,6 @@ public class AuthenticationContextLoader {
     private IdentityProvider getIdPByResourceID(String resourceId, String tenantDomain)
             throws SessionDataStorageOptimizationException {
 
-        if (StringUtils.isEmpty(resourceId)) {
-            throw new SessionDataStorageOptimizationClientException("Resource Id is null. " +
-                    "Error occurred while getting IdPs.");
-        }
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -40,7 +40,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class is used to keep the optimized authenticator config's attributes.
+ * This class keeps the important attributes from the Authenticator Config class.
+ * The entire authenticator config can be retrieved back from this class.
  */
 public class OptimizedAuthenticatorConfig implements Serializable {
 
