@@ -241,12 +241,12 @@
         function nextWizard(){
         <%
         boolean intTemp = true;
-        if(template !=null && template.getName().equals("External Workflow Template")){
+        if(template !=null && template.getName().equals("Workflow Mediator")){
             intTemp = false;
         }
         %>
-            var abc = "<%=intTemp%>";
-            if(abc != "false" && !validateInputs()){
+            var tempStatus = "<%=intTemp%>";
+            if(tempStatus != "false" && !validateInputs()){
                 alert("Required fields are missing");
                 return ;
             }
