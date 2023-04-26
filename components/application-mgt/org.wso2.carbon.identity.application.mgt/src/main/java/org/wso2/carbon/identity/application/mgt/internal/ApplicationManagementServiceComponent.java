@@ -458,7 +458,7 @@ public class ApplicationManagementServiceComponent {
     }
 
     @Reference(
-            name = "resource.consent.mgt.server.configs.service",
+            name = "consent.mgt.server.configs.service",
             service = ConsentManagementServerConfigsService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
