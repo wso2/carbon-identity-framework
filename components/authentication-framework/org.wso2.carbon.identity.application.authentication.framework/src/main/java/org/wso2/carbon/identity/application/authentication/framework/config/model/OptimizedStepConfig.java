@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,6 +29,7 @@ import java.util.List;
 
 /**
  * This class is used to store the optimized step config attributes in session context.
+ * It takes the large step config object and optimizes it into a more compact and efficient format.
  */
 public class OptimizedStepConfig implements Serializable {
 
@@ -79,6 +80,11 @@ public class OptimizedStepConfig implements Serializable {
         return optimizedAuthenticatorList;
     }
 
+    /**
+     * This method is used to get the step config.
+     *
+     * @return Step config.
+     */
     public StepConfig getStepConfig() throws SessionDataStorageOptimizationException {
 
         if (LOG.isDebugEnabled()) {

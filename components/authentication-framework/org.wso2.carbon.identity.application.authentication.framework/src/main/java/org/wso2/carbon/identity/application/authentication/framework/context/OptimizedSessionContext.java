@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -44,7 +44,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class is used to store the session context as the optimized one.
+ * This class is used to store the session context as the optimized one by storing only the important attributes.
+ * This can be converted back to the original session context when needed.
  */
 public class OptimizedSessionContext implements Serializable {
 

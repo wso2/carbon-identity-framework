@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,7 +43,7 @@ public class SequenceConfig implements Serializable, Cloneable {
     private AuthenticationGraph authenticationGraph;
     private List<AuthenticatorConfig> reqPathAuthenticators = new ArrayList<>();
     private ApplicationConfig applicationConfig = null;
-    private OptimizedApplicationConfig optApplicationConfig = null;
+    private OptimizedApplicationConfig optimizedApplicationConfig = null;
     private boolean completed;
 
     private AuthenticatedUser authenticatedUser;
@@ -188,7 +188,7 @@ public class SequenceConfig implements Serializable, Cloneable {
         sequenceConfig.setAuthenticatedReqPathAuthenticator(this.getAuthenticatedReqPathAuthenticator());
         sequenceConfig.requestedAcr = new ArrayList<>(this.getRequestedAcr());
         sequenceConfig.setAuthenticationGraph(this.getAuthenticationGraph());
-        sequenceConfig.setOptApplicationConfig(this.getOptApplicationConfig());
+        sequenceConfig.setOptimizedApplicationConfig(this.getOptimizedApplicationConfig());
         return sequenceConfig;
     }
 
@@ -197,13 +197,13 @@ public class SequenceConfig implements Serializable, Cloneable {
         this.requestedAcr = requestedAcr;
     }
 
-    public OptimizedApplicationConfig getOptApplicationConfig() {
+    public OptimizedApplicationConfig getOptimizedApplicationConfig() {
 
-        return this.optApplicationConfig;
+        return this.optimizedApplicationConfig;
     }
 
-    public void setOptApplicationConfig(OptimizedApplicationConfig optApplicationConfig) {
+    public void setOptimizedApplicationConfig(OptimizedApplicationConfig optimizedApplicationConfig) {
 
-        this.optApplicationConfig = optApplicationConfig;
+        this.optimizedApplicationConfig = optimizedApplicationConfig;
     }
 }
