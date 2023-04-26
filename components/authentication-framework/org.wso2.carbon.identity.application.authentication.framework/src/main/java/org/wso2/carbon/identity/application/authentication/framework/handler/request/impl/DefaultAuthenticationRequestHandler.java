@@ -658,7 +658,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("Federated auth session with the id: "+ authHistory.getIdpSessionIndex() +" already " +
+                log.debug("Federated auth session with the id: " + authHistory.getIdpSessionIndex() + " already " +
                         "exists.");
             }
             userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory);
@@ -674,7 +674,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory, tenantId);
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("Federated auth session with the id: "+ authHistory.getIdpSessionIndex() +" already " +
+                log.debug("Federated auth session with the id: " + authHistory.getIdpSessionIndex() + " already " +
                         "exists.");
             }
             userSessionStore.updateFederatedAuthSessionInfo(sessionContextKey, authHistory,
