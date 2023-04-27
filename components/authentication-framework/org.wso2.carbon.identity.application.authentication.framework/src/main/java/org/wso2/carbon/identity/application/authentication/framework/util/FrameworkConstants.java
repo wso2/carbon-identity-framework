@@ -208,6 +208,8 @@ public abstract class FrameworkConstants {
     public static final String PRESERVE_LOCAL = "PRESERVE_LOCAL";
     public static final String RESTART_LOGIN_FLOW = "restartLoginFlow";
     public static final String INITIAL_CONTEXT = "initialContext";
+    public static final String RESTART_LOGIN_FLOW_QUERY_PARAMS =
+            "&authFailure=true&authFailureMsg=login.reinitiate.message";
 
     private FrameworkConstants() {
 
