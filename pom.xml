@@ -1731,7 +1731,7 @@
             <dependency>
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
-                <version>3.24.0-GA</version>
+                <version>${org.javassist.version}</version>
             </dependency>
         </dependencies>
 
@@ -2042,6 +2042,7 @@
 
         <account.lock.service.imp.pkg.version.range>[1.4.23, 2.0.0)</account.lock.service.imp.pkg.version.range>
         <openjdk.nashorn.version>15.3</openjdk.nashorn.version>
+        <org.javassist.version>3.24.0-GA</org.javassist.version>
     </properties>
 
     <build>
