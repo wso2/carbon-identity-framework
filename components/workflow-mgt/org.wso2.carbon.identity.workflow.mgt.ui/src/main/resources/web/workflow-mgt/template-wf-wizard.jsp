@@ -239,7 +239,15 @@
 
         var stepOrder = 0;
         function nextWizard(){
-            if(!validateInputs()){
+        <%
+        boolean mediatorTemplate = false;
+        if(template !=null && template.getName().equals("Workflow Mediator")){
+            mediatorTemplate = true;
+        }
+        %>
+            var mediatorTemplate = "<%=mediatorTemplate%>";
+            // validation logic not compatible with the mediatorTemplate.
+            if(mediatorTemplate != "true" && !validateInputs()){
                 alert("Required fields are missing");
                 return ;
             }
