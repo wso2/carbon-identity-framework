@@ -240,13 +240,13 @@
         var stepOrder = 0;
         function nextWizard(){
         <%
-        boolean intTemp = true;
+        boolean mediatorTemplate = false;
         if(template !=null && template.getName().equals("Workflow Mediator")){
-            intTemp = false;
+            mediatorTemplate = true;
         }
         %>
-            var tempStatus = "<%=intTemp%>";
-            if(tempStatus != "false" && !validateInputs()){
+            var mediatorTemplate = "<%=mediatorTemplate%>";
+            if(mediatorTemplate != "true" && !validateInputs()){
                 alert("Required fields are missing");
                 return ;
             }
