@@ -86,6 +86,7 @@ jobs:
           do
             if [[ $(git show --no-patch --format=%p $commit | wc -w) -gt 1 ]]; then
               echo "Skipping merge commit: $commit"
+              continue
             fi
             git cherry-pick $commit
           done
