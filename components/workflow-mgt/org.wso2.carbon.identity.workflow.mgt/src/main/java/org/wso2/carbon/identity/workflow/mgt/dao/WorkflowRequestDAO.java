@@ -39,6 +39,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import static org.wso2.carbon.identity.workflow.mgt.util.SQLConstants.EXTERNAL_WORKFLOW_IDENTIFIER;
 
@@ -136,8 +137,9 @@ public class WorkflowRequestDAO {
      * @return External Workflow Identifier that is generated when a workflow is deployed externally
      * @throws InternalWorkflowException
      */
-    public String retrieveExternalWorkflowId(String workflowId) throws InternalWorkflowException {
+    public Optional<String> retrieveExternalWorkflowId(String workflowId) throws InternalWorkflowException {
 
+        String externalWorkflowID = null;
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
@@ -149,7 +151,7 @@ public class WorkflowRequestDAO {
             prepStmt.setString(2,EXTERNAL_WORKFLOW_IDENTIFIER);
             rs = prepStmt.executeQuery();
             if (rs.next()) {
-                return rs.getString(SQLConstants.PARAM_VALUE_COLUMN);
+                externalWorkflowID = rs.getString(SQLConstants.PARAM_VALUE_COLUMN);
             }
         } catch (SQLException e) {
              throw new InternalWorkflowException(WFConstant.Exceptions.SQL_ERROR_GETTING_EXTERNAL_WORKFLOW_IDENTIFIER, e);
@@ -157,8 +159,7 @@ public class WorkflowRequestDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
-        return null;
-
+        return Optional.ofNullable(externalWorkflowID);
     }
 
     /**

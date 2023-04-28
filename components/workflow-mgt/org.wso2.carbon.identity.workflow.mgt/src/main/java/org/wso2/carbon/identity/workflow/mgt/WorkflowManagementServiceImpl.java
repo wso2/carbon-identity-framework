@@ -386,7 +386,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public String getExternalWorkflowId(String workflowId) throws WorkflowException {
 
-        return workflowRequestDAO.retrieveExternalWorkflowId(workflowId);
+        return workflowRequestDAO.retrieveExternalWorkflowId(workflowId)
+                .orElseThrow(() -> new InternalWorkflowException(String.format("External workflow identifier " +
+                        "not found for the workflow id: %s",workflowId)));
     }
 
     @Override
