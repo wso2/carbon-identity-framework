@@ -246,6 +246,7 @@
         }
         %>
             var mediatorTemplate = "<%=mediatorTemplate%>";
+            // validation logic not compatible with the mediatorTemplate.
             if(mediatorTemplate != "true" && !validateInputs()){
                 alert("Required fields are missing");
                 return ;
