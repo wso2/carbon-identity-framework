@@ -39,8 +39,6 @@ public class SQLConstants {
     public static final String PASSWORD_COLUMN = "PASSWORD";
     public static final String APIKEY_COLUMN = "API_KEY";
 
-
-
     public static final String WORKFLOW_ID_COLUMN = "WORKFLOW_ID";
     public static final String EVENT_ID_COLUMN = "EVENT_ID";
     public static final String PARAM_NAME_COLUMN = "PARAM_NAME";
