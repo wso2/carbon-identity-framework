@@ -73,7 +73,7 @@ public class FrameworkServiceDataHolder {
     private RealmService realmService = null;
     private RegistryService registryService = null;
     private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
-    private List<ApplicationRolesResolver> applicationRolesResolvers = null;
+    private List<ApplicationRolesResolver> applicationRolesResolvers = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
     private List<IdentityProcessor> identityProcessors = new ArrayList<>();
