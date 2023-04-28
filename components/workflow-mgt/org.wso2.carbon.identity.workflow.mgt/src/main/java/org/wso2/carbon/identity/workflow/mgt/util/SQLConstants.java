@@ -37,7 +37,7 @@ public class SQLConstants {
     public static final String HOST_URL_WORKER_COLUMN = "HOST_URL_WORKER";
     public static final String USERNAME_COLUMN = "USERNAME";
     public static final String PASSWORD_COLUMN = "PASSWORD";
-
+    public static final String APIKEY_COLUMN = "API_KEY";
 
     public static final String WORKFLOW_ID_COLUMN = "WORKFLOW_ID";
     public static final String EVENT_ID_COLUMN = "EVENT_ID";
@@ -57,14 +57,13 @@ public class SQLConstants {
     public static final String REQUEST_ID_COLUMN = "REQUEST_ID";
     public static final String CREATED_BY_COLUMN = "CREATED_BY";
     public static final String EXTERNAL_WORKFLOW_IDENTIFIER = "ExternalWorkflowIdentifier";
+
     public static final String ADD_WORKFLOW_REQUEST_QUERY = "INSERT INTO WF_REQUEST(UUID, CREATED_BY, OPERATION_TYPE," +
             " CREATED_AT, UPDATED_AT, REQUEST, STATUS, TENANT_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
     public static final String GET_WORKFLOW_REQUEST_QUERY = "SELECT UUID, REQUEST, STATUS, CREATED_BY FROM WF_REQUEST" +
             " WHERE UUID = ?";
     public static final String GET_WORKFLOW_ID_QUERY = "SELECT PARAM_VALUE FROM WF_WORKFLOW_CONFIG_PARAM WHERE " +
             "WORKFLOW_ID  = ? AND PARAM_NAME = ? ";
-    public static final String GET_TEMPLATE_ID_QUERY = "SELECT TEMPLATE_ID FROM WF_WORKFLOW WHERE ID = ? ";
     public static final String UPDATE_STATUS_OF_REQUEST = "UPDATE WF_REQUEST SET STATUS = ? , UPDATED_AT = ? WHERE " +
             "UUID = ?";
 
@@ -202,19 +201,19 @@ public class SQLConstants {
 
     //queries for BPS profiles
     public static final String ADD_BPS_PROFILE_QUERY = "INSERT INTO WF_BPS_PROFILE(PROFILE_NAME, HOST_URL_MANAGER, " +
-            "HOST_URL_WORKER, USERNAME, PASSWORD, TENANT_ID) VALUES (?, ?, ?, " +
-            "?, ?, ?)";
+            "HOST_URL_WORKER, USERNAME, PASSWORD, TENANT_ID, API_KEY) VALUES (?, ?, ?, " +
+            "?, ?, ?, ?)";
 
     public static final String UPDATE_BPS_PROFILE_QUERY = "UPDATE WF_BPS_PROFILE SET HOST_URL_MANAGER=?,  " +
-            "HOST_URL_WORKER=?, USERNAME=?, PASSWORD=? WHERE TENANT_ID=? " +
+            "HOST_URL_WORKER=?, USERNAME=?, PASSWORD=?, API_KEY=? WHERE TENANT_ID=? " +
             "AND PROFILE_NAME=?";
 
     public static final String GET_BPS_PROFILE_FOR_TENANT_QUERY = "SELECT HOST_URL_MANAGER, HOST_URL_WORKER, " +
-            "USERNAME,PASSWORD FROM WF_BPS_PROFILE WHERE PROFILE_NAME = ? AND " +
+            "USERNAME,PASSWORD,API_KEY FROM WF_BPS_PROFILE WHERE PROFILE_NAME = ? AND " +
             "TENANT_ID = ? ";
 
     public static final String LIST_BPS_PROFILES_QUERY = "SELECT PROFILE_NAME, HOST_URL_MANAGER, HOST_URL_WORKER, " +
-            "USERNAME, PASSWORD FROM  WF_BPS_PROFILE WHERE TENANT_ID = ?";
+            "USERNAME, PASSWORD, API_KEY FROM  WF_BPS_PROFILE WHERE TENANT_ID = ?";
 
     public static final String DELETE_BPS_PROFILES_QUERY = "DELETE FROM WF_BPS_PROFILE WHERE PROFILE_NAME = ?";
 
