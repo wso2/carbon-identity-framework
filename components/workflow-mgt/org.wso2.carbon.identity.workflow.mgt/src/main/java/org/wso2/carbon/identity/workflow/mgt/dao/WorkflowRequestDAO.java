@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowRequest;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.util.SQLConstants;
+import org.wso2.carbon.identity.workflow.mgt.util.WFConstant;
 import org.wso2.carbon.identity.workflow.mgt.util.WorkflowRequestStatus;
 
 import java.io.ByteArrayInputStream;
@@ -38,6 +39,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Optional;
+
+import static org.wso2.carbon.identity.workflow.mgt.util.SQLConstants.EXTERNAL_WORKFLOW_IDENTIFIER;
 
 public class WorkflowRequestDAO {
 
@@ -124,6 +128,38 @@ public class WorkflowRequestDAO {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return null;
+    }
+
+    /**
+     * Retrieve the External Workflow Identifier from Workflow ID.
+     *
+     * @param workflowId workflow ID retrieve from workflow request
+     * @return External Workflow Identifier that is generated when a workflow is deployed externally
+     * @throws InternalWorkflowException
+     */
+    public Optional<String> retrieveExternalWorkflowId(String workflowId) throws InternalWorkflowException {
+
+        String externalWorkflowID = null;
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+
+        String query = SQLConstants.GET_WORKFLOW_ID_QUERY;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, workflowId);
+            prepStmt.setString(2,EXTERNAL_WORKFLOW_IDENTIFIER);
+            rs = prepStmt.executeQuery();
+            if (rs.next()) {
+                externalWorkflowID = rs.getString(SQLConstants.PARAM_VALUE_COLUMN);
+            }
+        } catch (SQLException e) {
+             throw new InternalWorkflowException(WFConstant.Exceptions.SQL_ERROR_GETTING_EXTERNAL_WORKFLOW_IDENTIFIER, e);
+
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+        return Optional.ofNullable(externalWorkflowID);
     }
 
     /**

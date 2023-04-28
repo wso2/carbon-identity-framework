@@ -85,6 +85,8 @@ public class WFConstant {
         public static final String SQL_ERROR_LISTING_WORKFLOWS =  "SQL error when getting workflows from DB";
         public static final String ERROR_GETTING_WORKFLOW_COUNT =  "Server error while getting workflows count for the tenantId: ";
         public static final String SQL_ERROR_GETTING_WORKFLOW_COUNT =  "SQL error when getting workflows count.";
+        public static final String SQL_ERROR_GETTING_EXTERNAL_WORKFLOW_IDENTIFIER = "SQL error when getting external" +
+                " workflow  identifier";
 
         public static final String ERROR_INVALID_LIMIT = "Invalid limit requested. The limit should "
                 + "be a value greater than 0.";

@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import java.util.Collections;
 import java.util.List;
 
-
 public interface WorkflowManagementService {
 
     /**
@@ -95,6 +94,15 @@ public interface WorkflowManagementService {
      */
     void addWorkflow(Workflow workflowDTO,
                      List<Parameter> parameterList, int tenantId) throws WorkflowException;
+
+    /**
+     * Get External workflow Identifier from workflow ID.
+     *
+     * @param workflowId workflow ID retrieve from workflow request
+     * @return WorkflowIdentifier which deployed in remotely
+     * @throws WorkflowException
+     */
+    String getExternalWorkflowId(String workflowId) throws WorkflowException;
 
     /**
      * Retrieve workflow from workflow ID
