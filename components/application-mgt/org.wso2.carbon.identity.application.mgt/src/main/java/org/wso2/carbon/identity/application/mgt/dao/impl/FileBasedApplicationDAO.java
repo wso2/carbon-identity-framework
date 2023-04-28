@@ -64,6 +64,13 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
     }
 
     @Override
+    public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new IdentityApplicationManagementException("Not supported in file based dao.");
+    }
+
+    @Override
     public LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId)
             throws IdentityApplicationManagementException {
 

@@ -71,11 +71,13 @@ public class FileBasedConfigurationBuilder {
 
     private String authenticationEndpointURL;
     private String authenticationEndpointRetryURL;
+    private String authenticationEndpointErrorURL;
     private String authenticationEndpointWaitURL;
     private String identifierFirstConfirmationURL;
     private String authenticationEndpointPromptURL;
     private String authenticationEndpointMissingClaimsURL;
     private boolean allowCustomClaimMappingsForAuthenticators = false;
+    private boolean allowMergingCustomClaimMappingsWithDefaultClaimMappings = false;
 
     /**
      * List of URLs that receive the tenant list
@@ -175,6 +177,7 @@ public class FileBasedConfigurationBuilder {
             //########### Read Authentication Endpoint URL ###########
             readAuthenticationEndpointURL(rootElement);
             readAuthenticationEndpointRetryURL(rootElement);
+            readAuthenticationEndpointErrorURL(rootElement);
             readAuthenticationEndpointWaitURL(rootElement);
             readIdentifierFirstConfirmationURL(rootElement);
             readAuthenticationEndpointPromptURL(rootElement);
@@ -221,6 +224,9 @@ public class FileBasedConfigurationBuilder {
 
             //########### Read Authenticator Claim Dialect Configs ###########
             readAllowCustomClaimMappingsForAuthenticatorsValue(rootElement);
+
+            //########## Read Authentication Claim Dialect Merge Configs ###########
+            readAllowMergingCustomClaimMappingsWithDefaultClaimMappings(rootElement);
         } catch (XMLStreamException e) {
             log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         } catch (Exception e) {
@@ -586,6 +592,15 @@ public class FileBasedConfigurationBuilder {
 
         if (authEndpointRetryURLElem != null) {
             authenticationEndpointRetryURL = IdentityUtil.fillURLPlaceholders(authEndpointRetryURLElem.getText());
+        }
+    }
+
+    private void readAuthenticationEndpointErrorURL(OMElement documentElement) {
+        OMElement authEndpointErrorURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_ERROR_URL));
+
+        if (authEndpointErrorURLElem != null) {
+            authenticationEndpointErrorURL = IdentityUtil.fillURLPlaceholders(authEndpointErrorURLElem.getText());
         }
     }
 
@@ -979,6 +994,14 @@ public class FileBasedConfigurationBuilder {
         this.authenticationEndpointRetryURL = authenticationEndpointRetryURL;
     }
 
+    public String getAuthenticationEndpointErrorURL() {
+        return authenticationEndpointErrorURL;
+    }
+
+    public void setAuthenticationEndpointErrorURL(String authenticationEndpointErrorURL) {
+        this.authenticationEndpointErrorURL = authenticationEndpointErrorURL;
+    }
+
     public String getAuthenticationEndpointWaitURL() {
         return authenticationEndpointWaitURL;
     }
@@ -1101,6 +1124,17 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    private void readAllowMergingCustomClaimMappingsWithDefaultClaimMappings(OMElement documentElement) {
+
+        OMElement element = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(
+                        FrameworkConstants.Config.QNAME_MERGE_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS_WITH_DEFAULT));
+
+        if (element != null) {
+            allowMergingCustomClaimMappingsWithDefaultClaimMappings = Boolean.valueOf(element.getText());
+        }
+    }
+
     /**
      * Indicates whether a custom claim dialect can be used instead
      * of the authenticator's claim dialect.
@@ -1110,5 +1144,16 @@ public class FileBasedConfigurationBuilder {
     public boolean isCustomClaimMappingsForAuthenticatorsAllowed() {
 
         return allowCustomClaimMappingsForAuthenticators;
+    }
+
+    /**
+     * Indicates whether a custom claim dialect can be merged with
+     * authenticator's claim dialect's claims.
+     *
+     * @return True if a custom claim dialect can be used.
+     */
+    public boolean isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed() {
+
+        return allowMergingCustomClaimMappingsWithDefaultClaimMappings;
     }
 }

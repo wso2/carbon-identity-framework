@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.collections.CollectionUtils;
@@ -44,6 +45,8 @@ public class ServiceProvider implements Serializable {
 
     private static final long serialVersionUID = 4754526832588478582L;
     private static final Log log = LogFactory.getLog(ServiceProvider.class);
+    private static final String APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER = "ApplicationRoleMappingConfigs";
+    private static final String APPLICATION_ROLE_MAPPING_CONFIG = "ApplicationRoleMappingConfig";
     private static final String CONSENT_CONFIG_ELEM = "ConsentConfig";
 
     private static final String ACCESS_URL = "AccessUrl";
@@ -51,7 +54,10 @@ public class ServiceProvider implements Serializable {
     private static final String TEMPLATE_ID = "TemplateId";
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
+    private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+
     @XmlTransient
+    @JsonIgnore
     private int applicationID = 0;
 
     @XmlElement(name = "ApplicationName")
@@ -67,9 +73,11 @@ public class ServiceProvider implements Serializable {
     private String jwksUri;
 
     @XmlTransient
+    @JsonIgnore
     private User owner;
 
     @XmlTransient
+    @JsonIgnore
     private String tenantDomain;
 
     @XmlElement(name = "InboundAuthenticationConfig")
@@ -77,6 +85,10 @@ public class ServiceProvider implements Serializable {
 
     @XmlElement(name = "LocalAndOutBoundAuthenticationConfig")
     private LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig;
+
+    @XmlElementWrapper(name = APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER)
+    @XmlElement(name = APPLICATION_ROLE_MAPPING_CONFIG)
+    private AppRoleMappingConfig[] applicationRoleMappingConfig = new AppRoleMappingConfig[0];
 
     @XmlElementWrapper(name = "RequestPathAuthenticatorConfigs")
     @XmlElement(name = "RequestPathAuthenticatorConfig")
@@ -98,10 +110,12 @@ public class ServiceProvider implements Serializable {
     private boolean saasApp;
 
     @XmlTransient
+    @JsonIgnore
     private ServiceProviderProperty[] spProperties = new ServiceProviderProperty[0];
 
     @IgnoreNullElement
     @XmlTransient
+    @JsonIgnore
     private String applicationResourceId;
 
     @IgnoreNullElement
@@ -122,6 +136,10 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_MANAGEMENT_APP)
     private boolean isManagementApp;
+
+    @IgnoreNullElement
+    @XmlElement(name = IS_B2B_SELF_SERVICE_APP)
+    private boolean isB2BSelfServiceApp;
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -189,6 +207,28 @@ public class ServiceProvider implements Serializable {
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(LocalAndOutboundAuthenticationConfig
                                 .build(element));
+            } else if (APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER.equals(elementName)) {
+                // Build application role mapping configurations.
+                Iterator<?> applicationRoleMappingTypeIter = element.getChildElements();
+                List<AppRoleMappingConfig> applicationRoleMappingConfigsArrList = new ArrayList<>();
+
+                if (applicationRoleMappingTypeIter != null) {
+                    while (applicationRoleMappingTypeIter.hasNext()) {
+                        OMElement applicationRoleMappingTypeElement = (OMElement) (applicationRoleMappingTypeIter
+                                .next());
+                        AppRoleMappingConfig applicationRoleMappingConfig = AppRoleMappingConfig
+                                .build(applicationRoleMappingTypeElement);
+                        if (applicationRoleMappingConfig != null) {
+                            applicationRoleMappingConfigsArrList.add(applicationRoleMappingConfig);
+                        }
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(applicationRoleMappingConfigsArrList)) {
+                    AppRoleMappingConfig[] applicationRoleMappingTypeArr = applicationRoleMappingConfigsArrList
+                            .toArray(new AppRoleMappingConfig[0]);
+                    serviceProvider
+                            .setApplicationRoleMappingConfig(applicationRoleMappingTypeArr);
+                }
             } else if ("RequestPathAuthenticatorConfigs".equals(elementName)) {
                 // build request-path authentication configurations.
                 Iterator<?> requestPathAuthenticatorConfigsIter = element.getChildElements();
@@ -326,6 +366,28 @@ public class ServiceProvider implements Serializable {
      */
     public void setOutboundProvisioningConfig(OutboundProvisioningConfig outboundProvisioningConfig) {
         this.outboundProvisioningConfig = outboundProvisioningConfig;
+    }
+
+    /**
+     * Return the application role mapping configuration which indicates whether an IdP should
+     * use application role mapping for IdP roles for this application.
+     *
+     * @return Application role mapping configuration.
+     */
+    public AppRoleMappingConfig[] getApplicationRoleMappingConfig() {
+
+        return applicationRoleMappingConfig;
+    }
+
+    /**
+     * Set the application role mapping configuration which indicates whether an IdP should use
+     * application role mapping for IdP roles for this application.
+     *
+     * @param applicationRoleMappingConfig The application role mapping configuration.
+     */
+    public void setApplicationRoleMappingConfig(AppRoleMappingConfig[] applicationRoleMappingConfig) {
+
+        this.applicationRoleMappingConfig = applicationRoleMappingConfig;
     }
 
     /**
@@ -514,6 +576,16 @@ public class ServiceProvider implements Serializable {
     public void setManagementApp(boolean managementApp) {
 
         isManagementApp = managementApp;
+    }
+
+    public boolean isB2BSelfServiceApp() {
+
+        return isB2BSelfServiceApp;
+    }
+
+    public void setB2BSelfServiceApp(boolean isB2BSelfServiceApp) {
+
+        this.isB2BSelfServiceApp = isB2BSelfServiceApp;
     }
 }
 

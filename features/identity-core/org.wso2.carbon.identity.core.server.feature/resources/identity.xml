@@ -740,6 +740,7 @@
         <RetryURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/retry.do</RetryURL>
         <TokenStoreClassName>org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
+        <DisableAppliesToInPassiveSTSResponse>false</DisableAppliesToInPassiveSTSResponse>
     </PassiveSTS>
 
     <EntitlementSettings>
@@ -1753,7 +1754,7 @@
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/userstores" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/userstore/config/create</Permissions>
             <Scopes>internal_userstore_create</Scopes>
         </Resource>
@@ -2140,6 +2141,15 @@
 
         <!--Timeout in milliseconds for the waiting external calls-->
         <LongWaitTimeout>10000</LongWaitTimeout>
+
+        <!--Timeouts for callChore token call and adaptive endpoint-->
+        <!--Default timeout in milliseconds-->
+        <CallChoreo>
+            <HTTPConnectionTimeout>1000</HTTPConnectionTimeout>
+            <HTTPReadTimeout>1000</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>1000</HTTPConnectionRequestTimeout>
+        </CallChoreo>
+        <!--End of default configs for callChore timeouts-->
 
         <!--Whether to use authenticator name or display name in authenticationOptions-->
         <AuthenticatorNameInAuthConfig>

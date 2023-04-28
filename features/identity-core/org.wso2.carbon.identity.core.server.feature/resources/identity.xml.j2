@@ -57,6 +57,9 @@
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>{{session_data.cleanup.expire_pre_session_data_after}}</CleanUpTimeout>
             </TempDataCleanup>
+            <SessionAndTempDataSeparation>
+                <Enable>{{session_data.session_data_persist.session_and_temp_data_separation_enabled.enable}}</Enable>
+            </SessionAndTempDataSeparation>
             <UserSessionMapping>
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
@@ -455,6 +458,15 @@
         </SupportedGrantTypes>
 
         <!--
+            Defines the grant types which are supported for a client to be authorized as a public client.
+        -->
+        <PublicClientSupportedGrantTypes>
+        {% for grantTypeName in oauth.public_client_support.grant_type_names %}
+            <GrantTypeName>{{grantTypeName}}</GrantTypeName>
+        {% endfor %}
+        </PublicClientSupportedGrantTypes>
+
+        <!--
             Defines the grant types that will filter user claims based on user consent in their responses such as
             id_token or user info response.
 
@@ -489,12 +501,12 @@
            {% for callback_handler in oauth.extensions.callback_handlers %}
               <OAuthCallbackHandler Class="{{callback_handler.class}}">
                 {% if callback_handler.priority is defined %}
-                    <Priority Value="{{callback_handler.priority}}"/>
+                    <Priority>{{callback_handler.priority}}</Priority>
                 {% endif %}
                 {% if callback_handler.properties is defined %}
                   <Properties>
                     {% for key,value in callback_handler.properties.items() %}
-                      <Properties> name="{{key}}">{{value}} </Properties>
+                      <Property Name="{{key}}">{{value}}</Property>
                     {% endfor %}
                   </Properties>
                  {% endif %}
@@ -899,6 +911,21 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+
+        {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
+        <JWT>
+            <RenewTokenWithoutRevokingExisting>
+                <Enable>{{oauth.jwt.renew_token_without_revoking_existing.enable}}</Enable>
+                {% if oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types is defined %}
+                <AllowedGrantTypes>
+                    {% for allowed_grant_type in oauth.jwt.renew_token_without_revoking_existing.allowed_grant_types %}
+                    <AllowedGrantType>{{allowed_grant_type}}</AllowedGrantType>
+                    {% endfor %}
+                </AllowedGrantTypes>
+                {% endif %}
+            </RenewTokenWithoutRevokingExisting>
+        </JWT>
+        {% endif %}
     </OAuth>
 
     <RestApiAuthentication>
@@ -1001,6 +1028,7 @@
         <RetryURL>{{passive_sts.endpoints.retry}}</RetryURL>
         <TokenStoreClassName>{{passive_sts.token_store_class}}</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>{{passive_sts.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
+        <DisableAppliesToInPassiveSTSResponse>{{passive_sts.disable_applies_to_in_response}}</DisableAppliesToInPassiveSTSResponse>
     </PassiveSTS>
 
     <EntitlementSettings>
@@ -1216,6 +1244,8 @@
             <ExpiryTime>{{identity_mgt.password_reset_by_admin.code_validity_period}}</ExpiryTime>
         </AdminPasswordReset>
         <NotifyUserExistence>{{identity_mgt.recovery.notify_user_existence}}</NotifyUserExistence>
+        <!-- Whether to notify if the email is not found for the user in the recovery flow by showing an error page. -->
+        <NotifyRecoveryEmailExistence>{{identity_mgt.recovery.notify_recovery_email_existence}}</NotifyRecoveryEmailExistence>
         <!--Whether to notify the user if the user account is locked/disabled-->
         <NotifyUserAccountStatus>{{identity_mgt.recovery.notify_user_account_status}}</NotifyUserAccountStatus>
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
@@ -2455,6 +2485,10 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/admin-advisory-management/banner" secured="false" http-method="GET">
+            <Permissions>none</Permissions>
+            <Scopes>none</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
@@ -2467,7 +2501,7 @@
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/userstores" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/userstore/config/create</Permissions>
             <Scopes>internal_userstore_create</Scopes>
         </Resource>
@@ -2699,6 +2733,7 @@
         </Resource>
         <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/longwaitstatus(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/registry/resourceContent(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/registry/resource(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/registry/tags(.*)" secured="false" http-method="all"/>
@@ -2829,6 +2864,7 @@
                     <Path>/api/server/v1/branding-preference</Path>
                     <Path>/api/server/v1/validation-rules</Path>
                     <Path>/api/users/v1/([^/]+)/sessions</Path>
+                    <Path>/api/server/v1/admin-advisory-management</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2854,6 +2890,7 @@
             <Context>/commonauth(.*)</Context>
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
+            <Context>/longwaitstatus(.*)</Context>
         </Servlet>
     </OrgContextsToRewrite>
 
@@ -2907,6 +2944,15 @@
         <HTTPReadTimeout>{{authentication.adaptive.http_connections.read_timeout}}</HTTPReadTimeout>
         <HTTPConnectionRequestTimeout>{{authentication.adaptive.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
         <!--End of default configs for timeouts-->
+
+        <!--Timeouts for callChore token call and adaptive endpoint-->
+        <!--Default timeout in milliseconds-->
+        <CallChoreo>
+          <HTTPConnectionTimeout>{{authentication.adaptive.call_choreo.http_connections.connection_timeout}}</HTTPConnectionTimeout>
+          <HTTPReadTimeout>{{authentication.adaptive.call_choreo.http_connections.read_timeout}}</HTTPReadTimeout>
+          <HTTPConnectionRequestTimeout>{{authentication.adaptive.call_choreo.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
+        </CallChoreo>
+        <!--End of default configs for callChore timeouts-->
 
         <RefreshInterval>{{authentication.adaptive.long_wait.page_refresh_interval}}</RefreshInterval>
         <!--End of timeouts in milliseconds-->

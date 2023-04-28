@@ -126,8 +126,21 @@ public interface ApplicationDAO {
      * @param applicationId ID of an application.
      * @return Authentication configurations.
      * @throws IdentityApplicationManagementException
+     * @deprecated use {@link #getConfiguredAuthenticators(String, String)} instead.
      */
+    @Deprecated
     LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get authenticators configured for an application.
+     *
+     * @param applicationId ID of an application.
+     * @param tenantDomain  Tenant Domain.
+     * @return Authentication configurations.
+     * @throws IdentityApplicationManagementException
+     */
+    LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**

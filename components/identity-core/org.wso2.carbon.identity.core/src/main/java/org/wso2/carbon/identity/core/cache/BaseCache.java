@@ -40,6 +40,7 @@ import javax.cache.Caching;
 
 /**
  * A base class for all cache implementations in Identity modules. This maintains  caches in the tenanted space.
+ * A copy of this class is maintained at org.wso2.carbon.identity.organization.management.service.cache component.
  *
  * @param <K> cache key type.
  * @param <V> cache value type.

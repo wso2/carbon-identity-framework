@@ -18,9 +18,14 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.utils;
 
+import org.wso2.carbon.identity.input.validation.mgt.model.handlers.PasswordValidationConfigurationHandler;
+import org.wso2.carbon.identity.input.validation.mgt.model.handlers.UsernameValidationConfigurationHandler;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
@@ -37,11 +42,20 @@ public class Constants {
                 add(PASSWORD);
                 add(USERNAME);
             }});
+    public static final Map<String, String> FIELD_VALIDATION_CONFIG_HANDLER_MAP =
+            Collections.unmodifiableMap(new HashMap<String, String>() {{
+                put(USERNAME, UsernameValidationConfigurationHandler.class.getSimpleName());
+                put(PASSWORD, PasswordValidationConfigurationHandler.class.getSimpleName());
+            }});
+    public static final String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
 
     /**
      * Class contains the configuration related constants.
      */
     public static class Configs {
+
+        // Validator names.
+        public static final String EMAIL_FORMAT_VALIDATOR = "EmailFormatValidator";
 
         // Keys for password rules validation.
         public static final String ERROR_CODE_PREFIX = "INM-";

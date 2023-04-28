@@ -22,6 +22,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
@@ -40,6 +41,8 @@ import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -76,6 +79,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
@@ -84,6 +89,7 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -97,6 +103,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -128,6 +135,7 @@ import javax.xml.transform.stream.StreamResult;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_FOUND;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
@@ -650,6 +658,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     .isManagementApp();
             serviceProvider.setManagementApp(isManagementApp);
 
+            // Updating the isB2BSelfService flag of application is blocked, thus set it to stored value
+            serviceProvider.setB2BSelfServiceApp(appDAO.getApplication(serviceProvider.getApplicationID())
+                    .isB2BSelfServiceApp());
+
             doPreUpdateChecks(storedAppName, serviceProvider, tenantDomain, username);
             appDAO.updateApplication(serviceProvider, tenantDomain);
             if (isOwnerUpdatedInRequest(serviceProvider)) {
@@ -871,6 +883,23 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } finally {
             endTenantFlow();
         }
+    }
+
+    @Override
+    public ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, String tenantDomain,
+                                                                     Integer limit, Integer offset)
+            throws IdentityApplicationManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
+            throw new IdentityApplicationManagementClientException(INVALID_TENANT_DOMAIN.getCode(),
+                   "Invalid tenant domain: " + tenantDomain);
+        }
+        validateResourceId(authenticatorId, tenantDomain);
+        IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
+        ConnectedAppsResult connectedAppsOfLocalAuthenticator = idpdao
+                .getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId, limit, offset);
+        return connectedAppsOfLocalAuthenticator;
     }
 
     @Override
@@ -1285,6 +1314,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return serviceProvider;
     }
 
+    /**
+     * Import Service Provider application from file.
+     *
+     * @param spFileContent XML string of the Service Provider and file name.
+     * @param tenantDomain  Tenant Domain name.
+     * @param username      User performing the operation.
+     * @param isUpdate      Whether to update an existing Service Provider or create a new one.
+     * @return ImportResponse
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
     public ImportResponse importSPApplication(SpFileContent spFileContent, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
@@ -1303,6 +1342,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return importResponse;
     }
 
+    /**
+     * Import Service Provider application from object.
+     *
+     * @param serviceProvider Service Provider object.
+     * @param tenantDomain    Tenant Domain name.
+     * @param username        User performing the operation.
+     * @param isUpdate        Whether to update an existing Service Provider or create a new one.
+     * @return ImportResponse
+     * @throws IdentityApplicationManagementException
+     */
     public ImportResponse importSPApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
                                               boolean isUpdate) throws IdentityApplicationManagementException {
 
@@ -1318,6 +1367,40 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return importResponse;
+    }
+
+    private void validateResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (StringUtils.isEmpty(resourceId)) {
+            String message = "Invalid argument: Authenticator resource ID value is empty";
+            throw new IdentityApplicationManagementClientException(message);
+        }
+        String authenticatorName = new String(Base64.getUrlDecoder().decode(resourceId), StandardCharsets.UTF_8);
+        int filteredCount = 0;
+        try {
+            startTenantFlow(tenantDomain);
+            IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
+            List<LocalAuthenticatorConfig> localAuthenticators = idpdao.getAllLocalAuthenticators();
+            if (localAuthenticators != null) {
+                filteredCount = (int) localAuthenticators.stream()
+                        .filter(authenticatorConfig ->
+                                authenticatorConfig.getName()
+                                        .equals(authenticatorName)).count();
+            }
+        } catch (IdentityApplicationManagementException e) {
+            throw new IdentityApplicationManagementException(
+                    String.format(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_GET_CONNECTED_APPS_REQUEST_INVALID.getMessage(), resourceId));
+        } finally {
+            endTenantFlow();
+        }
+
+        if (filteredCount == 0) {
+            throw new IdentityApplicationManagementClientException(Error.AUTHENTICATOR_NOT_FOUND.getCode(),
+                    String.format(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_IDP_DOES_NOT_EXIST.getMessage(), resourceId));
+        }
     }
 
     private ImportResponse importApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
@@ -1409,36 +1492,94 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return importResponse;
     }
 
+    /**
+     * Export Service Provider application using application ID.
+     *
+     * @param applicationId ID of the Service Provider.
+     * @param exportSecrets Whether to export the secrets or not.
+     * @param tenantDomain  Tenant domain name.
+     * @return XML string of the Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
     @Override
     public String exportSPApplicationFromAppID(String applicationId, boolean exportSecrets,
                                                String tenantDomain) throws IdentityApplicationManagementException {
 
+        ServiceProvider serviceProvider = exportSPFromAppID(applicationId, exportSecrets, tenantDomain);
+        return marshalSP(serviceProvider, tenantDomain);
+    }
+
+    /**
+     * Export Service Provider application using application ID.
+     *
+     * @param applicationId ID of the Service Provider.
+     * @param exportSecrets Whether to export the secrets or not.
+     * @param tenantDomain  Tenant domain name.
+     * @return Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
+    @Override
+    public ServiceProvider exportSPFromAppID(String applicationId, boolean exportSecrets,
+                                               String tenantDomain) throws IdentityApplicationManagementException {
+
         ApplicationBasicInfo application = getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
+
         if (application == null) {
             throw buildClientException(APPLICATION_NOT_FOUND, "Application could not be found " +
                     "for the provided resourceId: " + applicationId);
         }
+
         String appName = application.getApplicationName();
+
         try {
             startTenantFlow(tenantDomain);
-            return exportSPApplication(appName, exportSecrets, tenantDomain);
+            return exportSP(appName, exportSecrets, tenantDomain);
         } finally {
             endTenantFlow();
         }
+
     }
 
+    /**
+     * Export Service Provider application.
+     *
+     * @param applicationName Name of the Service Provider.
+     * @param exportSecrets   Whether to export the secrets or not.
+     * @param tenantDomain    Tenant domain name.
+     * @return XML string of the Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
     public String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        ServiceProvider serviceProvider = exportSP(applicationName, exportSecrets, tenantDomain);
+        return marshalSP(serviceProvider, tenantDomain);
+    }
+
+    /**
+     * Export Service Provider application.
+     *
+     * @param applicationName Name of the Service Provider.
+     * @param exportSecrets   Whether to export the secrets or not.
+     * @param tenantDomain    Tenant domain name.
+     * @return Service Provider.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
+    public ServiceProvider exportSP(String applicationName, boolean exportSecrets, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
-        // invoking the listeners
+        ServiceProvider serviceProviderCopy = SerializationUtils.clone(serviceProvider);
+
+        // Invoking the listeners.
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.doExportServiceProvider(serviceProvider, exportSecrets);
+                listener.doExportServiceProvider(serviceProviderCopy, exportSecrets);
             }
         }
-        return marshalSP(serviceProvider, tenantDomain);
+
+        return serviceProviderCopy;
     }
 
     @Override
@@ -1589,12 +1730,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
+    public AuthenticationStep[] getConfiguredAuthenticators(String applicationID, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = appDAO
-                .getConfiguredAuthenticators(applicationID);
+                .getConfiguredAuthenticators(applicationID, tenantDomain);
 
         if (localAndOutboundAuthenticationConfig == null) {
             return null;
@@ -1608,6 +1749,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     .getAuthenticationSteps();
         }
         return authenticationSteps;
+    }
+
+    @Override
+    public AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
+            throws IdentityApplicationManagementException {
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return getConfiguredAuthenticators(applicationID, tenantDomain);
     }
 
     /**
@@ -2161,6 +2310,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
             Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.setListener(new Marshaller.Listener() {
+                @Override
+                public void beforeMarshal(Object source) {
+                    if (source instanceof InboundAuthenticationConfig) {
+                        InboundAuthenticationConfig config = (InboundAuthenticationConfig) source;
+                        for (InboundAuthenticationRequestConfig requestConfig
+                                : config.getInboundAuthenticationRequestConfigs()) {
+                            requestConfig.setInboundConfigurationProtocol(null);
+                        }
+                    }
+                }
+            });
             DocumentBuilderFactory docBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
             Document document = docBuilderFactory.newDocumentBuilder().newDocument();
             marshaller.marshal(serviceProvider, document);
