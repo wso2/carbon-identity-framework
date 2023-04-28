@@ -36,7 +36,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
- * A service to terminate the sessions of federated users
+ * A service to terminate the sessions of federated users.
  */
 public class ServerSessionManagementServiceImpl implements ServerSessionManagementService {
 
@@ -58,10 +58,10 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
     }
 
     /**
-     * Terminate the session by sessionId
+     * Terminate the session by sessionId.
      *
-     * @param sessionContext - session context for the sessionId
-     * @param sessionId - Session id of the federated user
+     * @param sessionContext - session context for the sessionId.
+     * @param sessionId - Session id of the federated user.
      */
     private void terminateSession(SessionContext sessionContext, String sessionId) {
 

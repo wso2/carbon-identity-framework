@@ -562,6 +562,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (longWaitStatus == null || longWaitStatus.getStatus() == LongWaitStatus.Status.UNKNOWN) {
             //This is a initiation of long wait
             longWaitStatus = new LongWaitStatus();
+            longWaitStatus.setStatus(LongWaitStatus.Status.WAITING);
             int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
             longWaitStatusStoreService.addWait(tenantId, context.getContextIdentifier(), longWaitStatus);
             isWaiting = callExternalSystem(request, response, context, sequenceConfig, longWaitNode);
