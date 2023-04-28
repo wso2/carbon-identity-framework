@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.internal;
 
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
@@ -30,9 +31,21 @@ import java.util.Map;
  */
 public class InputValidationDataHolder {
 
+    private static InputValidationDataHolder instance = new InputValidationDataHolder();
     private static ConfigurationManager configurationManager = null;
+    private ClaimMetadataManagementService claimMetadataManagementService;
     private static Map<String, Validator> validators = new HashMap<>();
     private static Map<String, FieldValidationConfigurationHandler> validationConfigurationHandlers = new HashMap<>();
+
+    /**
+     * Get InputValidationDataHolder instance.
+     *
+     * @return InputValidationDataHolder.
+     */
+    public static InputValidationDataHolder getInstance() {
+
+        return instance;
+    }
 
     /**
      * Get Configuration Manager.
@@ -62,5 +75,25 @@ public class InputValidationDataHolder {
     public static Map<String, FieldValidationConfigurationHandler> getFieldValidationConfigurationHandlers() {
 
         return validationConfigurationHandlers;
+    }
+
+    /**
+     * Get claim metadata management service.
+     *
+     * @return claim metadata management service.
+     */
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return claimMetadataManagementService;
+    }
+
+    /**
+     * Set claim metadata management service.
+     *
+     * @param claimMetadataManagementService    Claim metadata management service.
+     */
+    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 }

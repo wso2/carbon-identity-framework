@@ -46,6 +46,7 @@ import java.util.function.Supplier;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.ACCOUNT_RECOVERY_ENDPOINT_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_ERROR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_RETRY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_WAIT;
@@ -195,6 +196,12 @@ public class ConfigurationFacade {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_RETRY,
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointRetryURL);
+    }
+
+    public String getAuthenticationEndpointErrorURL() {
+
+        return buildUrl(AUTHENTICATION_ENDPOINT_ERROR,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointErrorURL);
     }
 
     public String getAuthenticationEndpointWaitURL() {

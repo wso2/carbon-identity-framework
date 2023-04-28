@@ -97,6 +97,8 @@ public class IdentityApplicationConstants {
     public static final String ISSUER_SP_PROPERTY_NAME = "issuer";
     public static final String TEMPLATE_ID_SP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME = "Template Id";
+    public static final String IS_B2B_SS_APP_SP_PROPERTY_NAME = "isB2BSelfServiceApp";
+    public static final String IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME = "Is B2B Self Service Application";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_NAME = "isManagementApp";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME = "Is Management Application";
     public static final String ADVANCED_CONFIG = "advancedConfigurations";
@@ -602,7 +604,9 @@ public class IdentityApplicationConstants {
         APPLICATION_NOT_FOUND("60006"),
         APPLICATION_ALREADY_EXISTS("60007"),
         OPERATION_FORBIDDEN("60008"),
-        INBOUND_KEY_ALREADY_EXISTS("60009");
+        INBOUND_KEY_ALREADY_EXISTS("60009"),
+        INVALID_TENANT_DOMAIN("60010"),
+        AUTHENTICATOR_NOT_FOUND("60011");
 
         private final String code;
         private static final String APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX = "APP-";

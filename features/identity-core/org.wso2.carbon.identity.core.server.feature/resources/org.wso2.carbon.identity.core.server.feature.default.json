@@ -25,6 +25,7 @@
   "session_data.cleanup.clean_expired_session_data_in_chunks_of": "8192",
   "session_data.cleanup.clean_logged_out_sessions_at_immediate_cycle": true,
   "session_data.cleanup.enable_pre_session_data_cleanup": true,
+  "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": false,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session.nonce.cookie.enabled": true,
   "session.authentication.context.expiry.validation": true,
@@ -249,6 +250,7 @@
 
   "passive_sts.token_store_class": "org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore",
   "passive_sts.slo.host_name_verification": true,
+  "passive_sts.disable_applies_to_in_response": false,
 
   "passive_sts.endpoints.idp": "$ref{server.base_path}/passivests",
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
@@ -284,6 +286,7 @@
   "identity_mgt.recovery.enable_detailed_error_messages": false,
   "identity_mgt.recovery.enable_auto_login": false,
   "identity_mgt.recovery.notify_user_existence": false,
+  "identity_mgt.recovery.notify_recovery_email_existence": false,
   "identity_mgt.recovery.notify_user_account_status": false,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
@@ -584,7 +587,8 @@
     "/oidc/",
     "/samlsso(.*)",
     "/samlartresolve",
-    "/passivests"
+    "/passivests",
+    "/longwaitstatus(.*)"
   ],
   "tenant_context.rewrite.overwrite.dispatch": ["/myaccount/", "/console/"],
   "tenant_context.rewrite.overwrite.ignore_dispatch_path": [

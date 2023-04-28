@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -41,6 +42,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "LocalAuthenticatorConfig")
+@JsonIgnoreProperties(value = {"valid"})
 public class LocalAuthenticatorConfig implements Serializable {
 
     private static final long serialVersionUID = 3363298518257599291L;

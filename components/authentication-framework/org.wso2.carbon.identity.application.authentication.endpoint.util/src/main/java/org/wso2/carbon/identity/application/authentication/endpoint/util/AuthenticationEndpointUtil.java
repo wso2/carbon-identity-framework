@@ -460,8 +460,8 @@ public class AuthenticationEndpointUtil {
     /**
      * Resolve "${tenantDomain}" in the URL.
      *
-     * @param   url URL to be tenant resolved
-     * @return  Tenant resolved URL
+     * @param   url URL to be tenant resolved.
+     * @return  Tenant resolved URL.
      */
     public static String resolveTenantDomain(String url) {
 
