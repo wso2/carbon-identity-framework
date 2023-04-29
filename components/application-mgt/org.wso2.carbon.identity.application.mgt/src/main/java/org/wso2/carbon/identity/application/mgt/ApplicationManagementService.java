@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
 import java.util.Collections;
 import java.util.List;
@@ -172,6 +173,21 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public abstract LocalAuthenticatorConfig[] getAllLocalAuthenticators(String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get connected applications for a local authenticator.
+     *
+     * @param authenticatorId   Authenticator ID.
+     * @param tenantDomain      Tenant domain.
+     * @param limit             Counting limit.
+     * @param offset            Starting index of the count.
+     * @return Connected Apps   List of connected applications.
+     * @throws IdentityApplicationManagementException If an error occurred when retrieving connected applications.
+     */
+    public abstract ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId,
+                                                                              String tenantDomain, Integer limit,
+                                                                              Integer offset)
             throws IdentityApplicationManagementException;
 
     /**
