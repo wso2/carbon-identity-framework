@@ -138,7 +138,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig());
         }
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
-            validateUseExternalConsentPage(validationErrors, serviceProvider);
+            validateUseExternalConsentPage(validationErrors, serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                    .isUseExternalConsentPage(), tenantDomain);
         }
 
         return validationErrors;
@@ -284,19 +285,18 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
     /** Validate external consent page related configurations and append to the validation msg list.
      *
-     * @param validationMsg     validation error messages
-     * @param serviceProvider   Service Provider
+     * @param validationMsg                validation error messages
+     * @param isUseExternalConsentPage     whether use external consent page
+     * @param tenantDomain                 tenant domain
      */
-    private void validateUseExternalConsentPage(List<String> validationMsg, ServiceProvider serviceProvider) {
+    private void validateUseExternalConsentPage(List<String> validationMsg, Boolean isUseExternalConsentPage,
+                                                String tenantDomain) {
 
-        boolean isUseExternalConsentPage = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                .isUseExternalConsentPage();
         if (!isUseExternalConsentPage) {
             return;
         }
         try {
-            String externalConsentPageUrl = ApplicationMgtUtil.resolveExternalConsentPageUrl(
-                    serviceProvider.getTenantDomain());
+            String externalConsentPageUrl = ApplicationMgtUtil.resolveExternalConsentPageUrl(tenantDomain);
         } catch (IdentityApplicationManagementException e) {
             String errorMsg = String.format(EXTERNAL_CONSENT_PAGE_URL_NOT_AVAILABLE);
             log.error(errorMsg, e);

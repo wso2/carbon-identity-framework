@@ -42,7 +42,7 @@ import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
-import org.wso2.carbon.identity.consent.mgt.server.configs.exceptions.ConsentMgtServerConfigsException;
+import org.wso2.carbon.identity.consent.server.configs.mgt.exceptions.ConsentServerConfigsMgtException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -967,9 +967,9 @@ public class ApplicationMgtUtil {
         String externalConsentPageUrl = "";
         try {
             externalConsentPageUrl = ApplicationManagementServiceComponentHolder.
-                    getConsentManagementServerConfigsService().getExternalConsentPageUrl(tenantDomain);
+                    getConsentServerConfigsManagementService().getExternalConsentPageUrl(tenantDomain);
 
-        } catch (ConsentMgtServerConfigsException e) {
+        } catch (ConsentServerConfigsMgtException e) {
             throw new IdentityApplicationManagementClientException("Error while retrieving external consent page url " +
                     "from the configuration store for tenant domain : " + tenantDomain, e);
         }
