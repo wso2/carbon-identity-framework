@@ -21,7 +21,7 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
-import org.wso2.carbon.identity.consent.mgt.server.configs.services.ConsentManagementServerConfigsService;
+import org.wso2.carbon.identity.consent.server.configs.mgt.services.ConsentServerConfigsManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.registry.api.RegistryService;
@@ -61,7 +61,7 @@ public class ApplicationManagementServiceComponentHolder {
 
     private boolean isOrganizationManagementEnable = false;
 
-    private static ConsentManagementServerConfigsService consentManagementServerConfigsService;
+    private static ConsentServerConfigsManagementService consentServerConfigsManagementService;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -254,24 +254,24 @@ public class ApplicationManagementServiceComponentHolder {
     }
 
     /**
-     * Get Consent Management Server Configs Service.
+     * Get Consent Server Configs Management Service.
      *
-     * @return Consent Management Server Configs Service.
+     * @return Consent Server Configs Management Service.
      */
-    public static ConsentManagementServerConfigsService getConsentManagementServerConfigsService() {
+    public static ConsentServerConfigsManagementService getConsentServerConfigsManagementService() {
 
-        return ApplicationManagementServiceComponentHolder.consentManagementServerConfigsService;
+        return ApplicationManagementServiceComponentHolder.consentServerConfigsManagementService;
     }
 
     /**
-     * Set Consent Management Server Configs Service.
+     * Set Consent Server Configs Management Service.
      *
-     * @param consentManagementServerConfigsService Consent Management Server Configs Service.
+     * @param consentServerConfigsManagementService Consent Server Configs Management Service.
      */
-    public static void setConsentManagementServerConfigsService(ConsentManagementServerConfigsService
-                                                                        consentManagementServerConfigsService) {
+    public static void setConsentServerConfigsManagementService(ConsentServerConfigsManagementService
+                                                                        consentServerConfigsManagementService) {
 
-        ApplicationManagementServiceComponentHolder.consentManagementServerConfigsService =
-                consentManagementServerConfigsService;
+        ApplicationManagementServiceComponentHolder.consentServerConfigsManagementService =
+                consentServerConfigsManagementService;
     }
 }
