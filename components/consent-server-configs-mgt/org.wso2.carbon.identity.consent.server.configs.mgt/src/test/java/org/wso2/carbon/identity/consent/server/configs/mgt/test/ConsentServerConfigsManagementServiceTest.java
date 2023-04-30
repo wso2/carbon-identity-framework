@@ -100,5 +100,4 @@ public class ConsentServerConfigsManagementServiceTest {
         return resources;
     }
 
-
 }
