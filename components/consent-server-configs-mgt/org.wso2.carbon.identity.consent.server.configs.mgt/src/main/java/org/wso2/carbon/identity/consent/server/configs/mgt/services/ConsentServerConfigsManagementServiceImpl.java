@@ -112,7 +112,7 @@ public class ConsentServerConfigsManagementServiceImpl implements ConsentServerC
                 }
             }
 
-            return resourceAttributes;
+           return resourceAttributes;
         } catch (ConfigurationManagementException e) {
             throw new ConsentServerConfigsMgtServerException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(),
                     String.format(ERROR_GETTING_EXISTING_CONFIGURATIONS.getMessage(), tenantDomain));

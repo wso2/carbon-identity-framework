@@ -28,7 +28,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.consent.server.configs.mgt</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon Identity- Consent Server Configs Mgt</name>
+    <name>WSO2 Carbon Identity - Consent Server Configs Mgt</name>
     <description>A custom wso2 products or solution</description>
     <url>http://wso2.org</url>
     <dependencies>
