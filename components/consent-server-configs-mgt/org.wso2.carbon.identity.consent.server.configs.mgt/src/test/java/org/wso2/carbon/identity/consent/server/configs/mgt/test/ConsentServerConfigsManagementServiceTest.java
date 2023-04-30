@@ -99,6 +99,6 @@ public class ConsentServerConfigsManagementServiceTest {
         resources.setResources(resourceList);
         return resources;
     }
-    
+
 
 }
