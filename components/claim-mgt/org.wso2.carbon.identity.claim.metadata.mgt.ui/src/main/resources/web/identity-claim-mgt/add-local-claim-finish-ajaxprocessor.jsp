@@ -63,6 +63,11 @@
     String required = request.getParameter("requiredhidden");
     String readonly = request.getParameter("readonlyhidden");
 
+    if (request.getParameterMap().size() < numberOfAttributeMappings + numberOfClaimProperties) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        return;
+    }
+
     List<AttributeMappingDTO> attributeMappings = new ArrayList();
 
     for (int i = 0; i < numberOfAttributeMappings; i++) {

@@ -49,6 +49,11 @@
             }
             int defaultProperties = Integer.parseInt(request.getParameter("defaultProperties").replaceAll("[\\D]", ""));    //number of default properties
 
+            if (request.getParameterMap().size() < defaultProperties) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+
             UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = null;
             try{
             	

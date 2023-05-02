@@ -138,6 +138,11 @@
             maxRows = maxEnvironmentRow;
         }
 
+        if (request.getParameterMap().size() < maxRows) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
         for(int rowNumber = 0; rowNumber < maxRows + 1; rowNumber++){
 
             SimplePolicyEditorElementDTO elementDTO = new SimplePolicyEditorElementDTO();
