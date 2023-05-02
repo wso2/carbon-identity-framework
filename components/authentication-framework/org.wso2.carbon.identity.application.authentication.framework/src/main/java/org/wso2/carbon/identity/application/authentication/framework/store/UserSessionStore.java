@@ -950,7 +950,6 @@ public class UserSessionStore {
         }
     }
 
-
     /**
      * Update session details of a given session context key to map the current session context key with
      * the federated IdP's session ID.
@@ -1094,7 +1093,7 @@ public class UserSessionStore {
      * @return True if a federated auth session found with the given session index.
      * @throws UserSessionException If an error occurred while checking for an federated auth session.
      */
-    public boolean hasExistingFederatedAuthSession(String idpSessionIndex, int tenantId)
+    public boolean isExistingFederatedAuthSessionAvailable(String idpSessionIndex, int tenantId)
             throws UserSessionException {
 
         boolean isExisting = false;

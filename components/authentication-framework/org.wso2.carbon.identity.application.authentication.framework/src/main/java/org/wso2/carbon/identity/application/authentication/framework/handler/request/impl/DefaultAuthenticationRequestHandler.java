@@ -670,7 +670,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         UserSessionStore userSessionStore = UserSessionStore.getInstance();
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if (!userSessionStore.hasExistingFederatedAuthSession(authHistory.getIdpSessionIndex(), tenantId)) {
+        if (!userSessionStore.isExistingFederatedAuthSessionAvailable(authHistory.getIdpSessionIndex(), tenantId)) {
             userSessionStore.storeFederatedAuthSessionInfo(sessionContextKey, authHistory, tenantId);
         } else {
             if (log.isDebugEnabled()) {
