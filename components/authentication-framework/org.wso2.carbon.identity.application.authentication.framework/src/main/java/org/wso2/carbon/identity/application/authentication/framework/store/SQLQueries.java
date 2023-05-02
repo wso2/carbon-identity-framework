@@ -214,7 +214,7 @@ public class SQLQueries {
     public static final String SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID_WITH_IDP_ID = "SELECT SESSION_ID " +
             "FROM IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ? AND IDP_ID = ?";
 
-    // Get federated authentication session id using the idp session id.
+    // Get federated authentication session id using the idp session id, tenant id and idp id.
     public static final String SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID_WITH_TENANT_AND_IDP_ID = "SELECT " +
             "SESSION_ID FROM IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ? AND TENANT_ID = ? AND IDP_ID = ?";
 
