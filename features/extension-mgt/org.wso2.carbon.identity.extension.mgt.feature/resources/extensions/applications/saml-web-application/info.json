@@ -1,0 +1,10 @@
+{
+    "id": "saml-web-application",
+    "name": "SAML",
+    "description": "Regular web application that uses redirection within the browser.",
+    "image": "saml",
+    "displayOrder": 2,
+    "category": "DEFAULT",
+    "tags": [ "java", "dotNet", "saml" ],
+    "type": "web-applications"
+}

@@ -1,0 +1,39 @@
+{
+    "category": "DEFAULT",
+    "description": "Enterprise login via standard protocols",
+    "displayOrder": 5,
+    "id": "enterprise-idp",
+    "idp": {
+        "certificate": {},
+        "claims": {
+            "provisioningClaims": [],
+            "roleClaim": {
+                "uri": ""
+            },
+            "userIdClaim": {
+                "uri": ""
+            }
+        },
+        "description": "",
+        "federatedAuthenticators": {
+            "authenticators": [],
+            "defaultAuthenticatorId": ""
+        },
+        "homeRealmIdentifier": "",
+        "image": "",
+        "isFederationHub": false,
+        "isPrimary": false,
+        "name": "Enterprise Authentication Provider",
+        "provisioning": {},
+        "roles": {
+            "mappings": [],
+            "outboundProvisioningRoles": []
+        }
+    },
+    "image": "enterprise",
+    "name": "Enterprise",
+    "services": [],
+    "disabled": false,
+    "templateId": "enterprise-idp",
+    "type": "ENTERPRISE"
+}
