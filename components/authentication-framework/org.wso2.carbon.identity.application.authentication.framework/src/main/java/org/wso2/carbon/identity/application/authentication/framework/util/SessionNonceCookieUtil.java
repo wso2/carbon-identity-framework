@@ -30,8 +30,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
-
 /**
  * Handles session nonce cookie.
  * Session nonce cookie helps to mitigate the session hijacking.
