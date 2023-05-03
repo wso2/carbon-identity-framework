@@ -1899,7 +1899,7 @@
 
     <EnableSessionNonceCookie>{{session.nonce.cookie.enabled}}</EnableSessionNonceCookie>
 
-    {% if session.nonce.cookies.whitelist.authenticators is defined %}
+    {% if session.nonce.cookie.whitelist.authenticators is defined %}
         <SessionNonceCookie>
             {% for whitelist_authenticator in  session.nonce.cookies.whitelist.authenticators %}
             <WhitelistedAuthenticator>{{whitelist_authenticator.name}}</WhitelistedAuthenticator>
