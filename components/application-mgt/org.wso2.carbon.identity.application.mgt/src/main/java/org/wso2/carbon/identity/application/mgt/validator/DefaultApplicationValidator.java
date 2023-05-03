@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.common.model.script.AuthenticationSc
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
@@ -92,6 +93,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     private static final String GROUPS_ARE_PROHIBITED_FOR_ROLE_MAPPING = "Groups including: %s, are " +
             "prohibited for role mapping. Use roles instead.";
+    private static final String EXTERNAL_CONSENT_PAGE_URL_NOT_AVAILABLE =
+            "External consent page URL is not available in the server to enable external consent page.";
     public static final String IS_HANDLER = "IS_HANDLER";
     private static Pattern loopPattern;
     private static final int MODE_DEFAULT = 1;
@@ -133,6 +136,10 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         if (isAuthenticationScriptAvailableConfig(serviceProvider)) {
             validateAdaptiveAuthScript(validationErrors,
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig());
+        }
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
+            validateUseExternalConsentPage(validationErrors, serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                    .isUseExternalConsentPage(), tenantDomain);
         }
 
         return validationErrors;
@@ -273,6 +280,27 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
         if (!isAuthenticatorIncluded.get()) {
             validationMsg.add("No authenticator have been registered in the authentication flow.");
+        }
+    }
+
+    /** Validate external consent page related configurations and append to the validation msg list.
+     *
+     * @param validationMsg                validation error messages
+     * @param isUseExternalConsentPage     whether use external consent page
+     * @param tenantDomain                 tenant domain
+     */
+    private void validateUseExternalConsentPage(List<String> validationMsg, Boolean isUseExternalConsentPage,
+                                                String tenantDomain) {
+
+        if (!isUseExternalConsentPage) {
+            return;
+        }
+        try {
+            String externalConsentPageUrl = ApplicationMgtUtil.resolveExternalConsentPageUrl(tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            String errorMsg = String.format(EXTERNAL_CONSENT_PAGE_URL_NOT_AVAILABLE);
+            log.error(errorMsg, e);
+            validationMsg.add(errorMsg);
         }
     }
 
