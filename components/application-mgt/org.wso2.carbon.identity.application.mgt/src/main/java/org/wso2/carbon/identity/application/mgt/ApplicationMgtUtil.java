@@ -42,7 +42,6 @@ import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
-import org.wso2.carbon.identity.consent.server.configs.mgt.exceptions.ConsentServerConfigsMgtException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -952,28 +951,5 @@ public class ApplicationMgtUtil {
             log.error("Error while converting service provider object to json.");
         }
         return StringUtils.EMPTY;
-    }
-
-    /**
-     * Get the external consent page url configured for the tenant domain.
-     *
-     * @param tenantDomain Tenant Domain.
-     * @return External consent page url.
-     * @throws IdentityApplicationManagementClientException IdentityApplicationManagementClientException.
-     */
-    public static String resolveExternalConsentPageUrl(String tenantDomain) throws
-            IdentityApplicationManagementClientException {
-
-        String externalConsentPageUrl = "";
-        try {
-            externalConsentPageUrl = ApplicationManagementServiceComponentHolder.
-                    getConsentServerConfigsManagementService().getExternalConsentPageUrl(tenantDomain);
-
-        } catch (ConsentServerConfigsMgtException e) {
-            throw new IdentityApplicationManagementClientException("Error while retrieving external consent page url " +
-                    "from the configuration store for tenant domain : " + tenantDomain, e);
-        }
-
-        return externalConsentPageUrl;
     }
 }
