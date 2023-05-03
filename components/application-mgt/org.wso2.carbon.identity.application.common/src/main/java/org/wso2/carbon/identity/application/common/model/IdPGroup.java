@@ -40,7 +40,7 @@ public class IdPGroup implements Serializable {
 
     private static final long serialVersionUID = -2580928206017374295L;
     private static final String IDP_GROUP = "IdpGroup";
-    private static final String IDP_GROUPS_NAME = "IdpGroupsName";
+    private static final String IDP_GROUP_NAME = "IdpGroupName";
 
     @XmlElement(name = IDP_GROUP)
     private String idpGroupName = null;
@@ -55,7 +55,7 @@ public class IdPGroup implements Serializable {
         Iterator<?> iterator = idpGroupOM.getChildElements();
         while (iterator.hasNext()) {
             OMElement omElement = (OMElement) iterator.next();
-            if (omElement.getLocalName().equals(IDP_GROUPS_NAME)) {
+            if (omElement.getLocalName().equals(IDP_GROUP_NAME)) {
                 idpGroup.setIdpGroupName(omElement.getText());
             }
         }
