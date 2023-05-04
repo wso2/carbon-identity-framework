@@ -1,0 +1,49 @@
+{
+    "id": "mobile-application",
+    "templateId": "mobile-application",
+    "category": "DEFAULT",
+    "description": "Applications developed to target mobile devices.",
+    "enabled": true,
+    "displayOrder": 4,
+    "image": "oidcMobile",
+    "name": "Mobile Application",
+    "subTemplatesSectionTitle": "Technology",
+    "types": [
+        "android",
+        "ios"
+    ],
+    "authenticationProtocol": "oidc",
+    "application": {
+        "name": "",
+        "advancedConfigurations": {
+            "discoverableByEndUsers": false,
+            "skipLogoutConsent": true
+        },
+        "authenticationSequence": {
+            "type": "DEFAULT",
+            "steps": [
+                {
+                    "id": 1,
+                    "options": [
+                        {
+                            "idp": "LOCAL",
+                            "authenticator": "basic"
+                        }
+                    ]
+                }
+            ]
+        },
+        "inboundProtocolConfiguration": {
+            "oidc": {
+                "grantTypes": [
+                    "authorization_code"
+                ],
+                "pkce": {
+                    "mandatory": true,
+                    "supportPlainTransformAlgorithm": false
+                },
+                "publicClient": true
+            }
+        }
+    }
+}
