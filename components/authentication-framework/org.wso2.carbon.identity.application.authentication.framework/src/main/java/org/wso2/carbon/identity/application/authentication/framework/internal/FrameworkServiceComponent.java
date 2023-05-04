@@ -364,7 +364,9 @@ public class FrameworkServiceComponent {
 
         // Check whether the TENANT_ID column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
         FrameworkUtils.checkIfTenantIdColumnIsAvailableInFedAuthTable();
-
+        // Check whether the IDP_ID column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+        FrameworkUtils.checkIfIdpIdColumnIsAvailableInFedAuthTable();
+        
         // Set user session mapping enabled.
         FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
                 .isUserSessionMappingEnabled());
