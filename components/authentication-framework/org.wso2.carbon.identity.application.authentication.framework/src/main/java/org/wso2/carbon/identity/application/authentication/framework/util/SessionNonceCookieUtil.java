@@ -30,6 +30,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG;
+
 /**
  * Handles session nonce cookie.
  * Session nonce cookie helps to mitigate the session hijacking.
@@ -42,7 +44,7 @@ public class SessionNonceCookieUtil {
 
     private static Boolean nonceCookieConfig;
     private static final List<String> NONCE_COOKIE_WHITELISTED_AUTHENTICATORS = IdentityUtil.getPropertyAsList(
-            "SessionNonceCookie.WhitelistedAuthenticator");
+            NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG);
 
     /**
      * Get dynamic name for the nonce cookie
