@@ -28,6 +28,7 @@
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": false,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session.nonce.cookie.enabled": true,
+  "session.nonce.cookie.whitelist_authenticators": ["MagicLinkAuthenticator"],
   "session.authentication.context.expiry.validation": true,
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
