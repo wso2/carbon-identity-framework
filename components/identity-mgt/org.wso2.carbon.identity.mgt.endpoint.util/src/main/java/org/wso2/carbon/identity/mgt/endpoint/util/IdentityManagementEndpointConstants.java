@@ -39,15 +39,14 @@ public class IdentityManagementEndpointConstants {
     }
 
     public static final class ServiceEndpoints {
-        public static final String USER_REGISTRATION_SERVICE = "/UserRegistrationAdminService" +
-                                                               ".UserRegistrationAdminServiceHttpsSoap11Endpoint/";
-        public static final String USER_INFORMATION_RECOVERY_SERVICE = "/UserInformationRecoveryService" +
-                                                                       ".UserInformationRecoveryServiceHttpsSoap11Endpoint/";
-
-        public static final String USER_IDENTITY_MANAGEMENT_SERVICE = "/UserIdentityManagementAdminService" +
-                                                                      ".UserIdentityManagementAdminServiceHttpsSoap11Endpoint/";
-        public static final String IDENTITY_PROVIDER_MANAGEMENT_SERVICE = "/IdentityProviderMgtService" +
-                                                                      ".IdentityProviderMgtServiceHttpsSoap11Endpoint/";
+        public static final String USER_REGISTRATION_SERVICE = "/services/UserRegistrationAdminService" +
+                ".UserRegistrationAdminServiceHttpsSoap11Endpoint/";
+        public static final String USER_INFORMATION_RECOVERY_SERVICE = "/services/UserInformationRecoveryService" +
+                ".UserInformationRecoveryServiceHttpsSoap11Endpoint/";
+        public static final String USER_IDENTITY_MANAGEMENT_SERVICE = "/services/UserIdentityManagementAdminService" +
+                ".UserIdentityManagementAdminServiceHttpsSoap11Endpoint/";
+        public static final String IDENTITY_PROVIDER_MANAGEMENT_SERVICE = "/services/IdentityProviderMgtService" +
+                ".IdentityProviderMgtServiceHttpsSoap11Endpoint/";
     }
 
     public static final class PasswordRecoveryOptions {
