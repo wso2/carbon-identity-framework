@@ -39,6 +39,8 @@ public class AdminAdvisoryDataRetrievalClient {
 
     private static final Log LOG = LogFactory.getLog(AdminAdvisoryDataRetrievalClient.class);
     private static final String ADMIN_BANNER_API_RELATIVE_PATH = "/api/server/v1/admin-advisory-management/banner";
+    private static final String DEFAULT_BANNER_CONTENT = "Warning - unauthorized use of this tool is strictly " +
+            "prohibited. All activities performed using this tool are logged and monitored.";
 
     /**
      * Check for admin advisory banner configs in the given tenant.
@@ -53,14 +55,16 @@ public class AdminAdvisoryDataRetrievalClient {
 
             String uri = getAdminAdvisoryBannerEndpoint(tenant);
             HttpGet request = new HttpGet(uri);
-            JSONObject jsonResponse = new JSONObject();
 
             try (CloseableHttpResponse response = httpclient.execute(request)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    jsonResponse = new JSONObject(new JSONTokener(new InputStreamReader(response
+                    return new JSONObject(new JSONTokener(new InputStreamReader(response
                             .getEntity().getContent())));
                 }
-                return jsonResponse;
+                JSONObject defaultBanner = new JSONObject();
+                defaultBanner.put("enableBanner", false);
+                defaultBanner.put("bannerContent", DEFAULT_BANNER_CONTENT);
+                return defaultBanner;
             } finally {
                 request.releaseConnection();
             }
