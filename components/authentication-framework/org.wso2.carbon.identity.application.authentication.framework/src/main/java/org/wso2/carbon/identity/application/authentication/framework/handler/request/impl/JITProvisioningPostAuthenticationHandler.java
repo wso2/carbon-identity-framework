@@ -456,9 +456,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         }
 
         try {
-//            UserRealm realm = (UserRealm) FrameworkServiceDataHolder.getInstance().getRealmService()
-//                    .getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
-//            UserStoreManager userStoreManager = realm.getUserStoreManager();
             UserRealm realm = getUserRealm(context.getTenantDomain());
             UserStoreManager userStoreManager = getUserStoreManager(context.getExternalIdP()
                     .getProvisioningUserStoreId(), realm, emailUsername);
