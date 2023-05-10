@@ -205,6 +205,7 @@ public class FrameworkUtils {
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
     private static boolean isTenantIdColumnAvailableInFedAuthTable = false;
+    private static boolean isIdpIdColumnAvailableInFedAuthTable = false;
     public static final String ROOT_DOMAIN = "/";
 
     private static final String HASH_CHAR = "#";
@@ -2806,6 +2807,24 @@ public class FrameworkUtils {
     public static boolean isTenantIdColumnAvailableInFedAuthTable() {
 
         return isTenantIdColumnAvailableInFedAuthTable;
+    }
+
+    /**
+     * Checking whether the idp id column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+     */
+    public static void checkIfIdpIdColumnIsAvailableInFedAuthTable() {
+
+        isIdpIdColumnAvailableInFedAuthTable = isTableColumnExists("IDN_FED_AUTH_SESSION_MAPPING", "IDP_ID");
+    }
+
+    /**
+     * Return whether the idp id column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+     *
+     * @return True if idp id is available in IDN_FED_AUTH_SESSION_MAPPING table. Else return false.
+     */
+    public static boolean isIdpIdColumnAvailableInFedAuthTable() {
+
+        return isIdpIdColumnAvailableInFedAuthTable;
     }
 
     /**

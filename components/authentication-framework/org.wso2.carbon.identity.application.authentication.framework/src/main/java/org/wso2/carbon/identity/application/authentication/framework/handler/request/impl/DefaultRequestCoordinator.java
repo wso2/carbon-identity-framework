@@ -657,6 +657,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
             context.setLogoutRequest(true);
 
+            /*
+             * Set special property fedIdpId used to remove the entry in fed_auth_session_mapping table
+             * in the special case of SAML SLO when same fed idp is configured twice.
+             */
+
+            if (StringUtils.isNotBlank(request.getParameter(FrameworkConstants.FED_IDP_ID))) {
+                context.setProperty(FrameworkConstants.FED_IDP_ID, request.getParameter(FrameworkConstants.FED_IDP_ID));
+            }
+
             if (context.getRelyingParty() == null || context.getRelyingParty().trim().length() == 0) {
 
                 if (log.isDebugEnabled()) {

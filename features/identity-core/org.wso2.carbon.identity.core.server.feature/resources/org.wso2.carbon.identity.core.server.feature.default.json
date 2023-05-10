@@ -29,6 +29,7 @@
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session_data.storage_optimization.enable": true,
   "session.nonce.cookie.enabled": true,
+  "session.nonce.cookie.default_whitelist_authenticators": ["MagicLinkAuthenticator"],
   "session.authentication.context.expiry.validation": true,
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
@@ -909,5 +910,6 @@
   "axis2.transport_sender.https.parameters.SO_TIMEOUT": "60000",
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
-  "show_pending_user_information.enable": true
+  "show_pending_user_information.enable": true,
+  "extension_mgt.extension_types": "applications,identity-providers"
 }

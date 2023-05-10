@@ -736,6 +736,11 @@
         </Servlet>
     </TenantContextsToRewrite>
 
+    <!-- Extension management service configurations -->
+    <ExtensionManagementService>
+        <ExtensionTypes>applications,identity-providers</ExtensionTypes>
+    </ExtensionManagementService>
+
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>
 </Server>
