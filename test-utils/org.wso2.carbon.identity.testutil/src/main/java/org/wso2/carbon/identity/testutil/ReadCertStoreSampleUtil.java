@@ -118,8 +118,8 @@ public class ReadCertStoreSampleUtil {
             NoSuchAlgorithmException, IOException, InvalidKeyException, KeyStoreException,
             NoSuchProviderException, SignatureException {
         KeyStore keyStore = KeyStore.getInstance("JKS");
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "SHA1WithRSA");
-        SecureRandom random = SecureRandom.getInstance("RSA", "SHA1WithRSA");
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "SHA256WithRSA");
+        SecureRandom random = SecureRandom.getInstance("RSA", "SHA256WithRSA");
         keyGen.initialize(1024, random);
         KeyPair keypair = keyGen.generateKeyPair();
         return keypair;
