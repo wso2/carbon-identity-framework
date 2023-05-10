@@ -59,6 +59,7 @@
     int maxActionRow = 0;
     int maxEnvironmentRow = 0;
     int maxRows = 0;
+    int maxAllowedRows = 1000;
     String dynamicCategory = request.getParameter("policyApplied");
     String policyId = request.getParameter("policyId");
     String policyDescription = request.getParameter("policyDescription");
@@ -136,6 +137,11 @@
             editorDTO.setEnvironmentValue(actionValue);
             editorDTO.setEnvironmentId(environmentId);
             maxRows = maxEnvironmentRow;
+        }
+
+        if (maxAllowedRows < maxRows) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
         }
 
         for(int rowNumber = 0; rowNumber < maxRows + 1; rowNumber++){

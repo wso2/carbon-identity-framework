@@ -36,6 +36,7 @@
                 return;
             }
 
+            int maxDefaultProperties = 1000;
             String forwardTo = "index.jsp";
             String BUNDLE = "org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources";
             ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -48,6 +49,11 @@
                 repositoryClass = request.getParameterValues("repositoryName")[0];
             }
             int defaultProperties = Integer.parseInt(request.getParameter("defaultProperties").replaceAll("[\\D]", ""));    //number of default properties
+
+            if (maxDefaultProperties < defaultProperties) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
 
             UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = null;
             try{
