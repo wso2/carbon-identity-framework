@@ -265,6 +265,9 @@ public class IdentityConstants {
         public static final String SAML_METADATA_VALIDITY_PERIOD = "SSOService.SAMLMetadataValidityPeriod";
         public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD = "SSOService.SAMLSessionNotOnOrAfterPeriod";
         public static final String SAML_METADATA_SIGNING_ENABLED = "SSOService.SAMLMetadataSigningEnabled";
+        public static final String SAML_METADATA_IDP_SIGNATURE_ALGO_URI = "SSOService.SAMLIDPMetadataSignatureAlgorithmURI";
+        public static final String SAML_METADATA_SP_SIGNATURE_ALGO_URI = "SSOService.SAMLSPMetadataParsingSignatureAlgorithmURI";
+        public static final String SAML_METADATA_SP_DIGEST_ALGO_URI = "SSOService.SAMLSPMetadataParsingDigestAlgorithmURI";
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
         public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED = "SSOService" +
                 ".SAML2AuthnRequestsSigningEnabled";
@@ -401,6 +404,17 @@ public class IdentityConstants {
                 "PassiveSTS.SLOHostNameVerificationEnabled";
         public static final String PASSIVE_STS_DISABLE_APPLIES_TO_IN_RESPONSE =
                 "PassiveSTS.DisableAppliesToInPassiveSTSResponse";
+        public static final String PASSIVE_STS_ENABLE_DEFAULT_SIGNATURE_AND_DIGEST_ALG =
+                "PassiveSTS.EnableDefaultSignatureAndDigestAlgorithm";
+    }
+
+    /**
+     * Common constants related to Mex endpoint
+     */
+    public static class MEX {
+
+        public static final String MEX_DEFAULT_RSA_SIGNATURE_ALG = "Mex.DefaultRSASignatureAlgorithmURI";
+        public static final String MEX_DEFAULT_HMAC_SIGNATURE_ALG = "Mex.DefaultHMACSignatureAlgorithmURI";
     }
 
     /**

@@ -245,15 +245,22 @@
   "saml.metadata.validity_period": "1h",
   "saml.metadata.enable_signing": false,
   "saml.metadata.enable_authentication_requests_signing": false,
+  "saml.metadata.idp_signature_alg": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+  "saml.metadata.sp_signature_alg": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+  "saml.metadata.sp_digest_alg": "http://www.w3.org/2001/04/xmlenc#sha256",
 
   "sts.endpoint.idp": "$ref{server.base_path}/services/wso2carbon-sts",
 
   "passive_sts.token_store_class": "org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore",
   "passive_sts.slo.host_name_verification": true,
   "passive_sts.disable_applies_to_in_response": false,
+  "passive_sts.enable_default_signature_and_digest_alg": true,
 
   "passive_sts.endpoints.idp": "$ref{server.base_path}/passivests",
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
+
+  "mex.rsa_signature_alg": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+  "mex.hmac_signature_alg": "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256",
 
   "entitlement.thrift.enable": false,
   "entitlement.thrift.receiver_port": "${Ports.ThriftEntitlementReceivePort}",

@@ -988,6 +988,9 @@
         <SAMLECPEndpoint>{{saml.endpoints.ecp}}</SAMLECPEndpoint>
         <SAMLMetadataValidityPeriod>{{saml.metadata.validity_period}}</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>{{saml.metadata.enable_signing}}</SAMLMetadataSigningEnabled>
+        <SAMLIDPMetadataSignatureAlgorithmURI>{{saml.metadata.idp_signature_alg}}</SAMLIDPMetadataSignatureAlgorithmURI>
+        <SAMLSPMetadataParsingSignatureAlgorithmURI>{{saml.metadata.sp_signature_alg}}</SAMLSPMetadataParsingSignatureAlgorithmURI>
+        <SAMLSPMetadataParsingDigestAlgorithmURI>{{saml.metadata.sp_digest_alg}}</SAMLSPMetadataParsingDigestAlgorithmURI>
         <SAML2AuthenticationRequestValidityPeriodEnabled>{{saml.enable_request_validity_period}}</SAML2AuthenticationRequestValidityPeriodEnabled>
         <!-- Request validity period in minutes-->
         <SAML2AuthenticationRequestValidityPeriod>{{saml.request_validity_period}}</SAML2AuthenticationRequestValidityPeriod>
@@ -1026,7 +1029,13 @@
         <TokenStoreClassName>{{passive_sts.token_store_class}}</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>{{passive_sts.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
         <DisableAppliesToInPassiveSTSResponse>{{passive_sts.disable_applies_to_in_response}}</DisableAppliesToInPassiveSTSResponse>
+        <EnableDefaultSignatureAndDigestAlgorithm>{{passive_sts.enable_default_signature_and_digest_alg}}</EnableDefaultSignatureAndDigestAlgorithm>
     </PassiveSTS>
+
+    <Mex>
+        <DefaultRSASignatureAlgorithmURI>{{mex.rsa_signature_alg}}</DefaultRSASignatureAlgorithmURI>
+        <DefaultHMACSignatureAlgorithmURI>{{mex.hmac_signature_alg}}</DefaultHMACSignatureAlgorithmURI>
+    </Mex>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>

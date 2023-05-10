@@ -701,6 +701,9 @@
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
         <SAMLMetadataValidityPeriod>60</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
+        <SAMLIDPMetadataSignatureAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</SAMLIDPMetadataSignatureAlgorithmURI>
+        <SAMLSPMetadataParsingSignatureAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</SAMLSPMetadataParsingSignatureAlgorithmURI>
+        <SAMLSPMetadataParsingDigestAlgorithmURI>http://www.w3.org/2001/04/xmlenc#sha256</SAMLSPMetadataParsingDigestAlgorithmURI>
 
         <SAML2AuthenticationRequestValidityPeriodEnabled>false</SAML2AuthenticationRequestValidityPeriodEnabled>
         <!-- Request validity period in minutes-->
@@ -737,7 +740,13 @@
         <TokenStoreClassName>org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
         <DisableAppliesToInPassiveSTSResponse>false</DisableAppliesToInPassiveSTSResponse>
+        <EnableDefaultSignatureAndDigestAlgorithm>true</EnableDefaultSignatureAndDigestAlgorithm>
     </PassiveSTS>
+
+    <Mex>
+        <DefaultRSASignatureAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</DefaultRSASignatureAlgorithmURI>
+        <DefaultHMACSignatureAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#hmac-sha256</DefaultHMACSignatureAlgorithmURI>
+    </Mex>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
