@@ -2244,4 +2244,9 @@
     <!-- Configuration to enable the organization level branding of email templates. -->
     <EnableOrganizationLevelEmailBranding>false</EnableOrganizationLevelEmailBranding>
 
+    <!-- Extension management service configurations -->
+    <ExtensionManagementService>
+        <ExtensionTypes>applications,identity-providers</ExtensionTypes>
+    </ExtensionManagementService>
+
 </Server>

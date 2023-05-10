@@ -118,6 +118,7 @@ public abstract class FrameworkConstants {
     public static final String REQUEST_PARAM_AUTH_FLOW_ID = "authFlowId";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
     public static final String IDP_ID = "idpId";
+    public static final String FED_IDP_ID = "fedIdpId";
     public static final String ASSOCIATED_ID = "associatedID";
 
     public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
@@ -211,6 +212,8 @@ public abstract class FrameworkConstants {
     public static final String INITIAL_CONTEXT = "initialContext";
     public static final String RESTART_LOGIN_FLOW_QUERY_PARAMS =
             "&authFailure=true&authFailureMsg=login.reinitiate.message";
+    public static final String NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG =
+            "SessionNonceCookie.WhitelistedAuthenticator";
 
     private FrameworkConstants() {
 

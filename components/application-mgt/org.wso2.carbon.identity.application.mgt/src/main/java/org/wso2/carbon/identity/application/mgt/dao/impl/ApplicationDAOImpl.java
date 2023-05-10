@@ -4571,7 +4571,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         AuthenticationStep attributeAuthStep =
                 localAndOutboundAuthenticationConfig.getAuthenticationStepForAttributes();
         IdentityProvider[] authStepFederatedIdentityProviders = null;
-        if (attributeAuthStep == null) {
+        if (attributeAuthStep == null && localAndOutboundAuthenticationConfig.getAuthenticationSteps() != null) {
             attributeAuthStep = Arrays.stream(localAndOutboundAuthenticationConfig.getAuthenticationSteps()).
                     filter(AuthenticationStep::isAttributeStep).findFirst().orElse(null);
         }
