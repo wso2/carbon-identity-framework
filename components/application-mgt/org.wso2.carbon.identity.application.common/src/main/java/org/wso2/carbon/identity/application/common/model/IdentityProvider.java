@@ -147,8 +147,7 @@ public class IdentityProvider implements Serializable {
     @XmlElement(name = "JustInTimeProvisioningConfig")
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
 
-    @XmlTransient
-    @JsonIgnore
+    @XmlElement(name = "IdpProperties")
     private IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
 
     @JsonIgnore
