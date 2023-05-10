@@ -43,6 +43,8 @@ import java.util.Map;
  */
 public class OptimizedSequenceConfig implements Serializable {
 
+    private static final long serialVersionUID = 3534190178299575671L;
+
     private final String name;
     private final boolean isForceAuthn;
     private final boolean isCheckAuthn;

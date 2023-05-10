@@ -45,6 +45,8 @@ import java.util.Map;
  */
 public class OptimizedAuthenticatorConfig implements Serializable {
 
+    private static final long serialVersionUID = 6686515855441683088L;
+
     private final String name;
     private final boolean enabled;
     private final AuthenticatorStateInfo authenticatorStateInfo;

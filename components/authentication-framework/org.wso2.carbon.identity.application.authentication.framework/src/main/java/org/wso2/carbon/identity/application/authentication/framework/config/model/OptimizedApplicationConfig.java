@@ -45,6 +45,8 @@ import java.util.Map;
  */
 public class OptimizedApplicationConfig implements Serializable {
 
+    private static final long serialVersionUID = -6197084910144813735L;
+
     private String serviceProviderResourceId;
     private List<OptimizedAuthStep> optimizedAuthSteps;
     private boolean mappedSubjectIDSelected;

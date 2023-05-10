@@ -33,6 +33,8 @@ import java.util.List;
  */
 public class OptimizedStepConfig implements Serializable {
 
+    private static final long serialVersionUID = -3891975634264763833L;
+
     private final int order;
     private final String loginPage;
     private final AuthenticatedUser authenticatedUser;
