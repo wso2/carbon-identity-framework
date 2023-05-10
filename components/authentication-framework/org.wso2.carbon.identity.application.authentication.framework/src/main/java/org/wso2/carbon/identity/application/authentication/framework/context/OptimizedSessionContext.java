@@ -49,6 +49,8 @@ import java.util.Map;
  */
 public class OptimizedSessionContext implements Serializable {
 
+    private static final long serialVersionUID = 3370074369893560727L;
+
     private final Map<String, OptimizedSequenceConfig> optimizedAuthenticatedSequences;
     private final Map<String, OptimizedAuthenticatedIdPData> optimizedAuthenticatedIdPs;
     private final boolean isRememberMe;

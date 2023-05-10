@@ -33,6 +33,8 @@ import java.util.List;
  */
 public class OptimizedAuthenticatedIdPData implements Serializable {
 
+    private static final long serialVersionUID = -6969600677223511069L;
+
     private final String idpName;
     private final List<OptimizedAuthenticatorConfig> optimizedAuthenticators;
     private final AuthenticatedUser user;
