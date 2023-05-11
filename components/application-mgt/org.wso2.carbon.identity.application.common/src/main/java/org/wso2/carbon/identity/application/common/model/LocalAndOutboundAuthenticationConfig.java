@@ -97,9 +97,6 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     @XmlElement(name = AUTHENTICATION_SCRIPT)
     private AuthenticationScriptConfig authenticationScriptConfig;
 
-    @XmlElement(name = EXTERNALIZED_CONSENT_PAGE_CONFIG)
-    private ExternalizedConsentPageConfig externalizedConsentPageConfig;
-
     @XmlElement(name = USE_EXTERNAL_CONSENT_PAGE)
     private boolean useExternalConsentPage = false;
 
@@ -196,9 +193,6 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setSkipLogoutConsent(true);
                 }
-            } else if (EXTERNALIZED_CONSENT_PAGE_CONFIG.equals(member.getLocalName())) {
-                localAndOutboundAuthenticationConfig.externalizedConsentPageConfig = ExternalizedConsentPageConfig
-                        .build(member);
             } else if (USE_EXTERNAL_CONSENT_PAGE.equals(member.getLocalName())) {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setUseExternalConsentPage(true);
@@ -357,16 +351,6 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     public void setSkipLogoutConsent(boolean skipLogoutConsent) {
 
         this.skipLogoutConsent = skipLogoutConsent;
-    }
-
-    public ExternalizedConsentPageConfig getExternalizedConsentPageConfig() {
-
-        return externalizedConsentPageConfig;
-    }
-
-    public void setExternalizedConsentPageConfig(ExternalizedConsentPageConfig externalizedConsentPageConfig) {
-
-            this.externalizedConsentPageConfig = externalizedConsentPageConfig;
     }
 
     public boolean isUseExternalConsentPage() {
