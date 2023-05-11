@@ -83,11 +83,13 @@ public class BrandingPreferenceRetrievalClient {
                 if (StringUtils.isNotBlank(locale)) {
                     uriBuilder.addParameter(RESOURCE_LOCALE_URL_SEARCH_PARAM, locale);
                 }
+                uri = uriBuilder.build().toString();
 
                 if (log.isDebugEnabled()) {
                     log.debug("Preferences endpoint URI for tenant " + tenant
                             + " was constructed with params - type : "
                             + type + ", name :" + name + ", locale :" + locale);
+                    log.debug("Preferences endpoint URI with params for tenant " + tenant + " : " + uri);
                 }
             } catch (URISyntaxException e) {
                 if (log.isDebugEnabled()) {
