@@ -77,6 +77,8 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_CLAIM_CONFIG = "ClaimConfig";
     private static final String FILE_ELEMENT_CERTIFICATE = "Certificate";
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
+    private static final String FILE_ELEMENT_IDP_GROUP_CONFIG_WRAPPER = "IdpGroupConfigs";
+    private static final String FILE_ELEMENT_IDP_GROUP_CONFIG = "IdpGroupConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
     private static final String FILE_ELEMENT_IMAGE_URL = "ImageUrl";
     private static final String FILE_ELEMENT_ISSUER = "Issuer";
@@ -143,6 +145,10 @@ public class IdentityProvider implements Serializable {
 
     @XmlElement(name = "PermissionAndRoleConfig")
     private PermissionsAndRoleConfig permissionAndRoleConfig;
+
+    @XmlElementWrapper(name = FILE_ELEMENT_IDP_GROUP_CONFIG_WRAPPER)
+    @XmlElement(name = FILE_ELEMENT_IDP_GROUP_CONFIG)
+    private IdPGroup[] idPGroupConfig;
 
     @XmlElement(name = "JustInTimeProvisioningConfig")
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
@@ -293,6 +299,25 @@ public class IdentityProvider implements Serializable {
                             .toArray(new ProvisioningConnectorConfig[0]);
                     identityProvider
                             .setProvisioningConnectorConfigs(provisioningConnectorConfigsArr);
+                }
+            } else if (FILE_ELEMENT_IDP_GROUP_CONFIG_WRAPPER.equals(elementName)) {
+                // Build IdP groups configuration.
+                Iterator<?> idpGroupsIter = element.getChildElements();
+                List<IdPGroup> idPGroupArrayList = new ArrayList<>();
+
+                if (idpGroupsIter != null) {
+                    while (idpGroupsIter.hasNext()) {
+                        OMElement idPGroupElement = (OMElement) (idpGroupsIter.next());
+                        IdPGroup idPGroup = IdPGroup
+                                .build(idPGroupElement);
+                        if (idPGroup != null) {
+                            idPGroupArrayList.add(idPGroup);
+                        }
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(idPGroupArrayList)) {
+                    IdPGroup[] idPGroupsConfig = idPGroupArrayList.toArray(new IdPGroup[0]);
+                    identityProvider.setIdPGroupConfig(idPGroupsConfig);
                 }
             } else if (FILE_ELEMENT_DEFAULT_PROVISIONING_CONNECTOR_CONFIG.equals(elementName)) {
                 if (element.getText().trim().isEmpty()) {
@@ -711,6 +736,7 @@ public class IdentityProvider implements Serializable {
      * @return
      */
     public PermissionsAndRoleConfig getPermissionAndRoleConfig() {
+
         return permissionAndRoleConfig;
     }
 
@@ -718,13 +744,35 @@ public class IdentityProvider implements Serializable {
      * @param permissionAndRoleConfig
      */
     public void setPermissionAndRoleConfig(PermissionsAndRoleConfig permissionAndRoleConfig) {
+
         this.permissionAndRoleConfig = permissionAndRoleConfig;
+    }
+
+    /**
+     * Get the IdP Groups of the identity provider.
+     *
+     * @return the IdP Group Configuration.
+     */
+    public IdPGroup[] getIdPGroupConfig() {
+
+        return idPGroupConfig;
+    }
+
+    /**
+     * Set the IdP Groups of the identity provider.
+     *
+     * @param idPGroupConfig the IdP Group Configuration.
+     */
+    public void setIdPGroupConfig(IdPGroup[] idPGroupConfig) {
+
+        this.idPGroupConfig = idPGroupConfig;
     }
 
     /**
      * @return
      */
     public String getHomeRealmId() {
+
         return homeRealmId;
     }
 
