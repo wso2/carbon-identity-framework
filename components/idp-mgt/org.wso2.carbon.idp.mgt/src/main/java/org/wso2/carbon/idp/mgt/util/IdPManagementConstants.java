@@ -70,6 +70,7 @@ public class IdPManagementConstants {
     public static final String IDP_CLAIMS = "claims";
     public static final String CLAIMS = "USER_CLAIM_URI, ROLE_CLAIM_URI, IS_LOCAL_CLAIM_DIALECT";
     public static final String IDP_ROLES = "roles";
+    public static final String IDP_GROUPS = "groups";
     public static final String ROLES = "PROVISIONING_ROLE";
     public static final String IDP_FEDERATED_AUTHENTICATORS = "federatedAuthenticators";
     public static final String FEDERATED_AUTHENTICATORS = "DEFAULT_AUTHENTICATOR_NAME";
@@ -269,6 +270,9 @@ public class IdPManagementConstants {
         public static final String ADD_IDP_ROLES_SQL = "INSERT INTO IDP_ROLE (IDP_ID, TENANT_ID, ROLE) "
                 + "VALUES (?, ?, ?)";
 
+        public static final String ADD_IDP_GROUPS_SQL = "INSERT INTO IDP_GROUP (IDP_ID, TENANT_ID, GROUP_NAME, UUID) "
+                + "VALUES (?, ?, ?, ?)";
+
         public static final String DELETE_IDP_ROLES_SQL = "DELETE FROM IDP_ROLE "
                 + "WHERE (IDP_ID=? AND ROLE=?)";
 
@@ -278,6 +282,8 @@ public class IdPManagementConstants {
         public static final String GET_IDP_ROLES_SQL = "SELECT ID, ROLE  FROM IDP_ROLE "
                 + "WHERE IDP_ID=?";
 
+        public static final String GET_IDP_GROUPS_SQL = "SELECT ID, GROUP_NAME, UUID FROM IDP_GROUP "
+                + "WHERE IDP_ID=?";
         public static final String DELETE_IDP_ROLE_MAPPINGS_SQL = "DELETE FROM IDP_ROLE_MAPPING "
                 + "WHERE (IDP_ROLE_ID=? AND TENANT_ID=? AND USER_STORE_ID = ? AND LOCAL_ROLE=?)";
 
@@ -349,6 +355,9 @@ public class IdPManagementConstants {
                 + "WHERE (TENANT_ID=? AND NAME=? AND IS_PRIMARY=?)";
 
         public static final String DELETE_ALL_ROLES_SQL = "DELETE FROM IDP_ROLE "
+                + "WHERE IDP_ID=?";
+
+        public static final String DELETE_ALL_GROUPS_SQL = "DELETE FROM IDP_GROUP "
                 + "WHERE IDP_ID=?";
 
         public static final String DELETE_ROLE_LISTENER_SQL = "DELETE FROM IDP_ROLE "
