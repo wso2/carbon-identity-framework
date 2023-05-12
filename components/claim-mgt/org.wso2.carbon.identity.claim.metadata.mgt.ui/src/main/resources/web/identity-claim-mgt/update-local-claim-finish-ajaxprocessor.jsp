@@ -46,6 +46,8 @@
         return;
     }
 
+    int maxAttributesMappings = 1000;
+    int maxClaimProperties = 1000;
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
     ConfigurationContext configContext = (ConfigurationContext)
             config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
@@ -61,6 +63,11 @@
     String supported = request.getParameter("supportedhidden");
     String required = request.getParameter("requiredhidden");
     String readonly = request.getParameter("readonlyhidden");
+
+    if (maxAttributesMappings < numberOfAttributeMappings || maxClaimProperties < numberOfClaimProperties) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        return;
+    }
 
     List<AttributeMappingDTO> attributeMappings = new ArrayList();
 
