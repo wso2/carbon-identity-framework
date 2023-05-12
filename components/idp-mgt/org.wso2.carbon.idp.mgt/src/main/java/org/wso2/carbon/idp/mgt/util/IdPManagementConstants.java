@@ -101,6 +101,8 @@ public class IdPManagementConstants {
     public static final String SCIM = "scim";
     public static final String SCIM2 = "SCIM2";
 
+    public static final String IS_JWT_ISSUER = "isJWTIssuer";
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
@@ -116,6 +118,9 @@ public class IdPManagementConstants {
 
         public static final String FROM_IDP_WHERE = "FROM IDP WHERE ";
 
+        public static final String FROM_JWT_ISSUER_WHERE =
+                "FROM IDP JOIN IDP_PROPERTY ON IDP.ID=IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME='isJWTIssuer' AND ";
+
         public static final String GET_IDP_BY_TENANT_MYSQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
@@ -129,7 +134,13 @@ public class IdPManagementConstants {
         public static final String GET_IDP_BY_TENANT_MSSQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
+        public static final String GET_JWT_ISSUER_TENANT_MSSQL =
+                "SELECT IDP.ID, IDP.NAME, IDP.DESCRIPTION, IDP.IS_ENABLED, IDP.IMAGE_URL, IDP.UUID ";
+
         public static final String GET_IDP_BY_TENANT_MSSQL_TAIL = "TENANT_ID =? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
+                " ROWS ONLY";
+
+        public static final String GET_JWT_ISSUER_TENANT_MSSQL_TAIL = "IDP.TENANT_ID =? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
                 " ROWS ONLY";
 
         public static final String GET_IDP_BY_TENANT_ORACLE = "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, " +
@@ -155,7 +166,11 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_COUNT_SQL = "SELECT COUNT(*) FROM IDP WHERE ";
 
+        public static final String GET_JWT_ISSUER_COUNT_SQL = "SELECT COUNT(DISTINCT IDP.ID) FROM IDP JOIN IDP_METADATA ON IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = 'isJWTIssuer' AND ";
+
         public static final String GET_IDP_COUNT_SQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "'";
+
+        public static final String GET_JWT_ISSUER_COUNT_SQL_TAIL = "IDP.TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "'";
 
         public static final String GET_IDP_BY_NAME_SQL = "SELECT ID, NAME, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, " +
                 "ALIAS, INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
@@ -296,6 +311,14 @@ public class IdPManagementConstants {
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION,IS_FEDERATION_HUB,"
                 + "IS_LOCAL_CLAIM_DIALECT,PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, UUID) " +
                 "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?, ?)";
+
+        public static final String ADD_JWT_ISSUER_SQL = "INSERT INTO IDP_METADATA (TENANT_ID, IDP_ID, NAME, VALUE) " +
+                "VALUES (?, ?, ?, ?)";
+
+        public static final String REMOVE_JWT_ISSUER_SQL = "DELETE FROM IDP_METADATA WHERE IDP_ID=? AND NAME=? " +
+                "AND TENANT_ID=?";
+
+        public static final String JWT_ISSUER_FILTER_SQL = "IDP_METADATA.VALUE = 'true' AND ";
 
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME) VALUES (?,?,?,?,?)";

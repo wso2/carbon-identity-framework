@@ -1089,6 +1089,35 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
+     * Get all JWT Issuer's Basic information along with additionally requested information depending on the
+     * requiredAttributes.
+     *
+     * @param limit              Limit per page.
+     * @param offset             Offset value.
+     * @param filter             Filter value for IdP search.
+     * @param sortOrder          Order of IdP ASC/DESC.
+     * @param sortBy             The column value need to sort.
+     * @param tenantDomain       TenantDomain of the user.
+     * @param requiredAttributes Required attributes which needs to be return.
+     * @return Identity Provider's Basic Information array along with requested attribute
+     * information{@link IdpSearchResult}.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
+     */
+    public IdpSearchResult getJwtIssuers(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                                   String tenantDomain, List<String> requiredAttributes)
+            throws IdentityProviderManagementException {
+
+        IdpSearchResult result = new IdpSearchResult();
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        setParameters(limit, offset, sortOrder, sortBy, filter, result);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        result.setTotalIDPCount(dao.getTotalJwtIssuerCount(tenantId, expressionNodes));
+        result.setIdpList(dao.getPaginatedJwtIssuersSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
+                result.getSortOrder(), result.getSortBy(), requiredAttributes));
+        return result;
+    }
+
+    /**
      * Get basic information of identity providers along with additionally requested information.
      *
      * @param limit              The limit per page.
@@ -2079,6 +2108,11 @@ public class IdentityProviderManager implements IdpManager {
         String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
         identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
 
+        // Validate whether the IdP satisfies the minimum requirements to be a JWT Issuer.
+        if (isJwtIssuer(identityProvider)) {
+            dao.addAsAJWTIssuer(identityProvider, tenantId);
+        }
+
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostAddIdP(identityProvider, tenantDomain)) {
@@ -2086,6 +2120,26 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
         return identityProvider;
+    }
+
+    private boolean isJwtIssuer(IdentityProvider identityProvider) {
+        String issuerName = null;
+        String jwksURI = null;
+        String alias = identityProvider.getAlias();
+        IdentityProviderProperty[] identityProviderProperties = identityProvider.getIdpProperties();
+        if (!ArrayUtils.isEmpty(identityProviderProperties)) {
+            for (IdentityProviderProperty prop : identityProviderProperties) {
+                if (prop != null && StringUtils.isNotBlank(prop.getValue())) {
+                    if (IdentityApplicationConstants.IDP_ISSUER_NAME.equals(prop.getName())) {
+                        issuerName = prop.getValue();
+                    }
+                    if (IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME.equalsIgnoreCase(prop.getName())) {
+                        jwksURI = prop.getValue();
+                    }
+                }
+            }
+        }
+        return StringUtils.isNotBlank(issuerName) && StringUtils.isNotBlank(alias) && StringUtils.isBlank(jwksURI);
     }
 
     /**
@@ -2379,6 +2433,14 @@ public class IdentityProviderManager implements IdpManager {
                 .getIdPByResourceId(resourceId, tenantDomain, true);
         validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider, tenantDomain);
         updateIDP(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
+
+        // Validate whether the IdP satisfies the minimum requirements to be a JWT Issuer.
+        // Else remove existing JWT issuer entry.
+        if (isJwtIssuer(currentIdentityProvider)) {
+            dao.addAsAJWTIssuer(currentIdentityProvider, tenantId);
+        } else {
+            dao.removeAsAJWTIssuer(currentIdentityProvider, tenantId);
+        }
 
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
