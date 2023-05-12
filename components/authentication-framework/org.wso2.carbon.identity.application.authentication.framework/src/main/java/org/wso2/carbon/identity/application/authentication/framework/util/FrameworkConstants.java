@@ -295,6 +295,8 @@ public abstract class FrameworkConstants {
                 "AllowCustomClaimMappingsForAuthenticators";
         public static final String QNAME_MERGE_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS_WITH_DEFAULT =
                 "AllowMergingCustomClaimMappingsWithDefaultClaimMappings";
+        public static final String QNAME_ALLOW_CONSENT_PAGE_REDIRECT_PARAMS =
+                "AllowConsentPageRedirectParams";
 
         /**
          * Configuration name for the collection of urls for receiving tenant list
