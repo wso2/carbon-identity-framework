@@ -29,10 +29,13 @@ public class AppRolesConstants {
      * Error messages.
      */
     public enum ErrorMessages {
+        // Client Exceptions.
         ERROR_CODE_USER_NULL("60001", "Authenticated user cannot be null",
                 "Authenticated user cannot be null"),
         ERROR_CODE_APP_ID_NULL("60002", "Application id cannot be null",
                 "Application id cannot be null"),
+
+        // Server Exceptions.
         ERROR_CODE_UNEXPECTED("65001", "Unexpected processing error",
                 "Server encountered an error while serving the request"),
         ERROR_CODE_RETRIEVING_IDENTITY_PROVIDER("65002", "Error while retrieving identity provider",
@@ -46,7 +49,7 @@ public class AppRolesConstants {
                         "idp: %s, groups: %s"),
         ERROR_CODE_APP_ROLES_SERVICE_NO_RESPONSE("65006", "Error while retrieving application roles",
                 "No response received from the application roles service"),
-        ERROR_CODE_SERVICE_ENDPOINT_UNDEFINED("60007", "Service endpoint is not defined",
+        ERROR_CODE_SERVICE_ENDPOINT_UNDEFINED("65007", "Service endpoint is not defined",
                 "Service endpoint is not defined");
 
         private final String code;
