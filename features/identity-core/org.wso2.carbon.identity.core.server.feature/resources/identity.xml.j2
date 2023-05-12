@@ -3121,6 +3121,14 @@
     </AllowedUserstores>
     {% endif %}
 
+    {% if user_store_mgt.reserved_user_stores is defined %}
+    <ReservedUserstores>
+        {% for reserved_user_store in user_store_mgt.reserved_user_stores %}
+        <ReservedUserstore>{{reserved_user_store}}</ReservedUserstore>
+        {% endfor %}
+    </ReservedUserstores>
+    {% endif %}
+
     <!-- System Applications -->
     {% if system_applications.read_only_apps is defined %}
     <SystemApplications>
