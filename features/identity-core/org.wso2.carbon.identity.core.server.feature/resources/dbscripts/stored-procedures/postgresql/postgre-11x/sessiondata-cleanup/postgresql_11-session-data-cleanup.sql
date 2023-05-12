@@ -14,10 +14,12 @@ backupTable text;
 notice text;
 cusrRecord record;
 rowcount bigint :=0;
+rowcountTemp bigint :=0;
 cleanupCount bigint :=0;
 sessionCleanupTime bigint :=0;
 operationCleanupTime bigint :=0;
 deleteCount INT := 0;
+deleteCountTemp INT := 0;
 deleteMappingCount INT := 0;
 deleteAppInfoCount INT := 0;
 deleteMetadataCount INT := 0;
@@ -27,8 +29,11 @@ batchCount INT := 0;
 
 tablesCursor CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
 tablename  IN ('idn_auth_session_store');
+tablesCursorTemp CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
+tablename  IN ('idn_auth_temp_session_store');
 
 purgingTable text;
+purgingTempTable text;
 purgingSessionUserMappingTable text;
 purgingSessionAppInfoTable text;
 purgingSessionMetadataTable text;
@@ -59,6 +64,7 @@ logLevel := 'TRACE'; -- SET LOG LEVELS : TRACE , DEBUG
 unix_timestamp := TRUNC(extract(epoch from now() at time zone 'utc'));
 
 purgingTable := 'idn_auth_session_store';
+purgingTempTable := 'idn_auth_temp_session_store';
 purgingSessionUserMappingTable = 'idn_auth_user_session_mapping';
 purgingSessionAppInfoTable = 'idn_auth_session_app_info';
 purgingSessionMetadataTable = 'idn_auth_session_meta_data';
@@ -115,6 +121,38 @@ THEN
         END IF;
     END LOOP;
     CLOSE tablesCursor;
+
+    OPEN tablesCursorTemp;
+    LOOP
+        FETCH tablesCursorTemp INTO cusrRecord;
+        EXIT WHEN NOT FOUND;
+        backupTable := cusrRecord.tablename||'_backup';
+
+        EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING backupTable;
+        IF (rowcount = 1)
+        THEN
+            IF (enableLog AND logLevel IN ('TRACE')) THEN
+            RAISE NOTICE 'TABLE ALREADY EXISTS HENCE DROPPING TABLE %',backupTable;
+            END IF;
+            EXECUTE 'DROP TABLE '||quote_ident(backupTable);
+        END IF;
+
+        IF (enableLog AND logLevel IN ('TRACE')) THEN
+        EXECUTE 'SELECT COUNT(1) FROM '||quote_ident(cusrRecord.tablename) INTO rowcount;
+        notice := cusrRecord.tablename||' NUMBER OF RECORDS: '||rowcount;
+        RAISE NOTICE 'BACKING UP %',notice;
+        END IF;
+
+        EXECUTE 'CREATE TABLE '||quote_ident(backupTable)||' as SELECT * FROM '||quote_ident(cusrRecord.tablename);
+
+        IF (enableLog AND logLevel IN ('TRACE','DEBUG')) THEN
+        EXECUTE 'SELECT COUNT(1) FROM '||quote_ident(backupTable) INTO rowcount;
+        notice := cusrRecord.tablename||' TABLE INTO '||backupTable||' TABLE COMPLETED WITH : '||rowcount;
+        RAISE NOTICE 'BACKING UP %',notice;
+        RAISE NOTICE '';
+        END IF;
+    END LOOP;
+    CLOSE tablesCursorTemp;
 END IF;
 
 
@@ -124,31 +162,33 @@ END IF;
 -- Expired Session data older than 120 minutes(2 hours) will be removed.
 sessionCleanupTime := (unix_timestamp*1000000000) - (120*60000000000);
 
-purgingCondition := 'select session_id from idn_auth_session_store where expiry_time < '||sessionCleanupTime||'';
+purgingCondition := 'select session_id from idn_auth_session_store where expiry_time < '||sessionCleanupTime||' union all select session_id from idn_auth_temp_session_store where expiry_time < '||sessionCleanupTime||'';
 
 IF (enableLog) THEN
     RAISE NOTICE '';
     RAISE NOTICE 'SESSION DATA PURGING STARTED .... !';
     RAISE NOTICE '';
 
-    notice := 'CALCULATING PURGING RECORDS ON TABLE '|| purgingTable || '.... ! ';
+    notice := 'CALCULATING PURGING RECORDS ON TABLE '|| purgingTable || ' & '|| purgingTempTable || '.... ! ';
     RAISE NOTICE '%',notice;
 
     IF (enableLog AND logLevel IN ('TRACE','DEBUG')) THEN
     EXECUTE 'SELECT count(1) from '||purgingTable into rowcount;
-    notice := 'TOTAL RECODES ON '|| purgingTable || ' TABLE BEFORE DELETE : ' || rowcount;
+    EXECUTE 'SELECT count(1) from '||purgingTempTable into rowcountTemp;
+    rowcount := (rowcount + rowcountTemp);
+    notice := 'TOTAL RECODES ON '|| purgingTable || ' & '|| purgingTempTable || ' TABLE BEFORE DELETE : ' || rowcount;
     RAISE NOTICE '%',notice;
     END IF;
 
     IF (enableLog AND logLevel IN ('TRACE')) THEN
     EXECUTE 'SELECT count(1) from ( '||purgingCondition||' ) a' into cleanupcount;
-    notice := 'TOTAL RECODES ON '|| purgingTable || ' SHOULD BE DELETED  : ' || cleanupCount;
+    notice := 'TOTAL RECODES ON '|| purgingTable || ' & '|| purgingTempTable ||' SHOULD BE DELETED  : ' || cleanupCount;
     RAISE NOTICE '%',notice;
     END IF;
 
     IF (enableLog AND logLevel IN ('TRACE')) THEN
     rowcount := (rowcount - cleanupCount);
-    notice := 'TOTAL RECODES ON '|| purgingTable || ' SHOULD BE RETAIN  : ' || rowcount;
+    notice := 'TOTAL RECODES ON '|| purgingTable || ' & '|| purgingTempTable ||' SHOULD BE RETAIN  : ' || rowcount;
     RAISE NOTICE '%',notice;
     END IF;
 END IF;
@@ -203,16 +243,20 @@ LOOP
         EXIT WHEN batchCount=0;
 
         IF (enableLog AND logLevel IN ('TRACE')) THEN
-        notice := 'BATCH DELETE START ON TABLE '||purgingTable||' WITH :'||batchCount;
+        notice := 'BATCH DELETE START ON TABLE '||purgingTable|| ' & '||purgingTempTable|| ' WITH :'||batchCount;
         RAISE NOTICE '%',notice;
         END IF;
 
         EXECUTE 'DELETE from '||quote_ident(purgingTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
         GET diagnostics deleteCount := ROW_COUNT;
         COMMIT;
+        EXECUTE 'DELETE from '||quote_ident(purgingTempTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+        GET diagnostics deleteCountTemp := ROW_COUNT;
+        COMMIT;
 
+        deleteCount := (deleteCount + deleteCountTemp);
         IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
-        notice := 'BATCH DELETE FINISHED ON TABLE '||purgingTable||' WITH :'||deleteCount;
+        notice := 'BATCH DELETE FINISHED ON TABLE '||purgingTable|| ' & '||purgingTempTable||'  WITH :'||deleteCount;
         RAISE NOTICE '%',notice;
         END IF;
 
@@ -317,31 +361,34 @@ END LOOP;
 -- Operational data older than 720 minutes(12 h) will be removed.
 operationCleanupTime = (unix_timestamp*1000000000) - (720*60000000000);
 
-purgingCondition := 'select session_id from idn_auth_session_store where operation = ''DELETE'' and time_created < '||operationCleanupTime||'';
+purgingCondition := 'select session_id from idn_auth_session_store where operation = ''DELETE'' and time_created < '||operationCleanupTime||' union all select session_id from idn_auth_temp_session_store where operation = ''DELETE'' and time_created < '||operationCleanupTime||'';
 
 IF (enableLog) THEN
     RAISE NOTICE '';
     RAISE NOTICE 'OPERATIONAL DATA PURGING STARTED .... !';
     RAISE NOTICE '';
 
-    notice := 'CALCULATING PURGING RECORDS ON TABLE '|| purgingTable || '.... ! ';
+    notice := 'CALCULATING PURGING RECORDS ON TABLE '|| purgingTable || ' & ' ||purgingTempTable|| '.... ! ';
     RAISE NOTICE '%',notice;
 
     IF (enableLog AND logLevel IN ('TRACE','DEBUG')) THEN
     EXECUTE 'SELECT count(1) from '||purgingTable into rowcount;
-    notice := 'TOTAL RECODES ON '|| purgingTable || ' TABLE BEFORE DELETE : ' || rowcount;
+    EXECUTE 'SELECT count(1) from '||purgingTempTable into rowcountTemp;
+
+    rowcount := (rowcount + rowcountTemp);
+    notice := 'TOTAL RECODES ON '|| purgingTable || ' & '|| purgingTempTable || ' TABLE BEFORE DELETE : ' || rowcount;
     RAISE NOTICE '%',notice;
     END IF;
 
     IF (enableLog AND logLevel IN ('TRACE')) THEN
     EXECUTE 'SELECT count(1) from ( '||purgingCondition||' ) a' into cleanupcount;
-    notice := 'TOTAL RECODES ON '|| purgingTable || ' SHOULD BE DELETED  : ' || cleanupCount;
+    notice := 'TOTAL RECODES ON '|| purgingTable || ' & '||purgingTempTable||' SHOULD BE DELETED  : ' || cleanupCount;
     RAISE NOTICE '%',notice;
     END IF;
 
     IF (enableLog AND logLevel IN ('TRACE')) THEN
     rowcount := (rowcount - cleanupCount);
-    notice := 'TOTAL RECODES ON '|| purgingTable || ' SHOULD BE RETAIN  : ' || rowcount;
+    notice := 'TOTAL RECODES ON '|| purgingTable || ' & '||purgingTempTable||' SHOULD BE RETAIN  : ' || rowcount;
     RAISE NOTICE '%',notice;
     END IF;
 END IF;
@@ -403,9 +450,13 @@ LOOP
         EXECUTE 'DELETE from '||quote_ident(purgingTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
         GET diagnostics deleteCount := ROW_COUNT;
         COMMIT;
+        EXECUTE 'DELETE from '||quote_ident(purgingTempTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+        GET diagnostics deleteCountTemp := ROW_COUNT;
+        COMMIT;
 
+        deleteCount := (deleteCount + deleteCountTemp);
         IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
-        notice := 'BATCH DELETE FINISHED ON TABLE '||purgingTable||' WITH :'||deleteCount;
+        notice := 'BATCH DELETE FINISHED ON TABLE '||purgingTable|| ' & '||purgingTempTable||' WITH :'||deleteCount;
         RAISE NOTICE '%',notice;
         END IF;
 

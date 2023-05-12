@@ -90,6 +90,10 @@ BEGIN
         USING chunklimit, sessioncleanuptime;
         rowcount := SQL%rowcount;
 
+        EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_SESSION_STORE_TMP SELECT rowid,SESSION_ID FROM IDN_AUTH_TEMP_SESSION_STORE WHERE  rownum <= :chunklimit AND EXPIRY_TIME < :sessionCleanupTime'
+        USING chunklimit, sessioncleanuptime;
+        rowcount := rowcount + SQL%rowcount;
+
 --        EXECUTE IMMEDIATE 'CREATE INDEX idn_auth_session_tmp_idx on IDN_AUTH_SESSION_STORE_TMP (SESSION_ID)';
         COMMIT;
 
@@ -127,6 +131,9 @@ BEGIN
 
             EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_STORE WHERE rowid IN (SELECT ROW_ID FROM TEMP_SESSION_BATCH)';
             sessioncleanupcount := SQL%rowcount;
+            COMMIT;
+            EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_TEMP_SESSION_STORE WHERE rowid IN (SELECT ROW_ID FROM TEMP_SESSION_BATCH)';
+            sessioncleanupcount := sessioncleanupcount + SQL%rowcount;
             COMMIT;
 
             IF ( tracingenabled ) THEN
@@ -180,6 +187,10 @@ BEGIN
         EXECUTE IMMEDIATE 'CREATE TABLE IDN_AUTH_EXPIRED_SESSION_TMP (SESSION_ID varchar(100),CONSTRAINT IDN_AUTH_EXP_SESS_PRI PRIMARY KEY (SESSION_ID)) NOLOGGING';
         EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_EXPIRED_SESSION_TMP SELECT IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING LEFT OUTER JOIN IDN_AUTH_SESSION_STORE ON IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID = IDN_AUTH_SESSION_STORE.SESSION_ID WHERE IDN_AUTH_SESSION_STORE.SESSION_ID IS NULL';
         expiredsessioncount := SQL%rowcount;
+        COMMIT;
+
+        EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_EXPIRED_SESSION_TMP SELECT IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING LEFT OUTER JOIN IDN_AUTH_TEMP_SESSION_STORE ON IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID = IDN_AUTH_TEMP_SESSION_STORE.SESSION_ID WHERE IDN_AUTH_TEMP_SESSION_STORE.SESSION_ID IS NULL';
+        expiredsessioncount := expiredsessioncount + SQL%rowcount;
         COMMIT;
 
         IF ( tracingenabled ) THEN
@@ -328,6 +339,9 @@ BEGIN
         EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_SESSION_STORE_TMP SELECT rowid,SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE rownum <= :chunklimit AND OPERATION = ''DELETE'' AND TIME_CREATED < :operationCleanupTime'
         USING chunklimit,opcleanuptime;
         rowcount := SQL%rowcount;
+        EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_SESSION_STORE_TMP SELECT rowid,SESSION_ID FROM IDN_AUTH_TEMP_SESSION_STORE WHERE rownum <= :chunklimit AND OPERATION = ''DELETE'' AND TIME_CREATED < :operationCleanupTime'
+        USING chunklimit,opcleanuptime;
+        rowcount := rowcount + SQL%rowcount;
 
 --        EXECUTE IMMEDIATE 'CREATE INDEX idn_auth_session_tmp_idx on IDN_AUTH_SESSION_STORE_TMP (SESSION_ID)';
 --        COMMIT;
@@ -362,6 +376,10 @@ BEGIN
 
             EXECUTE IMMEDIATE 'DELETE IDN_AUTH_SESSION_STORE WHERE rowid in (select ROW_ID from TEMP_SESSION_BATCH)';
             opcleanupcount := SQL%rowcount;
+            COMMIT;
+
+            EXECUTE IMMEDIATE 'DELETE IDN_AUTH_TEMP_SESSION_STORE WHERE rowid in (select ROW_ID from TEMP_SESSION_BATCH)';
+            opcleanupcount := opcleanupcount + SQL%rowcount;
             COMMIT;
 
             IF ( tracingenabled ) THEN
