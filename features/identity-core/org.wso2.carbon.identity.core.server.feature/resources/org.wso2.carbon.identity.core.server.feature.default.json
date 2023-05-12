@@ -654,6 +654,12 @@
     "org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager"
   ],
 
+  "user_store_mgt.reserved_user_stores": [
+    "PRIMARY",
+    "INTERNAL",
+    "APPLICATION"
+  ],
+
   "system_applications.read_only_apps": ["Console", "My Account"],
 
   "legacy_feature": [
