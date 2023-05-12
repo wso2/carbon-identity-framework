@@ -43,7 +43,7 @@
     <filter>
         <filter-name>ContentTypeBasedCachePreventionFilter</filter-name>
         <filter-class>
-            org.wso2.carbon.ui.filters.cache.ContentTypeBasedCachePreventionFilter
+            org.wso2.carbon.tomcat.ext.filter.ContentTypeBasedCachePreventionFilter
         </filter-class>
         <init-param>
             <param-name>patterns</param-name>

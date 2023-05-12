@@ -37,7 +37,6 @@
         <module>org.wso2.carbon.identity.claim.metadata.mgt.stub</module>
         <module>org.wso2.carbon.identity.application.mgt.stub</module>
         <module>org.wso2.carbon.identity.application.authentication.framework.stub</module>
-        <module>org.wso2.carbon.identity.entitlement.stub</module>
         <module>org.wso2.carbon.identity.mgt.stub</module>
         <module>org.wso2.carbon.identity.user.profile.stub</module>
         <module>org.wso2.carbon.identity.user.registration.stub</module>
@@ -45,8 +44,6 @@
         <module>org.wso2.carbon.idp.mgt.stub</module>
         <module>org.wso2.carbon.directory.server.manager.stub</module>
         <module>org.wso2.carbon.user.mgt.stub</module>
-        <module>org.wso2.carbon.user.mgt.workflow.stub</module>
-        <module>org.wso2.carbon.identity.workflow.mgt.stub</module>
         <module>org.wso2.carbon.identity.user.store.count.stub</module>
         <module>org.wso2.carbon.identity.governance.stub</module>
         <module>org.wso2.carbon.identity.functions.library.mgt.stub</module>
