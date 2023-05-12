@@ -1133,7 +1133,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                 .findFirst()
                 .orElse(null);
         // If there is no application role claim mapping, no need to proceed.
-        if (idpAppRoleClaimUri == null) {
+        if (StringUtils.isBlank(idpAppRoleClaimUri)) {
             return;
         }
         // Regardless of whether the application role claim is requested from the SP, we need to add it to the remote
@@ -1184,7 +1184,7 @@ public class DefaultClaimHandler implements ClaimHandler {
      * Get the application roles of the authenticated user for application roles resolver if available.
      *
      * @param authenticatedUser Authenticated user to get the application roles for.
-     * @param context Authentication context.
+     * @param context           Authentication context.
      * @return Application roles of the authenticated user.
      * @throws FrameworkException Exception on getting application roles.
      */
@@ -1205,7 +1205,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             appRoles = appRolesResolver.getRoles(authenticatedUser, applicationId);
         } catch (ApplicationRolesException e) {
             throw new FrameworkException("Error while retrieving application roles for user: " +
-                    authenticatedUser + " and application: " + applicationId, e);
+                    authenticatedUser.getLoggableUserId() + " and application: " + applicationId, e);
         }
         if (appRoles != null) {
             return String.join(FrameworkUtils.getMultiAttributeSeparator(), appRoles);
