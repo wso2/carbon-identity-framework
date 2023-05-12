@@ -1126,20 +1126,23 @@ public class DefaultClaimHandler implements ClaimHandler {
             return;
         }
         // Get the remote claim URI of the application role claim.
-        String idpAppRoleClaimUri = Arrays.stream(idPClaimMappings)
+        String remoteClaimURIOfAppRoleClaim = Arrays.stream(idPClaimMappings)
                 .filter(claimMapping -> claimMapping.getLocalClaim().getClaimUri()
                         .equals(FrameworkConstants.APP_ROLES_CLAIM))
                 .map(claimMapping -> claimMapping.getRemoteClaim().getClaimUri())
                 .findFirst()
                 .orElse(null);
         // If there is no application role claim mapping, no need to proceed.
-        if (StringUtils.isBlank(idpAppRoleClaimUri)) {
+        if (StringUtils.isBlank(remoteClaimURIOfAppRoleClaim)) {
             return;
         }
         // Regardless of whether the application role claim is requested from the SP, we need to add it to the remote
         // claims since otherwise we wouldn't know if application roles are resolved or not at a later stage.
-        AppRoleMappingConfig[] appRoleMappingConfigs = context.getSequenceConfig().getApplicationConfig()
-                .getServiceProvider().getApplicationRoleMappingConfig();
+        ServiceProvider serviceProvider = context.getSequenceConfig().getApplicationConfig().getServiceProvider();
+        if (serviceProvider == null) {
+            return;
+        }
+        AppRoleMappingConfig[] appRoleMappingConfigs = serviceProvider.getApplicationRoleMappingConfig();
         String fidpName = stepConfig.getAuthenticatedIdP();
         boolean useAppRoleMapping = Arrays.stream(appRoleMappingConfigs)
                 .anyMatch(appRoleMappingConfig -> appRoleMappingConfig.getIdPName().equals(fidpName)
@@ -1148,7 +1151,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             String appRoles = getApplicationRoles(stepConfig.getAuthenticatedUser(), context);
             // Checking if the appRoles string is null but can be an empty string.
             if (appRoles != null) {
-                remoteClaims.put(idpAppRoleClaimUri, appRoles);
+                remoteClaims.put(remoteClaimURIOfAppRoleClaim, appRoles);
             }
         }
     }
@@ -1165,9 +1168,10 @@ public class DefaultClaimHandler implements ClaimHandler {
                                                     Map<String, String> allLocalClaims)
             throws FrameworkException {
 
-        AuthenticatedUser authenticatedUser = (stepConfig == null)
-                ? context.getSequenceConfig().getAuthenticatedUser()
-                : stepConfig.getAuthenticatedUser();
+        AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
+        if (authenticatedUser == null) {
+            return;
+        }
         if (stepConfig == null || stepConfig.isSubjectAttributeStep()) {
             String requestedAppRoleClaim = context.getSequenceConfig().getApplicationConfig()
                     .getRequestedClaimMappings().get(FrameworkConstants.APP_ROLES_CLAIM);
@@ -1191,8 +1195,11 @@ public class DefaultClaimHandler implements ClaimHandler {
     private String getApplicationRoles(AuthenticatedUser authenticatedUser, AuthenticationContext context)
             throws FrameworkException {
 
-        String applicationId = context.getSequenceConfig().getApplicationConfig().getServiceProvider()
-                .getApplicationResourceId();
+        ServiceProvider serviceProvider = context.getSequenceConfig().getApplicationConfig().getServiceProvider();
+        if (serviceProvider == null) {
+            return null;
+        }
+        String applicationId = serviceProvider.getApplicationResourceId();
         ApplicationRolesResolver appRolesResolver = FrameworkServiceDataHolder.getInstance()
                 .getHighestPriorityApplicationRolesResolver();
         if (appRolesResolver == null) {
