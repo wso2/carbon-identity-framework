@@ -389,6 +389,7 @@ public class IdentityConstants {
         public static final String DCR = "api/identity/oauth2/dcr/v1.1/register";
         public static final String JWKS = "oauth2/jwks";
         public static final String DISCOVERY = "oauth2/oidcdiscovery";
+        public static final String ENABLE_SHA256_JWK_THUMBPRINT = "OAuth.EnableSHA256OAuth2JWKThumbprint";
     }
 
     /**
