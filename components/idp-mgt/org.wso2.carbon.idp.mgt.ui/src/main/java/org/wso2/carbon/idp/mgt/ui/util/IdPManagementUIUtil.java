@@ -303,9 +303,11 @@ public class IdPManagementUIUtil {
                     if (("googleapps").equals(provisioningConnector.getName())) {
                         Property[] googleProperties = provisioningConnector
                                 .getProvisioningProperties();
-                        for (Property property : googleProperties) {
-                            if (property.getName().equals("google_prov_private_key")) {
-                                paramMap.put("old_google_prov_private_key", property.getValue());
+                        if (googleProperties != null) {
+                            for (Property property : googleProperties) {
+                                if (property.getName().equals("google_prov_private_key")) {
+                                    paramMap.put("old_google_prov_private_key", property.getValue());
+                                }
                             }
                         }
 
