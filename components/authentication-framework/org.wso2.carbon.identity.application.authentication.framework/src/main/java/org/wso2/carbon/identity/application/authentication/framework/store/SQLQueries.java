@@ -232,7 +232,7 @@ public class SQLQueries {
 
     // Update federated authentication session id using the idp session id, the tenant id, and the idp id.
     public static final String SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO_WITH_TENANT_AND_IDP_ID = "UPDATE " +
-            "IDN_FED_AUTH_SESSION_MAPPING SET SESSION_ID = ? WHERE IDP_SESSION_ID = ? AND TENANT_ID = ? IDP_ID = ?";
+            "IDN_FED_AUTH_SESSION_MAPPING SET SESSION_ID = ? WHERE IDP_SESSION_ID = ? AND TENANT_ID = ? AND IDP_ID = ?";
 
     // Get federated authentication session details if there is an already existing session.
     public static final String SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID =
