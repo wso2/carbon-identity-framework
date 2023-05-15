@@ -28,14 +28,8 @@
     <url>http://wso2.org</url>
 
     <modules>
-        <module>org.wso2.carbon.user.mgt.ui.feature</module>
         <module>org.wso2.carbon.user.mgt.server.feature</module>
-        <module>org.wso2.carbon.user.mgt.feature</module>
-        <module>org.wso2.carbon.identity.user.profile.ui.feature</module>
         <module>org.wso2.carbon.identity.user.profile.server.feature</module>
-        <module>org.wso2.carbon.identity.user.profile.feature</module>
-        <module>org.wso2.carbon.identity.user.registration.feature</module>
         <module>org.wso2.carbon.identity.user.registration.server.feature</module>
-        <module>org.wso2.carbon.identity.user.registration.ui.feature</module>
     </modules>
 </project>

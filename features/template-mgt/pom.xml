@@ -32,9 +32,7 @@
     <name>WSO2 Carbon - Identity Template Management Feature Aggregator Module</name>
     <url>http://wso2.org</url>
     <modules>
-        <module>org.wso2.carbon.identity.template.mgt.feature</module>
         <module>org.wso2.carbon.identity.template.mgt.server.feature</module>
-        <module>org.wso2.carbon.identity.template.mgt.ui.feature</module>
     </modules>
 
 </project>

@@ -31,7 +31,6 @@
     <name>WSO2 Carbon - Functions Library Manager</name>
     <modules>
         <module>org.wso2.carbon.identity.functions.library.mgt</module>
-        <module>org.wso2.carbon.identity.functions.library.mgt.ui</module>
     </modules>
 
 </project>

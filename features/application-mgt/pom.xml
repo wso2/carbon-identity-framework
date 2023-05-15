@@ -32,9 +32,7 @@
     <url>http://wso2.org</url>
 
     <modules>
-        <module>org.wso2.carbon.identity.application.mgt.feature</module>
         <module>org.wso2.carbon.identity.application.mgt.server.feature</module>
-        <module>org.wso2.carbon.identity.application.mgt.ui.feature</module>
     </modules>
 
 </project>
