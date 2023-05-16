@@ -167,8 +167,7 @@
   "identity_mgt.events.schemes.identityUserMetadataMgtHandler.subscriptions": [
     "POST_AUTHENTICATION",
     "POST_UPDATE_CREDENTIAL",
-    "POST_UPDATE_CREDENTIAL_BY_ADMIN",
-    "POST_AUTH_STORE_LAST_LOGIN"
+    "POST_UPDATE_CREDENTIAL_BY_ADMIN"
   ],
   "identity_mgt.events.schemes.identityOauthEventHandler.module_index": "28",
   "identity_mgt.events.schemes.identityOauthEventHandler.subscriptions": [
