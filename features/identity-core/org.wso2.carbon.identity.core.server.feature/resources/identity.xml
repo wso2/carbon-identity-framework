@@ -1363,10 +1363,7 @@
             <Scopes>internal_application_mgt_update</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
-            <Scopes>internal_config_mgt_view</Scopes>
-        </Resource>
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
