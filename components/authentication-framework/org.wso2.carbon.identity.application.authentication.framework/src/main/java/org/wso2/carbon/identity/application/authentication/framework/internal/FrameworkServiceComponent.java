@@ -814,7 +814,6 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().addApplicationRolesResolver(applicationRolesResolver);
         log.debug("Application Roles Resolver is set in the Application Authentication Framework bundle.");
-
     }
 
     protected void unsetAppRolesResolverService(ApplicationRolesResolver applicationRolesResolver) {
