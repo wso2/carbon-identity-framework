@@ -86,6 +86,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_JWT_ISSUER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
@@ -339,6 +340,91 @@ public class IdPManagementDAO {
             throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_CONNECTING_DATABASE, message, e);
         }
+    }
+
+    /**
+     * Get all identity provider's Basic information along with additionally requested information depends on the
+     * requiredAttributes for a given matching filter.
+     *
+     * @param tenantId           Tenant Id of the identity provider.
+     * @param expressionNode     List of filter value for IdP search.
+     * @param limit              Limit per page.
+     * @param offset             Offset value.
+     * @param sortOrder          Order of IdP ASC/DESC.
+     * @param sortBy             The attribute need to sort.
+     * @param requiredAttributes Required attributes which needs to be return.
+     * @return Identity Provider's Basic Information array along with requested attribute information.
+     * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
+     */
+    List<IdentityProvider> getTrustedJwtIssuerSearch(int tenantId, List<ExpressionNode> expressionNode, int limit, int offset,
+                                               String sortOrder, String sortBy, List<String> requiredAttributes)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        appendFilterQuery(expressionNode, filterQueryBuilder);
+        String sortedOrder = sortBy + " " + sortOrder;
+        try {
+            Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+            ResultSet resultSet = getTrustedJwtIssuerQueryResultSet(dbConnection, sortedOrder, tenantId, offset, limit,
+                    filterQueryBuilder, requiredAttributes);
+            return populateIdentityProviderList(resultSet, dbConnection, requiredAttributes, tenantId);
+        } catch (SQLException e) {
+            String message = "Error occurred while retrieving Identity Provider for tenant: " +
+                    IdentityTenantUtil.getTenantDomain(tenantId);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message, e);
+        }
+    }
+
+    /**
+     * Get the result set.
+     *
+     * @param dbConnection       database connection.
+     * @param sortedOrder        Sort order.
+     * @param tenantId           tenant Id of the identity provider.
+     * @param offset             offset value.
+     * @param limit              limit per page.
+     * @param filterQueryBuilder filter query buider object.
+     * @param requiredAttributes Required attributes which needs to be return.
+     * @return result set of the query.
+     * @throws SQLException                              Database Exception.
+     * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
+     */
+    private ResultSet getTrustedJwtIssuerQueryResultSet(Connection dbConnection, String sortedOrder, int tenantId,
+                                                        int offset, int limit, FilterQueryBuilder filterQueryBuilder,
+                                                        List<String> requiredAttributes)
+            throws SQLException, IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        String sqlQuery;
+        String sqlTail;
+        PreparedStatement prepStmt;
+        Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
+        int filterAttributeValueSize = filterAttributeValue.entrySet().size();
+        String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+        if (databaseProductName.contains("Microsoft")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_JWT_ISSUER_TENANT_MSSQL;
+            sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_JWT_ISSUER_TENANT_MSSQL_TAIL, sortedOrder);
+            // Add the type filter to the query.
+            String jwtIssuerFilterSql = IdPManagementConstants.SQLQueries.JWT_ISSUER_FILTER_SQL;
+            filterQueryBuilder.setFilterQuery(filterQueryBuilder.getFilterQuery() + jwtIssuerFilterSql);
+            sqlQuery = sqlQuery + IdPManagementConstants.SQLQueries.FROM_JWT_ISSUER_WHERE
+                    + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(filterAttributeValueSize + 1, tenantId);
+            prepStmt.setInt(filterAttributeValueSize + 2, offset);
+            prepStmt.setInt(filterAttributeValueSize + 3, limit);
+        } else {
+            String message = "Error while loading Identity Provider from DB: Database driver could not be identified" +
+                    " or not supported.";
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message);
+        }
+        return prepStmt.executeQuery();
     }
 
     /**
@@ -722,6 +808,47 @@ public class IdPManagementDAO {
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         sqlStmt = sqlStmt + filterQueryBuilder.getFilterQuery() +
                 IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL_TAIL;
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
+            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(filterAttributeValue.entrySet().size() + 1, tenantId);
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                if (rs.next()) {
+                    countOfFilteredIdp = Integer.parseInt(rs.getString(1));
+                }
+            }
+        } catch (SQLException e) {
+            String message = "Error occurred while retrieving Identity Provider count for a tenant : " +
+                    IdentityTenantUtil.getTenantDomain(tenantId);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message, e);
+        }
+        return countOfFilteredIdp;
+    }
+
+    /**
+     * Get number of IdP count for a matching filter.
+     *
+     * @param tenantId       Tenant Id of the identity provider.
+     * @param expressionNode filter value list for IdP search.
+     * @return number of IdP count for a given filter
+     * @throws IdentityProviderManagementServerException Error when getting count of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
+     */
+    int getCountOfFilteredJwtIssuers(int tenantId, List<ExpressionNode> expressionNode)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        String sqlStmt = IdPManagementConstants.SQLQueries.GET_JWT_ISSUER_COUNT_SQL;
+        int countOfFilteredIdp = 0;
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        appendFilterQuery(expressionNode, filterQueryBuilder);
+        String filter = IdPManagementConstants.SQLQueries.JWT_ISSUER_FILTER_SQL;
+        filterQueryBuilder.setFilterQuery(filterQueryBuilder.getFilterQuery() + filter);
+        Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
+        sqlStmt = sqlStmt + filterQueryBuilder.getFilterQuery() +
+                IdPManagementConstants.SQLQueries.GET_JWT_ISSUER_COUNT_SQL_TAIL;
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
             for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
@@ -2878,9 +3005,16 @@ public class IdPManagementDAO {
             }
             List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties(identityProvider
                     .getJustInTimeProvisioningConfig(), idpProperties);
+
+            IdentityProviderProperty trustedIdpProperty = new IdentityProviderProperty();
+            trustedIdpProperty.setName(IS_TRUSTED_JWT_ISSUER);
+            trustedIdpProperty.setValue(String.valueOf(identityProvider.getIsTrustedJwtIssuer()));
+            identityProviderProperties.add(trustedIdpProperty);
+
             addTemplateIdProperty(identityProviderProperties, identityProvider);
             addIdentityProviderProperties(dbConnection, idPId, identityProviderProperties, tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
+
             return resourceId;
         } catch (IOException e) {
             throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
@@ -3167,9 +3301,27 @@ public class IdPManagementDAO {
                 }
                 List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties
                         (newIdentityProvider.getJustInTimeProvisioningConfig(), idpProperties);
+
+                boolean hasTrustedJwtIssuerProperty = false;
+                for (IdentityProviderProperty property : identityProviderProperties) {
+                    if (property.getName().equals(IS_TRUSTED_JWT_ISSUER)) {
+                        property.setValue(String.valueOf(newIdentityProvider.getIsTrustedJwtIssuer()));
+                        hasTrustedJwtIssuerProperty = true;
+                        break;
+                    }
+                }
+
+                if (!hasTrustedJwtIssuerProperty) {
+                    IdentityProviderProperty property = new IdentityProviderProperty();
+                    property.setName(IS_TRUSTED_JWT_ISSUER);
+                    property.setValue(String.valueOf(newIdentityProvider.getIsTrustedJwtIssuer()));
+                    identityProviderProperties.add(property);
+                }
+
                 updateIdentityProviderProperties(dbConnection, idpId, identityProviderProperties, tenantId);
             }
             IdentityDatabaseUtil.commitTransaction(dbConnection);
+
         } catch (IOException e) {
             throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
         } catch (SQLException e) {
