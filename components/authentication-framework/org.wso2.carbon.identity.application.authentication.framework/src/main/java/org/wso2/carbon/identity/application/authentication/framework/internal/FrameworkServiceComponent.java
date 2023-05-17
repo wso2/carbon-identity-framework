@@ -56,6 +56,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.listener.JITProvisioningIdentityProviderMgtListener;
@@ -800,6 +801,24 @@ public class FrameworkServiceComponent {
     protected void unsetClaimFilter(ClaimFilter claimFilter) {
 
         FrameworkServiceDataHolder.getInstance().removeClaimFilter(claimFilter);
+    }
+
+    @Reference(
+            name = "approles.resolver.service",
+            service = ApplicationRolesResolver.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAppRolesResolverService"
+    )
+    protected void setAppRolesResolverService(ApplicationRolesResolver applicationRolesResolver) {
+
+        FrameworkServiceDataHolder.getInstance().addApplicationRolesResolver(applicationRolesResolver);
+        log.debug("Application Roles Resolver is set in the Application Authentication Framework bundle.");
+    }
+
+    protected void unsetAppRolesResolverService(ApplicationRolesResolver applicationRolesResolver) {
+
+        FrameworkServiceDataHolder.getInstance().removeApplicationRolesResolver(applicationRolesResolver);
     }
 
     @Reference(
