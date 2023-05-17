@@ -445,7 +445,9 @@ public class IdentityApplicationConstants {
      */
     public static class Mex {
 
+        public static final String RSA_SHA1 = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
         public static final String RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
+        public static final String HMAC_SHA1 = "http://www.w3.org/2000/09/xmldsig#hmac-sha1";
         public static final String HMAC_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256";
     }
 
