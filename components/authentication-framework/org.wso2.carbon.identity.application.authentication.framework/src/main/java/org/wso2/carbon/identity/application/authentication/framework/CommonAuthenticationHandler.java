@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class CommonAuthenticationHandler {
 
-    private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
+    private static final Log log = LogFactory.getLog(CommonAuthenticationHandler.class);
 
     public CommonAuthenticationHandler() {
         ConfigurationFacade.getInstance();
