@@ -703,9 +703,8 @@
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
         <SAMLMetadataValidityPeriod>60</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
-        <SAMLIDPMetadataSignatureAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</SAMLIDPMetadataSignatureAlgorithmURI>
-        <SAMLSPMetadataParsingSignatureAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</SAMLSPMetadataParsingSignatureAlgorithmURI>
-        <SAMLSPMetadataParsingDigestAlgorithmURI>http://www.w3.org/2001/04/xmlenc#sha256</SAMLSPMetadataParsingDigestAlgorithmURI>
+        <SAMLIDPMetadataEnableSHA256Alg>true</SAMLIDPMetadataEnableSHA256Alg>
+        <SAMLSPMetadataParsingEnableSHA256Alg>true</SAMLSPMetadataParsingEnableSHA256Alg>
 
         <SAML2AuthenticationRequestValidityPeriodEnabled>false</SAML2AuthenticationRequestValidityPeriodEnabled>
         <!-- Request validity period in minutes-->
@@ -746,8 +745,7 @@
     </PassiveSTS>
 
     <Mex>
-        <DefaultRSASignatureAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</DefaultRSASignatureAlgorithmURI>
-        <DefaultHMACSignatureAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#hmac-sha256</DefaultHMACSignatureAlgorithmURI>
+        <EnableSHA256Alg>true</EnableSHA256Alg>
     </Mex>
 
     <EntitlementSettings>

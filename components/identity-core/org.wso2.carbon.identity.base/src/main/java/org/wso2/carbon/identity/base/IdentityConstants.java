@@ -265,9 +265,8 @@ public class IdentityConstants {
         public static final String SAML_METADATA_VALIDITY_PERIOD = "SSOService.SAMLMetadataValidityPeriod";
         public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD = "SSOService.SAMLSessionNotOnOrAfterPeriod";
         public static final String SAML_METADATA_SIGNING_ENABLED = "SSOService.SAMLMetadataSigningEnabled";
-        public static final String SAML_METADATA_IDP_SIGNATURE_ALGO_URI = "SSOService.SAMLIDPMetadataSignatureAlgorithmURI";
-        public static final String SAML_METADATA_SP_SIGNATURE_ALGO_URI = "SSOService.SAMLSPMetadataParsingSignatureAlgorithmURI";
-        public static final String SAML_METADATA_SP_DIGEST_ALGO_URI = "SSOService.SAMLSPMetadataParsingDigestAlgorithmURI";
+        public static final String SAML_METADATA_IDP_ENABLE_SHA256_ALGO = "SSOService.SAMLIDPMetadataEnableSHA256Alg";
+        public static final String SAML_METADATA_SP_ENABLE_SHA256_ALGO = "SSOService.SAMLSPMetadataParsingEnableSHA256Alg";
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
         public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED = "SSOService" +
                 ".SAML2AuthnRequestsSigningEnabled";
@@ -414,8 +413,7 @@ public class IdentityConstants {
      */
     public static class MEX {
 
-        public static final String MEX_DEFAULT_RSA_SIGNATURE_ALG = "Mex.DefaultRSASignatureAlgorithmURI";
-        public static final String MEX_DEFAULT_HMAC_SIGNATURE_ALG = "Mex.DefaultHMACSignatureAlgorithmURI";
+        public static final String ENABLE_SHA256_SIGNATURE_ALG = "Mex.EnableSHA256Alg";
     }
 
     /**

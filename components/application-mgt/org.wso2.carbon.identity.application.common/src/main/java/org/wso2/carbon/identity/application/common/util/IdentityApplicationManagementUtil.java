@@ -415,7 +415,7 @@ public class IdentityApplicationManagementUtil {
 
         if (encodedCert != null) {
             MessageDigest digestValue = null;
-            digestValue = MessageDigest.getInstance("SHA-1");
+            digestValue = MessageDigest.getInstance("SHA-256");
             byte[] der = Base64.decode(encodedCert);
             digestValue.update(der);
             byte[] digestInBytes = digestValue.digest();
