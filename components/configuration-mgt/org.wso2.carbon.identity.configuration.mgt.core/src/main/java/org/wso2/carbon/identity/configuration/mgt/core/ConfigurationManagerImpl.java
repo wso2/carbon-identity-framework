@@ -16,22 +16,18 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core;
 
-import com.google.gson.Gson;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
-import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
-import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationXDSWrapper;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
@@ -42,11 +38,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.xds.client.mgt.util.XDSUtils;
-import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
-import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -214,14 +205,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         validateResourceDeleteRequest(resourceTypeName, resourceName);
         ResourceType resourceType = getResourceType(resourceTypeName);
         this.getConfigurationDAO().deleteResourceByName(getTenantId(), resourceType.getId(), resourceName);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResourceName(resourceName)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.DELETE_RESOURCE);
-        }
         if (log.isDebugEnabled()) {
             log.debug("Resource: " + resourceName + " is deleted successfully.");
         }
@@ -243,21 +226,12 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         validateResourceCreateRequest(resourceTypeName, resourceAdd);
         Resource resource = generateResourceFromRequest(resourceTypeName, resourceAdd);
-        resourceId = StringUtils.isNotBlank(resourceId) ? resourceId :  generateUniqueID();
+        resourceId = StringUtils.isNotBlank(resourceId) ? resourceId : generateUniqueID();
         if (log.isDebugEnabled()) {
             log.debug("Resource id generated: " + resourceId);
         }
         resource.setResourceId(resourceId);
         this.getConfigurationDAO().addResource(resource);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResourceAdd(resourceAdd)
-                    .setResourceId(resourceId)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.ADD_RESOURCE);
-        }
         if (log.isDebugEnabled()) {
             log.debug(resourceAdd.getName() + " resource created successfully.");
         }
@@ -274,14 +248,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
         resource.setResourceId(resourceId);
         this.getConfigurationDAO().addResource(resource);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResource(resource)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.ADD_RESOURCE_WITH_RESOURCE);
-        }
         log.info("Resource: " + resource.getResourceName() + " added successfully");
         return resource;
     }
@@ -297,14 +263,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         Resource resource = generateResourceFromRequest(resourceTypeName, resourceAdd);
         resource.setResourceId(resourceId);
         this.getConfigurationDAO().replaceResource(resource);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResourceAdd(resourceAdd)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.REPLACE_RESOURCE);
-        }
         if (log.isDebugEnabled()) {
             log.debug(resourceAdd.getName() + " resource created successfully.");
         }
@@ -319,14 +277,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         String resourceId = generateResourceId(resourceTypeName, resource.getResourceName());
         resource.setResourceId(resourceId);
         this.getConfigurationDAO().replaceResourceWithFiles(resource);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResource(resource)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.REPLACE_RESOURCE_WITH_RESOURCE_AND_TYPE);
-        }
         log.info(resource.getResourceName() + " resource created successfully.");
         return resource;
     }
@@ -358,13 +308,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         validateResourceTypeDeleteRequest(resourceName);
         getConfigurationDAO().deleteResourceTypeByName(resourceName);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceName(resourceName)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.DELETE_RESOURCE_TYPE);
-        }
         if (log.isDebugEnabled()) {
             log.debug("Resource type: " + resourceName + " is successfully deleted.");
         }
@@ -389,14 +332,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
         ResourceType resourceType = generateResourceTypeFromRequest(resourceTypeAdd, resourceTypeID);
         getConfigurationDAO().addResourceType(resourceType);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeAdd(resourceTypeAdd)
-                    .setResourceTypeId(resourceTypeID)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.ADD_RESOURCE_TYPE);
-        }
         if (log.isDebugEnabled()) {
             log.debug("Resource type: " + resourceType.getName() + " successfully created with the id: "
                     + resourceType.getId());
@@ -418,13 +353,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         resourceTypeID = generateResourceTypeId(resourceTypeAdd.getName());
         ResourceType resourceType = generateResourceTypeFromRequest(resourceTypeAdd, resourceTypeID);
         getConfigurationDAO().replaceResourceType(resourceType);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeAdd(resourceTypeAdd)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.REPLACE_RESOURCE_TYPE);
-        }
         if (log.isDebugEnabled()) {
             log.debug("Resource type: " + resourceType.getName() + " successfully replaced with the id: "
                     + resourceType.getId());
@@ -446,15 +374,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         Attribute existingAttribute = getAttribute(resourceTypeName, resourceName, attributeKey);
         getConfigurationDAO().deleteAttribute(
                 existingAttribute.getAttributeId(), getResourceId(resourceTypeName, resourceName), attributeKey);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResourceName(resourceName)
-                    .setAttributeKey(attributeKey)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.DELETE_ATTRIBUTE);
-        }
         if (log.isDebugEnabled()) {
             log.debug("Attribute: " + attributeKey + " successfully deleted.");
         }
@@ -493,15 +412,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         Attribute existingAttribute = getAttribute(resourceTypeName, resourceName, attribute.getKey());
         getConfigurationDAO().updateAttribute(
                 existingAttribute.getAttributeId(), getResourceId(resourceTypeName, resourceName), attribute);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResourceName(resourceName)
-                    .setAttribute(attribute)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.UPDATE_ATTRIBUTE);
-        }
         if (log.isDebugEnabled()) {
             log.debug("Attribute: " + attribute.getKey() + " successfully updated.");
         }
@@ -522,15 +432,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
         attribute.setAttributeId(attributeId);
         getConfigurationDAO().addAttribute(attributeId, resourceId, attribute);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResourceName(resourceName)
-                    .setAttribute(attribute)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.ADD_ATTRIBUTE);
-        }
         if (log.isDebugEnabled()) {
             log.debug("Attribute: " + attribute.getKey() + " successfully updated.");
         }
@@ -547,15 +448,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         String resourceId = getResourceId(resourceTypeName, resourceName);
         String attributeId = generateAttributeId(resourceTypeName, resourceName, attribute);
         getConfigurationDAO().replaceAttribute(attributeId, resourceId, attribute);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResourceName(resourceName)
-                    .setAttribute(attribute)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.REPLACE_ATTRIBUTE);
-        }
         if (log.isDebugEnabled()) {
             log.debug("Attribute: " + attribute.getKey() + " successfully replaced.");
         }
@@ -1011,17 +903,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
                     + "name: " + resourceTypeName);
         }
         getConfigurationDAO().addFile(fileId, resourceId, fileName, fileStream);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResourceName(resourceName)
-                    .setFileName(fileName)
-                    .setFileStream(fileStream)
-                    .setFileId(fileId)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.ADD_FILE);
-        }
         if (log.isDebugEnabled()) {
             log.debug("File: " + fileId + " successfully added for resource name: " + resourceName
                     + " resource type name: " + resourceTypeName);
@@ -1073,14 +954,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         validateRequest(resourceTypeName, resourceName);
         String resourceId = getResourceId(resourceTypeName, resourceName);
         getConfigurationDAO().deleteFiles(resourceId);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceTypeName(resourceTypeName)
-                    .setResourceName(resourceName)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.DELETE_FILES);
-        }
         if (log.isDebugEnabled()) {
             log.debug("All the files were deleted in the resource: " + resourceName + ".");
         }
@@ -1111,15 +984,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         validateRequest(resourceType, resourceName, fileId);
         validateFileExistence(resourceType, resourceName, fileId);
         getConfigurationDAO().deleteFileById(resourceType, resourceName, fileId);
-        if (isControlPlane()) {
-            ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                    .setResourceType(resourceType)
-                    .setResourceName(resourceName)
-                    .setFileId(fileId)
-                    .build();
-            publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                    ConfigurationXDSOperationType.DELETE_FILE_BY_ID);
-        }
         if (log.isDebugEnabled()) {
             log.debug("File: " + fileId + " successfully deleted.");
         }
@@ -1218,13 +1082,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
         if (isResourceExistsById(resourceId)) {
             this.getConfigurationDAO().deleteResourceById(getTenantId(), resourceId);
-            if (isControlPlane()) {
-                ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                        .setResourceId(resourceId)
-                        .build();
-                publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                        ConfigurationXDSOperationType.DELETE_RESOURCE_BY_ID);
-            }
             if (log.isDebugEnabled()) {
                 log.debug("Resource id: " + resourceId + " in tenant: " + getTenantDomain() + " deleted successfully.");
             }
@@ -1242,38 +1099,11 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
         if (isResourceExistsById(resource.getResourceId())) {
             this.getConfigurationDAO().replaceResourceWithFiles(resource);
-            if (isControlPlane()) {
-                ConfigurationXDSWrapper configurationXDSWrapper = new ConfigurationXDSWrapper.ConfigurationXDSWrapperBuilder()
-                        .setResource(resource)
-                        .build();
-                publishData(configurationXDSWrapper, XDSConstants.EventType.CONFIGURATION,
-                        ConfigurationXDSOperationType.REPLACE_RESOURCE_WITH_RESOURCE);
-            }
             if (log.isDebugEnabled()) {
                 log.debug("Resource id: " + resourceId + " in tenant: " + getTenantDomain() + " updated successfully.");
             }
         } else {
             throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS, resourceId);
         }
-    }
-
-    private String buildJson(ConfigurationXDSWrapper configurationXDSWrapper) {
-
-        Gson gson = new Gson();
-        return gson.toJson(configurationXDSWrapper);
-    }
-
-    private boolean isControlPlane() {
-
-        return Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
-    }
-
-    private void publishData(ConfigurationXDSWrapper configurationXDSWrapper, XDSConstants.EventType eventType,
-                             XDSOperationType XDSOperationType) {
-
-        String json = buildJson(configurationXDSWrapper);
-        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        XDSUtils.publishData(tenantDomain, username, json, eventType, XDSOperationType);
     }
 }

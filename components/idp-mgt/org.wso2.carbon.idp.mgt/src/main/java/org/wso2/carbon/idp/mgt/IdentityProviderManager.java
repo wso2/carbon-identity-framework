@@ -3322,6 +3322,7 @@ public class IdentityProviderManager implements IdpManager {
         String json = buildJson((IdpXDSWrapper) xdsWrapper);
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        XDSUtils.publishData(tenantDomain, username, json, eventType, XDSOperationType);
+        IdpMgtServiceComponentHolder.getInstance().getXdsClientService()
+                .publishData(tenantDomain, username, json, eventType, XDSOperationType);
     }
 }

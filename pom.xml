@@ -40,6 +40,7 @@
     <modules>
         <module>test-utils/org.wso2.carbon.identity.testutil</module>
         <module>service-stubs/identity</module>
+        <module>components/xds</module>
         <module>components/authentication-framework</module>
         <module>components/entitlement</module>
         <module>components/identity-core</module>
@@ -69,7 +70,6 @@
         <module>components/secret-mgt</module>
         <module>components/central-logger</module>
         <module>components/input-validation-mgt</module>
-        <module>components/xds</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>

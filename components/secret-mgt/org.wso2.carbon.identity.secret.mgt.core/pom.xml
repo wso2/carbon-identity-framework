@@ -113,6 +113,10 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.xds.client.mgt</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

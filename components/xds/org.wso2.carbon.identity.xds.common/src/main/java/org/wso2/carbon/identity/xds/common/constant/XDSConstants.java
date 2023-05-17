@@ -36,7 +36,10 @@ public class XDSConstants {
         KEYSTORE,
         EMAIL_TEMPLATE,
         NOTIFICATION_TEMPLATE,
-        REMOTE_FETCH
+        REMOTE_FETCH,
+        NOTIFICATION_SENDER,
+        TEMPLATE,
+        USER_STORE
 
     }
 }

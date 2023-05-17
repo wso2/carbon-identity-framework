@@ -21,6 +21,7 @@ import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 import org.wso2.carbon.user.core.hash.HashProviderFactory;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -43,6 +44,7 @@ public class UserStoreConfigListenersHolder {
     private ConfigurationContextService configurationContextService;
     private Map<String, HashProviderFactory> hashProviderFactoryMap;
     private UserStoreAttributeMappings userStoreAttributeMappings;
+    private XDSClientService xdsClientService;
 
     private UserStoreConfigListenersHolder() {
 
@@ -152,5 +154,13 @@ public class UserStoreConfigListenersHolder {
     public void unbindHashProviderFactory(HashProviderFactory hashProviderFactory) {
 
         hashProviderFactoryMap.remove(hashProviderFactory.getAlgorithm());
+    }
+
+    public void setXdsClientService(XDSClientService xdsClientService) {
+        this.xdsClientService = xdsClientService;
+    }
+
+    public XDSClientService getXdsClientService() {
+        return xdsClientService;
     }
 }

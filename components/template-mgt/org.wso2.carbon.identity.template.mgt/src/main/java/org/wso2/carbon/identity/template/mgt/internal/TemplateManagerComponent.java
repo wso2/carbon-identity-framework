@@ -40,6 +40,8 @@ import org.wso2.carbon.identity.template.mgt.handler.TemplateHandler;
 import org.wso2.carbon.identity.template.mgt.handler.impl.ConfigStoreBasedTemplateHandler;
 import org.wso2.carbon.identity.template.mgt.handler.impl.FileBasedTemplateHandler;
 import org.wso2.carbon.identity.template.mgt.model.Template;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
+import org.wso2.carbon.security.SecurityServiceHolder;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -257,5 +259,22 @@ public class TemplateManagerComponent {
             properties.put(TemplateMgtConstants.PROP_SERVICES, String.join(",", services));
         }
         return properties;
+    }
+
+    @Reference(
+            name = "xds.client.service",
+            service = XDSClientService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetXDSClientService"
+    )
+    protected void setXDSClientService(XDSClientService xdsClientService) {
+
+        TemplateManagerDataHolder.getInstance().setXdsClientService(xdsClientService);
+    }
+
+    protected void unsetXDSClientService(XDSClientService xdsClientService) {
+
+        TemplateManagerDataHolder.getInstance().setXdsClientService(null);
     }
 }

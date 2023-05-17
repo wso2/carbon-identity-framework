@@ -15,9 +15,11 @@
  */
 package org.wso2.carbon.identity.user.store.configuration;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.multitenancy.utils.TenantAxisUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -26,10 +28,13 @@ import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
 import org.wso2.carbon.identity.user.store.configuration.model.UserStoreAttributeMappings;
+import org.wso2.carbon.identity.user.store.configuration.model.UserStoreXDSWrapper;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
+import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
+import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
 import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.ndatasource.core.DataSourceManager;
 import org.wso2.carbon.ndatasource.core.services.WSDataSourceMetaInfo;
@@ -93,6 +98,13 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 validateConnectionUrl(userStoreDTO);
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
             }
+            if (isControlPlane()) {
+                UserStoreXDSWrapper userStoreXDSWrapper = new UserStoreXDSWrapper.UserStoreXDSWrapperBuilder()
+                        .setUserStoreDTO(userStoreDTO)
+                        .build();
+                publishData(userStoreXDSWrapper, XDSConstants.EventType.USER_STORE,
+                        UserStoreXDSOperationType.ADD_USER_STORE);
+            }
         } catch (UserStoreClientException e) {
             throw buildIdentityUserStoreClientException("Userstore " + userStoreDTO.getDomainId()
                     + " cannot be added.", e);
@@ -133,6 +145,14 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO,
                         false);
             }
+            if (isControlPlane()) {
+                UserStoreXDSWrapper userStoreXDSWrapper = new UserStoreXDSWrapper.UserStoreXDSWrapperBuilder()
+                        .setUserStoreDTO(userStoreDTO)
+                        .setIsStateChanged(isStateChange)
+                        .build();
+                publishData(userStoreXDSWrapper, XDSConstants.EventType.USER_STORE,
+                        UserStoreXDSOperationType.UPDATE_USER_STORE);
+            }
         } catch (UserStoreClientException e) {
             throw buildIdentityUserStoreClientException("Userstore " + userStoreDTO.getDomainId()
                     + " cannot be updated.", e);
@@ -170,6 +190,14 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().
                         updateUserStoreDomainName(previousDomainName, userStoreDTO);
             }
+            if (isControlPlane()) {
+                UserStoreXDSWrapper userStoreXDSWrapper = new UserStoreXDSWrapper.UserStoreXDSWrapperBuilder()
+                        .setUserStoreDTO(userStoreDTO)
+                        .setPreviousDomainName(previousDomainName)
+                        .build();
+                publishData(userStoreXDSWrapper, XDSConstants.EventType.USER_STORE,
+                        UserStoreXDSOperationType.UPDATE_USER_STORE_BY_DOMAIN_NAME);
+            }
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage);
@@ -202,6 +230,13 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                     SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStore(domain);
                 }
             }
+            if (isControlPlane()) {
+                UserStoreXDSWrapper userStoreXDSWrapper = new UserStoreXDSWrapper.UserStoreXDSWrapperBuilder()
+                        .setDomain(domain)
+                        .build();
+                publishData(userStoreXDSWrapper, XDSConstants.EventType.USER_STORE,
+                        UserStoreXDSOperationType.DELETE_USER_STORE);
+            }
         } catch (UserStoreException e) {
             throw new IdentityUserStoreMgtException("Error occurred while deleting the user store.", e);
         }
@@ -222,6 +257,13 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         }
         try {
             SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStores(domains);
+            if (isControlPlane()) {
+                UserStoreXDSWrapper userStoreXDSWrapper = new UserStoreXDSWrapper.UserStoreXDSWrapperBuilder()
+                        .setDomains(domains)
+                        .build();
+                publishData(userStoreXDSWrapper, XDSConstants.EventType.USER_STORE,
+                        UserStoreXDSOperationType.DELETE_USER_STORE_SET);
+            }
         } catch (UserStoreException e) {
             throw new IdentityUserStoreMgtException("Error occurred while deleting the user store.", e);
         }
@@ -393,6 +435,15 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             userStoreDTO = getUserStoreDTO(domain, isDisable, null);
             updateStateInFileRepository(userStoreDTO);
         }
+        if (isControlPlane()) {
+            UserStoreXDSWrapper userStoreXDSWrapper = new UserStoreXDSWrapper.UserStoreXDSWrapperBuilder()
+                    .setDomain(domain)
+                    .setIsDisabled(isDisable)
+                    .setRepositoryClass(repositoryClass)
+                    .build();
+            publishData(userStoreXDSWrapper, XDSConstants.EventType.USER_STORE,
+                    UserStoreXDSOperationType.MODIFY_USER_STORE_STATE);
+        }
     }
 
     /**
@@ -504,5 +555,26 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 }
             }
         }
+    }
+
+    private String buildJson(UserStoreXDSWrapper userStoreXDSWrapper) {
+
+        Gson gson = new Gson();
+        return gson.toJson(userStoreXDSWrapper);
+    }
+
+    private boolean isControlPlane() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
+    }
+
+    private void publishData(UserStoreXDSWrapper userStoreXDSWrapper, XDSConstants.EventType eventType,
+                             XDSOperationType xdsOperationType) {
+
+        String json = buildJson(userStoreXDSWrapper);
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        UserStoreConfigListenersHolder.getInstance().getXdsClientService()
+                .publishData(tenantDomain, username, json, eventType, xdsOperationType);
     }
 }

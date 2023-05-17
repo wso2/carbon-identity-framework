@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.user.store.configuration.utils.DefaultUserStoreA
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreServerException;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreAttributeMappingChangesLoader;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.hash.HashProviderFactory;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -401,5 +402,22 @@ public class UserStoreConfigComponent {
     protected void unsetHashProviderFactory(HashProviderFactory hashProviderFactory) {
 
         UserStoreConfigListenersHolder.getInstance().unbindHashProviderFactory(hashProviderFactory);
+    }
+
+    @Reference(
+            name = "xds.client.service",
+            service = XDSClientService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetXDSClientService"
+    )
+    protected void setXDSClientService(XDSClientService xdsClientService) {
+
+        UserStoreConfigListenersHolder.getInstance().setXdsClientService(xdsClientService);
+    }
+
+    protected void unsetXDSClientService(XDSClientService xdsClientService) {
+
+        UserStoreConfigListenersHolder.getInstance().setXdsClientService(null);
     }
 }

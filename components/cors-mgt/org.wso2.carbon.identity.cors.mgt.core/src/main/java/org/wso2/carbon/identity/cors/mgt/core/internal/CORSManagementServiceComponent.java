@@ -31,6 +31,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
 import org.wso2.carbon.identity.cors.mgt.core.internal.impl.CORSManagementServiceImpl;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 
 /**
  * Service component class for CORS-Service.
@@ -107,5 +108,22 @@ public class CORSManagementServiceComponent {
             log.debug("Unregistering the ConfigurationManager in CORSManagementService.");
         }
         CORSManagementServiceHolder.getInstance().setConfigurationManager(null);
+    }
+
+    @Reference(
+            name = "xds.client.service",
+            service = XDSClientService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetXDSClientService"
+    )
+    protected void setXDSClientService(XDSClientService xdsClientService) {
+
+        CORSManagementServiceHolder.getInstance().setXdsClientService(xdsClientService);
+    }
+
+    protected void unsetXDSClientService(XDSClientService xdsClientService) {
+
+        CORSManagementServiceHolder.getInstance().setXdsClientService(null);
     }
 }

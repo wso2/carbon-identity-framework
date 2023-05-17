@@ -431,8 +431,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProviderProperties.add(isManagementAppProperty);
             }
 
-            ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(application);
-            serviceProviderProperties.add(isB2BSSAppProperty);
+            boolean isB2BSSAppPropertyExists = Arrays.stream(spProperties)
+                    .anyMatch(spProperty -> IS_B2B_SS_APP_SP_PROPERTY_NAME.equals(spProperty.getName()));
+            if (!isB2BSSAppPropertyExists) {
+                ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(application);
+                serviceProviderProperties.add(isB2BSSAppProperty);
+            }
 
             addServiceProviderProperties(connection, applicationId, serviceProviderProperties, tenantID);
 

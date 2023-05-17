@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
@@ -262,6 +263,23 @@ public class IdentityClaimManagementServiceComponent {
                         claimConfigInitDAO.getClass().getName());
             }
         }
+    }
+
+    @Reference(
+            name = "xds.client.service",
+            service = XDSClientService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetXDSClientService"
+    )
+    protected void setXDSClientService(XDSClientService xdsClientService) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setXdsClientService(xdsClientService);
+    }
+
+    protected void unsetXDSClientService(XDSClientService xdsClientService) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setXdsClientService(null);
     }
 
     protected void unsetClaimConfigInitDAO(ClaimConfigInitDAO claimConfigInitDAO) {

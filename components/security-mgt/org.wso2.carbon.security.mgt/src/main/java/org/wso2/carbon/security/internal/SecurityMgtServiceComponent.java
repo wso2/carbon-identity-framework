@@ -31,6 +31,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
@@ -220,5 +221,22 @@ public class SecurityMgtServiceComponent {
             registry.rollbackTransaction();
             throw e;
         }
+    }
+
+    @Reference(
+            name = "xds.client.service",
+            service = XDSClientService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetXDSClientService"
+    )
+    protected void setXDSClientService(XDSClientService xdsClientService) {
+
+        SecurityServiceHolder.setXdsClientService(xdsClientService);
+    }
+
+    protected void unsetXDSClientService(XDSClientService xdsClientService) {
+
+        SecurityServiceHolder.setXdsClientService(null);
     }
 }

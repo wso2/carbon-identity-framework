@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.template.mgt.handler.impl;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.template.mgt.handler.impl.WSTrustConnectorValidator.validateWSTrustTemplateAvailability;
@@ -185,8 +187,12 @@ public class ConfigStoreBasedTemplateHandler implements TemplateHandler {
         }
         ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
         try {
+            String templateId = StringUtils.isNotBlank(template.getTemplateId())
+                    ? template.getTemplateId()
+                    : UUID.randomUUID().toString();
             Resource resource = configManager
-                    .addResource(template.getTemplateType().toString(), new TemplateToResourceAdd().apply(template));
+                    .addResource(template.getTemplateType().toString(),
+                            new TemplateToResourceAdd().apply(template), templateId);
             configManager.addFile(template.getTemplateType().toString(), template.getTemplateName(),
                     template.getTemplateName() + "_template_object",
                     IOUtils.toInputStream(template.getTemplateScript()));

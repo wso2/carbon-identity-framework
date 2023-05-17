@@ -33,6 +33,7 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.security.KeyStoreXDSOperationType;
 import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.SecurityConstants;
+import org.wso2.carbon.security.SecurityServiceHolder;
 import org.wso2.carbon.security.keystore.service.CertData;
 import org.wso2.carbon.security.keystore.service.CertDataDetail;
 import org.wso2.carbon.security.keystore.service.KeyStoreData;
@@ -380,6 +381,7 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
         String json = buildJson(keyStoreXDSWrapper);
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        XDSUtils.publishData(tenantDomain, username, json, eventType, XDSOperationType);
+        SecurityServiceHolder.getXdsClientService()
+                .publishData(tenantDomain, username, json, eventType, XDSOperationType);
     }
 }

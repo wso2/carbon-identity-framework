@@ -18,14 +18,12 @@
 
 package org.wso2.carbon.identity.role.mgt.core.internal;
 
-import com.google.gson.Gson;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
@@ -38,10 +36,6 @@ import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.mgt.core.dao.RoleMgtDAOFactory;
-import org.wso2.carbon.identity.role.mgt.core.modal.GRPCRole;
-import org.wso2.carbon.identity.role.mgt.core.modal.RoleXDSWrapper;
-import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
-import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -75,15 +69,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                                  List<String> permissions, String tenantDomain, String roleID)
             throws IdentityRoleManagementException {
 
-        boolean isControlPlane = Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
-        if (isControlPlane) {
-            GRPCRole role = new GRPCRole(roleName, userList, groupList, permissions, tenantDomain, roleID);
-            Gson gson = new Gson();
-            String json = gson.toJson(role);
-            XDSCUtils.publishData(tenantDomain, PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername(),
-                    json, XDSConstants.EventType.ROLE,
-                    XDSConstants.RoleOperationType.CREATE);
-        }
         /* Block the role names with the prefix 'system_' as it is used for the special roles created by the system in
         order to maintain the backward compatibility. */
         if (StringUtils.startsWithIgnoreCase(roleName, UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX)) {
@@ -191,17 +176,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public RoleBasicInfo updateRoleName(String roleID, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        boolean isControlPlane = Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
-        if (isControlPlane) {
-            RoleXDSWrapper roleXDSWrapper = new RoleXDSWrapper();
-            roleXDSWrapper.setRoleID(roleID);
-            roleXDSWrapper.setNewRoleName(newRoleName);
-            Gson gson = new Gson();
-            String json = gson.toJson(roleXDSWrapper);
-            XDSCUtils.publishData(tenantDomain, PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername(),
-                    json, XDSConstants.EventType.ROLE,
-                    XDSConstants.RoleOperationType.UPDATE_ROLE_NAME);
-        }
+
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreUpdateRoleName(roleID, newRoleName, tenantDomain);
@@ -224,16 +199,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     @Override
     public void deleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
-        boolean isControlPlane = Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
-        if (isControlPlane) {
-            RoleXDSWrapper roleXDSWrapper = new RoleXDSWrapper();
-            roleXDSWrapper.setRoleID(roleID);
-            Gson gson = new Gson();
-            String json = gson.toJson(roleXDSWrapper);
-            XDSCUtils.publishData(tenantDomain, PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername(),
-                    json, XDSConstants.EventType.ROLE,
-                    XDSConstants.RoleOperationType.DELETE);
-        }
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreDeleteRole(roleID, tenantDomain);
@@ -267,18 +232,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public RoleBasicInfo updateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
                                               String tenantDomain) throws IdentityRoleManagementException {
 
-        boolean isControlPlane = Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
-        if (isControlPlane) {
-            RoleXDSWrapper roleXDSWrapper = new RoleXDSWrapper();
-            roleXDSWrapper.setRoleID(roleID);
-            roleXDSWrapper.setNewUserIDList(newUserIDList);
-            roleXDSWrapper.setDeletedUserIDList(deletedUserIDList);
-            Gson gson = new Gson();
-            String json = gson.toJson(roleXDSWrapper);
-            XDSCUtils.publishData(tenantDomain, PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername(),
-                    json, XDSConstants.EventType.ROLE, XDSConstants.
-                    RoleOperationType.UPDATE_ROLE_USER_LIST);
-        }
+
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreUpdateUserListOfRole(roleID, newUserIDList, deletedUserIDList,
@@ -317,18 +271,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                                                List<String> deletedGroupIDList, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        boolean isControlPlane = Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
-        if (isControlPlane) {
-            RoleXDSWrapper roleXDSWrapper = new RoleXDSWrapper();
-            roleXDSWrapper.setRoleID(roleID);
-            roleXDSWrapper.setNewGroupIDList(newGroupIDList);
-            roleXDSWrapper.setDeletedGroupIDList(deletedGroupIDList);
-            Gson gson = new Gson();
-            String json = gson.toJson(roleXDSWrapper);
-            XDSCUtils.publishData(tenantDomain, PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername(),
-                    json, XDSConstants.EventType.ROLE,
-                    XDSConstants.RoleOperationType.UPDATE_ROLE_GROUP_LIST);
-        }
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreUpdateGroupListOfRole(roleID, newGroupIDList, deletedGroupIDList,
@@ -366,17 +308,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public RoleBasicInfo setPermissionsForRole(String roleID, List<String> permissions, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        boolean isControlPlane = Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
-        if (isControlPlane) {
-            RoleXDSWrapper roleXDSWrapper = new RoleXDSWrapper();
-            roleXDSWrapper.setRoleID(roleID);
-            roleXDSWrapper.setNewPermissions(permissions);
-            Gson gson = new Gson();
-            String json = gson.toJson(roleXDSWrapper);
-            XDSCUtils.publishData(tenantDomain, PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername(),
-                    json, XDSConstants.EventType.ROLE,
-                    XDSConstants.RoleOperationType.UPDATE_ROLE_PERMISSION_LIST);
-        }
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreSetPermissionsForRole(roleID, permissions, tenantDomain);

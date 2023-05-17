@@ -81,14 +81,11 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.xds.client.mgt.util.XDSUtils;
-import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
-import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
-import org.wso2.carbon.identity.xds.client.mgt.util.XDSCUtils;
-import org.wso2.carbon.identity.xds.common.constant.OperationType;
 import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
 import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
 import org.wso2.carbon.identity.xds.common.constant.XDSWrapper;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
@@ -3057,7 +3054,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String json = buildJson((ApplicationXDSWrapper) xdsWrapper);
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        XDSUtils.publishData(tenantDomain, username, json, eventType, xdsOperationType);
+        ApplicationManagementServiceComponentHolder.getInstance().getXdsClientService()
+                .publishData(tenantDomain, username, json, eventType, xdsOperationType);
     }
 
     private String generateApplicationResourceId() {

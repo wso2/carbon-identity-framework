@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
 import org.wso2.carbon.identity.template.mgt.handler.TemplateHandler;
 import org.wso2.carbon.identity.template.mgt.handler.impl.ConfigStoreBasedTemplateHandler;
 import org.wso2.carbon.identity.template.mgt.model.Template;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +39,7 @@ public class TemplateManagerDataHolder {
     private static TemplateManagerDataHolder instance = new TemplateManagerDataHolder();
 
     private ConfigurationManager configurationManager;
+    private XDSClientService xdsClientService;
 
     private TemplateHandler readWriteTemplateHandler = new ConfigStoreBasedTemplateHandler();
 
@@ -133,5 +135,15 @@ public class TemplateManagerDataHolder {
     public void addFileBasedTemplate(String templateId, Template template) {
 
         this.fileBasedTemplates.put(templateId, template);
+    }
+
+    public void setXdsClientService(XDSClientService xdsClientService) {
+
+        this.xdsClientService = xdsClientService;
+    }
+
+    public XDSClientService getXdsClientService() {
+
+        return xdsClientService;
     }
 }

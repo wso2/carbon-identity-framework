@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionPr
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 import org.wso2.carbon.registry.api.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -59,6 +60,8 @@ public class ApplicationManagementServiceComponentHolder {
     private ApplicationPermissionProvider applicationPermissionProvider;
 
     private boolean isOrganizationManagementEnable = false;
+
+    private XDSClientService xdsClientService;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -248,5 +251,15 @@ public class ApplicationManagementServiceComponentHolder {
     public ApplicationPermissionProvider getApplicationPermissionProvider() {
 
         return applicationPermissionProvider;
+    }
+
+    public XDSClientService getXdsClientService() {
+
+        return xdsClientService;
+    }
+
+    public void setXdsClientService(XDSClientService xdsClientService) {
+
+        this.xdsClientService = xdsClientService;
     }
 }

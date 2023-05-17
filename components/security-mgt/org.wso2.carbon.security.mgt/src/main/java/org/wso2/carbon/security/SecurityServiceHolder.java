@@ -19,6 +19,7 @@
 package org.wso2.carbon.security;
 
 import org.apache.axis2.context.ConfigurationContext;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -38,6 +39,7 @@ public class SecurityServiceHolder {
     private static ConfigurationContextService ccService;
 
     private static TenantRegistryLoader tenantRegistryLoader;
+    private static XDSClientService xdsClientService;
 
     private static Map<String, Resource> policyResourceMap = new HashMap<>();
 
@@ -98,6 +100,14 @@ public class SecurityServiceHolder {
 
     public static Map<String, Resource> getPolicyResourceMap() {
         return policyResourceMap;
+    }
+
+    public static XDSClientService getXdsClientService() {
+        return xdsClientService;
+    }
+
+    public static void setXdsClientService(XDSClientService xdsClientService) {
+        SecurityServiceHolder.xdsClientService = xdsClientService;
     }
 
 }

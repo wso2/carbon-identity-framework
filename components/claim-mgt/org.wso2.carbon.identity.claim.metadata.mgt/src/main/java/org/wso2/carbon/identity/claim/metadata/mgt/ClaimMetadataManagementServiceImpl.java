@@ -669,6 +669,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         String json = buildJson(claimXDSWrapper);
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        XDSUtils.publishData(tenantDomain, username, json, eventType, XDSOperationType);
+        IdentityClaimManagementServiceDataHolder.getInstance().getXdsClientService()
+                .publishData(tenantDomain, username, json, eventType, XDSOperationType);
     }
 }

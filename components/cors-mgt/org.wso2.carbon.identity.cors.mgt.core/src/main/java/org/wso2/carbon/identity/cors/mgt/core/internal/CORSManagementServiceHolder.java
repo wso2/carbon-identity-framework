@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSConfigurationDAOImpl;
 import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSOriginDAOImpl;
 import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CacheBackedCORSConfigurationDAO;
 import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CacheBackedCORSOriginDAO;
+import org.wso2.carbon.identity.xds.client.mgt.XDSClientService;
 
 /**
  * Service holder class for CORS-Service.
@@ -39,6 +40,7 @@ public class CORSManagementServiceHolder {
     private CORSConfigurationDAO corsConfigurationDAO =
             new CacheBackedCORSConfigurationDAO(new CORSConfigurationDAOImpl());
     private ConfigurationManager configurationManager;
+    private XDSClientService xdsClientService;
 
     private CORSManagementServiceHolder() {
 
@@ -105,5 +107,15 @@ public class CORSManagementServiceHolder {
     private static class SingletonHelper {
 
         private static final CORSManagementServiceHolder INSTANCE = new CORSManagementServiceHolder();
+    }
+
+    public XDSClientService getXdsClientService() {
+
+        return xdsClientService;
+    }
+
+    public void setXdsClientService(XDSClientService xdsClientService) {
+
+        this.xdsClientService = xdsClientService;
     }
 }

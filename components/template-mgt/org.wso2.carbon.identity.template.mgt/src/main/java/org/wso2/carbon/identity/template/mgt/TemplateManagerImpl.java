@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.identity.template.mgt;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
 import org.wso2.carbon.identity.template.mgt.dao.impl.TemplateManagerDAOImpl;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
@@ -31,9 +34,14 @@ import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
 import org.wso2.carbon.identity.template.mgt.handler.impl.CacheBackedConfigStoreBasedTemplateHandler;
 import org.wso2.carbon.identity.template.mgt.handler.impl.ConfigStoreBasedTemplateHandler;
 import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder;
+import org.wso2.carbon.identity.template.mgt.model.TemplateXDSWrapper;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
 import org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils;
+import org.wso2.carbon.identity.xds.common.constant.XDSConstants;
+import org.wso2.carbon.identity.xds.common.constant.XDSOperationType;
+import org.wso2.carbon.security.KeyStoreXDSOperationType;
+import org.wso2.carbon.security.SecurityServiceHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +83,16 @@ public class TemplateManagerImpl implements TemplateManager {
     public String addTemplate(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
-        return configStoreBasedTemplateHandler.addTemplate(template);
+        String templateId = configStoreBasedTemplateHandler.addTemplate(template);
+        template.setTemplateId(templateId);
+        if (isControlPlane()) {
+            TemplateXDSWrapper templateXDSWrapper = new TemplateXDSWrapper.TemplateXDSWrapperBuilder()
+                    .setTemplate(template)
+                    .build();
+            publishData(templateXDSWrapper, XDSConstants.EventType.TEMPLATE,
+                    TemplateXDSOperationType.ADD_TEMPLATE);
+        }
+        return templateId;
     }
 
     /**
@@ -126,8 +143,16 @@ public class TemplateManagerImpl implements TemplateManager {
             }
             throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());
         }
-
-        return templateManagerDAO.updateTemplate(templateName, template);
+        Template newTemplate = templateManagerDAO.updateTemplate(templateName, template);
+        if (isControlPlane()) {
+            TemplateXDSWrapper templateXDSWrapper = new TemplateXDSWrapper.TemplateXDSWrapperBuilder()
+                    .setTemplate(template)
+                    .setTemplateName(templateName)
+                    .build();
+            publishData(templateXDSWrapper, XDSConstants.EventType.TEMPLATE,
+                    TemplateXDSOperationType.UPDATE_TEMPLATE);
+        }
+        return newTemplate;
     }
 
     /**
@@ -154,7 +179,15 @@ public class TemplateManagerImpl implements TemplateManager {
         if (log.isDebugEnabled()) {
             log.debug("Template deleted successfully. Name: " + templateName);
         }
-        return templateManagerDAO.deleteTemplate(templateName, getTenantIdFromCarbonContext());
+        TemplateInfo templateInfo = templateManagerDAO.deleteTemplate(templateName, getTenantIdFromCarbonContext());
+        if (isControlPlane()) {
+            TemplateXDSWrapper templateXDSWrapper = new TemplateXDSWrapper.TemplateXDSWrapperBuilder()
+                    .setTemplateName(templateName)
+                    .build();
+            publishData(templateXDSWrapper, XDSConstants.EventType.TEMPLATE,
+                    TemplateXDSOperationType.DELETE_TEMPLATE);
+        }
+        return templateInfo;
     }
 
     /**
@@ -294,6 +327,13 @@ public class TemplateManagerImpl implements TemplateManager {
     public void deleteTemplateById(String templateId) throws TemplateManagementException {
 
         configStoreBasedTemplateHandler.deleteTemplateById(templateId);
+        if (isControlPlane()) {
+            TemplateXDSWrapper templateXDSWrapper = new TemplateXDSWrapper.TemplateXDSWrapperBuilder()
+                    .setTemplateId(templateId)
+                    .build();
+            publishData(templateXDSWrapper, XDSConstants.EventType.TEMPLATE,
+                    TemplateXDSOperationType.DELETE_TEMPLATE_BY_ID);
+        }
     }
 
     private boolean isValidTemplateType(String templateType) {
@@ -311,6 +351,14 @@ public class TemplateManagerImpl implements TemplateManager {
         template.setTemplateId(templateId);
         validateInputParameters(template);
         configStoreBasedTemplateHandler.updateTemplateById(templateId, template);
+        if (isControlPlane()) {
+            TemplateXDSWrapper templateXDSWrapper = new TemplateXDSWrapper.TemplateXDSWrapperBuilder()
+                    .setTemplateId(templateId)
+                    .setTemplate(template)
+                    .build();
+            publishData(templateXDSWrapper, XDSConstants.EventType.TEMPLATE,
+                    TemplateXDSOperationType.UPDATE_TEMPLATE_BY_ID);
+        }
     }
 
     @Override
@@ -325,6 +373,35 @@ public class TemplateManagerImpl implements TemplateManager {
         }
 
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-        return templateManagerDAO.addTemplate(template);
+        Template newTemplate = templateManagerDAO.addTemplate(template);
+        if (isControlPlane()) {
+            TemplateXDSWrapper templateXDSWrapper = new TemplateXDSWrapper.TemplateXDSWrapperBuilder()
+                    .setTemplate(template)
+                    .build();
+            publishData(templateXDSWrapper, XDSConstants.EventType.TEMPLATE,
+                    TemplateXDSOperationType.ADD_TEMPLATE_USING_TEMPLATE_MGT_DAO);
+        }
+        return newTemplate;
+    }
+
+    private String buildJson(TemplateXDSWrapper templateXDSWrapper) {
+
+        Gson gson = new Gson();
+        return gson.toJson(templateXDSWrapper);
+    }
+
+    private boolean isControlPlane() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("Server.ControlPlane"));
+    }
+
+    private void publishData(TemplateXDSWrapper templateXDSWrapper, XDSConstants.EventType eventType,
+                             XDSOperationType XDSOperationType) {
+
+        String json = buildJson(templateXDSWrapper);
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        SecurityServiceHolder.getXdsClientService()
+                .publishData(tenantDomain, username, json, eventType, XDSOperationType);
     }
 }
