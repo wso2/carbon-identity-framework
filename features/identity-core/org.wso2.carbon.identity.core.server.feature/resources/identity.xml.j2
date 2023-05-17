@@ -875,6 +875,21 @@
         -->
         <EnableJWTTokenValidationDuringIntrospection>{{oauth.enable_jwt_token_validation_during_introspection}}</EnableJWTTokenValidationDuringIntrospection>
 
+        <!--
+        By enabling this property, client id will be used as the sub claim for the access tokens issued for the
+        authenticated applications.
+
+        Default value : true
+        -->
+        <UseClientIdAsSubClaimForAppTokens>{{oauth.use_client_id_as_sub_claim_for_app_tokens}}</UseClientIdAsSubClaimForAppTokens>
+
+        <!--
+        By enabling this property, username will be removed from the introspection response for application tokens.
+
+        Default value : true
+        -->
+        <RemoveUsernameFromIntrospectionResponseForAppTokens>{{oauth.remove_username_from_introspection_response_for_app_tokens}}</RemoveUsernameFromIntrospectionResponseForAppTokens>
+
         {% if oauth.enable_system_level_internal_scope_management is defined %}
         <!--
         Configuration to maintain backward compatibility to manage the internal scope - permission  binding per tenant.
