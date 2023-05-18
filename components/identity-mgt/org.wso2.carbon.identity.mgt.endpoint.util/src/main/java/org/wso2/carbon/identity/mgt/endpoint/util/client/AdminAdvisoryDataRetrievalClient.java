@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
+import org.apache.axis2.client.ServiceClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
@@ -27,7 +28,11 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.wso2.carbon.admin.advisory.mgt.stub.AdminAdvisoryManagementServiceStub;
+import org.wso2.carbon.admin.advisory.mgt.stub.dto.AdminAdvisoryBannerDTO;
+import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
+import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -43,7 +48,6 @@ public class AdminAdvisoryDataRetrievalClient {
     /**
      * Check for admin advisory banner configs in the given tenant.
      *
-     * @param tenant Tenant Domain.
      * @return JSON Object containing admin advisory banner configs.
      * @throws AdminAdvisoryDataRetrievalClientException Error while retrieving the admin advisory banner configs.
      */
@@ -98,6 +102,35 @@ public class AdminAdvisoryDataRetrievalClient {
         } catch (ApiException e) {
             throw new AdminAdvisoryDataRetrievalClientException("Error while building url for context: "
                     + ADMIN_BANNER_API_RELATIVE_PATH);
+        }
+    }
+
+    /**
+     * Check for admin advisory banner configs in super tenant using AdminAdvisoryManagementService admin service stub.
+     *
+     * @return JSON Object containing admin advisory banner configs.
+     * @throws AdminAdvisoryDataRetrievalClientException Error while retrieving the admin advisory banner configs.
+     */
+    public JSONObject getAdminAdvisoryBannerDataFromServiceStub() throws AdminAdvisoryDataRetrievalClientException {
+
+        StringBuilder builder = new StringBuilder();
+        String serviceURL = null;
+        try {
+            serviceURL = builder.append(IdentityManagementServiceUtil.getInstance().getServiceContextURL())
+                    .append(IdentityManagementEndpointConstants.ServiceEndpoints.ADMIN_ADVISORY_MANAGEMENT_SERVICE)
+                    .toString().replaceAll("(?<!(http:|https:))//", "/");
+            AdminAdvisoryManagementServiceStub serviceStub = new AdminAdvisoryManagementServiceStub(serviceURL);
+            ServiceClient client = serviceStub._getServiceClient();
+            IdentityManagementEndpointUtil.authenticate(client);
+            AdminAdvisoryBannerDTO adminAdvisoryBannerDTO = serviceStub.getAdminAdvisoryConfig();
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("enableBanner", adminAdvisoryBannerDTO.getEnableBanner());
+            jsonObject.put("bannerContent", adminAdvisoryBannerDTO.getBannerContent());
+            return jsonObject;
+        } catch (Exception e) {
+            String msg = "Error while getting admin advisory banner preference for uri: " + serviceURL;
+            LOG.error(msg, e);
+            throw new AdminAdvisoryDataRetrievalClientException(msg, e);
         }
     }
 }
