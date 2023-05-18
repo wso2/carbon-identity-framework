@@ -1758,6 +1758,11 @@
                 <artifactId>xmlbeans</artifactId>
                 <version>${xmlbeans.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.admin.advisory.mgt.stub</artifactId>
+                <version>${carbon.kernel.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
