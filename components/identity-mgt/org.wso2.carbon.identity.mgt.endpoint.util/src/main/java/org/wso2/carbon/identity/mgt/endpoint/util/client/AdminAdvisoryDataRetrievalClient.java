@@ -46,6 +46,8 @@ public class AdminAdvisoryDataRetrievalClient {
     private static final String ADMIN_BANNER_API_RELATIVE_PATH = "/api/server/v1/admin-advisory-management/banner";
     private static final String DEFAULT_BANNER_CONTENT = "Warning - unauthorized use of this tool is strictly " +
             "prohibited. All activities performed using this tool are logged and monitored.";
+    private static final String ENABLE_BANNER = "enableBanner";
+    private static final String BANNER_CONTENT= "bannerContent";
 
     /**
      * Check for admin advisory banner configs in the given tenant.
@@ -67,8 +69,8 @@ public class AdminAdvisoryDataRetrievalClient {
                             .getEntity().getContent())));
                 }
                 JSONObject defaultBanner = new JSONObject();
-                defaultBanner.put("enableBanner", false);
-                defaultBanner.put("bannerContent", DEFAULT_BANNER_CONTENT);
+                defaultBanner.put(ENABLE_BANNER, false);
+                defaultBanner.put(BANNER_CONTENT, DEFAULT_BANNER_CONTENT);
                 return defaultBanner;
             } finally {
                 request.releaseConnection();
@@ -129,8 +131,8 @@ public class AdminAdvisoryDataRetrievalClient {
             IdentityManagementEndpointUtil.authenticate(client);
             AdminAdvisoryBannerDTO adminAdvisoryBannerDTO = serviceStub.getAdminAdvisoryConfig();
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("enableBanner", adminAdvisoryBannerDTO.getEnableBanner());
-            jsonObject.put("bannerContent", adminAdvisoryBannerDTO.getBannerContent());
+            jsonObject.put(ENABLE_BANNER, adminAdvisoryBannerDTO.getEnableBanner());
+            jsonObject.put(BANNER_CONTENT, adminAdvisoryBannerDTO.getBannerContent());
             return jsonObject;
         } catch (Exception e) {
             String msg = "Error while getting admin advisory banner preference for uri: " + serviceURL;
