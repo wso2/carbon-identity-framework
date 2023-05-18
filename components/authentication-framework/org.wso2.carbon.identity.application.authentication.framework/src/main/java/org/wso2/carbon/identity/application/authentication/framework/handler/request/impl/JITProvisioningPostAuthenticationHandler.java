@@ -235,8 +235,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             stepConfig);
                     handleConsents(request, stepConfig, context.getTenantDomain());
                     // Trigger event to store last login time after successful authentication.
-                    String emailUsername = localClaimValues.get(EMAIL_ADDRESS_CLAIM);
-                    triggerEvent(username, context, emailUsername);
+                    triggerEvent(username, context, username);
                 }
             }
         }
@@ -436,11 +435,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             stepConfig);
 
                     // Trigger event to store last login time after successful authentication.
-                    String emailUsername = localClaimValues.get(EMAIL_ADDRESS_CLAIM);
                     if (StringUtils.isEmpty(associatedLocalUser)) {
-                        triggerEvent(username, context, emailUsername);
+                        triggerEvent(username, context, username);
                     } else {
-                        triggerEvent(associatedLocalUser, context, emailUsername);
+                        triggerEvent(associatedLocalUser, context, username);
                     }
                 }
             }
@@ -464,7 +462,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             eventProperties.put(IdentityEventConstants.EventProperty.USER_NAME, username);
             eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_MANAGER, userStoreManager);
             eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, true);
-            Event event = new Event(IdentityEventConstants.Event.POST_JIT_USER_UPDATE, eventProperties);
+            Event event = new Event(IdentityEventConstants.Event.JIT_USER_SET_CLAIMS, eventProperties);
             eventService.handleEvent(event);
         } catch (UserStoreException e) {
             // TODO: change this to a proper error code.
@@ -472,7 +470,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     ErrorMessages.ERROR_WHILE_GETTING_USER_STORE_MANAGER.getCode(),
                     String.format(ErrorMessages.ERROR_WHILE_GETTING_USER_STORE_MANAGER.getMessage(), username), e);
         } catch (IdentityEventException e) {
-            String errorLog =  "Could not fire event " + IdentityEventConstants.Event.POST_JIT_USER_UPDATE
+            String errorLog =  "Could not fire event " + IdentityEventConstants.Event.JIT_USER_SET_CLAIMS
                     + " in tenant domain " + context.getTenantDomain();
             log.error(errorLog, e);
         }
