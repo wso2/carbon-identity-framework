@@ -214,6 +214,9 @@ public abstract class FrameworkConstants {
     public static final String NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG =
             "SessionNonceCookie.WhitelistedAuthenticator";
 
+    public static final String BLOCKED_USERSTORE_DOMAINS_LIST = "BlockedUserStoreDomains";
+    public static final String BLOCKED_USERSTORE_DOMAINS_SEPARATOR = ",";
+
     private FrameworkConstants() {
 
     }
