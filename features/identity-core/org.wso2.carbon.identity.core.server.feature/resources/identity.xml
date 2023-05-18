@@ -181,6 +181,8 @@
              access token. Otherwise user's tenant domain will be used. Currently this value is only supported by the JWTTokenIssuer.
 	         This configuration will be enabled by default from IS 5.12.0. -->
         <UseSPTenantDomain>True</UseSPTenantDomain>
+        <!-- This configuration is used to enable or disable generation of random numbers using HMAC-SHA256 algorithm.-->
+        <EnableSHA256Params>true</EnableSHA256Params>
 
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
@@ -747,6 +749,10 @@
     <Mex>
         <EnableSHA256Alg>true</EnableSHA256Alg>
     </Mex>
+
+    <UserAccountAssociation>
+        <EnableSHA256Key>true</EnableSHA256Key>
+    </UserAccountAssociation>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>

@@ -165,6 +165,9 @@ public class IdentityConstants {
     // Configuration constants of authentication authenticator in identity.xml file.
     public static final String TAGS = "Tags";
 
+    // User account association constants
+    public static final String USER_ACCOUNT_ASSOCIATION_ENABLE_SHA256_KEY = "UserAccountAssociation.EnableSHA256Key";
+
     private IdentityConstants() {
     }
 
@@ -389,6 +392,7 @@ public class IdentityConstants {
         public static final String JWKS = "oauth2/jwks";
         public static final String DISCOVERY = "oauth2/oidcdiscovery";
         public static final String ENABLE_SHA256_JWK_THUMBPRINT = "OAuth.EnableSHA256OAuth2JWKThumbprint";
+        public static final String ENABLE_SHA256_PARAMS = "OAuth.EnableSHA256Params";
     }
 
     /**

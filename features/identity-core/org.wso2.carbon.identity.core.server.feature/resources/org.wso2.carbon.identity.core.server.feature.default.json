@@ -77,6 +77,7 @@
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
+  "oauth.enable_sha256_params": true,
 
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
@@ -260,6 +261,7 @@
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
 
   "mex.enable_sha256_alg": true,
+  "user_account_association.enable_sha256_key": true,
 
   "entitlement.thrift.enable": false,
   "entitlement.thrift.receiver_port": "${Ports.ThriftEntitlementReceivePort}",

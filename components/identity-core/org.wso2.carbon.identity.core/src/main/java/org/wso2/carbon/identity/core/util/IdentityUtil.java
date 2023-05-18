@@ -393,7 +393,7 @@ public class IdentityUtil {
     }
 
     /**
-     * Generates a random number using two UUIDs and HMAC-SHA256
+     * Generates a random number using two UUIDs and HMAC-SHA1
      *
      * @return Random Number generated.
      * @throws IdentityException Exception due to Invalid Algorithm or Invalid Key
@@ -403,8 +403,8 @@ public class IdentityUtil {
             String secretKey = UUIDGenerator.generateUUID();
             String baseString = UUIDGenerator.generateUUID();
 
-            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), "HmacSHA256");
-            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), "HmacSHA1");
+            Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
             String random = Base64.getEncoder().encodeToString(rawHmac);
