@@ -462,15 +462,14 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             eventProperties.put(IdentityEventConstants.EventProperty.USER_NAME, username);
             eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_MANAGER, userStoreManager);
             eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, true);
-            Event event = new Event(IdentityEventConstants.Event.JIT_USER_SET_CLAIMS, eventProperties);
+            Event event = new Event(IdentityEventConstants.Event.POST_USER_JIT_PROVISION, eventProperties);
             eventService.handleEvent(event);
         } catch (UserStoreException e) {
-            // TODO: change this to a proper error code.
             throw new PostAuthenticationFailedException(
                     ErrorMessages.ERROR_WHILE_GETTING_USER_STORE_MANAGER.getCode(),
                     String.format(ErrorMessages.ERROR_WHILE_GETTING_USER_STORE_MANAGER.getMessage(), username), e);
         } catch (IdentityEventException e) {
-            String errorLog =  "Could not fire event " + IdentityEventConstants.Event.JIT_USER_SET_CLAIMS
+            String errorLog =  "Could not fire event " + IdentityEventConstants.Event.POST_USER_JIT_PROVISION
                     + " in tenant domain " + context.getTenantDomain();
             log.error(errorLog, e);
         }
