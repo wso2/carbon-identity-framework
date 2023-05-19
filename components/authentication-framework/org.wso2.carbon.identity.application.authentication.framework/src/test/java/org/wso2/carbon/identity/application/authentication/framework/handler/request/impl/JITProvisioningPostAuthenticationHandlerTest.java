@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -178,6 +179,12 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
         ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
         Mockito.doReturn(externalIdPConfig).when(configurationFacade).getIdPConfigByName(eq(null), anyString());
+
+        when(mockUserRealm.getUserStoreManager().getSecondaryUserStoreManager(anyString())).
+                thenReturn(mockUserStoreManager);
+        IdentityEventService mockIdentityEventService = mock(IdentityEventService.class);
+        PowerMockito.when(FrameworkServiceDataHolder.getInstance().getIdentityEventService()).thenReturn
+                (mockIdentityEventService);
 
         PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler
                 .handle(request, response, context);
