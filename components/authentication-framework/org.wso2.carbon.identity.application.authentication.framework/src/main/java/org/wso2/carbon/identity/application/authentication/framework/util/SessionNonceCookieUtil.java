@@ -92,7 +92,7 @@ public class SessionNonceCookieUtil {
     public static boolean validateNonceCookie(HttpServletRequest request,
                                               AuthenticationContext context) {
 
-        if (!isNonceCookieEnabled()) {
+        if (!isNonceCookieEnabled() || isNonceCookieValidationSkipped(request)) {
             return true;
         }
         if (NONCE_COOKIE_WHITELISTED_AUTHENTICATORS.contains(context.getCurrentAuthenticator())) {
@@ -143,6 +143,17 @@ public class SessionNonceCookieUtil {
             nonceCookieConfig = Boolean.parseBoolean(IdentityUtil.getProperty(NONCE_COOKIE_CONFIG));
         }
         return nonceCookieConfig;
+    }
+
+    /**
+     * Check if nonce cookie validation should be skipped based on the request.
+     *
+     * @param request Http servlet request.
+     * @return True if nonce cookie validation should be skipped.
+     */
+    public static boolean isNonceCookieValidationSkipped(HttpServletRequest request) {
+
+        return Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.SKIP_NONCE_COOKIE_VALIDATION));
     }
 
 }
