@@ -21,10 +21,12 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.common.model.Property;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -120,5 +122,26 @@ public interface ApplicationAuthenticator extends Serializable {
     default boolean isSatisfyAuthenticatorPrerequisites(HttpServletRequest request, AuthenticationContext context)
             throws AuthenticationFailedException {
         return true;
+    }
+
+    /**
+     * Check whether the authenticator supports API based authentication.
+     *
+     * @return true if the authenticator supports API based authentication.
+     */
+    default boolean isAPIBasedAuthenticationSupported() {
+
+        return false;
+    }
+
+    /**
+     * Get the authentication initiation data.
+     *
+     * @param context Authentication context.
+     * @return AuthenticatorData containing authentication initiation data.
+     */
+    default Optional<AuthenticatorData> getAuthInitiationData(AuthenticationContext context) {
+
+        return Optional.empty();
     }
 }

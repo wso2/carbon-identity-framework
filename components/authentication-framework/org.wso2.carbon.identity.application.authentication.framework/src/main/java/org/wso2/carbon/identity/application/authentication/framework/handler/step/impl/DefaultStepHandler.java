@@ -49,10 +49,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -457,6 +459,7 @@ public class DefaultStepHandler implements StepHandler {
         try {
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
                     .INCOMPLETE);
+            request.setAttribute(FrameworkConstants.IS_MULTI_OPS_RESPONSE, true);
             response.sendRedirect(getRedirectUrl(request, response, context, authenticatorNames,
                     showAuthFailureReason, retryParam, loginPage));
         } catch (IOException | URISyntaxException e) {
@@ -684,6 +687,21 @@ public class DefaultStepHandler implements StepHandler {
                     context.getExternalIdP(), authenticator.getName()));
             AuthenticatorFlowStatus status = authenticator.process(request, response, context);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
+            /* If this is an authentication initiation and the authenticator supports API based authentication
+             we need to send the auth initiation data in order to support performing API based authentication.*/
+            if (status == AuthenticatorFlowStatus.INCOMPLETE && authenticator.isAPIBasedAuthenticationSupported()) {
+                authenticator.getAuthInitiationData(context).ifPresent(authInitiationData -> {
+                    List<AuthenticatorData> authInitiationDataList =
+                            (List<AuthenticatorData>) request
+                                    .getAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA);
+                    if (authInitiationDataList == null) {
+                        authInitiationDataList = new ArrayList<>();
+                        request.setAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA,
+                                authInitiationDataList);
+                    }
+                    authInitiationDataList.add(authInitiationData);
+                });
+            }
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug(authenticator.getName() + " returned: " + status.toString());
