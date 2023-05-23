@@ -2126,6 +2126,7 @@ public class IdentityProviderManager implements IdpManager {
 
         String issuerName = null;
         String jwksURI = null;
+        String certificate = identityProvider.getCertificate();
         for (IdentityProviderProperty prop : identityProvider.getIdpProperties()) {
             String propName = prop.getName();
             String propValue = prop.getValue();
@@ -2133,12 +2134,13 @@ public class IdentityProviderManager implements IdpManager {
                 if (IdentityApplicationConstants.IDP_ISSUER_NAME.equals(propName)) {
                     issuerName = propValue;
                 }
-                if (IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME.equalsIgnoreCase(propName)) {
+                else if (IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME.equalsIgnoreCase(propName)) {
                     jwksURI = propValue;
                 }
             }
         }
-        return StringUtils.isNotBlank(issuerName) && StringUtils.isNotBlank(jwksURI);
+        return StringUtils.isNotBlank(issuerName) && (StringUtils.isNotBlank(jwksURI) || StringUtils.isNotBlank
+                (certificate));
     }
 
     /**
