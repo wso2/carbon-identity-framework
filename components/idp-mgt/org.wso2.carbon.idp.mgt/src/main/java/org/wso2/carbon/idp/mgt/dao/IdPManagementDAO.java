@@ -3008,7 +3008,7 @@ public class IdPManagementDAO {
 
             IdentityProviderProperty trustedIdpProperty = new IdentityProviderProperty();
             trustedIdpProperty.setName(IS_TRUSTED_TOKEN_ISSUER);
-            trustedIdpProperty.setValue(String.valueOf(identityProvider.getIsTrustedTokenIssuer()));
+            trustedIdpProperty.setValue(String.valueOf(identityProvider.isTrustedTokenIssuer()));
             identityProviderProperties.add(trustedIdpProperty);
 
             addTemplateIdProperty(identityProviderProperties, identityProvider);
@@ -3305,7 +3305,7 @@ public class IdPManagementDAO {
                 boolean hasTrustedTokenIssuerProperty = false;
                 for (IdentityProviderProperty property : identityProviderProperties) {
                     if (property.getName().equals(IS_TRUSTED_TOKEN_ISSUER)) {
-                        property.setValue(String.valueOf(newIdentityProvider.getIsTrustedTokenIssuer()));
+                        property.setValue(String.valueOf(newIdentityProvider.isTrustedTokenIssuer()));
                         hasTrustedTokenIssuerProperty = true;
                         break;
                     }
@@ -3314,7 +3314,7 @@ public class IdPManagementDAO {
                 if (!hasTrustedTokenIssuerProperty) {
                     IdentityProviderProperty property = new IdentityProviderProperty();
                     property.setName(IS_TRUSTED_TOKEN_ISSUER);
-                    property.setValue(String.valueOf(newIdentityProvider.getIsTrustedTokenIssuer()));
+                    property.setValue(String.valueOf(newIdentityProvider.isTrustedTokenIssuer()));
                     identityProviderProperties.add(property);
                 }
 

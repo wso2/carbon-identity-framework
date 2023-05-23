@@ -956,7 +956,7 @@ public class IdentityProvider implements Serializable {
         this.templateId = templateId;
     }
 
-    public boolean getIsTrustedTokenIssuer() {
+    public boolean isTrustedTokenIssuer() {
 
         return isTrustedTokenIssuer;
     }
