@@ -169,10 +169,6 @@ public class IdPManagementConstants {
 
         public static final String GET_JWT_ISSUER_COUNT_SQL = "SELECT COUNT(DISTINCT IDP.ID) FROM IDP JOIN IDP_METADATA ON IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = '" + IS_TRUSTED_JWT_ISSUER + "' AND ";
 
-        public static final String IS_JWT_ISSUER_VALUE_EXISTS_SQL = "SELECT COUNT(DISTINCT IDP_METADATA.IDP_ID) FROM IDP_METADATA WHERE IDP_METADATA.NAME = '" + IS_TRUSTED_JWT_ISSUER + "' AND IDP_METADATA.IDP_ID = ? AND TENANT_ID = ?";
-
-        public static final String GET_JWT_ISSUER_VALUE_SQL = "SELECT VALUE FROM IDP_METADATA WHERE NAME = '" + IS_TRUSTED_JWT_ISSUER + "' AND IDP_ID = ? AND TENANT_ID = ?";
-
         public static final String GET_IDP_COUNT_SQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "'";
 
         public static final String GET_JWT_ISSUER_COUNT_SQL_TAIL = "IDP.TENANT_ID = ? AND IDP.NAME != '" + RESIDENT_IDP + "'";
@@ -316,12 +312,6 @@ public class IdPManagementConstants {
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION,IS_FEDERATION_HUB,"
                 + "IS_LOCAL_CLAIM_DIALECT,PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, UUID) " +
                 "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?, ?)";
-
-        public static final String ADD_JWT_ISSUER_SQL = "INSERT INTO IDP_METADATA (TENANT_ID, IDP_ID, NAME, VALUE) " +
-                "VALUES (?, ?, ?, ?)";
-
-        public static final String UPDATE_JWT_ISSUER_SQL = "UPDATE IDP_METADATA SET VALUE = ? WHERE IDP_ID=? AND NAME=? " +
-                "AND TENANT_ID=?";
 
         public static final String JWT_ISSUER_FILTER_SQL = "IDP_METADATA.VALUE = 'true' AND ";
 
