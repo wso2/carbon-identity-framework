@@ -46,6 +46,7 @@ public class UserIdentityManagementAdminServiceClient {
         String serviceURL = null;
 
         serviceURL = builder.append(IdentityManagementServiceUtil.getInstance().getServiceContextURL())
+                            .append(IdentityManagementEndpointConstants.SERVICE_CONTEXT_PATH)
                             .append(IdentityManagementEndpointConstants.ServiceEndpoints.USER_IDENTITY_MANAGEMENT_SERVICE)
                             .toString().replaceAll("(?<!(http:|https:))//", "/");
 
