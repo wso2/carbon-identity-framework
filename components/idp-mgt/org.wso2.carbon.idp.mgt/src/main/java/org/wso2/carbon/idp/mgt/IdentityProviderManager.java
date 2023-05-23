@@ -1089,6 +1089,35 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
+     * Get all JWT Issuer's Basic information along with additionally requested information depending on the
+     * requiredAttributes.
+     *
+     * @param limit              Limit per page.
+     * @param offset             Offset value.
+     * @param filter             Filter value for IdP search.
+     * @param sortOrder          Order of IdP ASC/DESC.
+     * @param sortBy             The column value need to sort.
+     * @param tenantDomain       TenantDomain of the user.
+     * @param requiredAttributes Required attributes which needs to be return.
+     * @return Identity Provider's Basic Information array along with requested attribute
+     * information{@link IdpSearchResult}.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
+     */
+    public IdpSearchResult getTrustedJwtIssuers(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                                   String tenantDomain, List<String> requiredAttributes)
+            throws IdentityProviderManagementException {
+
+        IdpSearchResult result = new IdpSearchResult();
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        setParameters(limit, offset, sortOrder, sortBy, filter, result);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        result.setTotalIDPCount(dao.getTotalTrustedJwtIssuerCount(tenantId, expressionNodes));
+        result.setIdpList(dao.getPaginatedTrustedJwtIssuersSearch(tenantId, expressionNodes, result.getLimit(),
+                result.getOffSet(), result.getSortOrder(), result.getSortBy(), requiredAttributes));
+        return result;
+    }
+
+    /**
      * Get basic information of identity providers along with additionally requested information.
      *
      * @param limit              The limit per page.
@@ -2075,6 +2104,11 @@ public class IdentityProviderManager implements IdpManager {
         validateIdPEntityId(extractIdpEntityIdFromMetadata(identityProvider), tenantId, tenantDomain);
         validateIdPIssuerName(identityProvider, tenantId, tenantDomain);
 
+        // Validate whether the IdP satisfies the minimum requirements to be a JWT Issuer.
+        if (isTrustedJwtIssuer(identityProvider)) {
+            identityProvider.setIsTrustedJwtIssuer(true);
+        }
+
         handleMetadata(tenantId, identityProvider);
         String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
         identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
@@ -2086,6 +2120,27 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
         return identityProvider;
+    }
+
+    private boolean isTrustedJwtIssuer(IdentityProvider identityProvider) {
+
+        String issuerName = null;
+        String jwksURI = null;
+        String certificate = identityProvider.getCertificate();
+        for (IdentityProviderProperty prop : identityProvider.getIdpProperties()) {
+            String propName = prop.getName();
+            String propValue = prop.getValue();
+            if (StringUtils.isNotBlank(propValue)) {
+                if (IdentityApplicationConstants.IDP_ISSUER_NAME.equals(propName)) {
+                    issuerName = propValue;
+                }
+                else if (IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME.equalsIgnoreCase(propName)) {
+                    jwksURI = propValue;
+                }
+            }
+        }
+        return StringUtils.isNotBlank(issuerName) && (StringUtils.isNotBlank(jwksURI) || StringUtils.isNotBlank
+                (certificate));
     }
 
     /**
@@ -2377,6 +2432,8 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         IdentityProvider currentIdentityProvider = this
                 .getIdPByResourceId(resourceId, tenantDomain, true);
+
+        newIdentityProvider.setIsTrustedJwtIssuer(isTrustedJwtIssuer(newIdentityProvider));
         validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider, tenantDomain);
         updateIDP(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
 
@@ -2387,6 +2444,7 @@ public class IdentityProviderManager implements IdpManager {
                 return null;
             }
         }
+
         return dao.getUpdatedIdPByResourceId(resourceId, tenantId, tenantDomain);
     }
 
