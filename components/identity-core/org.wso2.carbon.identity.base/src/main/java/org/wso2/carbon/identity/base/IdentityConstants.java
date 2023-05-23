@@ -168,6 +168,8 @@ public class IdentityConstants {
     // User account association constants
     public static final String USER_ACCOUNT_ASSOCIATION_ENABLE_SHA256_KEY = "UserAccountAssociation.EnableSHA256Key";
 
+    public static final String IDENTITY_UTIL_ENABLE_SHA256_RANDOM_NUMBERS = "EnableSHA256RandomNumberGenerator";
+
     private IdentityConstants() {
     }
 
@@ -488,6 +490,7 @@ public class IdentityConstants {
         public static final String SIMPLE_REGISTRATION = "sreg";
         public static final String ATTRIBUTE_EXCHANGE = "ax";
         public static final String PAPE = "pape";
+        public static final String ENABLE_SHA256_PPID_DISPLAY_VALUE = "OpenID.EnableSHA256PPIDDisplayValue";
 
         public static class PapeAttributes {
 

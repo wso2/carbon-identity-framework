@@ -113,6 +113,8 @@
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
+        <!-- To enable or disable sha256 ppid display value -->
+        <EnableSHA256PPIDDisplayValue>true</EnableSHA256PPIDDisplayValue>
         <!--
                OpenID private association store is configurable from following configs.
                It includes two new replication stores,
@@ -2258,5 +2260,8 @@
 
     <!-- Configuration to enable the organization level branding of email templates. -->
     <EnableOrganizationLevelEmailBranding>false</EnableOrganizationLevelEmailBranding>
+
+    <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
+    <EnableSHA256RandomNumberGenerator>true</EnableSHA256RandomNumberGenerator>
 
 </Server>

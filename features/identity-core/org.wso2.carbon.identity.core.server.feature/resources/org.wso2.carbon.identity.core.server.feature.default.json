@@ -49,6 +49,7 @@
   "remote_fetch.enable": false,
   "remote_fetch.working_directory": "${carbon.home}/tmp/",
 
+  "openid.enable_sha256_ppid_value": true,
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": false,
 
@@ -915,5 +916,6 @@
   "axis2.transport_sender.https.parameters.SO_TIMEOUT": "60000",
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
-  "show_pending_user_information.enable": true
+  "show_pending_user_information.enable": true,
+  "identity_util.enable_sha256_random_numbers": true
 }
