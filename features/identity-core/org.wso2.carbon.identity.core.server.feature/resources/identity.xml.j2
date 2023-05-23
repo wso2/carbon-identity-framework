@@ -2086,6 +2086,22 @@
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/idvp/add</Permissions>
+            <Scopes>internal_idvp_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/idvp/update</Permissions>
+            <Scopes>internal_idvp_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/idvp/delete</Permissions>
+            <Scopes>internal_idvp_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/idvp/view</Permissions>
+            <Scopes>internal_idvp_view</Scopes>
+        </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/receipts/(.*)" secured="true" http-method="all"/>
@@ -2546,6 +2562,26 @@
        <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me/idv(.*)" secured="true" http-method="GET, POST, PUT">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/view</Permissions>
+            <Scopes>internal_idv_claim_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/add</Permissions>
+            <Scopes>internal_idv_claim_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/update</Permissions>
+            <Scopes>internal_idv_claim_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv/verify" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/verify</Permissions>
+            <Scopes>internal_idv_claim_verify</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/idpmgt/create</Permissions>
