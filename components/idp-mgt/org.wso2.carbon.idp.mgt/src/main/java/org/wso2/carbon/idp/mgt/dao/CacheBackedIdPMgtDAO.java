@@ -161,12 +161,12 @@ public class CacheBackedIdPMgtDAO {
      * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
      * @throws IdentityProviderManagementClientException Error when append the filer string.
      */
-    public List<IdentityProvider> getPaginatedTrustedJwtIssuersSearch(int tenantId, List<ExpressionNode> expressionConditions,
-                                                               int limit, int offset, String sortOrder, String sortBy,
-                                                               List<String> requiredAttributes)
+    public List<IdentityProvider> getPaginatedTrustedTokenIssuersSearch(int tenantId, List<ExpressionNode> expressionConditions,
+                                                                        int limit, int offset, String sortOrder, String sortBy,
+                                                                        List<String> requiredAttributes)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        return idPMgtDAO.getTrustedJwtIssuerSearch(tenantId, expressionConditions, limit, offset, sortOrder,
+        return idPMgtDAO.getTrustedTokenIssuerSearch(tenantId, expressionConditions, limit, offset, sortOrder,
                 sortBy, requiredAttributes);
     }
 
@@ -186,18 +186,18 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
-     * Get number of JWT Issuer count for a matching filter.
+     * Get number of trusted token issuer count for a matching filter.
      *
-     * @param tenantId             Tenant Id of the identity provider.
+     * @param tenantId             Tenant Id of the trusted token issuer.
      * @param expressionConditions filter value list for IdP search.
-     * @return number of JWT Issuer count for a given filter.
+     * @return number of trusted token issuer count for a given filter.
      * @throws IdentityProviderManagementServerException Error when getting count of Identity Providers.
      * @throws IdentityProviderManagementClientException Error when append the filer string.
      */
-    public int getTotalTrustedJwtIssuerCount(int tenantId, List<ExpressionNode> expressionConditions)
+    public int getTotalTrustedTokenIssuerCount(int tenantId, List<ExpressionNode> expressionConditions)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        return idPMgtDAO.getCountOfFilteredJwtIssuers(tenantId, expressionConditions);
+        return idPMgtDAO.getCountOfFilteredTokenIssuers(tenantId, expressionConditions);
     }
 
     /**
