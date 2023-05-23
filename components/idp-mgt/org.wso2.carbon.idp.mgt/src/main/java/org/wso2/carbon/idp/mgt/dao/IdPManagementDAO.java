@@ -343,10 +343,10 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Get all identity provider's Basic information along with additionally requested information depends on the
+     * Get all trusted Jwt Issuer's Basic information along with additionally requested information depends on the
      * requiredAttributes for a given matching filter.
      *
-     * @param tenantId           Tenant Id of the identity provider.
+     * @param tenantId           Tenant Id of the trusted Jwt Issuer.
      * @param expressionNode     List of filter value for IdP search.
      * @param limit              Limit per page.
      * @param offset             Offset value.
@@ -378,18 +378,18 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Get the result set.
+     * Get trusted jwt issuer result set.
      *
      * @param dbConnection       database connection.
      * @param sortedOrder        Sort order.
-     * @param tenantId           tenant Id of the identity provider.
+     * @param tenantId           tenant Id of the trusted jwt issuer.
      * @param offset             offset value.
      * @param limit              limit per page.
      * @param filterQueryBuilder filter query buider object.
      * @param requiredAttributes Required attributes which needs to be return.
      * @return result set of the query.
      * @throws SQLException                              Database Exception.
-     * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementServerException Error when getting list of trusted jwt issuers.
      */
     private ResultSet getTrustedJwtIssuerQueryResultSet(Connection dbConnection, String sortedOrder, int tenantId,
                                                         int offset, int limit, FilterQueryBuilder filterQueryBuilder,
@@ -829,12 +829,12 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Get number of IdP count for a matching filter.
+     * Get number of trusted Jwt Issuer count for a matching filter.
      *
-     * @param tenantId       Tenant Id of the identity provider.
-     * @param expressionNode filter value list for IdP search.
-     * @return number of IdP count for a given filter
-     * @throws IdentityProviderManagementServerException Error when getting count of Identity Providers.
+     * @param tenantId       Tenant Id of the trusted jwt issuer.
+     * @param expressionNode filter value list for trusted jwt issuer search.
+     * @return number of trusted jwt issuer count for a given filter
+     * @throws IdentityProviderManagementServerException Error when getting count of trusted jwt issuers.
      * @throws IdentityProviderManagementClientException Error when append the filer string.
      */
     int getCountOfFilteredJwtIssuers(int tenantId, List<ExpressionNode> expressionNode)
