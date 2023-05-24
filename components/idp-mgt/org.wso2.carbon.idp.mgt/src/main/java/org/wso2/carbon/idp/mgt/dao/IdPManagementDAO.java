@@ -86,7 +86,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_JWT_ISSUER;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_TOKEN_ISSUER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
@@ -343,10 +343,10 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Get all trusted Jwt Issuer's Basic information along with additionally requested information depends on the
+     * Get all trusted token issuer's Basic information along with additionally requested information depends on the
      * requiredAttributes for a given matching filter.
      *
-     * @param tenantId           Tenant Id of the trusted Jwt Issuer.
+     * @param tenantId           Tenant Id of the trusted token issuer.
      * @param expressionNode     List of filter value for IdP search.
      * @param limit              Limit per page.
      * @param offset             Offset value.
@@ -357,8 +357,8 @@ public class IdPManagementDAO {
      * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
      * @throws IdentityProviderManagementClientException Error when append the filer string.
      */
-    List<IdentityProvider> getTrustedJwtIssuerSearch(int tenantId, List<ExpressionNode> expressionNode, int limit, int offset,
-                                               String sortOrder, String sortBy, List<String> requiredAttributes)
+    List<IdentityProvider> getTrustedTokenIssuerSearch(int tenantId, List<ExpressionNode> expressionNode, int limit, int offset,
+                                                       String sortOrder, String sortBy, List<String> requiredAttributes)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
@@ -366,7 +366,7 @@ public class IdPManagementDAO {
         String sortedOrder = sortBy + " " + sortOrder;
         try {
             Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-            ResultSet resultSet = getTrustedJwtIssuerQueryResultSet(dbConnection, sortedOrder, tenantId, offset, limit,
+            ResultSet resultSet = getTrustedTokenIssuerQueryResultSet(dbConnection, sortedOrder, tenantId, offset, limit,
                     filterQueryBuilder, requiredAttributes);
             return populateIdentityProviderList(resultSet, dbConnection, requiredAttributes, tenantId);
         } catch (SQLException e) {
@@ -378,22 +378,22 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Get trusted jwt issuer result set.
+     * Get trusted token issuer result set.
      *
      * @param dbConnection       database connection.
      * @param sortedOrder        Sort order.
-     * @param tenantId           tenant Id of the trusted jwt issuer.
+     * @param tenantId           tenant Id of the trusted token issuer.
      * @param offset             offset value.
      * @param limit              limit per page.
      * @param filterQueryBuilder filter query buider object.
      * @param requiredAttributes Required attributes which needs to be return.
      * @return result set of the query.
      * @throws SQLException                              Database Exception.
-     * @throws IdentityProviderManagementServerException Error when getting list of trusted jwt issuers.
+     * @throws IdentityProviderManagementServerException Error when getting list of trusted token issuers.
      */
-    private ResultSet getTrustedJwtIssuerQueryResultSet(Connection dbConnection, String sortedOrder, int tenantId,
-                                                        int offset, int limit, FilterQueryBuilder filterQueryBuilder,
-                                                        List<String> requiredAttributes)
+    private ResultSet getTrustedTokenIssuerQueryResultSet(Connection dbConnection, String sortedOrder, int tenantId,
+                                                          int offset, int limit, FilterQueryBuilder filterQueryBuilder,
+                                                          List<String> requiredAttributes)
             throws SQLException, IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         String sqlQuery;
@@ -403,13 +403,13 @@ public class IdPManagementDAO {
         int filterAttributeValueSize = filterAttributeValue.entrySet().size();
         String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
         if (databaseProductName.contains("Microsoft")) {
-            sqlQuery = IdPManagementConstants.SQLQueries.GET_JWT_ISSUER_TENANT_MSSQL;
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL;
             sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
-            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_JWT_ISSUER_TENANT_MSSQL_TAIL, sortedOrder);
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL_TAIL, sortedOrder);
             // Add the type filter to the query.
-            String jwtIssuerFilterSql = IdPManagementConstants.SQLQueries.JWT_ISSUER_FILTER_SQL;
-            filterQueryBuilder.setFilterQuery(filterQueryBuilder.getFilterQuery() + jwtIssuerFilterSql);
-            sqlQuery = sqlQuery + IdPManagementConstants.SQLQueries.FROM_JWT_ISSUER_WHERE
+            String tokenIssuerFilterSql = IdPManagementConstants.SQLQueries.TRUSTED_TOKEN_ISSUER_FILTER_SQL;
+            filterQueryBuilder.setFilterQuery(filterQueryBuilder.getFilterQuery() + tokenIssuerFilterSql);
+            sqlQuery = sqlQuery + IdPManagementConstants.SQLQueries.FROM_TRUSTED_TOKEN_ISSUER_WHERE
                     + filterQueryBuilder.getFilterQuery() + sqlTail;
             prepStmt = dbConnection.prepareStatement(sqlQuery);
             for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
@@ -829,26 +829,26 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Get number of trusted Jwt Issuer count for a matching filter.
+     * Get number of trusted token Issuer count for a matching filter.
      *
-     * @param tenantId       Tenant Id of the trusted jwt issuer.
-     * @param expressionNode filter value list for trusted jwt issuer search.
-     * @return number of trusted jwt issuer count for a given filter
-     * @throws IdentityProviderManagementServerException Error when getting count of trusted jwt issuers.
+     * @param tenantId       Tenant Id of the trusted token issuer.
+     * @param expressionNode filter value list for trusted token issuer search.
+     * @return number of trusted token issuer count for a given filter
+     * @throws IdentityProviderManagementServerException Error when getting count of trusted token issuers.
      * @throws IdentityProviderManagementClientException Error when append the filer string.
      */
-    int getCountOfFilteredJwtIssuers(int tenantId, List<ExpressionNode> expressionNode)
+    int getCountOfFilteredTokenIssuers(int tenantId, List<ExpressionNode> expressionNode)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        String sqlStmt = IdPManagementConstants.SQLQueries.GET_JWT_ISSUER_COUNT_SQL;
+        String sqlStmt = IdPManagementConstants.SQLQueries.GET_TRUSTED_TOKEN_ISSUER_COUNT_SQL;
         int countOfFilteredIdp = 0;
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
         appendFilterQuery(expressionNode, filterQueryBuilder);
-        String filter = IdPManagementConstants.SQLQueries.JWT_ISSUER_FILTER_SQL;
+        String filter = IdPManagementConstants.SQLQueries.TRUSTED_TOKEN_ISSUER_FILTER_SQL;
         filterQueryBuilder.setFilterQuery(filterQueryBuilder.getFilterQuery() + filter);
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         sqlStmt = sqlStmt + filterQueryBuilder.getFilterQuery() +
-                IdPManagementConstants.SQLQueries.GET_JWT_ISSUER_COUNT_SQL_TAIL;
+                IdPManagementConstants.SQLQueries.GET_TRUSTED_TOKEN_ISSUER_COUNT_SQL_TAIL;
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
             for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
@@ -3007,8 +3007,8 @@ public class IdPManagementDAO {
                     .getJustInTimeProvisioningConfig(), idpProperties);
 
             IdentityProviderProperty trustedIdpProperty = new IdentityProviderProperty();
-            trustedIdpProperty.setName(IS_TRUSTED_JWT_ISSUER);
-            trustedIdpProperty.setValue(String.valueOf(identityProvider.getIsTrustedJwtIssuer()));
+            trustedIdpProperty.setName(IS_TRUSTED_TOKEN_ISSUER);
+            trustedIdpProperty.setValue(String.valueOf(identityProvider.isTrustedTokenIssuer()));
             identityProviderProperties.add(trustedIdpProperty);
 
             addTemplateIdProperty(identityProviderProperties, identityProvider);
@@ -3302,19 +3302,19 @@ public class IdPManagementDAO {
                 List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties
                         (newIdentityProvider.getJustInTimeProvisioningConfig(), idpProperties);
 
-                boolean hasTrustedJwtIssuerProperty = false;
+                boolean hasTrustedTokenIssuerProperty = false;
                 for (IdentityProviderProperty property : identityProviderProperties) {
-                    if (property.getName().equals(IS_TRUSTED_JWT_ISSUER)) {
-                        property.setValue(String.valueOf(newIdentityProvider.getIsTrustedJwtIssuer()));
-                        hasTrustedJwtIssuerProperty = true;
+                    if (property.getName().equals(IS_TRUSTED_TOKEN_ISSUER)) {
+                        property.setValue(String.valueOf(newIdentityProvider.isTrustedTokenIssuer()));
+                        hasTrustedTokenIssuerProperty = true;
                         break;
                     }
                 }
 
-                if (!hasTrustedJwtIssuerProperty) {
+                if (!hasTrustedTokenIssuerProperty) {
                     IdentityProviderProperty property = new IdentityProviderProperty();
-                    property.setName(IS_TRUSTED_JWT_ISSUER);
-                    property.setValue(String.valueOf(newIdentityProvider.getIsTrustedJwtIssuer()));
+                    property.setName(IS_TRUSTED_TOKEN_ISSUER);
+                    property.setValue(String.valueOf(newIdentityProvider.isTrustedTokenIssuer()));
                     identityProviderProperties.add(property);
                 }
 
