@@ -23,6 +23,7 @@
     <test name="identity-mgt-endpoint-test-all">
         <classes>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtilTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtilTest"/>
         </classes>
     </test>
 </suite>
