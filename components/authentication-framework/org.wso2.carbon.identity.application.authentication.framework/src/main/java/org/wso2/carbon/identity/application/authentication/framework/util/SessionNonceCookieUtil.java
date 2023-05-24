@@ -23,11 +23,15 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG;
 
 /**
  * Handles session nonce cookie.
@@ -40,6 +44,8 @@ public class SessionNonceCookieUtil {
     public static final String NONCE_ERROR_CODE = "sessionNonceErrorCode";
 
     private static Boolean nonceCookieConfig;
+    private static final Set<String> NONCE_COOKIE_WHITELISTED_AUTHENTICATORS = new HashSet<>(
+            IdentityUtil.getPropertyAsList(NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG));
 
     /**
      * Get dynamic name for the nonce cookie
@@ -87,6 +93,9 @@ public class SessionNonceCookieUtil {
                                               AuthenticationContext context) {
 
         if (!isNonceCookieEnabled()) {
+            return true;
+        }
+        if (NONCE_COOKIE_WHITELISTED_AUTHENTICATORS.contains(context.getCurrentAuthenticator())) {
             return true;
         }
 

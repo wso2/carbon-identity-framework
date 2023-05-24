@@ -1380,10 +1380,7 @@
             <Scopes>internal_application_mgt_update</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
-            <Scopes>internal_config_mgt_view</Scopes>
-        </Resource>
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
@@ -1733,7 +1730,7 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin</Permissions>
-            <Scopes>SYSTEM</Scopes>
+            <Scopes>internal_organization_admin</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
@@ -1767,7 +1764,7 @@
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/userstores" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/userstore/config/create</Permissions>
             <Scopes>internal_userstore_create</Scopes>
         </Resource>
@@ -2263,5 +2260,10 @@
 
     <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
     <EnableSHA256RandomNumberGenerator>true</EnableSHA256RandomNumberGenerator>
+
+    <!-- Extension management service configurations -->
+    <ExtensionManagementService>
+        <ExtensionTypes>applications,identity-providers</ExtensionTypes>
+    </ExtensionManagementService>
 
 </Server>

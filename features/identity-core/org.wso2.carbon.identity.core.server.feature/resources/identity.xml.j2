@@ -1260,6 +1260,8 @@
             <ExpiryTime>{{identity_mgt.password_reset_by_admin.code_validity_period}}</ExpiryTime>
         </AdminPasswordReset>
         <NotifyUserExistence>{{identity_mgt.recovery.notify_user_existence}}</NotifyUserExistence>
+        <!-- Whether to notify if the email is not found for the user in the recovery flow by showing an error page. -->
+        <NotifyRecoveryEmailExistence>{{identity_mgt.recovery.notify_recovery_email_existence}}</NotifyRecoveryEmailExistence>
         <!--Whether to notify the user if the user account is locked/disabled-->
         <NotifyUserAccountStatus>{{identity_mgt.recovery.notify_user_account_status}}</NotifyUserAccountStatus>
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
@@ -1916,6 +1918,17 @@
 
     <EnableSessionNonceCookie>{{session.nonce.cookie.enabled}}</EnableSessionNonceCookie>
 
+    {% if session.nonce.cookie.default_whitelist_authenticators is defined or session.nonce.cookie.whitelist_authenticators is defined %}
+        <SessionNonceCookie>
+            {% for whitelist_authenticator in session.nonce.cookie.default_whitelist_authenticators %}
+            <WhitelistedAuthenticator>{{whitelist_authenticator}}</WhitelistedAuthenticator>
+            {% endfor %}
+            {% for whitelist_authenticator in session.nonce.cookie.whitelist_authenticators %}
+            <WhitelistedAuthenticator>{{whitelist_authenticator}}</WhitelistedAuthenticator>
+            {% endfor %}
+        </SessionNonceCookie>
+    {% endif %}
+
     <!-- Config to enable performing validations for expired authentication context cache entry. -->
     <EnableAuthenticationContextExpiryValidation>{{session.authentication.context.expiry.validation}}</EnableAuthenticationContextExpiryValidation>
 
@@ -2087,10 +2100,7 @@
             <Scopes>internal_application_mgt_update</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
-            <Scopes>internal_config_mgt_view</Scopes>
-        </Resource>
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
@@ -2477,7 +2487,7 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin</Permissions>
-            <Scopes>SYSTEM</Scopes>
+            <Scopes>internal_organization_admin</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
@@ -2515,7 +2525,7 @@
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/userstores" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/userstore/config/create</Permissions>
             <Scopes>internal_userstore_create</Scopes>
         </Resource>
@@ -3127,6 +3137,14 @@
     </AllowedUserstores>
     {% endif %}
 
+    {% if user_store_mgt.reserved_user_stores is defined %}
+    <ReservedUserstores>
+        {% for reserved_user_store in user_store_mgt.reserved_user_stores %}
+        <ReservedUserstore>{{reserved_user_store}}</ReservedUserstore>
+        {% endfor %}
+    </ReservedUserstores>
+    {% endif %}
+
     <!-- System Applications -->
     {% if system_applications.read_only_apps is defined %}
     <SystemApplications>
@@ -3311,4 +3329,10 @@
 
     <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
     <EnableSHA256RandomNumberGenerator>{{identity_util.enable_sha256_random_numbers}}</EnableSHA256RandomNumberGenerator>
+
+    <!-- Extension management service configurations -->
+    <ExtensionManagementService>
+        <ExtensionTypes>{{extension_mgt.extension_types}}</ExtensionTypes>
+    </ExtensionManagementService>
+
 </Server>

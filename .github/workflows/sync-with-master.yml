@@ -84,6 +84,10 @@ jobs:
           git config --global user.name ${GIT_USERNAME}
           for commit in $PR_COMMITS_SHA
           do
+            if [[ $(git show --no-patch --format=%p $commit | wc -w) -gt 1 ]]; then
+              echo "Skipping merge commit: $commit"
+              continue
+            fi
             git cherry-pick $commit
           done
           echo ""
@@ -106,6 +110,20 @@ jobs:
           -d '{ "title": "'"${TITLE}"'","body": "'"${BODY}"'","head": "'"${{ env.GIT_USERNAME }}:${{ env.SYNCHRONIZE_BRANCH_NAME }}"'","base":"'"${{ env.TARGET_BRANCH_NAME }}"'"}')
           RESPONSE_BODY=${RESPONSE::-3}
           STATUS=$(printf "%s" "$RESPONSE" | tail -c 3)
-          if [[ $STATUS == "201" ]]; then
-            echo $RESPONSE_BODY | jq -r '.html_url'
+          if [[ $STATUS != "201" ]]; then
+            echo "Error while creating the PR"
+            echo $RESPONSE_BODY
+            exit 1
           fi
+          echo "PR created successfully"
+          echo $RESPONSE_BODY | jq -r '.html_url'
+          PR_NUMBER=$(echo "${RESPONSE_BODY}" | jq -r '.number')
+          
+          echo 'Add comment to the PR'
+          echo "=========================================================="
+          COMMENT_BODY="Hi @${PR_USER}, please review and merge this PR."
+          RESPONSE=$(curl -s -w "%{http_code}" -k -X \
+          POST https://api.github.com/repos/${{ env.PRODUCT_REPOSITORY_PUBLIC }}/issues/${PR_NUMBER}/comments \
+          -H "Authorization: Bearer "${{ secrets.PAT }}"" \
+          -H "Content-Type: application/json" \
+          -d '{ "body": "'"${COMMENT_BODY}"'"}')

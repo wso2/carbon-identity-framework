@@ -77,6 +77,13 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
 
         loadTenant();
         try {
+            List<String> reservedUserStores = IdentityUtil.getPropertyAsList(UserStoreConfigurationConstant
+                    .RESERVED_USERSTORES);
+            if (reservedUserStores.contains(userStoreDTO.getDomainId().toUpperCase())) {
+                throw new UserStoreClientException("User store domain name: " + userStoreDTO.getDomainId() +
+                        " is a reserved name. Please pick another name.");
+            }
+
             triggerListenersOnUserStorePreAdd(userStoreDTO);
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
