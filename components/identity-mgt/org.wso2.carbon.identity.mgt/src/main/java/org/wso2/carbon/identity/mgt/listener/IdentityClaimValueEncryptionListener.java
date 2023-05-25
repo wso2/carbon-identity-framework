@@ -258,7 +258,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
         Map<String, String> claimProperties = getClaimProperties(tenantDomain, claimURI);
         Boolean enableEncryption = false;
         if (!claimProperties.isEmpty()) {
-            enableEncryption = Boolean.parseBoolean(claimProperties.get("enableEncryption"));
+            enableEncryption = Boolean.parseBoolean(claimProperties.get("EnableEncryption"));
         }
         return enableEncryption;
     }
