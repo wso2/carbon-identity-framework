@@ -147,6 +147,30 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
+     * Get all identity provider's Basic information along with additionally requested information depends on the
+     * requiredAttributes for a given matching filter.
+     *
+     * @param tenantId             Tenant Id of the identity provider.
+     * @param expressionConditions Filter value list for IdP search.
+     * @param limit                Limit per page.
+     * @param offset               Offset value.
+     * @param sortOrder            Order of IdP ASC/DESC.
+     * @param sortBy               The attribute need to sort.
+     * @param requiredAttributes   Required attributes which needs to be return.
+     * @return Identity Provider's Basic Information array along with requested attribute information.
+     * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
+     */
+    public List<IdentityProvider> getPaginatedTrustedTokenIssuersSearch(int tenantId, List<ExpressionNode> expressionConditions,
+                                                                        int limit, int offset, String sortOrder, String sortBy,
+                                                                        List<String> requiredAttributes)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        return idPMgtDAO.getTrustedTokenIssuerSearch(tenantId, expressionConditions, limit, offset, sortOrder,
+                sortBy, requiredAttributes);
+    }
+
+    /**
      * Get number of IdP count for a matching filter.
      *
      * @param tenantId             Tenant Id of the identity provider.
@@ -159,6 +183,21 @@ public class CacheBackedIdPMgtDAO {
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         return idPMgtDAO.getCountOfFilteredIdPs(tenantId, expressionConditions);
+    }
+
+    /**
+     * Get number of trusted token issuer count for a matching filter.
+     *
+     * @param tenantId             Tenant Id of the trusted token issuer.
+     * @param expressionConditions filter value list for IdP search.
+     * @return number of trusted token issuer count for a given filter.
+     * @throws IdentityProviderManagementServerException Error when getting count of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
+     */
+    public int getTotalTrustedTokenIssuerCount(int tenantId, List<ExpressionNode> expressionConditions)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        return idPMgtDAO.getCountOfFilteredTokenIssuers(tenantId, expressionConditions);
     }
 
     /**
