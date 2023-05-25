@@ -35,6 +35,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,9 +69,9 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
             updateClaimValues(claims, userStoreManager);
             return true;
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            throw new UserStoreException("Error while retrieving tenant ID", e);
+            LOG.error("Error while retrieving tenant ID", e);
+            return false;
         } catch (CryptoException e) {
-            LOG.error("Error occurred while encrypting claim value", e);
             return false;
         }
     }
@@ -86,7 +87,8 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
             updateClaimValues(claims, userStoreManager);
             return true;
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            throw new UserStoreException("Error while retrieving tenant ID", e);
+            LOG.error("Error while retrieving tenant ID", e);
+            return false;
         } catch (CryptoException e) {
             LOG.error("Error occurred while encrypting claim value", e);
             return false;
@@ -105,9 +107,6 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
         } catch (CryptoException e) {
             LOG.error("Error occurred while encrypting claim value", e);
             return false;
-        }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Pre set claims is called in ClaimValueEncryptionListener");
         }
         return true;
     }
@@ -222,7 +221,8 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
                 try {
                     claimValue = encryptClaimValue(claimValue);
                 } catch (CryptoException e) {
-                    throw new CryptoException("Error occurred while encrypting claim value", e);
+                    LOG.error("Error occurred while encrypting claim value of claim " + claimURI , e);
+                    throw new CryptoException("Error occurred while encrypting claim value of claim " + claimURI, e);
                 }
                 claims.put(claimURI, claimValue);
             }
@@ -256,11 +256,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(userStoreManager.getTenantId());
         Map<String, String> claimProperties = getClaimProperties(tenantDomain, claimURI);
-        Boolean enableEncryption = false;
-        if (!claimProperties.isEmpty()) {
-            enableEncryption = Boolean.parseBoolean(claimProperties.get("EnableEncryption"));
-        }
-        return enableEncryption;
+        return Boolean.parseBoolean(claimProperties.get("EnableEncryption"));
     }
 
     /**
@@ -279,7 +275,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Returned claim list from ClaimManagementService is null");
                 }
-                return null;
+                return Collections.emptyMap();
             }
             for (LocalClaim localClaim : localClaims) {
                 if (StringUtils.equalsIgnoreCase(claimURI, localClaim.getClaimURI())) {
@@ -289,6 +285,6 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
         } catch (ClaimMetadataException e) {
             LOG.error("Error while retrieving local claim meta data.", e);
         }
-        return new HashMap<>();
+        return Collections.emptyMap();
     }
 }
