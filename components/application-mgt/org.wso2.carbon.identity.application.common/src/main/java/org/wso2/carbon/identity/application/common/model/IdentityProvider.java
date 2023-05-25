@@ -172,6 +172,9 @@ public class IdentityProvider implements Serializable {
     @XmlElement(name = "TemplateId")
     private String templateId;
 
+    @XmlElement(name = "trustedTokenIssuer")
+    private boolean trustedTokenIssuer = false;
+
     public static IdentityProvider build(OMElement identityProviderOM) {
 
         IdentityProvider identityProvider = new IdentityProvider();
@@ -952,5 +955,14 @@ public class IdentityProvider implements Serializable {
     public void setTemplateId(String templateId) {
 
         this.templateId = templateId;
+    }
+
+    public boolean isTrustedTokenIssuer() {
+
+        return trustedTokenIssuer;
+    }
+
+    public void setTrustedTokenIssuer(boolean trustedTokenIssuer) {
+        this.trustedTokenIssuer = trustedTokenIssuer;
     }
 }
