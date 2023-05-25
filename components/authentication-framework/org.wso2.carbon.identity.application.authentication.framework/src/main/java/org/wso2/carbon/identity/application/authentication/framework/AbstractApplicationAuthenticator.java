@@ -386,21 +386,16 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     return null;
                 }
                 if (userList.size() > 1) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("There are more than one user with the provided username claim value: "
-                                + authenticatedUser.getUserName());
-                    }
-                    return null;
+                    throw new AuthenticationFailedException("There are more than one user with the provided username "
+                            + "claim value: " + authenticatedUser.getUserName());
                 }
                 user = userList.get(0);
             } else {
-                log.error("Cannot find the user realm for the given tenant: " + tenantDomain);
+                throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: "
+                        + tenantDomain);
             }
         } catch (UserStoreException e) {
-            String msg = "getUserListWithID function failed while retrieving the user list.";
-            if (log.isDebugEnabled()) {
-                log.debug(msg, e);
-            }
+            String msg = "Failed to retrieve the user from the user store.";
             throw new AuthenticationFailedException(msg, e);
         }
         return user;
