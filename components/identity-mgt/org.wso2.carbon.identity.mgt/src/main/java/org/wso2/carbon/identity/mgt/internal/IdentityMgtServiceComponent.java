@@ -33,6 +33,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -45,11 +46,7 @@ import org.wso2.carbon.identity.mgt.config.ConfigBuilder;
 import org.wso2.carbon.identity.mgt.config.EmailNotificationConfig;
 import org.wso2.carbon.identity.mgt.config.StorageType;
 import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
-import org.wso2.carbon.identity.mgt.listener.IdentityUserIdResolverListener;
-import org.wso2.carbon.identity.mgt.listener.IdentityUserNameResolverListener;
-import org.wso2.carbon.identity.mgt.listener.TenantManagementListener;
-import org.wso2.carbon.identity.mgt.listener.UserOperationsNotificationListener;
-import org.wso2.carbon.identity.mgt.listener.UserSessionTerminationListener;
+import org.wso2.carbon.identity.mgt.listener.*;
 import org.wso2.carbon.identity.mgt.store.RegistryCleanUpService;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
 import org.wso2.carbon.identity.notification.mgt.NotificationSender;
@@ -199,7 +196,10 @@ public class IdentityMgtServiceComponent {
                 , null);
         context.getBundleContext().registerService(UserOperationEventListener.class.getName(),
                 new UserSessionTerminationListener(), null);
-
+        IdentityClaimValueEncryptionListener identityClaimValueEncryptionListener =
+                new IdentityClaimValueEncryptionListener();
+        context.getBundleContext().registerService(UserOperationEventListener.class,
+                identityClaimValueEncryptionListener, null);
         if (userOperationNotificationSR != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Identity Management - UserOperationNotificationListener registered.");
@@ -377,5 +377,35 @@ public class IdentityMgtServiceComponent {
             IdentityMgtServiceDataHolder.getInstance().getUserOperationEventListeners().remove(
                     userOperationEventListenerService.getExecutionOrderId());
         }
+    }
+
+    /**
+     * Set claim metadata management service implementation.
+     *
+     * @param claimManagementService ClaimManagementService
+     */
+    @Reference(
+            name = "claimManagementService",
+            service = org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService")
+    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("claimManagementService set in IdentityMgtServiceComponent bundle");
+        }
+        IdentityMgtServiceDataHolder.setClaimManagementService(claimManagementService);
+    }
+
+    /**
+     * Unset claim metadata management service implementation.
+     */
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("claimManagementService unset in IdentityMgtServiceComponent bundle");
+        }
+        IdentityMgtServiceDataHolder.setClaimManagementService(null);
     }
 }
