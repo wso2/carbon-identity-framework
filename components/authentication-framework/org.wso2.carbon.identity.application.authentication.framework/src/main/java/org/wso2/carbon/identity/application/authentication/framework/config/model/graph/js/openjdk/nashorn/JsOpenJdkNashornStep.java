@@ -45,11 +45,25 @@ public class JsOpenJdkNashornStep extends AbstractJSContextMemberObject implemen
     private String authenticatedIdp;
     private String authenticatedAuthenticator;
 
+    @Deprecated
+    public JsOpenJdkNashornStep(int step, String authenticatedIdp) {
+
+        this.step = step;
+        this.authenticatedIdp = authenticatedIdp;
+    }
+
     public JsOpenJdkNashornStep(int step, String authenticatedIdp, String authenticatedAuthenticator) {
 
         this.step = step;
         this.authenticatedIdp = authenticatedIdp;
         this.authenticatedAuthenticator = authenticatedAuthenticator;
+    }
+
+    @Deprecated
+    public JsOpenJdkNashornStep(AuthenticationContext context, int step, String authenticatedIdp) {
+
+        this(step, authenticatedIdp, null);
+        initializeContext(context);
     }
 
     public JsOpenJdkNashornStep(AuthenticationContext context, int step, String authenticatedIdp,
@@ -132,4 +146,21 @@ public class JsOpenJdkNashornStep extends AbstractJSContextMemberObject implemen
                 })));
         return optionsList;
     }
+
+    protected String getAuthenticatedAuthenticatorOfCurrentStep(AuthenticationContext context) {
+
+        if (context.getSequenceConfig() == null) {
+            //Sequence config is not yet initialized
+            return null;
+        }
+
+        StepConfig stepConfig = context.getSequenceConfig().getStepMap()
+                .get(context.getCurrentStep());
+        if (stepConfig != null) {
+            return stepConfig.getAuthenticatedAutenticator().getName();
+        }
+        return null;
+
+    }
+
 }
