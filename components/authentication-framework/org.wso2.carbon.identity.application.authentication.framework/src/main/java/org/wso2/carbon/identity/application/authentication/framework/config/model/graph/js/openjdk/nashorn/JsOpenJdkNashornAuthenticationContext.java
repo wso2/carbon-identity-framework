@@ -74,7 +74,7 @@ public class JsOpenJdkNashornAuthenticationContext extends JsAuthenticationConte
                 return new JsOpenJdkNashornSteps(getWrapped());
             case FrameworkConstants.JSAttributes.JS_CURRENT_STEP:
                 return new JsOpenJdkNashornStep(getContext(), getContext().getCurrentStep(),
-                        getAuthenticatedIdPOfCurrentStep());
+                        getAuthenticatedIdPOfCurrentStep(), getAuthenticatedAuthenticatorOfCurrentStep());
             case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
                 StepConfig stepConfig = getCurrentSubjectIdentifierStep();
                 if (stepConfig != null) {
@@ -158,7 +158,6 @@ public class JsOpenJdkNashornAuthenticationContext extends JsAuthenticationConte
         }
     }
 
-
     protected String getAuthenticatedIdPOfCurrentStep() {
 
         if (getContext().getSequenceConfig() == null) {
@@ -170,6 +169,22 @@ public class JsOpenJdkNashornAuthenticationContext extends JsAuthenticationConte
                 .get(getContext().getCurrentStep());
         if (stepConfig != null) {
             return stepConfig.getAuthenticatedIdP();
+        }
+        return null;
+
+    }
+
+    protected String getAuthenticatedAuthenticatorOfCurrentStep() {
+
+        if (getContext().getSequenceConfig() == null) {
+            //Sequence config is not yet initialized
+            return null;
+        }
+
+        StepConfig stepConfig = getContext().getSequenceConfig().getStepMap()
+                .get(getContext().getCurrentStep());
+        if (stepConfig != null) {
+            return stepConfig.getAuthenticatedAutenticator().getName();
         }
         return null;
 
