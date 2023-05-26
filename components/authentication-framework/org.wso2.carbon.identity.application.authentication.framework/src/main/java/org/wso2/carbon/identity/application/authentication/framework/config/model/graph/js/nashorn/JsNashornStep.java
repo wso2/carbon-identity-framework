@@ -43,16 +43,19 @@ public class JsNashornStep extends AbstractJSContextMemberObject implements Abst
 
     private int step;
     private String authenticatedIdp;
+    private String authenticatedAuthenticator;
 
-    public JsNashornStep(int step, String authenticatedIdp) {
+    public JsNashornStep(int step, String authenticatedIdp, String authenticatedAuthenticator) {
 
         this.step = step;
         this.authenticatedIdp = authenticatedIdp;
+        this.authenticatedAuthenticator = authenticatedAuthenticator;
     }
 
-    public JsNashornStep(AuthenticationContext context, int step, String authenticatedIdp) {
+    public JsNashornStep(AuthenticationContext context, int step, String authenticatedIdp,
+                         String authenticatedAuthenticator) {
 
-        this(step, authenticatedIdp);
+        this(step, authenticatedIdp, authenticatedAuthenticator);
         initializeContext(context);
     }
 
@@ -64,6 +67,8 @@ public class JsNashornStep extends AbstractJSContextMemberObject implements Abst
                 return new JsNashornAuthenticatedUser(getContext(), getSubject(), step, authenticatedIdp);
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
                 return authenticatedIdp;
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATOR:
+                return authenticatedAuthenticator;
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATION_OPTIONS:
                 return getOptions();
             default:
@@ -78,6 +83,8 @@ public class JsNashornStep extends AbstractJSContextMemberObject implements Abst
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
                 return true;
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
+                return true;
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATOR:
                 return true;
             default:
                 return AbstractJsObject.super.hasMember(name);
