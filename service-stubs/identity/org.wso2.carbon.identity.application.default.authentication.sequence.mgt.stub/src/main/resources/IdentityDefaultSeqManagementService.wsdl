@@ -151,6 +151,7 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningConnectorConfigs" nillable="true" type="ax2177:ProvisioningConnectorConfig"/>
                     <xs:element minOccurs="0" name="provisioningRole" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="resourceId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="trustedTokenIssuer" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="CertificateInfo">
