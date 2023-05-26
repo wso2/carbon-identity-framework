@@ -925,6 +925,6 @@
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
   "show_pending_user_information.enable": true,
-  "identity_util.enable_sha256_random_numbers": true
+  "identity_util.enable_sha256_random_numbers": true,
   "extension_mgt.extension_types": "applications,identity-providers"
 }
