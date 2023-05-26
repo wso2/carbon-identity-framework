@@ -146,21 +146,4 @@ public class JsOpenJdkNashornStep extends AbstractJSContextMemberObject implemen
                 })));
         return optionsList;
     }
-
-    protected String getAuthenticatedAuthenticatorOfCurrentStep(AuthenticationContext context) {
-
-        if (context.getSequenceConfig() == null) {
-            //Sequence config is not yet initialized
-            return null;
-        }
-
-        StepConfig stepConfig = context.getSequenceConfig().getStepMap()
-                .get(context.getCurrentStep());
-        if (stepConfig != null) {
-            return stepConfig.getAuthenticatedAutenticator().getName();
-        }
-        return null;
-
-    }
-
 }

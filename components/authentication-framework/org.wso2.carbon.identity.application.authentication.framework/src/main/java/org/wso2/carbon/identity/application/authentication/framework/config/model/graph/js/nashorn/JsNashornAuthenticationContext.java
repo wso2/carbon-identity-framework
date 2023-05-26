@@ -182,11 +182,8 @@ public class JsNashornAuthenticationContext extends JsAuthenticationContext impl
 
         StepConfig stepConfig = getContext().getSequenceConfig().getStepMap()
                 .get(getContext().getCurrentStep());
-        if (stepConfig != null) {
-            return stepConfig.getAuthenticatedAutenticator().getName();
-        }
-        return null;
 
+        return stepConfig != null ? stepConfig.getAuthenticatedAutenticator().getName() : null;
     }
 
     protected StepConfig getCurrentSubjectIdentifierStep() {
