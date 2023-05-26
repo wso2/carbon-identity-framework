@@ -39,7 +39,15 @@ public class XDSConstants {
         REMOTE_FETCH,
         NOTIFICATION_SENDER,
         TEMPLATE,
-        USER_STORE
+        USER_STORE,
+        IDENTITY_GOVERNANCE
 
+    }
+
+    /**
+     * Enum for identity governance types.
+     */
+    public enum GovernanceOperationType implements XDSOperationType {
+        UPDATE_CONFIGURATION
     }
 }
