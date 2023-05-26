@@ -80,19 +80,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
     public boolean doPreAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        try {
-            if (!isEnable() || userStoreManager == null) {
-                return true;
-            }
-            updateClaimValues(claims, userStoreManager);
-            return true;
-        } catch (org.wso2.carbon.user.api.UserStoreException e) {
-            LOG.error("Error while retrieving tenant ID", e);
-            return false;
-        } catch (CryptoException e) {
-            LOG.error("Error occurred while encrypting claim value", e);
-            return false;
-        }
+        return doPreAddUser(null,credential, roleList, claims, profile, userStoreManager);
     }
 
     @Override
@@ -115,16 +103,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
     public boolean doPreSetUserClaimValuesWithID(String userID, Map<String, String> claims, String profileName,
                                                  UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable() || userStoreManager == null) {
-            return true;
-        }
-        try {
-            updateClaimValues(claims, userStoreManager);
-        } catch (CryptoException e) {
-            LOG.error("Error occurred while encrypting claim value", e);
-            return false;
-        }
-        return true;
+        return doPreSetUserClaimValues(null, claims, profileName, userStoreManager);
     }
 
     @Override
@@ -148,17 +127,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
     public boolean doPreSetUserClaimValueWithID(String userID, String claimURI, String claimValue, String profileName,
                                                 UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!isEnable() || userStoreManager == null) {
-            return true;
-        }
-        if (checkEnableEncryption(claimURI, userStoreManager)) {
-            IdentityUtil.threadLocalProperties.get().remove(CLAIM_URI);
-            IdentityUtil.threadLocalProperties.get().remove(CLAIM_VALUE);
-
-            IdentityUtil.threadLocalProperties.get().put(CLAIM_URI, claimURI);
-            IdentityUtil.threadLocalProperties.get().put(CLAIM_VALUE, claimValue);
-        }
-        return true;
+        return doPreSetUserClaimValue(null, claimURI, claimValue, profileName, userStoreManager);
     }
 
     @Override
@@ -186,22 +155,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
     public boolean doPostSetUserClaimValueWithID(String userID, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        if (!isEnable() || userStoreManager == null) {
-            return true;
-        }
-        try {
-            String claimURI = (String) IdentityUtil.threadLocalProperties.get().get(CLAIM_URI);
-            String claimValue = (String) IdentityUtil.threadLocalProperties.get().get(CLAIM_VALUE);
-            if (StringUtils.isNotBlank(claimURI) && StringUtils.isNotBlank(claimValue)) {
-                Map<String, String> claims = new HashMap<>();
-                claims.put(claimURI, claimValue);
-                ((AbstractUserStoreManager) userStoreManager).setUserClaimValuesWithID(userID, claims, null);
-            }
-            return true;
-        } finally {
-            IdentityUtil.threadLocalProperties.get().remove(CLAIM_URI);
-            IdentityUtil.threadLocalProperties.get().remove(CLAIM_VALUE);
-        }
+        return doPostSetUserClaimValue(null, userStoreManager);
     }
 
     /**

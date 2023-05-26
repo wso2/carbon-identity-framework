@@ -134,7 +134,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener) || isNotClaimValueEncryptionListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!((UniqueIDUserOperationEventListener) listener)
                         .doPreAddUserWithID(userName, credential, roleList, claims, profile, userStoreManager)) {
                     return false;
@@ -336,7 +336,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener) || isNotClaimValueEncryptionListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 return ((UniqueIDUserOperationEventListener) listener)
                         .doPreSetUserClaimValueWithID(userID, claimURI, claimValue, profileName, userStoreManager);
             }
@@ -359,7 +359,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener) || isNotClaimValueEncryptionListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!((UniqueIDUserOperationEventListener) listener)
                         .doPostSetUserClaimValueWithID(userID, userStoreManager)) {
                     return false;
@@ -384,7 +384,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener) || isNotClaimValueEncryptionListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!((UniqueIDUserOperationEventListener) listener)
                         .doPreSetUserClaimValuesWithID(userID, claims, profileName, userStoreManager)) {
                     return false;
