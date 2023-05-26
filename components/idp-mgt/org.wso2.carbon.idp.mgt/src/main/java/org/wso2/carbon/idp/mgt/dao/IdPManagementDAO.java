@@ -3014,7 +3014,6 @@ public class IdPManagementDAO {
             addTemplateIdProperty(identityProviderProperties, identityProvider);
             addIdentityProviderProperties(dbConnection, idPId, identityProviderProperties, tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
-
             return resourceId;
         } catch (IOException e) {
             throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
@@ -3321,7 +3320,6 @@ public class IdPManagementDAO {
                 updateIdentityProviderProperties(dbConnection, idpId, identityProviderProperties, tenantId);
             }
             IdentityDatabaseUtil.commitTransaction(dbConnection);
-
         } catch (IOException e) {
             throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
         } catch (SQLException e) {

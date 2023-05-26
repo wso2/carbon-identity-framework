@@ -2106,7 +2106,7 @@ public class IdentityProviderManager implements IdpManager {
 
         // Validate whether the IdP satisfies the minimum requirements to be a trusted token issuer.
         if (isTrustedTokenIssuer(identityProvider)) {
-            identityProvider.setIsTrustedTokenIssuer(true);
+            identityProvider.setTrustedTokenIssuer(true);
         }
 
         handleMetadata(tenantId, identityProvider);
@@ -2133,14 +2133,13 @@ public class IdentityProviderManager implements IdpManager {
             if (StringUtils.isNotBlank(propValue)) {
                 if (IdentityApplicationConstants.IDP_ISSUER_NAME.equals(propName)) {
                     issuerName = propValue;
-                }
-                else if (IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME.equalsIgnoreCase(propName)) {
+                } else if (IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME.equalsIgnoreCase(propName)) {
                     jwksURI = propValue;
                 }
             }
         }
-        return StringUtils.isNotBlank(issuerName) && (StringUtils.isNotBlank(jwksURI) || StringUtils.isNotBlank
-                (certificate));
+        return StringUtils.isNotBlank(issuerName) && (StringUtils.isNotBlank(jwksURI) ||
+                StringUtils.isNotBlank(certificate));
     }
 
     /**
@@ -2433,7 +2432,7 @@ public class IdentityProviderManager implements IdpManager {
         IdentityProvider currentIdentityProvider = this
                 .getIdPByResourceId(resourceId, tenantDomain, true);
 
-        newIdentityProvider.setIsTrustedTokenIssuer(isTrustedTokenIssuer(newIdentityProvider));
+        newIdentityProvider.setTrustedTokenIssuer(isTrustedTokenIssuer(newIdentityProvider));
         validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider, tenantDomain);
         updateIDP(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
 
@@ -2444,7 +2443,6 @@ public class IdentityProviderManager implements IdpManager {
                 return null;
             }
         }
-
         return dao.getUpdatedIdPByResourceId(resourceId, tenantId, tenantDomain);
     }
 
