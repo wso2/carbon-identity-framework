@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
+import org.wso2.carbon.identity.application.common.model.AppRoleMappingConfig;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -42,7 +43,6 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ConsentConfig;
 import org.wso2.carbon.identity.application.common.model.ConsentPurpose;
 import org.wso2.carbon.identity.application.common.model.ConsentPurposeConfigs;
-import org.wso2.carbon.identity.application.common.model.ExternalizedConsentPageConfig;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
@@ -139,14 +139,12 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
-import static org.wso2.carbon.identity.base.IdentityConstants.EXTERNAL_CONSENT_PAGE_URL;
-import static org.wso2.carbon.identity.base.IdentityConstants.EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT_DISPLAY_NAME;
-import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNALIZED_CONSENT_PAGE;
-import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNALIZED_CONSENT_PAGE_DISPLAY_NAME;
+import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_PAGE;
+import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_PAGE_DISPLAY_NAME;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
@@ -165,6 +163,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
     private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
+    private static final String APP_ROLE_MAPPINGS_KEY = "use_app_role_mappings";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
@@ -480,6 +479,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         // update local and out-bound authentication configuration.
         updateLocalAndOutboundAuthenticationConfiguration(serviceProvider.getApplicationID(),
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig(), connection);
+
+        updateAppRoleMappingConfiguration(serviceProvider, serviceProvider.
+                        getApplicationRoleMappingConfig(), connection);
 
         updateRequestPathAuthenticators(applicationId, serviceProvider.getRequestPathAuthenticatorConfigs(),
                 connection);
@@ -1483,6 +1485,63 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
+     * Update the application role mapping configuration.
+     *
+     * @param serviceProvider               ServiceProvider to be updated.
+     * @param applicationRoleMappingConfigs Application role mapping configurations.
+     * @param connection                    Connection to the database.
+     * @throws SQLException SQLException when updating application role mapping configuration.
+     */
+    private void updateAppRoleMappingConfiguration(ServiceProvider serviceProvider,
+                                                   AppRoleMappingConfig[] applicationRoleMappingConfigs,
+                                                   Connection connection) throws SQLException {
+
+        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        int applicationId = serviceProvider.getApplicationID();
+        List<String> attributeStepFIdPs =
+                getAttributeStepFIdPs(serviceProvider.getLocalAndOutBoundAuthenticationConfig());
+        deleteAppRoleMappingConfiguration(applicationId, connection);
+
+        try (PreparedStatement updateAppRoleMappingPrepStmt = connection
+                .prepareStatement(ApplicationMgtDBQueries.UPDATE_SP_IDP_ATTR)) {
+            if (applicationRoleMappingConfigs != null) {
+                for (AppRoleMappingConfig applicationRoleMappingConfig : applicationRoleMappingConfigs) {
+                    String fidPName = applicationRoleMappingConfig.getIdPName();
+                    if (attributeStepFIdPs.contains(fidPName)) {
+                        // Get idp id using idp name.
+                        int idpId = getIdPId(connection, tenantID, applicationRoleMappingConfig.getIdPName());
+                        updateAppRoleMappingPrepStmt.setInt(1, applicationId);
+                        updateAppRoleMappingPrepStmt.setInt(2, idpId);
+                        updateAppRoleMappingPrepStmt.setString(3, APP_ROLE_MAPPINGS_KEY);
+                        updateAppRoleMappingPrepStmt.setString(4, applicationRoleMappingConfig
+                                .isUseAppRoleMappings() ? "1" : "0");
+                        updateAppRoleMappingPrepStmt.addBatch();
+                    }
+                }
+                updateAppRoleMappingPrepStmt.executeBatch();
+            }
+        }
+    }
+
+    /**
+     * Delete the application role mapping configuration.
+     *
+     * @param applicationId Application ID of the service provider.
+     * @param connection    Connection to the database.
+     * @throws SQLException SQLException when deleting application role mapping configuration.
+     */
+    private void deleteAppRoleMappingConfiguration(int applicationId, Connection connection)
+            throws SQLException {
+
+        try (PreparedStatement deleteAppRoleMappingPrepStmt = connection
+                .prepareStatement(ApplicationMgtDBQueries.DELETE_SP_IDP_ATTR)) {
+            deleteAppRoleMappingPrepStmt.setInt(1, applicationId);
+            deleteAppRoleMappingPrepStmt.setString(2, APP_ROLE_MAPPINGS_KEY);
+            deleteAppRoleMappingPrepStmt.execute();
+        }
+    }
+
+    /**
      * @param applicationId
      * @param claimConfiguration
      * @param applicationID
@@ -2022,6 +2081,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider
                     .setLocalAndOutBoundAuthenticationConfig(getLocalAndOutboundAuthenticationConfig(
                             applicationId, connection, tenantID, propertyList));
+            serviceProvider.setApplicationRoleMappingConfig(getAppRoleMappingConfigurations(
+                    applicationId, connection));
 
             serviceProvider.setInboundProvisioningConfig(getInboundProvisioningConfiguration(
                     applicationId, connection, tenantID));
@@ -2824,6 +2885,43 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
+    /**
+     * Read and set AppRoleMappingConfigurations from the database.
+     *
+     * @param applicationId Application ID of the application.
+     * @param connection    Database connection.
+     * @return AppRoleMappingConfig[] Array of AppRoleMappingConfigurations.
+     * @throws SQLException SQLException if an error occurs while reading from the database.
+     */
+    private AppRoleMappingConfig[] getAppRoleMappingConfigurations(int applicationId, Connection connection)
+            throws SQLException {
+
+        List<AppRoleMappingConfig> appRoleMappingConfigList = new ArrayList<>();
+
+        try (PreparedStatement getAppRoleMappingConfigPrepStmt = connection
+                .prepareStatement(ApplicationMgtDBQueries.LOAD_SP_IDP_ATTR_BY_APP_ID_AND_ATTR_KEY)) {
+
+            getAppRoleMappingConfigPrepStmt.setInt(1, applicationId);
+            getAppRoleMappingConfigPrepStmt.setString(2, APP_ROLE_MAPPINGS_KEY);
+
+            try (ResultSet getAppRoleMappingConfigResultSet = getAppRoleMappingConfigPrepStmt.executeQuery()) {
+                while (getAppRoleMappingConfigResultSet.next()) {
+                    String attrKey = getAppRoleMappingConfigResultSet.getString(3);
+                    if (APP_ROLE_MAPPINGS_KEY.equals(attrKey)) {
+                        int idpId = getAppRoleMappingConfigResultSet.getInt(2);
+                        String idpName = getIdPName(connection, idpId);
+                        AppRoleMappingConfig appRoleMappingConfig = new AppRoleMappingConfig();
+                        appRoleMappingConfig.setIdPName(idpName);
+                        appRoleMappingConfig.setUseAppRoleMappings("1".equals(
+                                getAppRoleMappingConfigResultSet.getString(4)));
+                        appRoleMappingConfigList.add(appRoleMappingConfig);
+                    }
+                }
+            }
+        }
+        return appRoleMappingConfigList.toArray(new AppRoleMappingConfig[0]);
+    }
+
     private void readAndSetConfigurationsFromProperties(List<ServiceProviderProperty> propertyList,
                                                         LocalAndOutboundAuthenticationConfig localAndOutboundConfig) {
         // Override with changed values.
@@ -2839,22 +2937,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     localAndOutboundConfig.setSkipConsent(Boolean.parseBoolean(value));
                 } else if (SKIP_LOGOUT_CONSENT.equals(name)) {
                     localAndOutboundConfig.setSkipLogoutConsent(Boolean.parseBoolean(value));
-                } else if (USE_EXTERNALIZED_CONSENT_PAGE.equals(name)) {
-                    getExternalizedConsentPageConfig(localAndOutboundConfig).setEnabled(Boolean.parseBoolean(value));
-                } else if (EXTERNAL_CONSENT_PAGE_URL.equals(name)) {
-                    getExternalizedConsentPageConfig(localAndOutboundConfig).setConsentPageUrl(value);
+                } else if (USE_EXTERNAL_CONSENT_PAGE.equals(name)) {
+                    localAndOutboundConfig.setUseExternalConsentPage(Boolean.parseBoolean(value));
                 }
             }
         }
-    }
-
-    private ExternalizedConsentPageConfig getExternalizedConsentPageConfig(
-            LocalAndOutboundAuthenticationConfig config) {
-
-        if (config.getExternalizedConsentPageConfig() == null) {
-            config.setExternalizedConsentPageConfig(new ExternalizedConsentPageConfig());
-        }
-        return config.getExternalizedConsentPageConfig();
     }
 
     private AuthenticationScriptConfig getScriptConfiguration(int applicationId, Connection connection)
@@ -4400,6 +4487,87 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
+     * Retrieve the IDP ID for the given IDP name.
+     *
+     * @param conn     Database connection.
+     * @param tenantId Tenant Id of the application.
+     * @param idpName  Identity Provider Name.
+     * @return Identity Provider ID.
+     * @throws SQLException SQL Exception if error occurred while retrieving IDP ID.
+     */
+    private int getIdPId(Connection conn, int tenantId, String idpName) throws SQLException {
+
+        int idPId = -1;
+        if (idpName.equals("LOCAL")) {
+            return idPId;
+        }
+        String sqlStmt = ApplicationMgtDBQueries.SELECT_IDP_WITH_TENANT;
+        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt);) {
+            prepStmt.setString(1, idpName);
+            prepStmt.setInt(2, tenantId);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                if (resultSet.next()) {
+                    idPId = resultSet.getInt(1);
+                }
+            }
+        }
+        return idPId;
+    }
+
+    /**
+     * Retrieve Identity Provider Name by IDP ID.
+     *
+     * @param conn  Database connection.
+     * @param idpId Identity Provider ID of thr IDP.
+     * @return Identity Provider Name.
+     * @throws SQLException SQL Exception if any error occurs while retrieving the IDP Name.
+     */
+    private String getIdPName(Connection conn, int idpId) throws SQLException {
+
+        String idPName = null;
+        String sqlStmt = ApplicationMgtDBQueries.GET_IDP_NAME_BY_IDP_ID;
+        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt)) {
+            prepStmt.setInt(1, idpId);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                if (resultSet.next()) {
+                    idPName = resultSet.getString(1);
+                }
+            }
+        }
+        return idPName;
+    }
+
+    /**
+     * Retrieve the list of federated IDPs in the attribute step of the service provider.
+     *
+     * @param localAndOutboundAuthenticationConfig Local and Outbound Authentication Configuration.
+     * @return List of Federated IDPs in the attribute step.
+     */
+    private List<String> getAttributeStepFIdPs(
+            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig) {
+
+        // If localAndOutboundAuthenticationConfig is null, no federated IDPs are configured.
+        if (localAndOutboundAuthenticationConfig == null) {
+            return new ArrayList<>();
+        }
+        AuthenticationStep attributeAuthStep =
+                localAndOutboundAuthenticationConfig.getAuthenticationStepForAttributes();
+        IdentityProvider[] authStepFederatedIdentityProviders = null;
+        if (attributeAuthStep == null && localAndOutboundAuthenticationConfig.getAuthenticationSteps() != null) {
+            attributeAuthStep = Arrays.stream(localAndOutboundAuthenticationConfig.getAuthenticationSteps()).
+                    filter(AuthenticationStep::isAttributeStep).findFirst().orElse(null);
+        }
+        if (attributeAuthStep != null) {
+            authStepFederatedIdentityProviders = attributeAuthStep.getFederatedIdentityProviders();
+        }
+        if (authStepFederatedIdentityProviders != null) {
+            return Arrays.stream(authStepFederatedIdentityProviders)
+                    .map(IdentityProvider::getIdentityProviderName).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
+    }
+
+    /**
      * @param conn
      * @param tenantId
      * @param authenticatorId
@@ -4730,11 +4898,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ServiceProviderProperty skipLogoutConsentProperty = buildSkipLogoutConsentProperty(sp);
             spPropertyMap.put(skipLogoutConsentProperty.getName(), skipLogoutConsentProperty);
 
-            ServiceProviderProperty useExternalizedConsentPageProperty = buildUseExternalizedConsentPageProperty(sp);
-            spPropertyMap.put(useExternalizedConsentPageProperty.getName(), useExternalizedConsentPageProperty);
-
-            ServiceProviderProperty externalConsentPageURLProperty = buildExternalConsentPageURLProperty(sp);
-            spPropertyMap.put(externalConsentPageURLProperty.getName(), externalConsentPageURLProperty);
+            ServiceProviderProperty useExternalConsentPageProperty = buildUseExternalConsentPageProperty(sp);
+            spPropertyMap.put(useExternalConsentPageProperty.getName(), useExternalConsentPageProperty);
         }
 
         ServiceProviderProperty jwksUri = buildJwksProperty(sp);
@@ -4810,39 +4975,17 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return skipLogoutConsentProperty;
     }
 
-    private ServiceProviderProperty buildUseExternalizedConsentPageProperty(ServiceProvider sp) {
+    private ServiceProviderProperty buildUseExternalConsentPageProperty(ServiceProvider sp) {
 
-        ServiceProviderProperty useExternalizedConsentPageProperty = new ServiceProviderProperty();
+        ServiceProviderProperty useExternalConsentPageProperty = new ServiceProviderProperty();
+        useExternalConsentPageProperty.setName(USE_EXTERNAL_CONSENT_PAGE);
+        useExternalConsentPageProperty.setDisplayName(USE_EXTERNAL_CONSENT_PAGE_DISPLAY_NAME);
 
-        ExternalizedConsentPageConfig consentConfig = sp.getLocalAndOutBoundAuthenticationConfig()
-                .getExternalizedConsentPageConfig();
-        if (consentConfig != null) {
-            useExternalizedConsentPageProperty.setName(USE_EXTERNALIZED_CONSENT_PAGE);
-            useExternalizedConsentPageProperty.setDisplayName(USE_EXTERNALIZED_CONSENT_PAGE_DISPLAY_NAME);
-
-            useExternalizedConsentPageProperty.setValue(String.valueOf(
-                    consentConfig.isEnabled()));
-        }
-
-        return useExternalizedConsentPageProperty;
+        useExternalConsentPageProperty.setValue(
+                String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isUseExternalConsentPage()));
+        return useExternalConsentPageProperty;
     }
 
-    private ServiceProviderProperty buildExternalConsentPageURLProperty(ServiceProvider sp) {
-
-        ServiceProviderProperty externalConsentPageURLProperty = new ServiceProviderProperty();
-
-        ExternalizedConsentPageConfig consentConfig = sp.getLocalAndOutBoundAuthenticationConfig()
-                .getExternalizedConsentPageConfig();
-
-        if (consentConfig != null) {
-            externalConsentPageURLProperty.setName(EXTERNAL_CONSENT_PAGE_URL);
-            externalConsentPageURLProperty.setDisplayName(EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME);
-
-            externalConsentPageURLProperty.setValue(consentConfig.getConsentPageUrl());
-        }
-        return externalConsentPageURLProperty;
-    }
-    
     private ServiceProviderProperty buildUserStoreDomainInRolesProperty(ServiceProvider sp) {
 
         ServiceProviderProperty property = new ServiceProviderProperty();

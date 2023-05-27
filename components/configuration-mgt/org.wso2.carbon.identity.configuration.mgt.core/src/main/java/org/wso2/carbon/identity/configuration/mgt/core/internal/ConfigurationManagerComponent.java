@@ -26,7 +26,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManagerImpl;
@@ -207,8 +206,7 @@ public class ConfigurationManagerComponent {
 
     private boolean isConfigurationManagementEnabled() {
 
-        return FrameworkUtils.isTableExists("IDN_CONFIG_TYPE") && FrameworkUtils.isTableExists("IDN_CONFIG_RESOURCE")
-                && FrameworkUtils.isTableExists("IDN_CONFIG_ATTRIBUTE") && FrameworkUtils
-                .isTableExists("IDN_CONFIG_FILE");
+        return IdentityDatabaseUtil.isTableExists("IDN_CONFIG_TYPE") && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_RESOURCE")
+                && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_ATTRIBUTE") && IdentityDatabaseUtil.isTableExists("IDN_CONFIG_FILE");
     }
 }

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
@@ -36,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.I18nErrorCodeWrapper;
@@ -206,16 +208,46 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     request = FrameworkUtils.getCommonAuthReqWithParams(request, authRequest);
                 }
                 context = initializeFlow(request, responseWrapper);
+
+                // Set the authentication request before the context is cloned.
+                if (authRequest != null) {
+                    context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
+                }
+
+                // We'll use the cloned context to re-initiate the login flow when the session
+                // nonce cookie validation failed.
+                if (request.getParameter(FrameworkConstants.RequestParams.LOGOUT) == null) {
+                    context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
+                }
+
                 context.initializeAnalyticsData();
+
             } else {
-                returning = true;
                 context = FrameworkUtils.getContextData(request);
+                if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) != null &&
+                        request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("true")) {
+                    context = (AuthenticationContext) context.getProperty(FrameworkConstants.INITIAL_CONTEXT);
+                    context.initializeAnalyticsData();
+                    String contextIdIncludedQueryParams = context.getContextIdIncludedQueryParams();
+                    contextIdIncludedQueryParams += FrameworkConstants.RESTART_LOGIN_FLOW_QUERY_PARAMS;
+                    context.setContextIdIncludedQueryParams(contextIdIncludedQueryParams);
+                } else {
+                    returning = true;
+                }
                 associateTransientRequestData(request, responseWrapper, context);
             }
 
             if (context != null) {
                 if (StringUtils.isNotBlank(context.getServiceProviderName())) {
                     MDC.put(SERVICE_PROVIDER_QUERY_KEY, context.getServiceProviderName());
+                }
+                // Remove `login.reinitiate.message` from the query params after the first step to prevent it from
+                // appearing in subsequent authentication steps.
+                if (context.getCurrentStep() == 1 && StringUtils.contains(context.getContextIdIncludedQueryParams(),
+                        FrameworkConstants.RESTART_LOGIN_FLOW_QUERY_PARAMS)) {
+                    String contextIdIncludedQueryParams = StringUtils.remove(context.getContextIdIncludedQueryParams(),
+                            FrameworkConstants.RESTART_LOGIN_FLOW_QUERY_PARAMS);
+                    context.setContextIdIncludedQueryParams(contextIdIncludedQueryParams);
                 }
                 // Monitor should be context itself as we need to synchronize only if the same context is used by two
                 // different threads.
@@ -287,7 +319,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         context.setProperty(BACK_TO_FIRST_STEP, true);
                         Map<String, String> runtimeParams =
                                 context.getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
-                        runtimeParams.put(FrameworkConstants.JSAttributes.JS_OPTIONS_USERNAME, null);
+                        if (MapUtils.isNotEmpty(runtimeParams)) {
+                            runtimeParams.put(FrameworkConstants.JSAttributes.JS_OPTIONS_USERNAME, null);
+                        }
                         FrameworkUtils.resetAuthenticationContext(context);
                         returning = false;
 
@@ -307,11 +341,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 setSPAttributeToRequest(request, context);
                 context.setReturning(returning);
-
-                // if this is the flow start, store the original request in the context
-                if (!context.isReturning() && authRequest != null) {
-                    context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
-                }
 
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
@@ -367,8 +396,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (log.isDebugEnabled()) {
                     log.debug(e.getMessage(), e);
                 }
-                FrameworkUtils.sendToRetryPage(request, response, context, "suspicious.authentication.attempts",
-                        "suspicious.authentication.attempts.description");
+                request.setAttribute(FrameworkConstants.RESTART_LOGIN_FLOW, "true");
+                throw new CookieValidationFailedException(NONCE_ERROR_CODE, "Session nonce cookie value is not " +
+                        "matching " +
+                        "for session with sessionDataKey: " + request.getParameter("sessionDataKey"));
             } else {
                 log.error("Exception in Authentication Framework", e);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
@@ -376,7 +407,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW);
             UserCoreUtil.setDomainInThreadLocal(null);
-            unwrapResponse(responseWrapper, sessionDataKey, response, context);
+            if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) == null ||
+                    request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("false")) {
+                unwrapResponse(responseWrapper, sessionDataKey, response, context);
+            }
+
             if (context != null) {
                 // Mark this context left the thread. Now another thread can use this context.
                 context.setActiveInAThread(false);
@@ -621,6 +656,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             context.setLogoutRequest(true);
+
+            /*
+             * Set special property fedIdpId used to remove the entry in fed_auth_session_mapping table
+             * in the special case of SAML SLO when same fed idp is configured twice.
+             */
+
+            if (StringUtils.isNotBlank(request.getParameter(FrameworkConstants.FED_IDP_ID))) {
+                context.setProperty(FrameworkConstants.FED_IDP_ID, request.getParameter(FrameworkConstants.FED_IDP_ID));
+            }
 
             if (context.getRelyingParty() == null || context.getRelyingParty().trim().length() == 0) {
 

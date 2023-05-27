@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.ExternalizedConsentPageConfig;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
@@ -134,10 +133,6 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         if (isAuthenticationScriptAvailableConfig(serviceProvider)) {
             validateAdaptiveAuthScript(validationErrors,
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig());
-        }
-        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
-            validateExternalizedConsentPageConfig(validationErrors,
-                    serviceProvider.getLocalAndOutBoundAuthenticationConfig().getExternalizedConsentPageConfig());
         }
 
         return validationErrors;
@@ -278,23 +273,6 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
         if (!isAuthenticatorIncluded.get()) {
             validationMsg.add("No authenticator have been registered in the authentication flow.");
-        }
-    }
-
-    /** Validate externalized consent page related configurations and append to the validation msg list.
-     *
-     * @param validationMsg                     validation error messages
-     * @param externalizedConsentPageConfig     externalized consent page config
-     */
-    private void validateExternalizedConsentPageConfig(List<String> validationMsg, ExternalizedConsentPageConfig
-            externalizedConsentPageConfig) {
-
-        if (externalizedConsentPageConfig == null) {
-            return;
-        }
-        if (externalizedConsentPageConfig.isEnabled() && StringUtils.isBlank(
-                externalizedConsentPageConfig.getConsentPageUrl())) {
-            validationMsg.add("No external consent page url is configured when externalized consent page is enabled.");
         }
     }
 

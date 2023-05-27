@@ -27,12 +27,14 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -46,6 +48,7 @@ import static org.mockito.Mockito.times;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.REQUEST_PARAM_APPLICATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_COOKIE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_COOKIE_CONFIG;
@@ -106,7 +109,27 @@ public class SessionNonceCookieUtilTest {
         assertEquals(removedOldSessionNonce.getMaxAge(), TimeUnit.MINUTES.toSeconds(40) * 2);
     }
 
-    @Test
+
+    @DataProvider(name = "nonceCookieWhitelistedAuthenticatorsData")
+    public Object[][] nonceCookieWhitelistedAuthenticatorsData() {
+
+        return new Object [][] {{"Authenticator_1", true}, {"Authenticator_3", false}};
+    }
+
+    @Test(dataProvider = "nonceCookieWhitelistedAuthenticatorsData")
+    public void nonceCookieWhitelistedAuthenticatorsTest(String authenticator, boolean expectedOutput) {
+
+        mockNonceCookieUtils("true", "40");
+        assertTrue(SessionNonceCookieUtil.isNonceCookieEnabled());
+
+        // Setting the authenticator name from the data provider.
+        Mockito.when(context.getCurrentAuthenticator()).thenReturn(authenticator);
+
+        boolean validateNonceCookie = SessionNonceCookieUtil.validateNonceCookie(request, context);
+        assertEquals(validateNonceCookie, expectedOutput);
+    }
+
+    @Test(dependsOnMethods = "nonceCookieWhitelistedAuthenticatorsTest")
     public void missingNonceCookieTest() throws Exception {
 
         mockUtils();
@@ -162,5 +185,8 @@ public class SessionNonceCookieUtilTest {
         mockStatic(IdentityUtil.class);
         Mockito.when(IdentityUtil.getProperty(NONCE_COOKIE_CONFIG)).thenReturn(isNonceCookieEnabled);
         Mockito.when(IdentityUtil.getTempDataCleanUpTimeout()).thenReturn(Long.parseLong(tempDataCleanupTimeout));
+        List<String> expectedList = Arrays.asList("Authenticator_1", "Authenticator_2");
+        Mockito.when(IdentityUtil.getPropertyAsList(NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG))
+                .thenReturn(expectedList);
     }
 }

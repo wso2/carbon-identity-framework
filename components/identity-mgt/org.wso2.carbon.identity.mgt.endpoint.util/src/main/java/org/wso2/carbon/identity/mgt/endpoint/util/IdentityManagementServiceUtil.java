@@ -129,7 +129,7 @@ public class IdentityManagementServiceUtil {
                     .getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants.SERVICE_CONTEXT_URL);
             contextURL = serviceContextURL;
             this.serviceContextURL = StringUtils.isBlank(serviceContextURL) ? ServiceURLBuilder.create().
-                    addPath(IdentityUtil.getServicePath()).build().getAbsoluteInternalURL() : serviceContextURL;
+                    build().getAbsoluteInternalURL() : serviceContextURL;
 
         } catch (IOException e) {
             log.error("Failed to load service configurations.", e);

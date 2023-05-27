@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.context;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -813,5 +814,14 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setExpiryTime(long expiryTimeNano) {
 
         this.expiryTimeNano = expiryTimeNano;
+    }
+
+    /**
+     * Create a deep copy of the initial authentication context.
+     *
+     * @return Clone of authentication context.
+     */
+    public Object clone () {
+        return SerializationUtils.clone(this);
     }
 }

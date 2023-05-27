@@ -28,6 +28,7 @@
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": false,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session.nonce.cookie.enabled": true,
+  "session.nonce.cookie.default_whitelist_authenticators": ["MagicLinkAuthenticator"],
   "session.authentication.context.expiry.validation": true,
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
@@ -286,6 +287,7 @@
   "identity_mgt.recovery.enable_detailed_error_messages": false,
   "identity_mgt.recovery.enable_auto_login": false,
   "identity_mgt.recovery.notify_user_existence": false,
+  "identity_mgt.recovery.notify_recovery_email_existence": false,
   "identity_mgt.recovery.notify_user_account_status": false,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
@@ -651,6 +653,12 @@
     "org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager"
   ],
 
+  "user_store_mgt.reserved_user_stores": [
+    "PRIMARY",
+    "INTERNAL",
+    "APPLICATION"
+  ],
+
   "system_applications.read_only_apps": ["Console", "My Account"],
 
   "legacy_feature": [
@@ -907,5 +915,6 @@
   "axis2.transport_sender.https.parameters.SO_TIMEOUT": "60000",
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
-  "show_pending_user_information.enable": true
+  "show_pending_user_information.enable": true,
+  "extension_mgt.extension_types": "applications,identity-providers"
 }

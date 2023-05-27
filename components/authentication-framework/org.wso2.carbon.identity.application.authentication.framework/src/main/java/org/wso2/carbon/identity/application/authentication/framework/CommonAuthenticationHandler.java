@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
@@ -31,6 +34,8 @@ import javax.servlet.http.HttpServletResponse;
  * Common authentication handler.
  */
 public class CommonAuthenticationHandler {
+
+    private static final Log log = LogFactory.getLog(CommonAuthenticationHandler.class);
 
     public CommonAuthenticationHandler() {
         ConfigurationFacade.getInstance();
@@ -47,6 +52,14 @@ public class CommonAuthenticationHandler {
         if (FrameworkUtils.getMaxInactiveInterval() == 0) {
             FrameworkUtils.setMaxInactiveInterval(request.getSession().getMaxInactiveInterval());
         }
-        FrameworkUtils.getRequestCoordinator().handle(request, response);
+
+        try {
+            FrameworkUtils.getRequestCoordinator().handle(request, response);
+        } catch (CookieValidationFailedException e) {
+
+            log.warn("Session nonce cookie validation has failed for the sessionDataKey: "
+                        + request.getParameter("sessionDataKey") + ". Hence, restarting the login flow.");
+            FrameworkUtils.getRequestCoordinator().handle(request, response);
+        }
     }
 }

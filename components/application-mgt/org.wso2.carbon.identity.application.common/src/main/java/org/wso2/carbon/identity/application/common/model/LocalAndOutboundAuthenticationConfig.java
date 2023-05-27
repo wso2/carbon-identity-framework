@@ -55,6 +55,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String AUTHENTICATION_GRAPH = "AuthenticationGraph";
     private static final String AUTHENTICATION_SCRIPT = "AuthenticationScript";
     private static final String EXTERNALIZED_CONSENT_PAGE_CONFIG = "ExternalizedConsentPageConfig";
+    private static final String USE_EXTERNAL_CONSENT_PAGE = "UseExternalConsentPage";
 
     @XmlElementWrapper(name = "AuthenticationSteps")
     @XmlElement(name = "AuthenticationStep")
@@ -96,8 +97,8 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     @XmlElement(name = AUTHENTICATION_SCRIPT)
     private AuthenticationScriptConfig authenticationScriptConfig;
 
-    @XmlElement(name = EXTERNALIZED_CONSENT_PAGE_CONFIG)
-    private ExternalizedConsentPageConfig externalizedConsentPageConfig;
+    @XmlElement(name = USE_EXTERNAL_CONSENT_PAGE)
+    private boolean useExternalConsentPage = false;
 
     /*
      * <LocalAndOutboundAuthenticationConfig> <AuthenticationSteps></AuthenticationSteps>
@@ -192,9 +193,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setSkipLogoutConsent(true);
                 }
-            } else if (EXTERNALIZED_CONSENT_PAGE_CONFIG.equals(member.getLocalName())) {
-                localAndOutboundAuthenticationConfig.externalizedConsentPageConfig = ExternalizedConsentPageConfig
-                        .build(member);
+            } else if (USE_EXTERNAL_CONSENT_PAGE.equals(member.getLocalName())) {
+                if (Boolean.parseBoolean(member.getText())) {
+                    localAndOutboundAuthenticationConfig.setUseExternalConsentPage(true);
+                }
             }
         }
 
@@ -351,14 +353,14 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
         this.skipLogoutConsent = skipLogoutConsent;
     }
 
-    public ExternalizedConsentPageConfig getExternalizedConsentPageConfig() {
+    public boolean isUseExternalConsentPage() {
 
-        return externalizedConsentPageConfig;
+        return useExternalConsentPage;
     }
 
-    public void setExternalizedConsentPageConfig(ExternalizedConsentPageConfig externalizedConsentPageConfig) {
+    public void setUseExternalConsentPage(boolean useExternalConsentPage) {
 
-            this.externalizedConsentPageConfig = externalizedConsentPageConfig;
+        this.useExternalConsentPage = useExternalConsentPage;
     }
 
 }
