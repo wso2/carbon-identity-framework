@@ -149,7 +149,7 @@ public class ReCaptchaProperties {
         sb.append("class ReCaptchaProperties {\n");
         sb.append("    reCaptchaEnabled: ").append(toIndentedString(reCaptchaEnabled)).append("\n");
         sb.append("    reCaptchaKey: ").append(toIndentedString(reCaptchaKey)).append("\n");
-        sb.append("    reCaptchaAPI: ").append(toIndentedString(reCaptchaKey)).append("\n");
+        sb.append("    reCaptchaAPI: ").append(toIndentedString(reCaptchaAPI)).append("\n");
         sb.append("    reCaptchaEnterpriseEnabled: ").append(toIndentedString(reCaptchaEnterpriseEnabled)).append("\n");
         sb.append("}");
         return sb.toString();
