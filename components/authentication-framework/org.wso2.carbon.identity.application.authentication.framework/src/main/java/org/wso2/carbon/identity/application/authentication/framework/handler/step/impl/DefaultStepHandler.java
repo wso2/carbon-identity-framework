@@ -263,7 +263,10 @@ public class DefaultStepHandler implements StepHandler {
                         .iterator().next();
                 String idp = entry.getKey();
                 AuthenticatorConfig authenticatorConfig = entry.getValue();
-
+                /**
+                 * TODO: This organization login specific logic should be moved out of authentication framework.
+                 * This is tracked with https://github.com/wso2/product-is/issues/15922
+                 */
                 boolean isOrganizationLogin = isLoggedInWithOrganizationLogin(authenticatorConfig);
 
                 if (context.isReAuthenticate() || isOrganizationLogin) {
