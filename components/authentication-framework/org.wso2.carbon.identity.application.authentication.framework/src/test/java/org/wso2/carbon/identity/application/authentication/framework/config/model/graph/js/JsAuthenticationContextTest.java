@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
@@ -53,6 +54,7 @@ public class JsAuthenticationContextTest {
     private static final String LAST_ATTEMPTED_USER_TENANT_DOMAIN = "lastAttemptedTenantDomain";
     private static final String LAST_ATTEMPTED_USER_USERSTORE_DOMAIN = "lastAttemptedUserstoreDomain";
     private static final String SERVICE_PROVIDER_NAME = "service_provider_js_test";
+    private static final String BASIC_AUTHENTICATOR = "BasicAuthenticator";
 
     private ScriptEngine scriptEngine;
 
@@ -94,11 +96,15 @@ public class JsAuthenticationContextTest {
 
     private void setupAuthContextWithStepData(AuthenticationContext context, AuthenticatedUser authenticatedUser) {
 
+        AuthenticatorConfig basicAuthenticatorConfig = new AuthenticatorConfig();
+        basicAuthenticatorConfig.setName(BASIC_AUTHENTICATOR);
+        basicAuthenticatorConfig.setEnabled(true);
         SequenceConfig sequenceConfig = new SequenceConfig();
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         StepConfig stepConfig = new StepConfig();
         stepConfig.setOrder(1);
         stepConfig.setAuthenticatedIdP(TEST_IDP);
+        stepConfig.setAuthenticatedAutenticator(basicAuthenticatorConfig);
         stepConfigMap.put(1, stepConfig);
         sequenceConfig.setStepMap(stepConfigMap);
         AuthenticationGraph authenticationGraph = new AuthenticationGraph();
@@ -193,5 +199,25 @@ public class JsAuthenticationContextTest {
 
         Object result = scriptEngine.eval("context.lastLoginFailedUser");
         assertNull(result);
+    }
+
+    @Test
+    public void testGetLastLoginAuthenticatorFromStep() throws Exception {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+
+        setupAuthContextWithStepData(authenticationContext, authenticatedUser);
+
+        JsNashornAuthenticationContext jsNashornAuthenticationContext =
+                new JsNashornAuthenticationContext(authenticationContext);
+        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
+        bindings.put("context", jsNashornAuthenticationContext);
+
+        Object result = scriptEngine.eval("context.steps[1].authenticator");
+        assertNotNull(result);
+        assertEquals(result, BASIC_AUTHENTICATOR, "Authenticator of the step in AuthenticationContext is not " +
+                "accessible from JSAuthenticationContext");
+
     }
 }
