@@ -163,8 +163,8 @@
     </AuthenticationEndpointRedirectParams>
     {% endif %}
 
-    {% if authentication.endpoint.enable_consent_page_redirect_params.allowConsentPageRedirectParams is defined %}
-            <AllowConsentPageRedirectParams>{{authentication.endpoint.enable_consent_page_redirect_params.allowConsentPageRedirectParams}}</AllowConsentPageRedirectParams>
+    {% if authentication.endpoint.consent_page_redirect_params.allow is defined %}
+            <AllowConsentPageRedirectParams>{{authentication.endpoint.consent_page_redirect_params.allow}}</AllowConsentPageRedirectParams>
         {% endif %}
 
     {% if authentication.endpoint.enable_custom_claim_mappings is defined %}
