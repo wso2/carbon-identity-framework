@@ -76,6 +76,9 @@
                                     <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
                                 </properties>
                             </adviceFile>
+                            <bundles>
+                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.extension.mgt</bundleDef>
+                            </bundles>
                         </configuration>
                     </execution>
                 </executions>
