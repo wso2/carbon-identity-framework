@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceDataHolder;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -60,7 +59,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
 
     @Override
     public boolean doPreAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
-                                      String profile, UserStoreManager userStoreManager) throws UserStoreException {
+                                String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
         try {
             if (!isEnable() || userStoreManager == null) {
@@ -80,7 +79,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
     public boolean doPreAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        return doPreAddUser(null,credential, roleList, claims, profile, userStoreManager);
+        return doPreAddUser(null, credential, roleList, claims, profile, userStoreManager);
     }
 
     @Override
@@ -161,8 +160,8 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
     /**
      * Encrypt mapped claim values.
      *
-     * @param claims            Claim values to be encrypted.
-     * @param userStoreManager  User store manager.
+     * @param claims           Claim values to be encrypted.
+     * @param userStoreManager User store manager.
      * @throws UserStoreException
      */
     private void updateClaimValues(Map<String, String> claims, UserStoreManager userStoreManager)
@@ -175,7 +174,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
                 try {
                     claimValue = encryptClaimValue(claimValue);
                 } catch (CryptoException e) {
-                    LOG.error("Error occurred while encrypting claim value of claim " + claimURI , e);
+                    LOG.error("Error occurred while encrypting claim value of claim " + claimURI, e);
                     throw new CryptoException("Error occurred while encrypting claim value of claim " + claimURI, e);
                 }
                 claims.put(claimURI, claimValue);
@@ -200,11 +199,11 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
     /**
      * Check whether encryption is enabled for a given claim.
      *
-     * @param claimURI          Claim URI.
-     * @param userStoreManager  User store manager.
+     * @param claimURI         Claim URI.
+     * @param userStoreManager User store manager.
      * @return true if encryption is enabled for the claim.
      * @throws UserStoreException
-     * */
+     */
     private boolean checkEnableEncryption(String claimURI, UserStoreManager userStoreManager)
             throws UserStoreException {
 
@@ -223,6 +222,10 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
     private Map<String, String> getClaimProperties(String tenantDomain, String claimURI) {
 
         try {
+            if (IdentityMgtServiceDataHolder.getClaimManagementService() == null) {
+                LOG.error("ClaimManagementService is null");
+                throw new ClaimMetadataException("ClaimManagementService is null");
+            }
             List<LocalClaim> localClaims =
                     IdentityMgtServiceDataHolder.getClaimManagementService().getLocalClaims(tenantDomain);
             if (localClaims == null) {
