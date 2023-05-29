@@ -1168,10 +1168,10 @@ public class DefaultClaimHandler implements ClaimHandler {
                                                     Map<String, String> allLocalClaims)
             throws FrameworkException {
 
-        /**
-         * If user is JIT provisioned, during the login flow, user's application roles are already resolved and added
-         * to application roles claim. Hence, no need to resolve application roles again.
-         */
+        /*
+        If user is JIT provisioned, during the login flow, user's application roles are already resolved and added
+        to application roles claim. Hence, no need to resolve application roles again.
+        */
         if (isUserJITProvisioned(allLocalClaims)) {
             return;
         }
