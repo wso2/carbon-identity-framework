@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.mgt.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 
 import java.util.Map;
@@ -34,6 +35,8 @@ public class IdentityMgtServiceDataHolder {
     private boolean userSessionMappingEnabled;
 
     private static Map<Integer, UserOperationEventListener> userOperationEventListeners = new TreeMap<>();
+
+    private static ClaimMetadataManagementService claimManagementService;
 
     private IdentityMgtServiceDataHolder() {
 
@@ -88,5 +91,24 @@ public class IdentityMgtServiceDataHolder {
 
         userOperationEventListeners.put(userOperationEventListener.getExecutionOrderId(),
                 userOperationEventListener);
+    }
+
+    /**
+     * Get claim metadata management service.
+     * @return
+     */
+    public static ClaimMetadataManagementService getClaimManagementService() {
+
+        return claimManagementService;
+    }
+
+    /**
+     * Set claim metadata management service.
+     *
+     * @param claimManagementService
+     */
+    public static void setClaimManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        IdentityMgtServiceDataHolder.claimManagementService = claimManagementService;
     }
 }
