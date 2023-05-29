@@ -176,7 +176,7 @@ public class JsNashornAuthenticationContext extends JsAuthenticationContext impl
     protected String getAuthenticatedAuthenticatorOfCurrentStep() {
 
         if (getContext().getSequenceConfig() == null) {
-            //Sequence config is not yet initialized
+            // Sequence config is not yet initialized.
             return null;
         }
 
