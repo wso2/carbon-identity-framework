@@ -64,9 +64,9 @@ public class AuthParameterFilter implements Filter {
     /**
      * Retrieve the parameters for the received servlet request and forward the request wrapped with the parameters.
      *
-     * @param servletRequest    Servlet Request
-     * @param servletResponse   Servlet Response
-     * @param filterChain       Filter Chain
+     * @param servletRequest    Servlet Request.
+     * @param servletResponse   Servlet Response.
+     * @param filterChain       Filter Chain.
      * @throws IOException
      * @throws ServletException
      */

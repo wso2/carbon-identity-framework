@@ -24,10 +24,10 @@ package org.wso2.carbon.identity.application.authentication.framework;
 public interface ServerSessionManagementService {
 
     /**
-     * Terminate session related to the sessionID
+     * Terminate session related to the sessionID.
      *
-     * @param sessionId - Session id of the federated user
-     * @return true if the termination is success
+     * @param sessionId - Session id of the federated user.
+     * @return true if the termination is success.
      */
     boolean removeSession(String sessionId);
 
