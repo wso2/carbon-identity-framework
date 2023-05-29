@@ -222,6 +222,10 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
     private Map<String, String> getClaimProperties(String tenantDomain, String claimURI) {
 
         try {
+            if (IdentityMgtServiceDataHolder.getClaimManagementService() == null) {
+                LOG.error("ClaimManagementService is null");
+                throw new ClaimMetadataException("ClaimManagementService is null");
+            }
             List<LocalClaim> localClaims =
                     IdentityMgtServiceDataHolder.getClaimManagementService().getLocalClaims(tenantDomain);
             if (localClaims == null) {
