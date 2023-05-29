@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceDataHolder;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 
@@ -208,9 +209,14 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
             throws UserStoreException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(userStoreManager.getTenantId());
-        Map<String, String> claimProperties = getClaimProperties(tenantDomain, claimURI);
+        Map<String, String> claimProperties = new HashMap<>();
+
+        if (claimURI.contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI_PREFIX)) {
+            claimProperties = getClaimProperties(tenantDomain, claimURI);
+        }
         return Boolean.parseBoolean(claimProperties.get("EnableEncryption"));
     }
+
 
     /**
      * Get claim properties of a claim in a given tenant.
