@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -254,6 +255,17 @@ public class ConfigurationFacade {
      */
     public boolean getTenantDropdownEnabled() {
         return FileBasedConfigurationBuilder.getInstance().isTenantDomainDropdownEnabled();
+    }
+
+    /**
+     * Get the authenticator config for the given authenticator name.
+     *
+     * @param name Name of the authenticator.
+     * @return AuthenticatorConfig.
+     */
+    public AuthenticatorConfig getAuthenticatorConfig(String name) {
+
+        return FileBasedConfigurationBuilder.getInstance().getAuthenticatorBean(name);
     }
 
     public boolean isDumbMode() {

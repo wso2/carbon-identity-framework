@@ -1185,6 +1185,22 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
+     * Resolve if the user is JIT provisioned based on the IdP type claim.
+     *
+     * @param allLocalClaims All local claims of the current authenticated user.
+     * @return True if the user is JIT provisioned.
+     */
+    private boolean isUserJITProvisioned(Map<String, String> allLocalClaims) {
+
+        if (allLocalClaims == null || allLocalClaims.isEmpty()) {
+            return false;
+        }
+        return allLocalClaims.entrySet().stream()
+                .anyMatch(entry -> entry.getKey().equals(FrameworkConstants.IDP_TYPE_CLAIM)
+                        && !FrameworkConstants.JSAttributes.JS_LOCAL_IDP.equalsIgnoreCase(entry.getValue()));
+    }
+
+    /**
      * Get the application roles of the authenticated user for application roles resolver if available.
      *
      * @param authenticatedUser Authenticated user to get the application roles for.

@@ -50,6 +50,7 @@
   "remote_fetch.enable": false,
   "remote_fetch.working_directory": "${carbon.home}/tmp/",
 
+  "openid.enable_sha256_ppid_value": true,
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": false,
 
@@ -78,6 +79,7 @@
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
+  "oauth.enable_sha256_params": true,
 
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
@@ -99,6 +101,7 @@
   "oauth.endpoints.oidc_web_finger_url": "$ref{server.base_path}/.well-known/webfinger",
   "oauth.endpoints.oidc_discovery_url": "$ref{server.base_path}/oauth2/oidcdiscovery",
   "oauth.endpoints.oauth2_device_authz_url": "$ref{server.base_path}/oauth2/device_authorize",
+  "oauth.enable_sha256_jwk_thumbprint": true,
 
   "oauth.response_type.token.enable": true,
   "oauth.response_type.token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.AccessTokenResponseTypeHandler",
@@ -221,8 +224,8 @@
   "saml.artifact.validity": "4m",
   "saml.use_tenant_key_of": "user",
   "saml.tenant_partitioning.enable": false,
-  "saml.signing_alg": "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
-  "saml.digest_alg": "http://www.w3.org/2000/09/xmldsig#sha1",
+  "saml.signing_alg": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+  "saml.digest_alg": "http://www.w3.org/2001/04/xmlenc#sha256",
   "saml.assertion_encryption_alg": "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
   "saml.key_encryption_alg": "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p",
   "saml.enable_user_domain_crpto": false,
@@ -246,15 +249,21 @@
   "saml.metadata.validity_period": "1h",
   "saml.metadata.enable_signing": false,
   "saml.metadata.enable_authentication_requests_signing": false,
+  "saml.metadata.idp_enable_sha256_alg": true,
+  "saml.metadata.sp_enable_sha256_alg": true,
 
   "sts.endpoint.idp": "$ref{server.base_path}/services/wso2carbon-sts",
 
   "passive_sts.token_store_class": "org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore",
   "passive_sts.slo.host_name_verification": true,
   "passive_sts.disable_applies_to_in_response": false,
+  "passive_sts.enable_default_signature_and_digest_alg": true,
 
   "passive_sts.endpoints.idp": "$ref{server.base_path}/passivests",
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
+
+  "mex.enable_sha256_alg": true,
+  "user_account_association.enable_sha256_key": true,
 
   "entitlement.thrift.enable": false,
   "entitlement.thrift.receiver_port": "${Ports.ThriftEntitlementReceivePort}",
@@ -773,6 +782,11 @@
   ],
   "console.identity_providers.scopes.update": ["internal_idp_update"],
   "console.identity_providers.scopes.delete": ["internal_idp_delete"],
+  "console.identity_verification_providers.enabled": true,
+  "console.identity_verification_providers.scopes.create": ["internal_idvp_create"],
+  "console.identity_verification_providers.scopes.read": ["internal_idvp_view"],
+  "console.identity_verification_providers.scopes.update": ["internal_idvp_update"],
+  "console.identity_verification_providers.scopes.delete": ["internal_idvp_delete"],
   "console.oidc_scopes.enabled": true,
   "console.oidc_scopes.scopes.feature": ["console:scopes:oidc"],
   "console.oidc_scopes.scopes.create": ["internal_oidc_scope_mgt_create"],
@@ -916,5 +930,6 @@
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
   "show_pending_user_information.enable": true,
+  "identity_util.enable_sha256_random_numbers": true,
   "extension_mgt.extension_types": "applications,identity-providers"
 }

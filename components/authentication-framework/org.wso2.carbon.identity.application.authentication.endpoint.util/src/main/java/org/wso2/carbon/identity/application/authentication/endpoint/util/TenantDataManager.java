@@ -147,8 +147,9 @@ public class TenantDataManager {
 
                         // Build the service URL of tenant management admin service
                         StringBuilder builder = new StringBuilder();
-                        serviceURL = builder.append(getPropertyValue(Constants.SERVICES_URL)).append(Constants.TenantConstants
-                                .TENANT_MGT_ADMIN_SERVICE_URL).toString();
+                    serviceURL = builder.append(getPropertyValue(Constants.SERVICES_URL))
+                            .append(Constants.SERVICE_CONTEXT_PATH)
+                            .append(Constants.TenantConstants.TENANT_MGT_ADMIN_SERVICE_URL).toString();
 
                         initialized = true;
                 }
@@ -198,8 +199,7 @@ public class TenantDataManager {
      */
     protected static String getPropertyValue(String key) {
         if ((Constants.SERVICES_URL.equals(key)) && !prop.containsKey(Constants.SERVICES_URL)) {
-            String serviceUrl = IdentityUtil.getServicePath();
-            return IdentityUtil.getServerURL(serviceUrl, true, true);
+            return IdentityUtil.getServerURL("", true, true);
         }
         return prop.getProperty(key);
     }

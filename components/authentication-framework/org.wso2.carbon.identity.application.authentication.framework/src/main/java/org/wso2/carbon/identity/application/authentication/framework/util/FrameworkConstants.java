@@ -41,6 +41,7 @@ public abstract class FrameworkConstants {
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
     public static final String APP_ROLES_CLAIM = "http://wso2.org/claims/applicationRoles";
     public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";
+    public static final String IDP_TYPE_CLAIM = "http://wso2.org/claims/identity/idpType";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
@@ -134,6 +135,9 @@ public abstract class FrameworkConstants {
 
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
     public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
+    public static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
+    public static final String ORG_ID_PARAMETER = "orgId";
+    public static final String USER_ORGANIZATION_CLAIM = "user_organization";
     public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
@@ -214,6 +218,9 @@ public abstract class FrameworkConstants {
             "&authFailure=true&authFailureMsg=login.reinitiate.message";
     public static final String NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG =
             "SessionNonceCookie.WhitelistedAuthenticator";
+
+    public static final String BLOCKED_USERSTORE_DOMAINS_LIST = "BlockedUserStoreDomains";
+    public static final String BLOCKED_USERSTORE_DOMAINS_SEPARATOR = ",";
 
     private FrameworkConstants() {
 
@@ -522,6 +529,7 @@ public abstract class FrameworkConstants {
         public static final String JS_LOCAL_ROLES = "roles";
         public static final String JS_CLAIMS = "claims";
         public static final String JS_AUTHENTICATED_IDP = "idp";
+        public static final String JS_AUTHENTICATOR = "authenticator";
         public static final String JS_AUTHENTICATION_OPTIONS = "options";
         public static final String JS_LOCAL_IDP = "local";
         public static final String JS_FEDERATED_IDP = "federated";

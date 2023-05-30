@@ -140,6 +140,8 @@
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
+        <!-- To enable or disable sha256 ppid display value -->
+        <EnableSHA256PPIDDisplayValue>{{openid.enable_sha256_ppid_value}}</EnableSHA256PPIDDisplayValue>
         <!--
                OpenID private association store is configurable from following configs.
                It includes two new replication stores,
@@ -224,6 +226,9 @@
         <UseSPTenantDomain>{{oauth.access_token.generate_with_sp_tenant_domain}}</UseSPTenantDomain>
         {% endif %}
 
+        <!-- This configuration is used to enable or disable generation of random numbers using HMAC-SHA256 algorithm.-->
+        <EnableSHA256Params>{{oauth.enable_sha256_params}}</EnableSHA256Params>
+
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
             OAuth2AuthzEPUrl, OAuth2TokenEPUrl and OAuth2UserInfoEPUrl are built in following format
@@ -253,6 +258,9 @@
         <OAuth2JWKSPage>{{oauth.endpoints.oauth2_jwks_url}}</OAuth2JWKSPage>
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
         <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
+
+        <EnableSHA256OAuth2JWKThumbprint>{{oauth.enable_sha256_jwk_thumbprint}}</EnableSHA256OAuth2JWKThumbprint>
+
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>{{oauth.use_entityid_as_issuer_in_oidc_discovery}}</UseEntityIdAsIssuerInOidcDiscovery>
 
@@ -988,6 +996,8 @@
         <SAMLECPEndpoint>{{saml.endpoints.ecp}}</SAMLECPEndpoint>
         <SAMLMetadataValidityPeriod>{{saml.metadata.validity_period}}</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>{{saml.metadata.enable_signing}}</SAMLMetadataSigningEnabled>
+        <SAMLIDPMetadataEnableSHA256Alg>{{saml.metadata.idp_enable_sha256_alg}}</SAMLIDPMetadataEnableSHA256Alg>
+        <SAMLSPMetadataParsingEnableSHA256Alg>{{saml.metadata.sp_enable_sha256_alg}}</SAMLSPMetadataParsingEnableSHA256Alg>
         <SAML2AuthenticationRequestValidityPeriodEnabled>{{saml.enable_request_validity_period}}</SAML2AuthenticationRequestValidityPeriodEnabled>
         <!-- Request validity period in minutes-->
         <SAML2AuthenticationRequestValidityPeriod>{{saml.request_validity_period}}</SAML2AuthenticationRequestValidityPeriod>
@@ -1026,7 +1036,16 @@
         <TokenStoreClassName>{{passive_sts.token_store_class}}</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>{{passive_sts.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
         <DisableAppliesToInPassiveSTSResponse>{{passive_sts.disable_applies_to_in_response}}</DisableAppliesToInPassiveSTSResponse>
+        <EnableDefaultSignatureAndDigestAlgorithm>{{passive_sts.enable_default_signature_and_digest_alg}}</EnableDefaultSignatureAndDigestAlgorithm>
     </PassiveSTS>
+
+    <Mex>
+        <EnableSHA256Alg>{{mex.enable_sha256_alg}}</EnableSHA256Alg>
+    </Mex>
+
+    <UserAccountAssociation>
+            <EnableSHA256Key>{{user_account_association.enable_sha256_key}}</EnableSHA256Key>
+        </UserAccountAssociation>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
@@ -2086,6 +2105,22 @@
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/idvp/add</Permissions>
+            <Scopes>internal_idvp_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/idvp/update</Permissions>
+            <Scopes>internal_idvp_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/idvp/delete</Permissions>
+            <Scopes>internal_idvp_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/idvp/view</Permissions>
+            <Scopes>internal_idvp_view</Scopes>
+        </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/receipts/(.*)" secured="true" http-method="all"/>
@@ -2546,6 +2581,26 @@
        <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me/idv(.*)" secured="true" http-method="GET, POST, PUT">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/view</Permissions>
+            <Scopes>internal_idv_claim_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/add</Permissions>
+            <Scopes>internal_idv_claim_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/update</Permissions>
+            <Scopes>internal_idv_claim_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv/verify" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/verify</Permissions>
+            <Scopes>internal_idv_claim_verify</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/idpmgt/create</Permissions>
@@ -3307,6 +3362,9 @@
             <OrganizationLevelEmailBrandingFallback key="{{key}}">{{value}}</OrganizationLevelEmailBrandingFallback>
         {% endfor %}
     </OrganizationLevelEmailBrandingFallbacks>
+
+    <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
+    <EnableSHA256RandomNumberGenerator>{{identity_util.enable_sha256_random_numbers}}</EnableSHA256RandomNumberGenerator>
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
