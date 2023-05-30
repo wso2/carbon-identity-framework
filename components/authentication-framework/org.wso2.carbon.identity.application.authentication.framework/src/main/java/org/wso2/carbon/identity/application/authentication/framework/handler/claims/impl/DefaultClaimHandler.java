@@ -1168,6 +1168,13 @@ public class DefaultClaimHandler implements ClaimHandler {
                                                     Map<String, String> allLocalClaims)
             throws FrameworkException {
 
+        /*
+        If user is JIT provisioned, during the login flow, user's application roles are already resolved and added
+        to application roles claim. Hence, no need to resolve application roles again.
+        */
+        if (isUserJITProvisioned(allLocalClaims)) {
+            return;
+        }
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
         if (authenticatedUser == null) {
             return;
@@ -1182,6 +1189,22 @@ public class DefaultClaimHandler implements ClaimHandler {
                 }
             }
         }
+    }
+
+    /**
+     * Resolve if the user is JIT provisioned based on the IdP type claim.
+     *
+     * @param allLocalClaims All local claims of the current authenticated user.
+     * @return True if the user is JIT provisioned.
+     */
+    private boolean isUserJITProvisioned(Map<String, String> allLocalClaims) {
+
+        if (allLocalClaims == null || allLocalClaims.isEmpty()) {
+            return false;
+        }
+        return allLocalClaims.entrySet().stream()
+                .anyMatch(entry -> entry.getKey().equals(FrameworkConstants.IDP_TYPE_CLAIM)
+                        && !FrameworkConstants.JSAttributes.JS_LOCAL_IDP.equalsIgnoreCase(entry.getValue()));
     }
 
     /**
