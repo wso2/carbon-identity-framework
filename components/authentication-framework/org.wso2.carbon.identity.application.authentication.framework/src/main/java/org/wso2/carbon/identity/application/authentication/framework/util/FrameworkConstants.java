@@ -39,7 +39,9 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
+    public static final String APP_ROLES_CLAIM = "http://wso2.org/claims/applicationRoles";
     public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";
+    public static final String IDP_TYPE_CLAIM = "http://wso2.org/claims/identity/idpType";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
@@ -117,6 +119,7 @@ public abstract class FrameworkConstants {
     public static final String REQUEST_PARAM_AUTH_FLOW_ID = "authFlowId";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
     public static final String IDP_ID = "idpId";
+    public static final String FED_IDP_ID = "fedIdpId";
     public static final String ASSOCIATED_ID = "associatedID";
 
     public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
@@ -132,6 +135,9 @@ public abstract class FrameworkConstants {
 
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
     public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
+    public static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
+    public static final String ORG_ID_PARAMETER = "orgId";
+    public static final String USER_ORGANIZATION_CLAIM = "user_organization";
     public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
@@ -208,6 +214,13 @@ public abstract class FrameworkConstants {
     public static final String PRESERVE_LOCAL = "PRESERVE_LOCAL";
     public static final String RESTART_LOGIN_FLOW = "restartLoginFlow";
     public static final String INITIAL_CONTEXT = "initialContext";
+    public static final String RESTART_LOGIN_FLOW_QUERY_PARAMS =
+            "&authFailure=true&authFailureMsg=login.reinitiate.message";
+    public static final String NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG =
+            "SessionNonceCookie.WhitelistedAuthenticator";
+
+    public static final String BLOCKED_USERSTORE_DOMAINS_LIST = "BlockedUserStoreDomains";
+    public static final String BLOCKED_USERSTORE_DOMAINS_SEPARATOR = ",";
 
     private FrameworkConstants() {
 
@@ -516,6 +529,7 @@ public abstract class FrameworkConstants {
         public static final String JS_LOCAL_ROLES = "roles";
         public static final String JS_CLAIMS = "claims";
         public static final String JS_AUTHENTICATED_IDP = "idp";
+        public static final String JS_AUTHENTICATOR = "authenticator";
         public static final String JS_AUTHENTICATION_OPTIONS = "options";
         public static final String JS_LOCAL_IDP = "local";
         public static final String JS_FEDERATED_IDP = "federated";

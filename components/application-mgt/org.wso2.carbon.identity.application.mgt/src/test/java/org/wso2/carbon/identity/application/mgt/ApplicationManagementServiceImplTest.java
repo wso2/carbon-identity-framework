@@ -33,6 +33,7 @@ import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.AppRoleMappingConfig;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.Claim;
@@ -77,6 +78,8 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -467,6 +470,60 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         Assert.assertEquals(steps.length, 1);
         Assert.assertEquals(steps[0].getStepOrder(), 1);
+    }
+
+    @Test
+    public void testAppRoleMappingConfig()
+            throws IdentityApplicationManagementException, IdentityProviderManagementException {
+
+        addIdentityProviders();
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP1);
+
+        inputSP1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps()[0].setAttributeStep(true);
+
+        // Adding an app role mapping configuration for idp in attribute step.
+        List<AppRoleMappingConfig> appRoleMappingConfigList = new ArrayList<>();
+        AppRoleMappingConfig appRoleMappingConfigIdp1 = new AppRoleMappingConfig();
+        appRoleMappingConfigIdp1.setIdPName(IDP_NAME_1);
+        appRoleMappingConfigIdp1.setUseAppRoleMappings(true);
+        appRoleMappingConfigList.add(appRoleMappingConfigIdp1);
+
+        // Adding an app role mapping configuration for idp not in attribute step.
+        AppRoleMappingConfig appRoleMappingConfigIdp2 = new AppRoleMappingConfig();
+        appRoleMappingConfigIdp2.setIdPName(IDP_NAME_2);
+        appRoleMappingConfigIdp2.setUseAppRoleMappings(false);
+        appRoleMappingConfigList.add(appRoleMappingConfigIdp2);
+
+        inputSP1.setApplicationRoleMappingConfig(appRoleMappingConfigList.toArray(new AppRoleMappingConfig[0]));
+
+        // Adding application.
+        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        ApplicationBasicInfo applicationBasicInfo = applicationManagementService
+                .getApplicationBasicInfoByName(APPLICATION_NAME_1, SUPER_TENANT_DOMAIN_NAME);
+        String resourceID = applicationBasicInfo.getApplicationResourceId();
+        ServiceProvider createdSP = applicationManagementService.getApplicationByResourceId(resourceID,
+                SUPER_TENANT_DOMAIN_NAME);
+        // App role mapping config should only exist for idp in attribute step.
+        AppRoleMappingConfig[] appRoleMappingConfig = createdSP.getApplicationRoleMappingConfig();
+        Assert.assertEquals(appRoleMappingConfig.length, 1);
+        Assert.assertEquals(appRoleMappingConfig[0].getIdPName(), IDP_NAME_1);
+        Assert.assertTrue(appRoleMappingConfig[0].isUseAppRoleMappings());
+
+        // Set step 1 as not attribute step and update the application.
+        createdSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps()[0].setAttributeStep(false);
+        applicationManagementService.updateApplication(createdSP, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        ServiceProvider updatedSP = applicationManagementService.getApplicationByResourceId(resourceID,
+                SUPER_TENANT_DOMAIN_NAME);
+        appRoleMappingConfig = updatedSP.getApplicationRoleMappingConfig();
+        // There should not be any app role mapping config.
+        Assert.assertEquals(appRoleMappingConfig.length, 0);
+
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+        idPManagementDAO.deleteIdPs(SUPER_TENANT_ID);
     }
 
     @Test

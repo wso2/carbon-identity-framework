@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSContextMemberObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -59,10 +60,10 @@ public class JsOpenJdkNashornSteps extends AbstractJSContextMemberObject impleme
         if (getContext() == null) {
             return AbstractOpenJdkNashornJsObject.super.getSlot(step);
         } else {
-            return new JsOpenJdkNashornStep(getContext(), step, getAuthenticatedIdPOfStep(step));
+            return new JsOpenJdkNashornStep(getContext(), step, getAuthenticatedIdPOfStep(step),
+                    getAuthenticatedAuthenticatorOfStep(step));
         }
     }
-
 
     private String getAuthenticatedIdPOfStep(int step) {
 
@@ -74,5 +75,19 @@ public class JsOpenJdkNashornSteps extends AbstractJSContextMemberObject impleme
         Optional<StepConfig> optionalStepConfig = getContext().getSequenceConfig().getStepMap().values().stream()
                 .filter(stepConfig -> stepConfig.getOrder() == step).findFirst();
         return optionalStepConfig.map(StepConfig::getAuthenticatedIdP).orElse(null);
+    }
+
+    private String getAuthenticatedAuthenticatorOfStep(int step) {
+
+        if (getContext().getSequenceConfig() == null) {
+            // Sequence config is not yet initialized.
+            return null;
+        }
+
+        Optional<StepConfig> optionalStepConfig = getContext().getSequenceConfig().getStepMap().values().stream()
+                .filter(stepConfig -> stepConfig.getOrder() == step).findFirst();
+        AuthenticatorConfig authenticatorConfig = optionalStepConfig.map(StepConfig::getAuthenticatedAutenticator)
+                .orElse(null);
+        return authenticatorConfig != null ? authenticatorConfig.getName() : null;
     }
 }

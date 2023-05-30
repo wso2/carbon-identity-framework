@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>6.0.17-SNAPSHOT</version>
+        <version>6.0.55-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -49,7 +49,6 @@
     <modules>
         <module>org.wso2.carbon.identity.user.store.configuration</module>
         <module>org.wso2.carbon.identity.user.store.configuration.deployer</module>
-        <module>org.wso2.carbon.identity.user.store.configuration.ui</module>
         <module>org.wso2.carbon.identity.user.store.count</module>
     </modules>
 

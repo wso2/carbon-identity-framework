@@ -66,6 +66,7 @@ public class Constants {
     public static final String CONFIG_APP_PASSWORD = "app.password";
     public static final String CONFIG_SERVER_ORIGIN = "identity.server.origin";
     public static final String CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS = "google.social.onetap.restricted_browsers";
+    public static final String SERVICE_CONTEXT_PATH = "/services";
 
     private Constants() {
 

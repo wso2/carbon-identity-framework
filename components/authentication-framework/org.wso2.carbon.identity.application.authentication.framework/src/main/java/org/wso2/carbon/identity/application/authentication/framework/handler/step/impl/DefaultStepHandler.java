@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Commo
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
@@ -262,8 +263,13 @@ public class DefaultStepHandler implements StepHandler {
                         .iterator().next();
                 String idp = entry.getKey();
                 AuthenticatorConfig authenticatorConfig = entry.getValue();
+                /**
+                 * TODO: This organization login specific logic should be moved out of authentication framework.
+                 * This is tracked with https://github.com/wso2/product-is/issues/15922
+                 */
+                boolean isOrganizationLogin = isLoggedInWithOrganizationLogin(authenticatorConfig);
 
-                if (context.isReAuthenticate()) {
+                if (context.isReAuthenticate() || isOrganizationLogin) {
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Re-authenticating with " + idp + " IdP");
@@ -274,6 +280,11 @@ public class DefaultStepHandler implements StepHandler {
                                 idp, context.getTenantDomain()));
                     } catch (IdentityProviderManagementException e) {
                         LOG.error("Exception while getting IdP by name", e);
+                    }
+
+                    if (isOrganizationLogin) {
+                        AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(idp);
+                        setLoggedInOrgIdInRequest(authenticatedIdPData, request);
                     }
                     doAuthentication(request, response, context, authenticatorConfig);
                     return;
@@ -1296,5 +1307,40 @@ public class DefaultStepHandler implements StepHandler {
                 ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
                 + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp
                 + "&callback=" + URLEncoder.encode(callback, "UTF-8") + reCaptchaParamString.toString();
+    }
+
+    /**
+     * Check whether the user is logged in with organization login.
+     *
+     * @param authenticatorConfig Authenticator config.
+     * @return Whether the authenticator is organization authenticator or not.
+     */
+    private boolean isLoggedInWithOrganizationLogin(AuthenticatorConfig authenticatorConfig) {
+
+        if (authenticatorConfig == null) {
+            return false;
+        }
+        return FrameworkConstants.ORGANIZATION_AUTHENTICATOR.equals(authenticatorConfig.getName());
+    }
+
+    /**
+     * Set the logged in organization id in the request as an attribute.
+     *
+     * @param authenticatedIdPData Authenticated IDP data.
+     * @param request              HTTP servlet request.
+     */
+    private void setLoggedInOrgIdInRequest(AuthenticatedIdPData authenticatedIdPData, HttpServletRequest request) {
+
+        AuthenticatedUser authenticatedUser = authenticatedIdPData.getUser();
+        Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
+        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+            ClaimMapping claimMapping = entry.getKey();
+            if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
+                String organizationId = entry.getValue();
+                if (StringUtils.isNotBlank(organizationId)) {
+                    request.setAttribute(FrameworkConstants.ORG_ID_PARAMETER, organizationId);
+                }
+            }
+        }
     }
 }

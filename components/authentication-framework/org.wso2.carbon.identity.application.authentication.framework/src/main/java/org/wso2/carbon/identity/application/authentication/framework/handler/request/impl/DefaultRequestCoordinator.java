@@ -228,6 +228,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("true")) {
                     context = (AuthenticationContext) context.getProperty(FrameworkConstants.INITIAL_CONTEXT);
                     context.initializeAnalyticsData();
+                    String contextIdIncludedQueryParams = context.getContextIdIncludedQueryParams();
+                    contextIdIncludedQueryParams += FrameworkConstants.RESTART_LOGIN_FLOW_QUERY_PARAMS;
+                    context.setContextIdIncludedQueryParams(contextIdIncludedQueryParams);
                 } else {
                     returning = true;
                 }
@@ -237,6 +240,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (context != null) {
                 if (StringUtils.isNotBlank(context.getServiceProviderName())) {
                     MDC.put(SERVICE_PROVIDER_QUERY_KEY, context.getServiceProviderName());
+                }
+                // Remove `login.reinitiate.message` from the query params after the first step to prevent it from
+                // appearing in subsequent authentication steps.
+                if (context.getCurrentStep() == 1 && StringUtils.contains(context.getContextIdIncludedQueryParams(),
+                        FrameworkConstants.RESTART_LOGIN_FLOW_QUERY_PARAMS)) {
+                    String contextIdIncludedQueryParams = StringUtils.remove(context.getContextIdIncludedQueryParams(),
+                            FrameworkConstants.RESTART_LOGIN_FLOW_QUERY_PARAMS);
+                    context.setContextIdIncludedQueryParams(contextIdIncludedQueryParams);
                 }
                 // Monitor should be context itself as we need to synchronize only if the same context is used by two
                 // different threads.
@@ -645,6 +656,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             context.setLogoutRequest(true);
+
+            /*
+             * Set special property fedIdpId used to remove the entry in fed_auth_session_mapping table
+             * in the special case of SAML SLO when same fed idp is configured twice.
+             */
+
+            if (StringUtils.isNotBlank(request.getParameter(FrameworkConstants.FED_IDP_ID))) {
+                context.setProperty(FrameworkConstants.FED_IDP_ID, request.getParameter(FrameworkConstants.FED_IDP_ID));
+            }
 
             if (context.getRelyingParty() == null || context.getRelyingParty().trim().length() == 0) {
 

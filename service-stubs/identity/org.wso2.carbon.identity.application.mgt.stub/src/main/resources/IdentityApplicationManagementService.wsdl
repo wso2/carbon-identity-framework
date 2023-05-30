@@ -476,7 +476,6 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="authenticationSteps" nillable="true" type="ax2169:AuthenticationStep"/>
                     <xs:element minOccurs="0" name="authenticationType" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="enableAuthorization" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="externalizedConsentPageConfig" nillable="true" type="ax2169:ExternalizedConsentPageConfig"/>
                     <xs:element minOccurs="0" name="skipConsent" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="skipLogoutConsent" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="subjectClaimUri" nillable="true" type="xs:string"/>
@@ -509,6 +508,7 @@
                     <xs:element minOccurs="0" name="federationHub" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="homeRealmId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idPGroupConfig" nillable="true" type="ax2169:IdPGroup"/>
                     <xs:element minOccurs="0" name="identityProviderDescription" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="identityProviderName" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2169:IdentityProviderProperty"/>
@@ -520,6 +520,7 @@
                     <xs:element minOccurs="0" name="provisioningRole" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="resourceId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="templateId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="trustedTokenIssuer" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="CertificateInfo">
@@ -546,6 +547,12 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningProperties" nillable="true" type="ax2169:Property"/>
                     <xs:element minOccurs="0" name="rulesEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="IdPGroup">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="idpGroupId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="idpGroupName" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="IdentityProviderProperty">
@@ -600,12 +607,6 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2169:Property"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="tags" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
-                </xs:sequence>
-            </xs:complexType>
-            <xs:complexType name="ExternalizedConsentPageConfig">
-                <xs:sequence>
-                    <xs:element minOccurs="0" name="consentPageUrl" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="OutboundProvisioningConfig">

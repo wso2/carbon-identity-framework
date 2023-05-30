@@ -28,6 +28,7 @@
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": false,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session.nonce.cookie.enabled": true,
+  "session.nonce.cookie.default_whitelist_authenticators": ["MagicLinkAuthenticator"],
   "session.authentication.context.expiry.validation": true,
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
@@ -662,6 +663,12 @@
     "org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager"
   ],
 
+  "user_store_mgt.reserved_user_stores": [
+    "PRIMARY",
+    "INTERNAL",
+    "APPLICATION"
+  ],
+
   "system_applications.read_only_apps": ["Console", "My Account"],
 
   "legacy_feature": [
@@ -919,5 +926,6 @@
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
   "show_pending_user_information.enable": true,
-  "identity_util.enable_sha256_random_numbers": true
+  "identity_util.enable_sha256_random_numbers": true,
+  "extension_mgt.extension_types": "applications,identity-providers"
 }

@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>6.0.17-SNAPSHOT</version>
+        <version>6.0.55-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -75,16 +75,6 @@
         <dependency>
             <groupId>org.wso2.orbit.commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.ui</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.servlet.jsp.jstl.wso2</groupId>
-                    <artifactId>jstl</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>

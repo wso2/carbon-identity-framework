@@ -22,7 +22,7 @@
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>entitlement</artifactId>
         <relativePath>../pom.xml</relativePath>
-        <version>6.0.17-SNAPSHOT</version>
+        <version>6.0.39-SNAPSHOT</version>
     </parent>
 
     <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>

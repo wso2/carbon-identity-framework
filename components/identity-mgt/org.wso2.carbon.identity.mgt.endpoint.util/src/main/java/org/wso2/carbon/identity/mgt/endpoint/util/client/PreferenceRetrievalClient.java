@@ -322,7 +322,7 @@ public class PreferenceRetrievalClient {
 
             endpoint = endpoint + "/" + governanceId;
             HttpGet getConnectorConfig = new HttpGet(endpoint);
-            setAuthorizationHeader(get);
+            setAuthorizationHeader(getConnectorConfig);
 
             try (CloseableHttpResponse response = httpclient.execute(getConnectorConfig)) {
 

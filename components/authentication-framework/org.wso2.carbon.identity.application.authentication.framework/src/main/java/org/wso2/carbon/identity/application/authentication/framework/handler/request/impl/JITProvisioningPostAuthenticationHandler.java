@@ -62,6 +62,10 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -230,6 +234,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
                     handleConsents(request, stepConfig, context.getTenantDomain());
+                    // Trigger event to store last login time after successful authentication.
+                    triggerEvent(username, context, username);
                 }
             }
         }
@@ -297,6 +303,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                                          AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
+        String associatedLocalUser;
         String retryURL = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
@@ -331,7 +338,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         localClaimValues = new HashMap<>();
                     }
 
-                    String associatedLocalUser =
+                    associatedLocalUser =
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
                                     stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
                                     context.getTenantDomain());
@@ -426,10 +433,46 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
                             stepConfig);
+
+                    // Trigger event to store last login time after successful authentication.
+                    if (StringUtils.isEmpty(associatedLocalUser)) {
+                        triggerEvent(username, context, username);
+                    } else {
+                        triggerEvent(associatedLocalUser, context, username);
+                    }
                 }
             }
         }
         return SUCCESS_COMPLETED;
+    }
+
+    private void triggerEvent(String username, AuthenticationContext context, String emailUsername)
+            throws PostAuthenticationFailedException {
+
+        if (StringUtils.isEmpty(username)) {
+            return;
+        }
+
+        try {
+            UserRealm realm = getUserRealm(context.getTenantDomain());
+            UserStoreManager userStoreManager = getUserStoreManager(context.getExternalIdP()
+                    .getProvisioningUserStoreId(), realm, emailUsername);
+            IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+            Map<String, Object> eventProperties = new HashMap<>();
+            eventProperties.put(IdentityEventConstants.EventProperty.USER_NAME, username);
+            eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_MANAGER, userStoreManager);
+            eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, true);
+            Event event = new Event(IdentityEventConstants.Event.POST_USER_JIT_PROVISION, eventProperties);
+            eventService.handleEvent(event);
+        } catch (UserStoreException e) {
+            throw new PostAuthenticationFailedException(
+                    ErrorMessages.ERROR_WHILE_GETTING_USER_STORE_MANAGER.getCode(),
+                    String.format(ErrorMessages.ERROR_WHILE_GETTING_USER_STORE_MANAGER.getMessage(), username), e);
+        } catch (IdentityEventException e) {
+            String errorLog =  "Could not fire event " + IdentityEventConstants.Event.POST_USER_JIT_PROVISION
+                    + " in tenant domain " + context.getTenantDomain();
+            log.error(errorLog, e);
+        }
     }
 
     private String getUsernameFederatedUser(StepConfig stepConfig, SequenceConfig sequenceConfig,

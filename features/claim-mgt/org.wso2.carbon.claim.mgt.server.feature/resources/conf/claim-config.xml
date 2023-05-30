@@ -702,6 +702,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>totpSecretkey</AttributeID>
 				<Description>Claim to store the secret key</Description>
+				<EnableEncryption>true</EnableEncryption>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/emailotp_disabled</ClaimURI>
@@ -735,6 +736,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>verifySecretkey</AttributeID>
 				<Description>Claim to store the secret key until verified</Description>
+				<EnableEncryption>true</EnableEncryption>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/isLiteUser</ClaimURI>

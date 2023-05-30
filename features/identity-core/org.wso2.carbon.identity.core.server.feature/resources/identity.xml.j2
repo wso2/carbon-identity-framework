@@ -1918,6 +1918,17 @@
 
     <EnableSessionNonceCookie>{{session.nonce.cookie.enabled}}</EnableSessionNonceCookie>
 
+    {% if session.nonce.cookie.default_whitelist_authenticators is defined or session.nonce.cookie.whitelist_authenticators is defined %}
+        <SessionNonceCookie>
+            {% for whitelist_authenticator in session.nonce.cookie.default_whitelist_authenticators %}
+            <WhitelistedAuthenticator>{{whitelist_authenticator}}</WhitelistedAuthenticator>
+            {% endfor %}
+            {% for whitelist_authenticator in session.nonce.cookie.whitelist_authenticators %}
+            <WhitelistedAuthenticator>{{whitelist_authenticator}}</WhitelistedAuthenticator>
+            {% endfor %}
+        </SessionNonceCookie>
+    {% endif %}
+
     <!-- Config to enable performing validations for expired authentication context cache entry. -->
     <EnableAuthenticationContextExpiryValidation>{{session.authentication.context.expiry.validation}}</EnableAuthenticationContextExpiryValidation>
 
@@ -2089,13 +2100,26 @@
             <Scopes>internal_application_mgt_update</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
-            <Scopes>internal_config_mgt_view</Scopes>
-        </Resource>
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/idvp/add</Permissions>
+            <Scopes>internal_idvp_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/idvp/update</Permissions>
+            <Scopes>internal_idvp_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/idvp/delete</Permissions>
+            <Scopes>internal_idvp_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/idvp/view</Permissions>
+            <Scopes>internal_idvp_view</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
@@ -2479,7 +2503,7 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin</Permissions>
-            <Scopes>SYSTEM</Scopes>
+            <Scopes>internal_organization_admin</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
@@ -2517,7 +2541,7 @@
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/userstores" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/userstore/config/create</Permissions>
             <Scopes>internal_userstore_create</Scopes>
         </Resource>
@@ -2558,6 +2582,26 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/users/v1/me/idv(.*)" secured="true" http-method="GET, POST, PUT">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/view</Permissions>
+            <Scopes>internal_idv_claim_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/add</Permissions>
+            <Scopes>internal_idv_claim_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/update</Permissions>
+            <Scopes>internal_idv_claim_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/idv/verify" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/user/idv/claim/verify</Permissions>
+            <Scopes>internal_idv_claim_verify</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/idpmgt/create</Permissions>
             <Scopes>internal_idp_create</Scopes>
@@ -2573,6 +2617,22 @@
         <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/trusted-token-issuers(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
+            <Scopes>internal_idp_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/trusted-token-issuers(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/idpmgt/delete</Permissions>
+            <Scopes>internal_idp_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/trusted-token-issuers(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/idpmgt/create</Permissions>
+            <Scopes>internal_idp_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/trusted-token-issuers(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/idpmgt/update</Permissions>
+            <Scopes>internal_idp_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/authenticators(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
@@ -2866,6 +2926,7 @@
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/server/v1/identity-providers</Path>
+                    <Path>/api/server/v1/trusted-token-issuers</Path>
                     <Path>/api/server/v1/organizations</Path>
                     <Path>/api/server/v1/applications</Path>
                     <Path>/api/users/v1/me/organizations</Path>
@@ -3129,6 +3190,14 @@
     </AllowedUserstores>
     {% endif %}
 
+    {% if user_store_mgt.reserved_user_stores is defined %}
+    <ReservedUserstores>
+        {% for reserved_user_store in user_store_mgt.reserved_user_stores %}
+        <ReservedUserstore>{{reserved_user_store}}</ReservedUserstore>
+        {% endfor %}
+    </ReservedUserstores>
+    {% endif %}
+
     <!-- System Applications -->
     {% if system_applications.read_only_apps is defined %}
     <SystemApplications>
@@ -3313,4 +3382,9 @@
 
     <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
     <EnableSHA256RandomNumberGenerator>{{identity_util.enable_sha256_random_numbers}}</EnableSHA256RandomNumberGenerator>
+    <!-- Extension management service configurations -->
+    <ExtensionManagementService>
+        <ExtensionTypes>{{extension_mgt.extension_types}}</ExtensionTypes>
+    </ExtensionManagementService>
+
 </Server>

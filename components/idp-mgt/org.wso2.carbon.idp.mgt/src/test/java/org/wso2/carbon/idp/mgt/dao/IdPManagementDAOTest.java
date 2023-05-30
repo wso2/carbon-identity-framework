@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.idp.mgt.dao;
 
+import org.apache.axis2.databinding.types.Id;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -32,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
@@ -72,6 +74,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
@@ -87,6 +90,9 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     private static final Integer SAMPLE_TENANT_ID = -1234;
     private static final Integer SAMPLE_TENANT_ID2 = 1;
     private static final String TENANT_DOMAIN = "carbon.super";
+    private static final String IDP_GROUP1 = "idpGroup1";
+    private static final String IDP_GROUP2 = "idpGroup2";
+    private static final String IDP_GROUP2_ID = "idpGroup2Id";
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
     private IdPManagementDAO idPManagementDAO;
@@ -625,6 +631,68 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             PermissionsAndRoleConfig pac = idPManagementDAO.getPermissionsAndRoleConfiguration(connection, idpName,
                     idpId, tenantId);
             assertEquals(pac.getIdpRoles().length, resultCount);
+        }
+    }
+
+    @DataProvider
+    public Object[][] getTestIdpGroupsData() {
+
+        return new Object[][]{
+                {1, 2},
+                {2, 1},
+                {3, 0},
+        };
+    }
+
+    @Test(dataProvider = "getTestIdpGroupsData")
+    public void testGetIdPGroupConfiguration(int idpId, int resultCount)
+            throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            IdPGroup[] idpGroups = idPManagementDAO.getIdPGroupConfiguration(connection, idpId);
+            assertEquals(idpGroups.length, resultCount);
+        }
+    }
+
+    @Test
+    public void testUpdateIdPGroupName() throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            IdPGroup[] idpGroups = idPManagementDAO.getIdPGroupConfiguration(connection, 1);
+            assertEquals(idpGroups.length, 2);
+            assertEquals(idpGroups[0].getIdpGroupName(), IDP_GROUP1);
+
+            IdPGroup[] newIdpGroups = idpGroups.clone();
+            newIdpGroups[0].setIdpGroupName("idpGroup1Updated");
+            newIdpGroups[1].setIdpGroupName("idpGroup2Updated");
+            newIdpGroups[1].setIdpGroupId("idpGroup2IdUpdated");
+
+            IdentityProvider currentIdP = idPManagementDAO.getIdPByName(connection, "testIdP1",
+                    SAMPLE_TENANT_ID, TENANT_DOMAIN);
+            IdentityProvider newIdP = idPManagementDAO.getIdPByName(connection, "testIdP1",
+                    SAMPLE_TENANT_ID, TENANT_DOMAIN);
+            newIdP.setIdPGroupConfig(newIdpGroups);
+            idPManagementDAO.updateIdP(newIdP, currentIdP, SAMPLE_TENANT_ID);
+
+            IdPGroup[] updatedIdpGroups = idPManagementDAO.getIdPGroupConfiguration(connection, 1);
+            assertEquals(updatedIdpGroups.length, 2);
+            assertEquals(updatedIdpGroups[0].getIdpGroupName(), "idpGroup1Updated");
+            assertEquals(updatedIdpGroups[1].getIdpGroupName(), "idpGroup2Updated");
+            assertNotEquals(updatedIdpGroups[1].getIdpGroupId(), "idpGroup2IdUpdated");
         }
     }
 
@@ -1615,6 +1683,12 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         claimConfig.setIdpClaims(new Claim[]{remoteClaim});
         idp1.setClaimConfig(claimConfig);
 
+        IdPGroup idPGroup1 = new IdPGroup();
+        idPGroup1.setIdpGroupName(IDP_GROUP1);
+        IdPGroup idPGroup2 = new IdPGroup();
+        idPGroup2.setIdpGroupName(IDP_GROUP2);
+        idp1.setIdPGroupConfig(new IdPGroup[]{idPGroup1, idPGroup2});
+
         // Initialize Test Identity Provider 2.
         IdentityProvider idp2 = new IdentityProvider();
         idp2.setIdentityProviderName("testIdP2");
@@ -1631,6 +1705,13 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         claimMapping2.setLocalClaim(localClaim2);
         claimConfig2.setClaimMappings(new ClaimMapping[]{claimMapping2});
         idp2.setClaimConfig(claimConfig2);
+
+        IdPGroup idPGroup3 = new IdPGroup();
+        idPGroup3.setIdpGroupName(IDP_GROUP1);
+        IdPGroup idPGroup4 = new IdPGroup();
+        idPGroup4.setIdpGroupName(IDP_GROUP2);
+        idPGroup4.setIdpGroupId(IDP_GROUP2_ID);
+        idp2.setIdPGroupConfig(new IdPGroup[]{idPGroup3, idPGroup4});
 
         // Initialize Test Identity Provider 3.
         IdentityProvider idp3 = new IdentityProvider();
