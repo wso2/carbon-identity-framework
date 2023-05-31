@@ -82,7 +82,7 @@ public class DefaultClaimHandlerTest {
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         stepConfig.setAuthenticatedUser(authenticatedUser);
 
-        ClaimMapping claimMapping = ClaimMapping.build(FrameworkConstants.APP_ROLES_CLAIM,
+        ClaimMapping claimMapping = ClaimMapping.build(FrameworkConstants.GROUPS_CLAIM,
                 idpGroupClaimName, null, true, true);
         ClaimMapping[] idPClaimMappings = new ClaimMapping[1];
         idPClaimMappings[0] = claimMapping;
@@ -113,10 +113,11 @@ public class DefaultClaimHandlerTest {
         when(applicationRolesResolver.getRoles(eq(authenticatedUser), eq(applicationId))).thenReturn(
                 mappedApplicationRoles);
 
-        defaultClaimHandler.handleApplicationRolesForFederatedUser(stepConfig, authenticationContext, idPClaimMappings,
-                remoteClaims);
+        String applicationRoles =
+                defaultClaimHandler.getApplicationRolesForFederatedUser(stepConfig, authenticationContext,
+                        idPClaimMappings, remoteClaims);
 
-        Assert.assertEquals(remoteClaims.get(idpGroupClaimName), String.join(",", mappedApplicationRoles));
+        Assert.assertEquals(applicationRoles, String.join(",", mappedApplicationRoles));
     }
 
     @Test
