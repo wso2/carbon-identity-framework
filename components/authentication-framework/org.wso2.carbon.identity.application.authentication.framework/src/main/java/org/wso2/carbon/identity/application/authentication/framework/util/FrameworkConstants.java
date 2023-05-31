@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -324,6 +324,12 @@ public abstract class FrameworkConstants {
          */
         public static final String USER_SESSION_MAPPING_ENABLED =
                 "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
+
+        /**
+         * Configuration used for session data storage optimization.
+         */
+        public static final String SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED =
+                "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable";
 
         /**
          * Configuration to enable publishing the active session count in analytics event.

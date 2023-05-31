@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -28,6 +31,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED;
 
 /**
  * This class is used to cache the data about the
@@ -39,21 +44,30 @@ public class AuthenticationContextCache extends
     private static final String AUTHENTICATION_CONTEXT_CACHE_NAME = "AuthenticationContextCache";
     private static final Log log = LogFactory.getLog(AuthenticationContextCache.class);
     private static volatile AuthenticationContextCache instance;
-    private boolean isTemporarySessionDataPersistEnabled = false;
+    private final boolean isTemporarySessionDataPersistEnabled;
+    private final boolean isSessionDataStorageOptimizationEnabled;
 
     /**
-     * Private constructor which will not allow to create objects of this class from outside
+     * Private constructor which will not allow to create objects of this class from outside.
      */
     private AuthenticationContextCache() {
         super(AUTHENTICATION_CONTEXT_CACHE_NAME, true);
         if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
             isTemporarySessionDataPersistEnabled = Boolean.parseBoolean(
                     IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));
+        } else {
+            isTemporarySessionDataPersistEnabled = false;
+        }
+        if (IdentityUtil.getProperty(SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED) != null) {
+            isSessionDataStorageOptimizationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
+                    SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED));
+        } else {
+            isSessionDataStorageOptimizationEnabled = true;
         }
     }
 
     /**
-     * Singleton method
+     * Singleton method.
      *
      * @return AuthenticationContextCache
      */
@@ -75,6 +89,7 @@ public class AuthenticationContextCache extends
      * @param entry Actual object where cache entry is placed.
      */
     public void addToCache(AuthenticationContextCacheKey key, AuthenticationContextCacheEntry entry) {
+
         super.addToCache(key, entry);
         if (isTemporarySessionDataPersistEnabled) {
             int tenantId = MultitenantConstants.INVALID_TENANT_ID;
@@ -97,8 +112,45 @@ public class AuthenticationContextCache extends
                             ", Operation : STORE ]";
                     log.debug("Authentication context is stored with details " + message);
                 }
+                if (isSessionDataStorageOptimizationEnabled && entry.getContext() != null) {
+                    try {
+                        AuthenticationContextLoader.getInstance().optimizeAuthenticationContext(entry.getContext());
+                    } catch (SessionDataStorageOptimizationClientException e) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Client error occurred while optimizing the Authentication context with " +
+                                    "context id: " + entry.getContext().getContextIdentifier(), e);
+                        }
+                        return;
+                    } catch (SessionDataStorageOptimizationServerException e) {
+                        log.error("Server error occurred while optimizing the Authentication context with " +
+                                "context id: " + entry.getContext().getContextIdentifier(), e);
+                        return;
+                    } catch (SessionDataStorageOptimizationException e) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Error occurred while optimizing the Authentication context with " +
+                                    "context id: " + entry.getContext().getContextIdentifier(), e);
+                        }
+                        return;
+                    }
+                }
                 SessionDataStore.getInstance().storeSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME,
                         entry, tenantId);
+                try {
+                    AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
+                } catch (SessionDataStorageOptimizationClientException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Client error occurred while loading optimized authentication context"
+                                + " with context id: " + entry.getContext().getContextIdentifier(), e);
+                    }
+                } catch (SessionDataStorageOptimizationServerException e) {
+                    log.error("Server error occurred while loading optimized authentication " +
+                            "context with context id: " + entry.getContext().getContextIdentifier(), e);
+                } catch (SessionDataStorageOptimizationException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Error occurred while loading optimized authentication " +
+                                "context with context id: " + entry.getContext().getContextIdentifier(), e);
+                    }
+                }
             }
         }
     }
@@ -125,6 +177,27 @@ public class AuthenticationContextCache extends
 
             // Update the cache again with the new value.
             super.addToCache(key, entry);
+        }
+        if (entry != null) {
+            try {
+                AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
+            } catch (SessionDataStorageOptimizationClientException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Client error occurred while loading optimized authentication context " +
+                            "with context id: " + entry.getContext().getContextIdentifier(), e);
+                }
+                entry = null;
+            } catch (SessionDataStorageOptimizationServerException e) {
+                log.error("Server error occurred while loading optimized authentication context " +
+                        "with context id: " + entry.getContext().getContextIdentifier(), e);
+                entry = null;
+            } catch (SessionDataStorageOptimizationException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error occurred while loading optimized authentication context " +
+                            "with context id: " + entry.getContext().getContextIdentifier(), e);
+                }
+                entry = null;
+            }
         }
         return entry;
     }

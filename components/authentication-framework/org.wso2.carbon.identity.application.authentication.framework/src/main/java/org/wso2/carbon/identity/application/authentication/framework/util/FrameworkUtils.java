@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -1078,6 +1078,7 @@ public class FrameworkUtils {
 
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
+        cacheEntry.setContextIdentifier(key);
 
         Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
         if (seqData != null) {
