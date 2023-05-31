@@ -261,5 +261,5 @@
     Default value: false
     -->
     <!--<AllowMergingCustomClaimMappingsWithDefaultClaimMappings>true</AllowMergingCustomClaimMappingsWithDefaultClaimMappings>-->
-
+    <AllowConsentPageRedirectParams>false</AllowConsentPageRedirectParams>
 </ApplicationAuthentication>
