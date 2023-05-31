@@ -141,7 +141,8 @@ public class DefaultClaimHandler implements ClaimHandler {
             idPClaimMappings = new ClaimMapping[0];
         }
 
-        handleApplicationRolesForFederatedUser(stepConfig, context, idPClaimMappings, remoteClaims);
+        String applicationRoles =
+                getApplicationRolesForFederatedUser(stepConfig, context, idPClaimMappings, remoteClaims);
 
         Map<String, String> spClaimMappings = context.getSequenceConfig().getApplicationConfig().
                 getClaimMappings();
@@ -213,6 +214,8 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         // Insert the runtime claims from the context. The priority is for runtime claims.
         localUnfilteredClaims.putAll(context.getRuntimeClaims());
+
+        localUnfilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM, applicationRoles);
 
         // claim mapping from local service provider to remote service provider.
         Map<String, String> localToSPClaimMappings = mapLocalSpClaimsToRemoteSPClaims(spStandardDialect, context,
@@ -1114,33 +1117,34 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @param context          AuthenticationContext of current authentication flow.
      * @param idPClaimMappings Claim mappings of IdP of the current step.
      * @param remoteClaims     Remote claims of the current step authenticated user.
+     * @return Application roles of federated user.
      * @throws FrameworkException Exception on handling application roles for federated user.
      */
-    protected void handleApplicationRolesForFederatedUser(StepConfig stepConfig, AuthenticationContext context,
-                                                        ClaimMapping[] idPClaimMappings,
-                                                        Map<String, String> remoteClaims)
+    protected String getApplicationRolesForFederatedUser(StepConfig stepConfig, AuthenticationContext context,
+                                                         ClaimMapping[] idPClaimMappings,
+                                                         Map<String, String> remoteClaims)
             throws FrameworkException {
 
         // IdP claim mappings should be available and the current step should be a subject attribute step.
         if (idPClaimMappings == null || !stepConfig.isSubjectAttributeStep()) {
-            return;
+            return StringUtils.EMPTY;
         }
-        // Get the remote claim URI of the application role claim.
-        String remoteClaimURIOfAppRoleClaim = Arrays.stream(idPClaimMappings)
+        // Get the remote claim URI of the groups claim.
+        String remoteClaimURIOfGroupsClaim = Arrays.stream(idPClaimMappings)
                 .filter(claimMapping -> claimMapping.getLocalClaim().getClaimUri()
-                        .equals(FrameworkConstants.APP_ROLES_CLAIM))
+                        .equals(FrameworkConstants.GROUPS_CLAIM))
                 .map(claimMapping -> claimMapping.getRemoteClaim().getClaimUri())
                 .findFirst()
                 .orElse(null);
-        // If there is no application role claim mapping, no need to proceed.
-        if (StringUtils.isBlank(remoteClaimURIOfAppRoleClaim)) {
-            return;
+        // If there is no groups claim mapping, no need to proceed.
+        if (StringUtils.isBlank(remoteClaimURIOfGroupsClaim)) {
+            return StringUtils.EMPTY;
         }
         // Regardless of whether the application role claim is requested from the SP, we need to add it to the remote
         // claims since otherwise we wouldn't know if application roles are resolved or not at a later stage.
         ServiceProvider serviceProvider = context.getSequenceConfig().getApplicationConfig().getServiceProvider();
         if (serviceProvider == null) {
-            return;
+            return StringUtils.EMPTY;
         }
         AppRoleMappingConfig[] appRoleMappingConfigs = serviceProvider.getApplicationRoleMappingConfig();
         String fidpName = stepConfig.getAuthenticatedIdP();
@@ -1151,9 +1155,10 @@ public class DefaultClaimHandler implements ClaimHandler {
             String appRoles = getApplicationRoles(stepConfig.getAuthenticatedUser(), context);
             // Checking if the appRoles string is null but can be an empty string.
             if (appRoles != null) {
-                remoteClaims.put(remoteClaimURIOfAppRoleClaim, appRoles);
+                return appRoles;
             }
         }
+        return StringUtils.EMPTY;
     }
 
     /**
