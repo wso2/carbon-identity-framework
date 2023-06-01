@@ -73,6 +73,13 @@
             <Name>{{shared_registry.data_source}}</Name>
         </DataSource>
     </RegistryDataPersistenceManager>
+    <!-- The location where the registry data is stored for each function.
+     Support "default", "registry" and "on_migration" values-->
+    <RegistryDataStoreLocation>
+        <EmailTemplates>{{registry_datastore_location.email_templates}}</EmailTemplates>
+        <SAMLConfigs>{{registry_datastore_location.saml_configurations}}</SAMLConfigs>
+        <KeyStores>{{registry_datastore_location.keystores}}</KeyStores>
+    </RegistryDataStoreLocation>
 
     <!-- Time configurations are in minutes -->
     <TimeConfig>
