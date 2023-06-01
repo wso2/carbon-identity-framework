@@ -215,7 +215,9 @@ public class DefaultClaimHandler implements ClaimHandler {
         // Insert the runtime claims from the context. The priority is for runtime claims.
         localUnfilteredClaims.putAll(context.getRuntimeClaims());
 
-        localUnfilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM, applicationRoles);
+        if (StringUtils.isNotBlank(applicationRoles)) {
+            localUnfilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM, applicationRoles);
+        }
 
         // claim mapping from local service provider to remote service provider.
         Map<String, String> localToSPClaimMappings = mapLocalSpClaimsToRemoteSPClaims(spStandardDialect, context,
