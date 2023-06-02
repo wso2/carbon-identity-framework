@@ -358,11 +358,12 @@ public class DefaultClaimHandler implements ClaimHandler {
         localToSPClaimMappings.entrySet().stream().filter(entry -> StringUtils.isNotBlank(localUnfilteredClaims.
                 get(entry.getKey()))).forEach(entry -> {
                     spUnfilteredClaims.put(entry.getValue(), localUnfilteredClaims.get(entry.getKey()));
-                    if (StringUtils.isNotBlank(spRequestedClaimMappings.get(entry.getValue()))) {
+                    if (StringUtils.isNotBlank(spRequestedClaimMappings.get(entry.getValue())) ||
+                            FrameworkConstants.APP_ROLES_CLAIM.equals(entry.getKey())) {
                         spFilteredClaims.put(entry.getValue(), localUnfilteredClaims.get(entry.getKey()));
                     }
                 }
-        );
+                                             );
 
     }
 
