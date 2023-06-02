@@ -29,7 +29,9 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceDataHolder;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
@@ -79,7 +81,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
     public boolean doPreAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        return doPreAddUser(null,credential, roleList, claims, profile, userStoreManager);
+        return doPreAddUser(null, credential, roleList, claims, profile, userStoreManager);
     }
 
     @Override
@@ -174,7 +176,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
                 try {
                     claimValue = encryptClaimValue(claimValue);
                 } catch (CryptoException e) {
-                    LOG.error("Error occurred while encrypting claim value of claim " + claimURI , e);
+                    LOG.error("Error occurred while encrypting claim value of claim " + claimURI, e);
                     throw new CryptoException("Error occurred while encrypting claim value of claim " + claimURI, e);
                 }
                 claims.put(claimURI, claimValue);
@@ -208,8 +210,12 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
             throws UserStoreException {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(userStoreManager.getTenantId());
-        Map<String, String> claimProperties = getClaimProperties(tenantDomain, claimURI);
-        return Boolean.parseBoolean(claimProperties.get("EnableEncryption"));
+        Map<String, String> claimProperties = new HashMap<>();
+
+        if (claimURI.contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI_PREFIX)) {
+            claimProperties = getClaimProperties(tenantDomain, claimURI);
+        }
+        return claimProperties.containsKey(IdentityMgtConstants.ENABLE_ENCRYPTION);
     }
 
     /**
