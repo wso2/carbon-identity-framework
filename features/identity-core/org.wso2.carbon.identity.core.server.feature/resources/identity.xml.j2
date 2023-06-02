@@ -565,6 +565,8 @@
         {% endfor %}
         </ScopeHandlers>
 
+        <EnableGlobalRBACScopeIssuer>{{oauth.global_rbac_scope_issuer.enable}}</EnableGlobalRBACScopeIssuer>
+
         <!-- Assertions can be used to embedd parameters into access token. -->
         <EnableAssertions>
             <UserName>{{oauth.token_generation.include_username_in_access_token}}</UserName>
