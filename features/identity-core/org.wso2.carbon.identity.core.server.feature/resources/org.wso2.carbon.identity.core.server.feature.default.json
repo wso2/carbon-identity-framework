@@ -934,5 +934,5 @@
 
   "show_pending_user_information.enable": true,
   "identity_util.enable_sha256_random_numbers": true,
-  "extension_mgt.extension_types": "applications,identity-providers"
+  "extension_mgt.extension_types": "applications,identity-providers,identity-verification-providers"
 }
