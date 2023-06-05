@@ -402,7 +402,7 @@ public class IdPManagementDAO {
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         int filterAttributeValueSize = filterAttributeValue.entrySet().size();
         String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
-        if (databaseProductName.contains("Microsoft")) {
+        if (databaseProductName.contains("Microsoft") || databaseProductName.contains("H2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL;
             sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
             sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL_TAIL, sortedOrder);
@@ -843,7 +843,7 @@ public class IdPManagementDAO {
         String sqlStmt = IdPManagementConstants.SQLQueries.GET_TRUSTED_TOKEN_ISSUER_COUNT_SQL;
         int countOfFilteredIdp = 0;
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
-        appendFilterQuery(expressionNode, filterQueryBuilder);
+        appendFilterQuery(expressionNode, filterQueryBuilder, true);
         String filter = IdPManagementConstants.SQLQueries.TRUSTED_TOKEN_ISSUER_FILTER_SQL;
         filterQueryBuilder.setFilterQuery(filterQueryBuilder.getFilterQuery() + filter);
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
@@ -870,13 +870,29 @@ public class IdPManagementDAO {
     }
 
     /**
+     * @deprecated Use {@link #appendFilterQuery(List, FilterQueryBuilder, boolean)} instead.
      * Create a sql query and prepared statement for filter.
      *
      * @param expressionNodes    list of filters.
      * @param filterQueryBuilder Sql builder object.
      * @throws IdentityProviderManagementClientException throw invalid filer attribute exception.
      */
+    @Deprecated
     private void appendFilterQuery(List<ExpressionNode> expressionNodes, FilterQueryBuilder filterQueryBuilder)
+            throws IdentityProviderManagementClientException {
+
+        appendFilterQuery(expressionNodes, filterQueryBuilder, false);
+    }
+    /**
+     * Create a sql query and prepared statement for filter.
+     *
+     * @param expressionNodes    list of filters.
+     * @param filterQueryBuilder Sql builder object.
+     * @param isTrustedTokenIssuer is trusted token issuer.
+     * @throws IdentityProviderManagementClientException throw invalid filer attribute exception.
+     */
+    private void appendFilterQuery(List<ExpressionNode> expressionNodes, FilterQueryBuilder filterQueryBuilder,
+                                   boolean isTrustedTokenIssuer)
             throws IdentityProviderManagementClientException {
 
         StringBuilder filter = new StringBuilder();
@@ -891,7 +907,8 @@ public class IdPManagementDAO {
                         .isNotBlank(operation)) {
                     switch (attributeName) {
                         case IdPManagementConstants.IDP_NAME:
-                            attributeName = IdPManagementConstants.NAME;
+                            attributeName = isTrustedTokenIssuer ? IdPManagementConstants.TRUSTED_TOKEN_ISSUER_NAME :
+                                    IdPManagementConstants.NAME;
                             break;
                         case IdPManagementConstants.IDP_DESCRIPTION:
                             attributeName = IdPManagementConstants.DESCRIPTION;

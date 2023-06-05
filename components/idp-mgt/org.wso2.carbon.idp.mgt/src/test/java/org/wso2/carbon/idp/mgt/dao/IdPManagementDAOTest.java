@@ -77,6 +77,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_TOKEN_ISSUER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -238,6 +239,60 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
 
     @Test(dataProvider = "getIdPsSearchData")
     public void testGetIdPsSearchException(int tenantId, String tenantDomain, String filter, int resultCount)
+            throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+        }
+
+        assertThrows(IdentityProviderManagementException.class, () ->
+                idPManagementDAO.getIdPsSearch(null, tenantId, tenantDomain, filter));
+    }
+
+    @DataProvider
+    public Object[][] getTrustedTokenIssuersData() {
+
+        ExpressionNode expressionNode = new ExpressionNode();
+        List<ExpressionNode> expressionNodesList = new ArrayList<>();
+        expressionNodesList.add(expressionNode);
+
+        List<String> attributes1 = Arrays.asList("id", "name", "description", "isEnabled", "image", "isPrimary");
+        List<String> attributes2 = Arrays.asList("homeRealmIdentifier", "isFederationHub", "certificate", "alias",
+                "claims", "roles", "federatedAuthenticators", "provisioning");
+
+        return new Object[][]{
+                {SAMPLE_TENANT_ID, expressionNodesList, 2, 0, "ASC", "NAME", attributes1, 1},
+                {SAMPLE_TENANT_ID, expressionNodesList, 1, 1, "ASC", "NAME", attributes2, 0},
+                {SAMPLE_TENANT_ID, expressionNodesList, 2, 0, "DESC", "NAME", attributes1, 1},
+        };
+    }
+
+    @Test(dataProvider = "getTrustedTokenIssuersData")
+    public void testGetTrustedTokenIssuers(int tenantId, List<ExpressionNode> expressionNodes, int limit, int offset,
+                                           String sortOrder, String sortBy, List<String> attributes, int resultCount)
+            throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestTrustedTokenIssuers();
+
+            List<IdentityProvider> idps1 = idPManagementDAO.getTrustedTokenIssuerSearch(tenantId,
+                    expressionNodes, limit, offset, sortOrder, sortBy, attributes);
+            assertEquals(idps1.size(), resultCount);
+        }
+    }
+
+    @Test(dataProvider = "getIdPsSearchData")
+    public void testGetTrustedTokenIssuersException(int tenantId, String tenantDomain, String filter, int resultCount)
             throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
@@ -460,6 +515,43 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
             addTestIdps();
 
             int resultCount = idPManagementDAO.getCountOfFilteredIdPs(tenantId, expNodes);
+            assertEquals(resultCount, count);
+        }
+    }
+
+    @DataProvider
+    public Object[][] getCountOfFilteredTrustedTokenIssuersData() {
+
+        ExpressionNode expressionNode1 = new ExpressionNode();
+        List<ExpressionNode> expressionNodesList1 = new ArrayList<>();
+        expressionNodesList1.add(expressionNode1);
+        ExpressionNode expressionNode2 = new ExpressionNode();
+        expressionNode2.setAttributeValue("name");
+        expressionNode2.setOperation("sw");
+        expressionNode2.setValue("test");
+        List<ExpressionNode> expressionNodesList2 = new ArrayList<>();
+        expressionNodesList2.add(expressionNode2);
+
+        return new Object[][]{
+                {SAMPLE_TENANT_ID, expressionNodesList1, 1},
+                {SAMPLE_TENANT_ID, expressionNodesList2, 1},
+                {SAMPLE_TENANT_ID2, expressionNodesList1, 0},
+        };
+    }
+
+    @Test(dataProvider = "getCountOfFilteredTrustedTokenIssuersData")
+    public void testGetCountOfFilteredTrustedTokenIssuers(int tenantId, List<ExpressionNode> expNodes, int count)
+            throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestTrustedTokenIssuers();
+
+            int resultCount = idPManagementDAO.getCountOfFilteredTokenIssuers(tenantId, expNodes);
             assertEquals(resultCount, count);
         }
     }
@@ -1688,6 +1780,118 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         IdPGroup idPGroup2 = new IdPGroup();
         idPGroup2.setIdpGroupName(IDP_GROUP2);
         idp1.setIdPGroupConfig(new IdPGroup[]{idPGroup1, idPGroup2});
+
+        // Initialize Test Identity Provider 2.
+        IdentityProvider idp2 = new IdentityProvider();
+        idp2.setIdentityProviderName("testIdP2");
+        idp2.setHomeRealmId("2");
+
+        ClaimConfig claimConfig2 = new ClaimConfig();
+        claimConfig2.setLocalClaimDialect(true);
+        claimConfig2.setRoleClaimURI("http://wso2.org/claims/role");
+        claimConfig2.setUserClaimURI("http://wso2.org/claims/fullname");
+        ClaimMapping claimMapping2 = new ClaimMapping();
+        Claim localClaim2 = new Claim();
+        localClaim2.setClaimId(0);
+        localClaim2.setClaimUri("http://wso2.org/claims/fullname");
+        claimMapping2.setLocalClaim(localClaim2);
+        claimConfig2.setClaimMappings(new ClaimMapping[]{claimMapping2});
+        idp2.setClaimConfig(claimConfig2);
+
+        IdPGroup idPGroup3 = new IdPGroup();
+        idPGroup3.setIdpGroupName(IDP_GROUP1);
+        IdPGroup idPGroup4 = new IdPGroup();
+        idPGroup4.setIdpGroupName(IDP_GROUP2);
+        idPGroup4.setIdpGroupId(IDP_GROUP2_ID);
+        idp2.setIdPGroupConfig(new IdPGroup[]{idPGroup3, idPGroup4});
+
+        // Initialize Test Identity Provider 3.
+        IdentityProvider idp3 = new IdentityProvider();
+        idp3.setIdentityProviderName("testIdP3");
+        idp3.setHomeRealmId("3");
+
+        // IDP with PermissionsAndRoleConfig, FederatedAuthenticatorConfigs, ProvisioningConnectorConfigs, ClaimConfigs.
+        idPManagementDAO.addIdP(idp1, SAMPLE_TENANT_ID);
+        // IDP with Local Cliam Dialect ClaimConfigs.
+        idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID);
+        // IDP with Only name.
+        idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
+    }
+
+    private void addTestTrustedTokenIssuers() throws IdentityProviderManagementException {
+
+        // Initialize Test Identity Provider 1.
+        IdentityProvider idp1 = new IdentityProvider();
+        idp1.setIdentityProviderName("testIdP1");
+        idp1.setHomeRealmId("1");
+        idp1.setEnable(true);
+        idp1.setPrimary(true);
+        idp1.setFederationHub(true);
+        idp1.setCertificate("");
+
+        RoleMapping roleMapping1 = new RoleMapping();
+        roleMapping1.setRemoteRole("Role1");
+        roleMapping1.setLocalRole(new LocalRole("1", "LocalRole1"));
+        RoleMapping roleMapping2 = new RoleMapping();
+        roleMapping2.setRemoteRole("Role2");
+        roleMapping2.setLocalRole(new LocalRole("2", "LocalRole2"));
+
+        PermissionsAndRoleConfig permissionsAndRoleConfig = new PermissionsAndRoleConfig();
+        permissionsAndRoleConfig.setIdpRoles(new String[]{"Role1", "Role2"});
+        permissionsAndRoleConfig.setRoleMappings(new RoleMapping[]{roleMapping1, roleMapping2});
+        idp1.setPermissionAndRoleConfig(permissionsAndRoleConfig);
+
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
+        federatedAuthenticatorConfig.setDisplayName("DisplayName1");
+        federatedAuthenticatorConfig.setName("Name");
+        federatedAuthenticatorConfig.setEnabled(true);
+        Property property1 = new Property();
+        property1.setName("Property1");
+        property1.setValue("value1");
+        property1.setConfidential(true);
+        Property property2 = new Property();
+        property2.setName("Property2");
+        property2.setValue("value2");
+        property2.setConfidential(false);
+        federatedAuthenticatorConfig.setProperties(new Property[]{property1, property2});
+        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{federatedAuthenticatorConfig});
+
+        ProvisioningConnectorConfig provisioningConnectorConfig1 = new ProvisioningConnectorConfig();
+        provisioningConnectorConfig1.setName("ProvisiningConfig1");
+        provisioningConnectorConfig1.setProvisioningProperties(new Property[]{property1});
+        ProvisioningConnectorConfig provisioningConnectorConfig2 = new ProvisioningConnectorConfig();
+        provisioningConnectorConfig2.setName("ProvisiningConfig2");
+        provisioningConnectorConfig2.setProvisioningProperties(new Property[]{property2});
+        provisioningConnectorConfig2.setEnabled(true);
+        provisioningConnectorConfig2.setBlocking(true);
+        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{provisioningConnectorConfig1,
+                provisioningConnectorConfig2});
+
+        IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+        identityProviderProperty.setDisplayName("idpDisplayName");
+        identityProviderProperty.setName("idpPropertyName");
+        identityProviderProperty.setValue("idpPropertyValue");
+        idp1.setIdpProperties(new IdentityProviderProperty[]{identityProviderProperty});
+
+        ClaimConfig claimConfig = new ClaimConfig();
+        claimConfig.setLocalClaimDialect(false);
+        claimConfig.setRoleClaimURI("Country");
+        claimConfig.setUserClaimURI("Country");
+        ClaimMapping claimMapping = ClaimMapping.build("http://wso2.org/claims/country", "Country", "", true);
+        Claim remoteClaim = new Claim();
+        remoteClaim.setClaimId(0);
+        remoteClaim.setClaimUri("Country");
+        claimConfig.setClaimMappings(new ClaimMapping[]{claimMapping});
+        claimConfig.setIdpClaims(new Claim[]{remoteClaim});
+        idp1.setClaimConfig(claimConfig);
+
+        IdPGroup idPGroup1 = new IdPGroup();
+        idPGroup1.setIdpGroupName(IDP_GROUP1);
+        IdPGroup idPGroup2 = new IdPGroup();
+        idPGroup2.setIdpGroupName(IDP_GROUP2);
+        idp1.setIdPGroupConfig(new IdPGroup[]{idPGroup1, idPGroup2});
+
+        idp1.setTrustedTokenIssuer(true);
 
         // Initialize Test Identity Provider 2.
         IdentityProvider idp2 = new IdentityProvider();
