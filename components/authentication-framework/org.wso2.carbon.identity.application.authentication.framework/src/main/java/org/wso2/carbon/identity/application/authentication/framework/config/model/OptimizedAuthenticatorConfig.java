@@ -105,7 +105,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
                     "tenant domain: %s", resourceId, tenantDomain));
         }
         IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
+                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp;
         try {
             idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
