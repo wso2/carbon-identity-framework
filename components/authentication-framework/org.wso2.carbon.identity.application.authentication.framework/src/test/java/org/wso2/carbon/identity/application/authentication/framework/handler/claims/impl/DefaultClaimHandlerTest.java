@@ -26,6 +26,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -34,8 +35,9 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.model.AppRoleMappingConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.util.HashMap;
@@ -62,6 +64,8 @@ public class DefaultClaimHandlerTest {
     private static final String testIdP = "testIdP";
     private static final String idpGroupClaimName = "groups";
     private static final String idpGroupClaim = "admin,hr";
+    private static final String testIdPGroupId = "testIdPGroupId";
+    private static final String testIdPGroupName = "admin";
     private static final String applicationId = "testAppId";
     private static final String[] mappedApplicationRoles = new String[]{"adminMapped", "hrMapped"};
 
@@ -87,20 +91,22 @@ public class DefaultClaimHandlerTest {
         ClaimMapping[] idPClaimMappings = new ClaimMapping[1];
         idPClaimMappings[0] = claimMapping;
 
-        Map<String, String> remoteClaims = new HashMap<String, String>() {{
-            put(idpGroupClaimName, idpGroupClaim);
-        }};
+        IdPGroup possibleGroup = new IdPGroup();
+        possibleGroup.setIdpGroupId(testIdPGroupId);
+        possibleGroup.setIdpGroupName(testIdPGroupName);
+        IdPGroup[] idPGroups = new IdPGroup[1];
+        idPGroups[0] = possibleGroup;
+        IdentityProvider identityProvider = new IdentityProvider();
+        identityProvider.setIdPGroupConfig(idPGroups);
+        ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
 
         ServiceProvider serviceProvider = new ServiceProvider();
         serviceProvider.setApplicationResourceId(applicationId);
-        AppRoleMappingConfig appRoleMappingConfig = new AppRoleMappingConfig();
-        appRoleMappingConfig.setIdPName(testIdP);
-        appRoleMappingConfig.setUseAppRoleMappings(true);
-        serviceProvider.setApplicationRoleMappingConfig(new AppRoleMappingConfig[]{appRoleMappingConfig});
 
         when(authenticationContext.getSequenceConfig()).thenReturn(sequenceConfig);
         when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
         when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
+        when(authenticationContext.getExternalIdP()).thenReturn(externalIdPConfig);
 
         mockStatic(FrameworkServiceDataHolder.class);
         when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
@@ -115,7 +121,7 @@ public class DefaultClaimHandlerTest {
 
         String applicationRoles =
                 defaultClaimHandler.getApplicationRolesForFederatedUser(stepConfig, authenticationContext,
-                        idPClaimMappings, remoteClaims);
+                        idPClaimMappings);
 
         Assert.assertEquals(applicationRoles, String.join(",", mappedApplicationRoles));
     }
