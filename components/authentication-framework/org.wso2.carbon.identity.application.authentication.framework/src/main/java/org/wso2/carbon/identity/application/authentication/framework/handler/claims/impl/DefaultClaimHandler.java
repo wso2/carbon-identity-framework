@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,9 +42,10 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.model.AppRoleMappingConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
@@ -142,7 +144,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
 
         String applicationRoles =
-                getApplicationRolesForFederatedUser(stepConfig, context, idPClaimMappings, remoteClaims);
+                getApplicationRolesForFederatedUser(stepConfig, context, idPClaimMappings);
 
         Map<String, String> spClaimMappings = context.getSequenceConfig().getApplicationConfig().
                 getClaimMappings();
@@ -1119,14 +1121,11 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @param stepConfig       StepConfig of current step.
      * @param context          AuthenticationContext of current authentication flow.
      * @param idPClaimMappings Claim mappings of IdP of the current step.
-     * @param remoteClaims     Remote claims of the current step authenticated user.
      * @return Application roles of federated user.
      * @throws FrameworkException Exception on handling application roles for federated user.
      */
     protected String getApplicationRolesForFederatedUser(StepConfig stepConfig, AuthenticationContext context,
-                                                         ClaimMapping[] idPClaimMappings,
-                                                         Map<String, String> remoteClaims)
-            throws FrameworkException {
+                                                         ClaimMapping[] idPClaimMappings) throws FrameworkException {
 
         // IdP claim mappings should be available and the current step should be a subject attribute step.
         if (idPClaimMappings == null || !stepConfig.isSubjectAttributeStep()) {
@@ -1145,15 +1144,12 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
         // Regardless of whether the application role claim is requested from the SP, we need to add it to the remote
         // claims since otherwise we wouldn't know if application roles are resolved or not at a later stage.
-        ServiceProvider serviceProvider = context.getSequenceConfig().getApplicationConfig().getServiceProvider();
-        if (serviceProvider == null) {
+        IdentityProvider identityProvider = context.getExternalIdP().getIdentityProvider();
+        if (identityProvider == null) {
             return StringUtils.EMPTY;
         }
-        AppRoleMappingConfig[] appRoleMappingConfigs = serviceProvider.getApplicationRoleMappingConfig();
-        String fidpName = stepConfig.getAuthenticatedIdP();
-        boolean useAppRoleMapping = Arrays.stream(appRoleMappingConfigs)
-                .anyMatch(appRoleMappingConfig -> appRoleMappingConfig.getIdPName().equals(fidpName)
-                        && appRoleMappingConfig.isUseAppRoleMappings());
+        IdPGroup[] possibleIdPGroups = identityProvider.getIdPGroupConfig();
+        boolean useAppRoleMapping = ArrayUtils.isNotEmpty(possibleIdPGroups);
         if (useAppRoleMapping) {
             String appRoles = getApplicationRoles(stepConfig.getAuthenticatedUser(), context);
             // Checking if the appRoles string is null but can be an empty string.
