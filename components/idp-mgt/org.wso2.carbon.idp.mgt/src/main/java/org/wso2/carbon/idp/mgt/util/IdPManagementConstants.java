@@ -47,6 +47,7 @@ public class IdPManagementConstants {
 
     // Idp basic attributes.
     public static final String NAME = "NAME";
+    public static final String TRUSTED_TOKEN_ISSUER_NAME = "IDP.NAME";
     public static final String IDP_NAME = "name";
     public static final String DESCRIPTION = "DESCRIPTION";
     public static final String IDP_DESCRIPTION = "description";
@@ -313,7 +314,7 @@ public class IdPManagementConstants {
                 + "IS_LOCAL_CLAIM_DIALECT,PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, UUID) " +
                 "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?, ?)";
 
-        public static final String TRUSTED_TOKEN_ISSUER_FILTER_SQL = "IDP_METADATA.VALUE = 'true' AND ";
+        public static final String TRUSTED_TOKEN_ISSUER_FILTER_SQL = "IDP_METADATA.\"VALUE\" = 'true' AND ";
 
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME) VALUES (?,?,?,?,?)";
