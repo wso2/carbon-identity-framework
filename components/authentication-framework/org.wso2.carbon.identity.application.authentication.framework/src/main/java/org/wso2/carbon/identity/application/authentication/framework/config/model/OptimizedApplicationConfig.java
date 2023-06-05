@@ -245,7 +245,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
         IdentityProvider[] idPs = new IdentityProvider[federatedIdPResourceIds.size()];
         IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdPManager();
+                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         for (int i = 0; i < federatedIdPResourceIds.size(); i++) {
             try {
                 IdentityProvider idp = manager.getIdPByResourceId(federatedIdPResourceIds.get(i), tenantDomain,
