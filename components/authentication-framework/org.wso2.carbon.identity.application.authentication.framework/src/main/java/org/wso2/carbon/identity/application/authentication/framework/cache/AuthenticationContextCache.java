@@ -83,12 +83,14 @@ public class AuthenticationContextCache extends
      */
     public void addToCache(AuthenticationContextCacheKey key, AuthenticationContextCacheEntry entry) {
 
-        if (isSessionDataStorageOptimizationEnabled) {
+        if (isSessionDataStorageOptimizationEnabled && entry.getContext() != null) {
             try {
                 AuthenticationContextLoader.getInstance().optimizeAuthenticationContext(entry.getContext());
             } catch (AuthenticationContextLoaderException e) {
-                log.debug(String.format("Error occurred while optimizing the Authentication context with " +
-                        "context id: %s", entry.getContext().getContextIdentifier()), e);
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Error occurred while optimizing the Authentication context with " +
+                            "context id: %s", entry.getContext().getContextIdentifier()), e);
+                }
                 return;
             }
         }
@@ -120,8 +122,10 @@ public class AuthenticationContextCache extends
                     try {
                         AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
                     } catch (AuthenticationContextLoaderException e) {
-                        log.debug(String.format("Error occurred while loading optimized authentication context with " +
-                                "context id: %s", entry.getContext().getContextIdentifier()), e);
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("Error occurred while loading optimized authentication context with " +
+                                    "context id: %s", entry.getContext().getContextIdentifier()), e);
+                        }
                     }
                 }
             }
@@ -151,15 +155,15 @@ public class AuthenticationContextCache extends
             // Update the cache again with the new value.
             super.addToCache(key, entry);
         }
-        if (isSessionDataStorageOptimizationEnabled) {
-            if (entry != null) {
-                try {
-                    AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
-                } catch (AuthenticationContextLoaderException e) {
+        if (entry != null) {
+            try {
+                AuthenticationContextLoader.getInstance().loadAuthenticationContext(entry.getContext());
+            } catch (AuthenticationContextLoaderException e) {
+                if (log.isDebugEnabled() {
                     log.debug(String.format("Error occurred while loading optimized authentication context with " +
                             "context id: %s", entry.getContext().getContextIdentifier()), e);
-                    entry = null;
                 }
+                entry = null;
             }
         }
         return entry;

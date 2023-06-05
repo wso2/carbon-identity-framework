@@ -766,11 +766,21 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         this.loginTenantDomain = loginTenantDomain;
     }
 
+    /**
+     * This method is used to set the resource id of the external IdP.
+     *
+     * @param resourceId resource id of the external idp
+     */
     public void setExternalIdPResourceId(String resourceId) {
 
         this.externalIdPResourceId = resourceId;
     }
 
+    /**
+     * This method is used to get the resource id of the external idp.
+     *
+     * @return resource id of the external idp
+     */
     public String getExternalIdPResourceId() {
 
         return this.externalIdPResourceId;

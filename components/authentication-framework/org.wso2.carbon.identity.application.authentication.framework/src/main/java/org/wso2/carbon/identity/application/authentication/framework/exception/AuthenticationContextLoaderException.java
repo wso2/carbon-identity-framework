@@ -24,18 +24,22 @@ package org.wso2.carbon.identity.application.authentication.framework.exception;
 public class AuthenticationContextLoaderException extends FrameworkException {
 
     public AuthenticationContextLoaderException(String message) {
+
         super(message);
     }
 
     public AuthenticationContextLoaderException(String errorCode, String message) {
+
         super(errorCode, message);
     }
 
     public AuthenticationContextLoaderException(String message, Throwable cause) {
+
         super(message, cause);
     }
 
     public AuthenticationContextLoaderException(String errorCode, String message, Throwable cause) {
+
         super(errorCode, message, cause);
     }
 }
