@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -40,7 +40,9 @@ public abstract class FrameworkConstants {
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
     public static final String APP_ROLES_CLAIM = "http://wso2.org/claims/applicationRoles";
+    public static final String GROUPS_CLAIM = "http://wso2.org/claims/groups";
     public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";
+    public static final String IDP_TYPE_CLAIM = "http://wso2.org/claims/identity/idpType";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
@@ -134,6 +136,9 @@ public abstract class FrameworkConstants {
 
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
     public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
+    public static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
+    public static final String ORG_ID_PARAMETER = "orgId";
+    public static final String USER_ORGANIZATION_CLAIM = "user_organization";
     public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
@@ -291,6 +296,8 @@ public abstract class FrameworkConstants {
                 "AllowCustomClaimMappingsForAuthenticators";
         public static final String QNAME_MERGE_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS_WITH_DEFAULT =
                 "AllowMergingCustomClaimMappingsWithDefaultClaimMappings";
+        public static final String QNAME_ALLOW_CONSENT_PAGE_REDIRECT_PARAMS =
+                "AllowConsentPageRedirectParams";
 
         /**
          * Configuration name for the collection of urls for receiving tenant list
@@ -320,6 +327,12 @@ public abstract class FrameworkConstants {
          */
         public static final String USER_SESSION_MAPPING_ENABLED =
                 "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
+
+        /**
+         * Configuration used for session data storage optimization.
+         */
+        public static final String SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED =
+                "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable";
 
         /**
          * Configuration to enable publishing the active session count in analytics event.
@@ -525,6 +538,7 @@ public abstract class FrameworkConstants {
         public static final String JS_LOCAL_ROLES = "roles";
         public static final String JS_CLAIMS = "claims";
         public static final String JS_AUTHENTICATED_IDP = "idp";
+        public static final String JS_AUTHENTICATOR = "authenticator";
         public static final String JS_AUTHENTICATION_OPTIONS = "options";
         public static final String JS_LOCAL_IDP = "local";
         public static final String JS_FEDERATED_IDP = "federated";

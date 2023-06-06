@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
@@ -28,10 +31,12 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getLoginTenantDomainFromContext;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -42,11 +47,19 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
     private static final String SESSION_CONTEXT_CACHE_NAME = "AppAuthFrameworkSessionContextCache";
     private static final Log log = LogFactory.getLog(SessionContextCache.class);
+    private final boolean isSessionDataStorageOptimizationEnabled;
 
     private static volatile SessionContextCache instance;
 
     private SessionContextCache() {
+
         super(SESSION_CONTEXT_CACHE_NAME);
+        if (IdentityUtil.getProperty(SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED) != null) {
+            isSessionDataStorageOptimizationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
+                    SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED));
+        } else {
+            isSessionDataStorageOptimizationEnabled = true;
+        }
     }
 
     public static SessionContextCache getInstance() {
@@ -75,6 +88,25 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         entry.setAccessedTime();
         super.addToCache(key, entry, resolveLoginTenantDomain(loginTenantDomain));
         Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        if (isSessionDataStorageOptimizationEnabled) {
+            try {
+                entry = SessionContextLoader.getInstance().optimizeSessionContextCacheEntry(entry);
+            } catch (SessionDataStorageOptimizationClientException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Client error occurred while optimizing the Session " +
+                            "context with context id: %s", entry.getContext()), e);
+                }
+                return;
+            } catch (SessionDataStorageOptimizationServerException e) {
+                log.error("Server error occurred while optimizing the Session context with " +
+                        "context id: " + entry.getContext(), e);
+                return;
+            } catch (SessionDataStorageOptimizationException e) {
+                log.debug("Error occurred while optimizing the Session context with " +
+                        "context id: " + entry.getContext(), e);
+                return;
+            }
+        }
         if (authUser != null && authUser instanceof AuthenticatedUser) {
             String tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -138,6 +170,25 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
         if (sessionContextDO != null) {
             cacheEntry = new SessionContextCacheEntry(sessionContextDO);
+            if (cacheEntry.getOptimizedSessionContext() != null) {
+                try {
+                    cacheEntry = SessionContextLoader.getInstance().loadSessionContextCacheEntry(cacheEntry);
+                } catch (SessionDataStorageOptimizationClientException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Client error occurred while loading the session context with " +
+                                "context id: %s", cacheEntry.getContextIdentifier()));
+                    }
+                    return null;
+                } catch (SessionDataStorageOptimizationServerException e) {
+                    log.error("Server error occurred while loading the session context with context id: " +
+                            cacheEntry.getContextIdentifier(), e);
+                    return null;
+                } catch (SessionDataStorageOptimizationException e) {
+                    log.debug("Error occurred while loading the session context with context id: " +
+                            cacheEntry.getContextIdentifier(), e);
+                    return null;
+                }
+            }
         }
         return cacheEntry;
     }

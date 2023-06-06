@@ -2515,11 +2515,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         ServiceProvider application = appDAO.getApplicationByResourceId(resourceId, tenantDomain);
         if (application == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Cannot find an application for resourceId: " + resourceId + " in tenantDomain: "
-                        + tenantDomain);
+            application = new FileBasedApplicationDAO().getApplicationByResourceId(resourceId, tenantDomain);
+            if (application == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Cannot find an application for resourceId: " + resourceId + " in tenantDomain: "
+                            + tenantDomain);
+                }
+                return null;
             }
-            return null;
         }
 
         for (ApplicationResourceManagementListener listener : listeners) {

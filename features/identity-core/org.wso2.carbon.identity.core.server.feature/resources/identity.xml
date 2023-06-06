@@ -55,6 +55,10 @@
             <UserSessionMapping>
                 <Enable>true</Enable>
             </UserSessionMapping>
+            <SessionDataStorageOptimization>
+                <!-- Enabling session data storage optimization-->
+                <Enable>true</Enable>
+            </SessionDataStorageOptimization>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
@@ -113,6 +117,8 @@
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
+        <!-- To enable or disable sha256 ppid display value -->
+        <EnableSHA256PPIDDisplayValue>true</EnableSHA256PPIDDisplayValue>
         <!--
                OpenID private association store is configurable from following configs.
                It includes two new replication stores,
@@ -181,6 +187,8 @@
              access token. Otherwise user's tenant domain will be used. Currently this value is only supported by the JWTTokenIssuer.
 	         This configuration will be enabled by default from IS 5.12.0. -->
         <UseSPTenantDomain>True</UseSPTenantDomain>
+        <!-- This configuration is used to enable or disable generation of random numbers using HMAC-SHA256 algorithm.-->
+        <EnableSHA256Params>true</EnableSHA256Params>
 
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
@@ -210,6 +218,8 @@
         <OAuth2DCREPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/api/identity/oauth2/dcr/v1.1/register</OAuth2DCREPUrl>
         <OAuth2JWKSPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/jwks</OAuth2JWKSPage>
         <OIDCDiscoveryEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/oidcdiscovery</OIDCDiscoveryEPUrl>
+
+        <EnableSHA256OAuth2JWKThumbprint>true</EnableSHA256OAuth2JWKThumbprint>
 
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>true</UseEntityIdAsIssuerInOidcDiscovery>
@@ -645,6 +655,21 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
+
+        <!--
+        By enabling this property, client id will be used as the sub claim for the access tokens issued for the
+        authenticated applications.
+
+        Default value : true
+        -->
+        <UseClientIdAsSubClaimForAppTokens>true</UseClientIdAsSubClaimForAppTokens>
+
+        <!--
+        By enabling this property, username will be removed from the introspection response for application tokens.
+
+        Default value : true
+        -->
+        <RemoveUsernameFromIntrospectionResponseForAppTokens>true</RemoveUsernameFromIntrospectionResponseForAppTokens>
     </OAuth>
 
     <RestApiAuthentication>
@@ -692,8 +717,8 @@
         <!-- SAML Token validity period in minutes -->
         <SAMLResponseValidityPeriod>5</SAMLResponseValidityPeriod>
         <UseAuthenticatedUserDomainCrypto>false</UseAuthenticatedUserDomainCrypto>
-        <SAMLDefaultSigningAlgorithmURI>http://www.w3.org/2000/09/xmldsig#rsa-sha1</SAMLDefaultSigningAlgorithmURI>
-        <SAMLDefaultDigestAlgorithmURI>http://www.w3.org/2000/09/xmldsig#sha1</SAMLDefaultDigestAlgorithmURI>
+        <SAMLDefaultSigningAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</SAMLDefaultSigningAlgorithmURI>
+        <SAMLDefaultDigestAlgorithmURI>http://www.w3.org/2001/04/xmlenc#sha256</SAMLDefaultDigestAlgorithmURI>
         <SAMLDefaultAssertionEncryptionAlgorithmURI>http://www.w3.org/2001/04/xmlenc#aes256-cbc</SAMLDefaultAssertionEncryptionAlgorithmURI>
         <SAMLDefaultKeyEncryptionAlgorithmURI>http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p</SAMLDefaultKeyEncryptionAlgorithmURI>
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
@@ -701,6 +726,8 @@
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
         <SAMLMetadataValidityPeriod>60</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
+        <SAMLIDPMetadataEnableSHA256Alg>true</SAMLIDPMetadataEnableSHA256Alg>
+        <SAMLSPMetadataParsingEnableSHA256Alg>true</SAMLSPMetadataParsingEnableSHA256Alg>
 
         <SAML2AuthenticationRequestValidityPeriodEnabled>false</SAML2AuthenticationRequestValidityPeriodEnabled>
         <!-- Request validity period in minutes-->
@@ -737,7 +764,16 @@
         <TokenStoreClassName>org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
         <DisableAppliesToInPassiveSTSResponse>false</DisableAppliesToInPassiveSTSResponse>
+        <EnableDefaultSignatureAndDigestAlgorithm>true</EnableDefaultSignatureAndDigestAlgorithm>
     </PassiveSTS>
+
+    <Mex>
+        <EnableSHA256Alg>true</EnableSHA256Alg>
+    </Mex>
+
+    <UserAccountAssociation>
+        <EnableSHA256Key>true</EnableSHA256Key>
+    </UserAccountAssociation>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
@@ -2240,6 +2276,9 @@
 
     <!-- Configuration to enable the organization level branding of email templates. -->
     <EnableOrganizationLevelEmailBranding>false</EnableOrganizationLevelEmailBranding>
+
+    <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
+    <EnableSHA256RandomNumberGenerator>true</EnableSHA256RandomNumberGenerator>
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>

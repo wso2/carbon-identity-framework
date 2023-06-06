@@ -63,6 +63,9 @@
             <UserSessionMapping>
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
+            <SessionDataStorageOptimization>
+                <Enable>{{session_data.storage_optimization.enable}}</Enable>
+            </SessionDataStorageOptimization>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
@@ -140,6 +143,8 @@
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
+        <!-- To enable or disable sha256 ppid display value -->
+        <EnableSHA256PPIDDisplayValue>{{openid.enable_sha256_ppid_value}}</EnableSHA256PPIDDisplayValue>
         <!--
                OpenID private association store is configurable from following configs.
                It includes two new replication stores,
@@ -224,6 +229,9 @@
         <UseSPTenantDomain>{{oauth.access_token.generate_with_sp_tenant_domain}}</UseSPTenantDomain>
         {% endif %}
 
+        <!-- This configuration is used to enable or disable generation of random numbers using HMAC-SHA256 algorithm.-->
+        <EnableSHA256Params>{{oauth.enable_sha256_params}}</EnableSHA256Params>
+
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
             OAuth2AuthzEPUrl, OAuth2TokenEPUrl and OAuth2UserInfoEPUrl are built in following format
@@ -253,6 +261,9 @@
         <OAuth2JWKSPage>{{oauth.endpoints.oauth2_jwks_url}}</OAuth2JWKSPage>
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
         <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
+
+        <EnableSHA256OAuth2JWKThumbprint>{{oauth.enable_sha256_jwk_thumbprint}}</EnableSHA256OAuth2JWKThumbprint>
+
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>{{oauth.use_entityid_as_issuer_in_oidc_discovery}}</UseEntityIdAsIssuerInOidcDiscovery>
 
@@ -553,6 +564,8 @@
             <ScopeHandler class="{{scope_handler.class}}" />
         {% endfor %}
         </ScopeHandlers>
+
+        <EnableGlobalRBACScopeIssuer>{{oauth.global_rbac_scope_issuer.enable}}</EnableGlobalRBACScopeIssuer>
 
         <!-- Assertions can be used to embedd parameters into access token. -->
         <EnableAssertions>
@@ -875,6 +888,21 @@
         -->
         <EnableJWTTokenValidationDuringIntrospection>{{oauth.enable_jwt_token_validation_during_introspection}}</EnableJWTTokenValidationDuringIntrospection>
 
+        <!--
+        By enabling this property, client id will be used as the sub claim for the access tokens issued for the
+        authenticated applications.
+
+        Default value : true
+        -->
+        <UseClientIdAsSubClaimForAppTokens>{{oauth.use_client_id_as_sub_claim_for_app_tokens}}</UseClientIdAsSubClaimForAppTokens>
+
+        <!--
+        By enabling this property, username will be removed from the introspection response for application tokens.
+
+        Default value : true
+        -->
+        <RemoveUsernameFromIntrospectionResponseForAppTokens>{{oauth.remove_username_from_introspection_response_for_app_tokens}}</RemoveUsernameFromIntrospectionResponseForAppTokens>
+
         {% if oauth.enable_system_level_internal_scope_management is defined %}
         <!--
         Configuration to maintain backward compatibility to manage the internal scope - permission  binding per tenant.
@@ -988,6 +1016,8 @@
         <SAMLECPEndpoint>{{saml.endpoints.ecp}}</SAMLECPEndpoint>
         <SAMLMetadataValidityPeriod>{{saml.metadata.validity_period}}</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>{{saml.metadata.enable_signing}}</SAMLMetadataSigningEnabled>
+        <SAMLIDPMetadataEnableSHA256Alg>{{saml.metadata.idp_enable_sha256_alg}}</SAMLIDPMetadataEnableSHA256Alg>
+        <SAMLSPMetadataParsingEnableSHA256Alg>{{saml.metadata.sp_enable_sha256_alg}}</SAMLSPMetadataParsingEnableSHA256Alg>
         <SAML2AuthenticationRequestValidityPeriodEnabled>{{saml.enable_request_validity_period}}</SAML2AuthenticationRequestValidityPeriodEnabled>
         <!-- Request validity period in minutes-->
         <SAML2AuthenticationRequestValidityPeriod>{{saml.request_validity_period}}</SAML2AuthenticationRequestValidityPeriod>
@@ -1026,7 +1056,16 @@
         <TokenStoreClassName>{{passive_sts.token_store_class}}</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>{{passive_sts.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
         <DisableAppliesToInPassiveSTSResponse>{{passive_sts.disable_applies_to_in_response}}</DisableAppliesToInPassiveSTSResponse>
+        <EnableDefaultSignatureAndDigestAlgorithm>{{passive_sts.enable_default_signature_and_digest_alg}}</EnableDefaultSignatureAndDigestAlgorithm>
     </PassiveSTS>
+
+    <Mex>
+        <EnableSHA256Alg>{{mex.enable_sha256_alg}}</EnableSHA256Alg>
+    </Mex>
+
+    <UserAccountAssociation>
+            <EnableSHA256Key>{{user_account_association.enable_sha256_key}}</EnableSHA256Key>
+        </UserAccountAssociation>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
@@ -3343,6 +3382,9 @@
             <OrganizationLevelEmailBrandingFallback key="{{key}}">{{value}}</OrganizationLevelEmailBrandingFallback>
         {% endfor %}
     </OrganizationLevelEmailBrandingFallbacks>
+
+    <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
+    <EnableSHA256RandomNumberGenerator>{{identity_util.enable_sha256_random_numbers}}</EnableSHA256RandomNumberGenerator>
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>

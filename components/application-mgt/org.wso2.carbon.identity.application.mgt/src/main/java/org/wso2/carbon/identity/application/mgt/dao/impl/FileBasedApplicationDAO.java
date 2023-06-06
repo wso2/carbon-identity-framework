@@ -298,4 +298,11 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
         return ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(serviceProviderName);
     }
 
+    @Override
+    public ServiceProvider getApplicationByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        // For the File based applications, application name is set as resource id.
+        return getApplication(resourceId, tenantDomain);
+    }
 }
