@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>directory-server-manager</artifactId>
-        <version>6.0.64</version>
+        <version>6.0.65-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
