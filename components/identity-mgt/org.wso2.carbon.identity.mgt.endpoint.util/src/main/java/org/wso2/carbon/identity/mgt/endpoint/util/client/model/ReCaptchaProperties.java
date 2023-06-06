@@ -31,7 +31,7 @@ public class ReCaptchaProperties {
     private Boolean reCaptchaEnabled = null;
     private String reCaptchaKey = null;
     private String reCaptchaAPI = null;
-    private Boolean reCaptchaEnterpriseEnabled = null;
+    private String reCaptchaType = null;
 
     /**
      * Return object of this class after set the reCaptchaEnabled.
@@ -59,19 +59,19 @@ public class ReCaptchaProperties {
     /**
      * Return object of this class after set the reCaptchaEnterpriseEnabled.
      *
-     * @param reCaptchaEnterpriseEnabled Is captcha enabled.
+     * @param reCaptchaType Is captcha enabled.
      * @return ReCaptchaProperties.
      */
-    public ReCaptchaProperties reCaptchaEnterpriseEnabled(boolean reCaptchaEnterpriseEnabled) {
+    public ReCaptchaProperties reCaptchaType(String reCaptchaType) {
 
-        this.reCaptchaEnterpriseEnabled = reCaptchaEnterpriseEnabled;
+        this.reCaptchaType = reCaptchaType;
         return this;
     }
 
-    @JsonProperty("reCaptchaEnterpriseEnabled")
-    public boolean getReCaptchaEnterpriseEnabled() {
+    @JsonProperty("reCaptchaType")
+    public String getReCaptchaType() {
 
-        return reCaptchaEnterpriseEnabled;
+        return reCaptchaType;
     }
 
     /**
@@ -133,13 +133,13 @@ public class ReCaptchaProperties {
         return Objects.equals(this.reCaptchaEnabled, reCaptchaProperties.reCaptchaEnabled) &&
                 Objects.equals(this.reCaptchaKey, reCaptchaProperties.reCaptchaKey) &&
                 Objects.equals(this.reCaptchaAPI, reCaptchaProperties.reCaptchaAPI) &&
-                Objects.equals(this.reCaptchaEnterpriseEnabled, reCaptchaProperties.reCaptchaEnterpriseEnabled);
+                Objects.equals(this.reCaptchaType, reCaptchaProperties.reCaptchaType);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(reCaptchaEnabled, reCaptchaKey, reCaptchaKey, reCaptchaEnterpriseEnabled);
+        return Objects.hash(reCaptchaEnabled, reCaptchaKey, reCaptchaKey, reCaptchaType);
     }
 
     @Override
@@ -150,7 +150,7 @@ public class ReCaptchaProperties {
         sb.append("    reCaptchaEnabled: ").append(toIndentedString(reCaptchaEnabled)).append("\n");
         sb.append("    reCaptchaKey: ").append(toIndentedString(reCaptchaKey)).append("\n");
         sb.append("    reCaptchaAPI: ").append(toIndentedString(reCaptchaAPI)).append("\n");
-        sb.append("    reCaptchaEnterpriseEnabled: ").append(toIndentedString(reCaptchaEnterpriseEnabled)).append("\n");
+        sb.append("    reCaptchaEnterpriseEnabled: ").append(toIndentedString(reCaptchaType)).append("\n");
         sb.append("}");
         return sb.toString();
     }
