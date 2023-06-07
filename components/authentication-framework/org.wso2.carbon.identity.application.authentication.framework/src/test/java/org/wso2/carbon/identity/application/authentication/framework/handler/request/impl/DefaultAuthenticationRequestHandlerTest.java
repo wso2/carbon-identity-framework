@@ -19,7 +19,6 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
@@ -350,7 +349,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         LoggerUtils.isLogMaskingEnable = false;
         IdentityEventService mockIdentityEventService = mock(IdentityEventService.class);
         mockStatic(FrameworkServiceDataHolder.class);
-        PowerMockito.when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
+        when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
         when(FrameworkServiceDataHolder.getInstance().getIdentityEventService()).thenReturn
                 (mockIdentityEventService);
         authenticationRequestHandler.handle(request, response, context);
