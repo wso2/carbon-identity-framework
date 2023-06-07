@@ -58,6 +58,10 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -398,6 +402,19 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             if (appConfig.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
                     .isAlwaysSendBackAuthenticatedListOfIdPs()) {
                 authenticationResult.setAuthenticatedIdPs(sequenceConfig.getAuthenticatedIdPs());
+            }
+
+            // Fire event to update user metadata
+            try {
+                IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+                Map<String, Object> eventProperties = new HashMap<>();
+                eventProperties.put(IdentityEventConstants.EventProperty.CONTEXT, context);
+                Event event = new Event(IdentityEventConstants.Event.UPDATE_USER_METADATA, eventProperties);
+                eventService.handleEvent(event);
+            } catch (IdentityEventException e) {
+                String errorLog =  "Could not fire event " + IdentityEventConstants.Event.UPDATE_USER_METADATA
+                        + " in tenant domain " + context.getTenantDomain();
+                log.error(errorLog, e);
             }
 
             // SessionContext is retained across different SP requests in the same browser session.

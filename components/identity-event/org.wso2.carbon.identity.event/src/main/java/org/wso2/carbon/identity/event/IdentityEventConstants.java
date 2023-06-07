@@ -201,6 +201,7 @@ public class IdentityEventConstants {
         public static final String POST_VALIDATE_SMS_OTP = "POST_VALIDATE_SMS_OTP";
         public static final String SESSION_EXTENSION = "SESSION_EXTENSION";
         public static final String POST_USER_JIT_PROVISION = "POST_USER_JIT_PROVISION";
+        public static final String UPDATE_USER_METADATA = "UPDATE_USER_METADATA";
 
         // Claim metadata operation related events.
         public static final String PRE_ADD_CLAIM_DIALECT = "PRE_ADD_CLAIM_DIALECT";

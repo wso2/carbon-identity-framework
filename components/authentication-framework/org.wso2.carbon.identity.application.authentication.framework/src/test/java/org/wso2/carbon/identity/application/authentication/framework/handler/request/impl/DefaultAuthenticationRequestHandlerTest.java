@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
@@ -49,6 +50,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -63,6 +65,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -75,7 +78,8 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
-@PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class, LoggerUtils.class})
+@PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class, LoggerUtils.class,
+        FrameworkServiceDataHolder.class})
 @WithCarbonHome
 @PowerMockIgnore("org.mockito.*")
 public class DefaultAuthenticationRequestHandlerTest {
@@ -88,6 +92,9 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @Spy
     DefaultAuthenticationRequestHandler authenticationRequestHandler;
+
+    @Mock
+    private FrameworkServiceDataHolder frameworkServiceDataHolder;
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
@@ -341,6 +348,11 @@ public class DefaultAuthenticationRequestHandlerTest {
         when(FrameworkUtils.getCookie(any(HttpServletRequest.class), isNull())).thenReturn
                 (cookies[0]);
         LoggerUtils.isLogMaskingEnable = false;
+        IdentityEventService mockIdentityEventService = mock(IdentityEventService.class);
+        mockStatic(FrameworkServiceDataHolder.class);
+        PowerMockito.when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
+        when(FrameworkServiceDataHolder.getInstance().getIdentityEventService()).thenReturn
+                (mockIdentityEventService);
         authenticationRequestHandler.handle(request, response, context);
         assertTrue(Boolean.parseBoolean(context.getProperty(
                 FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
