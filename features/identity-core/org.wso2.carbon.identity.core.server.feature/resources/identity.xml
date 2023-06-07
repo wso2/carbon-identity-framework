@@ -244,6 +244,25 @@
         <EnableClientSecretHash>false</EnableClientSecretHash>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>false</MapFederatedUsersToLocal>
+
+        <!-- Supported Response Modes -->
+        <SupportedResponseModes>
+            <SupportedResponseMode>
+                <ResponseModeName>query</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.QueryResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>fragment</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FragmentResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>form_post</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FormPostResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+        </SupportedResponseModes>
+
+        <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
+
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
             <SupportedResponseType>
