@@ -297,6 +297,36 @@
         <EnableClientSecretHash>{{oauth.hash_tokens_and_secrets}}</EnableClientSecretHash>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>{{oauth.map_federated_users_to_local}}</MapFederatedUsersToLocal>
+
+        <!-- Supported Response Modes -->
+        <SupportedResponseModes>
+            <SupportedResponseMode>
+                <ResponseModeName>query</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.QueryResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>fragment</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FragmentResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>form_post</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FormPostResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            {% for response_mode in oauth.response_mode %}
+            <SupportedResponseMode>
+                <ResponseModeName>{{response_mode.name}}</ResponseModeName>
+                <ResponseModeProviderClass>{{response_mode.class}}</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            {% endfor %}
+        </SupportedResponseModes>
+
+        <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
+
+        <!-- Validity period for jarm response jwt in seconds -->
+        {% if oauth.jarm.jarm_response_jwt_validity is defined %}
+        <JARMResponseJwtValidityPeriodInSeconds>{{oauth.jarm.jarm_response_jwt_validity}}</JARMResponseJwtValidityPeriodInSeconds>
+        {% endif %}
+
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
             {% if oauth.response_type.token.enable is sameas true %}
