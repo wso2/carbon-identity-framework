@@ -77,12 +77,26 @@ public class ExtensionStoreImpl implements ExtensionStore {
      * @return ExtensionInfo object.
      */
     @Override
-    public ExtensionInfo getExtensionByTypeAndId(String extensionType, String extensionId) throws ExtensionManagementException {
+    public ExtensionInfo getExtensionByTypeAndId(String extensionType, String extensionId)
+            throws ExtensionManagementException {
 
         if (!extensionInfoList.containsKey(extensionType)) {
             throw new ExtensionManagementException("Invalid extension type: " + extensionType);
         }
         return extensionInfoList.get(extensionType).get(extensionId);
+    }
+
+    /**
+     * Add new extension type.
+     *
+     * @param extensionType Type of the extension.
+     */
+    @Override
+    public void addExtensionType(String extensionType) {
+
+        if (!extensionInfoList.containsKey(extensionType)) {
+            extensionInfoList.put(extensionType, new HashMap<>());
+        }
     }
 
     /**
@@ -93,10 +107,11 @@ public class ExtensionStoreImpl implements ExtensionStore {
      * @param extensionInfo ExtensionInfo object.
      */
     @Override
-    public void addExtension(String extensionType, String extensionId, ExtensionInfo extensionInfo) {
+    public void addExtension(String extensionType, String extensionId, ExtensionInfo extensionInfo)
+            throws ExtensionManagementException {
 
         if (!extensionInfoList.containsKey(extensionType)) {
-            extensionInfoList.put(extensionType, new HashMap<>());
+            throw new ExtensionManagementException("Invalid extension type: " + extensionType);
         }
         extensionInfoList.get(extensionType).put(extensionId, extensionInfo);
     }

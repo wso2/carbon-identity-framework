@@ -54,13 +54,21 @@ public interface ExtensionStore {
     ExtensionInfo getExtensionByTypeAndId(String extensionType, String extensionId) throws ExtensionManagementException;
 
     /**
+     * Add new extension type.
+     *
+     * @param extensionType Type of the extension.
+     */
+    void addExtensionType(String extensionType);
+
+    /**
      * Add a new extension.
      *
      * @param extensionType Type of the extension.
      * @param extensionId Id of the extension.
      * @param extensionInfo ExtensionInfo object.
      */
-    void addExtension(String extensionType, String extensionId, ExtensionInfo extensionInfo) throws ExtensionManagementException;
+    void addExtension(String extensionType, String extensionId, ExtensionInfo extensionInfo)
+            throws ExtensionManagementException;
 
     /**
      * Get template of a specific extension by type and id.
@@ -78,7 +86,8 @@ public interface ExtensionStore {
      * @param extensionId Id of the extension.
      * @param extensionTemplate Template of the extension.
      */
-    void addTemplate(String extensionType, String extensionId, JSONObject extensionTemplate) throws ExtensionManagementException;
+    void addTemplate(String extensionType, String extensionId, JSONObject extensionTemplate)
+            throws ExtensionManagementException;
 
     /**
      * Get metadata of a specific extension by type and id.
@@ -96,6 +105,7 @@ public interface ExtensionStore {
      * @param extensionId Id of the extension.
      * @param extensionMetadata Metadata of the extension.
      */
-    void addMetadata(String extensionType, String extensionId, JSONObject extensionMetadata) throws ExtensionManagementException;
+    void addMetadata(String extensionType, String extensionId, JSONObject extensionMetadata)
+            throws ExtensionManagementException;
 
 }
