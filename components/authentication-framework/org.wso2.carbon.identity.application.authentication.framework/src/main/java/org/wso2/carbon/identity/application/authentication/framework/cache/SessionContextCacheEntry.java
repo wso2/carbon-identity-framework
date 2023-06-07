@@ -58,6 +58,7 @@ public class SessionContextCacheEntry extends CacheEntry {
         this.optimizedSessionContext = optimizedSessionContext;
         this.loggedInUser = entry.getLoggedInUser();
         this.accessedTime = entry.getAccessedTime();
+        this.setValidityPeriod(entry.getValidityPeriod());
     }
 
     public String getLoggedInUser() {
