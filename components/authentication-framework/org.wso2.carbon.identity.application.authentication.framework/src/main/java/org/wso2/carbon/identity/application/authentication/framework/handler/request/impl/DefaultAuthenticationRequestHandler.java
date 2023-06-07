@@ -363,6 +363,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         sequenceConfig.setCompleted(false);
+        request.setAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED, true);
 
         AuthenticationResult authenticationResult = new AuthenticationResult();
         boolean isAuthenticated = context.isRequestAuthenticated();

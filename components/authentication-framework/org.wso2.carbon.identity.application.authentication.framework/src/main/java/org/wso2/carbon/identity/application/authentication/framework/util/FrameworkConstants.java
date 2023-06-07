@@ -73,6 +73,9 @@ public abstract class FrameworkConstants {
     public static final String FAILED_USERNAME = "failedUsername";
     public static final String LOCK_REASON = "lockedReason";
     public static final String NOT_SATISFY_PREREQUISITES_REASON = "NotSatisfyAuthenticatorPrerequisitesReason";
+    public static final String SKIP_NONCE_COOKIE_VALIDATION = "SkipNonceCookieValidation";
+    public static final String IS_MULTI_OPS_RESPONSE = "isMultiOptionsResponse";
+    public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
@@ -722,5 +725,14 @@ public abstract class FrameworkConstants {
             public static final String HANDLE_MISSING_CLAIMS = "handle-missing-claims";
             public static final String PROCESS_CLAIM_CONSENT = "process-claim-consent";
         }
+    }
+
+    /**
+     * Enum for authenticator param type.
+     */
+    public enum AuthenticatorParamType {
+
+        STRING,
+        INTEGER,
     }
 }
