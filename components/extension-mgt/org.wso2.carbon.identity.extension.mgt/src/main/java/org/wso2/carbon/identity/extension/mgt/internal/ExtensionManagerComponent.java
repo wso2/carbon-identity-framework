@@ -137,6 +137,8 @@ public class ExtensionManagerComponent {
                 continue;
             }
 
+            ExtensionManagerDataHolder.getInstance().getExtensionStore().addExtensionType(extensionType);
+
             // Load extensions from the given extension type directory.
             try (Stream<Path> directories = Files.list(path).filter(Files::isDirectory)) {
                 directories.forEach(extensionDirectory -> {
