@@ -65,6 +65,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderErrorResponseTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.AuthenticationServiceTest"/>
         </classes>
     </test>
     <test name="IdentityFrameworkTestsWithDataSources" preserve-order="false" parallel="false">

@@ -54,6 +54,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getMyAccountURL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieEnabled;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieValidationSkipped;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.DEFAULT_SP_CONFIG;
 
 /**
@@ -362,7 +363,7 @@ public class LoginContextManagementUtil {
         if (FrameworkUtils.isAuthenticationContextExpiryEnabled() && isValidRequest) {
             isValidRequest = FrameworkUtils.getCurrentStandardNano() <= context.getExpiryTime();
         }
-        if (isNonceCookieEnabled() && isValidRequest) {
+        if (isNonceCookieEnabled() && !isNonceCookieValidationSkipped(request) && isValidRequest) {
             Cookie nonceCookie = FrameworkUtils.getCookie(request, getNonceCookieName(context));
             isValidRequest = nonceCookie != null && StringUtils.isNotBlank(nonceCookie.getValue());
         }
