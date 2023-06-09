@@ -222,6 +222,9 @@
   "account_recovery.endpoint.auth.name":"dashboard",
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
 
+  "authorization_control.skip_authorization.client_authentication.name":"ClientAuthentication",
+  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v1.0/consents/purposes(.*),(.*)/user/v1.0/me(.*)",
+
   "jit_provisioning.indelible_claims.claim_uris": [
     "http://wso2.org/claims/userid",
     "http://wso2.org/claims/username",

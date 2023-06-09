@@ -2878,6 +2878,19 @@
     </ClientAppAuthentication>
 
     <!--
+        The following section defines the endpoints that can be skipped authorization per each authentication handler.
+        If none defines for any handler, then this authorization control will be not applied for that.
+    -->
+    <AuthorizationControl>
+        {% for item,authenticator in authorization_control.skip_authorization.items() %}
+            <SkipAuthorization
+                authHandler="{{authenticator.name}}"
+                endpoints="{{authenticator.allowedEndpoints}}"
+            />
+        {% endfor %}
+    </AuthorizationControl>
+
+    <!--
     This property restricts federated user association done through UserProfileAdmin admin service.
     Would not affect associations done through provisioning
     -->
