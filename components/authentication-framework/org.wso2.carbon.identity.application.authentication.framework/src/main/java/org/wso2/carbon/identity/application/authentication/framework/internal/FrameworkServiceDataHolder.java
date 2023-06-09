@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2015, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.authentication.framework.listener.Se
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -104,6 +105,8 @@ public class FrameworkServiceDataHolder {
 
     private JSExecutionSupervisor jsExecutionSupervisor;
     private IdpManager identityProviderManager = null;
+    private IdpManager idPManager;
+    private ApplicationManagementService applicationManagementService;
 
     private boolean isAdaptiveAuthenticationAvailable = false;
     private boolean isOrganizationManagementEnable = false;
@@ -685,5 +688,15 @@ public class FrameworkServiceDataHolder {
     public void setIdentityProviderManager(IdpManager identityProviderManager) {
 
         this.identityProviderManager = identityProviderManager;
+    }
+
+    public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        this.applicationManagementService = applicationManagementService;
+    }
+
+    public ApplicationManagementService getApplicationManagementService() {
+
+        return applicationManagementService;
     }
 }
