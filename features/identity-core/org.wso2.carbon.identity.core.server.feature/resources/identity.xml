@@ -2299,4 +2299,9 @@
         <ExtensionTypes>applications,identity-providers</ExtensionTypes>
     </ExtensionManagementService>
 
+    <!-- IdentityDataStore configurations -->
+    <IdentityDataStore>
+        <DataStoreType>org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</DataStoreType>
+    </IdentityDataStore>
+
 </Server>
