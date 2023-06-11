@@ -132,7 +132,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         Claim claimObject = null;
         for (Map.Entry<String, String> claim : claims.entrySet()) {
             try {
-                if (isUniqueClaim(claim.getKey(), tenantDomain)) {
+                if (StringUtils.isNotEmpty(claim.getValue()) && isUniqueClaim(claim.getKey(), tenantDomain)) {
                     try {
                         claimObject = userStoreManager.getClaimManager().getClaim(claim.getKey());
                     } catch (org.wso2.carbon.user.api.UserStoreException e) {
