@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
+import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderRegistryDAOImpl;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.api.RegistryException;
@@ -44,7 +45,7 @@ public class SAMLSSOServiceProviderManager {
     private SAMLSSOServiceProviderDAO buildSAMLSSOProvider(int tenantId) throws RegistryException {
 
         Registry registry = IdentityTenantUtil.getRegistryService().getConfigSystemRegistry(tenantId);
-        return new SAMLSSOServiceProviderDAO(registry);
+        return new SAMLSSOServiceProviderRegistryDAOImpl(registry);
     }
 
 
