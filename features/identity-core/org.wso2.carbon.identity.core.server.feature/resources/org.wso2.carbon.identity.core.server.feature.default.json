@@ -398,7 +398,7 @@
 
   "scim2_multi_attribute_filtering.use_pagination" : false,
 
-  "multi_attribute_separator_tenant_customization.enabled": false,
+  "org_wise_multi_attribute_separator.enabled": false,
 
   "sso_login.recaptcha.enabled": false,
   "sso_login.recaptcha.enable_always": false,
