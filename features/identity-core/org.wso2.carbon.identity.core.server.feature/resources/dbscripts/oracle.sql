@@ -1617,6 +1617,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('7f24050f-3e3d-4a00-b10f-fd5450d6523e', 'input-validation-configurations', 'A resource type to store input validation related configurations')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('f4e83b8a-d1c4-a0d6-03a7-d48e268c60c5', 'PK_JWT_CONFIGURATION', 'A resource type to keep the tenant private key jwt configuration.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('9ec61e9d-f0e6-4952-9a09-ab842aeb2db2', 'ATTRIBUTE_CONFIGURATION', 'A resource type to store attribute related configurations.')
 SELECT 1 FROM dual
 /
 
