@@ -173,6 +173,10 @@
             <artifactId> org.wso2.carbon.claim.mgt</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.orbit.commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
         </dependency>
@@ -264,6 +268,9 @@
                             org.wso2.carbon.identity.multi.attribute.login.mgt.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.organization.management.service; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.configuration.mgt.core; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.configuration.mgt.core.exception; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.configuration.mgt.core.model; version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>!org.wso2.carbon.identity.application.authentication.framework.internal,
                             org.wso2.carbon.identity.application.authentication.framework.*;
