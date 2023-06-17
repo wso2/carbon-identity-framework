@@ -106,6 +106,8 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
@@ -179,6 +181,12 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_TENANT_CUSTOMIZATION_ATTRIBUTE_NAME;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_TENANT_CUSTOMIZATION_ENABLED;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_TENANT_CUSTOMIZATION_RESOURCE_NAME;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_TENANT_CUSTOMIZATION_RESOURCE_TYPE;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
@@ -2154,13 +2162,36 @@ public class FrameworkUtils {
     public static String getMultiAttributeSeparator() {
 
         String multiAttributeSeparator = null;
-        try {
-            multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
-                    getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
-        } catch (UserStoreException e) {
-            log.warn("Error while retrieving MultiAttributeSeparator from UserRealm.");
-            if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(MULTI_ATTRIBUTE_SEPARATOR_TENANT_CUSTOMIZATION_ENABLED))) {
+            try {
+                Attribute configAttribute = FrameworkServiceDataHolder.getInstance().getConfigurationManager()
+                        .getAttribute(MULTI_ATTRIBUTE_SEPARATOR_TENANT_CUSTOMIZATION_RESOURCE_TYPE,
+                                MULTI_ATTRIBUTE_SEPARATOR_TENANT_CUSTOMIZATION_RESOURCE_NAME,
+                                MULTI_ATTRIBUTE_SEPARATOR_TENANT_CUSTOMIZATION_ATTRIBUTE_NAME);
+
+                if (configAttribute != null && StringUtils.isNotBlank(configAttribute.getValue())) {
+                    multiAttributeSeparator = configAttribute.getValue();
+                }
+            } catch (ConfigurationManagementException e) {
+                if (!ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) &&
+                        !ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())) {
+                    log.warn(String.format("Error while retrieving the custom MultiAttributeSeparator " +
+                                    "for the tenant: %s. Error code: %s, Error message: %s",
+                            CarbonContext.getThreadLocalCarbonContext().getTenantDomain(), e.getErrorCode(),
+                            e.getMessage()));
+                }
+            }
+        }
+
+        if (StringUtils.isBlank(multiAttributeSeparator)) {
+            try {
+                multiAttributeSeparator = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
+                        getRealmConfiguration().getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
+            } catch (UserStoreException e) {
+                log.warn("Error while retrieving MultiAttributeSeparator from UserRealm.");
+                if (log.isDebugEnabled()) {
+                    log.debug("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
+                }
             }
         }
 
