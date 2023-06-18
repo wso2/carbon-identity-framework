@@ -50,6 +50,14 @@ public class IdentityCoreConstants {
     public static final String EXISTING_USER = "UserAlreadyExisting";
     public final static String MULTI_ATTRIBUTE_SEPARATOR = "MultiAttributeSeparator";
     public final static String MULTI_ATTRIBUTE_SEPARATOR_DEFAULT = ",,,";
+    public final static String ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ENABLED =
+            "OrgWiseMultiAttributeSeparator";
+    public final static String ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_TYPE =
+            "ATTRIBUTE_CONFIGURATION";
+    public final static String ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_NAME =
+            "multi-attribute";
+    public final static String ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ATTRIBUTE_NAME =
+            "MultiAttributeSeparator";
 
     public static final String XML_SIGNATURE_ALGORITHM_RSA_SHA256_URI = "http://www.w3.org/2001/04/xmldsig-more#rsa" +
             "-sha256";

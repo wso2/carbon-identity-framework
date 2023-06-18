@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
@@ -107,6 +108,7 @@ public class FrameworkServiceDataHolder {
     private IdpManager identityProviderManager = null;
     private IdpManager idPManager;
     private ApplicationManagementService applicationManagementService;
+    private ConfigurationManager configurationManager = null;
 
     private boolean isAdaptiveAuthenticationAvailable = false;
     private boolean isOrganizationManagementEnable = false;
@@ -698,5 +700,15 @@ public class FrameworkServiceDataHolder {
     public ApplicationManagementService getApplicationManagementService() {
 
         return applicationManagementService;
+    }
+
+    public void setConfigurationManager(ConfigurationManager configurationManager) {
+
+        this.configurationManager = configurationManager;
+    }
+
+    public ConfigurationManager getConfigurationManager() {
+
+        return configurationManager;
     }
 }
