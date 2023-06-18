@@ -398,6 +398,8 @@
 
   "scim2_multi_attribute_filtering.use_pagination" : false,
 
+  "org_wise_multi_attribute_separator.enabled": false,
+
   "sso_login.recaptcha.enabled": false,
   "sso_login.recaptcha.enable_always": false,
   "sso_login.recaptcha.max_attempts": "3",
