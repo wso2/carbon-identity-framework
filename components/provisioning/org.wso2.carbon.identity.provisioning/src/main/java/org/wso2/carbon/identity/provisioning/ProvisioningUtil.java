@@ -24,7 +24,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -543,5 +547,38 @@ public class ProvisioningUtil {
                     .parseBoolean(IdentityUtil.getProperty(USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS));
         }
         return userTenantBasedProvisioningThreadEnabled;
+    }
+
+    /**
+     * Check whether the outbound provisioning is enabled for the service provider.
+     *
+     * @param serviceProviderIdentifier service provider.
+     * @param tenantDomainName          tenant domain name.
+     * @throws IdentityApplicationManagementException
+     */
+    public static boolean isOutboundProvisioningEnabled(String serviceProviderIdentifier,
+                                                        String tenantDomainName) throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = ApplicationManagementService.getInstance()
+                .getServiceProvider(serviceProviderIdentifier, tenantDomainName);
+
+        OutboundProvisioningConfig outboundProvisioningConfiguration = serviceProvider
+                .getOutboundProvisioningConfig();
+
+        if (outboundProvisioningConfiguration == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No outbound provisioning configuration defined for local service provider.");
+            }
+            return false;
+        }
+
+        // Check whether the provisioning is configured for the service provider.
+        IdentityProvider[] provisionningIdPList = outboundProvisioningConfiguration
+                .getProvisioningIdentityProviders();
+
+        if (provisionningIdPList != null && provisionningIdPList.length == 0) {
+            return false;
+        }
+        return true;
     }
 }
