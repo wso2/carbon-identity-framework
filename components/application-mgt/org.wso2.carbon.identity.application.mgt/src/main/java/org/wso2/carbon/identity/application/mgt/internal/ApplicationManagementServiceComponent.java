@@ -58,6 +58,7 @@ import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
@@ -453,6 +454,30 @@ public class ApplicationManagementServiceComponent {
 
         if (log.isDebugEnabled()) {
             log.debug("Removed application permission provider.");
+        }
+    }
+
+    @Reference(
+            name = "saml.sso.service.provider.manager",
+            service = org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSAMLSSOServiceProviderManager")
+    protected void setSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setSAMLSSOServiceProviderManager(samlSSOServiceProviderManager);
+        if (log.isDebugEnabled()) {
+            log.debug("SAMLSSOServiceProviderManager set in to bundle");
+        }
+    }
+
+    protected void unsetSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setSAMLSSOServiceProviderManager(null);
+        if (log.isDebugEnabled()) {
+            log.debug("SAMLSSOServiceProviderManager unset in to bundle");
         }
     }
 }

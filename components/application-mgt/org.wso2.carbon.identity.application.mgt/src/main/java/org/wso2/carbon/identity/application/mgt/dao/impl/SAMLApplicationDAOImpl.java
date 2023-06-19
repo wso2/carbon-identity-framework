@@ -23,8 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 
 /**
  * Implementation of {@link SAMLApplicationDAO}.
@@ -37,7 +37,8 @@ public class SAMLApplicationDAOImpl implements SAMLApplicationDAO {
     public void removeServiceProviderConfiguration(String issuer) throws IdentityApplicationManagementException {
         try {
             int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            SAMLSSOServiceProviderManager.getInstance().removeServiceProvider(issuer, tenantId);
+            ApplicationManagementServiceComponentHolder.getInstance().getSAMLSSOServiceProviderManager()
+                    .removeServiceProvider(issuer, tenantId);
         } catch (IdentityException e) {
             log.error("Erro while deleting the issuer", e);
             throw new IdentityApplicationManagementException("Error while deleting SAML issuer " + e.getMessage());
