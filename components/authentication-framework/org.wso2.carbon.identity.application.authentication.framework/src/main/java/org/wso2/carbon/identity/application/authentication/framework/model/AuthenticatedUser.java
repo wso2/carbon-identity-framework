@@ -25,6 +25,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -32,11 +33,13 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -165,6 +168,34 @@ public class AuthenticatedUser extends User {
     }
 
     /**
+     * Resolve userId from ancestor organizations when user is not found in the current organization.
+     *
+     * @return return user Id.
+     */
+    private String resolveUserIdFromAncestorOrganizations() {
+
+        try {
+            String organizationId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(tenantDomain);
+            if (authenticatedSubjectIdentifier != null) {
+                String userId = authenticatedSubjectIdentifier.split("@")[0];
+                Optional<String> userResideOrgId = FrameworkServiceDataHolder.getInstance()
+                        .getOrganizationUserResidentResolverService()
+                        .resolveResidentOrganization(userId, organizationId);
+                if (userResideOrgId.isPresent()) {
+                    return userId;
+                }
+            }
+            return FrameworkServiceDataHolder.getInstance().getOrganizationUserResidentResolverService()
+                    .resolveUserFromResidentOrganization(userName, null, organizationId)
+                    .map(org.wso2.carbon.user.core.common.User::getUserID).orElse(null);
+        } catch (OrganizationManagementException e) {
+            log.debug("Error while resolving the user id from ancestor organizations.");
+            return null;
+        }
+    }
+
+    /**
      * Internal method to get the user id of a local user with the parameters available in the authenticated user
      * object.
      */
@@ -176,6 +207,9 @@ public class AuthenticatedUser extends User {
                 int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
                 userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
                         this.getUserStoreDomain(), this.getUserName());
+                if (userId == null && FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnabled()) {
+                    return resolveUserIdFromAncestorOrganizations();
+                }
             } catch (UserSessionException e) {
                 log.error("Error while resolving the user id from username for local user.");
             }
