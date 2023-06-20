@@ -183,19 +183,20 @@ public class AuthenticatedUser extends User {
                     Extract user id from the authenticated subject identifier assuming user ID set as a part of the
                     subject identifier.
                 */
-                String mayBeUserId = authenticatedSubjectIdentifier.split(UserCoreConstants.TENANT_DOMAIN_COMBINER)[0];
-                if (mayBeUserId.contains(CarbonConstants.DOMAIN_SEPARATOR)) {
-                    mayBeUserId = mayBeUserId.split(CarbonConstants.DOMAIN_SEPARATOR)[1];
+                String potentialUserId = authenticatedSubjectIdentifier.split(UserCoreConstants.TENANT_DOMAIN_COMBINER)[0];
+                if (potentialUserId.contains(CarbonConstants.DOMAIN_SEPARATOR)) {
+                    potentialUserId = potentialUserId.split(CarbonConstants.DOMAIN_SEPARATOR)[1];
                 }
                 Optional<String> userResideOrgId = FrameworkServiceDataHolder.getInstance()
                         .getOrganizationUserResidentResolverService()
-                        .resolveResidentOrganization(mayBeUserId, organizationId);
+                        .resolveResidentOrganization(potentialUserId, organizationId);
                 if (userResideOrgId.isPresent()) {
-                    return mayBeUserId;
+                    return potentialUserId;
                 }
             }
         } catch (OrganizationManagementException e) {
-            log.debug("Error while resolving the user id from ancestor organizations.");
+            log.error("Error occurred while resolving the user's resident organization by user ID from ancestor " +
+                    "organizations");
         }
         return null;
     }
