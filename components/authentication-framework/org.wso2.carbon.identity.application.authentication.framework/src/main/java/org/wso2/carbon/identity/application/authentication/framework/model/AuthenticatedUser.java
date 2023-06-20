@@ -183,7 +183,8 @@ public class AuthenticatedUser extends User {
                     Extract user id from the authenticated subject identifier assuming user ID set as a part of the
                     subject identifier.
                 */
-                String potentialUserId = authenticatedSubjectIdentifier.split(UserCoreConstants.TENANT_DOMAIN_COMBINER)[0];
+                String potentialUserId =
+                        authenticatedSubjectIdentifier.split(UserCoreConstants.TENANT_DOMAIN_COMBINER)[0];
                 if (potentialUserId.contains(CarbonConstants.DOMAIN_SEPARATOR)) {
                     potentialUserId = potentialUserId.split(CarbonConstants.DOMAIN_SEPARATOR)[1];
                 }
