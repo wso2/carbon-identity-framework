@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -175,24 +176,28 @@ public class AuthenticatedUser extends User {
     private String resolveUserIdFromAncestorOrganizations() {
 
         try {
-            String organizationId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
-                    .resolveOrganizationId(tenantDomain);
             if (authenticatedSubjectIdentifier != null) {
-                String userId = authenticatedSubjectIdentifier.split("@")[0];
+                String organizationId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                        .resolveOrganizationId(tenantDomain);
+                /*
+                    Extract user id from the authenticated subject identifier assuming user ID set as a part of the
+                    subject identifier.
+                */
+                String mayBeUserId = authenticatedSubjectIdentifier.split(UserCoreConstants.TENANT_DOMAIN_COMBINER)[0];
+                if (mayBeUserId.contains(CarbonConstants.DOMAIN_SEPARATOR)) {
+                    mayBeUserId = mayBeUserId.split(CarbonConstants.DOMAIN_SEPARATOR)[1];
+                }
                 Optional<String> userResideOrgId = FrameworkServiceDataHolder.getInstance()
                         .getOrganizationUserResidentResolverService()
-                        .resolveResidentOrganization(userId, organizationId);
+                        .resolveResidentOrganization(mayBeUserId, organizationId);
                 if (userResideOrgId.isPresent()) {
-                    return userId;
+                    return mayBeUserId;
                 }
             }
-            return FrameworkServiceDataHolder.getInstance().getOrganizationUserResidentResolverService()
-                    .resolveUserFromResidentOrganization(userName, null, organizationId)
-                    .map(org.wso2.carbon.user.core.common.User::getUserID).orElse(null);
         } catch (OrganizationManagementException e) {
             log.debug("Error while resolving the user id from ancestor organizations.");
-            return null;
         }
+        return null;
     }
 
     /**
@@ -208,7 +213,7 @@ public class AuthenticatedUser extends User {
                 userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
                         this.getUserStoreDomain(), this.getUserName());
                 if (userId == null && FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnabled()) {
-                    return resolveUserIdFromAncestorOrganizations();
+                    userId = resolveUserIdFromAncestorOrganizations();
                 }
             } catch (UserSessionException e) {
                 log.error("Error while resolving the user id from username for local user.");
