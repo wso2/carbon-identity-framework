@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.provisioning.OutboundProvisioningManager;
 import org.wso2.carbon.identity.provisioning.ProvisioningEntity;
 import org.wso2.carbon.identity.provisioning.ProvisioningEntityType;
 import org.wso2.carbon.identity.provisioning.ProvisioningOperation;
+import org.wso2.carbon.identity.provisioning.ProvisioningUtil;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -412,68 +413,79 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
             return true;
         }
 
-        String[] userList = userStoreManager.getUserListOfRole(roleName);
+        try {
+            String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            String serviceProviderIdentifier = ApplicationConstants.LOCAL_SP;
 
-        Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
+            ThreadLocalProvisioningServiceProvider threadLocalServiceProvider =
+                    IdentityApplicationManagementUtil.getThreadLocalProvisioningServiceProvider();
 
-        outboundAttributes.put(ClaimMapping.build(
-                IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false), Arrays
-                .asList(new String[]{roleName}));
-
-        outboundAttributes.put(ClaimMapping.build(IdentityProvisioningConstants.USERNAME_CLAIM_URI,
-                null, null, false), Arrays.asList(userList));
-
-        outboundAttributes.put(ClaimMapping.build(
-                IdentityProvisioningConstants.NEW_USER_CLAIM_URI, null, null, false), Arrays
-                .asList(newUsers));
-
-        outboundAttributes.put(ClaimMapping.build(
-                        IdentityProvisioningConstants.DELETED_USER_CLAIM_URI, null, null, false),
-                Arrays.asList(deletedUsers));
-
-        String domainName = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
-        if (log.isDebugEnabled()) {
-            log.debug("Adding domain name : " + domainName + " to role : " + roleName);
-        }
-        String domainAwareName = UserCoreUtil.addDomainToName(roleName, domainName);
-
-        ProvisioningEntity provisioningEntity = new ProvisioningEntity(
-                ProvisioningEntityType.GROUP, domainAwareName, ProvisioningOperation.PUT,
-                outboundAttributes);
-
-        String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
-        ThreadLocalProvisioningServiceProvider threadLocalServiceProvider;
-        threadLocalServiceProvider = IdentityApplicationManagementUtil
-                .getThreadLocalProvisioningServiceProvider();
-
-        if (threadLocalServiceProvider != null) {
-            String serviceProvider = threadLocalServiceProvider.getServiceProviderName();
-            tenantDomainName = threadLocalServiceProvider.getTenantDomain();
-            if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                try {
-                    serviceProvider = ApplicationManagementService.getInstance()
-                            .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
-                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                } catch (IdentityApplicationManagementException e) {
-                    log.error("Error while provisioning", e);
-                    return true;
-                }
+            if (threadLocalServiceProvider != null) {
+                serviceProviderIdentifier = threadLocalServiceProvider.getServiceProviderName();
+                tenantDomainName = threadLocalServiceProvider.getTenantDomain();
             }
 
-            // call framework method to provision the user.
-            OutboundProvisioningManager.getInstance().provision(provisioningEntity,
-                    serviceProvider, threadLocalServiceProvider.getClaimDialect(),
-                    tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
-        } else {
-            // call framework method to provision the group.
-            OutboundProvisioningManager.getInstance()
-                    .provision(provisioningEntity, ApplicationConstants.LOCAL_SP,
-                            IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
-        }
+            if (!ProvisioningUtil.isOutboundProvisioningEnabled(serviceProviderIdentifier,tenantDomainName)) {
+                return true;
+            }
 
-        return true;
+            String[] userList = userStoreManager.getUserListOfRole(roleName);
+
+            Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
+
+            outboundAttributes.put(ClaimMapping.build(
+                    IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false), Arrays
+                    .asList(new String[]{roleName}));
+
+            outboundAttributes.put(ClaimMapping.build(IdentityProvisioningConstants.USERNAME_CLAIM_URI,
+                    null, null, false), Arrays.asList(userList));
+
+            outboundAttributes.put(ClaimMapping.build(
+                    IdentityProvisioningConstants.NEW_USER_CLAIM_URI, null, null, false), Arrays
+                    .asList(newUsers));
+
+            outboundAttributes.put(ClaimMapping.build(
+                            IdentityProvisioningConstants.DELETED_USER_CLAIM_URI, null, null, false),
+                    Arrays.asList(deletedUsers));
+
+            String domainName = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
+            if (log.isDebugEnabled()) {
+                log.debug("Adding domain name : " + domainName + " to role : " + roleName);
+            }
+            String domainAwareName = UserCoreUtil.addDomainToName(roleName, domainName);
+
+            ProvisioningEntity provisioningEntity = new ProvisioningEntity(
+                    ProvisioningEntityType.GROUP, domainAwareName, ProvisioningOperation.PUT,
+                    outboundAttributes);
+
+            if (threadLocalServiceProvider != null) {
+                if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
+                    try {
+                        serviceProviderIdentifier = ApplicationManagementService.getInstance()
+                                .getServiceProviderNameByClientId(
+                                        threadLocalServiceProvider.getServiceProviderName(),
+                                        IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
+                    } catch (IdentityApplicationManagementException e) {
+                        log.error("Error while provisioning", e);
+                        return true;
+                    }
+                }
+
+                // call framework method to provision the user.
+                OutboundProvisioningManager.getInstance().provision(provisioningEntity,
+                        serviceProviderIdentifier, threadLocalServiceProvider.getClaimDialect(),
+                        tenantDomainName, threadLocalServiceProvider.isJustInTimeProvisioning());
+            } else {
+                // call framework method to provision the group.
+                OutboundProvisioningManager.getInstance()
+                        .provision(provisioningEntity, serviceProviderIdentifier,
+                                IdentityProvisioningConstants.WSO2_CARBON_DIALECT, tenantDomainName, false);
+            }
+
+            return true;
+        } catch (IdentityApplicationManagementException e) {
+            throw new UserStoreException("Error while getting the application name", e);
+        }
     }
 
     @Override
