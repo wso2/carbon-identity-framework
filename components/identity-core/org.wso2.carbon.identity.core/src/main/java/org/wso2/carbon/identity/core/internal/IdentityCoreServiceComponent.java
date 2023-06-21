@@ -34,6 +34,7 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.KeyProviderService;
 import org.wso2.carbon.identity.core.KeyStoreManagerExtension;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.ServiceURLBuilderFactory;
 import org.wso2.carbon.identity.core.migrate.MigrationClient;
 import org.wso2.carbon.identity.core.migrate.MigrationClientException;
@@ -171,6 +172,10 @@ public class IdentityCoreServiceComponent {
                     log.debug("Identity Registry Management Service registered successfully.");
                 }
             }
+
+            // Registering the SAML SSO Service Provider configuration manager.
+            ctxt.getBundleContext().registerService(SAMLSSOServiceProviderManager.class.getName(),
+                    new SAMLSSOServiceProviderManager(), null);
 
             defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
                     defaultKeyProviderService, null);
