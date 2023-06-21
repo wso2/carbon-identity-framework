@@ -423,6 +423,12 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
             if (threadLocalServiceProvider != null) {
                 serviceProviderIdentifier = threadLocalServiceProvider.getServiceProviderName();
                 tenantDomainName = threadLocalServiceProvider.getTenantDomain();
+                if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
+                    serviceProviderIdentifier = ApplicationManagementService.getInstance()
+                            .getServiceProviderNameByClientId(
+                                    threadLocalServiceProvider.getServiceProviderName(),
+                                    IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
+                }
             }
 
             if (!ProvisioningUtil.isOutboundProvisioningEnabled(serviceProviderIdentifier,tenantDomainName)) {
@@ -459,18 +465,6 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
                     outboundAttributes);
 
             if (threadLocalServiceProvider != null) {
-                if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
-                    try {
-                        serviceProviderIdentifier = ApplicationManagementService.getInstance()
-                                .getServiceProviderNameByClientId(
-                                        threadLocalServiceProvider.getServiceProviderName(),
-                                        IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
-                    } catch (IdentityApplicationManagementException e) {
-                        log.error("Error while provisioning", e);
-                        return true;
-                    }
-                }
-
                 // call framework method to provision the user.
                 OutboundProvisioningManager.getInstance().provision(provisioningEntity,
                         serviceProviderIdentifier, threadLocalServiceProvider.getClaimDialect(),
@@ -484,7 +478,8 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
 
             return true;
         } catch (IdentityApplicationManagementException e) {
-            throw new UserStoreException("Error while getting the application name", e);
+            log.error("Error while getting the application ", e);
+            return true;
         }
     }
 
