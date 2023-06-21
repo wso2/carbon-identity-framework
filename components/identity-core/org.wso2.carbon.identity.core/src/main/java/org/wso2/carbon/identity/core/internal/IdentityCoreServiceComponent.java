@@ -175,7 +175,7 @@ public class IdentityCoreServiceComponent {
 
             // Registering the SAML SSO Service Provider configuration manager.
             ctxt.getBundleContext().registerService(SAMLSSOServiceProviderManager.class.getName(),
-                    SAMLSSOServiceProviderManager.getInstance(), null);
+                    new SAMLSSOServiceProviderManager(), null);
 
             defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
                     defaultKeyProviderService, null);

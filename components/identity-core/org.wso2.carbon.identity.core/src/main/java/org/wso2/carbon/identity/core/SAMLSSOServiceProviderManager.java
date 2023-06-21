@@ -35,29 +35,6 @@ public class SAMLSSOServiceProviderManager {
 
     private static final Log LOG = LogFactory.getLog(SAMLSSOServiceProviderManager.class);
 
-    private static SAMLSSOServiceProviderManager samlssoServiceProviderManager;
-
-    private SAMLSSOServiceProviderManager() {
-
-    }
-
-    /**
-     * Get the instance of SAMLSSOServiceProviderManager.
-     *
-     * @return Instance of SAMLSSOServiceProviderManager.
-     */
-    public static SAMLSSOServiceProviderManager getInstance() {
-
-        if(samlssoServiceProviderManager == null) {
-            synchronized (SAMLSSOServiceProviderManager.class) {
-                if(samlssoServiceProviderManager == null) {
-                    samlssoServiceProviderManager = new SAMLSSOServiceProviderManager();
-                }
-            }
-        }
-        return samlssoServiceProviderManager;
-    }
-
     /**
      * Build the SAML service provider.
      *
