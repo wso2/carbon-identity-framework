@@ -52,6 +52,8 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -112,6 +114,8 @@ public class FrameworkServiceDataHolder {
 
     private boolean isAdaptiveAuthenticationAvailable = false;
     private boolean isOrganizationManagementEnable = false;
+    private OrganizationManager organizationManager;
+    private OrganizationUserResidentResolverService organizationUserResidentResolverService;
 
     private FrameworkServiceDataHolder() {
 
@@ -680,6 +684,47 @@ public class FrameworkServiceDataHolder {
         if (organizationManagementInitializeService != null) {
             isOrganizationManagementEnable = organizationManagementInitializeService.isOrganizationManagementEnabled();
         }
+    }
+
+    /**
+     * Get {@link OrganizationManager}.
+     *
+     * @return organization manager instance {@link OrganizationManager}.
+     */
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    /**
+     * Set {@link OrganizationManager}.
+     *
+     * @param organizationManager Instance of {@link OrganizationManager}.
+     */
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
+    }
+
+    /**
+     * Get {@link OrganizationUserResidentResolverService}.
+     *
+     * @return organization user resident resolver instance {@link OrganizationUserResidentResolverService}.
+     */
+    public OrganizationUserResidentResolverService getOrganizationUserResidentResolverService() {
+
+        return organizationUserResidentResolverService;
+    }
+
+    /**
+     * Set {@link OrganizationUserResidentResolverService}.
+     *
+     * @param organizationUserResidentResolverService Instance of {@link OrganizationUserResidentResolverService}.
+     */
+    public void setOrganizationUserResidentResolverService(
+            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
+
+        this.organizationUserResidentResolverService = organizationUserResidentResolverService;
     }
 
     public IdpManager getIdentityProviderManager() {
