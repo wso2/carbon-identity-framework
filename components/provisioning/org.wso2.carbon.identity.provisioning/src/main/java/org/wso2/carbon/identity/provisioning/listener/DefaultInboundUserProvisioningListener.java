@@ -426,7 +426,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
                 if (threadLocalServiceProvider.getServiceProviderType() == ProvisioningServiceProviderType.OAUTH) {
                     serviceProviderIdentifier = ApplicationManagementService.getInstance()
                             .getServiceProviderNameByClientId(
-                                    threadLocalServiceProvider.getServiceProviderName(),
+                                    serviceProviderIdentifier,
                                     IdentityApplicationConstants.OAuth2.NAME, tenantDomainName);
                 }
             }
