@@ -69,6 +69,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -371,6 +372,21 @@ public class DefaultStepHandler implements StepHandler {
                     } catch (IOException | URISyntaxException e) {
                         throw new FrameworkException(e.getMessage(), e);
                     }
+                }
+
+                // Add Diagnostic logs with the filtered authenticator list information.
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
+                    diagLogBuilder.putParams(FrameworkConstants.LogConstants.SERVICE_PROVIDER,
+                            context.getServiceProviderName());
+                    diagLogBuilder.putParams(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
+                    diagLogBuilder.putParams("Available authenticator list", filteredAuthConfigList.stream().map(
+                            AuthenticatorConfig::getName).collect(Collectors.toList()));
+                    diagLogBuilder.resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                    diagLogBuilder.resultMessage("Filtered authenticator list for the step " + stepConfig.getOrder());
+                    LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
                 }
 
                 // Are there multiple authenticators?
@@ -681,6 +697,19 @@ public class DefaultStepHandler implements StepHandler {
         if (context.getExternalIdP() != null && authenticator instanceof FederatedApplicationAuthenticator) {
             idpName = context.getExternalIdP().getIdPName();
         }
+        // Add Diagnostic Logs for the selected authenticator by the user.
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.AUTHENTICATION_STEP_EXECUTION);
+            diagnosticLogBuilder.putParams("IDP name", idpName)
+                    .putParams("Selected Authenticator", authenticator.getName())
+                    .putParams("Step", currentStep)
+                    .resultMessage("Executing the Authentication Step.")
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+
+        }
 
         try {
             context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
@@ -830,37 +859,40 @@ public class DefaultStepHandler implements StepHandler {
                         data, SUCCESS));
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
-                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-                params.put(FrameworkConstants.LogConstants.IDP, stepConfig.getAuthenticatedIdP());
-                params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME,
-                        stepConfig.getAuthenticatedAutenticator().getName());
-                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
-                        LogConstants.SUCCESS, "Authentication success for step: " + stepConfig.getOrder(),
-                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
+                diagLogBuilder.putParams(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder())
+                        .addAllParams(getContextParamsForDiagnosticLogs(context, authenticatorConfig,
+                                stepConfig))
+                        .putParams(FrameworkConstants.LogConstants.IDP, stepConfig.getAuthenticatedIdP())
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                        .resultMessage("Authentication success for step: " + stepConfig.getOrder());
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
             }
         } catch (InvalidCredentialsException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("A login attempt was failed due to invalid credentials", e);
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                 Map<String, Object> params = getContextParamsForDiagnosticLogs(context, authenticatorConfig,
-                        stepConfig);
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
+                diagLogBuilder.addAllParams(getContextParamsForDiagnosticLogs(context, authenticatorConfig,
+                        stepConfig));
                 Optional.ofNullable(e.getUser()).ifPresent(user -> {
                     Optional.ofNullable(user.toFullQualifiedUsername()).ifPresent(username -> {
-                        params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
+                        diagLogBuilder.putParams(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
                                 LoggerUtils.getMaskedContent(username) : username);
                     });
-                    params.put(FrameworkConstants.LogConstants.USER_STORE_DOMAIN, user.getUserStoreDomain());
-                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, user.getTenantDomain());
+                    diagLogBuilder.putParams(FrameworkConstants.LogConstants.USER_STORE_DOMAIN,
+                            user.getUserStoreDomain());
+                    diagLogBuilder.putParams(FrameworkConstants.LogConstants.TENANT_DOMAIN, user.getTenantDomain());
                 });
-                params.put(FrameworkConstants.LogConstants.IDP, idpName);
-                params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticatorConfig.getName());
-                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
-                        LogConstants.FAILED, "Authentication failed: " + e.getMessage(),
-                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
+                diagLogBuilder.putParams(FrameworkConstants.LogConstants.IDP, idpName)
+                        .resultMessage("Authentication failed: " + e.getMessage())
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + idpName + ", Authenticator:" +
                     authenticatorConfig.getName();
@@ -919,11 +951,20 @@ public class DefaultStepHandler implements StepHandler {
                         "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = getContextParamsForDiagnosticLogs(context, authenticatorConfig,
-                        stepConfig);
-                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
-                        LogConstants.FAILED, "Authentication failed exception: " + e.getMessage(),
-                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
+                diagLogBuilder.addAllParams(getContextParamsForDiagnosticLogs(context, authenticatorConfig,
+                        stepConfig))
+                        .putParams(FrameworkConstants.LogConstants.IDP, idpName)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                        .resultMessage("Authentication failed exception: " + e.getMessage());
+                if (e.getUser() != null) {
+                    diagLogBuilder.putParams("user", LoggerUtils.isLogMaskingEnable ?
+                            LoggerUtils.getMaskedContent(e.getUser().toFullQualifiedUsername()) :
+                            e.getUser().toFullQualifiedUsername());
+                }
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
             }
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (LogoutFailedException e) {

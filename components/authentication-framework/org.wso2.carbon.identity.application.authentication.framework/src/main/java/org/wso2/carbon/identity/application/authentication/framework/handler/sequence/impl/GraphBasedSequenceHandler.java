@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -368,6 +369,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (log.isDebugEnabled()) {
             log.debug("Found a Fail Node in conditional authentication");
         }
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
 
         if (node.isShowErrorPage()) {
             // Set parameters specific to sendError function to context if isShowErrorPage  is true
@@ -395,9 +399,19 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     redirectURL = uriBuilder.toString();
                 }
                 response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    diagnosticLogBuilder.putParams("redirectURL", redirectURL)
+                            .putParams("Application Name", context.getServiceProviderName())
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                }
             } catch (IOException e) {
+                diagnosticLogBuilder.resultMessage("Error when redirecting user to " + errorPage);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 throw new FrameworkException("Error when redirecting user to " + errorPage, e);
             } catch (URISyntaxException e) {
+                diagnosticLogBuilder.resultMessage("Error when redirecting user to " + errorPage
+                        + ". Error page is not a valid URL.");
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 throw new FrameworkException("Error when redirecting user to " + errorPage
                         + ". Error page is not a valid URL.", e);
             }
@@ -405,6 +419,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             context.setRequestAuthenticated(false);
             context.getSequenceConfig().setCompleted(true);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+            diagnosticLogBuilder.resultMessage("Error initiated from authentication script. User will be redirected " +
+                    "to " + redirectURL);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
                     redirectURL);
         } else {

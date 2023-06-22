@@ -104,6 +104,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
@@ -135,6 +136,7 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -3349,6 +3351,16 @@ public class FrameworkUtils {
             if (claimMappingListOfScopes.contains(claim.getLocalClaim().getClaimUri())) {
                 requestedScopeClaims.add(claim);
             }
+        }
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, "issue-access-token");
+            diagnosticLogBuilder.resultMessage("Filter Claims by OIDC Scopes.");
+            diagnosticLogBuilder.resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+            diagnosticLogBuilder.putParams("Available user attributes", claimListOfScopes);
+            diagnosticLogBuilder.putParams("Available claims for scopes", claimMappingListOfScopes);
+            diagnosticLogBuilder.logLevel(DiagnosticLog.LogLevel.BASIC);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         return requestedScopeClaims;
     }
