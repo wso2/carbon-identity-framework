@@ -112,6 +112,7 @@ public class LoggerUtils {
      * @param actionId       Action ID.
      * @param configurations System/application level configurations.
      */
+    @Deprecated
     public static void triggerDiagnosticLogEvent(String componentId, Map<String, Object> input, String resultStatus,
                                                  String resultMessage, String actionId,
                                                  Map<String, Object> configurations) {
@@ -139,6 +140,30 @@ public class LoggerUtils {
     }
 
     /**
+     * Trigger Diagnostic Log Event.
+     *
+     * @param diagnosticLogBuilder Diagnostic log builder.
+     */
+    public static void triggerDiagnosticLogEvent(DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder) {
+
+        try {
+            Map<String, Object> diagnosticLogProperties = new HashMap<>();
+            DiagnosticLog diagnosticLog = diagnosticLogBuilder.build();
+            IdentityEventService eventMgtService =
+                    CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
+            diagnosticLogProperties.put(CarbonConstants.LogEventConstants.DIAGNOSTIC_LOG, diagnosticLog);
+            int tenantId =
+                    IdentityTenantUtil.getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            diagnosticLogProperties.put(CarbonConstants.LogEventConstants.TENANT_ID, tenantId);
+            Event diagnosticLogEvent = new Event(PUBLISH_DIAGNOSTIC_LOG, diagnosticLogProperties);
+            eventMgtService.handleEvent(diagnosticLogEvent);
+        } catch (IdentityEventException e) {
+            String errorLog = "Error occurred when firing the diagnostic log event.";
+            log.error(errorLog, e);
+        }
+    }
+
+    /**
      * Checks whether diagnostic logs are enabled.
      *
      * @return false if DiagnosticLogMode is NONE, true otherwise.
@@ -148,10 +173,7 @@ public class LoggerUtils {
         int tenantId = IdentityTenantUtil.getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         CarbonConstants.DiagnosticLogMode diagnosticLogMode = CarbonUtils.getDiagnosticLogMode(tenantId);
 
-        if (CarbonConstants.DiagnosticLogMode.NONE.equals(diagnosticLogMode)) {
-            return false;
-        }
-        return true;
+        return !CarbonConstants.DiagnosticLogMode.NONE.equals(diagnosticLogMode);
     }
 
     /**
