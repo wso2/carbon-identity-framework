@@ -724,6 +724,7 @@ public abstract class FrameworkConstants {
             public static final String PROCESS_ACR_VALUES = "process-acr-values";
             public static final String HANDLE_MISSING_CLAIMS = "handle-missing-claims";
             public static final String PROCESS_CLAIM_CONSENT = "process-claim-consent";
+            public static final String AUTHENTICATION_STEP_EXECUTION = "authentication-step-execution";
         }
     }
 
