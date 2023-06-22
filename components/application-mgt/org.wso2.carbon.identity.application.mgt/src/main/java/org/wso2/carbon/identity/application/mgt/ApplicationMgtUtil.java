@@ -1021,33 +1021,10 @@ public class ApplicationMgtUtil {
         try {
             JSONObject serviceProviderJSONObject =
                     new JSONObject(new ObjectMapper().writeValueAsString(serviceProvider));
-            JSONObject inboundAuthenticationConfig =
-                    serviceProviderJSONObject.optJSONObject("inboundAuthenticationConfig");
-            if (inboundAuthenticationConfig != null) {
-                JSONArray inboundAuthenticationRequestConfigsArray =
-                        inboundAuthenticationConfig.optJSONArray("inboundAuthenticationRequestConfigs");
-                if (inboundAuthenticationRequestConfigsArray != null) {
-                    for (int i = 0; i < inboundAuthenticationRequestConfigsArray.length(); i++) {
-                        JSONObject requestConfig = inboundAuthenticationRequestConfigsArray.getJSONObject(i);
-                        JSONArray properties = requestConfig.optJSONArray("properties");
-                        if (properties != null) {
-                            for (int j = 0; j < properties.length(); j++) {
-                                JSONObject property = properties.optJSONObject(j);
-                                if (property != null && StringUtils.equalsIgnoreCase("oauthConsumerSecret",
-                                        (String) property.get("name"))) {
-                                    if (property.get("value") != null) {
-                                        String secret = property.get("value").toString();
-                                        String maskedSecret = secret.replaceAll(MASKING_REGEX, MASKING_CHARACTER);
-                                        property.put("value", maskedSecret);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            maskClientSecret(serviceProviderJSONObject.optJSONObject("inboundAuthenticationConfig"));
+            maskAppOwnerUsername(serviceProviderJSONObject.optJSONObject("owner"));
             return serviceProviderJSONObject.toString();
-        } catch (JsonProcessingException e) {
+        } catch (JsonProcessingException | IdentityException e) {
             log.error("Error while converting service provider object to json.");
         }
         return StringUtils.EMPTY;

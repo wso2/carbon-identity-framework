@@ -76,14 +76,15 @@ public class LoggerUtils {
      */
     public static void triggerAuditLogEvent(String initiatorId, String initiatorType,
                                             String action, String targetId, String targetType,
-                                            String dataChange, boolean isComponentWiseLoggingEnabled) {
+                                            String dataChange, boolean isLoggingEnabled) {
 
         try {
             // Publish new audit logs only if the old audit log publishing is disabled.
-            if (isComponentWiseLoggingEnabled || isLegacyAuditLogsDisabled()) {
+            if (isLoggingEnabled || isLegacyAuditLogsDisabled()) {
                 Map<String, Object> addAuditLogProperties = new HashMap<>();
                 String id = UUID.randomUUID().toString();
                 Instant recordedAt = parseDateTime(Instant.now().toString());
+
                 String correlationId = MDC.get(CORRELATION_ID_MDC);
                 String organization = IdentityTenantUtil.getTenantDomainFromContext();
 
