@@ -562,6 +562,11 @@ public class ProvisioningUtil {
         ServiceProvider serviceProvider = ApplicationManagementService.getInstance()
                 .getServiceProvider(serviceProviderIdentifier, tenantDomainName);
 
+        if (serviceProvider == null) {
+            throw new IdentityApplicationManagementException("Cannot find the service provider " +
+                    serviceProviderIdentifier);
+        }
+
         OutboundProvisioningConfig outboundProvisioningConfiguration = serviceProvider
                 .getOutboundProvisioningConfig();
 
