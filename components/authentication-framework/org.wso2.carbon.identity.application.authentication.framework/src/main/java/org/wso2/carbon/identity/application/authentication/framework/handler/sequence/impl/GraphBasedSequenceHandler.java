@@ -120,13 +120,16 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             return;
         }
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            Map<String, Object> params = new HashMap<>();
-            params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-            params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-            LoggerUtils.triggerDiagnosticLogEvent(
-                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                    "Executing script-based authentication",
-                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
+            diagnosticLogBuilder.putParams("Application Name", context.getServiceProviderName())
+                    .putParams("Tenant Domain", context.getTenantDomain())
+                    .putParams("clientId", context.getSequenceConfig().getApplicationId())
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .resultMessage("Executing script-based authentication.")
+                    .logLevel(DiagnosticLog.LogLevel.ADVANCED);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         if (!graph.isBuildSuccessful()) {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
