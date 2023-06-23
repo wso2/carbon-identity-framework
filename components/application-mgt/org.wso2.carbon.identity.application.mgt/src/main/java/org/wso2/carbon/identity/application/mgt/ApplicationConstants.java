@@ -99,6 +99,10 @@ public class ApplicationConstants {
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
 
+    public static final String TARGET_APPLICATION = "APPLICATION";
+
+    public static final String USER = "USER";
+
     /**
      * Grouping of constants related to database SP_APP table.
      */

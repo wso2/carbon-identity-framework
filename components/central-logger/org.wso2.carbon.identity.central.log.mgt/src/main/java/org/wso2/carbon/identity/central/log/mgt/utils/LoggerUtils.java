@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.central.log.mgt.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -57,38 +59,47 @@ public class LoggerUtils {
     private static final Log log = LogFactory.getLog(LoggerUtils.class);
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
     private static final String FLOW_ID_MDC = "Flow-ID";
-    private static final String CLIENT_COMPONENT = "clientComponent";
 
-   /**
+    /**
     * Config value related to masking sensitive information from logs.
     */
     public static boolean isLogMaskingEnable;
 
     /**
      * @param initiatorId   Request initiator's id.
-     * @param initiatorName Request initiator's name.
      * @param initiatorType Request initiator's type.
-     * @param evenType      State changing event name.
+     * @param action      State changing event name.
      * @param targetId      Target resource's id.
-     * @param targetName    Target resource's name.
      * @param targetType    Target resource type.
      * @param dataChange    Changing data.
      */
-    public static void triggerAuditLogEvent(String initiatorId, String initiatorName, String initiatorType,
-                                            String evenType, String targetId, String targetName, String targetType,
-                                            String dataChange) {
+    public static void triggerAuditLogEvent(String initiatorId, String initiatorType,
+                                            String action, String targetId, String targetType,
+                                            String dataChange, boolean isLoggingEnabled) {
 
         try {
             // Publish new audit logs only if the old audit log publishing is disabled.
-            if (isLegacyAuditLogsDisabled()) {
+            if (isLoggingEnabled || isLegacyAuditLogsDisabled()) {
                 Map<String, Object> addAuditLogProperties = new HashMap<>();
                 String id = UUID.randomUUID().toString();
                 Instant recordedAt = parseDateTime(Instant.now().toString());
-                String clientComponent = MDC.get(CLIENT_COMPONENT);
+
                 String correlationId = MDC.get(CORRELATION_ID_MDC);
+
+                JsonObject initiator = new JsonObject();
+                initiator.addProperty(LogConstants.INITIATOR_ID, initiatorId);
+                initiator.addProperty(LogConstants.INITIATOR_TYPE, initiatorType);
+
+                JsonObject target = new JsonObject();
+                target.addProperty(LogConstants.TARGET_ID, targetId);
+                target.addProperty(LogConstants.TARGET_TYPE, targetType);
+
+                // Convert dataChange into a JsonObject using gson
+                Gson gson = new Gson();
+                JsonObject data = gson.fromJson(dataChange, JsonObject.class);
                 AuditLog auditLog =
-                        new AuditLog(id, recordedAt, clientComponent, correlationId, initiatorId, initiatorName,
-                                initiatorType, evenType, targetId, targetName, targetType, dataChange);
+                        new AuditLog(id, recordedAt, correlationId, initiator.getAsJsonObject(),
+                                target.getAsJsonObject(), action, data, LogConstants.SUCCESS);
                 addAuditLogProperties.put(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog);
 
                 IdentityEventService eventMgtService =
