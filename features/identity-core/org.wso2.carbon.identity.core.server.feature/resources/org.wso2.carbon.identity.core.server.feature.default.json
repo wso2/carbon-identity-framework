@@ -565,6 +565,7 @@
   "resource_access_control.scim2_me_get_method.keep_resource": true,
   "resource_access_control.scim2_me_delete_method.secured": true,
   "resource_access_control.scim2_me_delete_method.permission": "/permission/admin/manage/identity/usermgt/delete",
+  "resource_access_control.scim2_me_delete_method.scope": "internal_user_mgt_delete",
   "resource_access_control.scim2_me_delete_method.keep_resource": true,
   "resource_access_control.scim2_me_put_method.secured": true,
   "resource_access_control.scim2_me_put_method.permission": "/permission/admin/login",
@@ -574,6 +575,7 @@
   "resource_access_control.scim2_me_patch_method.keep_resource": true,
   "resource_access_control.scim2_me_post_method.secured": true,
   "resource_access_control.scim2_me_post_method.permission": "/permission/admin/manage/identity/usermgt/create",
+  "resource_access_control.scim2_me_post_method.scope": "internal_user_mgt_create",
   "resource_access_control.scim2_me_post_method.keep_resource": true,
 
   "user.association.enable_for_federated_users": false,
