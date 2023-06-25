@@ -474,6 +474,77 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         return issuerWithQualifier;
     }
 
+    /**
+     * Update the service provider if it exists.
+     *
+     * @param serviceProviderDO service provider to be updated.
+     * @return true if the update is successful.
+     * @throws IdentityException if an error occurs while updating the service provider.
+     */
+    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
+
+        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
+                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
+            throw new IdentityException("Issuer cannot be found in the provided arguments.");
+        }
+
+        // If an issuer qualifier value is specified, it is appended to the end of the issuer value.
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
+                    serviceProviderDO.getIssuerQualifier()));
+        }
+
+        String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
+
+        boolean isTransactionStarted = Transaction.isStarted();
+        boolean isErrorOccurred = false;
+        try {
+            if (!registry.resourceExists(path)) {
+                if (log.isDebugEnabled()) {
+                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                        log.debug("SAML2 Service Provider does not exist with the issuer name "
+                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
+                                + serviceProviderDO.getIssuerQualifier());
+                    } else {
+                        log.debug("SAML2 Service Provider does not exist with the issuer name "
+                                + serviceProviderDO.getIssuer());
+                    }
+                }
+                return false;
+            }
+
+            Resource resource = createResource(serviceProviderDO);
+            if (!isTransactionStarted) {
+                registry.beginTransaction();
+            }
+            registry.put(path, resource);
+            if (log.isDebugEnabled()) {
+                if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
+                            + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
+                            serviceProviderDO.getIssuerQualifier() + " is updated successfully.");
+                } else {
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " is updated successfully.");
+                }
+            }
+            return true;
+        } catch (RegistryException e) {
+            isErrorOccurred = true;
+            String msg;
+            if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                msg = "Error while updating SAML2 Service Provider for issuer: " + getIssuerWithoutQualifier
+                        (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
+                        .getIssuerQualifier();
+            } else {
+                msg = "Error while updating SAML2 Service Provider for issuer: " + serviceProviderDO.getIssuer();
+            }
+            log.error(msg, e);
+            throw new IdentityException(msg, e);
+        } finally {
+            commitOrRollbackTransaction(isErrorOccurred);
+        }
+    }
+
     public SAMLSSOServiceProviderDO[] getServiceProviders() throws IdentityException {
         List<SAMLSSOServiceProviderDO> serviceProvidersList = new ArrayList<>();
         try {
