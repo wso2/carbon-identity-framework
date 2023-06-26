@@ -136,19 +136,19 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.TARGET_APPLICATION;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.USER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TARGET_APPLICATION;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.USER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPData;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPDataWhileUpdate;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getAppId;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getInitiatorId;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.validateTenant;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getInitiatorId;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -230,7 +230,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-       triggerAuditLogForAppCreation(username, tenantDomain, serviceProvider);
+        triggerAuditLogs(username, tenantDomain, getAppId(serviceProvider), buildSPData(serviceProvider),
+                CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId());
         return serviceProvider;
     }
 
@@ -635,7 +636,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         String applicationName = serviceProvider.getApplicationName();
         ServiceProvider serviceProviderCopy = SerializationUtils.clone(serviceProvider);
-
         try {
             // check whether user is authorized to update the application.
             startTenantFlow(tenantDomain, username);
@@ -648,7 +648,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         "tenantDomain: " + tenantDomain;
                 throw buildClientException(APPLICATION_NOT_FOUND, msg);
             }
-
 
             // Updating the isManagement flag of application is blocked. So updating it to stored value
             boolean isManagementApp = appDAO.getApplication(serviceProvider.getApplicationID())
@@ -681,42 +680,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        triggerAuditLogForAppUpdate(username, tenantDomain,  serviceProvider, serviceProviderCopy);
+        triggerAuditLogs(username, tenantDomain, getAppId(serviceProvider),
+                buildSPDataWhileUpdate(serviceProviderCopy, serviceProvider),
+                CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId());
     }
 
-    private void triggerAuditLogForAppCreation(String username, String tenantDomain, ServiceProvider serviceProvider) {
+    private void triggerAuditLogs(String username, String tenantDomain, String appId, String dataChange,
+                                  String action) {
 
         boolean isLegacyAuditLogsDisabledInAppMgt = ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt() ||
                 isLegacyAuditLogsDisabled();
         if (isLegacyAuditLogsDisabledInAppMgt) {
             triggerAuditLogEvent(getInitiatorId(username, tenantDomain), USER,
-                    CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId(),
-                    getAppId(serviceProvider), TARGET_APPLICATION, buildSPData(serviceProvider), true);
-        }
-    }
-
-    private void triggerAuditLogForAppUpdate(String username, String tenantDomain,
-                                             ServiceProvider updatedServiceProvider,
-                                             ServiceProvider oldServiceProvider) {
-
-        boolean isLegacyAuditLogsDisabledInAppMgt = ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt() ||
-                isLegacyAuditLogsDisabled();
-        if (isLegacyAuditLogsDisabledInAppMgt) {
-            triggerAuditLogEvent(getInitiatorId(username, tenantDomain), USER,
-                    CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(),
-                    getAppId(updatedServiceProvider), TARGET_APPLICATION,
-                    buildSPDataWhileUpdate(oldServiceProvider, updatedServiceProvider), true);
-        }
-    }
-
-    private void triggerAuditLogForAppDeletion(String username, String tenantDomain, ServiceProvider serviceProvider) {
-
-        boolean isLegacyAuditLogsDisabledInAppMgt = ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt() ||
-                isLegacyAuditLogsDisabled();
-        if (isLegacyAuditLogsDisabledInAppMgt) {
-            triggerAuditLogEvent(getInitiatorId(username, tenantDomain), USER,
-                    CarbonConstants.LogEventConstants.EventCatalog.DELETE_APPLICATION.getEventId(),
-                    getAppId(serviceProvider), TARGET_APPLICATION, null, true);
+                    action, appId, TARGET_APPLICATION, dataChange, true);
         }
     }
 
@@ -826,8 +802,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-
-        triggerAuditLogForAppDeletion(username, tenantDomain, serviceProvider);
+        triggerAuditLogs(username, tenantDomain, getAppId(serviceProvider), null,
+                CarbonConstants.LogEventConstants.EventCatalog.DELETE_APPLICATION.getEventId());
     }
 
     /**
@@ -1599,7 +1575,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
         ServiceProvider serviceProviderCopy = SerializationUtils.clone(serviceProvider);
-
         // Invoking the listeners.
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
@@ -2514,7 +2489,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw buildServerException("Server encountered an unexpected error when creating the application.");
             }
         }
-        triggerAuditLogForAppCreation(username, tenantDomain, application);
+        triggerAuditLogs(username, tenantDomain, getAppId(application), buildSPData(application),
+                CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId());
 
         return resourceId;
     }
@@ -2581,9 +2557,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         " failed for application with resourceId: " + resourceId);
             }
         }
-
         ServiceProvider serviceProviderCopy = getApplicationByResourceId(resourceId, tenantDomain);
-
         try {
             startTenantFlow(tenantDomain, username);
 
@@ -2621,7 +2595,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        triggerAuditLogForAppUpdate(username, tenantDomain, updatedApp, serviceProviderCopy);
+        triggerAuditLogs(username, tenantDomain, getAppId(updatedApp),
+                buildSPDataWhileUpdate(serviceProviderCopy, updatedApp),
+                CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId());
     }
 
     @Override
@@ -2836,8 +2812,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-
-        triggerAuditLogForAppDeletion(username, tenantDomain, application);
+        triggerAuditLogs(username, tenantDomain, getAppId(application), null,
+                CarbonConstants.LogEventConstants.EventCatalog.DELETE_APPLICATION.getEventId());
     }
 
     private void doPreDeleteChecks(String applicationName, String tenantDomain,

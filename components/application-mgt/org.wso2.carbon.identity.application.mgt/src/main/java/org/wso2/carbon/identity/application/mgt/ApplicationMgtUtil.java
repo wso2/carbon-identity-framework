@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -68,6 +69,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.APP_OWNER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.INBOUND_AUTHENTICATION_CONFIG;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 
 /**
@@ -912,8 +916,24 @@ public class ApplicationMgtUtil {
     /**
      * Build the service provider JSON string masking the sensitive information.
      *
-     * @param updatedServiceProvider Service provider object.
+     * @param serviceProvider Service provider object.
      * @return JSON string of the service provider object.
+     */
+    public static String buildSPData(ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            return StringUtils.EMPTY;
+        }
+        return buildSPDataJSONObject(serviceProvider).toString();
+    }
+
+    /**
+     * Build the service provider JSON string masking the sensitive information. This applies for application update
+     * flow.
+     *
+     * @param oldServiceProvider     Old service provider object.
+     * @param updatedServiceProvider Updated service provider object.
+     * @return JSON string of the combination of both data.
      */
     public static String buildSPDataWhileUpdate(ServiceProvider oldServiceProvider,
                                                 ServiceProvider updatedServiceProvider) {
@@ -921,27 +941,33 @@ public class ApplicationMgtUtil {
         if (updatedServiceProvider == null && oldServiceProvider == null) {
             return StringUtils.EMPTY;
         }
-        try {
-            JSONObject updatedServiceProviderJSONObject =
-                    new JSONObject(new ObjectMapper().writeValueAsString(updatedServiceProvider));
-            maskClientSecret(updatedServiceProviderJSONObject.optJSONObject("inboundAuthenticationConfig"));
-            maskAppOwnerUsername(updatedServiceProviderJSONObject.optJSONObject("owner"));
-            JSONObject oldServiceProviderJSONObject =
-                    new JSONObject(new ObjectMapper().writeValueAsString(oldServiceProvider));
-            maskClientSecret(oldServiceProviderJSONObject.optJSONObject("inboundAuthenticationConfig"));
-            maskAppOwnerUsername(oldServiceProviderJSONObject.optJSONObject("owner"));
+        JSONObject data = new JSONObject();
+        data.put(LogConstants.OLD_DATA, buildSPDataJSONObject(oldServiceProvider));
+        data.put(LogConstants.NEW_DATA, buildSPDataJSONObject(updatedServiceProvider));
+        return data.toString();
+    }
 
+    /**
+     * Build the service provider JSON object masking the sensitive information.
+     *
+     * @param serviceProvider Service provider object.
+     * @return JSON string of the service provider object.
+     */
+    private static JSONObject buildSPDataJSONObject(ServiceProvider serviceProvider) {
 
-            JSONObject data = new JSONObject();
-            data.put("oldData", oldServiceProviderJSONObject);
-            data.put("newData", updatedServiceProviderJSONObject);
-            return data.toString();
-        } catch (JsonProcessingException e) {
-            log.error("Error while converting service provider object to json.");
-        } catch (IdentityException e) {
-            log.error("Error while building the service provider json object.");
+        if (serviceProvider == null) {
+            return null;
         }
-        return StringUtils.EMPTY;
+        try {
+            JSONObject serviceProviderJSONObject =
+                    new JSONObject(new ObjectMapper().writeValueAsString(serviceProvider));
+            maskClientSecret(serviceProviderJSONObject.optJSONObject(INBOUND_AUTHENTICATION_CONFIG));
+            maskAppOwnerUsername(serviceProviderJSONObject.optJSONObject(APP_OWNER));
+            return serviceProviderJSONObject;
+        } catch (JsonProcessingException | IdentityException e) {
+            log.error("Error while converting service provider object to json.");
+        }
+        return new JSONObject();
     }
 
     private static void maskClientSecret(JSONObject inboundAuthenticationConfig) {
@@ -971,10 +997,10 @@ public class ApplicationMgtUtil {
         }
     }
 
-    private static JSONObject maskAppOwnerUsername(JSONObject appOwner) throws IdentityException {
+    private static void maskAppOwnerUsername(JSONObject appOwner) throws IdentityException {
 
         if (!LoggerUtils.isLogMaskingEnable) {
-            return appOwner;
+            return;
         }
         if (appOwner != null) {
             String loggableUserId = getMaskedUserId(appOwner);
@@ -986,7 +1012,7 @@ public class ApplicationMgtUtil {
                 appOwner.put("userName", LoggerUtils.getMaskedContent(username));
             }
         }
-        return appOwner;
+
     }
 
     private static String getMaskedUserId(JSONObject appOwner) throws IdentityException {
@@ -1006,31 +1032,8 @@ public class ApplicationMgtUtil {
         return LoggerUtils.getMaskedContent(username);
     }
 
-    /**
-     * Build the service provider JSON string masking the sensitive information.
-     *
-     * @param serviceProvider Service provider object.
-     * @return JSON string of the service provider object.
-     */
-    public static String buildSPData(ServiceProvider serviceProvider) {
-
-        if (serviceProvider == null) {
-            return StringUtils.EMPTY;
-        }
-        try {
-            JSONObject serviceProviderJSONObject =
-                    new JSONObject(new ObjectMapper().writeValueAsString(serviceProvider));
-            maskClientSecret(serviceProviderJSONObject.optJSONObject("inboundAuthenticationConfig"));
-            maskAppOwnerUsername(serviceProviderJSONObject.optJSONObject("owner"));
-            return serviceProviderJSONObject.toString();
-        } catch (JsonProcessingException | IdentityException e) {
-            log.error("Error while converting service provider object to json.");
-        }
-        return StringUtils.EMPTY;
-    }
-
     public static boolean isLegacyAuditLogsDisabledInAppMgt() {
 
-        return Boolean.parseBoolean(System.getProperty("disableLegacyAuditLogsInAppMgt"));
+        return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG));
     }
 }
