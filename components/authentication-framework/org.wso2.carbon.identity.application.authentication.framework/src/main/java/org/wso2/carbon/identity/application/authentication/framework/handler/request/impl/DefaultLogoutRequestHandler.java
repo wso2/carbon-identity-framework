@@ -123,6 +123,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             if (authenticatedUserObj instanceof AuthenticatedUser) {
                 authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
             }
+            // Setting the authenticated user's object to the request to get the relevant details to log out the user.
+            context.setProperty(FrameworkConstants.AUTHENTICATED_USER, authenticatedUser);
             FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
                     sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
                             .SESSION_TERMINATE);
