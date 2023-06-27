@@ -310,6 +310,10 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
     private void generateApplicationFromAppID(List<Application> applications) throws SessionManagementServerException {
 
+        if (applications == null || applications.isEmpty()) {
+            return;
+        }
+
         Map<String, List<Application>> appIdMap =
                 applications.stream().collect(Collectors.groupingBy(Application::getAppId));
         String placeholder = String.join(", ", Collections.nCopies(appIdMap.keySet().size(), "?"));
@@ -344,6 +348,10 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
     private Map<String, Application> getApplicationsFromAppID(Set<String> applicationIds)
             throws SessionManagementServerException, DataAccessException {
+
+        if (applicationIds == null || applicationIds.isEmpty()) {
+            return new HashMap<>();
+        }
 
         Map<String, Application> applications = new HashMap<>();
         String placeholder = String.join(", ", applicationIds);
