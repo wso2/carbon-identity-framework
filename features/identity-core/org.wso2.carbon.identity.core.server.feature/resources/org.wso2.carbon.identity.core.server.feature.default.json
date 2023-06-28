@@ -27,7 +27,6 @@
   "session_data.cleanup.enable_pre_session_data_cleanup": true,
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": false,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
-  "session_data.storage_optimization.enable": true,
   "session.nonce.cookie.enabled": true,
   "session.nonce.cookie.default_whitelist_authenticators": ["MagicLinkAuthenticator"],
   "session.authentication.context.expiry.validation": true,
