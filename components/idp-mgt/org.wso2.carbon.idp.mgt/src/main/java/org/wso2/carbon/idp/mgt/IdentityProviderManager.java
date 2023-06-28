@@ -1080,7 +1080,7 @@ public class IdentityProviderManager implements IdpManager {
 
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
-        setParameters(limit, offset, sortOrder, sortBy, filter, result);
+        setParameters(limit, offset, filter, sortOrder, sortBy, result);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
         result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
