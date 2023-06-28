@@ -32,8 +32,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED;
-
 /**
  * This class is used to cache the data about the
  * authentication request sent from a servlet.
@@ -45,7 +43,6 @@ public class AuthenticationContextCache extends
     private static final Log log = LogFactory.getLog(AuthenticationContextCache.class);
     private static volatile AuthenticationContextCache instance;
     private final boolean isTemporarySessionDataPersistEnabled;
-    private final boolean isSessionDataStorageOptimizationEnabled;
 
     /**
      * Private constructor which will not allow to create objects of this class from outside.
@@ -57,12 +54,6 @@ public class AuthenticationContextCache extends
                     IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));
         } else {
             isTemporarySessionDataPersistEnabled = false;
-        }
-        if (IdentityUtil.getProperty(SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED) != null) {
-            isSessionDataStorageOptimizationEnabled = Boolean.parseBoolean(IdentityUtil.getProperty(
-                    SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED));
-        } else {
-            isSessionDataStorageOptimizationEnabled = true;
         }
     }
 
@@ -112,7 +103,7 @@ public class AuthenticationContextCache extends
                             ", Operation : STORE ]";
                     log.debug("Authentication context is stored with details " + message);
                 }
-                if (isSessionDataStorageOptimizationEnabled && entry.getContext() != null) {
+                if (entry.getContext() != null) {
                     try {
                         AuthenticationContextLoader.getInstance().optimizeAuthenticationContext(entry.getContext());
                     } catch (SessionDataStorageOptimizationClientException e) {
