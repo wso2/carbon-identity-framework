@@ -147,11 +147,11 @@ public class ReCaptchaProperties {
 
         StringBuilder sb = new StringBuilder();
         sb.append("class ReCaptchaProperties {\n");
-        sb.append("    reCaptchaEnabled: ").append(toIndentedString(reCaptchaEnabled)).append("\n");
-        sb.append("    reCaptchaKey: ").append(toIndentedString(reCaptchaKey)).append("\n");
-        sb.append("    reCaptchaAPI: ").append(toIndentedString(reCaptchaAPI)).append("\n");
-        sb.append("    reCaptchaEnterpriseEnabled: ").append(toIndentedString(reCaptchaType)).append("\n");
-        sb.append("}");
+        sb.append("  reCaptchaEnabled: ").append(reCaptchaEnabled).append("\n");
+        sb.append("  reCaptchaType: ").append(reCaptchaType).append("\n");
+        sb.append("  reCaptchaKey: ").append(reCaptchaKey).append("\n");
+        sb.append("  reCaptchaAPI: ").append(reCaptchaAPI).append("\n");
+        sb.append("}\n");
         return sb.toString();
     }
 
