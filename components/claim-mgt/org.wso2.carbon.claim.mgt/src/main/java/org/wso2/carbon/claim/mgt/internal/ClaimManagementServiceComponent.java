@@ -21,15 +21,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
-import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
-import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.user.core.service.RealmService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.user.core.service.RealmService;
 
 @Component(
          name = "claim.mgt.component", 
@@ -69,26 +68,6 @@ public class ClaimManagementServiceComponent {
         }
     }
 
-    public static RegistryService getRegistryService() {
-        return ClaimManagementServiceDataHolder.getInstance().getRegistryService();
-    }
-
-    @Reference(
-             name = "registry.service", 
-             service = RegistryService.class,
-             cardinality = ReferenceCardinality.MANDATORY, 
-             policy = ReferencePolicy.DYNAMIC, 
-             unbind = "unsetRegistryService")
-    protected void setRegistryService(RegistryService registryService) {
-        try {
-            ClaimManagementServiceDataHolder.getInstance().setRegistryService(registryService);
-        } catch (Throwable e) {
-            log.error("Failed to get a reference to the Registry Service.", e);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService set in Claim Management bundle");
-        }
-    }
 
     /**
      * @param ctxt
@@ -112,13 +91,6 @@ public class ClaimManagementServiceComponent {
     protected void deactivate(ComponentContext ctxt) {
         if (log.isDebugEnabled()) {
             log.debug("Claim Management bundle is deactivated");
-        }
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-        ClaimManagementServiceDataHolder.getInstance().setRegistryService(null);
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService unset in Claim Management bundle");
         }
     }
 

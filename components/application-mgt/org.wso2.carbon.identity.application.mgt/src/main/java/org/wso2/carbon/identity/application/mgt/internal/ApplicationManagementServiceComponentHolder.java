@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
-import org.wso2.carbon.registry.api.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -42,8 +41,6 @@ public class ApplicationManagementServiceComponentHolder {
             new HashMap<String, AbstractInboundAuthenticatorConfig>();
 
     private String authnTemplatesJson;
-
-    private RegistryService registryService;
 
     private RealmService realmService;
 
@@ -112,16 +109,6 @@ public class ApplicationManagementServiceComponentHolder {
     public static void removeInboundAuthenticatorConfig(String type) {
 
         inboundAuthenticatorConfigs.remove(type);
-    }
-
-    public RegistryService getRegistryService() {
-
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-
-        this.registryService = registryService;
     }
 
     public RealmService getRealmService() {
