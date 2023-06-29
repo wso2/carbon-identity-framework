@@ -69,6 +69,26 @@ public class SAMLSSOServiceProviderManager {
     }
 
     /**
+     * Update a saml service provider if already exists.
+     *
+     * @param serviceProviderDO     Service provider information object.
+     * @param tenantId              Tenant ID.
+     * @return True if success.
+     * @throws IdentityException Error when updating the SAML service provider.
+     */
+    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId)
+            throws IdentityException {
+
+        try {
+            SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
+            return serviceProviderDAO.updateServiceProvider(serviceProviderDO);
+        } catch (RegistryException e) {
+            LOG.error("Error while updating service provider", e);
+            throw new IdentityException("Error while retrieving registry", e);
+        }
+    }
+
+    /**
      * Get all the saml service providers.
      *
      * @param tenantId  Tenant ID.
