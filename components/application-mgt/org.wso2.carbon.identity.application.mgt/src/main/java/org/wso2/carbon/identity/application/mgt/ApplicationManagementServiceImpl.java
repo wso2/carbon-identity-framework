@@ -30,7 +30,6 @@ import org.w3c.dom.Document;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
@@ -81,8 +80,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
-import org.wso2.carbon.registry.api.RegistryException;
-import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserRealm;
@@ -2580,10 +2577,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
 
             updateApplicationPermissions(updatedApp, updatedAppName, storedAppName);
-        } catch (RegistryException e) {
-            String message = "Error while updating application with resourceId: " + resourceId + " in tenantDomain: "
-                    + tenantDomain;
-            throw buildServerException(message, e);
         } finally {
             endTenantFlow();
         }
@@ -2649,17 +2642,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     private void updateApplicationPermissions(ServiceProvider updatedApp, String updatedAppName, String storedAppName)
-            throws RegistryException, IdentityApplicationManagementException {
+            throws IdentityApplicationManagementException {
 
-        String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
-                .PATH_SEPARATOR + storedAppName;
-        org.wso2.carbon.registry.api.Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext()
-                .getRegistry(RegistryType.USER_GOVERNANCE);
-
-        boolean exist = tenantGovReg.resourceExists(applicationNode);
-        if (exist && !StringUtils.equals(storedAppName, updatedAppName)) {
-            ApplicationMgtUtil.renameAppPermissionPathNode(storedAppName, updatedAppName);
-        }
+        ApplicationMgtUtil.renameAppPermissionPathNode(storedAppName, updatedAppName);
 
         if (updatedApp.getPermissionAndRoleConfig() != null) {
             ApplicationMgtUtil.updatePermissions(updatedAppName,

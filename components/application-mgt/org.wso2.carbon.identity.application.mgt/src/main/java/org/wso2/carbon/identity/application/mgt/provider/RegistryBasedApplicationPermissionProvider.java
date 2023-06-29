@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt.provider;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -61,11 +62,22 @@ public class RegistryBasedApplicationPermissionProvider implements ApplicationPe
     public void renameAppPermissionName(String oldName, String newName)
             throws IdentityApplicationManagementException {
 
-        List<ApplicationPermission> loadPermissions = loadPermissions(oldName);
-        String newApplicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + PATH_CONSTANT + oldName;
+        if (StringUtils.equals(oldName, newName)) {
+            return;
+        }
+
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType.USER_GOVERNANCE);
-        // Creating new application node.
+        String oldApplicationNode = getApplicationPermissionPath() + PATH_CONSTANT + oldName;
+
         try {
+            if (!tenantGovReg.resourceExists(oldApplicationNode)) {
+                return;
+            }
+
+            List<ApplicationPermission> loadPermissions = loadPermissions(oldName);
+            String newApplicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + PATH_CONSTANT + oldName;
+
+            // Creating new application node.
             for (ApplicationPermission applicationPermission : loadPermissions) {
                 tenantGovReg.delete(newApplicationNode + PATH_CONSTANT + applicationPermission.getValue());
             }

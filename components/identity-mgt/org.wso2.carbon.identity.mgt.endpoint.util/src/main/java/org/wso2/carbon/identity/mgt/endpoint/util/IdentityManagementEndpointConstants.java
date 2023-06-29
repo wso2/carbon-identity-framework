@@ -120,6 +120,8 @@ public class IdentityManagementEndpointConstants {
 
     public static final String SERVICE_CONTEXT_PATH = "/services";
 
+    public static final String ERROR_CODE_INVALID_TENANT = "60001";
+
     public static class Consent {
 
         public static final String COLLECTION_METHOD_SELF_REGISTRATION = "Web Form - Self Registration";
