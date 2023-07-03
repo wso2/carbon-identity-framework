@@ -21,7 +21,6 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimConfigInitDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -43,7 +42,6 @@ public class IdentityClaimManagementServiceDataHolder {
     private ClaimMetadataManagementService claimManagementService;
     private BundleContext bundleContext;
     private RealmService realmService;
-    private RegistryService registryService;
     private IdentityEventService identityEventService;
     private static Map<Integer, ClaimManagerListener> claimManagerListeners = new TreeMap<Integer,
             ClaimManagerListener>();
@@ -81,14 +79,6 @@ public class IdentityClaimManagementServiceDataHolder {
 
     public RealmService getRealmService() {
         return realmService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-        this.registryService = registryService;
-    }
-
-    public RegistryService getRegistryService() {
-        return registryService;
     }
 
     public static synchronized Collection<ClaimManagerListener> getClaimManagerListeners() {

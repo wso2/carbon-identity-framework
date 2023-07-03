@@ -26,7 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -47,7 +46,6 @@ import org.wso2.carbon.identity.provisioning.rules.XACMLBasedRuleHandler;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
@@ -647,8 +645,7 @@ public class OutboundProvisioningManager {
 
     private ProvisioningEntity getInboundProvisioningEntity(ProvisioningEntity provisioningEntity,
                                                             String tenantDomain, ProvisioningOperation operation,
-                                                            String userName) throws CarbonException,
-                                                                                    UserStoreException {
+                                                            String userName) throws UserStoreException {
         Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
 
         if (userName != null) {
@@ -891,17 +888,14 @@ public class OutboundProvisioningManager {
      * @throws CarbonException
      * @throws UserStoreException
      */
-    private List<String> getUserRoles(String userName, String tenantDomain) throws CarbonException,
-                                                                                   UserStoreException {
+    private List<String> getUserRoles(String userName, String tenantDomain) throws UserStoreException {
 
-        RegistryService registryService = IdentityProvisionServiceComponent.getRegistryService();
         RealmService realmService = IdentityProvisionServiceComponent.getRealmService();
+        int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
 
-        UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                realmService, tenantDomain);
+        UserRealm realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
 
-        UserStoreManager userstore = null;
-        userstore = realm.getUserStoreManager();
+        UserStoreManager userstore = realm.getUserStoreManager();
         String[] newRoles = userstore.getRoleListOfUser(userName);
         return Arrays.asList(newRoles);
     }
@@ -913,19 +907,16 @@ public class OutboundProvisioningManager {
      * @throws CarbonException
      * @throws UserStoreException
      */
-    private Map<String, String> getUserClaims(String userName, String tenantDomain) throws CarbonException,
-                                                                                           UserStoreException {
+    private Map<String, String> getUserClaims(String userName, String tenantDomain) throws UserStoreException {
 
         Map<String, String> inboundAttributes = new HashMap<>();
 
-        RegistryService registryService = IdentityProvisionServiceComponent.getRegistryService();
         RealmService realmService = IdentityProvisionServiceComponent.getRealmService();
+        int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
 
-        UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                                                                      realmService, tenantDomain);
+        UserRealm realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
 
-        UserStoreManager userstore = null;
-        userstore = realm.getUserStoreManager();
+        UserStoreManager userstore = realm.getUserStoreManager();
         Claim[] claimArray = null;
         try {
             claimArray = userstore.getUserClaimValues(userName, null);
