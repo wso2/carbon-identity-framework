@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.dao.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
@@ -310,7 +311,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
     private void generateApplicationFromAppID(List<Application> applications) throws SessionManagementServerException {
 
-        if (applications == null || applications.isEmpty()) {
+        if (CollectionUtils.isEmpty(applications)) {
             return;
         }
 
@@ -349,7 +350,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     private Map<String, Application> getApplicationsFromAppID(Set<String> applicationIds)
             throws SessionManagementServerException, DataAccessException {
 
-        if (applicationIds == null || applicationIds.isEmpty()) {
+        if (CollectionUtils.isEmpty(applicationIds)) {
             return new HashMap<>();
         }
 
