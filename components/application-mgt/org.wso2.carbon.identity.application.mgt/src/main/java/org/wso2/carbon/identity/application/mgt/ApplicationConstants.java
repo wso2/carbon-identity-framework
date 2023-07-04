@@ -104,7 +104,9 @@ public class ApplicationConstants {
      */
     public static class LogEventConstants {
         public static final String TARGET_APPLICATION = "APPLICATION";
+        public static final String TARGET_TENANT = "TENANT";
         public static final String USER = "USER";
+
         public static final String INBOUND_AUTHENTICATION_CONFIG = "inboundAuthenticationConfig";
         public static final String APP_OWNER = "appOwner";
         public static final String DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG = "disableLegacyAuditLogsInAppMgt";

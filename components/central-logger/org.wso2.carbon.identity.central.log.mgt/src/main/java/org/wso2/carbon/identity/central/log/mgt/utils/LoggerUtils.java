@@ -80,28 +80,25 @@ public class LoggerUtils {
         try {
             // Publish new audit logs only if the old audit log publishing is disabled.
             if (isLoggingEnabled || isLegacyAuditLogsDisabled()) {
-                Map<String, Object> addAuditLogProperties = new HashMap<>();
-                String id = UUID.randomUUID().toString();
-                Instant recordedAt = parseDateTime(Instant.now().toString());
-
-                String correlationId = MDC.get(CORRELATION_ID_MDC);
-
+                // Build the initiator object.
                 JsonObject initiator = new JsonObject();
                 initiator.addProperty(LogConstants.INITIATOR_ID, initiatorId);
                 initiator.addProperty(LogConstants.INITIATOR_TYPE, initiatorType);
 
+                // Build the target object.
                 JsonObject target = new JsonObject();
                 target.addProperty(LogConstants.TARGET_ID, targetId);
                 target.addProperty(LogConstants.TARGET_TYPE, targetType);
 
-                // Convert dataChange into a JsonObject using gson
-                Gson gson = new Gson();
-                JsonObject data = gson.fromJson(dataChange, JsonObject.class);
-                AuditLog auditLog =
-                        new AuditLog(id, recordedAt, correlationId, initiator.getAsJsonObject(),
-                                target.getAsJsonObject(), action, data, LogConstants.SUCCESS);
-                addAuditLogProperties.put(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog);
+                // Build the data object.
+                JsonObject data = new Gson().fromJson(dataChange, JsonObject.class);
 
+                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiator, target, action);
+                auditLogBuilder.data(data);
+                AuditLog auditLog = auditLogBuilder.build();
+
+                Map<String, Object> addAuditLogProperties = new HashMap<>();
+                addAuditLogProperties.put(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog);
                 IdentityEventService eventMgtService =
                         CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
                 Event auditEvent = new Event(PUBLISH_AUDIT_LOG, addAuditLogProperties);
