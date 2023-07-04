@@ -223,7 +223,7 @@
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
 
   "authorization_control.skip_authorization.client_authentication.name":"ClientAuthentication",
-  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v1.0/consents/purposes(.*),(.*)/user/v1.0/me(.*)",
+  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*)",
 
   "jit_provisioning.indelible_claims.claim_uris": [
     "http://wso2.org/claims/userid",
