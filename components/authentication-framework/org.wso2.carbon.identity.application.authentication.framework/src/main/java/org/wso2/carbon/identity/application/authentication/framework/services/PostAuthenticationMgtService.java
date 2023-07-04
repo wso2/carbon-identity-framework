@@ -31,9 +31,9 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -183,7 +183,7 @@ public class PostAuthenticationMgtService {
                         "PASTR cookie is not set to context : " + context.getContextIdentifier() + ". Hence setting the"
                                 + " " + "cookie");
             }
-            String pastrCookieValue = UUIDGenerator.generateUUID();
+            String pastrCookieValue = UUID.randomUUID().toString();
             FrameworkUtils
                     .setCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()),
                             pastrCookieValue, -1);

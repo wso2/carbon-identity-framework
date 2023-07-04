@@ -56,7 +56,6 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
@@ -75,7 +74,6 @@ public class FrameworkServiceDataHolder {
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
-    private RegistryService registryService = null;
     private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private List<ApplicationRolesResolver> applicationRolesResolvers = new ArrayList<>();
     private long nanoTimeReference = 0;
@@ -126,16 +124,6 @@ public class FrameworkServiceDataHolder {
     public static FrameworkServiceDataHolder getInstance() {
 
         return instance;
-    }
-
-    public RegistryService getRegistryService() {
-
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-
-        this.registryService = registryService;
     }
 
     public RealmService getRealmService() {

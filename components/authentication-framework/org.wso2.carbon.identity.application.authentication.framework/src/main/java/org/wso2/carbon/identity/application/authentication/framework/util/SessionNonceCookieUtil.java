@@ -21,10 +21,10 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.Cookie;
@@ -70,7 +70,7 @@ public class SessionNonceCookieUtil {
                                       AuthenticationContext context) {
 
         if (isNonceCookieEnabled()) {
-            String nonceId = UUIDGenerator.generateUUID();
+            String nonceId = UUID.randomUUID().toString();
             String cookieName = getNonceCookieName(context);
             // Multiplying the TempDataCleanUpTimeout by 2, because the task runs in every TempDataCleanUpTimeout
             // and cleans authentication context data older than TempDataCleanUpTimeout. This to cover the worst case.

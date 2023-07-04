@@ -26,13 +26,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -44,7 +42,6 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -110,14 +107,12 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             String provisioningUserStoreId, String tenantDomain, List<String> idpToLocalRoleMapping)
             throws FrameworkException {
 
-        RegistryService registryService = FrameworkServiceComponent.getRegistryService();
-        RealmService realmService = FrameworkServiceComponent.getRealmService();
+        RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
         String attributeSyncMethod = IdentityUtil.threadLocalProperties.get()
                 .get(FrameworkConstants.ATTRIBUTE_SYNC_METHOD).toString();
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                    realmService, tenantDomain);
+            UserRealm realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
             String username = MultitenantUtils.getTenantAwareUsername(subject);
 
             String userStoreDomain;
@@ -340,8 +335,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             PermissionUpdateUtil.updatePermissionTree(tenantId);
 
-        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException |
-                FederatedAssociationManagerException e) {
+        } catch (org.wso2.carbon.user.api.UserStoreException | FederatedAssociationManagerException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();

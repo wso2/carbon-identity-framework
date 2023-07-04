@@ -62,7 +62,6 @@ import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -145,27 +144,6 @@ public class ApplicationManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Identity ApplicationManagementComponent bundle is deactivated");
         }
-    }
-
-    @Reference(
-            name = "registry.service",
-            service = RegistryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRegistryService"
-    )
-    protected void setRegistryService(RegistryService registryService) {
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService set in Identity ApplicationManagementComponent bundle");
-        }
-        ApplicationManagementServiceComponentHolder.getInstance().setRegistryService(registryService);
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService unset in Identity ApplicationManagementComponent bundle");
-        }
-        ApplicationManagementServiceComponentHolder.getInstance().setRegistryService(null);
     }
 
     @Reference(

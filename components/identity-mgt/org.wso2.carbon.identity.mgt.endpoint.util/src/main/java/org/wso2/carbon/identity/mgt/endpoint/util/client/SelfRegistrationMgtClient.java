@@ -38,11 +38,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
@@ -337,7 +332,7 @@ public class SelfRegistrationMgtClient {
                             content = (String) jsonResponse.get("description");
                         }
                         if (StringUtils.isNotBlank(content) && content.contains("invalid tenant domain")) {
-                            jsonResponse.put(CODE, SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT);
+                            jsonResponse.put(CODE, IdentityManagementEndpointConstants.ERROR_CODE_INVALID_TENANT);
                             return jsonResponse;
                         }
                     }

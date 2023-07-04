@@ -113,7 +113,6 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationUser
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -171,26 +170,6 @@ public class FrameworkServiceComponent {
             log.debug("RealmService is set in the Application Authentication Framework bundle");
         }
         FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
-    }
-
-    public static RegistryService getRegistryService() {
-
-        return FrameworkServiceDataHolder.getInstance().getRegistryService();
-    }
-
-    @Reference(
-            name = "registry.service",
-            service = RegistryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRegistryService"
-    )
-    protected void setRegistryService(RegistryService registryService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService is set in the Application Authentication Framework bundle");
-        }
-        FrameworkServiceDataHolder.getInstance().setRegistryService(registryService);
     }
 
     /**
@@ -481,14 +460,6 @@ public class FrameworkServiceComponent {
             log.debug("RealmService is unset in the Application Authentication Framework bundle");
         }
         FrameworkServiceDataHolder.getInstance().setRealmService(null);
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService is unset in the Application Authentication Framework bundle");
-        }
-        FrameworkServiceDataHolder.getInstance().setRegistryService(null);
     }
 
     @Reference(
