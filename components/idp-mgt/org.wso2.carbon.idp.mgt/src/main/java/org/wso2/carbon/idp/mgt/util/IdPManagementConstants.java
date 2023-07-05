@@ -95,6 +95,8 @@ public class IdPManagementConstants {
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
             + ".ResetProvisioningEntitiesOnConfigUpdate";
     public static final String DEFAULT_SYNC_ATTRIBUTE = "OVERRIDE_ALL";
+    public static final String PRESERVE_LOCAL_ATTRIBUTE_SYNC = "PRESERVE_LOCAL";
+    public static final String PRESERVE_LOCALLY_ADDED_CLAIMS = "JITProvisioning.PreserveLocallyAddedClaims";
 
     // Outbound Provisioning Connectors
     public static final String GOOGLE = "googleapps";

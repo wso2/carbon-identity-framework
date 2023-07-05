@@ -1533,7 +1533,9 @@
                 <ClaimURI>{{claimuri}}</ClaimURI>
             {% endfor %}
         </IndelibleClaims>
-
+        {% if authentication.jit_provisioning.preserve_locally_added_claims is defined %}
+        <PreserveLocallyAddedClaims>{{authentication.jit_provisioning.preserve_locally_added_claims}}</PreserveLocallyAddedClaims>
+        {% endif %}
     </JITProvisioning>
 
     <!--Application management service configurations-->
