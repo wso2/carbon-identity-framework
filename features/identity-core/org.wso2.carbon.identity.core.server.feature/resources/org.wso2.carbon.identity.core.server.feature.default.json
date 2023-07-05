@@ -27,7 +27,6 @@
   "session_data.cleanup.enable_pre_session_data_cleanup": false,
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": false,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
-  "session_data.storage_optimization.enable": true,
   "session.nonce.cookie.enabled": true,
   "session.nonce.cookie.default_whitelist_authenticators": ["MagicLinkAuthenticator"],
   "session.authentication.context.expiry.validation": true,
@@ -567,6 +566,7 @@
   "resource_access_control.scim2_me_get_method.keep_resource": true,
   "resource_access_control.scim2_me_delete_method.secured": true,
   "resource_access_control.scim2_me_delete_method.permission": "/permission/admin/manage/identity/usermgt/delete",
+  "resource_access_control.scim2_me_delete_method.scope": "internal_user_mgt_delete",
   "resource_access_control.scim2_me_delete_method.keep_resource": true,
   "resource_access_control.scim2_me_put_method.secured": true,
   "resource_access_control.scim2_me_put_method.permission": "/permission/admin/login",
@@ -576,6 +576,7 @@
   "resource_access_control.scim2_me_patch_method.keep_resource": true,
   "resource_access_control.scim2_me_post_method.secured": true,
   "resource_access_control.scim2_me_post_method.permission": "/permission/admin/manage/identity/usermgt/create",
+  "resource_access_control.scim2_me_post_method.scope": "internal_user_mgt_create",
   "resource_access_control.scim2_me_post_method.keep_resource": true,
 
   "user.association.enable_for_federated_users": false,

@@ -19,7 +19,6 @@
 package org.wso2.carbon.claim.mgt.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 public class ClaimManagementServiceDataHolder {
@@ -28,18 +27,9 @@ public class ClaimManagementServiceDataHolder {
 
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
-    private RegistryService registryService = null;
 
     public static ClaimManagementServiceDataHolder getInstance() {
         return instance;
-    }
-
-    public RegistryService getRegistryService() {
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-        this.registryService = registryService;
     }
 
     public RealmService getRealmService() {

@@ -48,14 +48,13 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
-import org.wso2.carbon.idp.mgt.listener.IdentityProviderClaimMgtListener;
-import org.wso2.carbon.idp.mgt.listener.IdentityProviderNameResolverListener;
 import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
 import org.wso2.carbon.idp.mgt.listener.IdPMgtValidationListener;
+import org.wso2.carbon.idp.mgt.listener.IdentityProviderClaimMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
+import org.wso2.carbon.idp.mgt.listener.IdentityProviderNameResolverListener;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -87,31 +86,6 @@ public class IdPManagementServiceComponent {
     private static Map<String, IdentityProvider> fileBasedIdPs = new HashMap<String, IdentityProvider>();
 
     private static Set<String> sharedIdps = new HashSet<String>();
-
-    @Reference(
-            name = "registry.service",
-            service = RegistryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRegistryService"
-    )
-    protected void setRegistryService(RegistryService registryService) {
-        if (log.isDebugEnabled()) {
-            log.debug("Registry service in Identity idp-mgt bundle");
-        }
-        try {
-            IdpMgtServiceComponentHolder.getInstance().setRegistryService(registryService);
-        } catch (Throwable e) {
-            log.error("Failed to get a reference to the Registry in idp-mgt bundle", e);
-        }
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService unset in idp.mgt bundle");
-        }
-        IdpMgtServiceComponentHolder.getInstance().setRegistryService(null);
-    }
 
     @Reference(
             name = "identity.provider.saml.service.component",

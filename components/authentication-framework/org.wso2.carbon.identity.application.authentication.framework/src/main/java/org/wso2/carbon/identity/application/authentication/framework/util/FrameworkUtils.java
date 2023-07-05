@@ -30,12 +30,10 @@ import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
 import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.claim.mgt.ClaimManagementException;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
-import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -134,6 +132,7 @@ import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -3322,9 +3321,9 @@ public class FrameworkUtils {
 
         List<String> claimMappingListOfScopes = new ArrayList<>();
         try {
-            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
-                    FrameworkServiceComponent.getRegistryService(),
-                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+            RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            UserRealm realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
             ClaimManager claimManager = realm.getClaimManager();
 
             if (claimManager != null) {
@@ -3339,7 +3338,7 @@ public class FrameworkUtils {
                     }
                 }
             }
-        } catch (CarbonException | UserStoreException e) {
+        } catch (UserStoreException e) {
             throw new ClaimManagementException("Error while trying retrieve user claims for tenant domain: " +
                     tenantDomain, e);
         }

@@ -1080,7 +1080,7 @@ public class IdentityProviderManager implements IdpManager {
 
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
-        setParameters(limit, offset, sortOrder, sortBy, filter, result);
+        setParameters(limit, offset, filter, sortOrder, sortBy, result);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
         result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
@@ -2978,9 +2978,9 @@ public class IdentityProviderManager implements IdpManager {
      * Ideally used when updating a IDP.
      * If the provided two IDP configs have the same Issuer Name validation is passed.
      *
-     * @param currentIdP Existing Identity Provider config.
-     * @param newIdP Updated Identity Provider config.
-     * @param tenantId Tenant id.
+     * @param currentIdP   Existing Identity Provider config.
+     * @param newIdP       Updated Identity Provider config.
+     * @param tenantId     Tenant id.
      * @param tenantDomain Tenant domain.
      * @return Returns true if valid.
      * @throws IdentityProviderManagementException IdentityProviderManagementException.
@@ -3194,6 +3194,7 @@ public class IdentityProviderManager implements IdpManager {
 
     /**
      * Set the confidential status of federated authenticator and provisioning connector properties using metadata.
+     *
      * @param identityProvider Identity Provider.
      */
     private void markConfidentialPropertiesUsingMetadata(IdentityProvider identityProvider)
@@ -3202,11 +3203,11 @@ public class IdentityProviderManager implements IdpManager {
         Map<String, List<String>> metaFedAuthConfigMap = createFedAuthConfidentialPropsMap();
         Arrays.asList(identityProvider.getFederatedAuthenticatorConfigs()).forEach(fedAuthConfig -> {
             List<String> secretProperties = metaFedAuthConfigMap.get(fedAuthConfig.getName());
-                Arrays.asList(fedAuthConfig.getProperties()).forEach(prop -> {
-                    if (secretProperties != null && secretProperties.contains(prop.getName())) {
-                        prop.setConfidential(true);
-                    }
-                });
+            Arrays.asList(fedAuthConfig.getProperties()).forEach(prop -> {
+                if (secretProperties != null && secretProperties.contains(prop.getName())) {
+                    prop.setConfidential(true);
+                }
+            });
         });
 
         Map<String, List<String>> metaProvisioningConfigMap = createProvisioningConfidentialPropsMap();
