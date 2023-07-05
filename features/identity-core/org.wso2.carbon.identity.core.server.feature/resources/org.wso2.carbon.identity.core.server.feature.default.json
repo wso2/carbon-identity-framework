@@ -81,7 +81,6 @@
   "oauth.access_token.generate_with_sp_tenant_domain": true,
   "oauth.enable_sha256_params": true,
 
-  "oauth.legacy_audiences_enabled": false,
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
   "oauth.endpoints.oauth1_access_token_url": "$ref{server.base_path}/oauth/access-token",
