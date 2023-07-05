@@ -2123,17 +2123,13 @@
             <Context>
                 <BasePath>/accountrecoveryendpoint/</BasePath>
             </Context>
-            <Context>
-                <BasePath>/oidc/</BasePath>
-                <SubPaths>
-                    <Path>/oidc/logout</Path>
-                </SubPaths>
-            </Context>
         </WebApp>
         <Servlet>
             <Context>/commonauth(.*)</Context>
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
+            <Context>/longwaitstatus(.*)</Context>
+            <Context>/oidc/</Context>
         </Servlet>
     </OrgContextsToRewrite>
 
