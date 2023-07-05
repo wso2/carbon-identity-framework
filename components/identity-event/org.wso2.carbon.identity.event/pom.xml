@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-event</artifactId>
-        <version>5.23.22-SNAPSHOT</version>
+        <version>5.25.242-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -71,10 +71,6 @@
         <dependency>
             <groupId>org.apache.axis2.transport</groupId>
             <artifactId>axis2-transport-mail</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.registry.core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>

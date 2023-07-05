@@ -84,3 +84,17 @@ This scripts used to delete the confirmation codes from the registry tables.
 **>> session-data-cleanup.sql**
 
 This scripts used to delete the session data from the IDN_AUTH_SESSION_STORE table.
+
+**>> jti-cleanup.sql**
+
+This is an optimized token cleanup script with batch wise delete, which will have a very minimal impact the database on its execution for other queries. This procedure includes the cleanup of JWT IDs from the table *idn_oidc_jti*.
+
+If preventTokenReuse config in deployment.toml file is set to True, WSO2_JTI_CLEANUP_SP procedure should be run to clean the table *idn_oidc_jti*.
+
+Please note that it is highly recommended to have a complete backup of the production environment before modifying any data, in case of any restoration would be required.
+
+**>> jti-cleanup-restore.sql**
+
+This is the stored procedure used to restore the deleted JWT IDs from the WSO2_JTI_CLEANUP_SP procedure. The restoration can be only done if the backupTables property is set to true in the WSO2_JTI_CLEANUP_SP procedure.
+
+This is only an immediate restoration script for the WSO2_JTI_CLEANUP_SP procedure, hence each execution of the WSO2_JTI_CLEANUP_SP procedure will replace the backup tables.

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,13 +41,15 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Client which retrieves IDP data required by endpoints.
  */
 public class IdentityProviderDataRetrievalClient {
 
-    
     private static final Log log = LogFactory.getLog(IdentityProviderDataRetrievalClient.class);
     
     private static final String CLIENT = "Client ";
@@ -54,6 +57,13 @@ public class IdentityProviderDataRetrievalClient {
     private static final String IDP_FILTER = "?filter=name+eq+";
     private static final String IDP_KEY = "identityProviders";
     private static final String IMAGE_KEY = "image";
+    private static final String SELF_LINK = "self";
+    private static final String KEY = "key";
+    private static final String VALUE = "value";
+    private static final String PROPERTIES = "properties";
+    private static final String NAME = "name";
+    private static final String AUTHENTICATORS = "authenticators";
+    private static final String FEDERATED_AUTHENTICATORS = "federatedAuthenticators";
 
     /**
      * Gets the Image configured for the given IDP.
@@ -100,6 +110,128 @@ public class IdentityProviderDataRetrievalClient {
         }
 
         return StringUtils.EMPTY;
+    }
+
+    /**
+     * This function retrieves the given configurations of the given federated identity provider using carbon API.
+     * Three HTTP GET calls will be executed as below.
+     * 1. <host>/t/carbon.super/api/server/v1/identity-providers?filter=name+eq+Google
+     * 2. <host>/t/carbon.super/api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc
+     * 3. <host>/t/carbon.super/api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc/
+     * federated-authenticators/R29vZ2xlT0lEQ0F1dGhlbnRpY2F0b3I
+     *
+     * @param tenant     String. The tenant name of the session i.e. carbon.super.
+     * @param idpCode    String. The declared identity provide code i.e. GoogleOIDCAuthenticator.
+     * @param idpName    String. The identity provider name setup at carbon console i.e. Google.
+     * @param configKeys List<String>. The list of keys of required configurations i.e. ClientId, callbackUrl.
+     * @return Map<String, String>. Empty String if the configuration is not found, the configuration value otherwise.
+     * @throws IdentityProviderDataRetrievalClientException When there is an error with executing the get calls or
+     *                                                      processing JSON objects.
+     */
+    public Map<String, String> getFederatedIdpConfigs(String tenant, String idpCode, String idpName,
+                                                      List<String> configKeys)
+            throws IdentityProviderDataRetrievalClientException {
+
+        Map<String, String> configMap = new HashMap<>();
+        if (StringUtils.isEmpty(tenant) || StringUtils.isEmpty(idpCode) || StringUtils.isEmpty(idpName) ||
+                CollectionUtils.isEmpty(configKeys)) {
+            return configMap;
+        }
+        // i.e. /t/carbon.super/api/server/v1/identity-providers?filter=name+eq+Google
+        JSONObject idpSummaryResult = executePath(tenant, IDP_API_RELATIVE_PATH + IDP_FILTER +
+                Encode.forUriComponent(idpName));
+        if (idpSummaryResult == null) {
+            return configMap;
+        }
+
+        try {
+            JSONArray idpSummary = idpSummaryResult.getJSONArray(IDP_KEY);
+            if (idpSummary.length() != 1) {
+                return configMap;
+            }
+            JSONObject idpSummaryProperties = (JSONObject) idpSummary.get(0);
+            if (idpSummaryProperties == null) {
+                return configMap;
+            }
+            // i.e. /t/carbon.super/api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc
+            String idpURLWithId = idpSummaryProperties.getString(SELF_LINK);
+            if (StringUtils.isEmpty(idpURLWithId)) {
+                return configMap;
+            }
+            JSONObject idpDetailedResult = executePath(StringUtils.EMPTY, idpURLWithId);
+            if (idpDetailedResult == null) {
+                return configMap;
+            }
+            JSONObject federatedAuthObject = idpDetailedResult.getJSONObject(FEDERATED_AUTHENTICATORS);
+            if (federatedAuthObject == null) {
+                return configMap;
+            }
+            JSONArray federatedAuthenticators = federatedAuthObject.getJSONArray(AUTHENTICATORS);
+            if (federatedAuthenticators == null) {
+                return configMap;
+            }
+            String federatedIDPURLWithID = null;
+            for (int i = 0; i < federatedAuthenticators.length(); i++) {
+                JSONObject property = (JSONObject) federatedAuthenticators.get(i);
+                if (idpCode.equals(property.getString(NAME))) {
+                    federatedIDPURLWithID = property.getString(SELF_LINK);
+                    break;
+                }
+            }
+            if (StringUtils.isEmpty(federatedIDPURLWithID)) {
+                return configMap;
+            }
+            JSONObject federatedIdpResult = executePath(StringUtils.EMPTY, federatedIDPURLWithID);
+            if (federatedIdpResult == null) {
+                return configMap;
+            }
+            JSONArray federatedIdpProperties = federatedIdpResult.getJSONArray(PROPERTIES);
+            if (federatedIdpProperties.length() == 0) {
+                return configMap;
+            }
+            for (int i = 0; i < federatedIdpProperties.length(); i++) {
+                JSONObject property = (JSONObject) federatedIdpProperties.get(i);
+                if (configKeys.contains(property.getString(KEY))) {
+                    configMap.putIfAbsent(property.getString(KEY), property.getString(VALUE));
+                }
+            }
+        } catch (JSONException ex) {
+            throw new IdentityProviderDataRetrievalClientException(
+                    "Error while decoding the JSON object for federated IDP configs", ex);
+        }
+        return configMap;
+    }
+
+    /**
+     * This function executes the HTTP GET calls of given path on carbon API and returns the resulted JSON object.
+     *
+     * @param tenant String. The tenant name of the session i.e. carbon.super.
+     * @param path   String. The context or to call without host details. i.e.
+     *               api/server/v1/identity-providers?filter=name+eq+Google
+     *               api/server/v1/identity-providers/6719c5cc-5162-44c7-9190-cb74d500f5fc
+     * @return JSONObject. The resulted JSONObject of the GET call.
+     * @throws IdentityProviderDataRetrievalClientException When there is an error with executing the get calls.
+     */
+    private JSONObject executePath(String tenant, String path) throws IdentityProviderDataRetrievalClientException {
+
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+            String url = getEndpoint(tenant, path);
+            HttpGet httpGet = new HttpGet(url);
+            setAuthorizationHeader(httpGet);
+
+            try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    return new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                }
+            } finally {
+                httpGet.releaseConnection();
+            }
+        } catch (IdentityProviderDataRetrievalClientException | IOException e) {
+            throw new IdentityProviderDataRetrievalClientException(
+                    "Error while executing the path " + path + " in tenant : " + tenant, e);
+        }
+        return null;
     }
 
     /**

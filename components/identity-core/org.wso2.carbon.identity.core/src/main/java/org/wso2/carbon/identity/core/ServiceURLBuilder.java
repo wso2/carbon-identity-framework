@@ -96,6 +96,17 @@ public interface ServiceURLBuilder {
     }
 
     /**
+     * Returns {@link ServiceURLBuilder} with organization id set for the context.
+     *
+     * @param orgId Organization id.
+     * @return {@link ServiceURLBuilder}.
+     */
+    default ServiceURLBuilder setOrganization(String orgId) {
+
+        return this;
+    }
+
+    /**
      * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
      * root and the tenant domain (appended if required).
      *

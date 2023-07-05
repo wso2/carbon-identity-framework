@@ -189,7 +189,7 @@ public class JDBCPersistenceManager {
             return dbConnection;
         } catch (SQLException e) {
             String errMsg = "Error when getting a database connection object from the Identity data source.";
-            throw IdentityRuntimeException.error(errMsg, e);
+            throw DBConnectionException.error(errMsg, e);
         }
     }
 

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -44,6 +46,8 @@ import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -58,6 +62,10 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BLOCKED_USERSTORE_DOMAINS_LIST;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BLOCKED_USERSTORE_DOMAINS_SEPARATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE;
 
@@ -350,6 +358,74 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             userName = UserCoreUtil.getDomainFromThreadLocal() + CarbonConstants.DOMAIN_SEPARATOR + userName;
         }
         return userName;
+    }
+
+    protected org.wso2.carbon.user.core.common.User getUser(AuthenticatedUser authenticatedUser)
+            throws AuthenticationFailedException {
+
+        org.wso2.carbon.user.core.common.User user = null;
+        String tenantDomain = authenticatedUser.getTenantDomain();
+        if (tenantDomain == null) {
+            return null;
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            UserRealm userRealm = FrameworkServiceDataHolder.getInstance().getRealmService()
+                    .getTenantUserRealm(tenantId);
+            if (userRealm != null) {
+                UserStoreManager userStoreManager = userRealm.getUserStoreManager();
+                List<org.wso2.carbon.user.core.common.User> userList
+                        = ((AbstractUserStoreManager) userStoreManager).getUserListWithID(
+                        USERNAME_CLAIM, authenticatedUser.getUserName(), null);
+                if (userList.isEmpty()) {
+                    userList = ((AbstractUserStoreManager) userStoreManager).getUserListWithID(
+                            EMAIL_ADDRESS_CLAIM, authenticatedUser.getUserName(), null);
+                }
+                userList = getValidUsers(userList);
+                if (CollectionUtils.isEmpty(userList)) {
+                    return null;
+                }
+                if (userList.size() > 1) {
+                    throw new AuthenticationFailedException("There are more than one user with the provided username "
+                            + "claim value: " + authenticatedUser.getUserName());
+                }
+                user = userList.get(0);
+            } else {
+                throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: "
+                        + tenantDomain);
+            }
+        } catch (UserStoreException e) {
+            String msg = "Failed to retrieve the user from the user store.";
+            throw new AuthenticationFailedException(msg, e);
+        }
+        return user;
+    }
+
+    private List<org.wso2.carbon.user.core.common.User> getValidUsers(
+            List<org.wso2.carbon.user.core.common.User> userList) {
+
+        List<String> blockedUserStoreDomainsList = getBlockedUserStoreDomainsList();
+        if (CollectionUtils.isEmpty(blockedUserStoreDomainsList)) {
+            return userList;
+        }
+        List<org.wso2.carbon.user.core.common.User> validUserList = new ArrayList<>();
+        for (org.wso2.carbon.user.core.common.User user : userList) {
+            if (!blockedUserStoreDomainsList.contains(user.getUserStoreDomain())) {
+                validUserList.add(user);
+            }
+        }
+        return validUserList;
+    }
+
+    private List<String> getBlockedUserStoreDomainsList() {
+
+        List<String> blockedUserStoreDomainsList = new ArrayList<>();
+        if (StringUtils.isNotBlank(getAuthenticatorConfig().getParameterMap().get(BLOCKED_USERSTORE_DOMAINS_LIST))) {
+            CollectionUtils.addAll(blockedUserStoreDomainsList,
+                    StringUtils.split(getAuthenticatorConfig().getParameterMap().get(BLOCKED_USERSTORE_DOMAINS_LIST),
+                            BLOCKED_USERSTORE_DOMAINS_SEPARATOR));
+        }
+        return blockedUserStoreDomainsList;
     }
 
     /**

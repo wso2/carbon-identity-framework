@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowEvent;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowImpl;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -126,13 +127,43 @@ public interface WorkflowManagementService {
                                                                                                      WorkflowException;
 
     /**
+     * List paginated Workflows of a tenant.
+     *
+     * @param tenantId Tenant Id
+     * @param limit    Limit
+     * @param offset   Offset
+     * @param filter   Filter
+     * @return  List<Workflow>
+     * @throws WorkflowException
+     */
+    default List<Workflow> listPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException {
+
+        return Collections.emptyList();
+    }
+
+    /**
      * List workflows
      *
+     * @deprecated Use {@link #listPaginatedWorkflows(int, int, int, String)} instead.
      * @param tenantId  Tenant ID
      * @return
      * @throws WorkflowException
      */
+    @Deprecated
     List<Workflow> listWorkflows(int tenantId) throws WorkflowException;
+
+    /**
+     * Get Workflows count.
+     *
+     * @param tenantId  Tenant ID
+     * @param filter  filter
+     * @return Return workflows count
+     * @throws WorkflowException
+     */
+    default int getWorkflowsCount(int tenantId, String filter) throws WorkflowException {
+
+        return 0;
+    }
 
     /**
      * Remove a workflow
@@ -170,13 +201,43 @@ public interface WorkflowManagementService {
     List<Association> getAssociationsForWorkflow(String workflowId) throws WorkflowException;
 
     /**
+     * List paginated associations of a tenant.
+     *
+     * @param tenantId Tenant Id
+     * @param limit    Limit
+     * @param offset   Offset
+     * @param filter   Filter
+     * @return List<Association>
+     * @throws WorkflowException
+     */
+    default List<Association> listPaginatedAssociations(int tenantId, int limit, int offset, String filter) throws WorkflowException {
+
+        return Collections.emptyList();
+    }
+
+    /**
      * List all associations of a tenant
      *
+     * @deprecated Use {@link #listPaginatedAssociations(int, int, int, String)} instead.
      * @param tenantId  Tenant ID
      * @return
      * @throws WorkflowException
      */
+    @Deprecated
     List<Association> listAllAssociations(int tenantId) throws WorkflowException;
+
+    /**
+     * Get associations count.
+     *
+     * @param tenantId  Tenant ID
+     * @param filter  filter
+     * @return Return associations count
+     * @throws WorkflowException
+     */
+    default int getAssociationsCount(int tenantId, String filter) throws WorkflowException {
+
+        return 0;
+    }
 
     /**
      * Enable or disable association

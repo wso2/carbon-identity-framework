@@ -23,8 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
-import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -33,12 +31,13 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.P
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -52,6 +51,7 @@ import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
@@ -188,6 +188,16 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Mandatory claims missing for the application : " + missingClaims[0]);
             }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                params.put(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaims);
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                        "Mandatory claims missing for the application: " + context.getServiceProviderName(),
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_MISSING_CLAIMS, null);
+            }
             try {
                 // If there are read only claims marked as mandatory and they are missing, we cannot proceed further.
                 // We have to end the flow and show an error message to user.
@@ -197,6 +207,18 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 for (Map.Entry<String, String> missingClaim : missingClaimMap.entrySet()) {
                     Claim claimObj = claimManager.getClaim(missingClaim.getValue());
                     if (claimObj != null && claimObj.isReadOnly()) {
+                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                            Map<String, Object> params = new HashMap<>();
+                            params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER,
+                                    context.getServiceProviderName());
+                            params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                            params.put(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaim);
+                            LoggerUtils.triggerDiagnosticLogEvent(
+                                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                                    LogConstants.FAILED, "One or more read-only claim is missing in the requested " +
+                                            "claim set",
+                                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_MISSING_CLAIMS, null);
+                        }
                         throw new PostAuthenticationFailedException("One or more read-only claim is missing in the " +
                                 "requested claim set. Please contact your administrator for more information about " +
                                 "this issue.", "One or more read-only claim is missing in the requested claim set");
@@ -288,6 +310,15 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
         if (!doMandatoryClaimsExist) {
             // Check whether mandatory claims exist in the request. If not throw error.
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                        "Mandatory missing claims are not found",
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_MISSING_CLAIMS, null);
+            }
             throw new PostAuthenticationFailedException("Mandatory missing claims are not found", "Mandatory missing " +
                     "claims are not found in the request for the session with context identifier: " +
                     context.getContextIdentifier());
@@ -317,6 +348,16 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             String missingClaimURIs = StringUtils.join(missingClaims, ",");
             if (log.isDebugEnabled()) {
                 log.debug("Claim values for the mandatory claims: " + missingClaimURIs + " are empty");
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                params.put(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaimURIs);
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                        "Mandatory claim is not found. Claim values for the claim URIs: " + missingClaimURIs
+                                + " are empty", FrameworkConstants.LogConstants.ActionIDs.HANDLE_MISSING_CLAIMS, null);
             }
             throw new PostAuthenticationFailedException("Mandatory claim is not found", "Claim " +
                     "values for the claim URIs: " + missingClaimURIs + " are empty");
@@ -423,10 +464,11 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
         UserRealm realm;
         try {
-            realm = AnonymousSessionUtil.getRealmByTenantDomain(
-                    FrameworkServiceComponent.getRegistryService(),
-                    FrameworkServiceComponent.getRealmService(), tenantDomain);
-        } catch (CarbonException e) {
+            RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+
+            realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new PostAuthenticationFailedException("Error while handling missing mandatory claims. " +
                     "Error in realm.", "Error occurred while retrieving the Realm for " + tenantDomain +
                     " to handle local claims", e);

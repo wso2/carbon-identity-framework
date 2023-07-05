@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  * Holds the login page and the authenticator objects
- * of a particular factor
+ * of a particular factor.
  */
 public class StepConfig implements Serializable {
 
@@ -39,6 +39,7 @@ public class StepConfig implements Serializable {
     private boolean subjectAttributeStep;
     private String authenticatedIdP;
     private AuthenticatorConfig authenticatedAutenticator;
+    private String authenticatedAuthenticatorName;
     private List<AuthenticatorConfig> authenticatorList = new ArrayList<>();
     private List<String> authenticatorMappings = new ArrayList<>();
 
@@ -65,6 +66,7 @@ public class StepConfig implements Serializable {
         this.authenticatedIdP = stepConfig.getAuthenticatedIdP();
         this.authenticatedAutenticator = stepConfig.getAuthenticatedAutenticator() != null ?
                 new AuthenticatorConfig(stepConfig.getAuthenticatedAutenticator()) : null;
+        this.authenticatedAuthenticatorName = stepConfig.getAuthenticatedAuthenticatorName();
         this.authenticatorList = new ArrayList<>();
         for (AuthenticatorConfig authenticator : stepConfig.getAuthenticatorList()) {
             this.authenticatorList.add(new AuthenticatorConfig(authenticator));
@@ -234,6 +236,26 @@ public class StepConfig implements Serializable {
     public void setForced(boolean forced) {
 
         this.forced = forced;
+    }
+
+    /**
+     * This method is used to set the name of the authenticated authenticator config.
+     *
+     * @param name Name of the authenticated authenticator config.
+     */
+    public void setAuthenticatedAuthenticatorName(String name) {
+
+        this.authenticatedAuthenticatorName = name;
+    }
+
+    /**
+     * This method is used to get the name of the authenticated authenticator config.
+     *
+     * @return Name of the authenticated authenticator config.
+     */
+    public String getAuthenticatedAuthenticatorName() {
+
+        return this.authenticatedAuthenticatorName;
     }
 
     /**

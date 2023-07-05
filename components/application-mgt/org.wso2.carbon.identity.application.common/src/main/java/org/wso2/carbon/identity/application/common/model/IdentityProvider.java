@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.collections.CollectionUtils;
@@ -76,6 +77,8 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_CLAIM_CONFIG = "ClaimConfig";
     private static final String FILE_ELEMENT_CERTIFICATE = "Certificate";
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
+    private static final String FILE_ELEMENT_IDP_GROUP_CONFIG_WRAPPER = "IdpGroupConfigs";
+    private static final String FILE_ELEMENT_IDP_GROUP_CONFIG = "IdpGroupConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
     private static final String FILE_ELEMENT_IMAGE_URL = "ImageUrl";
     private static final String FILE_ELEMENT_ISSUER = "Issuer";
@@ -90,6 +93,7 @@ public class IdentityProvider implements Serializable {
     private static final String TEMPLATE_ID = "TemplateId";
 
     @XmlTransient
+    @JsonIgnore
     private String id;
 
     @XmlElement(name = "IdentityProviderName")
@@ -142,11 +146,17 @@ public class IdentityProvider implements Serializable {
     @XmlElement(name = "PermissionAndRoleConfig")
     private PermissionsAndRoleConfig permissionAndRoleConfig;
 
+    @XmlElementWrapper(name = FILE_ELEMENT_IDP_GROUP_CONFIG_WRAPPER)
+    @XmlElement(name = FILE_ELEMENT_IDP_GROUP_CONFIG)
+    private IdPGroup[] idPGroupConfig;
+
     @XmlElement(name = "JustInTimeProvisioningConfig")
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
 
-    @XmlTransient
+    @XmlElement(name = "IdpProperties")
     private IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
+
+    @JsonIgnore
     private CertificateInfo[] certificateInfoArray = new CertificateInfo[0];
 
     @IgnoreNullElement
@@ -155,11 +165,15 @@ public class IdentityProvider implements Serializable {
 
     @IgnoreNullElement
     @XmlTransient
+    @JsonIgnore
     private String resourceId;
 
     @IgnoreNullElement
     @XmlElement(name = "TemplateId")
     private String templateId;
+
+    @XmlElement(name = "trustedTokenIssuer")
+    private boolean trustedTokenIssuer = false;
 
     public static IdentityProvider build(OMElement identityProviderOM) {
 
@@ -177,6 +191,7 @@ public class IdentityProvider implements Serializable {
             if (elementName.equals(FILE_ELEMENT_IDENTITY_PROVIDER_NAME)) {
                 if (element.getText() != null) {
                     identityProvider.setIdentityProviderName(element.getText());
+                    identityProvider.setResourceId(identityProvider.getIdentityProviderName());
                 } else {
                     log.error("Identity provider not loaded from the file system. Identity provider name must be " +
                             "not null.");
@@ -288,6 +303,25 @@ public class IdentityProvider implements Serializable {
                             .toArray(new ProvisioningConnectorConfig[0]);
                     identityProvider
                             .setProvisioningConnectorConfigs(provisioningConnectorConfigsArr);
+                }
+            } else if (FILE_ELEMENT_IDP_GROUP_CONFIG_WRAPPER.equals(elementName)) {
+                // Build IdP groups configuration.
+                Iterator<?> idpGroupsIter = element.getChildElements();
+                List<IdPGroup> idPGroupArrayList = new ArrayList<>();
+
+                if (idpGroupsIter != null) {
+                    while (idpGroupsIter.hasNext()) {
+                        OMElement idPGroupElement = (OMElement) (idpGroupsIter.next());
+                        IdPGroup idPGroup = IdPGroup
+                                .build(idPGroupElement);
+                        if (idPGroup != null) {
+                            idPGroupArrayList.add(idPGroup);
+                        }
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(idPGroupArrayList)) {
+                    IdPGroup[] idPGroupsConfig = idPGroupArrayList.toArray(new IdPGroup[0]);
+                    identityProvider.setIdPGroupConfig(idPGroupsConfig);
                 }
             } else if (FILE_ELEMENT_DEFAULT_PROVISIONING_CONNECTOR_CONFIG.equals(elementName)) {
                 if (element.getText().trim().isEmpty()) {
@@ -706,6 +740,7 @@ public class IdentityProvider implements Serializable {
      * @return
      */
     public PermissionsAndRoleConfig getPermissionAndRoleConfig() {
+
         return permissionAndRoleConfig;
     }
 
@@ -713,13 +748,35 @@ public class IdentityProvider implements Serializable {
      * @param permissionAndRoleConfig
      */
     public void setPermissionAndRoleConfig(PermissionsAndRoleConfig permissionAndRoleConfig) {
+
         this.permissionAndRoleConfig = permissionAndRoleConfig;
+    }
+
+    /**
+     * Get the IdP Groups of the identity provider.
+     *
+     * @return the IdP Group Configuration.
+     */
+    public IdPGroup[] getIdPGroupConfig() {
+
+        return idPGroupConfig;
+    }
+
+    /**
+     * Set the IdP Groups of the identity provider.
+     *
+     * @param idPGroupConfig the IdP Group Configuration.
+     */
+    public void setIdPGroupConfig(IdPGroup[] idPGroupConfig) {
+
+        this.idPGroupConfig = idPGroupConfig;
     }
 
     /**
      * @return
      */
     public String getHomeRealmId() {
+
         return homeRealmId;
     }
 
@@ -899,5 +956,14 @@ public class IdentityProvider implements Serializable {
     public void setTemplateId(String templateId) {
 
         this.templateId = templateId;
+    }
+
+    public boolean isTrustedTokenIssuer() {
+
+        return trustedTokenIssuer;
+    }
+
+    public void setTrustedTokenIssuer(boolean trustedTokenIssuer) {
+        this.trustedTokenIssuer = trustedTokenIssuer;
     }
 }

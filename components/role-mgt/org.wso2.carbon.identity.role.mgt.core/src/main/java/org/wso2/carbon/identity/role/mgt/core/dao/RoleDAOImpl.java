@@ -92,6 +92,7 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MY_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.ORACLE;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.POSTGRE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_ROLE_SQL;
@@ -1080,7 +1081,21 @@ public class RoleDAOImpl implements RoleDAO {
                             if (StringUtils.isNotEmpty(domain)) {
                                 name = UserCoreUtil.addDomainToName(name, domain);
                             }
-                            userList.add(new UserBasicInfo(getUserIDByName(name, tenantDomain), name));
+                            String userId;
+                            try {
+                                userId = getUserIDByName(name, tenantDomain);
+                            } catch (IdentityRoleManagementClientException roleManagementClientException) {
+                                String errorMessage = String.format(USER_NOT_FOUND_ERROR_MESSAGE, name, tenantDomain);
+                                if (roleManagementClientException.getMessage().equals(errorMessage)) {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug(errorMessage);
+                                    }
+                                    continue;
+                                } else {
+                                    throw roleManagementClientException;
+                                }
+                            }
+                            userList.add(new UserBasicInfo(userId, name));
                         }
                     }
                 }
@@ -1510,6 +1525,24 @@ public class RoleDAOImpl implements RoleDAO {
             }
         }
         return systemRoles;
+    }
+
+    public Role getRoleWithoutUsers(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Role role = new Role();
+        if (!isExistingRoleID(roleID, tenantDomain)) {
+            throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
+                    "Role id: " + roleID + " does not exist in the tenant: " + tenantDomain);
+        }
+
+        String roleName = getRoleNameByID(roleID, tenantDomain);
+        role.setId(roleID);
+        role.setName(roleName);
+        role.setTenantDomain(tenantDomain);
+        role.setGroups(getGroupListOfRole(roleID, tenantDomain));
+        role.setPermissions(getPermissionListOfRole(roleID, tenantDomain));
+        return role;
     }
 
     @Override

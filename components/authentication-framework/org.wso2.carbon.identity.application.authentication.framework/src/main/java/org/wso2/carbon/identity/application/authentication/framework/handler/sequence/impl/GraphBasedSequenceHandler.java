@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2017, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,6 +53,8 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -63,6 +65,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -115,7 +118,25 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             DefaultStepBasedSequenceHandler.getInstance().handle(request, response, context);
             return;
         }
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            Map<String, Object> params = new HashMap<>();
+            params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+            params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+            LoggerUtils.triggerDiagnosticLogEvent(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                    "Executing script-based authentication",
+                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+        }
         if (!graph.isBuildSuccessful()) {
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                LoggerUtils.triggerDiagnosticLogEvent(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                        "Error while parsing the authentication script. Nested exception is: " + graph.getErrorReason(),
+                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+            }
             throw new FrameworkException(
                     "Error while building graph from Javascript. Nested exception is: " + graph.getErrorReason());
         }
@@ -265,6 +286,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 tenantDomainQueryString = "tenantDomain=" + context.getTenantDomain();
                 promptPage = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, tenantDomainQueryString);
             }
+            String sessionDataKeyQueryString = "sessionDataKey=" + context.getContextIdentifier();
+            promptPage = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, sessionDataKeyQueryString);
             String redirectUrl = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, "templateId=" +
                     URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" +
                     context.getContextIdentifier());
@@ -521,6 +544,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             return true;
         }
         if (context.isPassiveAuthenticate() && !context.isRequestAuthenticated()) {
+            context.getSequenceConfig().setCompleted(true);
             return true;
         }
         context.setReturning(false);
@@ -538,6 +562,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (longWaitStatus == null || longWaitStatus.getStatus() == LongWaitStatus.Status.UNKNOWN) {
             //This is a initiation of long wait
             longWaitStatus = new LongWaitStatus();
+            longWaitStatus.setStatus(LongWaitStatus.Status.WAITING);
             int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
             longWaitStatusStoreService.addWait(tenantId, context.getContextIdentifier(), longWaitStatus);
             isWaiting = callExternalSystem(request, response, context, sequenceConfig, longWaitNode);

@@ -44,6 +44,8 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByHRI;
@@ -55,6 +57,7 @@ import org.wso2.carbon.idp.mgt.cache.IdPHomeRealmIdCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPMetadataPropertyCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPNameCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPResourceIdCacheKey;
+import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 
@@ -70,6 +73,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -84,7 +88,7 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIO
  * Unit tests for CacheBackedIdPManagementDAO.
  */
 @PrepareForTest({IdentityDatabaseUtil.class, DataSource.class, IdentityTenantUtil.class, IdentityUtil.class,
-        CarbonContext.class})
+        CarbonContext.class, IdpMgtServiceComponentHolder.class})
 public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
 
     private static final String DB_NAME = "test";
@@ -148,6 +152,17 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         initiateH2Database(DB_NAME, getFilePath("h2.sql"));
         mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+        mockStatic(IdpMgtServiceComponentHolder.class);
+        IdpMgtServiceComponentHolder idpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
+        when(IdpMgtServiceComponentHolder.getInstance()).thenReturn(idpMgtServiceComponentHolder);
+        SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
+                IdPSecretsProcessor.class);
+        when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService())
+                .thenReturn(idpSecretsProcessor);
+        when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService()
+                .decryptAssociatedSecrets(anyObject())).thenAnswer(invocation -> invocation.getArguments()[0]);
+        when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService()
+                .encryptAssociatedSecrets(anyObject())).thenAnswer(invocation -> invocation.getArguments()[0]);
     }
 
     @AfterMethod

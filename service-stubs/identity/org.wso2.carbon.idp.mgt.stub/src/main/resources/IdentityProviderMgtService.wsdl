@@ -16,6 +16,7 @@
                     <xs:element minOccurs="0" name="federationHub" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="homeRealmId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idPGroupConfig" nillable="true" type="ax2437:IdPGroup"/>
                     <xs:element minOccurs="0" name="identityProviderDescription" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="identityProviderName" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2437:IdentityProviderProperty"/>
@@ -27,6 +28,7 @@
                     <xs:element minOccurs="0" name="provisioningRole" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="resourceId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="templateId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="trustedTokenIssuer" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="CertificateInfo">
@@ -115,6 +117,12 @@
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
+            <xs:complexType name="IdPGroup">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="idpGroupId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="idpGroupName" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
             <xs:complexType name="IdentityProviderProperty">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
@@ -133,6 +141,8 @@
                 <xs:complexContent>
                     <xs:extension base="ax2437:InboundProvisioningConfig">
                         <xs:sequence>
+                            <xs:element minOccurs="0" name="associateLocalUserEnabled" type="xs:boolean"/>
+                            <xs:element minOccurs="0" name="attributeSyncMethod" nillable="true" type="xs:string"/>
                             <xs:element minOccurs="0" name="modifyUserNameAllowed" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="passwordProvisioningEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="promptConsent" type="xs:boolean"/>

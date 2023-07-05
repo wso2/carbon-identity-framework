@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.central.log.mgt.utils;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +27,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -42,6 +44,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
@@ -55,6 +58,11 @@ public class LoggerUtils {
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
     private static final String FLOW_ID_MDC = "Flow-ID";
     private static final String CLIENT_COMPONENT = "clientComponent";
+
+   /**
+    * Config value related to masking sensitive information from logs.
+    */
+    public static boolean isLogMaskingEnable;
 
     /**
      * @param initiatorId   Request initiator's id.
@@ -97,12 +105,12 @@ public class LoggerUtils {
     /**
      * Trigger Diagnostic Log Event.
      *
-     * @param componentId       Component ID.
-     * @param input             Input parameters.
-     * @param resultStatus      Result status.
-     * @param resultMessage     Result message.
-     * @param actionId          Action ID.
-     * @param configurations    System/application level configurations.
+     * @param componentId    Component ID.
+     * @param input          Input parameters.
+     * @param resultStatus   Result status.
+     * @param resultMessage  Result message.
+     * @param actionId       Action ID.
+     * @param configurations System/application level configurations.
      */
     public static void triggerDiagnosticLogEvent(String componentId, Map<String, Object> input, String resultStatus,
                                                  String resultMessage, String actionId,
@@ -168,5 +176,78 @@ public class LoggerUtils {
             }
         }
         return localDateTime;
+    }
+
+    /**
+     * Get the log masking config value from config file.
+     */
+    public static void getLogMaskingConfigValue() {
+
+        isLogMaskingEnable = Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_LOG_MASKING));
+    }
+
+    /**
+     * Util function to mask content.
+     *
+     * @param content Content that needs to be masked.
+     * @return masked content.
+     */
+    public static String getMaskedContent(String content) {
+
+        if (StringUtils.isNotEmpty(content)) {
+            return LogConstants.LOG_MASKING_PATTERN.matcher(content).replaceAll(LogConstants.MASKING_CHARACTER);
+        }
+        return content;
+    }
+
+    /**
+     * Util function to mask claim values except userid claim.
+     *
+     * @param claims Map of user claims.
+     * @return masked map of user claims.
+     */
+    public static Map<String, String> getMaskedClaimsMap(Map<String, String> claims) {
+
+        Map<String, String> maskedClaims = new HashMap<>();
+        if (MapUtils.isNotEmpty(claims)) {
+            for (Map.Entry<String, String> entry : claims.entrySet()) {
+                if (LogConstants.USER_ID_CLAIM_URI.equals(entry.getKey())) {
+                    maskedClaims.put(entry.getKey(), entry.getValue());
+                } else {
+                    maskedClaims.put(entry.getKey(), getMaskedContent(entry.getValue()));
+                }
+            }
+        }
+        return maskedClaims;
+    }
+
+    /**
+     * Util function to mask claim value except userId claim when there is only one claim.
+     *
+     * @param claimURI   Claim URI.
+     * @param claimValue Claim value that will be masked.
+     * @return masked claim value.
+     */
+    public static String getMaskedClaimValue(String claimURI, String claimValue) {
+
+        if (LogConstants.USER_ID_CLAIM_URI.equals(claimURI)) {
+            return claimValue;
+        }
+        return getMaskedContent(claimValue);
+    }
+
+    /**
+     * Util function to mask array of values.
+     *
+     * @param values Array of values need to be masked.
+     * @return masked values of array.
+     */
+    public static String[] getMaskedArraysOfValues(String[] values) {
+
+        String[] maskedArraysOfValues = new String[values.length];
+        for (int index = 0; index < values.length; index++) {
+            maskedArraysOfValues[index] = LoggerUtils.getMaskedContent(values[index]);
+        }
+        return maskedArraysOfValues;
     }
 }

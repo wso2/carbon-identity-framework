@@ -47,7 +47,7 @@ public class BrandingPreferenceRetrievalClient {
 
     private static final String CLIENT = "Client ";
     private static final Log log = LogFactory.getLog(PreferenceRetrievalClient.class);
-    private static final String BRANDING_PREFERENCE_API_RELATIVE_PATH = "/api/server/v1/branding-preference";
+    private static final String BRANDING_PREFERENCE_API_RELATIVE_PATH = "/api/server/v1/branding-preference/resolve";
     private static final String RESOURCE_TYPE_URL_SEARCH_PARAM = "type";
     private static final String RESOURCE_NAME_URL_SEARCH_PARAM = "name";
     private static final String RESOURCE_LOCALE_URL_SEARCH_PARAM = "locale";

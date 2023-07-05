@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 /**
  * Logger For javascript engine.
@@ -32,16 +35,29 @@ public class JsLogger {
     private static JsLogger jsLogger = new JsLogger();
 
     /**
+     * Returns an instance to log the javascript errors.
+     *
+     * @return JsLogger instance.
+     */
+    public static JsLogger getInstance() {
+
+        return jsLogger;
+    }
+
+    /**
      * Logs with list of objects.
+     *
      * @param values
      */
     public void log(Object... values) {
 
         if (values != null) {
+            String resultMessage = "";
             if (values.length <= 0) {
                 logger.debug("");
             } else if (values.length == 1) {
                 logger.debug(String.valueOf(values[0]));
+                resultMessage = String.valueOf(values[0]);
             } else {
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Object value : values) {
@@ -49,6 +65,12 @@ public class JsLogger {
                     stringBuilder.append(" ");
                 }
                 logger.debug(stringBuilder.toString());
+                resultMessage = stringBuilder.toString();
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        null, LogConstants.SUCCESS, "Debug: " + resultMessage,
+                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
             }
         }
     }
@@ -56,29 +78,34 @@ public class JsLogger {
     public void debug(String value) {
 
         logger.debug(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
+                    LogConstants.SUCCESS, "Debug: " + value,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+        }
     }
 
     public void info(String value) {
 
         logger.info(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
+                    LogConstants.SUCCESS, "Info: " + value,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+        }
     }
 
     public void error(String value) {
 
         logger.error(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
+                    LogConstants.FAILED, "Error: " + value,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+        }
     }
 
     public void log(String message, Object... values) {
 
-    }
-
-    /**
-     * Returns an instance to log the javascript errors.
-     *
-     * @return
-     */
-    public static JsLogger getInstance() {
-
-        return jsLogger;
     }
 }

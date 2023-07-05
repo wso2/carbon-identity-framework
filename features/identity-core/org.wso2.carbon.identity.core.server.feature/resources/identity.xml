@@ -113,6 +113,8 @@
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
+        <!-- To enable or disable sha256 ppid display value -->
+        <EnableSHA256PPIDDisplayValue>true</EnableSHA256PPIDDisplayValue>
         <!--
                OpenID private association store is configurable from following configs.
                It includes two new replication stores,
@@ -181,6 +183,8 @@
              access token. Otherwise user's tenant domain will be used. Currently this value is only supported by the JWTTokenIssuer.
 	         This configuration will be enabled by default from IS 5.12.0. -->
         <UseSPTenantDomain>True</UseSPTenantDomain>
+        <!-- This configuration is used to enable or disable generation of random numbers using HMAC-SHA256 algorithm.-->
+        <EnableSHA256Params>true</EnableSHA256Params>
 
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
@@ -211,6 +215,8 @@
         <OAuth2JWKSPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/jwks</OAuth2JWKSPage>
         <OIDCDiscoveryEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/oidcdiscovery</OIDCDiscoveryEPUrl>
 
+        <EnableSHA256OAuth2JWKThumbprint>true</EnableSHA256OAuth2JWKThumbprint>
+
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>true</UseEntityIdAsIssuerInOidcDiscovery>
 
@@ -238,6 +244,25 @@
         <EnableClientSecretHash>false</EnableClientSecretHash>
         <!-- If the user is a federated, user will not be able to access claims from local userstore even if the username matches -->
         <MapFederatedUsersToLocal>false</MapFederatedUsersToLocal>
+
+        <!-- Supported Response Modes -->
+        <SupportedResponseModes>
+            <SupportedResponseMode>
+                <ResponseModeName>query</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.QueryResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>fragment</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FragmentResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>form_post</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FormPostResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+        </SupportedResponseModes>
+
+        <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
+
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
             <SupportedResponseType>
@@ -312,12 +337,6 @@
                 <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.grant.jwt.JWTBearerGrantHandler</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.grant.jwt.JWTGrantValidator</GrantTypeValidatorImplClass>
                 <IsRefreshTokenAllowed>true</IsRefreshTokenAllowed>
-            </SupportedGrantType>
-            <!-- Supported versions: IS 5.7.0 onwards.-->
-            <SupportedGrantType>
-                <GrantTypeName>urn:ietf:params:oauth:grant-type:uma-ticket</GrantTypeName>
-                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth.uma.grant.UMA2GrantHandler</GrantTypeHandlerImplClass>
-                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth.uma.grant.GrantValidator</GrantTypeValidatorImplClass>
             </SupportedGrantType>
             <!-- Supported versions: IS 5.10.0 onwards.-->
             <SupportedGrantType>
@@ -652,7 +671,26 @@
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
 
+        <!--
+        By enabling this property, client id will be used as the sub claim for the access tokens issued for the
+        authenticated applications.
+
+        Default value : true
+        -->
+        <UseClientIdAsSubClaimForAppTokens>true</UseClientIdAsSubClaimForAppTokens>
+
+        <!--
+        By enabling this property, username will be removed from the introspection response for application tokens.
+
+        Default value : true
+        -->
+        <RemoveUsernameFromIntrospectionResponseForAppTokens>true</RemoveUsernameFromIntrospectionResponseForAppTokens>
     </OAuth>
+
+    <RestApiAuthentication>
+        <!-- Configuration for adding realm user field in WWW-Authenticate header. -->
+        <AddRealmUserToError>false</AddRealmUserToError>
+    </RestApiAuthentication>
 
     <MultifactorAuthentication>
         <!--Enable>false</Enable-->
@@ -694,8 +732,8 @@
         <!-- SAML Token validity period in minutes -->
         <SAMLResponseValidityPeriod>5</SAMLResponseValidityPeriod>
         <UseAuthenticatedUserDomainCrypto>false</UseAuthenticatedUserDomainCrypto>
-        <SAMLDefaultSigningAlgorithmURI>http://www.w3.org/2000/09/xmldsig#rsa-sha1</SAMLDefaultSigningAlgorithmURI>
-        <SAMLDefaultDigestAlgorithmURI>http://www.w3.org/2000/09/xmldsig#sha1</SAMLDefaultDigestAlgorithmURI>
+        <SAMLDefaultSigningAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</SAMLDefaultSigningAlgorithmURI>
+        <SAMLDefaultDigestAlgorithmURI>http://www.w3.org/2001/04/xmlenc#sha256</SAMLDefaultDigestAlgorithmURI>
         <SAMLDefaultAssertionEncryptionAlgorithmURI>http://www.w3.org/2001/04/xmlenc#aes256-cbc</SAMLDefaultAssertionEncryptionAlgorithmURI>
         <SAMLDefaultKeyEncryptionAlgorithmURI>http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p</SAMLDefaultKeyEncryptionAlgorithmURI>
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
@@ -703,6 +741,8 @@
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
         <SAMLMetadataValidityPeriod>60</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
+        <SAMLIDPMetadataEnableSHA256Alg>true</SAMLIDPMetadataEnableSHA256Alg>
+        <SAMLSPMetadataParsingEnableSHA256Alg>true</SAMLSPMetadataParsingEnableSHA256Alg>
 
         <SAML2AuthenticationRequestValidityPeriodEnabled>false</SAML2AuthenticationRequestValidityPeriodEnabled>
         <!-- Request validity period in minutes-->
@@ -738,7 +778,17 @@
         <RetryURL>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/retry.do</RetryURL>
         <TokenStoreClassName>org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore</TokenStoreClassName>
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
+        <DisableAppliesToInPassiveSTSResponse>false</DisableAppliesToInPassiveSTSResponse>
+        <EnableDefaultSignatureAndDigestAlgorithm>true</EnableDefaultSignatureAndDigestAlgorithm>
     </PassiveSTS>
+
+    <Mex>
+        <EnableSHA256Alg>true</EnableSHA256Alg>
+    </Mex>
+
+    <UserAccountAssociation>
+        <EnableSHA256Key>true</EnableSHA256Key>
+    </UserAccountAssociation>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
@@ -1005,6 +1055,8 @@
         <UsePagination>false</UsePagination>
     </SCIM2MultiAttributeFiltering>
 
+    <OrgWiseMultiAttributeSeparator>false</OrgWiseMultiAttributeSeparator>
+
     <!--This configuration is for enable/disable reCaptcha feature by default.
     The default configuration is to disable the reCaptcha by default. These configuration can be overrided
     tenant wise.-->
@@ -1070,6 +1122,10 @@
 
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.input.validation.mgt.listener.InputValidationListener"
+                       orderId="3"
+                       enable="true"/>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
                        orderId="10" enable="true"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -1089,6 +1145,9 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener" name="org.wso2.carbon.identity.governance.listener.IdentityStoreEventListener"
                        orderId="97" enable="true">
             <Property name="Data.Store">org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</Property>
+            <!-- By setting this to true, it will use the userstore attribute values for identity claims if the
+            identity data store value is empty for corresponding claim. -->
+            <Property name="EnableHybridDataStore">false</Property>
         </EventListener>
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
@@ -1132,6 +1191,9 @@
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler"
                        orderId="30" enable="true"/>
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.handler.event.account.lock.handlers.PostAuthnFailedLockoutClaimHandler"
+                       orderId="21" enable="true"/>
 
         <!-- Special UserOperationEventListeners to preserve the backward compatibility with the new unique user ID
         related APIs  -->
@@ -1208,6 +1270,9 @@
             <Cache name="IdPCacheByName"             enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
         </CacheManager>
     </CacheConfig>
+
+    <!-- Config to enable performing validations for expired authentication context cache entry. -->
+    <EnableAuthenticationContextExpiryValidation>true</EnableAuthenticationContextExpiryValidation>
 
     <!--Cookies>
         <Cookie name="commonAuthId" domain="localhost" httpOnly="true" secure="true" />
@@ -1349,6 +1414,12 @@
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
             <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
@@ -1549,9 +1620,6 @@
             <Scopes>internal_application_mgt_delete</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
-
         <Resource context="(.*)/api/identity/auth/v1.1/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.1/context(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.1/authenticate(.*)" secured="false" http-method="all"/>
@@ -1698,7 +1766,7 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin</Permissions>
-            <Scopes>SYSTEM</Scopes>
+            <Scopes>internal_organization_admin</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
@@ -1732,7 +1800,7 @@
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/userstores" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/userstore/config/create</Permissions>
             <Scopes>internal_userstore_create</Scopes>
         </Resource>
@@ -1926,6 +1994,7 @@
         <Resource context="(.*)/oauth2/jwks(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/par(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/checksession(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/logout(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
@@ -2026,6 +2095,9 @@
                 <BasePath>/oauth2/</BasePath>
             </Context>
             <Context>
+                <BasePath>/authenticationendpoint/</BasePath>
+            </Context>
+            <Context>
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/server/v1/identity-providers</Path>
@@ -2035,12 +2107,34 @@
                     <Path>/api/server/v1/configs/authenticators</Path>
                     <Path>/api/server/v1/userstores</Path>
                     <Path>/api/server/v1/claim-dialects</Path>
+                    <Path>/api/server/v1/identity-governance</Path>
+                    <Path>/api/server/v1/email/template-types</Path>
+                    <Path>/api/identity/recovery/v0.9</Path>
+                    <Path>/api/identity/auth/v1.1</Path>
+                    <Path>/api/server/v1/authenticators</Path>
+                    <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/validation-rules</Path>
+                    <Path>/api/users/v1/([^/]+)/sessions</Path>
                 </SubPaths>
             </Context>
             <Context>
                 <BasePath>/console/</BasePath>
             </Context>
+            <Context>
+                <BasePath>/accountrecoveryendpoint/</BasePath>
+            </Context>
+            <Context>
+                <BasePath>/oidc/</BasePath>
+                <SubPaths>
+                    <Path>/oidc/logout</Path>
+                </SubPaths>
+            </Context>
         </WebApp>
+        <Servlet>
+            <Context>/commonauth(.*)</Context>
+            <Context>/logincontext(.*)</Context>
+            <Context>/samlsso(.*)</Context>
+        </Servlet>
     </OrgContextsToRewrite>
 
     <OrgRoutingOnlySupportedAPIPaths>
@@ -2059,6 +2153,8 @@
             <HTTPConnectionTimeout>1000</HTTPConnectionTimeout>
             <HTTPReadTimeout>1000</HTTPReadTimeout>
             <HTTPSizeLimit>51200</HTTPSizeLimit>
+            <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
+            <AddPreviousVersionKID>false</AddPreviousVersionKID>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
@@ -2092,6 +2188,20 @@
 
         <!--Timeout in milliseconds for the waiting external calls-->
         <LongWaitTimeout>10000</LongWaitTimeout>
+
+        <!--Timeouts for callChore token call and adaptive endpoint-->
+        <!--Default timeout in milliseconds-->
+        <CallChoreo>
+            <HTTPConnectionTimeout>1000</HTTPConnectionTimeout>
+            <HTTPReadTimeout>1000</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>1000</HTTPConnectionRequestTimeout>
+        </CallChoreo>
+        <!--End of default configs for callChore timeouts-->
+
+        <!--Whether to use authenticator name or display name in authenticationOptions-->
+        <AuthenticatorNameInAuthConfig>
+            <Enable>true</Enable>
+        </AuthenticatorNameInAuthConfig>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
@@ -2184,5 +2294,13 @@
 
     <!-- Configuration to enable the organization level branding of email templates. -->
     <EnableOrganizationLevelEmailBranding>false</EnableOrganizationLevelEmailBranding>
+
+    <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
+    <EnableSHA256RandomNumberGenerator>true</EnableSHA256RandomNumberGenerator>
+
+    <!-- Extension management service configurations -->
+    <ExtensionManagementService>
+        <ExtensionTypes>applications,identity-providers</ExtensionTypes>
+    </ExtensionManagementService>
 
 </Server>

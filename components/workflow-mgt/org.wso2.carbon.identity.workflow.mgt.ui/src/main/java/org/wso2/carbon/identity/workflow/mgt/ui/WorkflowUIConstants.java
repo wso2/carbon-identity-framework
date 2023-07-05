@@ -70,8 +70,18 @@ public class WorkflowUIConstants {
 
     public static final String PARAM_REQUEST_ID = "requestId";
 
+    public static final String DEFAULT_FILTER = "*";
+    public static final String ASSOC_NAME_FILTER = "filterString";
+    public static final String WF_NAME_FILTER = "filterString";
     public static final String PARAM_PAGE_NUMBER = "pageNumber";
     public static final int RESULTS_PER_PAGE = 20;
+    public static final String RESULTS_PER_PAGE_PROPERTY = "ItemsPerPage";
+    public static final int DEFAULT_RESULTS_PER_PAGE = 15;
+    public static final String PAGINATION_VALUE = "region=%s&item=%s";
+    public static final String PAGINATION_VALUE_WITH_FILTER = "region=%s&item=%s&filterString=%s";
+    public static final String DEFAULT_REGION_VALUE = "region1";
+    public static final String DEFAULT_ASSOC_ITEM_VALUE = "associations_list";
+    public static final String DEFAULT_WF_ITEM_VALUE = "workflow_list";
 
     public static class InputType {
         public static final String INTEGER = "INTEGER";
@@ -90,4 +100,5 @@ public class WorkflowUIConstants {
         public static final String TEMPLATE = "Template" ;
         public static final String  WORKFLOW_IMPL = "WorkflowImpl" ;
     }
+
 }

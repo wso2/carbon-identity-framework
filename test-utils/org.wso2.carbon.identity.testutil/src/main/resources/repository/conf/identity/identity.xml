@@ -327,8 +327,8 @@
         <!-- SAML Token validity period in minutes -->
         <SAMLResponseValidityPeriod>5</SAMLResponseValidityPeriod>
         <UseAuthenticatedUserDomainCrypto>false</UseAuthenticatedUserDomainCrypto>
-        <SAMLDefaultSigningAlgorithmURI>http://www.w3.org/2000/09/xmldsig#rsa-sha1</SAMLDefaultSigningAlgorithmURI>
-        <SAMLDefaultDigestAlgorithmURI>http://www.w3.org/2000/09/xmldsig#sha1</SAMLDefaultDigestAlgorithmURI>
+        <SAMLDefaultSigningAlgorithmURI>http://www.w3.org/2001/04/xmldsig-more#rsa-sha256</SAMLDefaultSigningAlgorithmURI>
+        <SAMLDefaultDigestAlgorithmURI>http://www.w3.org/2001/04/xmlenc#sha256</SAMLDefaultDigestAlgorithmURI>
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
     </SSOService>
 
@@ -661,9 +661,6 @@
         <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt</Permissions>
         </Resource>
-
-        <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/identity/auth/v1.2/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>

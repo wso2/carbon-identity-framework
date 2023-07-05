@@ -1,0 +1,10 @@
+{
+    "id": "apple-idp",
+    "name": "Apple",
+    "description": "Enable login for users with Apple IDs.",
+    "image": "apple",
+    "displayOrder": 4,
+    "category": "DEFAULT",
+    "tags": [ "Social-Login" ],
+    "type": "identity-provider"
+}

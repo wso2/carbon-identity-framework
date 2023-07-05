@@ -96,6 +96,8 @@ public class IdentityMgtConstants {
 
     public static final String LAST_PASSWORD_UPDATE_TIME = "http://wso2.org/claims/identity/lastPasswordUpdateTime";
 
+    public static final String ENABLE_ENCRYPTION = "EnableEncryption";
+
     private IdentityMgtConstants() {
     }
 

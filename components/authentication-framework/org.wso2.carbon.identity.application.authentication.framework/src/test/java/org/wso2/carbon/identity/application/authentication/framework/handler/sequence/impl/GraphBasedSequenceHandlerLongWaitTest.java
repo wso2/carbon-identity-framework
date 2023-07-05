@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.dao.impl.Lo
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -56,6 +57,7 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
     @Test
     public void testHandleLongWait() throws Exception {
 
+        LoggerUtils.isLogMaskingEnable = false;
         PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);

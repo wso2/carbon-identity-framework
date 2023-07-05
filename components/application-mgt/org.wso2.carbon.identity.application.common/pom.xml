@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>5.23.22-SNAPSHOT</version>
+        <version>5.25.242-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -52,6 +52,10 @@
         <dependency>
             <groupId>org.wso2.orbit.javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
         </dependency>
     </dependencies>
 
@@ -92,7 +96,9 @@
                             org.wso2.carbon.identity.core.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.persistence; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}",
+
+                            com.fasterxml.jackson.annotation; version="${com.fasterxml.jackson.annotation.version.range}"
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.export.version}"

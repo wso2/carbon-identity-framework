@@ -49,11 +49,19 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -70,6 +78,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -93,6 +102,8 @@ public class DefaultStepHandler implements StepHandler {
             + ": %s ";
     private static final String SUCCESS = "Success";
     private static final String FAILURE = "Failure";
+
+    private static final String USERNAME = "username";
 
     public static DefaultStepHandler getInstance() {
 
@@ -145,6 +156,21 @@ public class DefaultStepHandler implements StepHandler {
                 LOG.debug("No previous authenticated IDPs found in the authentication context.");
             } else {
                 LOG.debug(String.format("Found authenticated IdPs. Count: %d", authenticatedIdPs.size()));
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                    params.put(FrameworkConstants.LogConstants.COUNT, authenticatedIdPs.size());
+                    Map<String, Object> idpMap = new HashMap<>();
+                    authenticatedIdPs.forEach((key, value) -> idpMap.put(key, value.getAuthenticators().stream().map(
+                            AuthenticatorConfig::getName).collect(Collectors.toList())));
+                    params.put(FrameworkConstants.LogConstants.AUTHENTICATED_IDPS, idpMap);
+
+                    LoggerUtils.triggerDiagnosticLogEvent(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                            "Authenticated IDPs found", FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST,
+                            null);
+                }
             }
         }
 
@@ -207,7 +233,7 @@ public class DefaultStepHandler implements StepHandler {
         } else if (context.isReturning()) {
             // if this is a request from the multi-option page
             if (request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR) != null
-                && !request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR)
+                    && !request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR)
                     .isEmpty()) {
                 handleRequestFromLoginPage(request, response, context);
                 return;
@@ -239,8 +265,13 @@ public class DefaultStepHandler implements StepHandler {
                         .iterator().next();
                 String idp = entry.getKey();
                 AuthenticatorConfig authenticatorConfig = entry.getValue();
+                /**
+                 * TODO: This organization login specific logic should be moved out of authentication framework.
+                 * This is tracked with https://github.com/wso2/product-is/issues/15922
+                 */
+                boolean isOrganizationLogin = isLoggedInWithOrganizationLogin(authenticatorConfig);
 
-                if (context.isReAuthenticate()) {
+                if (context.isReAuthenticate() || isOrganizationLogin) {
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Re-authenticating with " + idp + " IdP");
@@ -252,12 +283,34 @@ public class DefaultStepHandler implements StepHandler {
                     } catch (IdentityProviderManagementException e) {
                         LOG.error("Exception while getting IdP by name", e);
                     }
+
+                    if (isOrganizationLogin) {
+                        AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(idp);
+                        setLoggedInOrgIdInRequest(authenticatedIdPData, request);
+                    }
                     doAuthentication(request, response, context, authenticatorConfig);
                     return;
                 } else {
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Already authenticated. Skipping the step");
+                    }
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        Map<String, Object> params = new HashMap<>();
+                        params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                        params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                        params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
+                        Map<String, Object> authenticatedStepIdpMap = new HashMap<>();
+                        authenticatedStepIdps.forEach((key, value) ->
+                                    Optional.ofNullable(value.getApplicationAuthenticator())
+                                            .ifPresent(authenticator ->
+                                                    authenticatedStepIdpMap.put(key, authenticator.getName()))
+                                );
+                        params.put(FrameworkConstants.LogConstants.AUTHENTICATED_IDPS, authenticatedStepIdpMap);
+                        LoggerUtils.triggerDiagnosticLogEvent(
+                                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                                "Already authenticated. Skipping the step",
+                                FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
                     }
 
                     // skip the step if this is a normal request
@@ -277,17 +330,60 @@ public class DefaultStepHandler implements StepHandler {
                 boolean isAuthFlowHandlerOrBasicAuthInMultiOptionStep = false;
                 AuthenticatorConfig authenticatorConfig = null;
 
+                List<AuthenticatorConfig> filteredAuthConfigList = new ArrayList<>();
+
+                /*
+                 Check user satisfies all the prerequisites of each authenticator and append only filtered
+                 authenticator to the redirection URL.
+                */
+                for (AuthenticatorConfig authConfig : authConfigList) {
+                    ApplicationAuthenticator authenticator = authConfig.getApplicationAuthenticator();
+                    try {
+                        if (authenticator != null && authenticator
+                                .isSatisfyAuthenticatorPrerequisites(request, context)) {
+                            filteredAuthConfigList.add(authConfig);
+                        }
+                    } catch (AuthenticationFailedException e) {
+                        throw new FrameworkException(e.getErrorCode(), e.getMessage(), e);
+                    }
+                }
+
+                /*
+                 If filtered autheticator list for the auth step is empty, and unfiltered list is not empty, redirect
+                 user to an error page to indicate user does not satisfy pre-requisites any of the authencators
+                 configured to the auth step.
+                */
+                if (filteredAuthConfigList.isEmpty() & !authConfigList.isEmpty()) {
+                    try {
+                        String errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointErrorURL();
+                        URIBuilder uriBuilder = new URIBuilder(errorPage);
+
+                        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+                            uriBuilder.addParameter(FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT,
+                                    context.getUserTenantDomain());
+                        }
+                        uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
+                        uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID,
+                                context.getContextIdentifier());
+
+                        response.sendRedirect(uriBuilder.build().toString());
+                        return;
+                    } catch (IOException | URISyntaxException e) {
+                        throw new FrameworkException(e.getMessage(), e);
+                    }
+                }
+
                 // Are there multiple authenticators?
-                if (authConfigList.size() > 1) {
+                if (filteredAuthConfigList.size() > 1) {
                     sendToPage = true;
                     // To identify whether multiple authentication options are available along with an authentication
                     // flow handler or basic authenticator. If available, doAuthentication will be executed before
                     // redirecting to the multi option page.
-                    for (AuthenticatorConfig config : authConfigList) {
+                    for (AuthenticatorConfig config : filteredAuthConfigList) {
                         if ((config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) ||
                                 (config.getApplicationAuthenticator() instanceof LocalApplicationAuthenticator &&
                                         (BASIC_AUTH_MECHANISM).equalsIgnoreCase(config.getApplicationAuthenticator()
-                                                .getAuthMechanism()))) {
+                                                .getAuthMechanism()) && IdentityUtil.getIdentityErrorMsg() == null)) {
                             authenticatorConfig = config;
                             isAuthFlowHandlerOrBasicAuthInMultiOptionStep = true;
                             sendToPage = false;
@@ -296,7 +392,7 @@ public class DefaultStepHandler implements StepHandler {
                     }
                 } else {
                     // Are there multiple IdPs in the single authenticator?
-                    authenticatorConfig = authConfigList.get(0);
+                    authenticatorConfig = filteredAuthConfigList.get(0);
                     if (authenticatorConfig.getIdpNames().size() > 1) {
                         sendToPage = true;
                     }
@@ -363,6 +459,7 @@ public class DefaultStepHandler implements StepHandler {
         try {
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
                     .INCOMPLETE);
+            request.setAttribute(FrameworkConstants.IS_MULTI_OPS_RESPONSE, true);
             response.sendRedirect(getRedirectUrl(request, response, context, authenticatorNames,
                     showAuthFailureReason, retryParam, loginPage));
         } catch (IOException | URISyntaxException e) {
@@ -545,6 +642,17 @@ public class DefaultStepHandler implements StepHandler {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(authenticator.getName() + " can handle the request.");
                 }
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                    params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticator.getName());
+                    params.put(FrameworkConstants.LogConstants.STEP, currentStep);
+                    LoggerUtils.triggerDiagnosticLogEvent(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
+                            "Initializing authentication flow",
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
+                }
 
                 doAuthentication(request, response, context, authenticatorConfig);
                 break;
@@ -579,6 +687,21 @@ public class DefaultStepHandler implements StepHandler {
                     context.getExternalIdP(), authenticator.getName()));
             AuthenticatorFlowStatus status = authenticator.process(request, response, context);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
+            /* If this is an authentication initiation and the authenticator supports API based authentication
+             we need to send the auth initiation data in order to support performing API based authentication.*/
+            if (status == AuthenticatorFlowStatus.INCOMPLETE && authenticator.isAPIBasedAuthenticationSupported()) {
+                authenticator.getAuthInitiationData(context).ifPresent(authInitiationData -> {
+                    List<AuthenticatorData> authInitiationDataList =
+                            (List<AuthenticatorData>) request
+                                    .getAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA);
+                    if (authInitiationDataList == null) {
+                        authInitiationDataList = new ArrayList<>();
+                        request.setAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA,
+                                authInitiationDataList);
+                    }
+                    authInitiationDataList.add(authInitiationData);
+                });
+            }
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug(authenticator.getName() + " returned: " + status.toString());
@@ -696,6 +819,9 @@ public class DefaultStepHandler implements StepHandler {
             String initiator = null;
             if (stepConfig.getAuthenticatedUser() != null) {
                 initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
+                if (LoggerUtils.isLogMaskingEnable) {
+                    initiator = LoggerUtils.getMaskedContent(initiator);
+                }
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
                     ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
@@ -703,9 +829,38 @@ public class DefaultStepHandler implements StepHandler {
                 audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
                         data, SUCCESS));
             }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
+                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                params.put(FrameworkConstants.LogConstants.IDP, stepConfig.getAuthenticatedIdP());
+                params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME,
+                        stepConfig.getAuthenticatedAutenticator().getName());
+                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                        LogConstants.SUCCESS, "Authentication success for step: " + stepConfig.getOrder(),
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
+            }
         } catch (InvalidCredentialsException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("A login attempt was failed due to invalid credentials", e);
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                 Map<String, Object> params = getContextParamsForDiagnosticLogs(context, authenticatorConfig,
+                        stepConfig);
+                Optional.ofNullable(e.getUser()).ifPresent(user -> {
+                    Optional.ofNullable(user.toFullQualifiedUsername()).ifPresent(username -> {
+                        params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
+                                LoggerUtils.getMaskedContent(username) : username);
+                    });
+                    params.put(FrameworkConstants.LogConstants.USER_STORE_DOMAIN, user.getUserStoreDomain());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, user.getTenantDomain());
+                });
+                params.put(FrameworkConstants.LogConstants.IDP, idpName);
+                params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticatorConfig.getName());
+                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                        LogConstants.FAILED, "Authentication failed: " + e.getMessage(),
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + idpName + ", Authenticator:" +
                     authenticatorConfig.getName();
@@ -714,6 +869,9 @@ public class DefaultStepHandler implements StepHandler {
                 initiator = e.getUser().toFullQualifiedUsername();
             } else if (context.getSubject() != null) {
                 initiator = context.getSubject().toFullQualifiedUsername();
+            }
+            if (LoggerUtils.isLogMaskingEnable) {
+                initiator = LoggerUtils.getMaskedContent(initiator);
             }
             if (!isLegacyAuditLogsDisabled()) {
                 audit.warn(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
@@ -753,9 +911,19 @@ public class DefaultStepHandler implements StepHandler {
             } else if (context.getSubject() != null) {
                 initiator = context.getSubject().toFullQualifiedUsername();
             }
+            if (LoggerUtils.isLogMaskingEnable) {
+                initiator = LoggerUtils.getMaskedContent(initiator);
+            }
             if (!isLegacyAuditLogsDisabled()) {
                 audit.warn(String.format(AUDIT_MESSAGE, initiator,
                         "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                Map<String, Object> params = getContextParamsForDiagnosticLogs(context, authenticatorConfig,
+                        stepConfig);
+                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
+                        LogConstants.FAILED, "Authentication failed exception: " + e.getMessage(),
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP, null);
             }
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (LogoutFailedException e) {
@@ -763,6 +931,18 @@ public class DefaultStepHandler implements StepHandler {
         }
 
         stepConfig.setCompleted(true);
+    }
+
+    private Map<String, Object> getContextParamsForDiagnosticLogs(AuthenticationContext context,
+                                                                  AuthenticatorConfig authenticatorConfig,
+                                                                  StepConfig stepConfig) {
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
+        params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+        params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+        params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticatorConfig.getName());
+        return params;
     }
 
     protected void handleFailedAuthentication(HttpServletRequest request,
@@ -844,7 +1024,7 @@ public class DefaultStepHandler implements StepHandler {
         return authenticatedIdPData;
     }
 
-    private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response, AuthenticationContext
+    protected String getRedirectUrl(HttpServletRequest request, HttpServletResponse response, AuthenticationContext
             context, String authenticatorNames, String showAuthFailureReason, String retryParam, String loginPage)
             throws IOException, URISyntaxException {
 
@@ -854,6 +1034,7 @@ public class DefaultStepHandler implements StepHandler {
         retryParam = handleIdentifierFirstLogin(context, retryParam);
         String otp = (String) context.getProperty(FrameworkConstants.PASSWORD_PROPERTY);
         context.getProperties().remove(FrameworkConstants.PASSWORD_PROPERTY);
+        String username = request.getParameter(USERNAME);
 
         // If recaptcha is enabled and the Basic Authenticator is in the authenticator list for this page, the recaptcha
         // params set by the Basic Authenticator need to be added to new URL generated for the multi option page.
@@ -886,7 +1067,7 @@ public class DefaultStepHandler implements StepHandler {
                                 FrameworkConstants.REMAINING_ATTEMPTS.equals(param.getName()) ||
                                 FrameworkConstants.FAILED_USERNAME.equals(param.getName()))
                         .collect(Collectors.toList()));
-                if (errorContextParams.size() > 0) {
+                if (!errorContextParams.isEmpty()) {
                     for (NameValuePair errorParams : errorContextParams) {
                         errorParamString.append("&").append(errorParams.getName()).append("=")
                                 .append(errorParams.getValue());
@@ -894,10 +1075,37 @@ public class DefaultStepHandler implements StepHandler {
                 }
             }
         }
+        if (StringUtils.isBlank(reCaptchaParamString.toString())) {
+            String captchaParamStringFromContext = (String) context.getProperty(
+                    FrameworkConstants.CAPTCHA_PARAM_STRING);
+            if (StringUtils.isNotBlank(captchaParamStringFromContext)) {
+                reCaptchaParamString.append(captchaParamStringFromContext);
+                context.removeProperty(FrameworkConstants.CAPTCHA_PARAM_STRING);
+            }
+        }
+
+        Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
+        String maskUserNotExistsErrorCode = null;
+        if (MapUtils.isNotEmpty(parameterMap)) {
+            if (Boolean.parseBoolean(showAuthFailureReason)) {
+                maskUserNotExistsErrorCode =
+                        parameterMap.get(FrameworkConstants.MASK_USER_NOT_EXISTS_ERROR_CODE_CONFIG);
+            }
+        }
 
         if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
             if (errorContext != null) {
                 String errorCode = errorContext.getErrorCode();
+                if (Boolean.parseBoolean(maskUserNotExistsErrorCode) &&
+                        StringUtils.contains(errorCode, UserCoreConstants.ErrorCode.USER_DOES_NOT_EXIST)) {
+                    errorCode = UserCoreConstants.ErrorCode.INVALID_CREDENTIAL;
+
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Masking user not found error code: " +
+                                UserCoreConstants.ErrorCode.USER_DOES_NOT_EXIST + " with error code: " +
+                                errorCode);
+                    }
+                }
                 String reason = null;
                 if (errorCode.contains(":")) {
                     String[] errorCodeReason = errorCode.split(":", 2);
@@ -909,95 +1117,83 @@ public class DefaultStepHandler implements StepHandler {
                 int remainingAttempts = errorContext.getMaximumLoginAttempts() - errorContext.getFailedLoginAttempts();
 
                 if (LOG.isDebugEnabled()) {
-                    StringBuilder debugString = new StringBuilder();
-                    debugString.append("Identity error message context is not null. Error details are as follows.");
-                    debugString.append("errorCode : " + errorCode + "\n");
-                    debugString.append("username : " + request.getParameter("username") + "\n");
-                    debugString.append("remainingAttempts : " + remainingAttempts);
-                    LOG.debug(debugString.toString());
+                    String debugString = "Identity error message context is not null. Error details are as follows." +
+                            "errorCode : " + errorCode + "\n" +
+                            "username : " + username + "\n" +
+                            "remainingAttempts : " + remainingAttempts;
+                    LOG.debug(debugString);
                 }
 
                 if (UserCoreConstants.ErrorCode.INVALID_CREDENTIAL.equals(errorCode)) {
-                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
-                            (request.getParameter("username"), "UTF-8") + "&remainingAttempts=" + remainingAttempts;
+                    retryParam = String.format("%s&errorCode=%s&remainingAttempts=%d", retryParam, errorCode,
+                            remainingAttempts);
+                    if (username != null) {
+                        retryParam = String.format("%s&failedUsername=%s", retryParam, URLEncoder.encode(username,
+                                "UTF-8"));
+                    }
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
                 } else if (UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(errorCode)) {
                     String redirectURL;
+                    redirectURL = response.encodeRedirectURL(loginPage
+                            + ("?" + context.getContextIdIncludedQueryParams()))
+                            + String.format(
+                            "&errorCode=%s&authenticators=%s",
+                            errorCode, URLEncoder.encode(authenticatorNames, "UTF-8"))
+                            + retryParam + reCaptchaParamString;
                     if (remainingAttempts == 0) {
-                        if (StringUtils.isBlank(reason)) {
-                            redirectURL = response.encodeRedirectURL(loginPage + ("?"
-                                    + context.getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode
-                                    + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"), "UTF-8")
-                                    + "&remainingAttempts=0" + "&authenticators="
-                                    + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam
-                                    + reCaptchaParamString;
-                        } else {
-                            redirectURL = response.encodeRedirectURL(loginPage + ("?"
-                                    + context.getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode
-                                    + "&lockedReason=" + reason + "&failedUsername="
-                                    + URLEncoder.encode(request.getParameter("username"), "UTF-8")
-                                    + "&remainingAttempts=0" + "&authenticators="
-                                    + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam
-                                    + reCaptchaParamString;
-                        }
-                    } else {
-                        if (StringUtils.isBlank(reason)) {
-                            redirectURL = response.encodeRedirectURL(loginPage + ("?"
-                                    + context.getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode
-                                    + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"), "UTF-8")
-                                    + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8")
-                                    + retryParam + reCaptchaParamString;
-                        } else {
-                            redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
-                                    .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&lockedReason="
-                                    + reason + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"),
-                                    "UTF-8") + "&authenticators=" +
-                                    URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
-                                    reCaptchaParamString.toString();
-                        }
+                        redirectURL = String.format("%s&remainingAttempts=0", redirectURL);
+                    }
+                    if (!StringUtils.isBlank(reason)) {
+                        redirectURL = String.format("%s&lockedReason=%s", redirectURL, reason);
+                    }
+                    if (username != null) {
+                        redirectURL = String.format("%s&failedUsername=%s", redirectURL, URLEncoder.encode(username,
+                                "UTF-8"));
                     }
                     return redirectURL;
                 } else if (IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(errorCode)) {
                     retryParam = "&authFailure=true&authFailureMsg=account.confirmation.pending";
-                    String username = request.getParameter("username");
-
                     Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
                     if (domain != null) {
                         username = IdentityUtil.addDomainToName(username, domain.toString());
                     }
-
-                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
-                            (username, "UTF-8");
+                    retryParam = String.format("%s&errorCode=%s", retryParam, errorCode);
+                    if (username != null) {
+                        retryParam = String.format("%s&failedUsername=%s", retryParam, URLEncoder.encode(username,
+                                "UTF-8"));
+                    }
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
                 } else if (IdentityCoreConstants.USER_INVALID_CREDENTIALS.equals(errorCode)) {
                     retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
-                    String username = request.getParameter("username");
                     Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
                     if (domain != null) {
                         username = IdentityUtil.addDomainToName(username, domain.toString());
                     }
-                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
-                            (username, "UTF-8");
+                    retryParam = retryParam + "&errorCode=" + errorCode;
+                    if (username != null) {
+                        retryParam = String.format("%s&failedUsername=%s", retryParam, URLEncoder.encode(username,
+                                "UTF-8"));
+                    }
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
                 } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE
                         .equals(errorCode)) {
-                    String username = request.getParameter("username");
-                    return response.encodeRedirectURL(
-                            ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
-                            + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp +
-                            reCaptchaParamString.toString();
+                    return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
+                            loginPage, otp, reCaptchaParamString);
                 } else {
                     if (StringUtils.isNotBlank(retryParam) && StringUtils.isNotBlank(reason)) {
                         retryParam = "&authFailure=true&authFailureMsg=" + URLEncoder.encode(reason, "UTF-8");
                     }
-                    retryParam += "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
-                            (request.getParameter("username"), "UTF-8");
+                    retryParam = retryParam + "&errorCode=" + errorCode;
+                    if (username != null) {
+                        retryParam = String.format("%s&failedUsername=%s", retryParam, URLEncoder.encode(username,
+                                "UTF-8"));
+                    }
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
                             reCaptchaParamString.toString();
@@ -1021,18 +1217,19 @@ public class DefaultStepHandler implements StepHandler {
             String errorCode = errorContext != null ? errorContext.getErrorCode() : null;
             if (UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(errorCode)) {
                 String redirectURL;
-                redirectURL = response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()
-                )) + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
-                        "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
-                        reCaptchaParamString.toString();
+                redirectURL = response.encodeRedirectURL(loginPage + ("?"
+                        + context.getContextIdIncludedQueryParams()))
+                        + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8")
+                        + retryParam + reCaptchaParamString.toString();
+                if (username != null) {
+                    redirectURL = String.format("%s&failedUsername=%s", redirectURL, URLEncoder.encode(username,
+                            "UTF-8"));
+                }
                 return redirectURL;
 
             } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
-                String username = request.getParameter("username");
-                return response.encodeRedirectURL(
-                        ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
-                        + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp +
-                        reCaptchaParamString.toString();
+                return getRedirectURLForcedPasswordResetOTP(request, response, context, authenticatorNames,
+                        loginPage, otp, reCaptchaParamString);
             } else {
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
                         "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam +
@@ -1041,7 +1238,7 @@ public class DefaultStepHandler implements StepHandler {
         }
     }
 
-    private String handleIdentifierFirstLogin(AuthenticationContext context, String retryParam) {
+    protected String handleIdentifierFirstLogin(AuthenticationContext context, String retryParam) {
 
         Map<String, String> runtimeParams = context
                 .getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
@@ -1061,7 +1258,7 @@ public class DefaultStepHandler implements StepHandler {
         return retryParam;
     }
 
-    private AuthenticatorConfig getAuthenticatorConfig() {
+    protected AuthenticatorConfig getAuthenticatorConfig() {
         AuthenticatorConfig authConfig = FileBasedConfigurationBuilder.getInstance().getAuthenticatorBean
                 (FrameworkConstants.BASIC_AUTHENTICATOR_CLASS);
         if (authConfig == null) {
@@ -1074,12 +1271,12 @@ public class DefaultStepHandler implements StepHandler {
     /**
      * Check whether the user should be redirected to the retry.jsp page when the user's account is locked.
      * This decision is taken based on three configuration options, redirectToMultiOptionPageOnFailure,
-       showAuthFailureReasonOnLoginPage and redirectToRetryPageOnAccountLock.
+     showAuthFailureReasonOnLoginPage and redirectToRetryPageOnAccountLock.
      *
      * @param context  Authentication context.
      * @return boolean Whether the user should be directed to retry.jsp page or not.
      */
-    private boolean isRedirectionToRetryPageOnAccountLock(AuthenticationContext context) {
+    protected boolean isRedirectionToRetryPageOnAccountLock(AuthenticationContext context) {
 
         boolean sendToMultiOptionPage = context.isSendToMultiOptionPage();
         if (sendToMultiOptionPage) {
@@ -1097,5 +1294,71 @@ public class DefaultStepHandler implements StepHandler {
             return Boolean.parseBoolean(redirectToRetryPageOnAccountLock);
         }
         return false;
+    }
+
+    private String getRedirectURLForcedPasswordResetOTP(HttpServletRequest request, HttpServletResponse response,
+                                                        AuthenticationContext context, String authenticatorNames,
+                                                        String loginPage, String otp,
+                                                        StringBuilder reCaptchaParamString)
+            throws IOException {
+
+        String username = request.getParameter("username");
+        // Setting callback so that the user is prompted to login after a password reset.
+        String callback;
+        try {
+            callback = ServiceURLBuilder.create().addPath(loginPage).build().getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building callback url for context: " + loginPage, e);
+        }
+
+        callback = callback + ("?" + context.getContextIdIncludedQueryParams())
+                + "&authenticators=" + authenticatorNames;
+
+        if (username == null) {
+            return response.encodeRedirectURL(
+                    ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
+                    + "&confirmation=" + otp + "&callback=" + URLEncoder.encode(callback, "UTF-8")
+                    + reCaptchaParamString.toString();
+        }
+        return response.encodeRedirectURL(
+                ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
+                + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp
+                + "&callback=" + URLEncoder.encode(callback, "UTF-8") + reCaptchaParamString.toString();
+    }
+
+    /**
+     * Check whether the user is logged in with organization login.
+     *
+     * @param authenticatorConfig Authenticator config.
+     * @return Whether the authenticator is organization authenticator or not.
+     */
+    private boolean isLoggedInWithOrganizationLogin(AuthenticatorConfig authenticatorConfig) {
+
+        if (authenticatorConfig == null) {
+            return false;
+        }
+        return FrameworkConstants.ORGANIZATION_AUTHENTICATOR.equals(authenticatorConfig.getName());
+    }
+
+    /**
+     * Set the logged in organization id in the request as an attribute.
+     *
+     * @param authenticatedIdPData Authenticated IDP data.
+     * @param request              HTTP servlet request.
+     */
+    private void setLoggedInOrgIdInRequest(AuthenticatedIdPData authenticatedIdPData, HttpServletRequest request) {
+
+        AuthenticatedUser authenticatedUser = authenticatedIdPData.getUser();
+        Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
+        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+            ClaimMapping claimMapping = entry.getKey();
+            if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
+                String organizationId = entry.getValue();
+                if (StringUtils.isNotBlank(organizationId)) {
+                    request.setAttribute(FrameworkConstants.ORG_ID_PARAMETER, organizationId);
+                }
+            }
+        }
     }
 }

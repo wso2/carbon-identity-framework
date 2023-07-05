@@ -84,6 +84,17 @@ public class SessionExtenderProcessor extends IdentityProcessor {
                     "No session available for requested session identifier.");
         }
         SessionContext sessionContext = sessionContextCacheEntry.getContext();
+        boolean isSessionExpired = SessionContextCache.getInstance().
+                isSessionExpired(sessionContextCacheKey, sessionContextCacheEntry);
+        if (isSessionExpired) {
+            if (log.isDebugEnabled()) {
+                log.debug("Session already expired for provided session cache entry");
+            }
+            throw new SessionExtenderClientException(
+                    SessionExtenderConstants.Error.SESSION_NOT_AVAILABLE.getCode(),
+                    SessionExtenderConstants.Error.SESSION_NOT_AVAILABLE.getMessage(),
+                    "No session available for requested session identifier.");
+        }
 
         long currentTime = System.currentTimeMillis();
         FrameworkUtils.updateSessionLastAccessTimeMetadata(sessionKey, currentTime);

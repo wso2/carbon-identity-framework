@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -56,6 +56,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.listener.JITProvisioningIdentityProviderMgtListener;
@@ -97,19 +98,21 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
-import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -167,26 +170,6 @@ public class FrameworkServiceComponent {
             log.debug("RealmService is set in the Application Authentication Framework bundle");
         }
         FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
-    }
-
-    public static RegistryService getRegistryService() {
-
-        return FrameworkServiceDataHolder.getInstance().getRegistryService();
-    }
-
-    @Reference(
-            name = "registry.service",
-            service = RegistryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRegistryService"
-    )
-    protected void setRegistryService(RegistryService registryService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService is set in the Application Authentication Framework bundle");
-        }
-        FrameworkServiceDataHolder.getInstance().setRegistryService(registryService);
     }
 
     /**
@@ -365,7 +348,9 @@ public class FrameworkServiceComponent {
 
         // Check whether the TENANT_ID column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
         FrameworkUtils.checkIfTenantIdColumnIsAvailableInFedAuthTable();
-
+        // Check whether the IDP_ID column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
+        FrameworkUtils.checkIfIdpIdColumnIsAvailableInFedAuthTable();
+        
         // Set user session mapping enabled.
         FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
                 .isUserSessionMappingEnabled());
@@ -475,14 +460,6 @@ public class FrameworkServiceComponent {
             log.debug("RealmService is unset in the Application Authentication Framework bundle");
         }
         FrameworkServiceDataHolder.getInstance().setRealmService(null);
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService is unset in the Application Authentication Framework bundle");
-        }
-        FrameworkServiceDataHolder.getInstance().setRegistryService(null);
     }
 
     @Reference(
@@ -802,6 +779,24 @@ public class FrameworkServiceComponent {
     }
 
     @Reference(
+            name = "approles.resolver.service",
+            service = ApplicationRolesResolver.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAppRolesResolverService"
+    )
+    protected void setAppRolesResolverService(ApplicationRolesResolver applicationRolesResolver) {
+
+        FrameworkServiceDataHolder.getInstance().addApplicationRolesResolver(applicationRolesResolver);
+        log.debug("Application Roles Resolver is set in the Application Authentication Framework bundle.");
+    }
+
+    protected void unsetAppRolesResolverService(ApplicationRolesResolver applicationRolesResolver) {
+
+        FrameworkServiceDataHolder.getInstance().removeApplicationRolesResolver(applicationRolesResolver);
+    }
+
+    @Reference(
             name = "identity.event.service",
             service = IdentityEventService.class,
             cardinality = ReferenceCardinality.MULTIPLE,
@@ -907,23 +902,6 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(null);
     }
 
-
-    @Reference(
-            service = AccountLockService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetAccountLockService"
-    )
-    public void setAccountLockService(AccountLockService accountLockService) {
-
-        FrameworkServiceDataHolder.getInstance().setAccountLockService(accountLockService);
-    }
-
-    public void unsetAccountLockService(AccountLockService accountLockService) {
-
-        FrameworkServiceDataHolder.getInstance().setAccountLockService(null);
-    }
-
     private AuthenticatorConfig getAuthenticatorConfig(String name) {
 
         AuthenticatorConfig authConfig = FileBasedConfigurationBuilder.getInstance().getAuthenticatorBean(name);
@@ -1015,4 +993,80 @@ public class FrameworkServiceComponent {
             }
         }
     };
+
+    @Reference(
+            service = ApplicationManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationManagement"
+    )
+    public void setApplicationManagement(ApplicationManagementService applicationManagement) {
+
+        FrameworkServiceDataHolder.getInstance().setApplicationManagementService(applicationManagement);
+    }
+
+    public void unsetApplicationManagement(ApplicationManagementService applicationManagementService) {
+
+        FrameworkServiceDataHolder.getInstance().setApplicationManagementService(null);
+    }
+
+    @Reference(
+            name = "resource.configuration.manager",
+            service = ConfigurationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unregisterConfigurationManager"
+    )
+    protected void registerConfigurationManager(ConfigurationManager configurationManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Setting the configuration manager in Application Authentication Framework bundle.");
+        }
+        FrameworkServiceDataHolder.getInstance().setConfigurationManager(configurationManager);
+    }
+
+    protected void unregisterConfigurationManager(ConfigurationManager configurationManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Unsetting the configuration manager in Application Authentication Framework bundle.");
+        }
+        FrameworkServiceDataHolder.getInstance().setConfigurationManager(null);
+    }
+
+    @Reference(name = "identity.organization.management.component",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        FrameworkServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        FrameworkServiceDataHolder.getInstance().setOrganizationManager(null);
+    }
+
+    @Reference(
+            name = "organization.user.resident.resolver.service",
+            service = OrganizationUserResidentResolverService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationUserResidentResolverService"
+    )
+    protected void setOrganizationUserResidentResolverService(
+            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
+
+        log.debug("Setting the organization user resident resolver service.");
+        FrameworkServiceDataHolder.getInstance().setOrganizationUserResidentResolverService(
+                organizationUserResidentResolverService);
+    }
+
+    protected void unsetOrganizationUserResidentResolverService(
+            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
+
+        log.debug("Unset organization user resident resolver service.");
+        FrameworkServiceDataHolder.getInstance().setOrganizationUserResidentResolverService(null);
+    }
 }

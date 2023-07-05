@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Configuration holder for an application
+ * Configuration holder for an application.
  */
 public class SequenceConfig implements Serializable, Cloneable {
 
@@ -43,6 +43,7 @@ public class SequenceConfig implements Serializable, Cloneable {
     private AuthenticationGraph authenticationGraph;
     private List<AuthenticatorConfig> reqPathAuthenticators = new ArrayList<>();
     private ApplicationConfig applicationConfig = null;
+    private OptimizedApplicationConfig optimizedApplicationConfig = null;
     private boolean completed;
 
     private AuthenticatedUser authenticatedUser;
@@ -167,7 +168,7 @@ public class SequenceConfig implements Serializable, Cloneable {
     }
 
     /**
-     * This method will clone current class objects
+     * This method will clone current class objects.
      * This method is to solve the issue - multiple requests for same user/SP
      *
      * @return Object object
@@ -187,6 +188,22 @@ public class SequenceConfig implements Serializable, Cloneable {
         sequenceConfig.setAuthenticatedReqPathAuthenticator(this.getAuthenticatedReqPathAuthenticator());
         sequenceConfig.requestedAcr = new ArrayList<>(this.getRequestedAcr());
         sequenceConfig.setAuthenticationGraph(this.getAuthenticationGraph());
+        sequenceConfig.setOptimizedApplicationConfig(this.getOptimizedApplicationConfig());
         return sequenceConfig;
+    }
+
+    public void setRequestedAcr(List<String> requestedAcr) {
+
+        this.requestedAcr = requestedAcr;
+    }
+
+    public OptimizedApplicationConfig getOptimizedApplicationConfig() {
+
+        return this.optimizedApplicationConfig;
+    }
+
+    public void setOptimizedApplicationConfig(OptimizedApplicationConfig optimizedApplicationConfig) {
+
+        this.optimizedApplicationConfig = optimizedApplicationConfig;
     }
 }

@@ -40,14 +40,13 @@ public class IdentityManagementEndpointConstants {
 
     public static final class ServiceEndpoints {
         public static final String USER_REGISTRATION_SERVICE = "/UserRegistrationAdminService" +
-                                                               ".UserRegistrationAdminServiceHttpsSoap11Endpoint/";
+                ".UserRegistrationAdminServiceHttpsSoap11Endpoint/";
         public static final String USER_INFORMATION_RECOVERY_SERVICE = "/UserInformationRecoveryService" +
-                                                                       ".UserInformationRecoveryServiceHttpsSoap11Endpoint/";
-
+                ".UserInformationRecoveryServiceHttpsSoap11Endpoint/";
         public static final String USER_IDENTITY_MANAGEMENT_SERVICE = "/UserIdentityManagementAdminService" +
-                                                                      ".UserIdentityManagementAdminServiceHttpsSoap11Endpoint/";
+                ".UserIdentityManagementAdminServiceHttpsSoap11Endpoint/";
         public static final String IDENTITY_PROVIDER_MANAGEMENT_SERVICE = "/IdentityProviderMgtService" +
-                                                                      ".IdentityProviderMgtServiceHttpsSoap11Endpoint/";
+                ".IdentityProviderMgtServiceHttpsSoap11Endpoint/";
     }
 
     public static final class PasswordRecoveryOptions {
@@ -118,6 +117,10 @@ public class IdentityManagementEndpointConstants {
     public static final String UTF_8 = "UTF-8";
 
     public static final String CALLBACK = "callback";
+
+    public static final String SERVICE_CONTEXT_PATH = "/services";
+
+    public static final String ERROR_CODE_INVALID_TENANT = "60001";
 
     public static class Consent {
 

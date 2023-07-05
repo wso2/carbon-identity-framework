@@ -34,6 +34,7 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.caching.impl.CachingConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.Utils;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -113,6 +114,9 @@ public class IdentityUtil {
                 }
             };
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
+    private static final String HMAC_SHA256_ALGORITHM = "HmacSHA256";
+    private static final String SHA1_ALGORITHM = "SHA1";
+    private static final String SHA256_ALGORITHM = "SHA256";
     private final static char[] ppidDisplayCharMap = new char[]{'Q', 'L', '2', '3', '4', '5',
             '6', '7', '8', '9', 'A', 'B', 'C',
             'D', 'E', 'F', 'G', 'H', 'J', 'K',
@@ -326,9 +330,16 @@ public class IdentityUtil {
             log.debug("Generating display value of PPID : " + value);
         }
         byte[] rawPpid = Base64.getDecoder().decode(value);
-        MessageDigest sha1 = MessageDigest.getInstance("SHA1");
-        sha1.update(rawPpid);
-        byte[] hashId = sha1.digest();
+
+        String algorithm;
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.OpenId.ENABLE_SHA256_PPID_DISPLAY_VALUE))) {
+            algorithm = SHA256_ALGORITHM;
+        } else {
+            algorithm = SHA1_ALGORITHM;
+        }
+        MessageDigest sha = MessageDigest.getInstance(algorithm);
+        sha.update(rawPpid);
+        byte[] hashId = sha.digest();
         char[] returnChars = new char[10];
         for (int i = 0; i < 10; i++) {
             int rawValue = (hashId[i] + 128) % 32;
@@ -356,8 +367,8 @@ public class IdentityUtil {
 
     public static String getHMAC(String secretKey, String baseString) throws SignatureException {
         try {
-            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), HMAC_SHA1_ALGORITHM);
-            Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
+            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), HMAC_SHA256_ALGORITHM);
+            Mac mac = Mac.getInstance(HMAC_SHA256_ALGORITHM);
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
             return Base64.getEncoder().encodeToString(rawHmac);
@@ -367,7 +378,7 @@ public class IdentityUtil {
     }
 
     /**
-     * Generates a secure random hexadecimal string using SHA1 PRNG and digest
+     * Generates a secure random hexadecimal string using DRBG PRNG and digest
      *
      * @return Random hexadecimal encoded String
      * @throws Exception
@@ -375,8 +386,8 @@ public class IdentityUtil {
     public static String generateUUID() throws Exception {
 
         try {
-            // SHA1 Pseudo Random Number Generator
-            SecureRandom prng = SecureRandom.getInstance("SHA1PRNG");
+            // DRBG Pseudo Random Number Generator
+            SecureRandom prng = SecureRandom.getInstance("DRBG");
 
             // random number
             String randomNum = Integer.toString(prng.nextInt());
@@ -392,7 +403,7 @@ public class IdentityUtil {
     }
 
     /**
-     * Generates a random number using two UUIDs and HMAC-SHA1
+     * Generates a random number using two UUIDs and HMAC-SHA256
      *
      * @return Random Number generated.
      * @throws IdentityException Exception due to Invalid Algorithm or Invalid Key
@@ -402,8 +413,14 @@ public class IdentityUtil {
             String secretKey = UUIDGenerator.generateUUID();
             String baseString = UUIDGenerator.generateUUID();
 
-            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), "HmacSHA1");
-            Mac mac = Mac.getInstance("HmacSHA1");
+            String algorithm;
+            if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.IDENTITY_UTIL_ENABLE_SHA256_RANDOM_NUMBERS))) {
+                algorithm = HMAC_SHA256_ALGORITHM;
+            } else {
+                algorithm = HMAC_SHA1_ALGORITHM;
+            }
+            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), algorithm);
+            Mac mac = Mac.getInstance(algorithm);
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
             String random = Base64.getEncoder().encodeToString(rawHmac);
@@ -421,7 +438,7 @@ public class IdentityUtil {
     public static int getRandomInteger() throws IdentityException {
 
         try {
-            SecureRandom prng = SecureRandom.getInstance("SHA1PRNG");
+            SecureRandom prng = SecureRandom.getInstance("DRBG");
             int number = prng.nextInt();
             while (number < 0) {
                 number = prng.nextInt();
@@ -1706,5 +1723,39 @@ public class IdentityUtil {
             propertyList.add(String.valueOf(value));
         }
         return propertyList;
+    }
+
+    /**
+     * Get validity period configured for the authentication context.
+     *
+     * @return Validity period in minutes.
+     */
+    public static long getAuthenticationContextValidityPeriod() {
+
+        // We consider auth context validity period is equal to temp data cleanup timeout.
+        return getTempDataCleanUpTimeout();
+    }
+
+    /**
+     * Get the initiator id.
+     *
+     * @param userName     Username of the initiator.
+     * @param tenantDomain Tenant domain of the initiator.
+     * @return User id of the initiator.
+     */
+    public static String getInitiatorId(String userName, String tenantDomain) {
+
+        String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+        if (StringUtils.isBlank(userId)) {
+            String userStoreDomain = UserCoreUtil.extractDomainFromName(userName);
+            String username = UserCoreUtil.removeDomainFromName(userName);
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            try {
+                return IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
+            } catch (IdentityException e) {
+                log.error("Error occurred while resolving Id for the user: " + username);
+            }
+        }
+        return userId;
     }
 }

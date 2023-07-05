@@ -19,9 +19,11 @@ package org.wso2.carbon.identity.application.mgt.internal;
 
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
+import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
-import org.wso2.carbon.registry.api.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -40,9 +42,9 @@ public class ApplicationManagementServiceComponentHolder {
 
     private String authnTemplatesJson;
 
-    private RegistryService registryService;
-
     private RealmService realmService;
+
+    private SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
 
     private ConfigurationContextService configContextService;
 
@@ -53,6 +55,10 @@ public class ApplicationManagementServiceComponentHolder {
     private ClaimMetadataManagementService claimMetadataManagementService;
 
     private OrganizationUserResidentResolverService organizationUserResidentResolverService;
+
+    private ApplicationPermissionProvider applicationPermissionProvider;
+
+    private boolean isOrganizationManagementEnable = false;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -105,16 +111,6 @@ public class ApplicationManagementServiceComponentHolder {
         inboundAuthenticatorConfigs.remove(type);
     }
 
-    public RegistryService getRegistryService() {
-
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-
-        this.registryService = registryService;
-    }
-
     public RealmService getRealmService() {
 
         return realmService;
@@ -123,6 +119,16 @@ public class ApplicationManagementServiceComponentHolder {
     public void setRealmService(RealmService realmService) {
 
         this.realmService = realmService;
+    }
+
+    public void setSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
+        this.samlSSOServiceProviderManager = samlSSOServiceProviderManager;
+    }
+
+    public SAMLSSOServiceProviderManager getSAMLSSOServiceProviderManager() {
+
+        return samlSSOServiceProviderManager;
     }
 
     public ConfigurationContextService getConfigContextService() {
@@ -208,5 +214,39 @@ public class ApplicationManagementServiceComponentHolder {
             OrganizationUserResidentResolverService organizationUserResidentResolverService) {
 
         this.organizationUserResidentResolverService = organizationUserResidentResolverService;
+    }
+
+    /**
+     * Get is organization management enabled.
+     *
+     * @return True if organization management is enabled.
+     */
+    public boolean isOrganizationManagementEnabled() {
+
+        return isOrganizationManagementEnable;
+    }
+
+    /**
+     * Set organization management enable/disable state.
+     *
+     * @param organizationManagementInitializeService OrganizationManagementInitializeInstance.
+     */
+    public void setOrganizationManagementEnable(
+            OrganizationManagementInitialize organizationManagementInitializeService) {
+
+        if (organizationManagementInitializeService != null) {
+            isOrganizationManagementEnable = organizationManagementInitializeService.isOrganizationManagementEnabled();
+        }
+    }
+
+    public void setApplicationPermissionProvider(
+            ApplicationPermissionProvider applicationPermissionProvider) {
+
+        this.applicationPermissionProvider = applicationPermissionProvider;
+    }
+
+    public ApplicationPermissionProvider getApplicationPermissionProvider() {
+
+        return applicationPermissionProvider;
     }
 }

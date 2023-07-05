@@ -1,8 +1,10 @@
 package org.wso2.carbon.identity.workflow.mgt.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.workflow.mgt.bean.Parameter;
@@ -179,6 +181,33 @@ public class WorkflowManagementUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * Return no of results per page
+     *
+     * @return
+     */
+    public static int getItemsPerPage() {
+
+        String itemsPerPagePropertyValue =
+                ServerConfiguration.getInstance().getFirstProperty(WFConstant.ParameterName.ITEMS_PER_PAGE_PROPERTY);
+
+        try {
+            if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
+                int itemsPerPage = Math.abs(Integer.parseInt(itemsPerPagePropertyValue));
+                if (log.isDebugEnabled()) {
+                    log.debug("Items per page for pagination is set to : " + itemsPerPage);
+                }
+                return itemsPerPage;
+            }
+        } catch (NumberFormatException e) {
+            // No need to handle exception since the default value is already set.
+            log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml. Defaulting to: "
+                    + WFConstant.DEFAULT_RESULTS_PER_PAGE);
+        }
+
+        return WFConstant.DEFAULT_RESULTS_PER_PAGE;
     }
 
 

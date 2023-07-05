@@ -47,6 +47,10 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
     private boolean modifyUserNameAllowed = false;
     @XmlElement(name = "PromptConsent")
     private boolean promptConsent = false;
+    @XmlElement(name = "EnableAssociateLocalUser")
+    private boolean associateLocalUserEnabled = false;
+    @XmlElement(name = "AttributeSyncMethod")
+    private String attributeSyncMethod;
 
     /*
      * <JustInTimeProvisioningConfig> <UserStoreClaimUri></UserStoreClaimUri>
@@ -123,7 +127,43 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
      * @return true if the password provisioning is enabled, otherwise false.
      */
     public boolean isPasswordProvisioningEnabled() {
+
         return passwordProvisioningEnabled;
+    }
+
+    /**
+     * To associate existing local user when JIT user provisioning is enabled.
+     *
+     * @param associateLocalUserEnabled to specify whether to associate existing local user when JIT user provisioning.
+     */
+    public void setAssociateLocalUserEnabled(boolean associateLocalUserEnabled) {
+
+        this.associateLocalUserEnabled = associateLocalUserEnabled;
+    }
+
+    public boolean isAssociateLocalUserEnabled() {
+
+        return associateLocalUserEnabled;
+    }
+
+    /**
+     * To sync attributes coming from the federated identity providers.
+     *
+     * @param attributeSyncMethod to specify way on how to sync the attributes.
+     */
+    public void setAttributeSyncMethod(String attributeSyncMethod) {
+
+        this.attributeSyncMethod = attributeSyncMethod;
+    }
+
+    /**
+     * Get the attribute sync method.
+     *
+     * @return attribute sync method.
+     */
+    public String getAttributeSyncMethod() {
+
+        return attributeSyncMethod;
     }
 
     /**

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-mgt-feature</artifactId>
-        <version>5.23.22-SNAPSHOT</version>
+        <version>5.25.242-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -46,6 +46,24 @@
             <artifactId>org.wso2.carbon.identity.mgt.endpoint.util</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>jsr311-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-multipart</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>kaptcha.wso2</groupId>
             <artifactId>kaptcha</artifactId>
         </dependency>
@@ -53,6 +71,56 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.wso2.carbon.identity.framework</groupId>
+                                    <artifactId>org.wso2.carbon.identity.mgt.endpoint.util</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${basedir}/src/main/resources/runtimes/cxf3</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.sun.jersey</groupId>
+                                    <artifactId>jersey-client</artifactId>
+                                    <version>${jersey-version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${basedir}/src/main/resources/runtimes/cxf3</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.sun.jersey</groupId>
+                                    <artifactId>jersey-core</artifactId>
+                                    <version>${jersey-version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${basedir}/src/main/resources/runtimes/cxf3</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.sun.jersey.contribs</groupId>
+                                    <artifactId>jersey-multipart</artifactId>
+                                    <version>${jersey-version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${basedir}/src/main/resources/runtimes/cxf3</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
@@ -103,7 +171,6 @@
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.mgt</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.captcha.mgt</bundleDef>
-                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.mgt.endpoint.util</bundleDef>
                                 <bundleDef>kaptcha.wso2:kaptcha</bundleDef>
                             </bundles>
                             <importFeatures>

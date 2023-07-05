@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core;
 
-import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.NotImplementedException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;

@@ -110,7 +110,7 @@ public class InboundAuthenticationConfig implements Serializable {
     }
 
     /**
-     * @param inboundAuthenticationRequest
+     * @param inboundAuthenticationRequestConfigs
      */
     public void setInboundAuthenticationRequestConfigs(
             InboundAuthenticationRequestConfig[] inboundAuthenticationRequestConfigs) {

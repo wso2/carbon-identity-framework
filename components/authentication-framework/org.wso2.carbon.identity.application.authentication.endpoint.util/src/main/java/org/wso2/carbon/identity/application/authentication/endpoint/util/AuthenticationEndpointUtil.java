@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,19 +20,25 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
 import org.apache.axiom.om.util.Base64;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -46,6 +52,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -63,6 +72,8 @@ public class AuthenticationEndpointUtil {
     private static final String QUERY_STRING_INITIATOR = "?";
     private static final String PADDING_CHAR = "=";
     private static final String UNDERSCORE = "_";
+    private static final String TENANT_DOMAIN_PLACEHOLDER = "${tenantDomain}";
+    private static final String SUPER_TENANT = "carbon.super";
 
     private AuthenticationEndpointUtil() {
     }
@@ -310,6 +321,12 @@ public class AuthenticationEndpointUtil {
                 return Constants.ErrorToi18nMappingConstants.NO_REGISTERED_DEVICE_FOUND_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT:
                 return Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE:
+                return Constants.ErrorToi18nMappingConstants.CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION:
+                return Constants.ErrorToi18nMappingConstants.AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION:
+                return Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY;
             default:
                 return Constants.ErrorToi18nMappingConstants.INCORRECT_ERROR_MAPPING_KEY;
         }
@@ -403,11 +420,17 @@ public class AuthenticationEndpointUtil {
         StringBuilder responseString = new StringBuilder();
 
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    response.getEntity().getContent()));
-            String inputLine;
-            while ((inputLine = reader.readLine()) != null) {
-                responseString.append(inputLine);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    response.getEntity().getContent()))) {
+                String inputLine;
+                while ((inputLine = reader.readLine()) != null) {
+                    responseString.append(inputLine);
+                }
+            }
+        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+            if (log.isDebugEnabled()) {
+                log.debug("Response received from the backendURL " + backendURL + " with status " +
+                        response.getStatusLine() + ".");
             }
         } else {
             log.error("Response received from the backendURL " + backendURL +" failed with status " +
@@ -432,5 +455,49 @@ public class AuthenticationEndpointUtil {
         String authHeader = new String(encoding, Charset.defaultCharset());
 
         httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
+    }
+
+    /**
+     * Resolve "${tenantDomain}" in the URL.
+     *
+     * @param   url URL to be tenant resolved.
+     * @return  Tenant resolved URL.
+     */
+    public static String resolveTenantDomain(String url) {
+
+        if (url.contains(TENANT_DOMAIN_PLACEHOLDER)) {
+            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            if (StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+            if (SUPER_TENANT.equals(tenantDomain)) {
+                url = url.replace("t/" + TENANT_DOMAIN_PLACEHOLDER + "/", "");
+            } else {
+                url = url.replace(TENANT_DOMAIN_PLACEHOLDER, tenantDomain);
+            }
+        }
+        return url;
+    }
+
+    /**
+     * Resolve the query string of the request using the request parameter map.
+     *
+     * @param queryParamMap - Parameter map of the request.
+     * @return - StringBuilder with query parameters appended.
+     */
+    public static String resolveQueryString(Map<String, String[]> queryParamMap) {
+
+        StringBuilder queryParamString = new StringBuilder();
+        if (queryParamMap != null && !queryParamMap.isEmpty()) {
+            queryParamString.append("?");
+            List<NameValuePair> paramNameValuePairs = new ArrayList<>();
+            for (Map.Entry<String, String[]> entry : queryParamMap.entrySet()) {
+                if (ArrayUtils.isNotEmpty(entry.getValue())) {
+                    paramNameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()[0]));
+                }
+            }
+            queryParamString.append(URLEncodedUtils.format(paramNameValuePairs, StandardCharsets.UTF_8));
+        }
+        return queryParamString.toString();
     }
 }

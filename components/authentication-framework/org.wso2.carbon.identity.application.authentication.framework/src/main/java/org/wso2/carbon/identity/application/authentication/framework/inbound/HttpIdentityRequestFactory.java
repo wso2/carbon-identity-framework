@@ -142,6 +142,18 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
         return builder;
     }
 
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(
+                                                                    FrameworkResourceNotFoundException exception,
+                                                                    HttpServletRequest request,
+                                                                    HttpServletResponse response) {
+
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder =
+                new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        builder.setStatusCode(404);
+        builder.setBody(exception.getMessage());
+        return builder;
+    }
+
     public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception,
                                                                             HttpServletRequest request,
                                                                             HttpServletResponse response) {

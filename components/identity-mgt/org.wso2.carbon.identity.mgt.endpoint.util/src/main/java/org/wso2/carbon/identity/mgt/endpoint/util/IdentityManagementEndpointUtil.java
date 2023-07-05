@@ -34,10 +34,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.model.CookieBuilder;
+import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClientException;
@@ -70,6 +74,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.My_ACCOUNT_APPLICATION_NAME;
 import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.SUPER_TENANT;
@@ -88,6 +93,7 @@ public class IdentityManagementEndpointUtil {
     public static final String PURPOSES = "purposes";
     public static final String MANDATORY = "mandatory";
     public static final String DISPLAY_NAME = "displayName";
+    public static final String ROOT_DOMAIN = "/";
     private static final String PROTECTED_TOKENS = "protectedTokens";
     private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
     private static final String SECRET_PROVIDER = "secretProvider";
@@ -873,5 +879,76 @@ public class IdentityManagementEndpointUtil {
                     .collect(Collectors.toMap(entry -> entry[0], entry -> entry[1]));
         }
         return queryParamMap.get(queryParameter);
+    }
+
+    /**
+     * Stores a cookie to the response.
+     *
+     * @param req         Incoming HttpServletRequest.
+     * @param resp        Outgoing HttpServletResponse.
+     * @param cookieName  Name of the cookie to be stored.
+     * @param value       Value of the cookie.
+     * @param age         Max age of the cookie.
+     * @param sameSite    SameSite attribute value for the cookie.
+     * @param domain      Domain of the cookie.
+     */
+    public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String value,
+                          Integer age, SameSiteCookie sameSite, String path, String domain) {
+
+        CookieBuilder cookieBuilder = new CookieBuilder(cookieName, value);
+        IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(cookieName);
+        if (cookieConfig != null) {
+            updateCookieConfig(cookieBuilder, cookieConfig, age, path, sameSite, domain);
+        } else {
+            cookieBuilder.setSecure(true)
+                    .setHttpOnly(true)
+                    .setPath(StringUtils.isNotBlank(path) ? path : ROOT_DOMAIN)
+                    .setDomain(domain)
+                    .setSameSite(sameSite);
+            if (age != null && age > 0) {
+                cookieBuilder.setMaxAge(age);
+            }
+        }
+        resp.addCookie(cookieBuilder.build());
+    }
+
+    private static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
+            cookieConfig, Integer age, String path, SameSiteCookie sameSite, String domain) {
+
+        if (cookieConfig.getDomain() != null) {
+            cookieBuilder.setDomain(cookieConfig.getDomain());
+        } else if (StringUtils.isNotBlank(domain)) {
+            cookieBuilder.setDomain(domain);
+        }
+
+        if (cookieConfig.getPath() != null) {
+            cookieBuilder.setPath(cookieConfig.getPath());
+        } else if (StringUtils.isNotBlank(path)) {
+            cookieBuilder.setPath(path);
+        }
+
+        if (cookieConfig.getComment() != null) {
+            cookieBuilder.setComment(cookieConfig.getComment());
+        }
+
+        if (cookieConfig.getMaxAge() > 0) {
+            cookieBuilder.setMaxAge(cookieConfig.getMaxAge());
+        } else if (age != null && age > 0) {
+            cookieBuilder.setMaxAge(age);
+        }
+
+        if (cookieConfig.getVersion() > 0) {
+            cookieBuilder.setVersion(cookieConfig.getVersion());
+        }
+
+        if (cookieConfig.getSameSite() != null) {
+            cookieBuilder.setSameSite(cookieConfig.getSameSite());
+        } else if (sameSite != null) {
+            cookieBuilder.setSameSite(sameSite);
+        }
+
+        cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());
+
+        cookieBuilder.setSecure(cookieConfig.isSecure());
     }
 }

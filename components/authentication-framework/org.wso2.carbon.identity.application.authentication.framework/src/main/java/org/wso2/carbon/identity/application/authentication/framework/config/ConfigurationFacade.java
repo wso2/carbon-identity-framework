@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -46,6 +47,7 @@ import java.util.function.Supplier;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.ACCOUNT_RECOVERY_ENDPOINT_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_ERROR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_RETRY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_WAIT;
@@ -197,6 +199,12 @@ public class ConfigurationFacade {
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointRetryURL);
     }
 
+    public String getAuthenticationEndpointErrorURL() {
+
+        return buildUrl(AUTHENTICATION_ENDPOINT_ERROR,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointErrorURL);
+    }
+
     public String getAuthenticationEndpointWaitURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_WAIT,
@@ -247,6 +255,17 @@ public class ConfigurationFacade {
      */
     public boolean getTenantDropdownEnabled() {
         return FileBasedConfigurationBuilder.getInstance().isTenantDomainDropdownEnabled();
+    }
+
+    /**
+     * Get the authenticator config for the given authenticator name.
+     *
+     * @param name Name of the authenticator.
+     * @return AuthenticatorConfig.
+     */
+    public AuthenticatorConfig getAuthenticatorConfig(String name) {
+
+        return FileBasedConfigurationBuilder.getInstance().getAuthenticatorBean(name);
     }
 
     public boolean isDumbMode() {
