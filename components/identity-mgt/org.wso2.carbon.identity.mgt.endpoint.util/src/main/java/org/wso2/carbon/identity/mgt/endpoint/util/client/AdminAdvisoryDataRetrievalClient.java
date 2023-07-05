@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
+import org.apache.axis2.client.ServiceClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
@@ -27,7 +28,11 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.wso2.carbon.admin.advisory.mgt.stub.AdminAdvisoryManagementServiceStub;
+import org.wso2.carbon.admin.advisory.mgt.stub.dto.AdminAdvisoryBannerDTO;
+import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
+import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,6 +46,8 @@ public class AdminAdvisoryDataRetrievalClient {
     private static final String ADMIN_BANNER_API_RELATIVE_PATH = "/api/server/v1/admin-advisory-management/banner";
     private static final String DEFAULT_BANNER_CONTENT = "Warning - unauthorized use of this tool is strictly " +
             "prohibited. All activities performed using this tool are logged and monitored.";
+    private static final String ENABLE_BANNER = "enableBanner";
+    private static final String BANNER_CONTENT= "bannerContent";
 
     /**
      * Check for admin advisory banner configs in the given tenant.
@@ -62,8 +69,8 @@ public class AdminAdvisoryDataRetrievalClient {
                             .getEntity().getContent())));
                 }
                 JSONObject defaultBanner = new JSONObject();
-                defaultBanner.put("enableBanner", false);
-                defaultBanner.put("bannerContent", DEFAULT_BANNER_CONTENT);
+                defaultBanner.put(ENABLE_BANNER, false);
+                defaultBanner.put(BANNER_CONTENT, DEFAULT_BANNER_CONTENT);
                 return defaultBanner;
             } finally {
                 request.releaseConnection();
@@ -102,6 +109,35 @@ public class AdminAdvisoryDataRetrievalClient {
         } catch (ApiException e) {
             throw new AdminAdvisoryDataRetrievalClientException("Error while building url for context: "
                     + ADMIN_BANNER_API_RELATIVE_PATH);
+        }
+    }
+
+    /**
+     * Check for admin advisory banner configs in super tenant using AdminAdvisoryManagementService admin service stub.
+     *
+     * @return JSON Object containing admin advisory banner configs.
+     * @throws AdminAdvisoryDataRetrievalClientException Error while retrieving the admin advisory banner configs.
+     */
+    public JSONObject getAdminAdvisoryBannerDataFromServiceStub() throws AdminAdvisoryDataRetrievalClientException {
+
+        StringBuilder builder = new StringBuilder();
+        String serviceURL = null;
+        try {
+            serviceURL = builder.append(IdentityManagementServiceUtil.getInstance().getServiceContextURL())
+                    .append(IdentityManagementEndpointConstants.ServiceEndpoints.ADMIN_ADVISORY_MANAGEMENT_SERVICE)
+                    .toString().replaceAll("(?<!(http:|https:))//", "/");
+            AdminAdvisoryManagementServiceStub serviceStub = new AdminAdvisoryManagementServiceStub(serviceURL);
+            ServiceClient client = serviceStub._getServiceClient();
+            IdentityManagementEndpointUtil.authenticate(client);
+            AdminAdvisoryBannerDTO adminAdvisoryBannerDTO = serviceStub.getAdminAdvisoryConfig();
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put(ENABLE_BANNER, adminAdvisoryBannerDTO.getEnableBanner());
+            jsonObject.put(BANNER_CONTENT, adminAdvisoryBannerDTO.getBannerContent());
+            return jsonObject;
+        } catch (Exception e) {
+            String msg = "Error while getting admin advisory banner preference for uri: " + serviceURL;
+            LOG.error(msg, e);
+            throw new AdminAdvisoryDataRetrievalClientException(msg, e);
         }
     }
 }
