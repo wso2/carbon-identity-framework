@@ -2984,12 +2984,6 @@
             <Context>
                 <BasePath>/accountrecoveryendpoint/</BasePath>
             </Context>
-            <Context>
-                <BasePath>/oidc/</BasePath>
-                <SubPaths>
-                    <Path>/oidc/logout</Path>
-                </SubPaths>
-            </Context>
         </WebApp>
         <Servlet>
         {% for servlet in organization_context.rewrite.servlets %}
@@ -3002,6 +2996,7 @@
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
             <Context>/longwaitstatus(.*)</Context>
+            <Context>/oidc/</Context>
         </Servlet>
     </OrgContextsToRewrite>
 
