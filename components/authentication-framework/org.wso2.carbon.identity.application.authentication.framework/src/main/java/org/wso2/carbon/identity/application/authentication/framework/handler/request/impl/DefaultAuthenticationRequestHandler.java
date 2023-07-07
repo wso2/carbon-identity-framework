@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
@@ -54,6 +55,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -83,6 +85,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import static java.util.Objects.nonNull;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_USER_PROPERTIES;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.addNonceCookie;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
@@ -385,6 +389,63 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                                 "domain for non-SaaS applications");
                     }
                 }
+            }
+
+            // Break the flow if the authenticated subject identifier or user id is null.
+            if (StringUtils.isBlank(sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier())) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                    params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable
+                            ? LoggerUtils.getMaskedContent(sequenceConfig.getAuthenticatedUser().getUserName())
+                            : sequenceConfig.getAuthenticatedUser().getUserName());
+
+                    LoggerUtils.triggerDiagnosticLogEvent(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                            ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL.getMessage(),
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+                }
+                throw new PostAuthenticationFailedException(
+                        ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL.getCode(),
+                        ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL.getMessage());
+            }
+            try {
+                if (StringUtils.isBlank(sequenceConfig.getAuthenticatedUser().getUserId())) {
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        Map<String, Object> params = new HashMap<>();
+                        params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                        params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                        params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable
+                                ? LoggerUtils.getMaskedContent(sequenceConfig.getAuthenticatedUser().getUserName())
+                                : sequenceConfig.getAuthenticatedUser().getUserName());
+
+                        LoggerUtils.triggerDiagnosticLogEvent(
+                                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                                ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getMessage(),
+                                FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+                    }
+                    throw new PostAuthenticationFailedException(
+                            ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getCode(),
+                            ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getMessage());
+                }
+            } catch (UserIdNotFoundException e) {
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
+                    params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable
+                            ? LoggerUtils.getMaskedContent(sequenceConfig.getAuthenticatedUser().getUserName())
+                            : sequenceConfig.getAuthenticatedUser().getUserName());
+
+                    LoggerUtils.triggerDiagnosticLogEvent(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
+                            ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getMessage(),
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+                }
+                throw new PostAuthenticationFailedException(
+                        ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getCode(),
+                        ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getMessage(), e);
             }
 
             authenticationResult.setSubject(new AuthenticatedUser(sequenceConfig.getAuthenticatedUser()));
