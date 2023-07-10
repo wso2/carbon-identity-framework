@@ -477,11 +477,13 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
     /**
      * Update the service provider if it exists.
      *
-     * @param serviceProviderDO service provider to be updated.
-     * @return true if the update is successful.
-     * @throws IdentityException if an error occurs while updating the service provider.
+     * @param serviceProviderDO     Service provider to be updated.
+     * @param currentIssuer         Issuer of the service provider before the update.
+     * @return True if the update is successful.
+     * @throws IdentityException If an error occurs while updating the service provider.
      */
-    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
+    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer)
+            throws IdentityException {
 
         if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
                 StringUtils.isBlank(serviceProviderDO.getIssuer())) {
@@ -494,19 +496,22 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     serviceProviderDO.getIssuerQualifier()));
         }
 
-        String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
+        String currentPath = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(currentIssuer);
+        String newPath = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
 
+        boolean isIssuerUpdated = !StringUtils.equals(currentPath, newPath);
         boolean isTransactionStarted = Transaction.isStarted();
         boolean isErrorOccurred = false;
         try {
-            if (!registry.resourceExists(path)) {
+            // Check if the updated issuer value already exists.
+            if (isIssuerUpdated && registry.resourceExists(newPath)) {
                 if (log.isDebugEnabled()) {
                     if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        log.debug("SAML2 Service Provider does not exist with the issuer name "
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
                                 + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
                                 + serviceProviderDO.getIssuerQualifier());
                     } else {
-                        log.debug("SAML2 Service Provider does not exist with the issuer name "
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
                                 + serviceProviderDO.getIssuer());
                     }
                 }
@@ -517,7 +522,12 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             if (!isTransactionStarted) {
                 registry.beginTransaction();
             }
-            registry.put(path, resource);
+            // Delete the current resource if the issuer value is updated.
+            if (isIssuerUpdated) {
+                registry.delete(currentPath);
+            }
+            // Update the current resource. If the resource does not exist, it will be created.
+            registry.put(newPath, resource);
             if (log.isDebugEnabled()) {
                 if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
                     log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
