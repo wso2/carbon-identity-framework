@@ -86,6 +86,7 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
@@ -685,14 +686,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId());
     }
 
-    private void triggerAuditLogs(String username, String tenantDomain, String appId, String dataChange,
+    private void triggerAuditLogs(String username, String tenantDomain, String appId, Map<String, Object> dataChange,
                                   String action) {
 
         boolean isLegacyAuditLogsDisabledInAppMgt = ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt() ||
                 isLegacyAuditLogsDisabled();
         if (isLegacyAuditLogsDisabledInAppMgt) {
-            triggerAuditLogEvent(getInitiatorId(username, tenantDomain), USER,
-                    action, appId, TARGET_APPLICATION, dataChange, true);
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), USER, appId, TARGET_APPLICATION, action);
+            auditLogBuilder.addAllData(dataChange);
+            triggerAuditLogEvent(auditLogBuilder, true);
         }
     }
 

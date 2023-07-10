@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.central.log.mgt.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -66,35 +64,17 @@ public class LoggerUtils {
     public static boolean isLogMaskingEnable;
 
     /**
-     * @param initiatorId   Request initiator's id.
-     * @param initiatorType Request initiator's type.
-     * @param action      State changing event name.
-     * @param targetId      Target resource's id.
-     * @param targetType    Target resource type.
-     * @param dataChange    Changing data.
+     * This method is used to trigger audit log event
+     *
+     * @param auditLogBuilder  Audit log builder
+     * @param isLoggingEnabled Is new audit logging enabled in the component
      */
-    public static void triggerAuditLogEvent(String initiatorId, String initiatorType,
-                                            String action, String targetId, String targetType,
-                                            String dataChange, boolean isLoggingEnabled) {
+    public static void triggerAuditLogEvent(AuditLog.AuditLogBuilder auditLogBuilder, boolean isLoggingEnabled) {
 
         try {
             // Publish new audit logs only if the old audit log publishing is disabled.
             if (isLoggingEnabled || isLegacyAuditLogsDisabled()) {
                 // Build the initiator object.
-                JsonObject initiator = new JsonObject();
-                initiator.addProperty(LogConstants.INITIATOR_ID, initiatorId);
-                initiator.addProperty(LogConstants.INITIATOR_TYPE, initiatorType);
-
-                // Build the target object.
-                JsonObject target = new JsonObject();
-                target.addProperty(LogConstants.TARGET_ID, targetId);
-                target.addProperty(LogConstants.TARGET_TYPE, targetType);
-
-                // Build the data object.
-                JsonObject data = new Gson().fromJson(dataChange, JsonObject.class);
-
-                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiator, target, action);
-                auditLogBuilder.data(data);
                 AuditLog auditLog = auditLogBuilder.build();
 
                 Map<String, Object> addAuditLogProperties = new HashMap<>();

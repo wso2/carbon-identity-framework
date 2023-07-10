@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.mgt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +45,6 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -919,12 +920,16 @@ public class ApplicationMgtUtil {
      * @param serviceProvider Service provider object.
      * @return JSON string of the service provider object.
      */
-    public static String buildSPData(ServiceProvider serviceProvider) {
+    public static Map<String, Object> buildSPData(ServiceProvider serviceProvider) {
 
         if (serviceProvider == null) {
-            return StringUtils.EMPTY;
+            return new HashMap<>();
         }
-        return buildSPDataJSONObject(serviceProvider).toString();
+
+        Gson gson = new Gson();
+        String json = gson.toJson(serviceProvider);
+        return gson.fromJson(json, new TypeToken<Map<String, Object>>() {
+        }.getType());
     }
 
     /**
@@ -935,16 +940,21 @@ public class ApplicationMgtUtil {
      * @param updatedServiceProvider Updated service provider object.
      * @return JSON string of the combination of both data.
      */
-    public static String buildSPDataWhileUpdate(ServiceProvider oldServiceProvider,
-                                                ServiceProvider updatedServiceProvider) {
+    public static Map<String, Object> buildSPDataWhileUpdate(ServiceProvider oldServiceProvider,
+                                                             ServiceProvider updatedServiceProvider) {
 
         if (updatedServiceProvider == null && oldServiceProvider == null) {
-            return StringUtils.EMPTY;
+            return new HashMap<>();
         }
-        JSONObject data = new JSONObject();
-        data.put(LogConstants.OLD_DATA, buildSPDataJSONObject(oldServiceProvider));
-        data.put(LogConstants.NEW_DATA, buildSPDataJSONObject(updatedServiceProvider));
-        return data.toString();
+        // Convert oldServiceProvider into Map<String, Object> and updatedServiceProvider into Map<String, Object>.
+        Map<String, Object> oldServiceProviderMap = buildSPData(oldServiceProvider);
+        Map<String, Object> updatedServiceProviderMap = buildSPData(updatedServiceProvider);
+        // Merge both maps.
+        Map<String, Object> mergedServiceProviderMap = new HashMap<>();
+        mergedServiceProviderMap.put("oldData", oldServiceProviderMap);
+        mergedServiceProviderMap.put("newData", updatedServiceProviderMap);
+        return mergedServiceProviderMap;
+
     }
 
     /**
