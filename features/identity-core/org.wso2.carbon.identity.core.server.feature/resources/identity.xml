@@ -2111,6 +2111,9 @@
                     <Path>/api/server/v1/email/template-types</Path>
                     <Path>/api/identity/recovery/v0.9</Path>
                     <Path>/api/identity/auth/v1.1</Path>
+                    <Path>/api/identity/consent-mgt/v1.0/consents</Path>
+                    <Path>/api/identity/user/v1.0/me</Path>
+                    <Path>/api/identity/user/v1.0/validate-username</Path>
                     <Path>/api/server/v1/authenticators</Path>
                     <Path>/api/server/v1/branding-preference</Path>
                     <Path>/api/server/v1/validation-rules</Path>
