@@ -295,7 +295,7 @@ public class PreferenceRetrievalClient {
                                              String propertyName)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
             String endpoint = getUserGovernanceEndpoint(tenant);
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
