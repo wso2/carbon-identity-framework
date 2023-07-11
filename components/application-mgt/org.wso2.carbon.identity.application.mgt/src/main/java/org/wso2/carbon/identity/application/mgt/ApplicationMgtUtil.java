@@ -926,82 +926,60 @@ public class ApplicationMgtUtil {
             return new HashMap<>();
         }
 
+        String sp = maskSPData(serviceProvider);
         Gson gson = new Gson();
-        String json = gson.toJson(serviceProvider);
-        return gson.fromJson(json, new TypeToken<Map<String, Object>>() {
+        return gson.fromJson(sp, new TypeToken<Map<String, Object>>() {
         }.getType());
     }
 
     /**
-     * Build the service provider JSON string masking the sensitive information. This applies for application update
-     * flow.
-     *
-     * @param oldServiceProvider     Old service provider object.
-     * @param updatedServiceProvider Updated service provider object.
-     * @return JSON string of the combination of both data.
-     */
-    public static Map<String, Object> buildSPDataWhileUpdate(ServiceProvider oldServiceProvider,
-                                                             ServiceProvider updatedServiceProvider) {
-
-        if (updatedServiceProvider == null && oldServiceProvider == null) {
-            return new HashMap<>();
-        }
-        // Convert oldServiceProvider into Map<String, Object> and updatedServiceProvider into Map<String, Object>.
-        Map<String, Object> oldServiceProviderMap = buildSPData(oldServiceProvider);
-        Map<String, Object> updatedServiceProviderMap = buildSPData(updatedServiceProvider);
-        // Merge both maps.
-        Map<String, Object> mergedServiceProviderMap = new HashMap<>();
-        mergedServiceProviderMap.put("oldData", oldServiceProviderMap);
-        mergedServiceProviderMap.put("newData", updatedServiceProviderMap);
-        return mergedServiceProviderMap;
-
-    }
-
-    /**
-     * Build the service provider JSON object masking the sensitive information.
+     * Build the service provider string object masking the sensitive information.
      *
      * @param serviceProvider Service provider object.
      * @return JSON string of the service provider object.
      */
-    private static JSONObject buildSPDataJSONObject(ServiceProvider serviceProvider) {
+    private static String maskSPData(ServiceProvider serviceProvider) {
 
         if (serviceProvider == null) {
-            return null;
+            return StringUtils.EMPTY;
         }
         try {
             JSONObject serviceProviderJSONObject =
                     new JSONObject(new ObjectMapper().writeValueAsString(serviceProvider));
             maskClientSecret(serviceProviderJSONObject.optJSONObject(INBOUND_AUTHENTICATION_CONFIG));
             maskAppOwnerUsername(serviceProviderJSONObject.optJSONObject(APP_OWNER));
-            return serviceProviderJSONObject;
+            return serviceProviderJSONObject.toString();
         } catch (JsonProcessingException | IdentityException e) {
             log.error("Error while converting service provider object to json.");
         }
-        return new JSONObject();
+        return StringUtils.EMPTY;
     }
 
     private static void maskClientSecret(JSONObject inboundAuthenticationConfig) {
 
-        if (inboundAuthenticationConfig != null) {
-            JSONArray inboundAuthenticationRequestConfigsArray =
-                    inboundAuthenticationConfig.optJSONArray("inboundAuthenticationRequestConfigs");
-            if (inboundAuthenticationRequestConfigsArray != null) {
-                for (int i = 0; i < inboundAuthenticationRequestConfigsArray.length(); i++) {
-                    JSONObject requestConfig = inboundAuthenticationRequestConfigsArray.getJSONObject(i);
-                    JSONArray properties = requestConfig.optJSONArray("properties");
-                    if (properties != null) {
-                        for (int j = 0; j < properties.length(); j++) {
-                            JSONObject property = properties.optJSONObject(j);
-                            if (property != null && StringUtils.equalsIgnoreCase("oauthConsumerSecret",
-                                    (String) property.get("name"))) {
-                                if (property.get("value") != null) {
-                                    String secret = property.get("value").toString();
-                                    String maskedSecret = secret.replaceAll(MASKING_REGEX, MASKING_CHARACTER);
-                                    property.put("value", maskedSecret);
-                                }
-                            }
-                        }
-                    }
+        if (inboundAuthenticationConfig == null) {
+            return;
+        }
+        JSONArray inboundAuthenticationRequestConfigsArray =
+                inboundAuthenticationConfig.optJSONArray("inboundAuthenticationRequestConfigs");
+        if (inboundAuthenticationRequestConfigsArray == null) {
+            return;
+        }
+
+        for (int i = 0; i < inboundAuthenticationRequestConfigsArray.length(); i++) {
+            JSONObject requestConfig = inboundAuthenticationRequestConfigsArray.getJSONObject(i);
+            JSONArray properties = requestConfig.optJSONArray("properties");
+            if (properties == null) {
+                return;
+            }
+            for (int j = 0; j < properties.length(); j++) {
+                JSONObject property = properties.optJSONObject(j);
+                if (property != null && StringUtils.equalsIgnoreCase("oauthConsumerSecret",
+                        (String) property.get("name"))) {
+                    String secret = property.get("value").toString();
+                    String maskedSecret = secret.replaceAll(MASKING_REGEX, MASKING_CHARACTER);
+                    property.put("value", maskedSecret);
+                    break;
                 }
             }
         }
@@ -1012,34 +990,35 @@ public class ApplicationMgtUtil {
         if (!LoggerUtils.isLogMaskingEnable) {
             return;
         }
-        if (appOwner != null) {
-            String loggableUserId = getMaskedUserId(appOwner);
-            if (StringUtils.isNotBlank(loggableUserId)) {
-                appOwner.put("loggableUserId", loggableUserId);
-            }
-            String username = (String) appOwner.get("userName");
-            if (StringUtils.isNotBlank(username)) {
-                appOwner.put("userName", LoggerUtils.getMaskedContent(username));
-            }
+        if (appOwner == null) {
+            return;
         }
-
+        String loggableUserId = getLoggableUserId(appOwner);
+        if (StringUtils.isNotBlank(loggableUserId)) {
+            appOwner.put("loggableUserId", loggableUserId);
+        }
+        String username = (String) appOwner.get("userName");
+        if (StringUtils.isNotBlank(username)) {
+            appOwner.put("userName", LoggerUtils.getMaskedContent(username));
+        }
     }
 
-    private static String getMaskedUserId(JSONObject appOwner) throws IdentityException {
+    private static String getLoggableUserId(JSONObject appOwner) throws IdentityException {
 
-        String username = (String) appOwner.get("loggableUserId");
+        String loggableUserId = (String) appOwner.get("loggableUserId");
         String tenantDomain = (String) appOwner.get("tenantDomain");
         String userStoreDomain = (String) appOwner.get("userStoreDomain");
-        if (StringUtils.isNotBlank(tenantDomain) && StringUtils.isNotBlank(username)) {
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            String userId = IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain,
-                    MultitenantUtils.getTenantAwareUsername(username));
-            if (StringUtils.isNotBlank(userId)) {
-                return userId;
-            }
-            // If userId is not found, return the masked value of tenant qualified username
+        if (StringUtils.isBlank(tenantDomain) && StringUtils.isBlank(loggableUserId)) {
+            return StringUtils.EMPTY;
         }
-        return LoggerUtils.getMaskedContent(username);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        String userId = IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain,
+                MultitenantUtils.getTenantAwareUsername(loggableUserId));
+        if (StringUtils.isNotBlank(userId)) {
+            return userId;
+        }
+        // If userId is not found, return the masked value of tenant qualified username for logging purpose.
+        return LoggerUtils.getMaskedContent(loggableUserId);
     }
 
     public static boolean isLegacyAuditLogsDisabledInAppMgt() {

@@ -141,7 +141,6 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogE
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.USER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPData;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPDataWhileUpdate;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getAppId;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
@@ -636,7 +635,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         String applicationName = serviceProvider.getApplicationName();
-        ServiceProvider serviceProviderCopy = SerializationUtils.clone(serviceProvider);
         try {
             // check whether user is authorized to update the application.
             startTenantFlow(tenantDomain, username);
@@ -681,8 +679,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        triggerAuditLogs(username, tenantDomain, getAppId(serviceProvider),
-                buildSPDataWhileUpdate(serviceProviderCopy, serviceProvider),
+        triggerAuditLogs(username, tenantDomain, getAppId(serviceProvider), buildSPData(serviceProvider),
                 CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId());
     }
 
@@ -2560,7 +2557,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         " failed for application with resourceId: " + resourceId);
             }
         }
-        ServiceProvider serviceProviderCopy = getApplicationByResourceId(resourceId, tenantDomain);
         try {
             startTenantFlow(tenantDomain, username);
 
@@ -2598,8 +2594,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        triggerAuditLogs(username, tenantDomain, getAppId(updatedApp),
-                buildSPDataWhileUpdate(serviceProviderCopy, updatedApp),
+        triggerAuditLogs(username, tenantDomain, getAppId(updatedApp), buildSPData(updatedApp),
                 CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId());
     }
 
