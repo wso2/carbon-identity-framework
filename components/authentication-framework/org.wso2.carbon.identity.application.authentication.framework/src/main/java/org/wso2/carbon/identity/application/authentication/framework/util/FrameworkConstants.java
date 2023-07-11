@@ -155,7 +155,7 @@ public abstract class FrameworkConstants {
     public static final String RUNTIME_CLAIMS = "RUNTIME_CLAIMS";
 
     public static final String INPUT_TYPE_IDENTIFIER_FIRST = "idf";
-
+    public static final String INPUT_TYPE_LOGIN_HINT = "login_hint";
     public static final String STATUS = "&status=";
     public static final String STATUS_MSG = "&statusMsg=";
     public static final String STATUS_PARAM = "status";
