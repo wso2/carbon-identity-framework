@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.mgt.listener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -36,6 +37,8 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +50,11 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
 
     private static final String CLAIM_VALUE = "ClaimValue";
     private static final String CLAIM_URI = "claimURI";
+    private static final String TOTP_KEY = "CryptoService.TotpSecret";
+    // List of claims related to TOTP.
+    private static final List<String> CLAIMS_FOR_TOTP =
+            new ArrayList<>(Arrays.asList("http://wso2.org/claims/identity/verifySecretkey",
+                    "http://wso2.org/claims/identity/secretkey"));
 
     @Override
     public int getExecutionOrderId() {
@@ -174,9 +182,14 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
             if (checkEnableEncryption(claimURI, userStoreManager)) {
                 String claimValue = entry.getValue();
                 try {
-                    claimValue = encryptClaimValue(claimValue);
+                    // Encrypt TOTP related claims with custom key.
+                    if (CLAIMS_FOR_TOTP.contains(claimURI) && userStoreManager.getTenantId() == -1234 ) {
+                        claimValue = encryptClaimValueWithCustomKey(claimValue);
+                    } else {
+                        claimValue = encryptClaimValue(claimValue);
+                    }
                 } catch (CryptoException e) {
-                    LOG.error("Error occurred while encrypting claim value of claim " + claimURI, e);
+                    LOG.error("Error occurred while encrypting claim value of claim " + claimURI , e);
                     throw new CryptoException("Error occurred while encrypting claim value of claim " + claimURI, e);
                 }
                 claims.put(claimURI, claimValue);
@@ -197,6 +210,29 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
         }
         return CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(plainText.getBytes(StandardCharsets.UTF_8));
     }
+
+    /**
+     * Encrypt claim value with custom key.
+     *
+     * @param plainText text to be encrypted.
+     * @return encrypted claim value.
+     * @throws CryptoException  If an error occurs while encrypting the claim value.
+     */
+    private String encryptClaimValueWithCustomKey(String plainText) throws CryptoException {
+
+        if (plainText.isEmpty()) {
+            return plainText;
+        }
+        // Get custom key from server configuration.
+        String customKey =
+                ServerConfiguration.getInstance().getFirstProperty(TOTP_KEY);
+        if (StringUtils.isBlank(customKey)) {
+            return encryptClaimValue(plainText);
+        }
+        return CryptoUtil.getDefaultCryptoUtil().encryptWithCustomKeyAndBase64Encode(
+                plainText.getBytes(StandardCharsets.UTF_8), customKey);
+    }
+
 
     /**
      * Check whether encryption is enabled for a given claim.
