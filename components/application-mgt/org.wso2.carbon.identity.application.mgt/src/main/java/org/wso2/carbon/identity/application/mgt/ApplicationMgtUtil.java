@@ -32,14 +32,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
-import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
-import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.SpFileStream;
-import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -861,6 +854,51 @@ public class ApplicationMgtUtil {
         }
 
         return ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
+    }
+
+    /**
+     * Get LiteServiceProvider object from Service Provider object.
+     *
+     * @param basicApplicationData ServiceProvider object.
+     * @return LiteServiceProvider object.
+     */
+    public static LiteServiceProvider getLiteApplicationBasicData(ServiceProvider basicApplicationData) {
+
+        if (basicApplicationData == null) {
+            return null;
+        }
+        LiteServiceProvider liteServiceProvider = new LiteServiceProvider();
+        liteServiceProvider.setApplicationID(basicApplicationData.getApplicationID());
+        liteServiceProvider.setApplicationResourceId(basicApplicationData.getApplicationResourceId());
+        liteServiceProvider.setApplicationName(basicApplicationData.getApplicationName());
+        liteServiceProvider.setDescription(basicApplicationData.getDescription());
+        liteServiceProvider.setImageUrl(basicApplicationData.getImageUrl());
+        liteServiceProvider.setAccessUrl(basicApplicationData.getAccessUrl());
+        liteServiceProvider.setDiscoverable(basicApplicationData.isDiscoverable());
+        liteServiceProvider.setOwner(basicApplicationData.getOwner());
+        liteServiceProvider.setClaimConfig(basicApplicationData.getClaimConfig());
+        liteServiceProvider.setLocalAndOutBoundAuthenticationConfig(
+                basicApplicationData.getLocalAndOutBoundAuthenticationConfig());
+        liteServiceProvider.setSaasApp(basicApplicationData.isSaasApp());
+        return liteServiceProvider;
+    }
+
+    /**
+     * Create a LiteServiceProvider object from ServiceProvider object.
+     *
+     * @param serviceProvider ServiceProvider object.
+     * @return LiteServiceProvider object.
+     */
+    public static LiteServiceProvider createLiteApplication(ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            return null;
+        }
+        LiteServiceProvider liteServiceProvider = getLiteApplicationBasicData(serviceProvider);
+        liteServiceProvider.setClaimConfig(serviceProvider.getClaimConfig());
+        liteServiceProvider.setJwksUri(serviceProvider.getJwksUri());
+        liteServiceProvider.setPermissionAndRoleConfig(serviceProvider.getPermissionAndRoleConfig());
+        return liteServiceProvider;
     }
 
     /**

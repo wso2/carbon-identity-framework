@@ -33,33 +33,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.Claim;
-import org.wso2.carbon.identity.application.common.model.ClaimConfig;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.ConsentConfig;
-import org.wso2.carbon.identity.application.common.model.ConsentPurpose;
-import org.wso2.carbon.identity.application.common.model.ConsentPurposeConfigs;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
-import org.wso2.carbon.identity.application.common.model.InboundProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.LocalRole;
-import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
-import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
-import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.RoleMapping;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
-import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
@@ -1676,6 +1650,50 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return getApplication(applicationId);
     }
 
+    /**
+     * Get Lite Service Provider from DB. It collects following service provider configurations.
+     *     Basic application data from SP_APP table.
+     *     Claim mapping from SP_CLAIM_MAPPING table.
+     *     SP claim Dialect from SP_CLAIM_DIALECT table.
+     *     Service provider properties from SP_METADATA  table.
+     *     Role mapping from SP_ROLE_MAPPING table.
+     * @param applicationName Application name.
+     * @return LiteServiceProvider.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
+     */
+    @Override
+    public LiteServiceProvider getLiteApplication(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        int applicationId = getApplicationIdByName(applicationName, tenantDomain);
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try {
+            LiteServiceProvider liteServiceProvider =  ApplicationMgtUtil.getLiteApplicationBasicData
+                    (getBasicApplicationData(applicationId, connection));
+            if (liteServiceProvider == null) {
+                return null;
+            }
+            liteServiceProvider.setClaimConfig(getClaimConfiguration(applicationId, connection,
+                    tenantId));
+            List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
+            liteServiceProvider.setJwksUri(getJwksUri(propertyList));
+            readAndSetConfigurationsFromProperties(propertyList,
+                    liteServiceProvider.getLocalAndOutBoundAuthenticationConfig());
+            // Load Role Mappings
+            List<RoleMapping> roleMappings = getRoleMappingOfApplication(applicationId, connection,
+                    tenantId);
+            PermissionsAndRoleConfig permissionAndRoleConfig = new PermissionsAndRoleConfig();
+            permissionAndRoleConfig.setRoleMappings(roleMappings.toArray(new RoleMapping[0]));
+            liteServiceProvider.setPermissionAndRoleConfig(permissionAndRoleConfig);
+            return liteServiceProvider;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            IdentityDatabaseUtil.closeConnection(connection);
+        }
+    }
+
     private ServiceProviderProperty[] prepareLocalSpProperties() {
 
         ServiceProviderProperty[] serviceProviderProperties = new ServiceProviderProperty[1];
@@ -2243,6 +2261,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         getBooleanValue(rs.getString(ApplicationTableColumns.ENABLE_AUTHORIZATION)));
                 localAndOutboundAuthenticationConfig.setSubjectClaimUri(
                         rs.getString(ApplicationTableColumns.SUBJECT_CLAIM_URI));
+                localAndOutboundAuthenticationConfig.setUseTenantDomainInLocalSubjectIdentifier("1"
+                        .equals(rs.getString(ApplicationTableColumns.IS_USE_TENANT_DOMAIN_SUBJECT)));
+                localAndOutboundAuthenticationConfig.setUseUserstoreDomainInLocalSubjectIdentifier("1"
+                        .equals(rs.getString(ApplicationTableColumns.IS_USE_USER_DOMAIN_SUBJECT)));
                 serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
 
                 serviceProvider.setSaasApp(getBooleanValue(rs.getString(ApplicationTableColumns.IS_SAAS_APP)));

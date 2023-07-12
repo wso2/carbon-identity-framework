@@ -23,34 +23,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.ClaimConfig;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.*;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoByNameCache;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoByResourceIdCache;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoCacheEntry;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoNameCacheKey;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoResourceIdCacheKey;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDByInboundAuthCache;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDCacheInboundAuthEntry;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDCacheInboundAuthKey;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByInboundAuthCache;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthEntry;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthKey;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheEntry;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheEntry;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
+import org.wso2.carbon.identity.application.mgt.internal.cache.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,6 +49,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
     private static IdentityServiceProviderCache appCacheByName = null;
     private static ServiceProviderByInboundAuthCache appCacheByInboundAuth = null;
+    private static LiteServiceProviderByIDCache liteAppCacheByID = null;
     private static ApplicationResourceIDByInboundAuthCache resourceIDCacheByInboundAuth = null;
     private static ServiceProviderByIDCache appCacheByID = null;
     private static ServiceProviderByResourceIdCache appCacheByResourceId = null;
@@ -85,6 +66,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         appBasicInfoCacheByResourceId = ApplicationBasicInfoByResourceIdCache.getInstance();
         appBasicInfoCacheByName = ApplicationBasicInfoByNameCache.getInstance();
         resourceIDCacheByInboundAuth = ApplicationResourceIDByInboundAuthCache.getInstance();
+        liteAppCacheByID = LiteServiceProviderByIDCache.getInstance();
     }
 
     public ServiceProvider getApplication(String applicationName, String tenantDomain) throws
@@ -101,6 +83,80 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                 String error = "Error occurred while retrieving the application, " + applicationName;
                 log.error(error, e);
                 throw new IdentityApplicationManagementException(error, e);
+            }
+        }
+        return serviceProvider;
+    }
+
+    /**
+     * Get Lite Service Provider from Cache.
+     * If the cache entry is not available in the cache, retrieve the lite service provider from the database.
+     *
+     * @param applicationName Application name.
+     * @return LiteServiceProvider.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
+     */
+    public LiteServiceProvider getLiteApplication(String applicationName, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = getApplicationFromCache(applicationName, tenantDomain);
+        if (serviceProvider != null) {
+            return ApplicationMgtUtil.createLiteApplication(serviceProvider);
+        }
+        LiteServiceProvider liteServiceProvider = getBasicApplicationFromCache(applicationName, tenantDomain);
+        if (liteServiceProvider == null) {
+            try {
+                liteServiceProvider = appDAO.getLiteApplication(applicationName, tenantDomain);
+                if (liteServiceProvider != null) {
+                    addBasicServiceProviderToCache(liteServiceProvider, tenantDomain);
+                }
+            } catch (Exception e) {
+                String error = "Error occurred while retrieving the application, " + applicationName;
+                log.error(error, e);
+                throw new IdentityApplicationManagementException(error, e);
+            }
+        }
+        return liteServiceProvider;
+    }
+
+    private void addBasicServiceProviderToCache(LiteServiceProvider serviceProvider, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Add cache for the basic application " + serviceProvider.getApplicationName() +
+                    "@" + tenantDomain);
+        }
+        LiteServiceProviderIDCacheKey idKey = new LiteServiceProviderIDCacheKey(serviceProvider
+                .getApplicationName(), tenantDomain);
+        LiteServiceProviderIDCacheEntry idEntry = new LiteServiceProviderIDCacheEntry(serviceProvider);
+        liteAppCacheByID.addToCache(idKey, idEntry);
+    }
+
+    private LiteServiceProvider getBasicApplicationFromCache(String applicationName, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        LiteServiceProvider serviceProvider = null;
+        if (StringUtils.isNotBlank(applicationName)) {
+            LiteServiceProviderIDCacheKey cacheKey = new LiteServiceProviderIDCacheKey(
+                    applicationName, tenantDomain);
+            LiteServiceProviderIDCacheEntry entry = liteAppCacheByID.getValueFromCache(cacheKey);
+
+            if (entry != null) {
+                serviceProvider = entry.getServiceProvider();
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Provided application name is empty");
+            }
+        }
+
+        if (serviceProvider == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache missing for the application " + applicationName + "@" + tenantDomain);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache is present for the application " + applicationName + "@" + tenantDomain);
             }
         }
         return serviceProvider;

@@ -19,15 +19,7 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.ImportResponse;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.SpFileContent;
-import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
@@ -90,6 +82,22 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      */
     public abstract ServiceProvider getApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
             throws IdentityApplicationManagementException;
+
+    /**
+     * Get Basic Application for given application name excluding file based service providers.
+     *
+     * @param applicationName Application Name
+     * @param tenantDomain Tenant Domain
+     * @return LiteServiceProvider
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public LiteServiceProvider getLiteApplicationInfoExcludingFileBasedSPs
+    (String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return ApplicationMgtUtil.
+                createLiteApplication(getApplicationExcludingFileBasedSPs(applicationName, tenantDomain));
+    }
 
     /**
      * Get All Application Basic Information

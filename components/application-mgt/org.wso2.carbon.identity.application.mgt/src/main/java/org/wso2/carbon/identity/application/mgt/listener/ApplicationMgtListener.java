@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.LiteServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 
@@ -225,6 +226,20 @@ public interface ApplicationMgtListener {
      * @throws IdentityApplicationManagementException
      */
     boolean doPreGetApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Define any additional actions after getting a lite application excluding file based SPs.
+     *
+     * @param serviceProvider
+     * @param applicationName
+     * @param tenantDomain
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    boolean doPostGetLiteApplicationExcludingFileBasedSPs(LiteServiceProvider serviceProvider,
+                                                          String applicationName,
+                                                          String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**

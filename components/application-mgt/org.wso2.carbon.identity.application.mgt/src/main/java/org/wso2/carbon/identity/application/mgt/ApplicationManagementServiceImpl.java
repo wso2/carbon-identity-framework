@@ -35,22 +35,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.ImportResponse;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
-import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
-import org.wso2.carbon.identity.application.common.model.SpFileContent;
-import org.wso2.carbon.identity.application.common.model.SpTemplate;
-import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error;
@@ -267,6 +252,43 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        return serviceProvider;
+    }
+
+    /**
+     * Get Basic Application for given application name excluding file based service providers.
+     *
+     * @param applicationName Application Name
+     * @param tenantDomain Tenant Domain
+     * @return LiteServiceProvider
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    @Override
+    public LiteServiceProvider getLiteApplicationInfoExcludingFileBasedSPs(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        LiteServiceProvider serviceProvider;
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreGetApplicationExcludingFileBasedSPs(applicationName,
+                    tenantDomain)) {
+                return null;
+            }
+        }
+        try {
+            startTenantFlow(tenantDomain);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            serviceProvider = appDAO.getLiteApplication(applicationName, tenantDomain);
+        } finally {
+            endTenantFlow();
+        }
+
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostGetLiteApplicationExcludingFileBasedSPs(serviceProvider,
+                    applicationName, tenantDomain)) {
+                return null;
+            }
+        }
         return serviceProvider;
     }
 
