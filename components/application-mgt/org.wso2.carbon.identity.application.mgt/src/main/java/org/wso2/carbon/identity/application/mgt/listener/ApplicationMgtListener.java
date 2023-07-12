@@ -229,6 +229,18 @@ public interface ApplicationMgtListener {
             throws IdentityApplicationManagementException;
 
     /**
+     * Define any additional actions before getting a lite application excluding file based SPs.
+     *
+     * @param applicationName
+     * @param tenantDomain
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    boolean doPreGetLiteApplicationExcludingFileBasedSPs( String applicationName,
+                                                          String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
      * Define any additional actions after getting a lite application excluding file based SPs.
      *
      * @param serviceProvider

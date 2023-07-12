@@ -350,6 +350,13 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     }
 
     @Override
+    public boolean doPreGetLiteApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    @Override
     public boolean doPostGetApplicationExcludingFileBasedSPs(ServiceProvider serviceProvider, String applicationName,
                                                              String tenantDomain)
             throws IdentityApplicationManagementException {
