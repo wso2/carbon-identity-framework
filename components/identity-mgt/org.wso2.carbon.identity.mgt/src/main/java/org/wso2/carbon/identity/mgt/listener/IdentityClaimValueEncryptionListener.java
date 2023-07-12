@@ -189,7 +189,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
                         claimValue = encryptClaimValue(claimValue);
                     }
                 } catch (CryptoException e) {
-                    LOG.error("Error occurred while encrypting claim value of claim " + claimURI , e);
+                    LOG.error("Error occurred while encrypting claim value of claim " + claimURI, e);
                     throw new CryptoException("Error occurred while encrypting claim value of claim " + claimURI, e);
                 }
                 claims.put(claimURI, claimValue);
@@ -232,7 +232,6 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
         return CryptoUtil.getDefaultCryptoUtil().encryptWithCustomKeyAndBase64Encode(
                 plainText.getBytes(StandardCharsets.UTF_8), customKey);
     }
-
 
     /**
      * Check whether encryption is enabled for a given claim.
