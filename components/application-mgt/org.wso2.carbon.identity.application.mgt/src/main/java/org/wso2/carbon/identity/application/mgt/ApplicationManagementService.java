@@ -100,13 +100,9 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @return LiteServiceProvider
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public LiteServiceProvider getLiteApplicationInfoExcludingFileBasedSPs
-    (String applicationName, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        return ApplicationMgtUtil.
-                createLiteApplication(getApplicationExcludingFileBasedSPs(applicationName, tenantDomain));
-    }
+    public abstract LiteServiceProvider getLiteApplicationInfoExcludingFileBasedSPs (String applicationName,
+                                                                                     String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * Get All Application Basic Information
