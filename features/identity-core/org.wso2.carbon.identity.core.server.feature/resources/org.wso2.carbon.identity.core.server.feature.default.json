@@ -611,6 +611,7 @@
   ],
   "tenant_context.rewrite.overwrite.dispatch": ["/myaccount/", "/console/"],
   "tenant_context.rewrite.overwrite.ignore_dispatch_path": [
+    "/extensions/",
     "/libs/",
     "/resources/",
     "/static/",
@@ -910,6 +911,15 @@
   "myaccount.session.params.checkSessionInterval": 3,
   "myaccount.personal_info.disabled_features": ["profileInfo.mobileVerification"],
   "myaccount.security.disabled_features": ["security.loginVerifyData.typingDNA"],
+  "myaccount.idp_configs.authorizeEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oauth2/authorize?ut\u003d${userTenantDomain}",
+  "myaccount.idp_configs.logoutEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/logout",
+  "myaccount.idp_configs.oidcSessionIFrameEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oidc/checksession",
+  "myaccount.idp_configs.scope": [
+    "SYSTEM",
+    "profile",
+    "openid"
+  ],
+
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": false,
   "cors.allowed_origins": [],
