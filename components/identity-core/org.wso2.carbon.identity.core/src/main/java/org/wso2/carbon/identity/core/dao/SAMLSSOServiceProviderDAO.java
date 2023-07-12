@@ -526,7 +526,9 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             if (isIssuerUpdated) {
                 registry.delete(currentPath);
             }
-            // Update the current resource. If the resource does not exist, it will be created.
+            // Update the resource.
+            // If the issuer is updated, new resource will be created.
+            // If the issuer is not updated, existing resource will be updated.
             registry.put(newPath, resource);
             if (log.isDebugEnabled()) {
                 if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
