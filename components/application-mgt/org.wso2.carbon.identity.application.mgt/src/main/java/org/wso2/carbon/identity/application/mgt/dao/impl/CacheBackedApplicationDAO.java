@@ -57,7 +57,6 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderID
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
