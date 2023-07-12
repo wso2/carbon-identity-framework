@@ -375,8 +375,9 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             maskClaimsInAuditLog(claimMap, dataObject);
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-            audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
-                    storeManager), dataObject, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION,
+                    getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ?
+                    LoggerUtils.getMaskedContent(userName) : userName, storeManager), dataObject, SUCCESS));
         }
         return true;
     }

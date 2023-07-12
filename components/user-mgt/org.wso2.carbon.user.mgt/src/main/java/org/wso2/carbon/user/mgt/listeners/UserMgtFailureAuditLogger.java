@@ -275,8 +275,9 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         if (ArrayUtils.isNotEmpty(claims)) {
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONArray(claims));
         }
-        audit.warn(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
-                        userStoreManager), dataObject, errorCode, errorMessage));
+        audit.warn(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION,
+                getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
+                userStoreManager), dataObject, errorCode, errorMessage));
 
         return true;
     }
