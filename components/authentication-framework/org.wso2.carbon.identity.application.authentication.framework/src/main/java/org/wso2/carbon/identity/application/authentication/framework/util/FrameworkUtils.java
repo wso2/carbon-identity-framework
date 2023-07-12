@@ -2895,6 +2895,19 @@ public class FrameworkUtils {
         return federatedAssociationManager;
     }
 
+    public static String fetchUserOrganizationClaimIfExist(AuthenticatedUser authenticatedUser) {
+
+        if (authenticatedUser == null || authenticatedUser.getUserAttributes() == null) {
+            return StringUtils.EMPTY;
+        }
+        for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
+            if ("user_organization".equals(userAttributes.getKey().getLocalClaim().getClaimUri())) {
+                return userAttributes.getValue();
+            }
+        }
+        return StringUtils.EMPTY;
+    }
+
     /**
      * Retrieves the unique user id of the given username. If the unique user id is not available, generate an id and
      * update the userid claim in read/write userstores.

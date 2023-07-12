@@ -384,7 +384,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 String userTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
                 if (StringUtils.isNotEmpty(userTenantDomain)) {
                     if (StringUtils.isNotEmpty(spTenantDomain) && !spTenantDomain.equals
-                            (userTenantDomain)) {
+                            (userTenantDomain) && StringUtils.isEmpty(
+                            FrameworkUtils.fetchUserOrganizationClaimIfExist(sequenceConfig.getAuthenticatedUser()))) {
                         throw new FrameworkException("Service Provider tenant domain must be equal to user tenant " +
                                 "domain for non-SaaS applications");
                     }

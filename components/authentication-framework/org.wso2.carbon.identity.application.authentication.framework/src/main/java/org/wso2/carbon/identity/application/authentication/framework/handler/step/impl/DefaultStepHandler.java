@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
@@ -66,6 +67,7 @@ import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
@@ -663,6 +665,43 @@ public class DefaultStepHandler implements StepHandler {
         }
     }
 
+    /**
+     * Link the federated user via the organization login authenticator to the local user who resides in the
+     * organization where the identity federation is occurred.
+     *
+     * @param authenticatedUser      The current authenticated user.
+     * @param userResideOrganization The organization where the federated user identity federation is managed.
+     */
+    private void linkFederateUserToLocalUserInFederatedOrganization(AuthenticatedUser authenticatedUser,
+                                                                    String userResideOrganization) {
+
+        String federatedUserIdentifier = authenticatedUser.getUserName();
+        if (federatedUserIdentifier == null) {
+            return;
+        }
+        if (federatedUserIdentifier.contains(UserCoreConstants.TENANT_DOMAIN_COMBINER)) {
+            federatedUserIdentifier = federatedUserIdentifier.split(UserCoreConstants.TENANT_DOMAIN_COMBINER)[0];
+        }
+        if (federatedUserIdentifier.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            federatedUserIdentifier = federatedUserIdentifier.split(UserCoreConstants.DOMAIN_SEPARATOR)[1];
+        }
+        authenticatedUser.setUserId(federatedUserIdentifier);
+        authenticatedUser.setFederatedUser(false);
+        try {
+            String userResideTenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveTenantDomain(userResideOrganization);
+            authenticatedUser.setTenantDomain(userResideTenantDomain);
+            FrameworkServiceDataHolder.getInstance().getOrganizationUserResidentResolverService()
+                    .resolveUserFromResidentOrganization(null, federatedUserIdentifier,
+                            userResideOrganization).ifPresent(user -> {
+                        authenticatedUser.setUserName(user.getUsername());
+                        authenticatedUser.setUserStoreDomain(user.getUserStoreDomain());
+                    });
+        } catch (OrganizationManagementException e) {
+            LOG.error("Error while resolving user from resident organization", e);
+        }
+    }
+
     protected void doAuthentication(HttpServletRequest request, HttpServletResponse response,
                                     AuthenticationContext context, AuthenticatorConfig authenticatorConfig)
             throws FrameworkException {
@@ -780,6 +819,10 @@ public class DefaultStepHandler implements StepHandler {
 
             // store authenticated user
             AuthenticatedUser authenticatedUser = context.getSubject();
+            String federatedUserOrganization = FrameworkUtils.fetchUserOrganizationClaimIfExist(authenticatedUser);
+            if (StringUtils.isNotEmpty(federatedUserOrganization)) {
+                linkFederateUserToLocalUserInFederatedOrganization(authenticatedUser, federatedUserOrganization);
+            }
             stepConfig.setAuthenticatedUser(authenticatedUser);
             authenticatedIdPData.setUser(authenticatedUser);
 
