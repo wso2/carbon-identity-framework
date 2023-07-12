@@ -236,7 +236,7 @@ public interface ApplicationMgtListener {
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPreGetLiteApplicationExcludingFileBasedSPs( String applicationName,
+    boolean doPreGetLiteApplicationExcludingFileBasedSPs(String applicationName,
                                                           String tenantDomain)
             throws IdentityApplicationManagementException;
 

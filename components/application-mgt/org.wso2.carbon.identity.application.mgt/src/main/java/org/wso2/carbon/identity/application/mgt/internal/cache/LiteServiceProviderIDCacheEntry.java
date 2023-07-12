@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt.internal.cache;
 
-import org.wso2.carbon.identity.core.cache.CacheEntry;
 import org.wso2.carbon.identity.application.common.model.LiteServiceProvider;
+import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 /**
  * Cache entry when basic Service Provider is loaded as Application ID.
