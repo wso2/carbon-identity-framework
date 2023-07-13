@@ -691,16 +691,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-//    private void triggerAuditLogs(String username, String tenantDomain, String appId, Map<String, Object> data,
-//                                  String action) {
-//
-//
-//        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-//                getInitiatorId(username, tenantDomain), USER, appId, TARGET_APPLICATION, action);
-//        auditLogBuilder.addAllData(data);
-//        triggerAuditLogEvent(auditLogBuilder, true);
-//    }
-
     // Will be supported with 'Advance Consent Management Feature'.
     /*
     private void validateConsentPurposes(ServiceProvider serviceProvider) throws
@@ -1584,6 +1574,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
         ServiceProvider serviceProviderCopy = SerializationUtils.clone(serviceProvider);
+
         // Invoking the listeners.
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
@@ -2570,6 +2561,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         " failed for application with resourceId: " + resourceId);
             }
         }
+
         try {
             startTenantFlow(tenantDomain, username);
 

@@ -1022,14 +1022,9 @@ public class ApplicationMgtUtil {
         return LoggerUtils.getMaskedContent(loggableUserId);
     }
 
-
-
-
     public static boolean isLegacyAuditLogsDisabledInAppMgt() {
 
-        boolean isLegacyAuditLogsDisabledInAppMgt =
-                Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
-                        || isLegacyAuditLogsDisabled();
-        return isLegacyAuditLogsDisabledInAppMgt;
+        return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
+                || isLegacyAuditLogsDisabled();
     }
 }

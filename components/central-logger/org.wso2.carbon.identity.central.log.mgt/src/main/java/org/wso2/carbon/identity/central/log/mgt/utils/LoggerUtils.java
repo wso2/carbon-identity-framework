@@ -47,7 +47,6 @@ import java.util.UUID;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Utils class of central logger.
@@ -76,14 +75,10 @@ public class LoggerUtils {
             if (!isLoggingEnabled) {
                 return;
             }
-            // Build the initiator object.
-            AuditLog auditLog = auditLogBuilder.build();
-
-            Map<String, Object> addAuditLogProperties = new HashMap<>();
-            addAuditLogProperties.put(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog);
             IdentityEventService eventMgtService =
                     CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
-            Event auditEvent = new Event(PUBLISH_AUDIT_LOG, addAuditLogProperties);
+            Event auditEvent = new Event(PUBLISH_AUDIT_LOG,
+                    Map.of(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLogBuilder.build()));
             eventMgtService.handleEvent(auditEvent);
         } catch (IdentityEventException e) {
             String errorLog = "Error occurred when firing the event. Unable to audit the request.";
