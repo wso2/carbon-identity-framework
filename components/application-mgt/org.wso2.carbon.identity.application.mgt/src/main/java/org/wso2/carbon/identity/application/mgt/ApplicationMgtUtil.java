@@ -74,6 +74,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogE
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.INBOUND_AUTHENTICATION_CONFIG;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Few common utility functions related to Application (aka. Service Provider) Management.
@@ -1021,8 +1022,14 @@ public class ApplicationMgtUtil {
         return LoggerUtils.getMaskedContent(loggableUserId);
     }
 
+
+
+
     public static boolean isLegacyAuditLogsDisabledInAppMgt() {
 
-        return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG));
+        boolean isLegacyAuditLogsDisabledInAppMgt =
+                Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
+                        || isLegacyAuditLogsDisabled();
+        return isLegacyAuditLogsDisabledInAppMgt;
     }
 }

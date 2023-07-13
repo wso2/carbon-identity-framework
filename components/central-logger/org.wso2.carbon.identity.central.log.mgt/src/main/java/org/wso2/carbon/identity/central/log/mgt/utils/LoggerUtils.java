@@ -73,17 +73,18 @@ public class LoggerUtils {
 
         try {
             // Publish new audit logs only if the old audit log publishing is disabled.
-            if (isLoggingEnabled || isLegacyAuditLogsDisabled()) {
-                // Build the initiator object.
-                AuditLog auditLog = auditLogBuilder.build();
-
-                Map<String, Object> addAuditLogProperties = new HashMap<>();
-                addAuditLogProperties.put(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog);
-                IdentityEventService eventMgtService =
-                        CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
-                Event auditEvent = new Event(PUBLISH_AUDIT_LOG, addAuditLogProperties);
-                eventMgtService.handleEvent(auditEvent);
+            if (!isLoggingEnabled) {
+                return;
             }
+            // Build the initiator object.
+            AuditLog auditLog = auditLogBuilder.build();
+
+            Map<String, Object> addAuditLogProperties = new HashMap<>();
+            addAuditLogProperties.put(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog);
+            IdentityEventService eventMgtService =
+                    CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
+            Event auditEvent = new Event(PUBLISH_AUDIT_LOG, addAuditLogProperties);
+            eventMgtService.handleEvent(auditEvent);
         } catch (IdentityEventException e) {
             String errorLog = "Error occurred when firing the event. Unable to audit the request.";
             log.error(errorLog, e);
