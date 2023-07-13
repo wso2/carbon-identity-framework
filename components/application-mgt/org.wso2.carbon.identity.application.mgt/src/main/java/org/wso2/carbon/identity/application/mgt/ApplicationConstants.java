@@ -104,7 +104,6 @@ public class ApplicationConstants {
      */
     public static class LogEventConstants {
         public static final String TARGET_APPLICATION = "APPLICATION";
-        public static final String TARGET_TENANT = "TENANT";
         public static final String USER = "USER";
 
         public static final String INBOUND_AUTHENTICATION_CONFIG = "inboundAuthenticationConfig";
