@@ -3354,11 +3354,11 @@ public class FrameworkUtils {
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, "issue-access-token");
-            diagnosticLogBuilder.resultMessage("Filter Claims by OIDC Scopes.");
-            diagnosticLogBuilder.resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
-            diagnosticLogBuilder.putParams("Available user attributes", claimListOfScopes);
-            diagnosticLogBuilder.putParams("Available claims for scopes", claimMappingListOfScopes);
-            diagnosticLogBuilder.logLevel(DiagnosticLog.LogLevel.BASIC);
+            diagnosticLogBuilder.resultMessage("Filter Claims by OIDC Scopes.")
+                    .inputParam("Available user attributes", claimListOfScopes)
+                    .inputParam("Available claims for scopes", claimMappingListOfScopes)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         return requestedScopeClaims;

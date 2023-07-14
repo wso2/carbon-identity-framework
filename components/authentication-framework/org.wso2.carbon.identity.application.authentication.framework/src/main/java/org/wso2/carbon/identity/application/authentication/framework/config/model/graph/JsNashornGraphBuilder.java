@@ -1214,8 +1214,8 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
                                 "execcute-adaptive-script");
                         diagnosticLogBuilder.resultMessage("Error in executing the adaptive authentication script : " +
                                         e.getMessage())
-                                .putParams("Application Name", authenticationContext.getServiceProviderName())
-                                .putParams("Error Line", e.getStackTrace()[0].getLineNumber())
+                                .inputParam("Application Name", authenticationContext.getServiceProviderName())
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                                 .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                     }

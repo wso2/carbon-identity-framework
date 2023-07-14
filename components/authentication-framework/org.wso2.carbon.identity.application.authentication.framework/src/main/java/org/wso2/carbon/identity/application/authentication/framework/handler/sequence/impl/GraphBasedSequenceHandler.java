@@ -123,12 +123,12 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
-            diagnosticLogBuilder.putParams("Application Name", context.getServiceProviderName())
-                    .putParams("Tenant Domain", context.getTenantDomain())
-                    .putParams("clientId", context.getSequenceConfig().getApplicationId())
+            diagnosticLogBuilder.inputParam("Application Name", context.getServiceProviderName())
+                    .inputParam("Tenant Domain", context.getTenantDomain())
+                    .inputParam("clientId", context.getSequenceConfig().getApplicationId())
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .resultMessage("Executing script-based authentication.")
-                    .logLevel(DiagnosticLog.LogLevel.ADVANCED);
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         if (!graph.isBuildSuccessful()) {
@@ -418,9 +418,10 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 }
                 response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    diagnosticLogBuilder.putParams("redirectURL", redirectURL)
-                            .putParams("Application Name", context.getServiceProviderName())
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    diagnosticLogBuilder.inputParam("redirectURL", redirectURL)
+                            .inputParam("Application Name", context.getServiceProviderName())
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                 }
             } catch (IOException e) {
                 diagnosticLogBuilder.resultMessage("Error when redirecting user to " + errorPage);

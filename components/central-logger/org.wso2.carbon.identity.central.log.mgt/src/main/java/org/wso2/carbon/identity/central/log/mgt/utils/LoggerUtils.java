@@ -104,6 +104,8 @@ public class LoggerUtils {
 
     /**
      * Trigger Diagnostic Log Event.
+     * @Deprecated This method is deprecated. Use the method with {@link #triggerDiagnosticLogEvent(
+     * DiagnosticLog.DiagnosticLogBuilder)}.
      *
      * @param componentId    Component ID.
      * @param input          Input parameters.

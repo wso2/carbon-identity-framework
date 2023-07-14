@@ -314,12 +314,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                diagnosticLogBuilder.putParams("requestedClaims", new ArrayList<>(requestedClaims));
-                diagnosticLogBuilder.putParams("mandatoryClaims", new ArrayList<>(mandatoryClaims));
-                diagnosticLogBuilder.putParams("Using Existing Consent", true);
-                diagnosticLogBuilder.putParams("Service Provider", spName);
-                diagnosticLogBuilder.putParams("Subject", LoggerUtils.isLogMaskingEnable ? LoggerUtils
-                        .getMaskedContent(authenticatedUser.getUserName()) : authenticatedUser.getUserName());
+                diagnosticLogBuilder.inputParam("requestedClaims", new ArrayList<>(requestedClaims));
+                diagnosticLogBuilder.inputParam("mandatoryClaims", new ArrayList<>(mandatoryClaims));
+                diagnosticLogBuilder.inputParam("Using Existing Consent", true);
+                diagnosticLogBuilder.inputParam("Service Provider", spName);
+                diagnosticLogBuilder.inputParam("Subject", LoggerUtils.isLogMaskingEnable ? LoggerUtils
+                        .getMaskedContent(authenticatedUser.getUserName()) : authenticatedUser.getUserName())
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
             }
             receiptConsentMetaData = getRequestedClaimsFromReceipt(receipt, true);
             List<String> claimsWithConsent = getClaimsFromConsentMetaData(receiptConsentMetaData);
@@ -329,8 +330,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             requestedClaims.removeAll(claimsWithConsent);
             requestedClaims.removeAll(claimsDeniedConsent);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                diagnosticLogBuilder.putParams("Claims with consent", claimsWithConsent);
-                diagnosticLogBuilder.putParams("Denied claims", claimsDeniedConsent);
+                diagnosticLogBuilder.inputParam("Claims with consent", claimsWithConsent);
+                diagnosticLogBuilder.inputParam("Denied claims", claimsDeniedConsent);
                 diagnosticLogBuilder.resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
                 diagnosticLogBuilder.resultMessage("Previously given consent is used for the request.");
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
@@ -473,18 +474,19 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT);
-            diagnosticLogBuilder.putParams("requestedClaims", consentClaimsData.getRequestedClaims().stream()
+            diagnosticLogBuilder.inputParam("requestedClaims", consentClaimsData.getRequestedClaims().stream()
                     .map(ClaimMetaData::getClaimUri).collect(Collectors.toList()));
-            diagnosticLogBuilder.putParams("mandatoryClaims", consentClaimsData.getMandatoryClaims().stream()
+            diagnosticLogBuilder.inputParam("mandatoryClaims", consentClaimsData.getMandatoryClaims().stream()
                     .map(ClaimMetaData::getClaimUri).collect(Collectors.toList()));
-            diagnosticLogBuilder.putParams("Using Existing Consent", false);
-            diagnosticLogBuilder.putParams("Service Provider", serviceProvider.getApplicationName());
-            diagnosticLogBuilder.putParams("Subject", LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
+            diagnosticLogBuilder.inputParam("Using Existing Consent", false);
+            diagnosticLogBuilder.inputParam("Service Provider", serviceProvider.getApplicationName());
+            diagnosticLogBuilder.inputParam("Subject", LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
                     authenticatedUser.getUserName()) : authenticatedUser.getUserName());
-            diagnosticLogBuilder.putParams("Claims with consent", claimsWithConsent.stream().map(
+            diagnosticLogBuilder.inputParam("Claims with consent", claimsWithConsent.stream().map(
                     ClaimMetaData::getClaimUri).collect(Collectors.toList()));
             diagnosticLogBuilder.resultMessage("User has approved consent for the application.");
-            diagnosticLogBuilder.resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+            diagnosticLogBuilder.resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
     }

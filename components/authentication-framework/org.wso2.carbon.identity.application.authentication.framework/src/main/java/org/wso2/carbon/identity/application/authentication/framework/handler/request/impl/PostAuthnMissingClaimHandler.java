@@ -193,12 +193,13 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 log.debug("Mandatory claims missing for the application : " + missingClaims[0]);
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                diagnosticLogBuilder.putParams(FrameworkConstants.LogConstants.SERVICE_PROVIDER,
+                diagnosticLogBuilder.inputParam(FrameworkConstants.LogConstants.SERVICE_PROVIDER,
                         context.getServiceProviderName());
-                diagnosticLogBuilder.putParams(FrameworkConstants.LogConstants.TENANT_DOMAIN,
+                diagnosticLogBuilder.inputParam(FrameworkConstants.LogConstants.TENANT_DOMAIN,
                         context.getTenantDomain());
-                diagnosticLogBuilder.putParams(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaims);
-                diagnosticLogBuilder.resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                diagnosticLogBuilder.inputParam(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaims);
+                diagnosticLogBuilder.resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                 diagnosticLogBuilder.resultMessage("Mandatory claims missing for the application: " +
                         context.getServiceProviderName());
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
@@ -213,9 +214,10 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     Claim claimObj = claimManager.getClaim(missingClaim.getValue());
                     if (claimObj != null && claimObj.isReadOnly()) {
                         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                            diagnosticLogBuilder.putParams("ReadOnlyClaim", claimObj.getClaimUri());
-                            diagnosticLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED);
-                            diagnosticLogBuilder.resultMessage("One or more read-only claim is missing in the requested claim set.");
+                            diagnosticLogBuilder.inputParam("ReadOnlyClaim", claimObj.getClaimUri())
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                    .resultMessage("One or more read-only claim is missing in the " +
+                                            "requested claim set.");
                             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                         }
                         throw new PostAuthenticationFailedException("One or more read-only claim is missing in the " +
