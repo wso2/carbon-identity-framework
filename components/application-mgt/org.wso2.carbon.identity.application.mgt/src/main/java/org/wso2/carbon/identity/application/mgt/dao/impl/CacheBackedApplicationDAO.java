@@ -42,6 +42,12 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicI
 import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDByInboundAuthCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDCacheInboundAuthEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationResourceIDCacheInboundAuthKey;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ClaimConfigByIDCache;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ClaimConfigByIDCacheEntry;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ClaimConfigByIDCacheKey;
+import org.wso2.carbon.identity.application.mgt.internal.cache.LocalAndOutBoundConfigByIDCache;
+import org.wso2.carbon.identity.application.mgt.internal.cache.LocalAndOutBoundConfigByIDCacheEntry;
+import org.wso2.carbon.identity.application.mgt.internal.cache.LocalAndOutBoundConfigByIDCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByInboundAuthCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
@@ -74,6 +80,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     private static ServiceProviderByResourceIdCache appCacheByResourceId = null;
     private static ApplicationBasicInfoByResourceIdCache appBasicInfoCacheByResourceId = null;
     private static ApplicationBasicInfoByNameCache appBasicInfoCacheByName = null;
+    private static LocalAndOutBoundConfigByIDCache localAndOutboundConfigByIDCache = null;
+    private static ClaimConfigByIDCache claimConfigByIDCache = null;
 
     public CacheBackedApplicationDAO(ApplicationDAO appDAO) {
 
@@ -85,6 +93,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         appBasicInfoCacheByResourceId = ApplicationBasicInfoByResourceIdCache.getInstance();
         appBasicInfoCacheByName = ApplicationBasicInfoByNameCache.getInstance();
         resourceIDCacheByInboundAuth = ApplicationResourceIDByInboundAuthCache.getInstance();
+        localAndOutboundConfigByIDCache = LocalAndOutBoundConfigByIDCache.getInstance();
+        claimConfigByIDCache = ClaimConfigByIDCache.getInstance();
     }
 
     public ServiceProvider getApplication(String applicationName, String tenantDomain) throws
@@ -104,6 +114,59 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             }
         }
         return serviceProvider;
+    }
+
+    public LocalAndOutboundAuthenticationConfig getApplicationLocalAndOutboundAuthenticationConfig
+            (String applicationName, String tenantDomain) throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = getApplicationFromCache(applicationName, tenantDomain);
+
+        if (serviceProvider != null) {
+            return serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+        }
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
+                getLocalAndOutboundConfigFromCache(applicationName, tenantDomain);
+        if (localAndOutboundAuthenticationConfig == null) {
+            try {
+                localAndOutboundAuthenticationConfig
+                        = appDAO.getApplicationLocalAndOutboundAuthenticationConfig(applicationName, tenantDomain);
+                if (localAndOutboundAuthenticationConfig != null) {
+                    addLocalAndOutboundConfigFromCache(applicationName,
+                            localAndOutboundAuthenticationConfig,
+                            tenantDomain);
+                }
+            } catch (Exception e) {
+                String error = "Error occurred while retrieving the application, " + applicationName;
+                log.error(error, e);
+                throw new IdentityApplicationManagementException(error, e);
+            }
+        }
+        return localAndOutboundAuthenticationConfig;
+    }
+
+    @Override
+    public ClaimConfig getApplicationClaimConfig(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = getApplicationFromCache(applicationName, tenantDomain);
+        if (serviceProvider != null) {
+            return serviceProvider.getClaimConfig();
+        }
+
+        ClaimConfig claimConfig = getClaimConfigFromCache(applicationName, tenantDomain);
+        if (claimConfig == null) {
+            try {
+                claimConfig = appDAO.getApplicationClaimConfig(applicationName, tenantDomain);
+                if (claimConfig != null) {
+                    addClaimConfigFromCache(applicationName, claimConfig, tenantDomain);
+                }
+            } catch (Exception e) {
+                String error = "Error occurred while retrieving the application, " + applicationName;
+                log.error(error, e);
+                throw new IdentityApplicationManagementException(error, e);
+            }
+        }
+        return claimConfig;
     }
 
     public ServiceProvider getApplication(int appId) throws IdentityApplicationManagementException {
@@ -571,6 +634,103 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         return serviceProvider;
     }
 
+    private void addLocalAndOutboundConfigFromCache(String serviceProviderName,
+                                                    LocalAndOutboundAuthenticationConfig
+                                                            localAndOutboundAuthenticationConfig,
+                                                    String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Add cache for the application " + serviceProviderName + "@" + tenantDomain);
+        }
+        LocalAndOutBoundConfigByIDCacheKey key =
+                new LocalAndOutBoundConfigByIDCacheKey(serviceProviderName, tenantDomain);
+        LocalAndOutBoundConfigByIDCacheEntry entry =
+                new LocalAndOutBoundConfigByIDCacheEntry(localAndOutboundAuthenticationConfig);
+        localAndOutboundConfigByIDCache.addToCache(key, entry, tenantDomain);
+    }
+
+    private void addClaimConfigFromCache(String serviceProviderName,
+                                         ClaimConfig claimConfig,
+                                         String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Add cache for the application " + serviceProviderName + "@" + tenantDomain);
+        }
+        ClaimConfigByIDCacheKey key =
+                new ClaimConfigByIDCacheKey(serviceProviderName, tenantDomain);
+        ClaimConfigByIDCacheEntry entry =
+                new ClaimConfigByIDCacheEntry(claimConfig);
+        claimConfigByIDCache.addToCache(key, entry, tenantDomain);
+    }
+
+    private LocalAndOutboundAuthenticationConfig getLocalAndOutboundConfigFromCache
+            (String applicationName, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = null;
+        if (StringUtils.isNotBlank(applicationName)) {
+            LocalAndOutBoundConfigByIDCacheKey cacheKey = new LocalAndOutBoundConfigByIDCacheKey(
+                    applicationName, tenantDomain);
+            LocalAndOutBoundConfigByIDCacheEntry entry = localAndOutboundConfigByIDCache.getValueFromCache
+                    (cacheKey, tenantDomain);
+
+            if (entry != null) {
+                localAndOutboundAuthenticationConfig = entry.getLocalAndOutboundAuthenticationConfig();
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Provided application name is empty");
+            }
+        }
+
+        if (localAndOutboundAuthenticationConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache missing for the local and outbound authentication config of application "
+                        + applicationName + "@" + tenantDomain);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache is present for the local and outbound authentication config of application "
+                        + applicationName + "@" + tenantDomain);
+            }
+        }
+        return localAndOutboundAuthenticationConfig;
+    }
+
+    private ClaimConfig getClaimConfigFromCache (String applicationName, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        ClaimConfig claimConfig = null;
+        if (StringUtils.isNotBlank(applicationName)) {
+            ClaimConfigByIDCacheKey cacheKey = new ClaimConfigByIDCacheKey(
+                    applicationName, tenantDomain);
+            ClaimConfigByIDCacheEntry entry = claimConfigByIDCache.getValueFromCache(cacheKey, tenantDomain);
+
+            if (entry != null) {
+                claimConfig = entry.getClaimConfig();
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Provided application name is empty");
+            }
+        }
+
+        if (claimConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache missing for the claim config of application "
+                        + applicationName + "@" + tenantDomain);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache is present for the claim config of application "
+                        + applicationName + "@" + tenantDomain);
+            }
+        }
+        return claimConfig;
+    }
+
     private ServiceProvider getApplicationFromCacheByResourceId(String resourceId, String tenantDomain) {
 
         ServiceProvider serviceProvider = null;
@@ -700,6 +860,12 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         ApplicationBasicInfoNameCacheKey basicInfoNameKey =
                 new ApplicationBasicInfoNameCacheKey(serviceProvider.getApplicationName());
         appBasicInfoCacheByName.clearCacheEntry(basicInfoNameKey, tenantDomain);
+        LocalAndOutBoundConfigByIDCacheKey localAndOutBoundConfigByIDCacheKey =
+                new LocalAndOutBoundConfigByIDCacheKey(serviceProvider.getApplicationName(), tenantDomain);
+        localAndOutboundConfigByIDCache.clearCacheEntry(localAndOutBoundConfigByIDCacheKey, tenantDomain);
+        ClaimConfigByIDCacheKey claimConfigByIDCacheKey = new ClaimConfigByIDCacheKey(
+                serviceProvider.getApplicationName(), tenantDomain);
+        claimConfigByIDCache.clearCacheEntry(claimConfigByIDCacheKey, tenantDomain);
 
         clearAppCacheByInboundKey(serviceProvider, tenantDomain);
     }

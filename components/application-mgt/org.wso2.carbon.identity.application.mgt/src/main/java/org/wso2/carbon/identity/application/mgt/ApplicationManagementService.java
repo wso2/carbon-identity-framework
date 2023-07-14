@@ -21,8 +21,10 @@ import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -89,6 +91,30 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public abstract ServiceProvider getApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get Application  LocalAndOutboundAuthenticationConfig for given application name
+     *
+     * @param applicationName Application Name
+     * @param tenantDomain Tenant Domain
+     * @return ServiceProvider
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public abstract LocalAndOutboundAuthenticationConfig getApplicationLocalAndOutboundAuthenticationConfig
+            (String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get Application  ClaimConfig for given application name
+     *
+     * @param applicationName Application Name
+     * @param tenantDomain Tenant Domain
+     * @return ServiceProvider
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public abstract ClaimConfig getApplicationClaimConfig
+            (String applicationName, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**

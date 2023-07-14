@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.dao;
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
@@ -47,6 +48,26 @@ public interface ApplicationDAO {
      * @throws IdentityApplicationManagementException
      */
     ServiceProvider getApplication(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get service provider LocalAndOutboundAuthenticationConfig.
+     * @param applicationName Application name.
+     * @return LocalAndOutboundAuthenticationConfig.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
+     */
+    LocalAndOutboundAuthenticationConfig getApplicationLocalAndOutboundAuthenticationConfig
+            (String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+
+    /**
+     * Get service provider Claim config.
+     * @param applicationName Application name.
+     * @return LocalAndOutboundAuthenticationConfig.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
+     */
+    ClaimConfig getApplicationClaimConfig (String applicationName, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**

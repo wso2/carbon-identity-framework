@@ -1676,6 +1676,43 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return getApplication(applicationId);
     }
 
+    @Override
+    public LocalAndOutboundAuthenticationConfig getApplicationLocalAndOutboundAuthenticationConfig
+            (String applicationName, String tenantDomain) throws IdentityApplicationManagementException {
+
+        int applicationId = getApplicationIdByName(applicationName, tenantDomain);
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig;
+        try {
+            ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
+            if (serviceProvider == null) {
+                return null;
+            }
+            localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+            return localAndOutboundAuthenticationConfig;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            IdentityDatabaseUtil.closeConnection(connection);
+        }
+    }
+
+    @Override
+    public ClaimConfig getApplicationClaimConfig(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        int applicationId = getApplicationIdByName(applicationName, tenantDomain);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        ClaimConfig claimConfig;
+        try {
+            claimConfig = getClaimConfiguration(applicationId, connection, tenantId);
+            return claimConfig;
+        }  finally {
+            IdentityDatabaseUtil.closeConnection(connection);
+        }
+    }
+
     private ServiceProviderProperty[] prepareLocalSpProperties() {
 
         ServiceProviderProperty[] serviceProviderProperties = new ServiceProviderProperty[1];

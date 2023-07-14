@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
@@ -55,6 +56,20 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
             throws IdentityApplicationManagementException {
 
         return ApplicationManagementServiceComponent.getFileBasedSPs().get(applicationName);
+    }
+
+    @Override
+    public LocalAndOutboundAuthenticationConfig getApplicationLocalAndOutboundAuthenticationConfig
+            (String applicationName, String tenantDomain) throws IdentityApplicationManagementException {
+
+        throw new IdentityApplicationManagementException("Not supported in file based dao.");
+    }
+
+    @Override
+    public ClaimConfig getApplicationClaimConfig(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new IdentityApplicationManagementException("Not supported in file based dao.");
     }
 
     @Override

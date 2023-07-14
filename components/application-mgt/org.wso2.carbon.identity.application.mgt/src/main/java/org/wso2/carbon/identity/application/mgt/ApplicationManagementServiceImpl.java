@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
@@ -269,6 +270,41 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         return serviceProvider;
     }
+
+    @Override
+    public LocalAndOutboundAuthenticationConfig getApplicationLocalAndOutboundAuthenticationConfig
+            (String applicationName, String tenantDomain) throws IdentityApplicationManagementException {
+
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig;
+
+        try {
+            startTenantFlow(tenantDomain);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            localAndOutboundAuthenticationConfig = appDAO.getApplicationLocalAndOutboundAuthenticationConfig
+                    (applicationName, tenantDomain);
+        } finally {
+            endTenantFlow();
+        }
+
+        return localAndOutboundAuthenticationConfig;
+    }
+
+    @Override
+    public ClaimConfig getApplicationClaimConfig(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        ClaimConfig claimConfig;
+
+        try {
+            startTenantFlow(tenantDomain);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            claimConfig = appDAO.getApplicationClaimConfig
+                    (applicationName, tenantDomain);
+        } finally {
+            endTenantFlow();
+        }
+
+        return claimConfig;    }
 
     @Override
     public ApplicationBasicInfo[] getAllApplicationBasicInfo(String tenantDomain, String username)
