@@ -52,6 +52,7 @@ public interface ApplicationDAO {
 
     /**
      * Get service provider LocalAndOutboundAuthenticationConfig.
+     *
      * @param applicationName Application name.
      * @return LocalAndOutboundAuthenticationConfig.
      * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
@@ -63,6 +64,7 @@ public interface ApplicationDAO {
 
     /**
      * Get service provider Claim config.
+     *
      * @param applicationName Application name.
      * @return LocalAndOutboundAuthenticationConfig.
      * @throws IdentityApplicationManagementException IdentityApplicationManagementException.

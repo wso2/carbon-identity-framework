@@ -94,11 +94,11 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             throws IdentityApplicationManagementException;
 
     /**
-     * Get Application  LocalAndOutboundAuthenticationConfig for given application name
+     * Get Application  LocalAndOutboundAuthenticationConfig for given application name.
      *
-     * @param applicationName Application Name
-     * @param tenantDomain Tenant Domain
-     * @return ServiceProvider
+     * @param applicationName Application Name.
+     * @param tenantDomain Tenant Domain.
+     * @return ServiceProvider.
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public abstract LocalAndOutboundAuthenticationConfig getApplicationLocalAndOutboundAuthenticationConfig
@@ -106,11 +106,11 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             throws IdentityApplicationManagementException;
 
     /**
-     * Get Application  ClaimConfig for given application name
+     * Get Application  ClaimConfig for given application name.
      *
-     * @param applicationName Application Name
-     * @param tenantDomain Tenant Domain
-     * @return ServiceProvider
+     * @param applicationName Application Name.
+     * @param tenantDomain Tenant Domain.
+     * @return ServiceProvider.
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public abstract ClaimConfig getApplicationClaimConfig
