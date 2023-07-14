@@ -703,10 +703,10 @@ public class DefaultStepHandler implements StepHandler {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.AUTHENTICATION_STEP_EXECUTION);
-            diagnosticLogBuilder.inputParam("IDP name", idpName)
-                    .inputParam("Selected Authenticator", authenticator.getName())
-                    .inputParam("Step", currentStep)
-                    .resultMessage("Executing the Authentication Step.")
+            diagnosticLogBuilder.inputParam("idp name", idpName)
+                    .inputParam("selected authenticator", authenticator.getName())
+                    .inputParam("step", currentStep)
+                    .resultMessage("Executing the authentication step.")
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
