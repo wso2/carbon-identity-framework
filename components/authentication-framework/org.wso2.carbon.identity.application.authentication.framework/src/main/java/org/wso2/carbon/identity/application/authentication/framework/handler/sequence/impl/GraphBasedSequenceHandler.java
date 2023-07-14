@@ -123,9 +123,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
-            diagnosticLogBuilder.inputParam("Application Name", context.getServiceProviderName())
-                    .inputParam("Tenant Domain", context.getTenantDomain())
-                    .inputParam("clientId", context.getSequenceConfig().getApplicationId())
+            diagnosticLogBuilder.inputParam("application name", context.getServiceProviderName())
+                    .inputParam("tenant domain", context.getTenantDomain())
+                    .inputParam("client id", context.getSequenceConfig().getApplicationId())
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .resultMessage("Executing script-based authentication.")
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
@@ -418,8 +418,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 }
                 response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    diagnosticLogBuilder.inputParam("redirectURL", redirectURL)
-                            .inputParam("Application Name", context.getServiceProviderName())
+                    diagnosticLogBuilder.inputParam("redirect uRL", redirectURL)
+                            .inputParam("application name", context.getServiceProviderName())
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                 }
@@ -438,8 +438,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             context.setRequestAuthenticated(false);
             context.getSequenceConfig().setCompleted(true);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-            diagnosticLogBuilder.resultMessage("Error initiated from authentication script. User will be redirected " +
-                    "to " + redirectURL);
+            diagnosticLogBuilder.resultMessage("Error initiated from authentication script. User will be redirected.");
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
                     redirectURL);

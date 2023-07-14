@@ -1227,10 +1227,10 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                     if (LoggerUtils.isDiagnosticLogsEnabled()) {
                         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog
                                 .DiagnosticLogBuilder(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                                "execcute-adaptive-script");
+                                "execute-adaptive-script");
                         diagnosticLogBuilder.resultMessage("Error in executing the adaptive authentication script : " +
                                         e.getMessage())
-                                .inputParam("Application Name", authenticationContext.getServiceProviderName())
+                                .inputParam("application name", authenticationContext.getServiceProviderName())
                                 .resultStatus(DiagnosticLog.ResultStatus.FAILED)
                                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
