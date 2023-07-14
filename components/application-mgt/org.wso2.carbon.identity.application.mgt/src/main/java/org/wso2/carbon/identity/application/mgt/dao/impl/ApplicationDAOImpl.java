@@ -2280,6 +2280,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         getBooleanValue(rs.getString(ApplicationTableColumns.ENABLE_AUTHORIZATION)));
                 localAndOutboundAuthenticationConfig.setSubjectClaimUri(
                         rs.getString(ApplicationTableColumns.SUBJECT_CLAIM_URI));
+                localAndOutboundAuthenticationConfig.setUseTenantDomainInLocalSubjectIdentifier("1"
+                        .equals(rs.getString(ApplicationTableColumns.IS_USE_TENANT_DOMAIN_SUBJECT)));
+                localAndOutboundAuthenticationConfig.setUseUserstoreDomainInLocalSubjectIdentifier("1"
+                        .equals(rs.getString(ApplicationTableColumns.IS_USE_USER_DOMAIN_SUBJECT)));
                 serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
 
                 serviceProvider.setSaasApp(getBooleanValue(rs.getString(ApplicationTableColumns.IS_SAAS_APP)));
