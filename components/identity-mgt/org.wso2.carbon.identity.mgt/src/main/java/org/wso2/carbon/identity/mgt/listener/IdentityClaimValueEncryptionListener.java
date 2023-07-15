@@ -182,12 +182,9 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
             if (checkEnableEncryption(claimURI, userStoreManager)) {
                 String claimValue = entry.getValue();
                 try {
-                    // Encrypt TOTP related claims with custom key.
-                    if (CLAIMS_FOR_TOTP.contains(claimURI) && userStoreManager.getTenantId() == -1234 ) {
-                        claimValue = encryptClaimValueWithCustomKey(claimValue);
-                    } else {
-                        claimValue = encryptClaimValue(claimValue);
-                    }
+                    boolean isCustomKeyEnabled = CLAIMS_FOR_TOTP.contains(claimURI) &&
+                            userStoreManager.getTenantId() == -1234;
+                    claimValue = encryptClaimValue(claimValue, isCustomKeyEnabled);
                 } catch (CryptoException e) {
                     LOG.error("Error occurred while encrypting claim value of claim " + claimURI, e);
                     throw new CryptoException("Error occurred while encrypting claim value of claim " + claimURI, e);
@@ -203,33 +200,17 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
      * @param plainText text to be encrypted.
      * @return encrypted claim value.
      */
-    private String encryptClaimValue(String plainText) throws CryptoException {
-
-        if (plainText.isEmpty()) {
-            return plainText;
-        }
-        return CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(plainText.getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * Encrypt claim value with custom key.
-     *
-     * @param plainText text to be encrypted.
-     * @return encrypted claim value.
-     * @throws CryptoException  If an error occurs while encrypting the claim value.
-     */
-    private String encryptClaimValueWithCustomKey(String plainText) throws CryptoException {
+    private String encryptClaimValue(String plainText, boolean isCustomKeyEnabled) throws CryptoException {
 
         if (plainText.isEmpty()) {
             return plainText;
         }
         // Get custom key from server configuration.
-        String customKey =
-                ServerConfiguration.getInstance().getFirstProperty(TOTP_KEY);
-        if (StringUtils.isBlank(customKey)) {
-            return encryptClaimValue(plainText);
+        String customKey = null;
+        if (isCustomKeyEnabled) {
+            customKey = ServerConfiguration.getInstance().getFirstProperty(TOTP_KEY);
         }
-        return CryptoUtil.getDefaultCryptoUtil().encryptWithCustomKeyAndBase64Encode(
+        return CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(
                 plainText.getBytes(StandardCharsets.UTF_8), customKey);
     }
 
