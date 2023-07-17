@@ -64,7 +64,6 @@ public abstract class FrameworkConstants {
     public static final String OAUTH2 = "oauth2";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
-    public static final String LOGIN_HINT = "login_hint";
     public static final String SIGN_UP_ENDPOINT = "/accountrecoveryendpoint/signup.do";
     public static final String REGISTRATION_ENDPOINT = "/accountrecoveryendpoint/register.do";
     public static final String ERROR_CODE = "errorCode";
