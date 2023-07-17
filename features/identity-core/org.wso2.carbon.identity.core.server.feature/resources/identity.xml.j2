@@ -63,9 +63,6 @@
             <UserSessionMapping>
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
-            <SessionDataStorageOptimization>
-                <Enable>{{session_data.storage_optimization.enable}}</Enable>
-            </SessionDataStorageOptimization>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
@@ -1537,7 +1534,9 @@
                 <ClaimURI>{{claimuri}}</ClaimURI>
             {% endfor %}
         </IndelibleClaims>
-
+        {% if authentication.jit_provisioning.preserve_locally_added_claims is defined %}
+        <PreserveLocallyAddedClaims>{{authentication.jit_provisioning.preserve_locally_added_claims}}</PreserveLocallyAddedClaims>
+        {% endif %}
     </JITProvisioning>
 
     <!--Application management service configurations-->
@@ -2347,7 +2346,7 @@
                   secured="{{resource_access_control.scim2_me_delete_method.secured}}"
                   http-method="DELETE">
             <Permissions>{{resource_access_control.scim2_me_delete_method.permission}}</Permissions>
-            <Scopes>internal_user_mgt_delete</Scopes>
+            <Scopes>{{resource_access_control.scim2_me_delete_method.scope}}</Scopes>
         </Resource>
         {% endif %}
         {% if resource_access_control.scim2_me_put_method.keep_resource is sameas true %}
@@ -2371,7 +2370,7 @@
                   secured="{{resource_access_control.scim2_me_post_method.secured}}"
                   http-method="POST">
             <Permissions>{{resource_access_control.scim2_me_post_method.permission}}</Permissions>
-            <Scopes>internal_user_mgt_create</Scopes>
+            <Scopes>{{resource_access_control.scim2_me_post_method.scope}}</Scopes>
         </Resource>
         {% endif %}
         <Resource context="(.*)/scim2/ServiceProviderConfig" secured="false" http-method="all">
@@ -2974,6 +2973,9 @@
                     <Path>/api/server/v1/email/template-types</Path>
                     <Path>/api/identity/recovery/v0.9</Path>
                     <Path>/api/identity/auth/v1.1</Path>
+                    <Path>/api/identity/consent-mgt/v1.0/consents</Path>
+                    <Path>/api/identity/user/v1.0/me</Path>
+                    <Path>/api/identity/user/v1.0/validate-username</Path>
                     <Path>/api/server/v1/authenticators</Path>
                     <Path>/api/server/v1/branding-preference</Path>
                     <Path>/api/server/v1/validation-rules</Path>
@@ -2987,12 +2989,6 @@
             <Context>
                 <BasePath>/accountrecoveryendpoint/</BasePath>
             </Context>
-            <Context>
-                <BasePath>/oidc/</BasePath>
-                <SubPaths>
-                    <Path>/oidc/logout</Path>
-                </SubPaths>
-            </Context>
         </WebApp>
         <Servlet>
         {% for servlet in organization_context.rewrite.servlets %}
@@ -3005,6 +3001,7 @@
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
             <Context>/longwaitstatus(.*)</Context>
+            <Context>/oidc/</Context>
         </Servlet>
     </OrgContextsToRewrite>
 
@@ -3424,5 +3421,10 @@
     <ExtensionManagementService>
         <ExtensionTypes>{{extension_mgt.extension_types}}</ExtensionTypes>
     </ExtensionManagementService>
+
+    <!-- IdentityDataStore configurations -->
+    <IdentityDataStore>
+        <DataStoreType>{{identity_datastore.datastore_type}}</DataStoreType>
+    </IdentityDataStore>
 
 </Server>

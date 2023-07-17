@@ -61,7 +61,6 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -80,6 +79,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
@@ -632,7 +632,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setCallerPath(callerPath);
 
         // generate a new key to hold the context data object
-        String contextId = UUIDGenerator.generateUUID();
+        String contextId = UUID.randomUUID().toString();
         context.setContextIdentifier(contextId);
 
         if (log.isDebugEnabled()) {

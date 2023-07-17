@@ -45,7 +45,6 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -74,7 +73,7 @@ import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMe
 public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
-    public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
+    public static final String PATH_CONSTANT = "/";
     // Default regex for validating application name.
     // This regex allows alphanumeric characters, dot, underscore, hyphen and spaces in the name.
     // Does not allow leading and trailing whitespaces.
@@ -487,7 +486,7 @@ public class ApplicationMgtUtil {
 
     public static String getApplicationPermissionPath() {
 
-        return CarbonConstants.UI_PERMISSION_NAME + RegistryConstants.PATH_SEPARATOR + APPLICATION_ROOT_PERMISSION;
+        return CarbonConstants.UI_PERMISSION_NAME + PATH_CONSTANT + APPLICATION_ROOT_PERMISSION;
 
     }
 

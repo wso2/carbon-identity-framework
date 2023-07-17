@@ -39,6 +39,8 @@ import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PRESERVE_LOCALLY_ADDED_CLAIMS;
+
 public class IdPManagementUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUtil.class);
@@ -76,6 +78,20 @@ public class IdPManagementUtil {
                 localEntityId = "localhost";
             }
         return localEntityId;
+    }
+
+    /**
+     * Check whether the preserve locally added claims config is enabled for the Jit provisioned users.
+     * If the config is false this will keep the current default behavior. So it Deletes the existing local claims that
+     * are not coming in the federated login after the provisioning.
+     * If the above config is true this will preserve the locally added claims of Jit provisioned users. This will stop
+     * deleting the attributes that are not coming in the federated login after the provisioning.
+     *
+     * @return true if the preserve locally added claim config is enabled, else return false.
+     */
+    public static boolean isPreserveLocallyAddedClaims() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_LOCALLY_ADDED_CLAIMS));
     }
 
     public static int getIdleSessionTimeOut(String tenantDomain) {

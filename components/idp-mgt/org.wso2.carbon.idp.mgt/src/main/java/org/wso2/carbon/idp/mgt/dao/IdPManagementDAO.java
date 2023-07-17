@@ -3081,6 +3081,9 @@ public class IdPManagementDAO {
         IdentityProviderProperty attributeSyncMethod = new IdentityProviderProperty();
         attributeSyncMethod.setName(IdPManagementConstants.SYNC_ATTRIBUTE_METHOD);
         attributeSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_ATTRIBUTE);
+        if (IdPManagementUtil.isPreserveLocallyAddedClaims()) {
+            attributeSyncMethod.setValue(IdPManagementConstants.PRESERVE_LOCAL_ATTRIBUTE_SYNC);
+        }
 
         if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
             passwordProvisioningProperty
