@@ -232,7 +232,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     getInitiatorId(username, tenantDomain), USER, getAppId(serviceProvider), TARGET_APPLICATION,
                     CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId());
-            auditLogBuilder.addAllData(buildSPData(serviceProvider));
+            auditLogBuilder.data(buildSPData(serviceProvider));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return serviceProvider;
@@ -686,7 +686,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     getInitiatorId(username, tenantDomain), USER, getAppId(serviceProvider), TARGET_APPLICATION,
                     CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId());
-            auditLogBuilder.addAllData(buildSPData(serviceProvider));
+            auditLogBuilder.data(buildSPData(serviceProvider));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
     }
@@ -2493,7 +2493,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     getInitiatorId(username, tenantDomain), USER, resourceId, TARGET_APPLICATION,
                     CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId());
-            auditLogBuilder.addAllData(buildSPData(application));
+            auditLogBuilder.data(buildSPData(application));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return resourceId;
@@ -2603,7 +2603,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     getInitiatorId(username, tenantDomain), USER, resourceId, TARGET_APPLICATION,
                     CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId());
-            auditLogBuilder.addAllData(buildSPData(updatedApp));
+            auditLogBuilder.data(buildSPData(updatedApp));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
     }
