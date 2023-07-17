@@ -38,6 +38,7 @@ public class Constants {
     public static final String CLAIM_SEPARATOR = ",";
     public static final String REQUEST_PARAM_SP = "sp";
     public static final String USERNAME = "username";
+    public static final String LOGIN_HINT = "login_hint";
     public static final String PROMPT_FOR_ACCOUNT_LINKING = "prompt_for_account_linking";
     public static final String ATTEMPTED_USER = "attempted_user";
     public static final String ATTEMPTED_USER_EMAIL = "attempted_user_email";
