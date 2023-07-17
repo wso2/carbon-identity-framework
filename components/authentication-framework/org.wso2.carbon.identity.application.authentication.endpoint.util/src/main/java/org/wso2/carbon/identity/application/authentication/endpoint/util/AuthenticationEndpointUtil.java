@@ -386,7 +386,7 @@ public class AuthenticationEndpointUtil {
     public static String sendGetRequest(String backendURL) {
 
         StringBuilder responseString = new StringBuilder();
-        try (CloseableHttpClient httpclient = HTTPClientUtils.getHTTPClientWithCustomHostNameVerifier().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
 
             HttpGet httpGet = new HttpGet(backendURL);
             setAuthorizationHeader(httpGet);
