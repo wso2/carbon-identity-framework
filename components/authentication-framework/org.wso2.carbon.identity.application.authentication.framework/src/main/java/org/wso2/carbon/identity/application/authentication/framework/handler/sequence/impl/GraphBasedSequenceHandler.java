@@ -591,6 +591,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             context.setReturning(false);
             // This is a continuation of long wait
             isWaiting = LongWaitStatus.Status.COMPLETED != longWaitStatus.getStatus();
+            log.info("This is a continuation of long wait process: " + context.getContextIdentifier() +
+                    ". The long wait status is " + longWaitStatus.getStatus());
             longWaitStatusStoreService.removeWait(context.getContextIdentifier());
             String outcomeName = (String) context.getProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
             Map<String, Object> data = (Map<String, Object>) context.getProperty(
@@ -639,6 +641,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         log.info("AsyncCaller is set for the long wait process: " + context.getContextIdentifier());
         AsyncReturn asyncReturn = rethrowTriConsumer((authenticationContext, data, result) -> {
+            log.info("For session data key: " + context.getContextIdentifier() + " asyncReturn.accept() has been" +
+                    " set by the async process flow of the custom function.");
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS, result);
             authenticationContext.setProperty(
