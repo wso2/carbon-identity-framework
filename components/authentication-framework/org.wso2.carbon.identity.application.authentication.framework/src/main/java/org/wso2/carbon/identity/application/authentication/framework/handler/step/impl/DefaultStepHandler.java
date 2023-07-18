@@ -379,9 +379,8 @@ public class DefaultStepHandler implements StepHandler {
                     DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                             FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                             FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
-                    diagLogBuilder.inputParam(FrameworkConstants.LogConstants.SERVICE_PROVIDER,
-                            context.getServiceProviderName())
-                            .inputParam(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder())
+                    diagLogBuilder.inputParam(LogConstants.InputKeys.SERVICE_PROVIDER, context.getServiceProviderName())
+                            .inputParam(LogConstants.InputKeys.STEP, stepConfig.getOrder())
                             .inputParam("Available authenticator list", filteredAuthConfigList.stream().map(
                             AuthenticatorConfig::getName).collect(Collectors.toList()))
                             .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
@@ -703,9 +702,9 @@ public class DefaultStepHandler implements StepHandler {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.AUTHENTICATION_STEP_EXECUTION);
-            diagnosticLogBuilder.inputParam("idp name", idpName)
+            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.IDP, idpName)
                     .inputParam("selected authenticator", authenticator.getName())
-                    .inputParam("step", currentStep)
+                    .inputParam(LogConstants.InputKeys.STEP, currentStep)
                     .resultMessage("Executing the authentication step.")
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);

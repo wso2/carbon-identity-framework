@@ -3353,7 +3353,8 @@ public class FrameworkUtils {
         }
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, "issue-access-token");
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT);
             diagnosticLogBuilder.resultMessage("Filter Claims by OIDC Scopes.")
                     .inputParam("available user attributes", claimListOfScopes)
                     .inputParam("available claims for scopes", claimMappingListOfScopes)
