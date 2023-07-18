@@ -44,6 +44,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onAuthenticateFailure(String errorCode, String errorMessage, String userName, Object credential,
             UserStoreManager userStoreManager) {
 
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.AUTHENTICATION_ACTION, getTargetForAuditLog
                 (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                 userStoreManager), null, errorCode, errorMessage));
@@ -65,6 +66,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
         }
         dataObject.put(ListenerUtils.PROFILE_FIELD, profile);
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.ADD_USER_ACTION, getTargetForAuditLog
                         (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                          userStoreManager), profile, errorCode, errorMessage));
@@ -76,6 +78,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onUpdateCredentialFailure(String errorCode, String errorMessage, String userName,
             Object newCredential, Object oldCredential, UserStoreManager userStoreManager) {
 
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                 userStoreManager), null, errorCode, errorMessage));
@@ -86,6 +89,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onUpdateCredentialByAdminFailure(String errorCode, String errorMessage, String userName,
             Object newCredential, UserStoreManager userStoreManager) {
 
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                 userStoreManager), null, errorCode, errorMessage));
@@ -96,6 +100,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     public boolean onDeleteUserFailure(String errorCode, String errorMessage, String userName,
             UserStoreManager userStoreManager) {
 
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                 userStoreManager), null, errorCode, errorMessage));
@@ -114,6 +119,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
             dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, claimValue);
         }
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                 userStoreManager), dataObject, errorCode, errorMessage));
@@ -126,6 +132,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
 
         if (LoggerUtils.isLogMaskingEnable) {
             Map<String, String> maskedClaimsMap = LoggerUtils.getMaskedClaimsMap(claims);
+            errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
             audit.warn(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION,
                getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                userStoreManager), new JSONObject(maskedClaimsMap), errorCode, errorMessage));
@@ -145,6 +152,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         if (ArrayUtils.isNotEmpty(claims)) {
             data = new JSONArray(claims);
         }
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                 userStoreManager), data, errorCode, errorMessage));
@@ -158,6 +166,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
         dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                 userStoreManager), dataObject, errorCode, errorMessage));
@@ -257,6 +266,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         if (ArrayUtils.isNotEmpty(newRoles)) {
             dataObject.put(ListenerUtils.NEW_ROLES, new JSONArray(newRoles));
         }
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.UPDATE_ROLES_OF_USER_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                 userStoreManager), dataObject, errorCode, errorMessage));
@@ -271,6 +281,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         JSONObject dataObject = new JSONObject();
         dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
         dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claim);
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUE_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                 userStoreManager), dataObject, errorCode, errorMessage));
@@ -287,6 +298,7 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
         if (ArrayUtils.isNotEmpty(claims)) {
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONArray(claims));
         }
+        errorMessage = getErrorMessageWithMaskedUsername(errorMessage, userName);
         audit.warn(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION,
                 getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                 userStoreManager), dataObject, errorCode, errorMessage));
@@ -352,5 +364,20 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
                         + ListenerUtils.DATA + "=%s " + ListenerUtils.OUTCOME + "=Failure " + ListenerUtils.ERROR
                         + "=%s";
         return String.format(auditMessage, getInitiator(), action, target, data, error);
+    }
+
+    /**
+     * To get the error message with masked username.
+     *
+     * @param errorMessage Error Message.
+     * @param userName     User Name.
+     * @return Error Message with masked username.
+     */
+    private static String getErrorMessageWithMaskedUsername(String errorMessage, String userName) {
+
+        if(LoggerUtils.isLogMaskingEnable && errorMessage.contains(userName)) {
+            errorMessage = errorMessage.replace(userName, LoggerUtils.getMaskedContent(userName));
+        }
+        return errorMessage;
     }
 }
