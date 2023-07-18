@@ -123,9 +123,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
-            diagnosticLogBuilder.inputParam("application name", context.getServiceProviderName())
-                    .inputParam("tenant domain", context.getTenantDomain())
-                    .inputParam("client id", context.getSequenceConfig().getApplicationId())
+            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                    .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
+                    .inputParam(LogConstants.InputKeys.CLIENT_ID, context.getSequenceConfig().getApplicationId())
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .resultMessage("Executing script-based authentication.")
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
@@ -418,8 +418,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 }
                 response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    diagnosticLogBuilder.inputParam("redirect uRL", redirectURL)
-                            .inputParam("application name", context.getServiceProviderName())
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.REDIREDCT_URI, redirectURL)
+                            .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                 }

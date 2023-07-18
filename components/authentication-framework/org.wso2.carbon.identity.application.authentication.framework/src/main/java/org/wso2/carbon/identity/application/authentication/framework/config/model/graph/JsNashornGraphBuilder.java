@@ -61,6 +61,8 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.InputKeys.APPLICATION_NAME;
+
 /**
  * Translate the authentication graph config to runtime model.
  * This is not thread safe. Should be discarded after each build.
@@ -1211,10 +1213,10 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
                     if (LoggerUtils.isDiagnosticLogsEnabled()) {
                         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog
                                 .DiagnosticLogBuilder(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                                "execute-adaptive-script");
+                                FrameworkConstants.LogConstants.ActionIDs.EXECUTE_ADAPTIVE_SCRIPT);
                         diagnosticLogBuilder.resultMessage("Error in executing the adaptive authentication script : " +
                                         e.getMessage())
-                                .inputParam("application name", authenticationContext.getServiceProviderName())
+                                .inputParam(APPLICATION_NAME, authenticationContext.getServiceProviderName())
                                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                                 .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);

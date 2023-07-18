@@ -49,6 +49,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -97,6 +98,10 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.FEDERATED_USER_DOMAIN_SEPARATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.CLAIMS_WITH_CONSENT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.MANDATORY_CLAIMS;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.REQUESTED_CLAIMS;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.USE_EXISTING_CONSENT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DESCRIPTION_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE;
@@ -314,11 +319,11 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                diagnosticLogBuilder.inputParam("requested claims", new ArrayList<>(requestedClaims))
-                        .inputParam("mandatory claims", new ArrayList<>(mandatoryClaims))
-                        .inputParam("using existing consent", true)
-                        .inputParam("application name", spName)
-                        .inputParam("subject", LoggerUtils.isLogMaskingEnable ? LoggerUtils
+                diagnosticLogBuilder.inputParam(REQUESTED_CLAIMS, new ArrayList<>(requestedClaims))
+                        .inputParam(MANDATORY_CLAIMS, new ArrayList<>(mandatoryClaims))
+                        .inputParam(USE_EXISTING_CONSENT, true)
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, spName)
+                        .inputParam(LogConstants.InputKeys.SUBJECT, LoggerUtils.isLogMaskingEnable ? LoggerUtils
                                 .getMaskedContent(authenticatedUser.getUserName()) : authenticatedUser.getUserName())
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
             }
@@ -330,8 +335,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             requestedClaims.removeAll(claimsWithConsent);
             requestedClaims.removeAll(claimsDeniedConsent);
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                diagnosticLogBuilder.inputParam("claims with consent", claimsWithConsent)
-                        .inputParam("denied claims", claimsDeniedConsent)
+                diagnosticLogBuilder.inputParam(CLAIMS_WITH_CONSENT, claimsWithConsent)
+                        .inputParam(FrameworkConstants.LogConstants.DENIED_CLAIMS, claimsDeniedConsent)
                         .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                         .resultMessage("Previously given consent is used for the request.");
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
@@ -474,15 +479,16 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT);
-            diagnosticLogBuilder.inputParam("requested claims", consentClaimsData.getRequestedClaims().stream()
-                            .map(ClaimMetaData::getClaimUri).collect(Collectors.toList()))
-                    .inputParam("mandatory claims", consentClaimsData.getMandatoryClaims().stream().map(
+            diagnosticLogBuilder.inputParam(REQUESTED_CLAIMS,
+                            consentClaimsData.getRequestedClaims().stream().map(ClaimMetaData::getClaimUri)
+                                    .collect(Collectors.toList()))
+                    .inputParam(MANDATORY_CLAIMS, consentClaimsData.getMandatoryClaims().stream().map(
                             ClaimMetaData::getClaimUri).collect(Collectors.toList()))
-                    .inputParam("using existing consent", false)
-                    .inputParam("application name", serviceProvider.getApplicationName())
-                    .inputParam("subject", LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(
-                            authenticatedUser.getUserName()) : authenticatedUser.getUserName())
-                    .inputParam("claims with consent", claimsWithConsent.stream().map(ClaimMetaData::getClaimUri)
+                    .inputParam(USE_EXISTING_CONSENT, false)
+                    .inputParam(LogConstants.InputKeys.APPLICATION_NAME, serviceProvider.getApplicationName())
+                    .inputParam(LogConstants.InputKeys.SUBJECT, LoggerUtils.isLogMaskingEnable ? LoggerUtils
+                            .getMaskedContent(authenticatedUser.getUserName()) : authenticatedUser.getUserName())
+                    .inputParam(CLAIMS_WITH_CONSENT, claimsWithConsent.stream().map(ClaimMetaData::getClaimUri)
                             .collect(Collectors.toList()))
                     .resultMessage("User has approved consent for the application.")
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
