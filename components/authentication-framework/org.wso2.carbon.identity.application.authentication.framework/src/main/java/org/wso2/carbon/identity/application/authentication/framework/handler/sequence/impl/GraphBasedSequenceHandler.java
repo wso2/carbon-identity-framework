@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -119,13 +120,16 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             return;
         }
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            Map<String, Object> params = new HashMap<>();
-            params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-            params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-            LoggerUtils.triggerDiagnosticLogEvent(
-                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                    "Executing script-based authentication",
-                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
+            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                    .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
+                    .inputParam(LogConstants.InputKeys.CLIENT_ID, context.getSequenceConfig().getApplicationId())
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .resultMessage("Executing script-based authentication.")
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         if (!graph.isBuildSuccessful()) {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -383,6 +387,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (log.isDebugEnabled()) {
             log.debug("Found a Fail Node in conditional authentication");
         }
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
 
         if (node.isShowErrorPage()) {
             // Set parameters specific to sendError function to context if isShowErrorPage  is true
@@ -410,9 +417,20 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     redirectURL = uriBuilder.toString();
                 }
                 response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.REDIREDCT_URI, redirectURL)
+                            .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                }
             } catch (IOException e) {
+                diagnosticLogBuilder.resultMessage("Error when redirecting user to " + errorPage);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 throw new FrameworkException("Error when redirecting user to " + errorPage, e);
             } catch (URISyntaxException e) {
+                diagnosticLogBuilder.resultMessage("Error when redirecting user to " + errorPage
+                        + ". Error page is not a valid URL.");
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 throw new FrameworkException("Error when redirecting user to " + errorPage
                         + ". Error page is not a valid URL.", e);
             }
@@ -420,6 +438,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             context.setRequestAuthenticated(false);
             context.getSequenceConfig().setCompleted(true);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+            diagnosticLogBuilder.resultMessage("Error initiated from authentication script. User will be redirected.");
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
                     redirectURL);
         } else {
