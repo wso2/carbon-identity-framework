@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -370,6 +371,16 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
+            if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
+                ResolvedUserResult resolvedUserResult = FrameworkServiceDataHolder.getInstance()
+                        .getMultiAttributeLoginService().resolveUser(MultitenantUtils.getTenantAwareUsername(
+                                authenticatedUser.getUserName()), tenantDomain);
+                if (resolvedUserResult != null && ResolvedUserResult.UserResolvedStatus.SUCCESS.
+                        equals(resolvedUserResult.getResolvedStatus())) {
+                    user = resolvedUserResult.getUser();
+                }
+                return user;
+            }
             UserRealm userRealm = FrameworkServiceDataHolder.getInstance().getRealmService()
                     .getTenantUserRealm(tenantId);
             if (userRealm != null) {
