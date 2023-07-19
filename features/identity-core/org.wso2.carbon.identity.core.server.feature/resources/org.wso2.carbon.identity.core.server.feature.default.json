@@ -237,6 +237,7 @@
   "saml.request_validity_period": "5m",
   "saml.metadata.assertion_encrypt_with_app_cert": true,
   "saml.enable_saml_sp_certificate_expiry_validation": true,
+  "saml.enable_saml_idp_init_logout_response_signing": true,
 
   "saml.endpoints.idp_url": "$ref{server.base_path}/samlsso",
   "saml.endpoints.logout": "$ref{server.base_path}/authenticationendpoint/samlsso_logout.do",
