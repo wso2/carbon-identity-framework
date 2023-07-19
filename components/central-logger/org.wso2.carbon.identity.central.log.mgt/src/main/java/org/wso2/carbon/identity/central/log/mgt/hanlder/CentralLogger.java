@@ -41,7 +41,6 @@ public class CentralLogger extends AbstractEventHandler {
         // This central log event handler handles only audit logs and diagnostic logs.
         switch (eventName) {
             case PUBLISH_AUDIT_LOG:
-                // Publish new audit logs only if the old audit log publishing is disabled.
                 CarbonUtils.publishAuditLogs(eventProperties);
                 break;
             case PUBLISH_DIAGNOSTIC_LOG:

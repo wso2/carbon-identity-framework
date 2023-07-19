@@ -70,9 +70,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.APP_OWNER;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogEventConstants.INBOUND_AUTHENTICATION_CONFIG;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.INBOUND_AUTHENTICATION_CONFIG;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
