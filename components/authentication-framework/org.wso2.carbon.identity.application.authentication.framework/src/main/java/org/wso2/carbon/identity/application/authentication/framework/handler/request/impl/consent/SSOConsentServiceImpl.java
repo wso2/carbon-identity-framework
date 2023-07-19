@@ -43,11 +43,14 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -56,6 +59,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
@@ -94,6 +98,10 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.FEDERATED_USER_DOMAIN_SEPARATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ENABLE_SCOPE_BASED_CLAIM_FILTERING;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.CLAIMS_WITH_CONSENT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.MANDATORY_CLAIMS;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.REQUESTED_CLAIMS;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.USE_EXISTING_CONSENT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DESCRIPTION_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE;
@@ -307,6 +315,18 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         List<ClaimMetaData> receiptConsentDeniedMetaData;
         Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);
         if (useExistingConsents && receipt != null) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                diagnosticLogBuilder.inputParam(REQUESTED_CLAIMS, new ArrayList<>(requestedClaims))
+                        .inputParam(MANDATORY_CLAIMS, new ArrayList<>(mandatoryClaims))
+                        .inputParam(USE_EXISTING_CONSENT, true)
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, spName)
+                        .inputParam(LogConstants.InputKeys.SUBJECT, LoggerUtils.isLogMaskingEnable ? LoggerUtils
+                                .getMaskedContent(authenticatedUser.getUserName()) : authenticatedUser.getUserName())
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+            }
             receiptConsentMetaData = getRequestedClaimsFromReceipt(receipt, true);
             List<String> claimsWithConsent = getClaimsFromConsentMetaData(receiptConsentMetaData);
             receiptConsentDeniedMetaData = getRequestedClaimsFromReceipt(receipt, false);
@@ -314,6 +334,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             mandatoryClaims.removeAll(claimsWithConsent);
             requestedClaims.removeAll(claimsWithConsent);
             requestedClaims.removeAll(claimsDeniedConsent);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                diagnosticLogBuilder.inputParam(CLAIMS_WITH_CONSENT, claimsWithConsent)
+                        .inputParam(FrameworkConstants.LogConstants.DENIED_CLAIMS, claimsDeniedConsent)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                        .resultMessage("Previously given consent is used for the request.");
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
         }
         ConsentClaimsData consentClaimsData = getConsentRequiredClaimData(mandatoryClaims, requestedClaims,
                 spTenantDomain);
@@ -447,6 +474,26 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         if (isNotEmpty(claimsWithConsent) || isNotEmpty(claimsDeniedConsent)) {
             addReceipt(subject, subjectTenantDomain, serviceProvider, spTenantDomain, claimsWithConsent,
                     claimsDeniedConsent);
+        }
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT);
+            diagnosticLogBuilder.inputParam(REQUESTED_CLAIMS,
+                            consentClaimsData.getRequestedClaims().stream().map(ClaimMetaData::getClaimUri)
+                                    .collect(Collectors.toList()))
+                    .inputParam(MANDATORY_CLAIMS, consentClaimsData.getMandatoryClaims().stream().map(
+                            ClaimMetaData::getClaimUri).collect(Collectors.toList()))
+                    .inputParam(USE_EXISTING_CONSENT, false)
+                    .inputParam(LogConstants.InputKeys.APPLICATION_NAME, serviceProvider.getApplicationName())
+                    .inputParam(LogConstants.InputKeys.SUBJECT, LoggerUtils.isLogMaskingEnable ? LoggerUtils
+                            .getMaskedContent(authenticatedUser.getUserName()) : authenticatedUser.getUserName())
+                    .inputParam(CLAIMS_WITH_CONSENT, claimsWithConsent.stream().map(ClaimMetaData::getClaimUri)
+                            .collect(Collectors.toList()))
+                    .resultMessage("User has approved consent for the application.")
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
     }
 
