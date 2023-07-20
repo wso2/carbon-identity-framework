@@ -179,6 +179,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
@@ -3415,5 +3416,16 @@ public class FrameworkUtils {
     public static boolean isAuthenticationContextExpiryEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION));
+    }
+
+    /**
+     * Util method to check whether Identifier First is initiated from an authenticator.
+     *
+     * @param context Authentication context.
+     * @return boolean indicating whether the IDF is initiated from an authenticator.
+     */
+    public static boolean isIdfInitiatedFromAuthenticator(AuthenticationContext context) {
+
+        return Boolean.TRUE.equals(context.getProperty(IS_IDF_INITIATED_FROM_AUTHENTICATOR));
     }
 }
