@@ -71,7 +71,7 @@ public class IdPManagementUIUtil {
     public static final String JWKS_URI = "jwksUri";
 
     private static final String META_DATA_SAML = "meta_data_saml";
-
+    private static final String SCOPES = "scopes";
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
 
     public static final String FILTER_STRING = "org.wso2.carbon.idp.mgt.filter";
@@ -1378,9 +1378,9 @@ public class IdPManagementUIUtil {
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.SCOPES);
-        if (paramMap.get("scopes") != null
-                && paramMap.get("scopes").trim().length() > 0) {
-            property.setValue(paramMap.get("scopes"));
+        if (paramMap.get(SCOPES) != null
+                && paramMap.get(SCOPES).trim().length() > 0) {
+            property.setValue(paramMap.get(SCOPES));
         }
         properties[5] = property;
 
