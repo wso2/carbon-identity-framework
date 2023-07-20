@@ -155,6 +155,7 @@ public abstract class FrameworkConstants {
     public static final String RUNTIME_CLAIMS = "RUNTIME_CLAIMS";
 
     public static final String INPUT_TYPE_IDENTIFIER_FIRST = "idf";
+    public static final String INPUT_TYPE_LOGIN_HINT = "login_hint";
 
     public static final String STATUS = "&status=";
     public static final String STATUS_MSG = "&statusMsg=";
@@ -695,7 +696,11 @@ public abstract class FrameworkConstants {
         public static final String TENANT_DOMAIN = "tenant domain";
         public static final String REQUESTED_CLAIMS = "requested claims";
         public static final String MANDATORY_CLAIMS = "mandatory claims";
+        public static final String USE_EXISTING_CONSENT = "using existing consent";
+        public static final String CLAIMS_WITH_CONSENT = "claims with consent";
+        public static final String DENIED_CLAIMS = "denied claims";
         public static final String MISSING_CLAIMS = "missing claims";
+        public static final String READ_ONLY_CLAIMS = "read only claims";
         public static final String THREAD_ID = "thread id";
         public static final String CONTEXT_ID = "context id";
         public static final String ORIGINATING_ADDRESS = "originating address";
@@ -724,6 +729,8 @@ public abstract class FrameworkConstants {
             public static final String PROCESS_ACR_VALUES = "process-acr-values";
             public static final String HANDLE_MISSING_CLAIMS = "handle-missing-claims";
             public static final String PROCESS_CLAIM_CONSENT = "process-claim-consent";
+            public static final String AUTHENTICATION_STEP_EXECUTION = "authentication-step-execution";
+            public static final String EXECUTE_ADAPTIVE_SCRIPT = "execute-adaptive-script";
         }
     }
 

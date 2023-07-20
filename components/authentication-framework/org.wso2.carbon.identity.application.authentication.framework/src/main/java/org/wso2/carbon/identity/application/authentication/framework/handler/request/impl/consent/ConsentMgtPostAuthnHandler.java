@@ -195,22 +195,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                             serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider));
                     logDebug(message);
                 }
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put(FrameworkConstants.LogConstants.MANDATORY_CLAIMS,
-                            consentClaimsData.getMandatoryClaims());
-                    params.put(FrameworkConstants.LogConstants.REQUESTED_CLAIMS,
-                            consentClaimsData.getRequestedClaims());
-                    params.put(FrameworkConstants.LogConstants.USER,
-                            LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(authenticatedUser
-                                    .getAuthenticatedSubjectIdentifier())
-                                    : authenticatedUser.getAuthenticatedSubjectIdentifier());
-                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
-                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
-                    LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                            params, LogConstants.SUCCESS, "Require consent for claims from user",
-                            FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
-                }
 
                 redirectToConsentPage(response, context, requestedLocalClaims, mandatoryLocalClaims);
                 setConsentPoppedUpState(context);

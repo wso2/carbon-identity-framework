@@ -370,6 +370,35 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         objUnderTest.addServiceProvider(serviceProviderDO);
     }
 
+    @Test(dataProvider = "ResourceToObjectData")
+    public void testUpdateServiceProvider(Object paramMapObj) throws Exception {
+        Properties properties = new Properties();
+        properties.putAll((Map<?, ?>) paramMapObj);
+        Resource dummyResource = new ResourceImpl();
+        dummyResource.setProperties(properties);
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        String existingIssuer = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER);
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            existingIssuer = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER)
+                    + IdentityRegistryResources.QUALIFIER_ID + dummyResource.getProperty(IdentityRegistryResources.
+                    PROP_SAML_SSO_ISSUER_QUALIFIER);
+        }
+        String expectedPath = getPath(existingIssuer);
+        when(mockRegistry.resourceExists(expectedPath)).thenReturn(true);
+        objUnderTest.updateServiceProvider(serviceProviderDO, existingIssuer);
+        verify(mockRegistry).put(captor.capture(), any(Resource.class));
+        assertEquals(captor.getValue(), expectedPath, "Resource is not added at correct path");
+    }
+
+    @Test
+    public void testUpdatingServiceProviderExistingIssuer() throws Exception {
+        SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
+        serviceProviderDO.setIssuer("newIssuer");
+        when(mockRegistry.resourceExists(getPath("newIssuer"))).thenReturn(true);
+        assertFalse(objUnderTest.updateServiceProvider(serviceProviderDO, "existingIssuer"), "Resource should not have updated.");
+    }
+
     @Test
     public void testGetServiceProviders() throws Exception {
         when(mockRegistry.resourceExists(IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS)).thenReturn(true);
