@@ -978,8 +978,7 @@ public class ApplicationMgtUtil {
                 if (property != null && StringUtils.equalsIgnoreCase("oauthConsumerSecret",
                         (String) property.get("name"))) {
                     String secret = property.get("value").toString();
-                    String maskedSecret = secret.replaceAll(MASKING_REGEX, MASKING_CHARACTER);
-                    property.put("value", maskedSecret);
+                    property.put("value", LoggerUtils.getMaskedContent(secret));
                     break;
                 }
             }
