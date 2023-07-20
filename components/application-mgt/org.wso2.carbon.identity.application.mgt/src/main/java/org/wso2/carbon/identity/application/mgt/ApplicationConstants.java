@@ -103,6 +103,7 @@ public class ApplicationConstants {
      * Group the constants related to logs.
      */
     public static class LogConstants {
+
         public static final String TARGET_APPLICATION = "APPLICATION";
         public static final String USER = "USER";
         public static final String INBOUND_AUTHENTICATION_CONFIG = "inboundAuthenticationConfig";

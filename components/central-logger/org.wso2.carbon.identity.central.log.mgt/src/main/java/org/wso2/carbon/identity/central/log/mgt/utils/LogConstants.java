@@ -27,10 +27,6 @@ public class LogConstants {
 
     public static final String FAILED = "FAILED";
     public static final String SUCCESS = "SUCCESS";
-    public static final String INITIATOR_ID = "initiatorId";
-    public static final String INITIATOR_TYPE = "initiatorType";
-    public static final String TARGET_ID = "targetId";
-    public static final String TARGET_TYPE = "targetType";
 
     /**
      * Constants related to masking sensitive info in logs.
