@@ -138,6 +138,7 @@
   "oauth.grant_type.client_credentials.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.ClientCredentialsGrantHandler",
   "oauth.grant_type.client_credentials.allow_refresh_tokens": false,
   "oauth.grant_type.client_credentials.allow_id_token": false,
+  "oauth.grant_type.client_credentials.skip_oidc_claims": false,
   "oauth.grant_type.saml_bearer.enable": true,
   "oauth.grant_type.saml_bearer.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.saml.SAML2BearerGrantHandler",
   "oauth.grant_type.iwa_ntlm.enable": true,
