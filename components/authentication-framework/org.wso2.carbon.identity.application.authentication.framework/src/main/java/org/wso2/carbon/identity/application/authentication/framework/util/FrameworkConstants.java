@@ -722,6 +722,7 @@ public abstract class FrameworkConstants {
 
             public static final String INIT_AUTH_FLOW = "init-authentication-flow";
             public static final String INIT_LOGOUT_FLOW = "init-logout-flow";
+            public static final String PROCESS_LOGOUT_REQUEST = "process-logout-request";
             public static final String HANDLE_CLAIM_MAPPING = "handle-claim-mappings";
             public static final String HANDLE_AUTH_REQUEST = "handle-authentication-request";
             public static final String HANDLE_AUTH_STEP = "handle-authentication-step";
