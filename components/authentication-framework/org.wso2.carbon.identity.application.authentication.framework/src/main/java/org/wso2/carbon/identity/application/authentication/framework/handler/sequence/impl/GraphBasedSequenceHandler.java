@@ -125,7 +125,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
             diagnosticLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
                     .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
-                    .inputParam(LogConstants.InputKeys.CLIENT_ID, context.getSequenceConfig().getApplicationId())
+                    .inputParam(LogConstants.InputKeys.APPLICATION_ID, context.getSequenceConfig()
+                            .getApplicationConfig().getServiceProvider().getApplicationResourceId())
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .resultMessage("Executing script-based authentication.")
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);

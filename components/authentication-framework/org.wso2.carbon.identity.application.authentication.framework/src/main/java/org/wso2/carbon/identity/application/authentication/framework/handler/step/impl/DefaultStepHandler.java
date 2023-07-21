@@ -379,7 +379,7 @@ public class DefaultStepHandler implements StepHandler {
                     DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                             FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                             FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
-                    diagLogBuilder.inputParam(LogConstants.InputKeys.SERVICE_PROVIDER, context.getServiceProviderName())
+                    diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
                             .inputParam(LogConstants.InputKeys.STEP, stepConfig.getOrder())
                             .inputParam("Available authenticator list", filteredAuthConfigList.stream().map(
                             AuthenticatorConfig::getName).collect(Collectors.toList()))

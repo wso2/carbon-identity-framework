@@ -194,7 +194,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 log.debug("Mandatory claims missing for the application : " + missingClaims[0]);
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                diagnosticLogBuilder.inputParam(LogConstants.InputKeys.SERVICE_PROVIDER,
+                diagnosticLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME,
                         context.getServiceProviderName())
                         .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
                         .inputParam(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaims)

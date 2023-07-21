@@ -39,6 +39,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -50,6 +52,7 @@ import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
@@ -58,6 +61,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -130,6 +134,30 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         // The Authenticator will re-initiate the authentication and retry.
                         context.setCurrentAuthenticator(getName());
                         initiateAuthenticationRequest(request, response, context);
+                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.STEP, context.getCurrentStep());
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME,
+                                    context.getServiceProviderName());
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_ID,
+                                    context.getSequenceConfig().getApplicationConfig().getServiceProvider()
+                                            .getApplicationResourceId());
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.STEP, context.getCurrentStep());
+                            Optional.ofNullable(e.getUser()).ifPresent(user -> {
+                                Optional.ofNullable(user.toFullQualifiedUsername()).ifPresent(username ->
+                                        diagLogBuilder.inputParam(FrameworkConstants.LogConstants.USER,
+                                        LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username)
+                                                : username));
+                                diagLogBuilder.inputParam(FrameworkConstants.LogConstants.USER_STORE_DOMAIN,
+                                        user.getUserStoreDomain());
+                            });
+                            diagLogBuilder.resultMessage("Authentication failed: " + e.getMessage())
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+                        }
                         return AuthenticatorFlowStatus.INCOMPLETE;
                     } else {
                         context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, getName());

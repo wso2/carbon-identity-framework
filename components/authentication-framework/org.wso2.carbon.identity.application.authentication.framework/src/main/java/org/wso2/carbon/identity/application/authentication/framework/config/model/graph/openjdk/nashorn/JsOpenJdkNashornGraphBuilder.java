@@ -74,6 +74,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.ActionIDs.EXECUTE_ADAPTIVE_SCRIPT;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.InputKeys.APPLICATION_ID;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.InputKeys.APPLICATION_NAME;
 
 /**
@@ -1234,6 +1235,8 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                         diagnosticLogBuilder.resultMessage("Error in executing the adaptive authentication script : " +
                                         e.getMessage())
                                 .inputParam(APPLICATION_NAME, authenticationContext.getServiceProviderName())
+                                .inputParam(APPLICATION_ID, authenticationContext.getSequenceConfig()
+                                        .getApplicationConfig().getServiceProvider().getApplicationResourceId())
                                 .resultStatus(DiagnosticLog.ResultStatus.FAILED)
                                 .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
