@@ -132,7 +132,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!listener.doPreAddUser(userName, credential, roleList, claims, profile, userStoreManager)) {
                     return false;
                 }
@@ -329,7 +329,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!listener.doPreSetUserClaimValue(userName, claimURI, claimValue, profileName, userStoreManager)) {
                     return false;
                 }
@@ -353,7 +353,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!listener.doPostSetUserClaimValue(userName, userStoreManager)) {
                     return false;
                 }
@@ -377,7 +377,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!listener.doPreSetUserClaimValues(userName, claims, profileName, userStoreManager)) {
                     return false;
                 }
@@ -401,7 +401,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!listener.doPostSetUserClaimValues(userName, claims, profileName, userStoreManager)) {
                     return false;
                 }
@@ -1323,5 +1323,10 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             UserStoreException {
 
         return UserCoreUtil.removeDomainFromName(userStoreManager.getUserNameFromUserID(userID));
+    }
+
+    private boolean isNotClaimValueEncryptionListener(UserOperationEventListener listener) {
+
+        return !(listener instanceof IdentityClaimValueEncryptionListener);
     }
 }
