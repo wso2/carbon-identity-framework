@@ -47,7 +47,6 @@ import java.util.UUID;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Utils class of central logger.
@@ -57,45 +56,30 @@ public class LoggerUtils {
     private static final Log log = LogFactory.getLog(LoggerUtils.class);
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
     private static final String FLOW_ID_MDC = "Flow-ID";
-    private static final String CLIENT_COMPONENT = "clientComponent";
 
-   /**
+    /**
     * Config value related to masking sensitive information from logs.
     */
     public static boolean isLogMaskingEnable;
 
     /**
-     * @param initiatorId   Request initiator's id.
-     * @param initiatorName Request initiator's name.
-     * @param initiatorType Request initiator's type.
-     * @param evenType      State changing event name.
-     * @param targetId      Target resource's id.
-     * @param targetName    Target resource's name.
-     * @param targetType    Target resource type.
-     * @param dataChange    Changing data.
+     * This method is used to trigger audit log event
+     *
+     * @param auditLogBuilder  Audit log builder
+     * @param isLoggingEnabled Is new audit logging enabled in the component
      */
-    public static void triggerAuditLogEvent(String initiatorId, String initiatorName, String initiatorType,
-                                            String evenType, String targetId, String targetName, String targetType,
-                                            String dataChange) {
+    public static void triggerAuditLogEvent(AuditLog.AuditLogBuilder auditLogBuilder, boolean isLoggingEnabled) {
 
         try {
             // Publish new audit logs only if the old audit log publishing is disabled.
-            if (isLegacyAuditLogsDisabled()) {
-                Map<String, Object> addAuditLogProperties = new HashMap<>();
-                String id = UUID.randomUUID().toString();
-                Instant recordedAt = parseDateTime(Instant.now().toString());
-                String clientComponent = MDC.get(CLIENT_COMPONENT);
-                String correlationId = MDC.get(CORRELATION_ID_MDC);
-                AuditLog auditLog =
-                        new AuditLog(id, recordedAt, clientComponent, correlationId, initiatorId, initiatorName,
-                                initiatorType, evenType, targetId, targetName, targetType, dataChange);
-                addAuditLogProperties.put(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLog);
-
-                IdentityEventService eventMgtService =
-                        CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
-                Event auditEvent = new Event(PUBLISH_AUDIT_LOG, addAuditLogProperties);
-                eventMgtService.handleEvent(auditEvent);
+            if (!isLoggingEnabled) {
+                return;
             }
+            IdentityEventService eventMgtService =
+                    CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
+            Event auditEvent = new Event(PUBLISH_AUDIT_LOG,
+                    Map.of(CarbonConstants.LogEventConstants.AUDIT_LOG, auditLogBuilder.build()));
+            eventMgtService.handleEvent(auditEvent);
         } catch (IdentityEventException e) {
             String errorLog = "Error occurred when firing the event. Unable to audit the request.";
             log.error(errorLog, e);
