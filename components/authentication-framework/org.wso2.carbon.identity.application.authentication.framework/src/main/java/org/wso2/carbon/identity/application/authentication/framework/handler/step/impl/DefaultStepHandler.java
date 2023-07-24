@@ -379,13 +379,17 @@ public class DefaultStepHandler implements StepHandler {
                     DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                             FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                             FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
-                    diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
-                            .inputParam(LogConstants.InputKeys.STEP, stepConfig.getOrder())
+                    diagLogBuilder.inputParam(LogConstants.InputKeys.STEP, stepConfig.getOrder())
                             .inputParam("Available authenticator list", filteredAuthConfigList.stream().map(
                             AuthenticatorConfig::getName).collect(Collectors.toList()))
                             .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                     diagLogBuilder.resultMessage("Filtered authenticator list for the step " + stepConfig.getOrder());
+                    // Adding application related details to diagnostic log.
+                    FrameworkUtils.getApplicationResourceId(context).ifPresent(applicationId ->
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_ID, applicationId));
+                    FrameworkUtils.getApplicationName(context).ifPresent(applicationName ->
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME, applicationName));
                     LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
                 }
 
@@ -983,7 +987,11 @@ public class DefaultStepHandler implements StepHandler {
 
         Map<String, Object> params = new HashMap<>();
         params.put(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder());
-        params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
+        // Adding application related details to diagnostic log.
+        FrameworkUtils.getApplicationResourceId(context).ifPresent(applicationId -> params.put(
+                LogConstants.InputKeys.APPLICATION_ID, applicationId));
+        FrameworkUtils.getApplicationName(context).ifPresent(applicationName -> params.put(
+                LogConstants.InputKeys.APPLICATION_NAME, applicationName));
         params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
         params.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME, authenticatorConfig.getName());
         return params;

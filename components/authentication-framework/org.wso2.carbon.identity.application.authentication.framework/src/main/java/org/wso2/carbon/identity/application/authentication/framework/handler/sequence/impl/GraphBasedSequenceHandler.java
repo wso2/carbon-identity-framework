@@ -123,13 +123,16 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
-            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
-                    .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
-                    .inputParam(LogConstants.InputKeys.APPLICATION_ID, context.getSequenceConfig()
-                            .getApplicationConfig().getServiceProvider().getApplicationResourceId())
+            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .resultMessage("Executing script-based authentication.")
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+            // Adding application related details to diagnostic log.
+            FrameworkUtils.getApplicationResourceId(context).ifPresent(applicationId ->
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_ID, applicationId));
+            FrameworkUtils.getApplicationName(context).ifPresent(applicationName ->
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME,
+                            applicationName));
             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
         }
         if (!graph.isBuildSuccessful()) {
@@ -373,10 +376,20 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (log.isDebugEnabled()) {
             log.debug("Found a Fail Node in conditional authentication");
         }
-        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
-
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST);
+            // Adding application related details to diagnostic log.
+            Map<String, String> params = new HashMap<>();
+            FrameworkUtils.getApplicationResourceId(context).ifPresent(applicationId ->
+                    params.put(LogConstants.InputKeys.APPLICATION_ID, applicationId));
+            FrameworkUtils.getApplicationName(context).ifPresent(applicationName ->
+                    params.put(LogConstants.InputKeys.APPLICATION_NAME,
+                            applicationName));
+            diagnosticLogBuilder.inputParams(params);
+        }
         if (node.isShowErrorPage()) {
             // Set parameters specific to sendError function to context if isShowErrorPage  is true
             String errorPage = node.getErrorPageUri();
@@ -403,20 +416,23 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     redirectURL = uriBuilder.toString();
                 }
                 response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                     diagnosticLogBuilder.inputParam(LogConstants.InputKeys.REDIREDCT_URI, redirectURL)
-                            .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                 }
             } catch (IOException e) {
-                diagnosticLogBuilder.resultMessage("Error when redirecting user to " + errorPage);
-                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                    diagnosticLogBuilder.resultMessage("Error when redirecting user to " + errorPage);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
                 throw new FrameworkException("Error when redirecting user to " + errorPage, e);
             } catch (URISyntaxException e) {
-                diagnosticLogBuilder.resultMessage("Error when redirecting user to " + errorPage
-                        + ". Error page is not a valid URL.");
-                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                    diagnosticLogBuilder.resultMessage("Error when redirecting user to " + errorPage
+                            + ". Error page is not a valid URL.");
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
                 throw new FrameworkException("Error when redirecting user to " + errorPage
                         + ". Error page is not a valid URL.", e);
             }
@@ -424,8 +440,12 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             context.setRequestAuthenticated(false);
             context.getSequenceConfig().setCompleted(true);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-            diagnosticLogBuilder.resultMessage("Error initiated from authentication script. User will be redirected.");
-            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                diagnosticLogBuilder.resultMessage("Error initiated from authentication script. User will be" +
+                        " redirected.")
+                        .inputParam(LogConstants.InputKeys.REDIREDCT_URI, redirectURL);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
             throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
                     redirectURL);
         } else {

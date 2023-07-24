@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -138,13 +139,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                                     FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
-                            diagLogBuilder.inputParam(LogConstants.InputKeys.STEP, context.getCurrentStep());
-                            diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME,
-                                    context.getServiceProviderName());
-                            diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_ID,
-                                    context.getSequenceConfig().getApplicationConfig().getServiceProvider()
-                                            .getApplicationResourceId());
-                            diagLogBuilder.inputParam(LogConstants.InputKeys.STEP, context.getCurrentStep());
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.STEP, context.getCurrentStep())
+                                    .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                                    .resultMessage("Authentication failed.")
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                            // Adding user related details to diagnostic log.
                             Optional.ofNullable(e.getUser()).ifPresent(user -> {
                                 Optional.ofNullable(user.toFullQualifiedUsername()).ifPresent(username ->
                                         diagLogBuilder.inputParam(FrameworkConstants.LogConstants.USER,
@@ -153,9 +153,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                                 diagLogBuilder.inputParam(FrameworkConstants.LogConstants.USER_STORE_DOMAIN,
                                         user.getUserStoreDomain());
                             });
-                            diagLogBuilder.resultMessage("Authentication failed: " + e.getMessage())
-                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED)
-                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                            // Adding application related details to diagnostic log.
+                            FrameworkUtils.getApplicationResourceId(context).ifPresent(applicationId ->
+                                    diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_ID, applicationId));
+                            FrameworkUtils.getApplicationName(context).ifPresent(applicationName ->
+                                    diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME,
+                                            applicationName));
                             LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
                         }
                         return AuthenticatorFlowStatus.INCOMPLETE;

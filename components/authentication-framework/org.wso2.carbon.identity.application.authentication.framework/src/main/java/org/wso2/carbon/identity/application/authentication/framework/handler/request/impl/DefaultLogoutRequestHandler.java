@@ -70,6 +70,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.SESSION_CONTEXT_KEY;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 
 /**
@@ -170,10 +171,10 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                                      | NumberFormatException e) {
                                 if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                                     diagnosticLogBuilder.resultMessage("Error while deleting federated " +
-                                                    "authentication session details." + context.getSessionIdentifier())
-                                            .inputParam("session context key", context.getSessionIdentifier())
-                                            .inputParam("error message", e.getMessage())
-                                            .inputParam("fed idp name", fedIdpName)
+                                                    "authentication session details.")
+                                            .inputParam(SESSION_CONTEXT_KEY, context.getSessionIdentifier())
+                                            .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                                            .inputParam(LogConstants.InputKeys.IDP, fedIdpName)
                                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                                 }
@@ -193,9 +194,9 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                         } catch (UserSessionException e) {
                             if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                                 diagnosticLogBuilder.resultMessage("Error while deleting federated authentication " +
-                                                "session details. " + context.getSessionIdentifier())
-                                        .inputParam("session context key", context.getSessionIdentifier())
-                                        .inputParam("error message", e.getMessage())
+                                                "session details. ")
+                                        .inputParam(SESSION_CONTEXT_KEY, context.getSessionIdentifier())
+                                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
                                         .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                             }
@@ -219,9 +220,9 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             } catch (UserSessionException | NumberFormatException e) {
                 if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                     diagnosticLogBuilder.resultMessage("Error while deleting federated authentication " +
-                                    "session details." + context.getSessionIdentifier())
-                            .inputParam("session context key", context.getSessionIdentifier())
-                            .inputParam("error message", e.getMessage())
+                                    "session details.")
+                            .inputParam(SESSION_CONTEXT_KEY, context.getSessionIdentifier())
+                            .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
                             .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                     LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
@@ -294,8 +295,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 } catch (AuthenticationFailedException | LogoutFailedException e) {
                     if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                         diagnosticLogBuilder.resultMessage("Exception while handling logout request")
-                                .inputParam("fed idp", idpName)
-                                .inputParam("error message", e.getMessage())
+                                .inputParam(LogConstants.InputKeys.IDP, idpName)
+                                .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
                                 .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                     }
@@ -303,7 +304,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 } catch (IdentityProviderManagementException e) {
                     if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                         diagnosticLogBuilder.resultMessage("Exception while getting IdP by name")
-                                .inputParam("error message", e.getMessage())
+                                .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
                                 .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                     }
@@ -346,7 +347,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     } catch (AuthenticationFailedException | LogoutFailedException e) {
                         if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                             diagnosticLogBuilder.resultMessage("Exception while handling logout request")
-                                    .inputParam("error message", e.getMessage())
+                                    .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
                                     .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                         }
@@ -354,7 +355,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     } catch (IdentityProviderManagementException e) {
                         if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                             diagnosticLogBuilder.resultMessage("Exception while getting IdP by name")
-                                    .inputParam("error message", e.getMessage())
+                                    .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
                                     .resultStatus(DiagnosticLog.ResultStatus.FAILED);
                             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                         }

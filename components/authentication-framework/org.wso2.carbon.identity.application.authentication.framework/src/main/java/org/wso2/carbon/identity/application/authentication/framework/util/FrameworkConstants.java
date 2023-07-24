@@ -714,6 +714,7 @@ public abstract class FrameworkConstants {
         public static final String COUNT = "count";
         public static final String AUTHENTICATED_IDPS = "authenticated idps";
         public static final String IDP = "idp";
+        public static final String SESSION_CONTEXT_KEY = "session context key";
 
         /**
          * Define action IDs for diagnostic logs in the framework component.

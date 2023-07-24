@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.buil
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.OptimizedApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -159,6 +160,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
@@ -713,6 +715,52 @@ public class FrameworkUtils {
         }
 
         return redirectURL;
+    }
+
+    /**
+     * This method is used to get the application name from the authentication context.
+     * @param context Authentication context.
+     * @return Application name.
+     */
+    public static Optional<String> getApplicationName(AuthenticationContext context) {
+
+        // Get the application name from the context directly if it's not null.
+        Optional<String> serviceProviderName = Optional.ofNullable(context)
+                .map(AuthenticationContext::getServiceProviderName);
+        if (serviceProviderName.isPresent()) {
+            return serviceProviderName;
+        }
+
+        // Get the application name from the sequence config if it's not available in the
+        // context.getServiceProviderName().
+        return Optional.ofNullable(context)
+                .map(AuthenticationContext::getSequenceConfig)
+                .map(SequenceConfig::getApplicationConfig)
+                .map(ApplicationConfig::getApplicationName);
+    }
+
+    /**
+     * This method is used to get the application resource id from the authentication context.
+     * @param context Authentication context.
+     * @return Application resource id.
+     */
+    public static Optional<String> getApplicationResourceId(AuthenticationContext context) {
+
+        // Get the application resource id from the optimized application config if it's available.
+        Optional<String> optimizedResourceId = Optional.ofNullable(context)
+                .map(AuthenticationContext::getSequenceConfig)
+                .map(SequenceConfig::getOptimizedApplicationConfig)
+                .map(OptimizedApplicationConfig::getServiceProviderResourceId);
+        if (optimizedResourceId.isPresent()) {
+            return optimizedResourceId;
+        }
+        // Get the application resource id from the sequence config if it's not available in the optimized
+        // application config
+        return Optional.ofNullable(context)
+                .map(AuthenticationContext::getSequenceConfig)
+                .map(SequenceConfig::getApplicationConfig)
+                .map(ApplicationConfig::getServiceProvider)
+                .map(ServiceProvider::getApplicationResourceId);
     }
 
     private static String getServiceProviderNameByReferer(HttpServletRequest request) {
