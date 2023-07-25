@@ -582,6 +582,14 @@
             <KeySet>BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz23456789</KeySet>
         </DeviceCodeGrant>
 
+        <!--
+            Configs related to OAuth2 Pushed Authorization Requests.
+            Supported versions: IS 6.2.0 onwards
+        -->
+        <PAR>
+            <ExpiryTime>60</ExpiryTime>
+        </PAR>
+
         <!-- Configs related to OAuth2 token persistence -->
         <TokenPersistence>
             <Enable>true</Enable>
