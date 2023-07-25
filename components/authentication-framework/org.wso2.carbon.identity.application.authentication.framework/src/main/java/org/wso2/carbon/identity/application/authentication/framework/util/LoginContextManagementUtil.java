@@ -94,7 +94,7 @@ public class LoginContextManagementUtil {
                 log.debug("Setting response for the valid request.");
             }
             // If the context is valid and at the first step.
-            if (isStepHasMultiOption(context) && !FrameworkUtils.isIdfInitiatedFromAuthenticator(context)) {
+            if (isStepHasMultiOption(context)) {
                 context.setCurrentAuthenticator(null);
             }
             result.addProperty("status", "success");
@@ -328,12 +328,6 @@ public class LoginContextManagementUtil {
     }
 
     private static boolean canHandleAuthenticator(AuthenticationContext context, String authenticators) {
-
-        // TODO: Add a validation to check whether the IDF initiated authenticator is in the step config
-        //  without directly returning true.
-        if (FrameworkUtils.isIdfInitiatedFromAuthenticator(context)) {
-            return true;
-        }
 
         List<String> authenticatorsList = new ArrayList();
         if (authenticators != null) {
