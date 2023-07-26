@@ -2844,6 +2844,10 @@
         <Resource context="(.*)/fileupload/resource(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage</Permissions>
         </Resource>
+        <Resource context="(.*)/api/idle-account-identification/v1/inactive-users(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
+            <Scopes>internal_user_mgt_list</Scopes>
+        </Resource>
         <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/longwaitstatus(.*)" secured="false" http-method="GET"/>
