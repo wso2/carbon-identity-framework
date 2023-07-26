@@ -38,9 +38,11 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -58,6 +60,8 @@ import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.InputKeys.APPLICATION_NAME;
 
 /**
  * Translate the authentication graph config to runtime model.
@@ -1205,7 +1209,18 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
                     }
 
                 } catch (Throwable e) {
-                    //We need to catch all the javascript errors here, then log and handle.
+                    // We need to catch all the javascript errors here, then log and handle.
+                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog
+                                .DiagnosticLogBuilder(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                                FrameworkConstants.LogConstants.ActionIDs.EXECUTE_ADAPTIVE_SCRIPT);
+                        diagnosticLogBuilder.resultMessage("Error in executing the adaptive authentication script : " +
+                                        e.getMessage())
+                                .inputParam(APPLICATION_NAME, authenticationContext.getServiceProviderName())
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                    }
                     log.error("Error in executing the javascript for service provider : " + authenticationContext
                             .getServiceProviderName() + ", Javascript Fragment : \n" + jsFunction.getSource(), e);
                     AuthGraphNode executingNode = (AuthGraphNode) authenticationContext

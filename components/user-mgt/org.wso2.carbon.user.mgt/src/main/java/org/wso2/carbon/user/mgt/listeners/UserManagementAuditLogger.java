@@ -78,8 +78,9 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
                 data.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
             }
             maskClaimsInAuditLog(claims, data);
-            audit.info(createAuditMessage(ListenerUtils.ADD_USER_ACTION, getTargetForAuditLog(userName,
-                    userStoreManager), data, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.ADD_USER_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
+                     userStoreManager), data, SUCCESS));
         }
         return true;
     }
@@ -88,7 +89,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostDeleteUser(String userName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.info(createAuditMessage(ListenerUtils.DELETE_USER_ACTION, getTargetForAuditLog(userName,
+            audit.info(createAuditMessage(ListenerUtils.DELETE_USER_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), null, SUCCESS));
         }
         return true;
@@ -108,7 +110,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             }
             dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-            audit.info(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog(userName,
+            audit.info(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), dataObject, IN_PROGRESS));
         }
         return true;
@@ -118,8 +121,9 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostSetUserClaimValue(String userName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.info(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog(userName,
-                    userStoreManager), null, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUE_ACTION,
+                    getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ?
+                    LoggerUtils.getMaskedContent(userName) : userName, userStoreManager), null, SUCCESS));
         }
         return true;
     }
@@ -132,7 +136,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
             maskClaimsInAuditLog(claims, dataObject);
-            audit.info(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
+            audit.info(createAuditMessage(ListenerUtils.SET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), dataObject, SUCCESS));
         }
         return true;
@@ -146,8 +151,9 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
             dataObject.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
-            audit.info(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
-                            userStoreManager), dataObject, IN_PROGRESS));
+            audit.info(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
+                     userStoreManager), dataObject, IN_PROGRESS));
         }
         return true;
     }
@@ -156,7 +162,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostDeleteUserClaimValues(String userName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.info(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
+            audit.info(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), null, SUCCESS));
         }
         return true;
@@ -173,8 +180,9 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claimURI);
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-            audit.info(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog(userName,
-                            userStoreManager), dataObject, IN_PROGRESS));
+            audit.info(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
+                     userStoreManager), dataObject, IN_PROGRESS));
         }
         return true;
     }
@@ -183,7 +191,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostDeleteUserClaimValue(String userName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.info(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog(userName,
+            audit.info(createAuditMessage(ListenerUtils.DELETE_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), null, SUCCESS));
         }
         return true;
@@ -193,7 +202,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostUpdateCredential(String userName, Object credential, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.info(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION, getTargetForAuditLog(userName,
+            audit.info(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), null, SUCCESS));
         }
         return true;
@@ -204,7 +214,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.info(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION, getTargetForAuditLog(userName,
+            audit.info(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), null, SUCCESS));
         }
         return true;
@@ -335,7 +346,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             if (ArrayUtils.isNotEmpty(newRoles)) {
                 dataObject.put(ListenerUtils.NEW_ROLES, new JSONArray(newRoles));
             }
-            audit.info(createAuditMessage(ListenerUtils.UPDATE_ROLES_OF_USER_ACTION, getTargetForAuditLog(userName,
+            audit.info(createAuditMessage(ListenerUtils.UPDATE_ROLES_OF_USER_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), dataObject, SUCCESS));
         }
         return true;
@@ -361,8 +373,9 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
                 dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, new JSONArray(claimValue));
             }
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-            audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUE_ACTION, getTargetForAuditLog(userName,
-                    storeManager), dataObject, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUE_ACTION,
+                    getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ?
+                    LoggerUtils.getMaskedContent(userName) : userName, storeManager), dataObject, SUCCESS));
         }
         return true;
     }
@@ -375,8 +388,9 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             JSONObject dataObject = new JSONObject();
             maskClaimsInAuditLog(claimMap, dataObject);
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
-            audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION, getTargetForAuditLog(userName,
-                    storeManager), dataObject, SUCCESS));
+            audit.info(createAuditMessage(ListenerUtils.GET_USER_CLAIM_VALUES_ACTION,
+                    getTargetForAuditLog(LoggerUtils.isLogMaskingEnable ?
+                    LoggerUtils.getMaskedContent(userName) : userName, storeManager), dataObject, SUCCESS));
         }
         return true;
     }
@@ -419,7 +433,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             if (ArrayUtils.isNotEmpty(roleList)) {
                 dataObject.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
             }
-            audit.info(createAuditMessage(ListenerUtils.GET_ROLES_OF_USER_ACTION, getTargetForAuditLog(userName,
+            audit.info(createAuditMessage(ListenerUtils.GET_ROLES_OF_USER_ACTION, getTargetForAuditLog
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), dataObject, SUCCESS));
         }
         return true;

@@ -50,6 +50,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.sess
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderConstants.SUCCESS;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderConstants.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderConstants.TRACE_ID;
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Processes the Session Extender requests and extends session if the request is valid.
@@ -199,6 +200,9 @@ public class SessionExtenderProcessor extends IdentityProcessor {
 
     private void addAuditLogs(String sessionKey, String tenantDomain, String traceId) {
 
+        if (isLegacyAuditLogsDisabled()) {
+            return;
+        }
         JSONObject auditData = new JSONObject();
         auditData.put(SESSION_CONTEXT_ID, sessionKey);
         auditData.put(TENANT_DOMAIN, tenantDomain);

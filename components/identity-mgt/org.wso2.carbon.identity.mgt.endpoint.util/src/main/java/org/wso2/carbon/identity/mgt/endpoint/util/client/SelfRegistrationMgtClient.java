@@ -30,11 +30,9 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -42,6 +40,7 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointCons
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -160,7 +159,7 @@ public class SelfRegistrationMgtClient {
     private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
 
         boolean isDebugEnabled = log.isDebugEnabled();
-        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
 
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);
@@ -258,7 +257,7 @@ public class SelfRegistrationMgtClient {
                     + ". SkipSignUpCheck flag is set to " + skipSignUpCheck);
         }
 
-        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             JSONObject userObject = new JSONObject();
             userObject.put(USERNAME, user.getUsername());
 
@@ -390,14 +389,5 @@ public class SelfRegistrationMgtClient {
 
         JSONArray piiCategories = (JSONArray) purpose.get(PII_CATEGORIES);
         return piiCategories.length() > 0;
-    }
-
-    private HttpClientBuilder createHttpClientBuilderWithHV() {
-        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create().useSystemProperties();
-        if (DEFAULT_AND_LOCALHOST.equals(System.getProperty(HOST_NAME_VERIFIER))) {
-            X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
-            httpClientBuilder.setHostnameVerifier(hv);
-        }
-        return httpClientBuilder;
     }
 }
