@@ -702,16 +702,7 @@
                 {% endfor %}
             </SupportedIDTokenEncryptionMethods>
 
-            <DisableLegacyAudiences>{{oauth.legacy_audiences_disabled}}</DisableLegacyAudiences>
-
-            <EnableAudiences>true</EnableAudiences>
-            {% if oauth.oidc.id_token.audiences|length %}
-            <Audiences>
-                {% for audience in oauth.oidc.id_token.audiences %}
-                <Audience>{{audience}}</Audience>
-                {% endfor %}
-            </Audiences>
-            {% endif %}
+            <EnableLegacyAudiences>{{oauth.legacy_audiences_enabled}}</EnableLegacyAudiences>
 
             <!--
                 Default value for IDTokenIssuerID, is OAuth2TokenEPUrl.
