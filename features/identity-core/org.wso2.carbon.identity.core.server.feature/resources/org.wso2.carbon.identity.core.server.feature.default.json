@@ -216,7 +216,7 @@
   "oauth.oidc.fapi.enable_security_profile": false,
 
   "oauth.global_rbac_scope_issuer.enable": false,
-
+  "oauth.legacy_audiences_enabled": true,
   "rest_api_authentication.add_realm_user_to_error": false,
 
   "saml.entity_id": "${carbon.host}",
