@@ -103,18 +103,18 @@
         <Path>{{recoveryendpoint.path}}</Path>
     </RecoveryEndpoint>
 
-    <Identity>
-        <IssuerPolicy>{{identity.issuer_policy}}</IssuerPolicy>
-        <TokenValidationPolicy>{{identity.token_validation_policy}}</TokenValidationPolicy>
+    <>
+        <IssuerPolicy>{{.issuer_policy}}</IssuerPolicy>
+        <TokenValidationPolicy>{{.token_validation_policy}}</TokenValidationPolicy>
         <BlackList></BlackList>
         <WhiteList></WhiteList>
         <System>
             <KeyStore></KeyStore>
             <StorePass></StorePass>
         </System>
-    </Identity>
+    </>
 
-    <!--This configuration is used to define the Service Provider name regex in DCR and IdentityApplicationManagementService-->
+    <!--This configuration is used to define the Service Provider name regex in DCR and ApplicationManagementService-->
     <ServiceProviders>
         <SPNameRegex>{{service_provider.sp_name_regex}}</SPNameRegex>
         {% if service_provider.sp_name_java_script_regex is defined %}
@@ -152,7 +152,7 @@
 
         <!-- Specify full qualified class name of the class which going to use as private association store -->
         <!--
-        <OpenIDPrivateAssociationStoreClass>org.wso2.carbon.identity.provider.openid.PrivateAssociationCryptoStore</OpenIDPrivateAssociationStoreClass>
+        <OpenIDPrivateAssociationStoreClass>org.wso2.carbon..provider.openid.PrivateAssociationCryptoStore</OpenIDPrivateAssociationStoreClass>
         -->
 
         <!-- The expiration time (in minutes) for the OpenID association -->
@@ -192,7 +192,7 @@
             <RetainOldAccessToken>{{oauth.token_cleanup.retain_access_tokens_for_auditing}}</RetainOldAccessToken>
         </TokenCleanup>
         <!-- Specify the Token issuer class to be used.
-             Default: org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl.
+             Default: org.wso2.carbon..oauth2.token.OauthTokenIssuerImpl.
              Applicable values: org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer
         -->
         {% if oauth.extensions.token_generator is defined %}
@@ -2980,6 +2980,7 @@
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/server/v1/identity-providers</Path>
+                    <Path>/api/server/v1/trusted-token-issuers</Path>
                     <Path>/api/server/v1/organizations</Path>
                     <Path>/api/server/v1/applications</Path>
                     <Path>/api/users/v1/me/organizations</Path>
