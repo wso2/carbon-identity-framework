@@ -227,5 +227,12 @@
   "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.module_index": "35",
   "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.subscriptions": [
     "PRE_AUTHENTICATION"
+  ],
+  "identity_mgt.events.schemes.enforcePasswordResetEventHandler.module_index": "36",
+  "identity_mgt.events.schemes.enforcePasswordResetEventHandler.subscriptions": [
+    "POST_UPDATE_CREDENTIAL",
+    "POST_UPDATE_CREDENTIAL_BY_ADMIN",
+    "POST_ADD_USER",
+    "PASSWORD_GRANT_POST_AUTHENTICATION"
   ]
 }
