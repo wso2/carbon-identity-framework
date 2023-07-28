@@ -2671,22 +2671,6 @@
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/trusted-token-issuers(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
-            <Scopes>internal_idp_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/trusted-token-issuers(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/idpmgt/delete</Permissions>
-            <Scopes>internal_idp_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/trusted-token-issuers(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/idpmgt/create</Permissions>
-            <Scopes>internal_idp_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/trusted-token-issuers(.*)" secured="true" http-method="PATCH">
-            <Permissions>/permission/admin/manage/identity/idpmgt/update</Permissions>
-            <Scopes>internal_idp_update</Scopes>
-        </Resource>
         <Resource context="(.*)/api/server/v1/authenticators(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
@@ -2980,7 +2964,6 @@
                 <BasePath>/api/</BasePath>
                 <SubPaths>
                     <Path>/api/server/v1/identity-providers</Path>
-                    <Path>/api/server/v1/trusted-token-issuers</Path>
                     <Path>/api/server/v1/organizations</Path>
                     <Path>/api/server/v1/applications</Path>
                     <Path>/api/users/v1/me/organizations</Path>
