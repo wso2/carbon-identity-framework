@@ -258,11 +258,12 @@ public class IdentityManagementServiceUtil {
         }
         String userStoreDomain = extractDomainFromName(username);
         User user = new User();
-        user.setUsername(MultitenantUtils
-                .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(username)));
         if (isSaaSEnabled) {
+            user.setUsername(MultitenantUtils
+                    .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(username)));
             user.setTenantDomain(MultitenantUtils.getTenantDomain(username));
         } else {
+            user.setUsername(username);
             user.setTenantDomain(tenantDomain);
         }
         user.setRealm(userStoreDomain);
