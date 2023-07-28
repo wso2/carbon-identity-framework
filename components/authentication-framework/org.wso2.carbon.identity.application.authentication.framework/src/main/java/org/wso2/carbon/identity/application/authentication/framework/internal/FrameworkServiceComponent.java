@@ -106,6 +106,8 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.governance.IdentityGovernanceService;
+import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -175,7 +177,7 @@ public class FrameworkServiceComponent {
     /**
      * @return
      * @throws FrameworkException
-     * @Deprecated The usage of bundle context outside of the component should never be needed. Component should
+     * @Deprecated The usage of bundle context outside the component should never be needed. Component should
      * provide necessary wiring for any place which require the BundleContext.
      */
     @Deprecated
@@ -975,7 +977,7 @@ public class FrameworkServiceComponent {
                 return new JsOpenJdkNashornGraphBuilderFactory();
             }
         }
-        // Config is not set. Hence going with class for name approach.
+        // Config is not set. Hence, going with class for name approach.
         return createJsGraphBuilderFactory();
     };
 
@@ -1068,5 +1070,55 @@ public class FrameworkServiceComponent {
 
         log.debug("Unset organization user resident resolver service.");
         FrameworkServiceDataHolder.getInstance().setOrganizationUserResidentResolverService(null);
+    }
+
+    @Reference(
+            name = "AccountLockService",
+            service = AccountLockService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAccountLockService"
+    )
+    protected void setAccountLockService(AccountLockService accountLockService) {
+
+        FrameworkServiceDataHolder.getInstance().setAccountLockService(accountLockService);
+    }
+
+    protected void unsetAccountLockService(AccountLockService accountLockService) {
+
+        FrameworkServiceDataHolder.getInstance().setAccountLockService(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.idp.mgt.IdpManager",
+            service = IdpManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityProviderManagementService"
+    )
+    protected void setIdentityProviderManagementService(IdpManager idpManager) {
+
+        FrameworkServiceDataHolder.getInstance().setIdpManager(idpManager);
+    }
+
+    protected void unsetIdentityProviderManagementService(IdpManager idpManager) {
+
+        FrameworkServiceDataHolder.getInstance().setIdpManager(null);
+    }
+
+    @Reference(
+            name = "IdentityGovernanceService",
+            service = IdentityGovernanceService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityGovernanceService")
+    protected void setIdentityGovernanceService(IdentityGovernanceService idpManager) {
+
+        FrameworkServiceDataHolder.getInstance().setIdentityGovernanceService(idpManager);
+    }
+
+    protected void unsetIdentityGovernanceService(IdentityGovernanceService idpManager) {
+
+        FrameworkServiceDataHolder.getInstance().setIdentityGovernanceService(null);
     }
 }
