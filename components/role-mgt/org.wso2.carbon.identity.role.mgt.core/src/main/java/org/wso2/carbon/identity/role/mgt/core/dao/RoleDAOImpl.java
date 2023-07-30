@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.identity.role.mgt.core.util.GroupIDResolver;
 import org.wso2.carbon.identity.role.mgt.core.util.UserIDResolver;
+import org.wso2.carbon.identity.scim2.common.utils.SCIMCommonUtils;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -1479,7 +1480,7 @@ public class RoleDAOImpl implements RoleDAO {
                             + tenantDomain;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
-        if (roleName == null) {
+        if (roleName == null || !SCIMCommonUtils.isHybridRole(roleName)) {
             String errorMessage = "A role doesn't exist with id: " + roleID + " in the tenantDomain: " + tenantDomain;
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(), errorMessage);
         }
