@@ -1760,7 +1760,7 @@ public class FrameworkUtils {
         List<String> queryParams;
         String action;
         if (!configAvailable) {
-            queryParams = Arrays.asList("loggedInUser");
+            queryParams = Arrays.asList("loggedInUser", "ske");
             action = "exclude";
         } else {
             queryParams = FileBasedConfigurationBuilder.getInstance()
