@@ -128,6 +128,7 @@ public class IdentityManagementServiceUtil {
             String serviceContextURL = properties
                     .getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants.SERVICE_CONTEXT_URL);
             contextURL = serviceContextURL;
+            // If the service context URL is not configured, use the serviceURLBuilder to build the URL.
             this.serviceContextURL = StringUtils.isBlank(serviceContextURL) ? ServiceURLBuilder.create().
                     build().getAbsoluteInternalURL() : serviceContextURL;
 

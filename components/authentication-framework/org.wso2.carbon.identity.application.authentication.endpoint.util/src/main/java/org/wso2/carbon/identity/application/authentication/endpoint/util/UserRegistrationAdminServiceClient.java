@@ -32,20 +32,32 @@ import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * This class is a client for the User Registration Admin Service.
+ * It provides methods to perform operations like adding a new user,
+ * checking if a user exists, and reading user fields for user registration.
+ */
 public class UserRegistrationAdminServiceClient {
 
 
     private UserRegistrationAdminServiceStub stub;
     private Properties prop;
 
+    /**
+     * Constructs a new UserRegistrationAdminServiceClient.
+     * Initializes the service stub with the service URL.
+     *
+     * @throws AxisFault if there's an error during stub initialization.
+     */
     public UserRegistrationAdminServiceClient() throws AxisFault {
 
         StringBuilder builder = new StringBuilder();
-        String serviceURL = null;
-
-        serviceURL = builder.append(TenantDataManager.getPropertyValue(Constants.SERVICES_URL)).append
+        // Build the service URL for the User Registration admin service.
+        // Replace any unintended double slashes in the URL with a single slash.
+        String serviceURL = builder.append(TenantDataManager.getPropertyValue(Constants.SERVICES_URL)).append
                 (Constants.UserRegistrationConstants.USER_REGISTRATION_SERVICE).toString().replaceAll("(?<!(http:|https:))//", "/");
 
+        // Initialize the User Registration Admin Service stub with the service URL.
         stub = new UserRegistrationAdminServiceStub(serviceURL);
 
         ServiceClient client = stub._getServiceClient();
@@ -55,11 +67,12 @@ public class UserRegistrationAdminServiceClient {
 
     /**
      * Add new user.
-     * @param username Username of the user.
-     * @param password Password of the user.
+     *
+     * @param username   Username of the user.
+     * @param password   Password of the user.
      * @param userFields User fields to be updated.
-     * @throws RemoteException
-     * @throws UserRegistrationAdminServiceException
+     * @throws RemoteException                       If a remote or network exception occurs.
+     * @throws UserRegistrationAdminServiceException If an error occurs while adding the user.
      */
     public void addUser(String username, char[] password, List<UserFieldDTO> userFields) throws RemoteException,
             UserRegistrationAdminServiceException {
@@ -74,6 +87,7 @@ public class UserRegistrationAdminServiceClient {
 
     /**
      * Get the user fields for given dialect.
+     *
      * @param dialect Dialect to use.
      * @return User fields.
      * @throws UserRegistrationAdminServiceIdentityException
@@ -87,6 +101,7 @@ public class UserRegistrationAdminServiceClient {
 
     /**
      * Check whether the user exists.
+     *
      * @param username Username of the user.
      * @return True if user exists.
      * @throws RemoteException
