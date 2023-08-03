@@ -1480,7 +1480,7 @@ public class RoleDAOImpl implements RoleDAO {
                             + tenantDomain;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
-        // Verify whether the roleName is either null or a groupName
+        // Verify whether the roleName is either null or a group name
         if (roleName == null || !SCIMCommonUtils.isHybridRole(roleName)) {
             String errorMessage = "A role doesn't exist with id: " + roleID + " in the tenantDomain: " + tenantDomain;
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(), errorMessage);
