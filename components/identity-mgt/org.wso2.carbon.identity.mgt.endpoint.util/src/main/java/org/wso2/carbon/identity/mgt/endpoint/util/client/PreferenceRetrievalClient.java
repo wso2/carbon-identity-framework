@@ -82,9 +82,6 @@ public class PreferenceRetrievalClient {
     private static final String USER_ONBOARDING_GOVERNANCE = "User Onboarding";
     private static final String CONNECTORS = "connectors";
 
-    public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
-    public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
-
     /**
      * Check self registration is enabled or not.
      *
