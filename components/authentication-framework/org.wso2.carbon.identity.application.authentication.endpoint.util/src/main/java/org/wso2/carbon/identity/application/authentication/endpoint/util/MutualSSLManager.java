@@ -22,7 +22,9 @@ import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.utils.CustomHostNameVerifier;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 import org.wso2.securevault.commons.MiscellaneousUtil;
@@ -52,6 +54,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import static org.wso2.carbon.CarbonConstants.ALLOW_ALL;
+import static org.wso2.carbon.CarbonConstants.DEFAULT_AND_LOCALHOST;
+import static org.wso2.carbon.CarbonConstants.HOST_NAME_VERIFIER;
+
 public class MutualSSLManager {
 
     private static final Log log = LogFactory.getLog(MutualSSLManager.class);
@@ -61,7 +67,6 @@ public class MutualSSLManager {
     private static Properties prop;
     private static String carbonLogin = "";
     private static String usernameHeaderName = "";
-    private final static String[] LOCALHOSTS = { "::1", "127.0.0.1", "localhost", "localhost.localdomain" };
 
     /**
      * Default keystore type of the client
@@ -88,9 +93,6 @@ public class MutualSSLManager {
     private static char[] keyStorePassword;
     private static SSLSocketFactory sslSocketFactory;
     private static boolean initialized = false;
-
-    public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
-    public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
 
     private MutualSSLManager() {
 
@@ -357,14 +359,9 @@ public class MutualSSLManager {
 
             if (hostNameVerificationEnabled) {
                 if (DEFAULT_AND_LOCALHOST.equals(System.getProperty(HOST_NAME_VERIFIER))) {
-                    HostnameVerifier hv = new HostnameVerifier() {
-                        @Override
-                        public boolean verify(String urlHostName, SSLSession session) {
-
-                            return Arrays.asList(LOCALHOSTS).contains(urlHostName);
-                        }
-                    };
-                    HttpsURLConnection.setDefaultHostnameVerifier(hv);
+                    HttpsURLConnection.setDefaultHostnameVerifier(new CustomHostNameVerifier());
+                } else if (ALLOW_ALL.equals(System.getProperty(HOST_NAME_VERIFIER))) {
+                    HttpsURLConnection.setDefaultHostnameVerifier(new AllowAllHostnameVerifier());
                 }
                 sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
                 sslSocketFactory = sslContext.getSocketFactory();
