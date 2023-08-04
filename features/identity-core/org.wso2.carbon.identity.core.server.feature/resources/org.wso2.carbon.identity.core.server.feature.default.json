@@ -295,6 +295,7 @@
   "scim2.consider_max_limit_for_total_results": false,
   "scim2.consider_total_records_for_total_results_of_ldap": false,
 
+  "identity_mgt.password_policy.password_policy_validation_handler.enable": false,
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": "[${carbon.protocol}://${carbon.host}:${carbon.management.port}].*[/authenticationendpoint/login.do]*",
   "identity_mgt.recovery.enable_detailed_error_messages": false,
