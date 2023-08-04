@@ -138,7 +138,7 @@
                             org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.scim2.common.utils; version="${org.wso2.carbon.identity.scim2.common.version}"
+                            org.wso2.carbon.identity.scim2.common.utils; version="${org.wso2.carbon.identity.scim2.common.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.role.mgt.core.internal,
