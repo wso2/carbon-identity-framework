@@ -56,29 +56,12 @@ public class PasswordValidationConfigurationHandler extends AbstractFieldValidat
         ValidationConfiguration configuration = new ValidationConfiguration();
         configuration.setField(PASSWORD);
         List<RulesConfiguration> rules = new ArrayList<>();
-
-        try {
-            RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
-            String javaRegex = realmConfiguration.getUserStoreProperty(UserCoreConstants
-                    .RealmConfig.PROPERTY_JAVA_REG_EX);
-            String jsRegex = realmConfiguration.
-                    getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_JS_REG_EX);
-
-            // Return the JsRegex if the default regex has been updated by the user.
-            if (!javaRegex.isEmpty() && !jsRegex.isEmpty() && !JAVA_REGEX_PATTERN.equals(javaRegex)) {
-                rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, jsRegex));
-                configuration.setRegEx(rules);
-            } else {
-                rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MIN_LENGTH, "8"));
-                rules.add(getRuleConfig(NumeralValidator.class.getSimpleName(), MIN_LENGTH, "1"));
-                rules.add(getRuleConfig(UpperCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
-                rules.add(getRuleConfig(LowerCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
-                rules.add(getRuleConfig(SpecialCharacterValidator.class.getSimpleName(), MIN_LENGTH, "1"));
-                configuration.setRules(rules);
-            }
-            return configuration;
-        } catch (InputValidationMgtException e) {
-            throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(), e.getMessage());
-        }
+        rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MIN_LENGTH, "8"));
+        rules.add(getRuleConfig(NumeralValidator.class.getSimpleName(), MIN_LENGTH, "1"));
+        rules.add(getRuleConfig(UpperCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
+        rules.add(getRuleConfig(LowerCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
+        rules.add(getRuleConfig(SpecialCharacterValidator.class.getSimpleName(), MIN_LENGTH, "1"));
+        configuration.setRules(rules);
+        return configuration;
     }
 }
