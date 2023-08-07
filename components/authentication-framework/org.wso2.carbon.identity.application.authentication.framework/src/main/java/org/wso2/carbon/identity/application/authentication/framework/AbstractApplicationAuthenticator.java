@@ -392,7 +392,15 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         return userName;
     }
 
+    @Deprecated
     protected org.wso2.carbon.user.core.common.User getUser(AuthenticatedUser authenticatedUser)
+            throws AuthenticationFailedException {
+
+        return getUser(authenticatedUser, null);
+    }
+
+    protected org.wso2.carbon.user.core.common.User getUser(AuthenticatedUser authenticatedUser, 
+                                                            AuthenticationContext context)
             throws AuthenticationFailedException {
 
         org.wso2.carbon.user.core.common.User user = null;
@@ -402,7 +410,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
-            if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
+            boolean isUserResolved = getIsUserResolved(context);
+            // If the user is already resolved, no need to resolve again.
+            if (!isUserResolved && FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService()
+                    .isEnabled(tenantDomain)) {
                 ResolvedUserResult resolvedUserResult = FrameworkServiceDataHolder.getInstance()
                         .getMultiAttributeLoginService().resolveUser(MultitenantUtils.getTenantAwareUsername(
                                 authenticatedUser.getUserName()), tenantDomain);
@@ -442,7 +453,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
         return user;
     }
-
+    
     private List<org.wso2.carbon.user.core.common.User> getValidUsers(
             List<org.wso2.carbon.user.core.common.User> userList) {
 
@@ -457,6 +468,21 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             }
         }
         return validUserList;
+    }
+
+    /**
+     * This method is to check whether the user is resolved or not.
+     * @param context
+     * @return true if the user is resolved, false otherwise.
+     */
+    private boolean getIsUserResolved(AuthenticationContext context) {
+
+        boolean isUserResolved = false;
+        if (!context.getProperties().isEmpty() &&
+                context.getProperty(FrameworkConstants.IS_USER_RESOLVED) != null) {
+            isUserResolved = (boolean) context.getProperty(FrameworkConstants.IS_USER_RESOLVED);
+        }
+        return isUserResolved;
     }
 
     private List<String> getBlockedUserStoreDomainsList() {
