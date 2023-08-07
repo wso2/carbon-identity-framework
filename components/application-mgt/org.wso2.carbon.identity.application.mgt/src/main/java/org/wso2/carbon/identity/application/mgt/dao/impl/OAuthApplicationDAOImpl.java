@@ -20,11 +20,11 @@ package org.wso2.carbon.identity.application.mgt.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,7 +45,7 @@ public class OAuthApplicationDAOImpl implements OAuthApplicationDAO {
         try {
             prepStmt = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_OAUTH_APPLICATION);
             prepStmt.setString(1, clientIdentifier);
-            prepStmt.setInt(2, CarbonContext.getThreadLocalCarbonContext().getTenantId());
+            prepStmt.setInt(2, IdentityTenantUtil.getTenantId(IdentityTenantUtil.getTenantDomainFromContext()));
             prepStmt.execute();
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
