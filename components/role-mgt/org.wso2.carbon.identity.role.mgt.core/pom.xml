@@ -100,10 +100,6 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.event</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.inbound.provisioning.scim2</groupId>
-            <artifactId>org.wso2.carbon.identity.scim2.common</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
@@ -137,8 +133,7 @@
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.central.log.mgt.utils;version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.scim2.common.utils; version="${org.wso2.carbon.identity.scim2.common.version.range}"
+                            org.wso2.carbon.identity.central.log.mgt.utils;version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.role.mgt.core.internal,
