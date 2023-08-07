@@ -2832,6 +2832,10 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
             <Scopes>internal_organization_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/check-name" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
