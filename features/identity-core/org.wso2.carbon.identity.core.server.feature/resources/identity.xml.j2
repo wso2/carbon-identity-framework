@@ -484,6 +484,7 @@
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.token_exchange.grant_handler}}</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.token_exchange.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>false</IdTokenAllowed>
+                <IsRefreshTokenAllowed>{{oauth.grant_type.token_exchange.allow_refresh_tokens}}</IsRefreshTokenAllowed>
             </SupportedGrantType>
             {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
