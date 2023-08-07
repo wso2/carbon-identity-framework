@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.role.mgt.core.util;
 
 /**
- * This class is to be used as a class for common constants used in role management.
+ * Class to hold Common Constants for role management.
  */
 public class CommonConstants {
 

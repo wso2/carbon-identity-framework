@@ -21,7 +21,8 @@ package org.wso2.carbon.identity.role.mgt.core.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.identity.scim2.common.utils.SCIMCommonConstants;
+
+import java.util.Locale;
 
 /**
  * This class is to be used as a Util class for common things in role management.
@@ -38,9 +39,9 @@ public class CommonUtils {
      */
     public static boolean isHybridRole(String roleName) {
 
-        return roleName.toLowerCase().startsWith((SCIMCommonConstants.INTERNAL_DOMAIN +
-                CarbonConstants.DOMAIN_SEPARATOR).toLowerCase()) ||
-                roleName.toLowerCase().startsWith((SCIMCommonConstants.APPLICATION_DOMAIN +
-                        CarbonConstants.DOMAIN_SEPARATOR).toLowerCase());
+        return roleName.toLowerCase(Locale.ENGLISH).startsWith((CommonConstants.INTERNAL_DOMAIN +
+                CarbonConstants.DOMAIN_SEPARATOR).toLowerCase(Locale.ENGLISH)) ||
+                roleName.toLowerCase(Locale.ENGLISH).startsWith((CommonConstants.APPLICATION_DOMAIN +
+                        CarbonConstants.DOMAIN_SEPARATOR).toLowerCase(Locale.ENGLISH));
     }
 }
