@@ -21,15 +21,16 @@ package org.wso2.carbon.identity.role.mgt.core.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.role.mgt.core.RoleConstants;
 
 import java.util.Locale;
 
 /**
  * This class is to be used as a Util class for common things in role management.
  */
-public class CommonUtils {
+public class RoleManagementUtils {
 
-    private Log log = LogFactory.getLog(CommonUtils.class);
+    private Log log = LogFactory.getLog(RoleManagementUtils.class);
 
     /**
      * Checks whether the given role is an internal or application role.
@@ -39,9 +40,9 @@ public class CommonUtils {
      */
     public static boolean isHybridRole(String roleName) {
 
-        return roleName.toLowerCase(Locale.ENGLISH).startsWith((CommonConstants.INTERNAL_DOMAIN +
+        return roleName.toLowerCase(Locale.ENGLISH).startsWith((RoleConstants.INTERNAL_DOMAIN +
                 CarbonConstants.DOMAIN_SEPARATOR).toLowerCase(Locale.ENGLISH)) ||
-                roleName.toLowerCase(Locale.ENGLISH).startsWith((CommonConstants.APPLICATION_DOMAIN +
+                roleName.toLowerCase(Locale.ENGLISH).startsWith((RoleConstants.APPLICATION_DOMAIN +
                         CarbonConstants.DOMAIN_SEPARATOR).toLowerCase(Locale.ENGLISH));
     }
 }
