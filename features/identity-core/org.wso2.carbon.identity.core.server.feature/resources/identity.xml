@@ -584,7 +584,7 @@
 
         <!--
             Configs related to OAuth2 Pushed Authorization Requests.
-            Supported versions: IS 6.2.0 onwards
+            Supported versions: IS 6.2.0 onwards.
         -->
         <PAR>
             <ExpiryTime>60</ExpiryTime>
