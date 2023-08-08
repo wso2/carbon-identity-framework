@@ -71,9 +71,6 @@ public class SelfRegistrationMgtClient {
     private static final String USERNAME = "username";
     private static final String PROPERTIES = "properties";
 
-    public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
-    public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
-
     /**
      * Returns a JSON which contains a set of purposes with piiCategories
      *

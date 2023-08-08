@@ -93,6 +93,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieEnabled;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.removeNonceCookie;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.validateNonceCookie;
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Default authentication request handler.
@@ -1185,6 +1186,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                               String userTenantDomain, String traceId, Long lastAccessedTimestamp,
                               boolean isRememberMe) {
 
+        if (isLegacyAuditLogsDisabled()) {
+            return;
+        }
         JSONObject auditData = new JSONObject();
         auditData.put(SessionMgtConstants.SESSION_CONTEXT_ID, sessionKey);
         auditData.put(SessionMgtConstants.REMEMBER_ME, isRememberMe);

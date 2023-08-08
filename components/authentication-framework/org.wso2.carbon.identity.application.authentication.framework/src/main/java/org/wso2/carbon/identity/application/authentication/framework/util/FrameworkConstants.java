@@ -715,6 +715,7 @@ public abstract class FrameworkConstants {
         public static final String COUNT = "count";
         public static final String AUTHENTICATED_IDPS = "authenticated idps";
         public static final String IDP = "idp";
+        public static final String SESSION_CONTEXT_KEY = "session context key";
 
         /**
          * Define action IDs for diagnostic logs in the framework component.
@@ -723,6 +724,7 @@ public abstract class FrameworkConstants {
 
             public static final String INIT_AUTH_FLOW = "init-authentication-flow";
             public static final String INIT_LOGOUT_FLOW = "init-logout-flow";
+            public static final String PROCESS_LOGOUT_REQUEST = "process-logout-request";
             public static final String HANDLE_CLAIM_MAPPING = "handle-claim-mappings";
             public static final String HANDLE_AUTH_REQUEST = "handle-authentication-request";
             public static final String HANDLE_AUTH_STEP = "handle-authentication-step";

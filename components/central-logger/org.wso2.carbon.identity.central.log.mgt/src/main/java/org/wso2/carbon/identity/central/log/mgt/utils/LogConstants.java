@@ -54,5 +54,7 @@ public class LogConstants {
         public static final String CLIENT_ID = "client id";
         public static final String REDIREDCT_URI = "redirect uri";
         public static final String SCOPE = "scope";
+        public static final String APPLICATION_ID = "app id";
+        public static final String ERROR_MESSAGE = "error message";
     }
 }

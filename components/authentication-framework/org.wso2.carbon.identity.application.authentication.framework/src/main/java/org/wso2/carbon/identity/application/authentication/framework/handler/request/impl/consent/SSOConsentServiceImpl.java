@@ -486,6 +486,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                             ClaimMetaData::getClaimUri).collect(Collectors.toList()))
                     .inputParam(USE_EXISTING_CONSENT, false)
                     .inputParam(LogConstants.InputKeys.APPLICATION_NAME, serviceProvider.getApplicationName())
+                    .inputParam(LogConstants.InputKeys.APPLICATION_ID, serviceProvider.getApplicationResourceId())
                     .inputParam(LogConstants.InputKeys.SUBJECT, LoggerUtils.isLogMaskingEnable ? LoggerUtils
                             .getMaskedContent(authenticatedUser.getUserName()) : authenticatedUser.getUserName())
                     .inputParam(CLAIMS_WITH_CONSENT, claimsWithConsent.stream().map(ClaimMetaData::getClaimUri)
