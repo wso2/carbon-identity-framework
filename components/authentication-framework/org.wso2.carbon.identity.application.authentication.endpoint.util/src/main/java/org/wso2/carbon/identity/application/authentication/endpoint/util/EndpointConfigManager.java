@@ -50,6 +50,7 @@ public class EndpointConfigManager {
     private static String appName = null;
     private static char[] appPassword = null;
     private static String serverOrigin;
+    private static boolean isHostnameVerificationEnabled = true;
     private static boolean initialized = false;
     private static String googleOneTapRestrictedBrowsers = StringUtils.EMPTY;
 
@@ -93,6 +94,8 @@ public class EndpointConfigManager {
                 appName = getPropertyValue(Constants.CONFIG_APP_NAME);
                 appPassword = getPropertyValue(Constants.CONFIG_APP_PASSWORD).toCharArray();
                 serverOrigin = getPropertyValue(Constants.CONFIG_SERVER_ORIGIN);
+                isHostnameVerificationEnabled = Boolean.parseBoolean(getPropertyValue(
+                        Constants.CONFIG_HOSTNAME_VERIFICATION_ENABLED));
                 if (StringUtils.isNotBlank(serverOrigin)) {
                     serverOrigin = IdentityUtil.fillURLPlaceholders(serverOrigin);
                 }
@@ -157,6 +160,15 @@ public class EndpointConfigManager {
     public static String getGoogleOneTapRestrictedBrowsers() {
 
         return googleOneTapRestrictedBrowsers;
+    }
+
+    /**
+     * Returns whether the hostname verification is enabled or not.
+     *
+     * @return true if hostname verification is enabled, false otherwise.
+     */
+    public static boolean isHostnameVerificationEnabled() {
+        return isHostnameVerificationEnabled;
     }
 
     /**

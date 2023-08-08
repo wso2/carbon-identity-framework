@@ -79,6 +79,10 @@ public class IdPManagementConstants {
     public static final String PROVISIONING =
             "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, DEFAULT_PRO_CONNECTOR_NAME";
 
+    // Flag to indicate if an IdP is a system reserved IdP.
+    public static final String IS_SYSTEM_RESERVED_IDP_FLAG = "isSystemReservedIdP";
+    public static final String IS_SYSTEM_RESERVED_IDP_DISPLAY_NAME = "Is System Reserved Identity Provider";
+
     //Default SAML endpoints.
     public static final String SSO_ARTIFACT_URL = "samlartresolve";
     public static final String SAML_ECP_URL = "samlecp";
