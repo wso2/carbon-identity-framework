@@ -302,7 +302,7 @@
   "scim2.consider_total_records_for_total_results_of_ldap": false,
 
   "identity_mgt.recovery.notification.manage_internally": true,
-  "identity_mgt.recovery.callback_url": "[${carbon.protocol}://${carbon.host}:${carbon.management.port}].*[/authenticationendpoint/login.do]*",
+  "identity_mgt.recovery.callback_url": "${carbon.protocol}:\\/\\/${carbon.host}:${carbon.management.port}\\/.*",
   "identity_mgt.recovery.enable_detailed_error_messages": false,
   "identity_mgt.recovery.enable_auto_login": false,
   "identity_mgt.recovery.notify_user_existence": false,
@@ -383,7 +383,7 @@
   "identity_mgt.user_self_registration.notify_account_confirmation": false,
   "identity_mgt.user_self_registration.enable_recaptcha": true,
   "identity_mgt.user_self_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
-  "identity_mgt.user_self_registration.callback_url": "[${carbon.protocol}://${carbon.host}:${carbon.management.port}].*[/authenticationendpoint/login.do]*",
+  "identity_mgt.user_self_registration.callback_url": "${carbon.protocol}:\\/\\/${carbon.host}:${carbon.management.port}\\/.*",
   "identity_mgt.user_self_registration.enable_resend_confirmation_recaptcha": false,
   "identity_mgt.user_self_registration.auto_login.enable": false,
   "identity_mgt.user_self_registration.auto_login.alias_name": "wso2carbon",
