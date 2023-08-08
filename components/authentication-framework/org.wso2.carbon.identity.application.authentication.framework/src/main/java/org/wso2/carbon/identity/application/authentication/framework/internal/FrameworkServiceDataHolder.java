@@ -50,6 +50,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.governance.IdentityGovernanceService;
+import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -106,7 +108,6 @@ public class FrameworkServiceDataHolder {
 
     private JSExecutionSupervisor jsExecutionSupervisor;
     private IdpManager identityProviderManager = null;
-    private IdpManager idPManager;
     private ApplicationManagementService applicationManagementService;
     private ConfigurationManager configurationManager = null;
 
@@ -114,6 +115,9 @@ public class FrameworkServiceDataHolder {
     private boolean isOrganizationManagementEnable = false;
     private OrganizationManager organizationManager;
     private OrganizationUserResidentResolverService organizationUserResidentResolverService;
+    private AccountLockService accountLockService;
+    private IdpManager idpManager;
+    private IdentityGovernanceService identityGovernanceService;
 
     private FrameworkServiceDataHolder() {
 
@@ -206,7 +210,7 @@ public class FrameworkServiceDataHolder {
 
     private Comparator<ApplicationRolesResolver> getApplicationRolesResolverComparator() {
 
-        // Sort based on priority in descending order, ie. the highest priority comes to the first element of the list.
+        // Sort based on priority in descending order, i.e. the highest priority comes to the first element of the list.
         return Comparator.comparingInt(ApplicationRolesResolver::getPriority).reversed();
     }
 
@@ -400,7 +404,7 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     * Get the {@link JsFunctionRegistry}
+     * Get the {@link JsFunctionRegistry}.
      *
      * @return JsFunctionRegistry which hold the native functions
      */
@@ -410,7 +414,7 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     * Set the {@link JsFunctionRegistry}
+     * Set the {@link JsFunctionRegistry}.
      *
      * @param jsFunctionRegistry JsFunctionRegistry which hold the native functions
      */
@@ -485,7 +489,7 @@ public class FrameworkServiceDataHolder {
 
     private Comparator<ClaimFilter> getClaimFilterComparator() {
 
-        // Sort based on priority in descending order, ie. highest priority comes to the first element of the list.
+        // Sort based on priority in descending order, i.e. highest priority comes to the first element of the list.
         return Comparator.comparingInt(ClaimFilter::getPriority).reversed();
     }
 
@@ -743,5 +747,74 @@ public class FrameworkServiceDataHolder {
     public ConfigurationManager getConfigurationManager() {
 
         return configurationManager;
+    }
+
+    /**
+     * Get Account Lock service.
+     *
+     * @return Account Lock service.
+     */
+    public AccountLockService getAccountLockService() {
+
+        if (accountLockService == null) {
+            throw new RuntimeException("AccountLockService was not set during the OTP service component startup");
+        }
+        return accountLockService;
+    }
+
+    /**
+     * Set Account Lock service.
+     *
+     * @param accountLockService Account Lock service.
+     */
+    public void setAccountLockService(AccountLockService accountLockService) {
+
+        this.accountLockService = accountLockService;
+    }
+
+    /**
+     * Get IdpManager.
+     *
+     * @return IdpManager.
+     */
+    public IdpManager getIdpManager() {
+
+        if (idpManager == null) {
+            throw new RuntimeException("IdpManager not available. Component is not started properly.");
+        }
+        return idpManager;
+    }
+
+    /**
+     * Set IdpManager.
+     *
+     * @param idpManager IdpManager.
+     */
+    public void setIdpManager(IdpManager idpManager) {
+
+        this.idpManager = idpManager;
+    }
+
+    /**
+     * Get Identity Governance service.
+     *
+     * @return Identity Governance service.
+     */
+    public IdentityGovernanceService getIdentityGovernanceService() {
+
+        if (identityGovernanceService == null) {
+            throw new RuntimeException("IdentityGovernanceService not available. Component is not started properly.");
+        }
+        return identityGovernanceService;
+    }
+
+    /**
+     * Set Identity Governance service.
+     *
+     * @param identityGovernanceService Identity Governance service.
+     */
+    public void setIdentityGovernanceService(IdentityGovernanceService identityGovernanceService) {
+
+        this.identityGovernanceService = identityGovernanceService;
     }
 }
