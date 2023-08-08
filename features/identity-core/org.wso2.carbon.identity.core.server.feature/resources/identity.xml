@@ -1233,6 +1233,16 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserManagementErrorEventListener"
                        name="org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener"
                        orderId="1" enable="false"/>
+
+        <!-- B2B organization management Event Listeners -->
+        <EventListener id="fragment_app_mgt_listener"
+                       type="org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener"
+                       name="org.wso2.carbon.identity.organization.management.application.listener.FragmentApplicationMgtListener"
+                       orderId="50" enable="true"/>
+        <EventListener id="organization_user_operation_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.management.role.management.service.listener.OrganizationUserOperationEventListener"
+                       orderId="115" enable="true"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV

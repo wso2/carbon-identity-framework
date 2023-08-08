@@ -228,6 +228,14 @@
   "identity_mgt.events.schemes.WorkflowPendingUserAuthnHandler.subscriptions": [
     "PRE_AUTHENTICATION"
   ],
+  "identity_mgt.events.schemes.OrganizationCreationHandler.module_index": "36",
+  "identity_mgt.events.schemes.OrganizationCreationHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
+  "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION"
+  ],
   "identity_mgt.events.schemes.enforcePasswordResetEventHandler.module_index": "36",
   "identity_mgt.events.schemes.enforcePasswordResetEventHandler.subscriptions": [
     "POST_UPDATE_CREDENTIAL",

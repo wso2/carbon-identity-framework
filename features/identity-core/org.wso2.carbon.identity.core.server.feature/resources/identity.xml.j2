@@ -478,6 +478,14 @@
                 <IdTokenAllowed>true</IdTokenAllowed>
             </SupportedGrantType>
             {% endif %}
+            {% if oauth.grant_type.organization_switch.enable is sameas true %}
+            <SupportedGrantType>
+                <GrantTypeName>organization_switch</GrantTypeName>
+                <GrantTypeHandlerImplClass>{{oauth.grant_type.organization_switch.grant_handler}}</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch.grant_validator}}</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+            </SupportedGrantType>
+            {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
             <SupportedGrantType>
                 <GrantTypeName>urn:ietf:params:oauth:grant-type:token-exchange</GrantTypeName>
@@ -1758,6 +1766,18 @@
                        orderId="{{event.default_listener.client_certificate_authentication_handler.priority}}"
                        enable="{{event.default_listener.client_certificate_authentication_handler.enable}}"/>
 
+        <!-- B2B organization management Event Listeners -->
+        <EventListener id="fragment_app_mgt_listener"
+                       type="org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener"
+                       name="org.wso2.carbon.identity.organization.management.application.listener.FragmentApplicationMgtListener"
+                       orderId="{{event.default_listener.fragment_app_mgt_listener.priority}}"
+                       enable="{{event.default_listener.fragment_app_mgt_listener.enable}}"/>
+
+        <EventListener id="organization_user_operation_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.management.role.management.service.listener.OrganizationUserOperationEventListener"
+                       orderId="{{event.default_listener.organization_user_operation_listener.priority}}"
+                       enable="{{event.default_listener.organization_user_operation_listener.enable}}"/>
         <!-- Introspection Data Providers -->
         <EventListener id="is_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                 name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.introspection.ISIntrospectionDataProvider"
