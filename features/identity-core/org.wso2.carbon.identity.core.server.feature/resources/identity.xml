@@ -582,6 +582,14 @@
             <KeySet>BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz23456789</KeySet>
         </DeviceCodeGrant>
 
+        <!--
+            Configs related to OAuth2 Pushed Authorization Requests.
+            Supported versions: IS 6.2.0 onwards.
+        -->
+        <PAR>
+            <ExpiryTime>60</ExpiryTime>
+        </PAR>
+
         <!-- Configs related to OAuth2 token persistence -->
         <TokenPersistence>
             <Enable>true</Enable>
@@ -1204,6 +1212,9 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.listener.IdentityUserIdResolverListener"
                        orderId="15" enable="true"/>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.mgt.listener.IdentityClaimValueEncryptionListener"
+                       orderId="13" enable="true"/>
 
         <!-- Audit Loggers -->
 
@@ -1225,6 +1236,16 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserManagementErrorEventListener"
                        name="org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener"
                        orderId="1" enable="false"/>
+
+        <!-- B2B organization management Event Listeners -->
+        <EventListener id="fragment_app_mgt_listener"
+                       type="org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener"
+                       name="org.wso2.carbon.identity.organization.management.application.listener.FragmentApplicationMgtListener"
+                       orderId="50" enable="true"/>
+        <EventListener id="organization_user_operation_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.management.role.management.service.listener.OrganizationUserOperationEventListener"
+                       orderId="115" enable="true"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
