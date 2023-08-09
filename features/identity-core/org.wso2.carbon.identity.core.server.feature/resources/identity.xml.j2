@@ -1727,6 +1727,11 @@
                                name="org.wso2.carbon.identity.mgt.listener.IdentityUserIdResolverListener"
                                orderId="{{event.default_listener.userid_resolver.priority}}"
                                enable="{{event.default_listener.userid_resolver.enable}}"/>
+                <EventListener id="claim_encryption"
+                               type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                               name="org.wso2.carbon.identity.mgt.listener.IdentityClaimValueEncryptionListener"
+                               orderId="{{event.default_listener.claim_encryption.priority}}"
+                               enable="{{event.default_listener.claim_encryption.enable}}"/>
 
         <!-- Audit Loggers -->
 

@@ -483,6 +483,8 @@
   "event.default_listener.username_resolver.enable": true,
   "event.default_listener.userid_resolver.priority": "15",
   "event.default_listener.userid_resolver.enable": true,
+  "event.default_listener.claim_encryption.priority": "13",
+  "event.default_listener.claim_encryption.enable": true,
   "event.default_listener.is_introspection_data_provider.priority": "162",
   "event.default_listener.is_introspection_data_provider.enable": false,
   "event.default_listener.outbound_provisioning_error_handler.priority": "1",
