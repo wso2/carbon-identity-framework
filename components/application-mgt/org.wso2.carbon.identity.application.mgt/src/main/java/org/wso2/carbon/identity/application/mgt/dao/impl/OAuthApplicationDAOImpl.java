@@ -45,7 +45,7 @@ public class OAuthApplicationDAOImpl implements OAuthApplicationDAO {
         try {
             prepStmt = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_OAUTH_APPLICATION);
             prepStmt.setString(1, clientIdentifier);
-            prepStmt.setInt(2, IdentityTenantUtil.getTenantId(IdentityTenantUtil.getTenantDomainFromContext()));
+            prepStmt.setInt(2, IdentityTenantUtil.getLoginTenantId());
             prepStmt.execute();
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
