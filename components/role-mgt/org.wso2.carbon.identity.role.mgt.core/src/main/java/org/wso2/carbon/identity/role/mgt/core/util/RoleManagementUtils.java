@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.role.mgt.core.RoleConstants;
 import java.util.Locale;
 
 /**
- * This class is to be used as a Util class for common things in role management.
+ * Util class for role management functionality.
  */
 public class RoleManagementUtils {
 
