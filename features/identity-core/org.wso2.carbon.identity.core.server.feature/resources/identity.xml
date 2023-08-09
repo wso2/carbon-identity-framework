@@ -1204,6 +1204,9 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.listener.IdentityUserIdResolverListener"
                        orderId="15" enable="true"/>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.mgt.listener.IdentityClaimValueEncryptionListener"
+                       orderId="13" enable="true"/>
 
         <!-- Audit Loggers -->
 

@@ -63,7 +63,7 @@ public class IdentityClaimValueEncryptionListener extends AbstractIdentityUserOp
         if (orderId != IdentityCoreConstants.EVENT_LISTENER_ORDER_ID) {
             return orderId;
         }
-        return 96;
+        return 13;
     }
 
 
