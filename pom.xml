@@ -101,6 +101,7 @@
         <module>features/central-logger</module>
         <module>features/input-validation-mgt</module>
         <module>features/consent-server-configs-mgt</module>
+        <module>components/application-role-mgt</module>
     </modules>
 
 
