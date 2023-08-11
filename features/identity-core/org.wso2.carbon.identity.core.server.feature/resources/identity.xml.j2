@@ -264,6 +264,10 @@
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>{{oauth.use_entityid_as_issuer_in_oidc_discovery}}</UseEntityIdAsIssuerInOidcDiscovery>
 
+        <!-- If enabled, OIDC claims will be skipped when requesting token for client credential grant type
+             currently used by JWT token issuer for issuing access token-->
+        <SkipOIDCClaimsForClientCredentialGrant>{{oauth.grant_type.client_credentials.skip_oidc_claims}}</SkipOIDCClaimsForClientCredentialGrant>
+
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>{{oauth.token_validation.authorization_code_validity}}</AuthorizationCodeDefaultValidityPeriod>
         <!-- Default validity period for application access tokens in seconds -->
@@ -478,12 +482,21 @@
                 <IdTokenAllowed>true</IdTokenAllowed>
             </SupportedGrantType>
             {% endif %}
+            {% if oauth.grant_type.organization_switch.enable is sameas true %}
+            <SupportedGrantType>
+                <GrantTypeName>organization_switch</GrantTypeName>
+                <GrantTypeHandlerImplClass>{{oauth.grant_type.organization_switch.grant_handler}}</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch.grant_validator}}</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+            </SupportedGrantType>
+            {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
             <SupportedGrantType>
                 <GrantTypeName>urn:ietf:params:oauth:grant-type:token-exchange</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.token_exchange.grant_handler}}</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.token_exchange.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>false</IdTokenAllowed>
+                <IsRefreshTokenAllowed>{{oauth.grant_type.token_exchange.allow_refresh_tokens}}</IsRefreshTokenAllowed>
             </SupportedGrantType>
             {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
@@ -834,6 +847,14 @@
           <PollingInterval>{{oauth.grant_type.device_code.polling_interval}}</PollingInterval>
           <KeySet>{{oauth.grant_type.device_code.key_set}}</KeySet>
         </DeviceCodeGrant>
+
+        <!--
+            Configs related to OAuth2 Pushed Authorization Requests.
+            Supported versions: IS 6.2.0 onwards.
+        -->
+        <PAR>
+            <ExpiryTime>{{oauth.par.expiry_time}}</ExpiryTime>
+        </PAR>
 
         <!--
             Config related to display name in Authorization Code Grant consent page.
@@ -1710,6 +1731,11 @@
                                name="org.wso2.carbon.identity.mgt.listener.IdentityUserIdResolverListener"
                                orderId="{{event.default_listener.userid_resolver.priority}}"
                                enable="{{event.default_listener.userid_resolver.enable}}"/>
+                <EventListener id="claim_encryption"
+                               type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                               name="org.wso2.carbon.identity.mgt.listener.IdentityClaimValueEncryptionListener"
+                               orderId="{{event.default_listener.claim_encryption.priority}}"
+                               enable="{{event.default_listener.claim_encryption.enable}}"/>
 
         <!-- Audit Loggers -->
 
@@ -1749,6 +1775,18 @@
                        orderId="{{event.default_listener.client_certificate_authentication_handler.priority}}"
                        enable="{{event.default_listener.client_certificate_authentication_handler.enable}}"/>
 
+        <!-- B2B organization management Event Listeners -->
+        <EventListener id="fragment_app_mgt_listener"
+                       type="org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener"
+                       name="org.wso2.carbon.identity.organization.management.application.listener.FragmentApplicationMgtListener"
+                       orderId="{{event.default_listener.fragment_app_mgt_listener.priority}}"
+                       enable="{{event.default_listener.fragment_app_mgt_listener.enable}}"/>
+
+        <EventListener id="organization_user_operation_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.management.role.management.service.listener.OrganizationUserOperationEventListener"
+                       orderId="{{event.default_listener.organization_user_operation_listener.priority}}"
+                       enable="{{event.default_listener.organization_user_operation_listener.enable}}"/>
         <!-- Introspection Data Providers -->
         <EventListener id="is_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                 name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.introspection.ISIntrospectionDataProvider"
@@ -2768,6 +2806,90 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+            <Scopes>internal_role_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+            <Scopes>internal_role_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/share" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/create</Permissions>
+            <Scopes>internal_organization_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
+            <Scopes>internal_organization_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me/organizations/root" secured="true" http-method="GET">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/self-service/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/self-service/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invite" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/add</Permissions>
+            <Scopes>internal_guest_mgt_invite_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitations(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/list</Permissions>
+            <Scopes>internal_guest_mgt_invite_list</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitations/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/delete</Permissions>
+            <Scopes>internal_guest_mgt_invite_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/check-name" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
@@ -3003,6 +3125,7 @@
                     <Path>/api/server/v1/validation-rules</Path>
                     <Path>/api/users/v1/([^/]+)/sessions</Path>
                     <Path>/api/server/v1/admin-advisory-management</Path>
+                    <Path>/api/server/v1/guests</Path>
                 </SubPaths>
             </Context>
             <Context>

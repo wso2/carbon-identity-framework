@@ -234,5 +234,13 @@
     "POST_UPDATE_CREDENTIAL_BY_ADMIN",
     "POST_ADD_USER",
     "PASSWORD_GRANT_POST_AUTHENTICATION"
+  ],
+  "identity_mgt.events.schemes.OrganizationCreationHandler.module_index": "37",
+  "identity_mgt.events.schemes.OrganizationCreationHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "38",
+  "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION"
   ]
 }
