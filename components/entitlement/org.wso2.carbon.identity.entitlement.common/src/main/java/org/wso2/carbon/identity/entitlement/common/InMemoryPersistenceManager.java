@@ -520,7 +520,7 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>Role</name>\n" +
-               "            <uri>http://wso2.org/claims/role</uri>\n" +
+               "            <uri>http://wso2.org/claims/roles</uri>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>Email</name>\n" +
@@ -718,7 +718,7 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>Role</name>\n" +
-               "            <uri>http://wso2.org/claims/role</uri>\n" +
+               "            <uri>http://wso2.org/claims/roles</uri>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>Email</name>\n" +
@@ -1034,7 +1034,7 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>Role</name>\n" +
-               "            <uri>http://wso2.org/claims/role</uri>\n" +
+               "            <uri>http://wso2.org/claims/roles</uri>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>Email</name>\n" +
@@ -1451,7 +1451,7 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>Role</name>\n" +
-               "            <uri>http://wso2.org/claims/role</uri>\n" +
+               "            <uri>http://wso2.org/claims/roles</uri>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>Email</name>\n" +
