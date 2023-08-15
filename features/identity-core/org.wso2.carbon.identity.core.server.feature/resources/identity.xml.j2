@@ -1100,6 +1100,10 @@
             If that doesn't satisfy uncomment the following config and explicitly configure the value
         -->
         <IdentityProviderURL>{{sts.endpoint.idp}}</IdentityProviderURL>
+        <LocalSubjectIdentifier>
+            <IncludeUserStoreDomain>{{sts.local_subject_identifier.include_user_store_domain}}</IncludeUserStoreDomain>
+            <IncludeTenantDomain>{{sts.local_subject_identifier.include_tenant_domain}}</IncludeTenantDomain>
+        </LocalSubjectIdentifier>
     </SecurityTokenService>
 
     <PassiveSTS>

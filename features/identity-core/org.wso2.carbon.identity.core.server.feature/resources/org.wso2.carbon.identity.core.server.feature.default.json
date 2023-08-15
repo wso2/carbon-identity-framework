@@ -267,6 +267,8 @@
   "saml.metadata.sp_enable_sha256_alg": true,
 
   "sts.endpoint.idp": "$ref{server.base_path}/services/wso2carbon-sts",
+  "sts.local_subject_identifier.include_user_store_domain": true,
+  "sts.local_subject_identifier.include_tenant_domain": false,
 
   "passive_sts.token_store_class": "org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore",
   "passive_sts.slo.host_name_verification": true,

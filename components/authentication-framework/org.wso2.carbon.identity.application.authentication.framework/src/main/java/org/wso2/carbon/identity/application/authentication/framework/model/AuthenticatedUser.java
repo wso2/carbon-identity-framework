@@ -411,7 +411,9 @@ public class AuthenticatedUser extends User {
                 authenticatedSubjectIdentifier = IdentityUtil.addDomainToName(userName, userStoreDomain);
             }
             if (useTenantDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(tenantDomain) &&
-                    StringUtils.isNotEmpty(authenticatedSubjectIdentifier)) {
+                    StringUtils.isNotEmpty(authenticatedSubjectIdentifier) &&
+                    StringUtils.countMatches(authenticatedSubjectIdentifier,
+                            UserCoreConstants.TENANT_DOMAIN_COMBINER) < 2) {
                 authenticatedSubjectIdentifier = UserCoreUtil.addTenantDomainToEntry(authenticatedSubjectIdentifier,
                         tenantDomain);
             }
