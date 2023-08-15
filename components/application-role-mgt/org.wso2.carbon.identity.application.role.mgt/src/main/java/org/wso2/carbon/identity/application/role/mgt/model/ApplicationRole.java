@@ -36,10 +36,23 @@ public class ApplicationRole {
         this.applicationId = applicationId;
     }
 
+    public ApplicationRole(String roleId, String roleName, String applicationId) {
+
+        this.roleId = roleId;
+        this.roleName = roleName;
+        this.applicationId = applicationId;
+    }
+
     public ApplicationRole(String roleName, String[] permissions, String applicationId) {
 
         this.roleName = roleName;
         this.permissions = permissions;
+        this.applicationId = applicationId;
+    }
+
+    public ApplicationRole(String roleName, String applicationId) {
+
+        this.roleName = roleName;
         this.applicationId = applicationId;
     }
 

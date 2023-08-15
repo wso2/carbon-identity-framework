@@ -25,6 +25,11 @@ import org.wso2.carbon.identity.application.role.mgt.dao.impl.CacheBackedApplica
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
 
+import java.util.List;
+
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_DUPLICATE_ROLE;
+import static org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils.handleClientException;
+
 /**
  * Application role management service implementation.
  */
@@ -36,12 +41,21 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     @Override
     public void addApplicationRole(ApplicationRole applicationRole) throws ApplicationRoleManagementException {
 
-        applicationRoleMgtDAO.addApplicationRole(applicationRole, getTenantID());
+        String tenantDomain = getTenantDomain();
+        boolean existingRole =
+                applicationRoleMgtDAO.isExistingRole(applicationRole.getApplicationId(), applicationRole.getRoleName(),
+                        tenantDomain);
+        if (existingRole) {
+            throw handleClientException(ERROR_CODE_DUPLICATE_ROLE, applicationRole.getRoleName(),
+                    applicationRole.getApplicationId());
+        }
+        applicationRoleMgtDAO.addApplicationRole(applicationRole, tenantDomain);
     }
 
     @Override
     public void updateApplicationRole(ApplicationRole applicationRole) throws ApplicationRoleManagementException {
 
+        // TODO.
     }
 
     @Override
@@ -51,23 +65,19 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     }
 
     @Override
-    public ApplicationRole[] getApplicationRoles(String applicationId) throws ApplicationRoleManagementException {
+    public List<ApplicationRole> getApplicationRoles(String applicationId) throws ApplicationRoleManagementException {
 
-        return new ApplicationRole[0];
+        return applicationRoleMgtDAO.getApplicationRoles(applicationId);
     }
 
     @Override
     public void deleteApplicationRole(String roleId) throws ApplicationRoleManagementException {
 
+        applicationRoleMgtDAO.deleteApplicationRole(roleId, getTenantDomain());
     }
 
     private static String getTenantDomain() {
 
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-    }
-
-    private static int getTenantID() {
-
-        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId(true);
     }
 }

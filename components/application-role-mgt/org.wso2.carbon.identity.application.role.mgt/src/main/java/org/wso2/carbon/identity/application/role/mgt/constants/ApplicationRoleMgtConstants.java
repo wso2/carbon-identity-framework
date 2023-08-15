@@ -26,8 +26,24 @@ public class ApplicationRoleMgtConstants {
     private static final String APP_ROLE_MGT_ERROR_CODE_PREFIX = "APM-";
 
     public enum ErrorMessages {
-        ERROR_CODE_INSERT_ROLE("65001", "Error occurred while adding the role: %s",
-                "Error occurred while adding the role: %s to application: %s.");
+
+        // Server Errors.
+        ERROR_CODE_INSERT_ROLE("65001", "Error occurred while adding the role.",
+                "Error occurred while adding the role: %s to application: %s."),
+        ERROR_CODE_GET_ROLE_BY_ID("65002", "Error occurred while retrieving the role.",
+                "Error occurred while retrieving the role: %s."),
+        ERROR_CODE_CHECKING_ROLE_EXISTENCE("65003", "Error occurred while checking the role existence.",
+                "Error occurred while checking whether the role: %s exists in application: %s."),
+        ERROR_CODE_GET_ROLES_BY_APPLICATION("65004", "Error occurred while retrieving the roles of the application",
+                "Error occurred while retrieving the roles of application: %s."),
+        ERROR_CODE_UPDATE_ROLE("65005", "Error occurred while updating the role.",
+                "Error occurred while updating the role: %s of application: %s."),
+        ERROR_CODE_DELETE_ROLE("65006", "Error occurred while deleting the role.",
+                "Error occurred while deleting the role: %s."),
+
+        // Client Errors.
+        ERROR_CODE_DUPLICATE_ROLE("60001", "Role already exists.",
+                "Role with name: %s already exists in application: %s.");
 
         private final String code;
         private final String message;

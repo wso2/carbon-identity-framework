@@ -23,19 +23,6 @@ package org.wso2.carbon.identity.application.role.mgt.constants;
  */
 public class SQLConstants {
 
-    // Write queries for CREATE TABLE APP_ROLE (
-    //	ROLE_ID varchar(255) NOT NULL PRIMARY KEY,
-    //	ROLE_NAME varchar(255) NOT NULL,
-    //	TENANT_ID INTEGER NOT NULL,
-    //	APP_ID varchar(36) NOT NULL,
-    //	CURSOR_KEY SERIAL,
-    //	UNIQUE (ROLE_NAME, TENANT_ID, APP_ID),
-    //	FOREIGN KEY (APP_ID) REFERENCES SP_APP(UUID) ON DELETE CASCADE
-    //); and
-
-
-
-
     public static final String ADD_APPLICATION_ROLE =  "INSERT INTO APP_ROLE (ROLE_ID, ROLE_NAME, TENANT_ID, APP_ID) " +
             "VALUES (:" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";, :" +
@@ -50,16 +37,16 @@ public class SQLConstants {
             "FROM APP_ROLE WHERE APP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + ";";
 
     public static final String IS_APPLICATION_ROLE_EXISTS = "SELECT COUNT(1) FROM APP_ROLE WHERE ROLE_NAME = :" +
-            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_NAME + "; AND TENANT_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + "; AND APP_ID = :" +
-            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + ";";
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_NAME + "; AND APP_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + "; AND TENANT_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + "; ";
 
     public static final String UPDATE_APPLICATION_ROLE_BY_ID = "UPDATE APP_ROLE SET ROLE_NAME = :" +
-            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_NAME + "; WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";";
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_NAME + "; WHERE ROLE_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";";
     public static final String DELETE_APPLICATION_ROLE_BY_ID = "DELETE FROM APP_ROLE WHERE ROLE_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";";
 
-    public static final String DELETE_APPLICATION_ROLE_BY_ROLE_NAME_AND_APP = "DELETE FROM APP_ROLE WHERE ROLE_NAME = :" +
-            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_NAME + "; AND APP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + ";";
     /**
      * SQL Placeholders.
      */

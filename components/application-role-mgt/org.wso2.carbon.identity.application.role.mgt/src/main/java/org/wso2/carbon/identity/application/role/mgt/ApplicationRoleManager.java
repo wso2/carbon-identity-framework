@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.application.role.mgt;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
 
+import java.util.List;
+
 /**
  * Application Role Manager.
  */
@@ -58,7 +60,7 @@ public interface ApplicationRoleManager {
      * @return Application roles.
      * @throws ApplicationRoleManagementException Error occurred while retrieving the application roles of a given app.
      */
-    ApplicationRole[] getApplicationRoles(String applicationId) throws ApplicationRoleManagementException;
+    List<ApplicationRole> getApplicationRoles(String applicationId) throws ApplicationRoleManagementException;
 
     /**
      * Delete application role.

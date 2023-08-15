@@ -47,14 +47,15 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     }
 
     @Override
-    public ApplicationRole addApplicationRole(ApplicationRole applicationRole, int TenantID)
+    public ApplicationRole addApplicationRole(ApplicationRole applicationRole, String tenantDomain)
             throws ApplicationRoleManagementServerException {
 
-        return applicationRoleMgtDAO.addApplicationRole(applicationRole, TenantID);
+        return applicationRoleMgtDAO.addApplicationRole(applicationRole, tenantDomain);
     }
 
     @Override
-    public ApplicationRole getApplicationRoleById(String roleId, String tenantDomain) {
+    public ApplicationRole getApplicationRoleById(String roleId, String tenantDomain)
+            throws ApplicationRoleManagementServerException {
 
         ApplicationRole applicationRole = getApplicationRoleFromCache(roleId, tenantDomain);
         if (applicationRole == null) {
@@ -67,23 +68,34 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     }
 
     @Override
-    public List<ApplicationRole> getApplicationRoles(String applicationId) {
+    public List<ApplicationRole> getApplicationRoles(String applicationId)
+            throws ApplicationRoleManagementServerException {
 
         return applicationRoleMgtDAO.getApplicationRoles(applicationId);
     }
 
     @Override
-    public void updateApplicationRole(String applicationId, String roleId, String tenantDomain) {
+    public void updateApplicationRole(String applicationId, String roleId, String tenantDomain)
+            throws ApplicationRoleManagementServerException {
 
         clearFromCache(roleId, tenantDomain);
         applicationRoleMgtDAO.updateApplicationRole(applicationId, roleId, tenantDomain);
     }
 
     @Override
-    public void deleteApplicationRole(String applicationId, String roleId, String tenantDomain) {
+    public void deleteApplicationRole(String roleId, String tenantDomain)
+            throws ApplicationRoleManagementServerException {
 
         clearFromCache(roleId, tenantDomain);
-        applicationRoleMgtDAO.deleteApplicationRole(applicationId, roleId, tenantDomain);
+        applicationRoleMgtDAO.deleteApplicationRole(roleId, tenantDomain);
+    }
+
+    @Override
+    public boolean isExistingRole(String applicationId, String roleName, String tenantDomain)
+            throws ApplicationRoleManagementServerException {
+
+        // TODO: introduce a cache key with app id and role name.
+        return applicationRoleMgtDAO.isExistingRole(applicationId, roleName, tenantDomain);
     }
 
     private ApplicationRole getApplicationRoleFromCache(String applicationRoleId, String tenantDomain) {

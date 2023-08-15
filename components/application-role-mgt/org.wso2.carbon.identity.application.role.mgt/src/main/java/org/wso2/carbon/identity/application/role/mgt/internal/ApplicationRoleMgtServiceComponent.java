@@ -24,6 +24,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.wso2.carbon.identity.application.role.mgt.ApplicationRoleManager;
 import org.wso2.carbon.identity.application.role.mgt.ApplicationRoleManagerImpl;
 
@@ -43,6 +44,12 @@ public class ApplicationRoleMgtServiceComponent {
 
         BundleContext bundleContext = componentContext.getBundleContext();
         bundleContext.registerService(ApplicationRoleManager.class.getName(), new ApplicationRoleManagerImpl(), null);
-        LOG.debug("Application Role Management bundle is activated");
+        LOG.debug("Application Role Management bundle is activated.");
+    }
+
+    @Deactivate
+    protected void deactivate(ComponentContext context) {
+
+        LOG.debug("Application Role Management bundle is deactivated.");
     }
 }

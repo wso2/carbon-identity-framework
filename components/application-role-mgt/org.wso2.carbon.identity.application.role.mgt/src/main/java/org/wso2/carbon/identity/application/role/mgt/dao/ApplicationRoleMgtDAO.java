@@ -28,14 +28,19 @@ import java.util.List;
  */
 public interface ApplicationRoleMgtDAO {
 
-    ApplicationRole addApplicationRole(ApplicationRole applicationRole, int TenantID)
+    ApplicationRole addApplicationRole(ApplicationRole applicationRole, String tenantDomain)
             throws ApplicationRoleManagementServerException;
 
-    ApplicationRole getApplicationRoleById(String roleId, String tenantDomain);
+    ApplicationRole getApplicationRoleById(String roleId, String tenantDomain)
+            throws ApplicationRoleManagementServerException;
 
-    List<ApplicationRole> getApplicationRoles(String applicationId);
+    List<ApplicationRole> getApplicationRoles(String applicationId) throws ApplicationRoleManagementServerException;
 
-    void updateApplicationRole(String applicationId, String roleId, String tenantDomain);
+    void updateApplicationRole(String applicationId, String roleId, String tenantDomain)
+            throws ApplicationRoleManagementServerException;
 
-    void deleteApplicationRole(String applicationId, String roleId, String tenantDomain);
+    void deleteApplicationRole(String roleId, String tenantDomain) throws ApplicationRoleManagementServerException;
+
+    boolean isExistingRole(String applicationId, String roleName, String tenantDomain)
+            throws ApplicationRoleManagementServerException;
 }
