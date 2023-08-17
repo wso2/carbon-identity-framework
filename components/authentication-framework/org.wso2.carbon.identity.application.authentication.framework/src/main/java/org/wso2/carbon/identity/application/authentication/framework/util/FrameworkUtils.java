@@ -36,6 +36,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
@@ -159,6 +160,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
@@ -3504,5 +3506,25 @@ public class FrameworkUtils {
             isUserResolved = (boolean) context.getProperty(FrameworkConstants.IS_USER_RESOLVED);
         }
         return isUserResolved;
+    }
+
+    /**
+     * This method checks if all the authentication steps up to now have been performed by authenticators that
+     * implements AuthenticationFlowHandler interface. If so, it returns true.
+     * AuthenticationFlowHandlers may not perform actual authentication though the authenticated user is set in the
+     * context. Hence, this method can be used to determine if the user has been authenticated by a previous step.
+     *
+     * @param context   AuthenticationContext.
+     * @return True if all the authentication steps up to now have been performed by AuthenticationFlowHandlers.
+     */
+    private static boolean isPreviousIdPAuthenticationFlowHandler(AuthenticationContext context) {
+
+        Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs = context.getCurrentAuthenticatedIdPs();
+        return currentAuthenticatedIdPs != null && !currentAuthenticatedIdPs.isEmpty() &&
+                currentAuthenticatedIdPs.values().stream().filter(Objects::nonNull)
+                        .map(AuthenticatedIdPData::getAuthenticators).filter(Objects::nonNull)
+                        .flatMap(List::stream)
+                        .allMatch(authenticator ->
+                                authenticator.getApplicationAuthenticator() instanceof AuthenticationFlowHandler);
     }
 }
