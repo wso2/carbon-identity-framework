@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -263,7 +263,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     localClaimValues.put(uri, claimValue);
                 } else {
                     /* Claims that are mandatory from service provider level will pre-appended with "missing-" in
-                     there name.
+                     their name.
                      */
                     claimValue = request.getParameter("missing-" + uri);
                     if (StringUtils.isNotEmpty(claimValue)) {
@@ -773,7 +773,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      *
      * @param tenantDomain          Relevant tenant domain.
      * @param externalIdPConfigName External IDP config name.
-     * @return list of cliams available in the tenant.
+     * @return list of claims available in the tenant.
      * @throws PostAuthenticationFailedException PostAuthentication Failed Exception.
      */
     private org.wso2.carbon.user.api.ClaimMapping[] getClaimsForTenant(String tenantDomain,
@@ -884,6 +884,24 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         // Remove role claim from local claims as roles are specifically handled.
         localClaimValues.remove(FrameworkUtils.getLocalClaimUriMappedForIdPRoleClaim(externalIdPConfig));
         localClaimValues.remove(UserCoreConstants.USER_STORE_GROUPS_CLAIM);
+
+        Map<String, String> runtimeClaims = context.getRuntimeClaims();
+        Map<String, String> remoteClaims =
+                (Map<String, String>) context.getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
+
+        // Remove or revert runtime claims from local claims before calling JIT provisioning.
+        for (Map.Entry<String, String> entry : runtimeClaims.entrySet()) {
+            String localClaimURI = entry.getKey();
+            if (claimMapping != null && remoteClaims.containsKey(claimMapping.get(localClaimURI))) {
+                // If remote claim value was overridden by temp claim, revert it
+                String claimValue = remoteClaims.get(claimMapping.get(localClaimURI));
+                localClaimValues.put(localClaimURI, claimValue);
+            } else {
+                // If no remote claim value was overridden by temp claim, remove it
+                localClaimValues.remove(localClaimURI);
+            }
+        }
+
         try {
             FrameworkUtils.getStepBasedSequenceHandler()
                     .callJitProvisioning(username, context, identityProviderMappedUserRolesUnmappedExclusive,
@@ -945,7 +963,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     }
 
     /**
-     * Set the IDP releated data in the receipt service input.
+     * Set the IDP related data in the receipt service input.
      *
      * @param tenantDomain        Tenant domain.
      * @param receiptServiceInput Relevant receipt service input which the
