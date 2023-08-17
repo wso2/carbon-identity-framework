@@ -3517,7 +3517,7 @@ public class FrameworkUtils {
      * @param context   AuthenticationContext.
      * @return True if all the authentication steps up to now have been performed by AuthenticationFlowHandlers.
      */
-    private static boolean isPreviousIdPAuthenticationFlowHandler(AuthenticationContext context) {
+    public static boolean isPreviousIdPAuthenticationFlowHandler(AuthenticationContext context) {
 
         Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs = context.getCurrentAuthenticatedIdPs();
         return currentAuthenticatedIdPs != null && !currentAuthenticatedIdPs.isEmpty() &&
