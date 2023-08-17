@@ -3489,4 +3489,20 @@ public class FrameworkUtils {
 
         return Boolean.TRUE.equals(context.getProperty(IS_IDF_INITIATED_FROM_AUTHENTICATOR));
     }
+
+    /**
+     * Util method to check whether the user is resolved.
+     *
+     * @param context Authentication context.
+     * @return boolean indicating whether the user is resolved.
+     */
+    public static boolean getIsUserResolved(AuthenticationContext context) {
+
+        boolean isUserResolved = false;
+        if (!context.getProperties().isEmpty() &&
+                context.getProperty(FrameworkConstants.IS_USER_RESOLVED) != null) {
+            isUserResolved = (boolean) context.getProperty(FrameworkConstants.IS_USER_RESOLVED);
+        }
+        return isUserResolved;
+    }
 }

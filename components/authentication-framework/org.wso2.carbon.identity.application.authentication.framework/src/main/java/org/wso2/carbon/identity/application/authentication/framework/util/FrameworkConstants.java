@@ -227,6 +227,8 @@ public abstract class FrameworkConstants {
     public static final String BLOCKED_USERSTORE_DOMAINS_LIST = "BlockedUserStoreDomains";
     public static final String BLOCKED_USERSTORE_DOMAINS_SEPARATOR = ",";
 
+    public static final String IS_USER_RESOLVED = "isUserResolved";
+
     private FrameworkConstants() {
 
     }
