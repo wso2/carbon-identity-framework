@@ -101,6 +101,8 @@
         <module>features/central-logger</module>
         <module>features/input-validation-mgt</module>
         <module>features/consent-server-configs-mgt</module>
+        <module>components/application-role-mgt</module>
+        <module>features/application-role-mgt</module>
     </modules>
 
 
@@ -816,6 +818,12 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.application.role.mgt.server.feature</artifactId>
+                <version>${project.version}</version>
+                <type>zip</type>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.mgt.ui.feature</artifactId>
                 <version>${project.version}</version>
                 <type>zip</type>
@@ -1233,6 +1241,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.application.role.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
