@@ -400,25 +400,7 @@ public class AuthenticatedUser extends User {
     public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier,
                                                   ServiceProvider serviceProvider) {
 
-        if (!isFederatedUser() && serviceProvider != null) {
-            boolean useUserstoreDomainInLocalSubjectIdentifier
-                    = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                    .isUseUserstoreDomainInLocalSubjectIdentifier();
-            boolean useTenantDomainInLocalSubjectIdentifier
-                    = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                    .isUseTenantDomainInLocalSubjectIdentifier();
-            if (useUserstoreDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(userStoreDomain)) {
-                authenticatedSubjectIdentifier = IdentityUtil.addDomainToName(userName, userStoreDomain);
-            }
-            if (useTenantDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(tenantDomain) &&
-                    StringUtils.isNotEmpty(authenticatedSubjectIdentifier) &&
-                    StringUtils.countMatches(authenticatedSubjectIdentifier,
-                            UserCoreConstants.TENANT_DOMAIN_COMBINER) < 2) {
-                authenticatedSubjectIdentifier = UserCoreUtil.addTenantDomainToEntry(authenticatedSubjectIdentifier,
-                        tenantDomain);
-            }
-        }
-        this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
+        setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
     }
 
     /**
