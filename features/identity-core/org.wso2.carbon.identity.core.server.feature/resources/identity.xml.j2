@@ -2983,6 +2983,10 @@
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
             <Scopes>internal_user_mgt_list</Scopes>
         </Resource>
+        <Resource context="(.*)/api/expired-password-identification/v1/password-expired-users(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
+            <Scopes>internal_user_mgt_list</Scopes>
+        </Resource>
         <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/longwaitstatus(.*)" secured="false" http-method="GET"/>
@@ -3134,6 +3138,7 @@
                     <Path>/api/users/v1/([^/]+)/sessions</Path>
                     <Path>/api/server/v1/admin-advisory-management</Path>
                     <Path>/api/server/v1/guests</Path>
+                    <Path>/api/expired-password-identification/v1/password-expired-users</Path>
                 </SubPaths>
             </Context>
             <Context>
