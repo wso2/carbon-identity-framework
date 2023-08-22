@@ -25,8 +25,13 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.role.mgt.ApplicationRoleManager;
 import org.wso2.carbon.identity.application.role.mgt.ApplicationRoleManagerImpl;
+import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGi declarative services component which handled activation and deactivation of Application Role Management.
@@ -62,5 +67,44 @@ public class ApplicationRoleMgtServiceComponent {
         } catch (Throwable e) {
             LOG.error("Error while deactivating application role management component.", e);
         }
+    }
+
+    @Reference(
+            name = "realm.service",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService")
+    protected void setRealmService(RealmService realmService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Setting the Realm Service");
+        }
+        ApplicationRoleMgtServiceComponentHolder.getInstance().setRealmService(realmService);
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unset the Realm Service.");
+        }
+        ApplicationRoleMgtServiceComponentHolder.getInstance().setRealmService(null);
+    }
+
+    @Reference(
+            name = "idp.mgt.dscomponent",
+            service = IdpManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityProviderManager"
+    )
+    protected void setIdentityProviderManager(IdpManager idpMgtService) {
+
+        ApplicationRoleMgtServiceComponentHolder.getInstance().setIdentityProviderManager(idpMgtService);
+    }
+
+    protected void unsetIdentityProviderManager(IdpManager idpMgtService) {
+
+        ApplicationRoleMgtServiceComponentHolder.getInstance().setIdentityProviderManager(null);
     }
 }

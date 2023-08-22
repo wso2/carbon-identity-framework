@@ -19,17 +19,21 @@
 package org.wso2.carbon.identity.application.role.mgt;
 
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.role.mgt.dao.ApplicationRoleMgtDAO;
 import org.wso2.carbon.identity.application.role.mgt.dao.impl.ApplicationRoleMgtDAOImpl;
 import org.wso2.carbon.identity.application.role.mgt.dao.impl.CacheBackedApplicationRoleMgtDAOImpl;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
+import org.wso2.carbon.identity.application.role.mgt.internal.ApplicationRoleMgtServiceComponentHolder;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_DUPLICATE_ROLE;
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.LOCAL_IDP;
 import static org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils.handleClientException;
 
 /**
@@ -105,16 +109,45 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     }
 
     @Override
-    public void updateApplicationRoleAssignedGroups(String roleId, List<String> addedGroups, List<String> removedGroups)
+    public void updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
+                                                    List<String> removedGroups)
             throws ApplicationRoleManagementException {
 
+        try {
+            IdentityProvider identityProvider;
+            if (LOCAL_IDP.equals(idpId)) {
+
+                identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
+                        .getIdentityProviderManager().getResidentIdP(getTenantDomain());
+            } else {
+                identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
+                        .getIdentityProviderManager().getIdPByResourceId(idpId, getTenantDomain(), true);
+            }
+            removeCommonValues(addedGroups, removedGroups);
+            applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider.getResourceId(),
+                    addedGroups, removedGroups, getTenantDomain());
+        }   catch (IdentityProviderManagementException e) {
+        throw new ApplicationRoleManagementException("Error while retrieving idp",
+                "Error while retrieving idp for idpId: " + idpId, e);
+    }
     }
 
     @Override
-    public ApplicationRole getApplicationRoleAssignedGroups(String roleId)
+    public ApplicationRole getApplicationRoleAssignedGroups(String roleId, String idpId)
             throws ApplicationRoleManagementException {
 
-        return null;
+        if (LOCAL_IDP.equals(idpId)) {
+            return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, getTenantDomain());
+        }
+        IdentityProvider identityProvider;
+        try {
+            identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
+                    .getIdentityProviderManager().getIdPByResourceId(idpId, getTenantDomain(), true);
+        } catch (IdentityProviderManagementException e) {
+            throw new ApplicationRoleManagementException("Error while retrieving idp", "Error while retrieving idp " +
+                    "for idpId: " + idpId, e);
+        }
+        return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, identityProvider, getTenantDomain());
     }
 
     private static String getTenantDomain() {

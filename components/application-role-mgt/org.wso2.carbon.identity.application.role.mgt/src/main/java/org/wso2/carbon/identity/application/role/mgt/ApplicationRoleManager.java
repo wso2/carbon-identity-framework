@@ -98,8 +98,8 @@ public interface ApplicationRoleManager {
      * @param removedGroups List of group IDs to be unassigned.
      * @throws ApplicationRoleManagementException Error occurred while updating the application role.
      */
-    void updateApplicationRoleAssignedGroups(String roleId, List<String> addedGroups, List<String> removedGroups)
-            throws ApplicationRoleManagementException;
+    void updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
+                                             List<String> removedGroups) throws ApplicationRoleManagementException;
 
     /**
      * Get the list of assigned groups of an application role.
@@ -107,7 +107,8 @@ public interface ApplicationRoleManager {
      * @param roleId Application role ID.
      * @throws ApplicationRoleManagementException Error occurred while updating the application role.
      */
-    ApplicationRole getApplicationRoleAssignedGroups(String roleId) throws ApplicationRoleManagementException;
+    ApplicationRole getApplicationRoleAssignedGroups(String roleId, String idpId)
+            throws ApplicationRoleManagementException;
 
 
 }

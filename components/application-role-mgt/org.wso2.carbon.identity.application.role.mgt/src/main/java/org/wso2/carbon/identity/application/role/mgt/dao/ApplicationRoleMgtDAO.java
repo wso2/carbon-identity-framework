@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.role.mgt.dao;
 
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementServerException;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
@@ -52,9 +53,13 @@ public interface ApplicationRoleMgtDAO {
     ApplicationRole getApplicationRoleAssignedUsers(String roleId, String tenantDomain)
             throws ApplicationRoleManagementException;
 
-    void updateApplicationRoleAssignedGroups(String roleId, List<String> addedGroups, List<String> removedGroups,
-                                             String tenantDomain) throws ApplicationRoleManagementException;
+    void updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
+                                             List<String> removedGroups, String tenantDomain)
+            throws ApplicationRoleManagementException;
 
     ApplicationRole getApplicationRoleAssignedGroups(String roleId, String tenantDomain)
             throws ApplicationRoleManagementException;
+
+    ApplicationRole getApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
+                                                     String tenantDomain) throws ApplicationRoleManagementException;
 }

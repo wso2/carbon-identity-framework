@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.role.mgt.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.role.mgt.cache.ApplicationRoleCache;
 import org.wso2.carbon.identity.application.role.mgt.cache.ApplicationRoleCacheEntry;
 import org.wso2.carbon.identity.application.role.mgt.cache.ApplicationRoleCacheKey;
@@ -115,10 +116,12 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     }
 
     @Override
-    public void updateApplicationRoleAssignedGroups(String roleId, List<String> addedGroups, List<String> removedGroups,
-                                                    String tenantDomain) throws ApplicationRoleManagementException {
+    public void updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
+                                                    List<String> removedGroups, String tenantDomain)
+            throws ApplicationRoleManagementException {
 
-        applicationRoleMgtDAO.updateApplicationRoleAssignedUsers(roleId, addedGroups, removedGroups, tenantDomain);
+        applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, idpId, addedGroups, removedGroups,
+                tenantDomain);
     }
 
     @Override
@@ -126,6 +129,14 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
             throws ApplicationRoleManagementException {
 
         return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, tenantDomain);
+    }
+
+    @Override
+    public ApplicationRole getApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
+                                                            String tenantDomain)
+            throws ApplicationRoleManagementException {
+
+        return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, identityProvider, tenantDomain);
     }
 
     private ApplicationRole getApplicationRoleFromCache(String applicationRoleId, String tenantDomain) {

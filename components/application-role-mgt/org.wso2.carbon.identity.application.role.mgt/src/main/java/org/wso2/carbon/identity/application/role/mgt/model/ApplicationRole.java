@@ -30,7 +30,7 @@ public class ApplicationRole {
     private String[] permissions;
     private String applicationId;
     private List<User> assignedUsers;
-    private List<User> assignedGroups;
+    private List<Group> assignedGroups;
 
     public ApplicationRole(String roleId, String roleName, String[] permissions, String applicationId) {
 
@@ -115,12 +115,12 @@ public class ApplicationRole {
         this.assignedUsers = assignedUsers;
     }
 
-    public List<User> getAssignedGroups() {
+    public List<Group> getAssignedGroups() {
 
         return assignedGroups;
     }
 
-    public void setAssignedGroups(List<User> assignedGroups) {
+    public void setAssignedGroups(List<Group> assignedGroups) {
 
         this.assignedGroups = assignedGroups;
     }

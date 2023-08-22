@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.role.mgt.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * Service component holder class for role management service.
@@ -28,10 +30,42 @@ public class ApplicationRoleMgtServiceComponentHolder {
 
     private static final ApplicationRoleMgtServiceComponentHolder instance =
             new ApplicationRoleMgtServiceComponentHolder();
+    private RealmService realmService;
+    private IdpManager identityProviderManager;
     private static final Log LOG = LogFactory.getLog(ApplicationRoleMgtServiceComponentHolder.class);
 
     public static ApplicationRoleMgtServiceComponentHolder getInstance() {
 
         return instance;
+    }
+
+    public RealmService getRealmService() {
+
+        return realmService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+
+        this.realmService = realmService;
+    }
+
+    /**
+     * Get IdentityProviderManager osgi service.
+     *
+     * @return IdentityProviderManager
+     */
+    public IdpManager getIdentityProviderManager() {
+
+        return identityProviderManager;
+    }
+
+    /**
+     * Set IdentityProviderManager osgi service.
+     *
+     * @param idpManager IdentityProviderManager.
+     */
+    public void setIdentityProviderManager(IdpManager idpManager) {
+
+        this.identityProviderManager = idpManager;
     }
 }
