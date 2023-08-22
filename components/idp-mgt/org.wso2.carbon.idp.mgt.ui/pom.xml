@@ -80,7 +80,7 @@
             <artifactId>org.wso2.carbon.identity.application.default.auth.sequence.mgt.stub</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <groupId>org.wso2.carbon.security.mgt</groupId>
             <artifactId>org.wso2.carbon.security.mgt</artifactId>
         </dependency>
     </dependencies>
