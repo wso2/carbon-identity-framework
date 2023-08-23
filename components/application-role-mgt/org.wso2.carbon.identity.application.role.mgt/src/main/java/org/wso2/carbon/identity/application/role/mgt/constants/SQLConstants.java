@@ -54,7 +54,7 @@ public class SQLConstants {
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";);";
 
     public static final String DELETE_ASSIGNED_USER_APPLICATION_ROLE = "DELETE FROM USER_ROLE WHERE ROLE_ID = :" +
-            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + " AND USER_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND USER_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID + ";";
 
     public static final String GET_ASSIGNED_USERS_OF_APPLICATION_ROLE = "SELECT USER_ID " +
@@ -68,11 +68,12 @@ public class SQLConstants {
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";);";
 
     public static final String DELETE_ASSIGNED_GROUP_APPLICATION_ROLE = "DELETE FROM GROUP_ROLE WHERE ROLE_ID = :" +
-            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + " AND GROUP_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND GROUP_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_GROUP_ID + ";";
 
     public static final String GET_ASSIGNED_GROUPS_OF_APPLICATION_ROLE = "SELECT GROUP_ID, IDP_ID " +
-            "FROM GROUP_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";";
+            "FROM GROUP_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID +
+            "; AND IDP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_ID + ";";
 
     /**
      * SQL Placeholders.

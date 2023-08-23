@@ -125,13 +125,6 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     }
 
     @Override
-    public ApplicationRole getApplicationRoleAssignedGroups(String roleId, String tenantDomain)
-            throws ApplicationRoleManagementException {
-
-        return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, tenantDomain);
-    }
-
-    @Override
     public ApplicationRole getApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
                                                             String tenantDomain)
             throws ApplicationRoleManagementException {

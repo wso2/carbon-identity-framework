@@ -57,9 +57,6 @@ public interface ApplicationRoleMgtDAO {
                                              List<String> removedGroups, String tenantDomain)
             throws ApplicationRoleManagementException;
 
-    ApplicationRole getApplicationRoleAssignedGroups(String roleId, String tenantDomain)
-            throws ApplicationRoleManagementException;
-
     ApplicationRole getApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
                                                      String tenantDomain) throws ApplicationRoleManagementException;
 }

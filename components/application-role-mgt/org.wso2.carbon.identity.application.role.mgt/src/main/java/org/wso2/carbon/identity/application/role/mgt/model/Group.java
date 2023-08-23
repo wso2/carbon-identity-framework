@@ -8,6 +8,7 @@ public class Group {
     private String groupId;
     private String groupName;
     private String idpId;
+    private String idpName;
 
     public Group(String groupId, String idpId) {
 
@@ -43,5 +44,15 @@ public class Group {
     public void setIdpId(String idpId) {
 
         this.idpId = idpId;
+    }
+
+    public String getIdpName() {
+
+        return idpName;
+    }
+
+    public void setIdpName(String idpName) {
+
+        this.idpName = idpName;
     }
 }

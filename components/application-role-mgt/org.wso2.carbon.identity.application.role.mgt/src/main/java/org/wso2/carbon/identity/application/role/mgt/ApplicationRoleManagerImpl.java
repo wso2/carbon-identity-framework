@@ -135,19 +135,20 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     @Override
     public ApplicationRole getApplicationRoleAssignedGroups(String roleId, String idpId)
             throws ApplicationRoleManagementException {
-
-        if (LOCAL_IDP.equals(idpId)) {
-            return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, getTenantDomain());
-        }
-        IdentityProvider identityProvider;
         try {
-            identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
-                    .getIdentityProviderManager().getIdPByResourceId(idpId, getTenantDomain(), true);
+            IdentityProvider identityProvider;
+            if (LOCAL_IDP.equalsIgnoreCase(idpId)) {
+                identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
+                        .getIdentityProviderManager().getResidentIdP(getTenantDomain());
+            } else {
+                identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
+                        .getIdentityProviderManager().getIdPByResourceId(idpId, getTenantDomain(), true);
+            }
+            return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, identityProvider, getTenantDomain());
         } catch (IdentityProviderManagementException e) {
             throw new ApplicationRoleManagementException("Error while retrieving idp", "Error while retrieving idp " +
                     "for idpId: " + idpId, e);
         }
-        return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, identityProvider, getTenantDomain());
     }
 
     private static String getTenantDomain() {

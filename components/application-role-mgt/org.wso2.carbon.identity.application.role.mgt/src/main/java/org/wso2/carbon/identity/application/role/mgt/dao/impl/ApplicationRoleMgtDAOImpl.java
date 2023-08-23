@@ -51,6 +51,7 @@ import static org.wso2.carbon.identity.application.role.mgt.constants.Applicatio
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_UPDATE_ROLE;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_UPDATE_ROLE_ASSIGNED_GROUPS;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_UPDATE_ROLE_ASSIGNED_USERS;
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.LOCAL_IDP;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_GROUP_ID;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_ID;
@@ -227,8 +228,8 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                     }
                 }), roleId);
                 for (String userId: removedUsers) {
-                    namedJdbcTemplate.executeQuery(SQLConstants.DELETE_ASSIGNED_USER_APPLICATION_ROLE,
-                            (resultSet, rowNumber) -> null, namedPreparedStatement -> {
+                    namedJdbcTemplate.executeUpdate(SQLConstants.DELETE_ASSIGNED_USER_APPLICATION_ROLE,
+                            namedPreparedStatement -> {
                                 namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
                                 namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_USER_ID, userId);
                             });
@@ -248,9 +249,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         try {
             List<User> users;
             users = namedJdbcTemplate.executeQuery(SQLConstants.GET_ASSIGNED_USERS_OF_APPLICATION_ROLE,
-                    (resultSet, rowNumber) -> {
-                        return new User(resultSet.getString(DB_SCHEMA_COLUMN_NAME_USER_ID));
-                    },
+                    (resultSet, rowNumber) -> new User(resultSet.getString(DB_SCHEMA_COLUMN_NAME_USER_ID)),
                     namedPreparedStatement -> {
                         namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
                     });
@@ -279,52 +278,32 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
 
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
-            String sqlStmt = SQLConstants.ADD_APPLICATION_ROLE_GROUP;
             namedJdbcTemplate.withTransaction(template -> {
-                namedJdbcTemplate.executeBatchInsert(sqlStmt, (preparedStatement -> {
-                    for (String groupId : addedGroups) {
-                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
-                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_IDP_ID, idpId);
-                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantID);
-                        preparedStatement.addBatch();
+                if (addedGroups.size() > 0) {
+                    namedJdbcTemplate.executeBatchInsert(SQLConstants.ADD_APPLICATION_ROLE_GROUP,
+                            (preparedStatement -> {
+                                for (String groupId : addedGroups) {
+                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
+                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_IDP_ID, idpId);
+                                    preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantID);
+                                    preparedStatement.addBatch();
+                        }
+                    }), roleId);
+                }
+                if (removedGroups.size() > 0) {
+                    for (String groupId: removedGroups) {
+                        namedJdbcTemplate.executeUpdate(SQLConstants.DELETE_ASSIGNED_GROUP_APPLICATION_ROLE,
+                                namedPreparedStatement -> {
+                                    namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                                    namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
+                                });
                     }
-                }), roleId);
-                for (String groupId: removedGroups) {
-                    namedJdbcTemplate.executeQuery(SQLConstants.DELETE_ASSIGNED_GROUP_APPLICATION_ROLE,
-                            (resultSet, rowNumber) -> null, namedPreparedStatement -> {
-                                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
-                            });
                 }
                 return null;
             });
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_UPDATE_ROLE_ASSIGNED_GROUPS, e, roleId);
-        }
-    }
-
-    @Override
-    public ApplicationRole getApplicationRoleAssignedGroups(String roleId, String tenantDomain) throws
-            ApplicationRoleManagementException {
-
-        NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
-        try {
-            List<Group> groups;
-            groups = namedJdbcTemplate.executeQuery(SQLConstants.GET_ASSIGNED_GROUPS_OF_APPLICATION_ROLE,
-                    (resultSet, rowNumber) -> new Group(resultSet.getString(DB_SCHEMA_COLUMN_NAME_GROUP_ID),
-                            resultSet.getString(DB_SCHEMA_COLUMN_NAME_IDP_ID)),
-                    namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                    });
-            for (Group group : groups) {
-                group.setGroupName(getGroupNamesByID(group.getGroupId(), tenantDomain));
-            }
-            ApplicationRole applicationRole = new ApplicationRole(roleId);
-            applicationRole.setAssignedGroups(groups);
-            return  applicationRole;
-        } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_GET_ROLE_ASSIGNED_GROUPS, e, roleId);
         }
     }
 
@@ -341,15 +320,25 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                             resultSet.getString(DB_SCHEMA_COLUMN_NAME_IDP_ID)),
                     namedPreparedStatement -> {
                         namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_IDP_ID,
+                                identityProvider.getResourceId());
                     });
-            IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
-            Map<String, String> idToNameMap = new HashMap<>();
-            for (IdPGroup idpGroup : idpGroups) {
-                idToNameMap.put(idpGroup.getIdpGroupId(), idpGroup.getIdpGroupName());
-            }
-            for (Group group : groups) {
-                if (idToNameMap.containsKey(group.getGroupId())) {
-                    group.setGroupName(idToNameMap.get(group.getGroupId()));
+            if (LOCAL_IDP.equals(identityProvider.getIdentityProviderName())) {
+                for (Group group : groups) {
+                    group.setGroupName(getGroupNamesByID(group.getGroupId(), tenantDomain));
+                    group.setIdpName(identityProvider.getIdentityProviderName());
+                }
+            } else {
+                IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
+                Map<String, String> idToNameMap = new HashMap<>();
+                for (IdPGroup idpGroup : idpGroups) {
+                    idToNameMap.put(idpGroup.getIdpGroupId(), idpGroup.getIdpGroupName());
+                }
+                for (Group group : groups) {
+                    if (idToNameMap.containsKey(group.getGroupId())) {
+                        group.setGroupName(idToNameMap.get(group.getGroupId()));
+                        group.setIdpName(identityProvider.getIdentityProviderName());
+                    }
                 }
             }
             ApplicationRole applicationRole = new ApplicationRole(roleId);

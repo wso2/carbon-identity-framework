@@ -24,7 +24,7 @@ package org.wso2.carbon.identity.application.role.mgt.constants;
 public class ApplicationRoleMgtConstants {
 
     private static final String APP_ROLE_MGT_ERROR_CODE_PREFIX = "APM-";
-    public static final String LOCAL_IDP = "local";
+    public static final String LOCAL_IDP = "LOCAL";
 
     /**
      * Application role management error message constants.
