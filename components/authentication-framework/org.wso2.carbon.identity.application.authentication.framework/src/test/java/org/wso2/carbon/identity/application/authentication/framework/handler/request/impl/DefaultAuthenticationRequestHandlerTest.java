@@ -330,6 +330,8 @@ public class DefaultAuthenticationRequestHandlerTest {
     @Test
     public void testPostAuthenticationHandlers() throws Exception {
 
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
         Cookie[] cookies = new Cookie[1];
         AuthenticationContext context = prepareContextForPostAuthnTests();
         authenticationRequestHandler.handle(request, response, context);

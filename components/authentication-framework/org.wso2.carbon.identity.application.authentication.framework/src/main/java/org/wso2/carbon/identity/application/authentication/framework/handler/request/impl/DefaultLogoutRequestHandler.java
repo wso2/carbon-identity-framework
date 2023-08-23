@@ -294,10 +294,17 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     return;
                 } catch (AuthenticationFailedException | LogoutFailedException e) {
                     if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
-                        diagnosticLogBuilder.resultMessage("Exception while handling logout request")
+                        diagnosticLogBuilder.resultMessage("Exception while handling logout request.")
                                 .inputParam(LogConstants.InputKeys.IDP, idpName)
-                                .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
                                 .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+
+                        // Sanitize the error message before adding to diagnostic log.
+                        String errorMessage = e.getMessage();
+                        if (context.getLastAuthenticatedUser() != null) {
+                            String userName = context.getLastAuthenticatedUser().getUserName();
+                            errorMessage = LoggerUtils.getErrorMessageWithMaskedUsername(errorMessage, userName);
+                        }
+                        diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                     }
                     throw new FrameworkException("Exception while handling logout request", e);
@@ -347,8 +354,14 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     } catch (AuthenticationFailedException | LogoutFailedException e) {
                         if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                             diagnosticLogBuilder.resultMessage("Exception while handling logout request")
-                                    .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
                                     .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                            // Sanitize the error message before adding to diagnostic log.
+                            String errorMessage = e.getMessage();
+                            if (context.getLastAuthenticatedUser() != null) {
+                                String userName = context.getLastAuthenticatedUser().getUserName();
+                                errorMessage = LoggerUtils.getErrorMessageWithMaskedUsername(errorMessage, userName);
+                            }
+                            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
                             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                         }
                         throw new FrameworkException("Exception while handling logout request", e);

@@ -141,7 +141,6 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                                     FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
                             diagLogBuilder.inputParam(LogConstants.InputKeys.STEP, context.getCurrentStep())
-                                    .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
                                     .resultMessage("Authentication failed.")
                                     .resultStatus(DiagnosticLog.ResultStatus.FAILED)
                                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
@@ -160,6 +159,13 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             FrameworkUtils.getApplicationName(context).ifPresent(applicationName ->
                                     diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME,
                                             applicationName));
+                            // Sanitize the error message before adding to diagnostic log.
+                            String errorMessage = e.getMessage();
+                            if (context.getLastAuthenticatedUser() != null) {
+                                String userName = context.getLastAuthenticatedUser().getUserName();
+                                errorMessage = LoggerUtils.getErrorMessageWithMaskedUsername(errorMessage, userName);
+                            }
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
                             LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
                         }
                         return AuthenticatorFlowStatus.INCOMPLETE;
