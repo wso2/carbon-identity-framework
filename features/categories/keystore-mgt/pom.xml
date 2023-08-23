@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>5.25.291-SNAPSHOT</version>
+        <version>5.25.295-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -55,7 +55,7 @@
                             </adviceFile>
                             <importFeatures>
                                 <importFeatureDef>
-                                    org.wso2.carbon.security.mgt:compatible:${identity.framework.version}
+                                    org.wso2.carbon.security.mgt:compatible:${carbon.security.mgt.version}
                                 </importFeatureDef>
                             </importFeatures>
                         </configuration>

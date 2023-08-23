@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>xacml-feature</artifactId>
-        <version>5.25.291-SNAPSHOT</version>
+        <version>5.25.295-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -167,7 +167,7 @@
                                 <importFeatureDef>org.wso2.carbon.identity.saml.common.util:${saml.common.util.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.identity.core.server:compatible:${identity.framework.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.security.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.security.mgt.server:compatible:${carbon.security.mgt.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.identity.notification.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>

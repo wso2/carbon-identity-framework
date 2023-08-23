@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>template-mgt</artifactId>
-        <version>5.25.291-SNAPSHOT</version>
+        <version>5.25.295-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -162,7 +162,7 @@
             <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <groupId>org.wso2.carbon.security.mgt</groupId>
             <artifactId>org.wso2.carbon.security.mgt</artifactId>
         </dependency>
         <dependency>
