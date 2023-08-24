@@ -163,7 +163,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             String errorMessage = e.getMessage();
                             if (context.getLastAuthenticatedUser() != null) {
                                 String userName = context.getLastAuthenticatedUser().getUserName();
-                                errorMessage = LoggerUtils.getErrorMessageWithMaskedUsername(errorMessage, userName);
+                                errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
                             }
                             diagLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
                             LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);

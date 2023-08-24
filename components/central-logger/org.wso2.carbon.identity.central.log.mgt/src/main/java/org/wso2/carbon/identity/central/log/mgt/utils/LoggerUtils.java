@@ -266,7 +266,7 @@ public class LoggerUtils {
      * @param userName     Username.
      * @return  Masked error message.
      */
-    public static String getErrorMessageWithMaskedUsername(String errorMessage, String userName) {
+    public static String getSanitizedErrorMessage(String errorMessage, String userName) {
 
         if (LoggerUtils.isLogMaskingEnable && errorMessage.contains(userName)) {
             return errorMessage.replace(userName, LoggerUtils.getMaskedContent(userName));

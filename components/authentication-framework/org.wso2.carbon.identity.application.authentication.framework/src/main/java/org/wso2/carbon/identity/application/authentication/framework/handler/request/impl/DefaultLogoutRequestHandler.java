@@ -302,7 +302,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                         String errorMessage = e.getMessage();
                         if (context.getLastAuthenticatedUser() != null) {
                             String userName = context.getLastAuthenticatedUser().getUserName();
-                            errorMessage = LoggerUtils.getErrorMessageWithMaskedUsername(errorMessage, userName);
+                            errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
                         }
                         diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
                         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
@@ -359,7 +359,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                             String errorMessage = e.getMessage();
                             if (context.getLastAuthenticatedUser() != null) {
                                 String userName = context.getLastAuthenticatedUser().getUserName();
-                                errorMessage = LoggerUtils.getErrorMessageWithMaskedUsername(errorMessage, userName);
+                                errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
                             }
                             diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
                             LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
