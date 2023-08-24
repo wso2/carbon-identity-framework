@@ -60,12 +60,15 @@ import org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagement
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
+import org.wso2.carbon.identity.application.mgt.provider.ApplicationRoleProvider;
+import org.wso2.carbon.identity.application.mgt.provider.ApplicationRoleProviderImpl;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -94,6 +97,8 @@ import java.util.Map;
         immediate = true
 )
 public class ApplicationManagementServiceComponent {
+
+    private static final String INTERNAL_APPLICATION_ROLES_ENABLED_CONFIG = "Internal.Application.Roles.Enabled";
     private static Log log = LogFactory.getLog(ApplicationManagementServiceComponent.class);
     private static BundleContext bundleContext;
     private static Map<String, ServiceProvider> fileBasedSPs = new HashMap<String, ServiceProvider>();
@@ -157,6 +162,13 @@ public class ApplicationManagementServiceComponent {
             bundleContext.registerService(ApplicationMgtListener.class,
                     new AdminRolePermissionsUpdateListener(), null);
 
+            if (ApplicationManagementServiceComponentHolder.getInstance().getApplicationRoleProvider() == null) {
+                ApplicationManagementServiceComponentHolder.getInstance()
+                        .setApplicationRoleProvider(new ApplicationRoleProviderImpl());
+            }
+            ApplicationManagementServiceComponentHolder.getInstance()
+                    .setInternalApplicationRolesEnabled(Boolean.parseBoolean(
+                            IdentityUtil.getProperty(INTERNAL_APPLICATION_ROLES_ENABLED_CONFIG)));
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }
@@ -610,5 +622,38 @@ public class ApplicationManagementServiceComponent {
     private void unsetSecretResolveManagerService(SecretResolveManager secretResolveManager) {
 
         ApplicationManagementServiceComponentHolder.getInstance().setSecretResolveManager(null);
+    }
+
+    @Reference(
+            name = "application.role.provider",
+            service = ApplicationRoleProvider.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationRoleProvider"
+    )
+    protected void setApplicationRoleProvider(ApplicationRoleProvider applicationRoleProvider) {
+
+        ApplicationRoleProvider existingApplicationRoleProvider =
+                ApplicationManagementServiceComponentHolder.getInstance().getApplicationRoleProvider();
+
+        if (existingApplicationRoleProvider != null) {
+            log.warn("Multiple Application Permission Providers are registered. Permission Provider:"
+                    + existingApplicationRoleProvider.getClass().getName() + " will be replaced with "
+                    + applicationRoleProvider.getClass().getName());
+        }
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setApplicationRoleProvider(applicationRoleProvider);
+        log.info("Application role provider got registered: " +
+                applicationRoleProvider.getClass().getName());
+    }
+
+    protected void unsetApplicationRoleProvider(ApplicationRoleProvider applicationRoleProvider) {
+
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setApplicationRoleProvider(new ApplicationRoleProviderImpl());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed application role provider.");
+        }
     }
 }

@@ -469,7 +469,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             application.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));
             addServiceProviderProperties(connection, applicationId, serviceProviderProperties, tenantID);
 
-
+            if (ApplicationManagementServiceComponentHolder.getInstance().isInternalApplicationRolesEnabled()) {
+                String[] roles = ApplicationManagementServiceComponentHolder.getInstance().
+                        getApplicationRoleProvider().getUserRoles(username, tenantID);
+                addApplicationRoles(applicationId, roles, connection);
+                application.setApplicationRoles(roles);
+            }
             if (log.isDebugEnabled()) {
                 log.debug("Application Stored successfully with applicationId: " + applicationId +
                         " and applicationResourceId: " + resourceId);
@@ -2191,6 +2196,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             // Set role associations.
             serviceProvider.setAssociatedRolesConfig(
                     getAssociatedRoles(serviceProvider.getApplicationResourceId(), connection, tenantID));
+            // TODO: Remove this if condition once all application roles are added to the database for existing users.
+            if (ApplicationManagementServiceComponentHolder.getInstance().isInternalApplicationRolesEnabled()) {
+                if (!isAppRolesExistsForApplication(applicationId, connection)) {
+                    String[] roles = ApplicationManagementServiceComponentHolder.getInstance().
+                            getApplicationRoleProvider()
+                            .getUserRoles(serviceProvider.getOwner().getUserName(), tenantID);
+                    addApplicationRoles(applicationId, roles, connection);
+                }
+                serviceProvider.setApplicationRoles(getApplicationRoles(applicationId, connection));
+            }
             // Will be supported with 'Advance Consent Management Feature'.
             /*
             ConsentConfig consentConfig = serviceProvider.getConsentConfig();
@@ -6111,5 +6126,62 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
 
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, action, data, result));
+    }
+
+    private void addApplicationRoles(int applicationId, String[] roles, Connection connection)
+            throws IdentityApplicationManagementException {
+
+        try (PreparedStatement storeAppRolesPrepStatement = connection.prepareStatement(
+                ApplicationMgtDBQueries.ADD_APPLICATION_ROLES)) {
+            if (roles != null && roles.length > 0) {
+                for (String role : roles) {
+                    storeAppRolesPrepStatement.setInt(1, applicationId);
+                    storeAppRolesPrepStatement.setString(2, role);
+                    storeAppRolesPrepStatement.addBatch();
+                }
+                storeAppRolesPrepStatement.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while adding application roles", e);
+        }
+    }
+
+    public boolean isAppRolesExistsForApplication(int applicationId, Connection connection)
+            throws IdentityApplicationManagementException {
+
+        int count;
+        try (PreparedStatement getAppRoleCountPrepStatement = connection
+                .prepareStatement(ApplicationMgtDBQueries.COUNT_APP_ROLE_OF_APP);) {
+
+            getAppRoleCountPrepStatement.setInt(1, applicationId);
+            try (ResultSet appNameResultSet = getAppRoleCountPrepStatement.executeQuery()) {
+                appNameResultSet.next();
+                count = Integer.parseInt(appNameResultSet.getString(1));
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error while retrieving application role count for application id : " + applicationId, e);
+        }
+
+        return count > 0;
+    }
+
+    private String[] getApplicationRoles(int applicationId, Connection connection)
+            throws IdentityApplicationManagementServerException {
+
+        try (PreparedStatement statementForFetchingAppRoles = connection.prepareStatement(
+                ApplicationMgtDBQueries.GET_APPLICATION_ROLES)) {
+            statementForFetchingAppRoles.setInt(1, applicationId);
+            try (ResultSet results = statementForFetchingAppRoles.executeQuery()) {
+                ArrayList<String> appRoles = new ArrayList<>();
+                while (results.next()) {
+                    appRoles.add(results.getString(1));
+                }
+                return appRoles.toArray(new String[0]);
+            }
+        } catch (SQLException e) {
+            String errorMessage = "An error occurred while retrieving the application roles for the application.";
+            throw new IdentityApplicationManagementServerException(errorMessage, e);
+        }
     }
 }

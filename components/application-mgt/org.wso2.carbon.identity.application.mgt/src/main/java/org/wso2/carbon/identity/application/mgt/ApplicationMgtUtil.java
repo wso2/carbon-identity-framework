@@ -583,50 +583,22 @@ public class ApplicationMgtUtil {
     public static boolean isValidApplicationOwner(ServiceProvider serviceProvider)
             throws IdentityApplicationManagementException {
 
-        try {
-            String userName;
-            String userNameWithDomain;
-            if (serviceProvider.getOwner() != null) {
-                userName = serviceProvider.getOwner().getUserName();
-                if (StringUtils.isEmpty(userName) || CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(userName)) {
-                    return false;
-                }
-                String userStoreDomain = serviceProvider.getOwner().getUserStoreDomain();
-                userNameWithDomain = IdentityUtil.addDomainToName(userName, userStoreDomain);
-
-                String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-                Optional<User> user = getUser(tenantDomain, userNameWithDomain);
-                if (user.isPresent()) {
-                    return true;
-                } else {
-                    org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext()
-                            .getUserRealm();
-                    if (realm == null) {
-                        return false;
-                    }
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Owner does not exist for application: " + serviceProvider.getApplicationName() +
-                                ". Hence making the tenant admin the owner of the application.");
-                    }
-                    // Since the SP owner does not exist, set the tenant admin user as the owner.
-                    User owner = new User();
-                    String adminUserName = realm.getRealmConfiguration().getAdminUserName();
-                    owner.setUserName(adminUserName);
-                    owner.setUserStoreDomain(realm.getRealmConfiguration().
-                            getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
-                    owner.setTenantDomain(getUserTenantDomain(tenantDomain, adminUserName));
-                    serviceProvider.setOwner(owner);
-                }
-            } else {
+        String userName;
+        String userNameWithDomain;
+        if (serviceProvider.getOwner() != null) {
+            userName = serviceProvider.getOwner().getUserName();
+            if (StringUtils.isEmpty(userName) || CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(userName)) {
                 return false;
             }
-        } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
-                    "application: " +
-                    serviceProvider.getApplicationName(), e);
+            String userStoreDomain = serviceProvider.getOwner().getUserStoreDomain();
+            userNameWithDomain = IdentityUtil.addDomainToName(userName, userStoreDomain);
+
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            Optional<User> user = getUser(tenantDomain, userNameWithDomain);
+            return user.isPresent();
+        } else {
+            return false;
         }
-        return true;
     }
 
     /**

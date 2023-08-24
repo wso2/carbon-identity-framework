@@ -55,6 +55,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
+    private static final String APPLICATION_ROLE = "applicationRole";
 
     @XmlTransient
     @JsonIgnore
@@ -149,6 +150,10 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = "ClientAttestationMetaData")
     private ClientAttestationMetaData clientAttestationMetaData;
 
+
+    @IgnoreNullElement
+    @XmlElement(name = APPLICATION_ROLE)
+    private String[] applicationRoles = new String[0];
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -601,6 +606,16 @@ public class ServiceProvider implements Serializable {
     public void setClientAttestationMetaData(ClientAttestationMetaData clientAttestationMetaData) {
 
         this.clientAttestationMetaData = clientAttestationMetaData;
+    }
+
+    public String[] getApplicationRoles() {
+
+        return applicationRoles;
+    }
+
+    public void setApplicationRoles(String[] applicationRoles) {
+
+        this.applicationRoles = applicationRoles;
     }
 }
 

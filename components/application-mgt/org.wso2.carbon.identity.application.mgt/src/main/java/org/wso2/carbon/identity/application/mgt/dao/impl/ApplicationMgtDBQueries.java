@@ -519,4 +519,9 @@ public class ApplicationMgtDBQueries {
         public static final String DB_SCHEMA_COLUMN_NAME_APP_ID = "APP_ID";
         public static final String DB_SCHEMA_COLUMN_NAME_ROLE_ID = "ROLE_ID";
     }
+
+    public static final String GET_APPLICATION_ROLES = "SELECT ROLE_NAME FROM SP_APP_ROLE WHERE SP_APP_ID = ?";
+    public static final String ADD_APPLICATION_ROLES = "INSERT INTO SP_APP_ROLE (SP_APP_ID, ROLE_NAME) " +
+            "VALUES (?, ?)";
+    public static final String COUNT_APP_ROLE_OF_APP = "SELECT COUNT(*) FROM SP_APP_ROLE WHERE SP_APP_ID = ?";
 }
