@@ -48,15 +48,19 @@ public interface ApplicationRoleMgtDAO {
 
     void updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers, List<String> removedUsers,
                                             String tenantDomain) throws
-            ApplicationRoleManagementServerException;
+            ApplicationRoleManagementException;
 
     ApplicationRole getApplicationRoleAssignedUsers(String roleId, String tenantDomain)
             throws ApplicationRoleManagementException;
 
-    void updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
+    void updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider, List<String> addedGroups,
                                              List<String> removedGroups, String tenantDomain)
             throws ApplicationRoleManagementException;
 
     ApplicationRole getApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
                                                      String tenantDomain) throws ApplicationRoleManagementException;
+
+    List<ApplicationRole> getApplicationRolesByUserId(String userId) throws ApplicationRoleManagementException;
+
+    List<ApplicationRole> getApplicationRolesByGroupId(String groupId) throws ApplicationRoleManagementException;
 }

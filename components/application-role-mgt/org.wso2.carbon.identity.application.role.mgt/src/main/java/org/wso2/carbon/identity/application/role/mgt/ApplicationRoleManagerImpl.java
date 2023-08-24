@@ -124,7 +124,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
                         .getIdentityProviderManager().getIdPByResourceId(idpId, getTenantDomain(), true);
             }
             removeCommonValues(addedGroups, removedGroups);
-            applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider.getResourceId(),
+            applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider,
                     addedGroups, removedGroups, getTenantDomain());
         }   catch (IdentityProviderManagementException e) {
         throw new ApplicationRoleManagementException("Error while retrieving idp",
@@ -149,6 +149,20 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             throw new ApplicationRoleManagementException("Error while retrieving idp", "Error while retrieving idp " +
                     "for idpId: " + idpId, e);
         }
+    }
+
+    @Override
+    public List<ApplicationRole> getApplicationRolesByUserId(String userId)
+            throws ApplicationRoleManagementException {
+
+        return applicationRoleMgtDAO.getApplicationRolesByUserId(userId);
+    }
+
+    @Override
+    public List<ApplicationRole> getApplicationRolesByGroupId(String groupId)
+            throws ApplicationRoleManagementException {
+
+        return applicationRoleMgtDAO.getApplicationRolesByGroupId(groupId);
     }
 
     private static String getTenantDomain() {

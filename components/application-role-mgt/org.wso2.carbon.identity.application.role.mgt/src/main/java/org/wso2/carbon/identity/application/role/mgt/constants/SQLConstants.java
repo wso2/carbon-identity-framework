@@ -75,6 +75,14 @@ public class SQLConstants {
             "FROM GROUP_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID +
             "; AND IDP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_ID + ";";
 
+    public static final String GET_APPLICATION_ROLES_BY_USER_ID = "SELECT ar.ROLE_ID, ar.ROLE_NAME, ar.TENANT_ID, " +
+            "ar.APP_ID FROM APP_ROLE as ar INNER JOIN USER_ROLE as ur ON ar.ROLE_ID = ur.ROLE_ID WHERE ur.USER_ID = :"
+            + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID + ";";
+
+    public static final String GET_APPLICATION_ROLES_BY_GROUP_ID = "SELECT ar.ROLE_ID, ar.ROLE_NAME, ar.TENANT_ID, " +
+            "ar.APP_ID FROM APP_ROLE as ar INNER JOIN GROUP_ROLE as gr ON ar.ROLE_ID = gr.ROLE_ID WHERE gr.GROUP_ID = :"
+            + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_GROUP_ID + ";";
+
     /**
      * SQL Placeholders.
      */

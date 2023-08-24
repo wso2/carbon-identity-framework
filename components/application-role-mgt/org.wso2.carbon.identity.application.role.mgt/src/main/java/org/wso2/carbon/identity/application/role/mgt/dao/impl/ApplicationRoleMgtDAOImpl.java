@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants;
 import org.wso2.carbon.identity.application.role.mgt.dao.ApplicationRoleMgtDAO;
+import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementClientException;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementServerException;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
@@ -44,6 +45,8 @@ import java.util.Map;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_CHECKING_ROLE_EXISTENCE;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_DELETE_ROLE;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_GET_ROLES_BY_APPLICATION;
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_GET_ROLES_BY_GROUP_ID;
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_GET_ROLES_BY_USER_ID;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_GET_ROLE_ASSIGNED_GROUPS;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_GET_ROLE_ASSIGNED_USERS;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_GET_ROLE_BY_ID;
@@ -206,7 +209,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
     @Override
     public void updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers, List<String> removedUsers,
                                                    String tenantDomain)
-            throws ApplicationRoleManagementServerException {
+            throws ApplicationRoleManagementException {
 
         int tenantID;
         if (tenantDomain != null) {
@@ -214,6 +217,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         } else {
             tenantID = MultitenantConstants.INVALID_TENANT_ID;
         }
+        validateUserIds(addedUsers, tenantDomain);
 
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
@@ -265,8 +269,9 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
     }
 
     @Override
-    public void updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
-                                                    List<String> removedGroups, String tenantDomain)
+    public void updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
+                                                    List<String> addedGroups, List<String> removedGroups,
+                                                    String tenantDomain)
             throws ApplicationRoleManagementException {
 
         int tenantID;
@@ -275,7 +280,8 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         } else {
             tenantID = MultitenantConstants.INVALID_TENANT_ID;
         }
-
+        validateGroupIds(identityProvider, addedGroups, tenantDomain);
+        validateGroupIds(identityProvider, removedGroups, tenantDomain);
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
             namedJdbcTemplate.withTransaction(template -> {
@@ -285,7 +291,8 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                                 for (String groupId : addedGroups) {
                                     preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
                                     preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
-                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_IDP_ID, idpId);
+                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_IDP_ID,
+                                            identityProvider.getResourceId());
                                     preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantID);
                                     preparedStatement.addBatch();
                         }
@@ -349,6 +356,81 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         }
     }
 
+    @Override
+    public List<ApplicationRole> getApplicationRolesByUserId(String userId) throws ApplicationRoleManagementException {
+
+        NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
+        try {
+            return namedJdbcTemplate.executeQuery(SQLConstants.GET_APPLICATION_ROLES_BY_USER_ID,
+                    (resultSet, rowNumber) ->
+                            new ApplicationRole(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_ID),
+                                    resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME),
+                                    resultSet.getString(DB_SCHEMA_COLUMN_NAME_APP_ID)),
+                    namedPreparedStatement -> {
+                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_USER_ID, userId);
+                    });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_ROLES_BY_USER_ID, e, userId);
+        }
+    }
+
+    @Override
+    public List<ApplicationRole> getApplicationRolesByGroupId(String groupId)
+            throws ApplicationRoleManagementException {
+
+            NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
+            try {
+                return namedJdbcTemplate.executeQuery(SQLConstants.GET_APPLICATION_ROLES_BY_GROUP_ID,
+                        (resultSet, rowNumber) ->
+                                new ApplicationRole(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_ID),
+                                        resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME),
+                                        resultSet.getString(DB_SCHEMA_COLUMN_NAME_APP_ID)),
+                        namedPreparedStatement -> {
+                            namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
+                        });
+            } catch (DataAccessException e) {
+                throw handleServerException(ERROR_CODE_GET_ROLES_BY_GROUP_ID, e, groupId);
+            }
+    }
+
+    public void validateGroupIds(IdentityProvider identityProvider, List<String> groups, String tenantDomain)
+            throws ApplicationRoleManagementException {
+
+        if (LOCAL_IDP.equals(identityProvider.getIdentityProviderName())) {
+            for (String groupId : groups) {
+                boolean isExists = groupIDResolver.isExists(groupId, tenantDomain);
+                if (!isExists) {
+                    throw new ApplicationRoleManagementClientException("Given groupId is not found",
+                                    "Given groupId is not found", "");
+                }
+            }
+        } else {
+            IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
+            Map<String, String> idToNameMap = new HashMap<>();
+            for (IdPGroup idpGroup : idpGroups) {
+                idToNameMap.put(idpGroup.getIdpGroupId(), idpGroup.getIdpGroupName());
+            }
+            for (String groupId : groups) {
+                if (!idToNameMap.containsKey(groupId)) {
+                    throw new ApplicationRoleManagementClientException("Given groupId is not found",
+                            "Given groupId is not found", "");
+                }
+            }
+        }
+    }
+
+    public void validateUserIds(List<String> users, String tenantDomain)
+            throws ApplicationRoleManagementException {
+
+        for (String userId : users) {
+            boolean isExists = userIDResolver.isExists(userId, tenantDomain);
+            if (!isExists) {
+                throw new ApplicationRoleManagementClientException("Given user Id is not found",
+                        "Given user Id is not found", "");
+            }
+        }
+    }
+
     private String getUserNamesByID(String userID, String tenantDomain)
             throws ApplicationRoleManagementException {
 
@@ -360,4 +442,5 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
 
         return groupIDResolver.getNameByID(groupID, tenantDomain);
     }
+
 }

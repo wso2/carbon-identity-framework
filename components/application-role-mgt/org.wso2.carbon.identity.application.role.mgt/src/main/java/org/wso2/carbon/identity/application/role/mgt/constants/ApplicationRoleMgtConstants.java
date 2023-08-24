@@ -44,14 +44,22 @@ public class ApplicationRoleMgtConstants {
                 "Error occurred while updating the role: %s of application: %s."),
         ERROR_CODE_DELETE_ROLE("65006", "Error occurred while deleting the role.",
                 "Error occurred while deleting the role: %s."),
-        ERROR_CODE_UPDATE_ROLE_ASSIGNED_USERS("65007", "Error occurred while assigning users to the role.",
-                "Error occurred while assigning users to the role: %s."),
+        ERROR_CODE_UPDATE_ROLE_ASSIGNED_USERS("65007", "Error occurred while assigning users to " +
+                "the role.", "Error occurred while assigning users to the role: %s."),
         ERROR_CODE_GET_ROLE_ASSIGNED_USERS("65008", "Error occurred while retrieving users of the role.",
                 "Error occurred while retrieving users of the role: %s."),
-        ERROR_CODE_UPDATE_ROLE_ASSIGNED_GROUPS("65007", "Error occurred while assigning groups to the role.",
-                "Error occurred while assigning groups to the role: %s."),
-        ERROR_CODE_GET_ROLE_ASSIGNED_GROUPS("65008", "Error occurred while retrieving groups of the role.",
-                "Error occurred while retrieving groups of the role: %s."),
+        ERROR_CODE_UPDATE_ROLE_ASSIGNED_GROUPS("65007", "Error occurred while assigning groups to " +
+                "the role.", "Error occurred while assigning groups to the role: %s."),
+        ERROR_CODE_GET_ROLE_ASSIGNED_GROUPS("65008", "Error occurred while retrieving groups of " +
+                "the role.", "Error occurred while retrieving groups of the role: %s."),
+        ERROR_CODE_GET_ROLES_BY_USER_ID("65009", "Error occurred while retrieving the roles of the " +
+                "application by userID", "Error occurred while retrieving the roles of application by " +
+                "userID: %s."),
+        ERROR_CODE_GET_ROLES_BY_GROUP_ID("65010", "Error occurred while retrieving the roles of the " +
+                "application by groupID", "Error occurred while retrieving the roles of application by " +
+                "groupID: %s."),
+        ERROR_CODE_GROUP_ID_NO_FOUND("65011", "Given group not found", "Given group not found " +
+                "for groupID: %s."),
 
         // Client Errors.
         ERROR_CODE_DUPLICATE_ROLE("60001", "Role already exists.",

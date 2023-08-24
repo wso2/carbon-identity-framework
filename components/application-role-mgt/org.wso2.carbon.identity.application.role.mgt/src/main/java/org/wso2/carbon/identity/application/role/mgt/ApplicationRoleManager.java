@@ -110,5 +110,21 @@ public interface ApplicationRoleManager {
     ApplicationRole getApplicationRoleAssignedGroups(String roleId, String idpId)
             throws ApplicationRoleManagementException;
 
+    /**
+     * Get the list of application roles of a user.
+     *
+     * @param userId user ID.
+     * @throws ApplicationRoleManagementException Error occurred while updating the application role.
+     */
+    List<ApplicationRole> getApplicationRolesByUserId(String userId) throws ApplicationRoleManagementException;
+
+    /**
+     * Get the list of application roles of a group.
+     *
+     * @param groupId group ID.
+     * @throws ApplicationRoleManagementException Error occurred while updating the application role.
+     */
+    List<ApplicationRole> getApplicationRolesByGroupId(String groupId) throws ApplicationRoleManagementException;
+
 
 }

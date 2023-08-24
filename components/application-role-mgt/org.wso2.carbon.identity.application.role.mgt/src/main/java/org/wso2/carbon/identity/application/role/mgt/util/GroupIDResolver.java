@@ -26,7 +26,26 @@ public class GroupIDResolver implements IDResolver {
         return groupName;
     }
 
-    public String resolveGroupNameFromGroupID(String id) throws ApplicationRoleManagementException {
+    @Override
+    public boolean isExists(String id, String tenantDomain) throws ApplicationRoleManagementException {
+
+        return isGroupExists(id);
+    }
+
+    private boolean isGroupExists(String id) throws ApplicationRoleManagementException {
+
+        AbstractUserStoreManager userStoreManager;
+        try {
+            userStoreManager = getUserStoreManager(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+            return userStoreManager.isGroupExist(id);
+        } catch (UserStoreException e) {
+            throw new ApplicationRoleManagementServerException("Error occurred while retrieving the userstore manager "
+                    + "to resolve group name for the groupID", "Error occurred while retrieving the userstore manager "
+                    + "to resolve group name for the groupID: " + id, e);
+        }
+    }
+
+    private String resolveGroupNameFromGroupID(String id) throws ApplicationRoleManagementException {
 
         AbstractUserStoreManager userStoreManager;
         try {

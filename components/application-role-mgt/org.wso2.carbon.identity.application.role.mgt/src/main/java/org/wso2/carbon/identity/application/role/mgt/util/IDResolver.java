@@ -9,4 +9,6 @@ public interface IDResolver {
 
     String getNameByID(String id, String tenantDomain) throws ApplicationRoleManagementException;
 
+    boolean isExists(String id, String tenantDomain) throws ApplicationRoleManagementException;
+
 }

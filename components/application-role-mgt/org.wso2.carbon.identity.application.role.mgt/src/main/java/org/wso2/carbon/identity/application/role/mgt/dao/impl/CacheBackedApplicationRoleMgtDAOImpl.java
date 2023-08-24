@@ -103,7 +103,7 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     @Override
     public void updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers, List<String> removedUsers,
                                                    String tenantDomain)
-            throws ApplicationRoleManagementServerException {
+            throws ApplicationRoleManagementException {
 
         applicationRoleMgtDAO.updateApplicationRoleAssignedUsers(roleId, addedUsers, removedUsers, tenantDomain);
     }
@@ -112,15 +112,23 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     public ApplicationRole getApplicationRoleAssignedUsers(String roleId, String tenantDomain)
             throws ApplicationRoleManagementException {
 
+        ApplicationRole applicationRole = getApplicationRoleFromCache(roleId, tenantDomain);
+        if (applicationRole == null) {
+            applicationRole = applicationRoleMgtDAO.getApplicationRoleById(roleId, tenantDomain);
+            if (applicationRole != null) {
+                addToCache(applicationRole, tenantDomain);
+            }
+        }
         return applicationRoleMgtDAO.getApplicationRoleAssignedUsers(roleId, tenantDomain);
     }
 
     @Override
-    public void updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
-                                                    List<String> removedGroups, String tenantDomain)
+    public void updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
+                                                    List<String> addedGroups, List<String> removedGroups,
+                                                    String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, idpId, addedGroups, removedGroups,
+        applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider, addedGroups, removedGroups,
                 tenantDomain);
     }
 
@@ -130,6 +138,20 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
             throws ApplicationRoleManagementException {
 
         return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, identityProvider, tenantDomain);
+    }
+
+    @Override
+    public List<ApplicationRole> getApplicationRolesByUserId(String userId)
+            throws ApplicationRoleManagementException {
+
+        return applicationRoleMgtDAO.getApplicationRolesByUserId(userId);
+    }
+
+    @Override
+    public List<ApplicationRole> getApplicationRolesByGroupId(String groupId)
+            throws ApplicationRoleManagementException {
+
+        return applicationRoleMgtDAO.getApplicationRolesByGroupId(groupId);
     }
 
     private ApplicationRole getApplicationRoleFromCache(String applicationRoleId, String tenantDomain) {
