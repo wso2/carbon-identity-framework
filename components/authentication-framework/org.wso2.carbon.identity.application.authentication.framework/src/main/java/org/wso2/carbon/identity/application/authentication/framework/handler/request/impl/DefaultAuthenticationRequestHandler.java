@@ -66,6 +66,7 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.model.UserMgtContext;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -392,20 +393,26 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 }
             }
 
+            DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST)
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                        .inputParam(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain())
+                        .inputParam(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable
+                                ? LoggerUtils.getMaskedContent(sequenceConfig.getAuthenticatedUser().getUserName())
+                                : sequenceConfig.getAuthenticatedUser().getUserName())
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+            }
             // Break the flow if the authenticated subject identifier or user id is null.
             if (StringUtils.isBlank(sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier())) {
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-                    params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable
-                            ? LoggerUtils.getMaskedContent(sequenceConfig.getAuthenticatedUser().getUserName())
-                            : sequenceConfig.getAuthenticatedUser().getUserName());
-
-                    LoggerUtils.triggerDiagnosticLogEvent(
-                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
-                            ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL.getMessage(),
-                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+                if (diagnosticLogBuilder != null) {
+                    // diagnosticLogBuilder is null when diagnostic logs are disabled.
+                    diagnosticLogBuilder.resultMessage(
+                            ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL.getMessage());
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
                 throw new PostAuthenticationFailedException(
                         ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL.getCode(),
@@ -413,36 +420,22 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
             try {
                 if (StringUtils.isBlank(sequenceConfig.getAuthenticatedUser().getUserId())) {
-                    if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                        Map<String, Object> params = new HashMap<>();
-                        params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                        params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-                        params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable
-                                ? LoggerUtils.getMaskedContent(sequenceConfig.getAuthenticatedUser().getUserName())
-                                : sequenceConfig.getAuthenticatedUser().getUserName());
-
-                        LoggerUtils.triggerDiagnosticLogEvent(
-                                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
-                                ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getMessage(),
-                                FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+                    if (diagnosticLogBuilder != null) {
+                        // diagnosticLogBuilder is null when diagnostic logs are disabled.
+                        diagnosticLogBuilder.resultMessage(
+                                ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getMessage());
+                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                     }
                     throw new PostAuthenticationFailedException(
                             ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getCode(),
                             ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getMessage());
                 }
             } catch (UserIdNotFoundException e) {
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-                    params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable
-                            ? LoggerUtils.getMaskedContent(sequenceConfig.getAuthenticatedUser().getUserName())
-                            : sequenceConfig.getAuthenticatedUser().getUserName());
-
-                    LoggerUtils.triggerDiagnosticLogEvent(
-                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
-                            ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getMessage(),
-                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+                if (diagnosticLogBuilder != null) {
+                    // diagnosticLogBuilder is null when diagnostic logs are disabled.
+                    diagnosticLogBuilder.resultMessage(
+                            ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getMessage());
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
                 throw new PostAuthenticationFailedException(
                         ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getCode(),

@@ -137,13 +137,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         if (!graph.isBuildSuccessful()) {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-                LoggerUtils.triggerDiagnosticLogEvent(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
-                        "Error while parsing the authentication script. Nested exception is: " + graph.getErrorReason(),
-                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
+                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                        .resultMessage("Error while parsing the authentication script. Nested exception is: " + graph
+                                .getErrorReason())
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED));
             }
             throw new FrameworkException(
                     "Error while building graph from Javascript. Nested exception is: " + graph.getErrorReason());
@@ -432,8 +434,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 }
                 response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
                 if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
-                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.REDIREDCT_URI, redirectURL)
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                    diagnosticLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                 }
             } catch (IOException e) {
@@ -457,8 +458,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                 diagnosticLogBuilder.resultMessage("Error initiated from authentication script. User will be" +
-                        " redirected.")
-                        .inputParam(LogConstants.InputKeys.REDIREDCT_URI, redirectURL);
+                        " redirected.");
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +

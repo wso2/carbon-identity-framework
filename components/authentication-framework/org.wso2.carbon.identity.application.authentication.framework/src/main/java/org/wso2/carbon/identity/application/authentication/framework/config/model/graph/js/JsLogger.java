@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 /**
  * Logger For javascript engine.
@@ -68,9 +68,12 @@ public class JsLogger {
                 resultMessage = stringBuilder.toString();
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                        null, LogConstants.SUCCESS, "Debug: " + resultMessage,
-                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
+                        .resultMessage("Debug: " + resultMessage)
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
             }
         }
     }
@@ -79,9 +82,12 @@ public class JsLogger {
 
         logger.debug(value);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
-                    LogConstants.SUCCESS, "Debug: " + value,
-                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
+                    .resultMessage("Debug: " + value)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
         }
     }
 
@@ -89,9 +95,12 @@ public class JsLogger {
 
         logger.info(value);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
-                    LogConstants.SUCCESS, "Info: " + value,
-                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
+                    .resultMessage("Info: " + value)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
         }
     }
 
@@ -99,9 +108,12 @@ public class JsLogger {
 
         logger.error(value);
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null,
-                    LogConstants.FAILED, "Error: " + value,
-                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
+                    .resultMessage("Error: " + value)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED));
         }
     }
 
