@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.CarbonConfigurationContextFactory;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -116,13 +117,15 @@ public class DefaultEmailSendingModule extends AbstractEmailSendingModule {
                     MailConstants.TRANSPORT_FORMAT_TEXT);
             options.setTo(new EndpointReference(SEND_MAIL_PROPERTY + notification.getSendTo()));
             serviceClient.setOptions(options);
-            log.info("Sending an email notification to " + notification.getSendTo());
+            String recipient = LoggerUtils.isLogMaskingEnable ?
+                    LoggerUtils.getMaskedContent(notification.getSendTo()) : notification.getSendTo();
+            log.info("Sending an email notification to " + recipient);
             serviceClient.fireAndForget(payload);
             
             if (log.isDebugEnabled()) {
                 log.debug("Email content : " + notification.getBody());
             }
-            log.info("Email notification has been sent to " + notification.getSendTo());
+            log.info("Email notification has been sent to " + recipient);
         } catch (AxisFault axisFault) {
             log.error("Failed Sending Email", axisFault);
         } catch (InterruptedException e) {

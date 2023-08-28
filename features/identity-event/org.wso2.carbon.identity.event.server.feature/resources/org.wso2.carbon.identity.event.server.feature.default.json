@@ -165,9 +165,7 @@
   "identity_mgt.events.schemes.identityUserMetadataMgtHandler.module_index": "27",
   "identity_mgt.events.schemes.identityUserMetadataMgtHandler.properties.enable": false,
   "identity_mgt.events.schemes.identityUserMetadataMgtHandler.subscriptions": [
-    "POST_AUTHENTICATION",
-    "POST_UPDATE_CREDENTIAL",
-    "POST_UPDATE_CREDENTIAL_BY_ADMIN"
+    "AUTHENTICATION_SUCCESS"
   ],
   "identity_mgt.events.schemes.identityOauthEventHandler.module_index": "28",
   "identity_mgt.events.schemes.identityOauthEventHandler.subscriptions": [

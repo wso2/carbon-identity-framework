@@ -258,4 +258,19 @@ public class LoggerUtils {
         }
         return maskedArraysOfValues;
     }
+
+    /**
+     * Get the masked username if the log masking is enabled.
+     *
+     * @param errorMessage Error message.
+     * @param userName     Username.
+     * @return  Masked error message.
+     */
+    public static String getSanitizedErrorMessage(String errorMessage, String userName) {
+
+        if (LoggerUtils.isLogMaskingEnable && errorMessage.contains(userName)) {
+            return errorMessage.replace(userName, LoggerUtils.getMaskedContent(userName));
+        }
+        return errorMessage;
+    }
 }

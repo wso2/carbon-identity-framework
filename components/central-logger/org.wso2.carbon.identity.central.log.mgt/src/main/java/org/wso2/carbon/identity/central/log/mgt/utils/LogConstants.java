@@ -56,5 +56,6 @@ public class LogConstants {
         public static final String SCOPE = "scope";
         public static final String APPLICATION_ID = "app id";
         public static final String ERROR_MESSAGE = "error message";
+        public static final String CALLER_PATH = "common auth caller path";
     }
 }

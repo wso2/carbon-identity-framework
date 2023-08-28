@@ -54,6 +54,10 @@ public class RoleConstants {
     // Administrator role name.
     public static final String ADMINISTRATOR = "Administrator";
 
+    // Domain names
+    public static final String APPLICATION_DOMAIN = "Application";
+    public static final String INTERNAL_DOMAIN = "Internal";
+
     /**
      * Grouping of constants related to database table names.
      */

@@ -319,16 +319,22 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             }
         }
 
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_MISSING_CLAIMS);
+            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
+                    .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+        }
         if (!doMandatoryClaimsExist) {
             // Check whether mandatory claims exist in the request. If not throw error.
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-                LoggerUtils.triggerDiagnosticLogEvent(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
-                        "Mandatory missing claims are not found",
-                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_MISSING_CLAIMS, null);
+            if (diagnosticLogBuilder != null) {
+                // diagnosticLogBuilder is null when diagnostic logs are disabled.
+                diagnosticLogBuilder.resultMessage("Mandatory missing claims are not found.");
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             throw new PostAuthenticationFailedException("Mandatory missing claims are not found", "Mandatory missing " +
                     "claims are not found in the request for the session with context identifier: " +
@@ -360,15 +366,11 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Claim values for the mandatory claims: " + missingClaimURIs + " are empty");
             }
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-                params.put(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaimURIs);
-                LoggerUtils.triggerDiagnosticLogEvent(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
-                        "Mandatory claim is not found. Claim values for the claim URIs: " + missingClaimURIs
-                                + " are empty", FrameworkConstants.LogConstants.ActionIDs.HANDLE_MISSING_CLAIMS, null);
+            if (diagnosticLogBuilder != null) {
+                // diagnosticLogBuilder is null when diagnostic logs are disabled.
+                diagnosticLogBuilder.inputParam(FrameworkConstants.LogConstants.MISSING_CLAIMS, missingClaimURIs)
+                        .resultMessage("Mandatory claim is not found.  Claim values for the claim URIs are empty");
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             throw new PostAuthenticationFailedException("Mandatory claim is not found", "Claim " +
                     "values for the claim URIs: " + missingClaimURIs + " are empty");
