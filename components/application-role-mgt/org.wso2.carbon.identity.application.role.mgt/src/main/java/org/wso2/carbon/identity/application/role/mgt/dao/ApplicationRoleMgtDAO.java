@@ -38,13 +38,16 @@ public interface ApplicationRoleMgtDAO {
 
     List<ApplicationRole> getApplicationRoles(String applicationId) throws ApplicationRoleManagementServerException;
 
-    void updateApplicationRole(String applicationId, String roleId, String tenantDomain)
+    void updateApplicationRole(String roleId, String newName, List<String> addedScopes, List<String> removedScopes,
+                               String tenantDomain)
             throws ApplicationRoleManagementServerException;
 
     void deleteApplicationRole(String roleId, String tenantDomain) throws ApplicationRoleManagementServerException;
 
     boolean isExistingRole(String applicationId, String roleName, String tenantDomain)
             throws ApplicationRoleManagementServerException;
+
+    boolean checkRoleExists(String roleId, String tenantDomain) throws ApplicationRoleManagementServerException;
 
     void updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers, List<String> removedUsers,
                                             String tenantDomain) throws
@@ -60,7 +63,9 @@ public interface ApplicationRoleMgtDAO {
     ApplicationRole getApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
                                                      String tenantDomain) throws ApplicationRoleManagementException;
 
-    List<ApplicationRole> getApplicationRolesByUserId(String userId) throws ApplicationRoleManagementException;
+    List<ApplicationRole> getApplicationRolesByUserId(String userId, String tenantDomain)
+            throws ApplicationRoleManagementException;
 
-    List<ApplicationRole> getApplicationRolesByGroupId(String groupId) throws ApplicationRoleManagementException;
+    List<ApplicationRole> getApplicationRolesByGroupId(String groupId, String tenantDomain)
+            throws ApplicationRoleManagementException;
 }

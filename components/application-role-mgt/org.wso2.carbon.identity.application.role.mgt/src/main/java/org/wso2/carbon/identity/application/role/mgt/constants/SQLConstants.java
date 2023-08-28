@@ -43,9 +43,11 @@ public class SQLConstants {
 
     public static final String UPDATE_APPLICATION_ROLE_BY_ID = "UPDATE APP_ROLE SET ROLE_NAME = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_NAME + "; WHERE ROLE_ID = :" +
-            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";";
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND TENANT_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
     public static final String DELETE_APPLICATION_ROLE_BY_ID = "DELETE FROM APP_ROLE WHERE ROLE_ID = :" +
-            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";";
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND TENANT_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
     public static final String ADD_APPLICATION_ROLE_USER =  "INSERT INTO USER_ROLE (ROLE_ID, USER_ID, TENANT_ID) " +
             "VALUES (:" +
@@ -55,10 +57,12 @@ public class SQLConstants {
 
     public static final String DELETE_ASSIGNED_USER_APPLICATION_ROLE = "DELETE FROM USER_ROLE WHERE ROLE_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND USER_ID = :" +
-            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID + ";";
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID + "; AND TENANT_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
     public static final String GET_ASSIGNED_USERS_OF_APPLICATION_ROLE = "SELECT USER_ID " +
-            "FROM USER_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";";
+            "FROM USER_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID +
+            "; AND TENANT_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
     public static final String ADD_APPLICATION_ROLE_GROUP =  "INSERT INTO GROUP_ROLE (ROLE_ID, GROUP_ID, IDP_ID," +
             " TENANT_ID) VALUES (:" +
@@ -69,19 +73,27 @@ public class SQLConstants {
 
     public static final String DELETE_ASSIGNED_GROUP_APPLICATION_ROLE = "DELETE FROM GROUP_ROLE WHERE ROLE_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND GROUP_ID = :" +
-            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_GROUP_ID + ";";
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_GROUP_ID + "; AND TENANT_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
     public static final String GET_ASSIGNED_GROUPS_OF_APPLICATION_ROLE = "SELECT GROUP_ID, IDP_ID " +
             "FROM GROUP_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID +
-            "; AND IDP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_ID + ";";
+            "; AND IDP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_ID +
+            "; AND TENANT_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
     public static final String GET_APPLICATION_ROLES_BY_USER_ID = "SELECT ar.ROLE_ID, ar.ROLE_NAME, ar.TENANT_ID, " +
             "ar.APP_ID FROM APP_ROLE as ar INNER JOIN USER_ROLE as ur ON ar.ROLE_ID = ur.ROLE_ID WHERE ur.USER_ID = :"
-            + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID + ";";
+            + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID + "; AND ar.TENANT_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
     public static final String GET_APPLICATION_ROLES_BY_GROUP_ID = "SELECT ar.ROLE_ID, ar.ROLE_NAME, ar.TENANT_ID, " +
             "ar.APP_ID FROM APP_ROLE as ar INNER JOIN GROUP_ROLE as gr ON ar.ROLE_ID = gr.ROLE_ID WHERE gr.GROUP_ID = :"
-            + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_GROUP_ID + ";";
+            + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_GROUP_ID + "; AND ar.TENANT_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
+
+    public static final String IS_APPLICATION_ROLE_EXISTS_BY_ID = "SELECT COUNT(1) FROM APP_ROLE WHERE ROLE_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND TENANT_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + "; ";
 
     /**
      * SQL Placeholders.
@@ -96,4 +108,7 @@ public class SQLConstants {
         public static final String DB_SCHEMA_COLUMN_NAME_GROUP_ID = "GROUP_ID";
         public static final String DB_SCHEMA_COLUMN_NAME_IDP_ID = "IDP_ID";
     }
+
+    public static final String USER_ROLE_UNIQUE_CONSTRAINT = "user_role_unique";
+    public static final String GROUP_ROLE_UNIQUE_CONSTRAINT = "group_role_unique";
 }

@@ -39,10 +39,14 @@ public interface ApplicationRoleManager {
     /**
      * Update application role.
      *
-     * @param applicationRole Application role.
+     * @param roleId role Id.
+     * @param newName new role name.
+     * @param addedScopes List of scopes to be added.
+     * @param removedScopes List of scopes to be removed.
      * @throws ApplicationRoleManagementException Error occurred while updating the application role.
      */
-    void updateApplicationRole(ApplicationRole applicationRole) throws ApplicationRoleManagementException;
+    void updateApplicationRole(String applicationId, String roleId, String newName, List<String> addedScopes,
+                               List<String> removedScopes) throws ApplicationRoleManagementException;
 
     /**
      * Get the application role by role id.
@@ -114,17 +118,21 @@ public interface ApplicationRoleManager {
      * Get the list of application roles of a user.
      *
      * @param userId user ID.
+     * @param tenantDomain tenant domain.
      * @throws ApplicationRoleManagementException Error occurred while updating the application role.
      */
-    List<ApplicationRole> getApplicationRolesByUserId(String userId) throws ApplicationRoleManagementException;
+    List<ApplicationRole> getApplicationRolesByUserId(String userId, String tenantDomain)
+            throws ApplicationRoleManagementException;
 
     /**
      * Get the list of application roles of a group.
      *
      * @param groupId group ID.
+     * @param tenantDomain tenant domain.
      * @throws ApplicationRoleManagementException Error occurred while updating the application role.
      */
-    List<ApplicationRole> getApplicationRolesByGroupId(String groupId) throws ApplicationRoleManagementException;
+    List<ApplicationRole> getApplicationRolesByGroupId(String groupId, String tenantDomain)
+            throws ApplicationRoleManagementException;
 
 
 }

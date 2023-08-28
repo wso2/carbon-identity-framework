@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_DUPLICATE_ROLE;
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_ROLE_NOT_FOUND;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.LOCAL_IDP;
 import static org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils.handleClientException;
 
@@ -70,9 +71,11 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     }
 
     @Override
-    public void updateApplicationRole(ApplicationRole applicationRole) throws ApplicationRoleManagementException {
+    public void updateApplicationRole(String applicationId, String roleId, String newName, List<String> addedScopes,
+                                      List<String> removedScopes) throws ApplicationRoleManagementException {
 
-        // TODO :
+        // TODO: Check authorized scopes for the app and filter out added permissions
+        applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes, getTenantDomain());
     }
 
     @Override
@@ -97,6 +100,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     public void updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers, List<String> removedUsers)
             throws ApplicationRoleManagementException {
 
+        validateAppRoleId(roleId);
         removeCommonValues(addedUsers, removedUsers);
         applicationRoleMgtDAO.updateApplicationRoleAssignedUsers(roleId, addedUsers, removedUsers, getTenantDomain());
     }
@@ -105,6 +109,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     public ApplicationRole getApplicationRoleAssignedUsers(String roleId)
             throws ApplicationRoleManagementException {
 
+        validateAppRoleId(roleId);
         return applicationRoleMgtDAO.getApplicationRoleAssignedUsers(roleId, getTenantDomain());
     }
 
@@ -113,6 +118,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
                                                     List<String> removedGroups)
             throws ApplicationRoleManagementException {
 
+        validateAppRoleId(roleId);
         try {
             IdentityProvider identityProvider;
             if (LOCAL_IDP.equals(idpId)) {
@@ -135,6 +141,8 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     @Override
     public ApplicationRole getApplicationRoleAssignedGroups(String roleId, String idpId)
             throws ApplicationRoleManagementException {
+
+        validateAppRoleId(roleId);
         try {
             IdentityProvider identityProvider;
             if (LOCAL_IDP.equalsIgnoreCase(idpId)) {
@@ -152,17 +160,26 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     }
 
     @Override
-    public List<ApplicationRole> getApplicationRolesByUserId(String userId)
+    public List<ApplicationRole> getApplicationRolesByUserId(String userId, String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        return applicationRoleMgtDAO.getApplicationRolesByUserId(userId);
+        return applicationRoleMgtDAO.getApplicationRolesByUserId(userId, tenantDomain);
     }
 
     @Override
-    public List<ApplicationRole> getApplicationRolesByGroupId(String groupId)
+    public List<ApplicationRole> getApplicationRolesByGroupId(String groupId, String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        return applicationRoleMgtDAO.getApplicationRolesByGroupId(groupId);
+        return applicationRoleMgtDAO.getApplicationRolesByGroupId(groupId, tenantDomain);
+    }
+
+    private void validateAppRoleId(String roleId) throws ApplicationRoleManagementException {
+
+        boolean isExists = applicationRoleMgtDAO.checkRoleExists(roleId, getTenantDomain());
+
+        if (!isExists) {
+            throw handleClientException(ERROR_CODE_ROLE_NOT_FOUND, roleId);
+        }
     }
 
     private static String getTenantDomain() {

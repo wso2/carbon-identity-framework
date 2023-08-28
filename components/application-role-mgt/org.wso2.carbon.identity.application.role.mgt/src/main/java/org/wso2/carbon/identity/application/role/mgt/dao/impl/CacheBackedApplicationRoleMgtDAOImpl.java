@@ -77,11 +77,12 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     }
 
     @Override
-    public void updateApplicationRole(String applicationId, String roleId, String tenantDomain)
+    public void updateApplicationRole(String roleId, String newName, List<String> addedScopes,
+                                      List<String> removedScopes, String tenantDomain)
             throws ApplicationRoleManagementServerException {
 
         clearFromCache(roleId, tenantDomain);
-        applicationRoleMgtDAO.updateApplicationRole(applicationId, roleId, tenantDomain);
+        applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes, tenantDomain);
     }
 
     @Override
@@ -98,6 +99,12 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
 
         // TODO: introduce a cache key with app id and role name.
         return applicationRoleMgtDAO.isExistingRole(applicationId, roleName, tenantDomain);
+    }
+
+    @Override
+    public boolean checkRoleExists(String roleId, String tenantDomain) throws ApplicationRoleManagementServerException {
+
+        return applicationRoleMgtDAO.checkRoleExists(roleId, tenantDomain);
     }
 
     @Override
@@ -141,17 +148,17 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     }
 
     @Override
-    public List<ApplicationRole> getApplicationRolesByUserId(String userId)
+    public List<ApplicationRole> getApplicationRolesByUserId(String userId, String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        return applicationRoleMgtDAO.getApplicationRolesByUserId(userId);
+        return applicationRoleMgtDAO.getApplicationRolesByUserId(userId, tenantDomain);
     }
 
     @Override
-    public List<ApplicationRole> getApplicationRolesByGroupId(String groupId)
+    public List<ApplicationRole> getApplicationRolesByGroupId(String groupId, String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        return applicationRoleMgtDAO.getApplicationRolesByGroupId(groupId);
+        return applicationRoleMgtDAO.getApplicationRolesByGroupId(groupId, tenantDomain);
     }
 
     private ApplicationRole getApplicationRoleFromCache(String applicationRoleId, String tenantDomain) {

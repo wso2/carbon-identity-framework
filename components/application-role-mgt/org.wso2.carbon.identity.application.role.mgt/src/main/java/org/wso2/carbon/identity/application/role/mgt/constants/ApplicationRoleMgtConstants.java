@@ -23,7 +23,7 @@ package org.wso2.carbon.identity.application.role.mgt.constants;
  */
 public class ApplicationRoleMgtConstants {
 
-    private static final String APP_ROLE_MGT_ERROR_CODE_PREFIX = "APM-";
+    private static final String APP_ROLE_MGT_ERROR_CODE_PREFIX = "APP-ROLE-";
     public static final String LOCAL_IDP = "LOCAL";
 
     /**
@@ -41,29 +41,38 @@ public class ApplicationRoleMgtConstants {
         ERROR_CODE_GET_ROLES_BY_APPLICATION("65004", "Error occurred while retrieving the roles of the application",
                 "Error occurred while retrieving the roles of application: %s."),
         ERROR_CODE_UPDATE_ROLE("65005", "Error occurred while updating the role.",
-                "Error occurred while updating the role: %s of application: %s."),
+                "Error occurred while updating the role with id: %s."),
         ERROR_CODE_DELETE_ROLE("65006", "Error occurred while deleting the role.",
                 "Error occurred while deleting the role: %s."),
-        ERROR_CODE_UPDATE_ROLE_ASSIGNED_USERS("65007", "Error occurred while assigning users to " +
-                "the role.", "Error occurred while assigning users to the role: %s."),
-        ERROR_CODE_GET_ROLE_ASSIGNED_USERS("65008", "Error occurred while retrieving users of the role.",
-                "Error occurred while retrieving users of the role: %s."),
-        ERROR_CODE_UPDATE_ROLE_ASSIGNED_GROUPS("65007", "Error occurred while assigning groups to " +
-                "the role.", "Error occurred while assigning groups to the role: %s."),
-        ERROR_CODE_GET_ROLE_ASSIGNED_GROUPS("65008", "Error occurred while retrieving groups of " +
-                "the role.", "Error occurred while retrieving groups of the role: %s."),
-        ERROR_CODE_GET_ROLES_BY_USER_ID("65009", "Error occurred while retrieving the roles of the " +
-                "application by userID", "Error occurred while retrieving the roles of application by " +
-                "userID: %s."),
-        ERROR_CODE_GET_ROLES_BY_GROUP_ID("65010", "Error occurred while retrieving the roles of the " +
-                "application by groupID", "Error occurred while retrieving the roles of application by " +
-                "groupID: %s."),
-        ERROR_CODE_GROUP_ID_NO_FOUND("65011", "Given group not found", "Given group not found " +
-                "for groupID: %s."),
+        ERROR_CODE_UPDATE_ROLE_ASSIGNED_USERS("65007", "Error occurred while updating assigned users to "
+                + "the role.", "Error occurred while updating assigned users to the roleId: %s."),
+        ERROR_CODE_GET_ROLE_ASSIGNED_USERS("65008", "Error occurred while retrieving assigned users of " +
+                "the role.", "Error occurred while retrieving users of the roleId: %s."),
+        ERROR_CODE_UPDATE_ROLE_ASSIGNED_GROUPS("65007", "Error occurred while updating assigned groups " +
+                "to the role.", "Error occurred while updating assigned groups to the roleId: %s."),
+        ERROR_CODE_GET_ROLE_ASSIGNED_GROUPS("65008", "Error occurred while retrieving assigned groups " +
+                "of the role.", "Error occurred while retrieving assigned groups of the roleId: %s."),
+        ERROR_CODE_GET_ROLES_BY_USER_ID("65009", "Error occurred while retrieving the app roles by " +
+                "userID", "Error occurred while retrieving the app roles by userID: %s."),
+        ERROR_CODE_GET_ROLES_BY_GROUP_ID("65010", "Error occurred while retrieving the app role by " +
+                "groupID", "Error occurred while retrieving the app role by groupID: %s."),
+        ERROR_CODE_CHECKING_ROLE_EXISTENCE_BY_ID("65011", "Error occurred while checking the role " +
+                "existence by id.", "Error occurred while checking whether the role with id : %s."),
 
         // Client Errors.
         ERROR_CODE_DUPLICATE_ROLE("60001", "Role already exists.",
-                "Role with name: %s already exists in application: %s.");
+                "Role with name: %s already exists in application: %s."),
+        ERROR_CODE_ROLE_NOT_FOUND("60002", "Role doesn't exist.",
+                "Role with id: %s doesn't exist."),
+        ERROR_CODE_USER_ALREADY_ASSIGNED("60003", "Unable to assign user to app role.",
+                                                 "User already assign for the roleId: %s."),
+        ERROR_CODE_GROUP_ALREADY_ASSIGNED("60004", "Unable to assign group to app role.",
+                                                  "Group already assign for the roleId: %s."),
+        ERROR_CODE_USER_NOT_FOUND("60005", "Unable to assign user to app role.",
+                "User not found for the userId: %s."),
+        ERROR_CODE_GROUP_NOT_FOUND("60006", "Unable to assign group to app role.",
+                "Group not found for the groupId: %s."),
+        ;
 
         private final String code;
         private final String message;
