@@ -420,8 +420,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     //Since the default provisioning handler removes the email domain, in case the username equals to
                     //the email address, tenant domain is appended to the username.
                     if (externalIdPConfig.isAssociateLocalUserEnabled() &&
-                            StringUtils.equals(UserCoreUtil.removeDomainFromName(username),
-                                    localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
+                            username.contains(UserCoreConstants.TENANT_DOMAIN_COMBINER)) {
                         username = UserCoreUtil.addTenantDomainToEntry(username, context.getTenantDomain());
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
