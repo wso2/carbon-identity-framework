@@ -61,6 +61,7 @@ import static org.wso2.carbon.identity.application.role.mgt.constants.Applicatio
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_USER_ALREADY_ASSIGNED;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_USER_NOT_FOUND;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.LOCAL_IDP;
+import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.GROUP_ROLE_UNIQUE_CONSTRAINT;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_GROUP_ID;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_ID;
@@ -68,6 +69,7 @@ import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstan
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_NAME;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID;
+import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.USER_ROLE_UNIQUE_CONSTRAINT;
 import static org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils.getNewTemplate;
 import static org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils.handleServerException;
 
@@ -247,7 +249,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            if (checkUniqueKeyConstrainViolated(e)) {
+            if (checkUniqueKeyConstrainViolated(e, USER_ROLE_UNIQUE_CONSTRAINT)) {
                 throw ApplicationRoleMgtUtils.handleClientException(ERROR_CODE_USER_ALREADY_ASSIGNED, roleId);
             }
             throw handleServerException(ERROR_CODE_UPDATE_ROLE_ASSIGNED_USERS, e, roleId);
@@ -317,7 +319,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            if (checkUniqueKeyConstrainViolated(e)) {
+            if (checkUniqueKeyConstrainViolated(e, GROUP_ROLE_UNIQUE_CONSTRAINT)) {
                 throw ApplicationRoleMgtUtils.handleClientException(ERROR_CODE_GROUP_ALREADY_ASSIGNED, roleId);
             }
             throw handleServerException(ERROR_CODE_UPDATE_ROLE_ASSIGNED_GROUPS, e, roleId);
@@ -454,10 +456,10 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         return groupIDResolver.getNameByID(groupID, tenantDomain);
     }
 
-    private boolean checkUniqueKeyConstrainViolated(TransactionException e) {
+    private boolean checkUniqueKeyConstrainViolated(TransactionException e, String constraint) {
 
-        return e.getCause().getCause().getMessage().toLowerCase().
-                contains(SQLConstants.GROUP_ROLE_UNIQUE_CONSTRAINT.toLowerCase());
+        String errorMessage = e.getCause().getCause().getMessage();
+        return errorMessage.toLowerCase().contains(constraint.toLowerCase());
     }
 
     private int getTenantId(String tenantDomain) {

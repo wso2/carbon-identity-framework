@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_DUPLICATE_ROLE;
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_IDP_NOT_FOUND;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_ROLE_NOT_FOUND;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.LOCAL_IDP;
 import static org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils.handleClientException;
@@ -129,6 +130,9 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
                 identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
                         .getIdentityProviderManager().getIdPByResourceId(idpId, getTenantDomain(), true);
             }
+            if (identityProvider == null) {
+                throw handleClientException(ERROR_CODE_IDP_NOT_FOUND, idpId);
+            }
             removeCommonValues(addedGroups, removedGroups);
             applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider,
                     addedGroups, removedGroups, getTenantDomain());
@@ -151,6 +155,9 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             } else {
                 identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
                         .getIdentityProviderManager().getIdPByResourceId(idpId, getTenantDomain(), true);
+            }
+            if (identityProvider == null) {
+                throw handleClientException(ERROR_CODE_IDP_NOT_FOUND, idpId);
             }
             return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, identityProvider, getTenantDomain());
         } catch (IdentityProviderManagementException e) {

@@ -72,6 +72,8 @@ public class ApplicationRoleMgtConstants {
                 "User not found for the userId: %s."),
         ERROR_CODE_GROUP_NOT_FOUND("60006", "Unable to assign group to app role.",
                 "Group not found for the groupId: %s."),
+        ERROR_CODE_IDP_NOT_FOUND("60002", "IDP doesn't exist.",
+                "IDP with id: %s doesn't exist."),
         ;
 
         private final String code;
