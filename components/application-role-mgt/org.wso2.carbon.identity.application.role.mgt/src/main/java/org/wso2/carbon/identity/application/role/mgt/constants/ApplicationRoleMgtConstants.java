@@ -69,10 +69,10 @@ public class ApplicationRoleMgtConstants {
         ERROR_CODE_GROUP_ALREADY_ASSIGNED("60004", "Unable to assign group to app role.",
                                                   "Group already assign for the roleId: %s."),
         ERROR_CODE_USER_NOT_FOUND("60005", "Unable to assign user to app role.",
-                "User not found for the userId: %s."),
+                "Group with id: %s doesn't exist"),
         ERROR_CODE_GROUP_NOT_FOUND("60006", "Unable to assign group to app role.",
-                "Group not found for the groupId: %s."),
-        ERROR_CODE_IDP_NOT_FOUND("60002", "IDP doesn't exist.",
+                "Group with id: %s doesn't exist"),
+        ERROR_CODE_IDP_NOT_FOUND("60007", "IDP doesn't exist.",
                 "IDP with id: %s doesn't exist."),
         ;
 
