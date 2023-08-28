@@ -128,6 +128,7 @@ public class IdentityUtil {
     private static final String ENABLE_SELF_SIGN_UP_ENDPOINT = "EnableSelfSignUpEndpoint";
     private static final String ENABLE_EMAIL_USERNAME = "EnableEmailUserName";
     private static final String DISABLE_EMAIL_USERNAME_VALIDATION = "DisableEmailUserNameValidation";
+    private static final String ENABLE_TENANT_VALIDATION_FOR_NONSAAS_USERNAME = "EnableTenantValidationForNonSaaSUsername";
     private static Log log = LogFactory.getLog(IdentityUtil.class);
     private static Map<String, Object> configuration = new HashMap<>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new
@@ -1247,6 +1248,18 @@ public class IdentityUtil {
         String disableEmailUsernameValidationProperty = ServerConfiguration.getInstance()
                 .getFirstProperty(DISABLE_EMAIL_USERNAME_VALIDATION);
         return Boolean.parseBoolean(disableEmailUsernameValidationProperty);
+    }
+
+    /**
+     * Returns whether tenant validation is enabled for usernames of non SaaS applications.
+     *
+     * @return true if tenant validation is enabled for non SaaS username. False if it is not.
+     */
+    public static boolean isTenantValidationForNonSaaSUsernameEnabled() {
+
+        String enableTenantValidationForNonSaaSUsernameProperty = ServerConfiguration.getInstance()
+                .getFirstProperty(ENABLE_TENANT_VALIDATION_FOR_NONSAAS_USERNAME);
+        return Boolean.parseBoolean(enableTenantValidationForNonSaaSUsernameProperty);
     }
 
      /**
