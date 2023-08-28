@@ -441,6 +441,14 @@ public class IdentityConstants {
     }
 
     /**
+     * Common constants related to Recovery
+     */
+    public static class Recovery {
+
+        public static final String RECOVERY_V1_API_ENABLE = "Recovery.EnableV1API";
+    }
+
+    /**
      * Common constants related to OpenID.
      */
     public static class OpenId {
