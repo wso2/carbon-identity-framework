@@ -2983,7 +2983,7 @@
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
             <Scopes>internal_user_mgt_list</Scopes>
         </Resource>
-        <Resource context="(.*)/api/expired-password-identification/v1/password-expired-users(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
             <Scopes>internal_user_mgt_list</Scopes>
         </Resource>
@@ -3139,7 +3139,7 @@
                     <Path>/api/server/v1/admin-advisory-management</Path>
                     <Path>/api/server/v1/guests</Path>
                     <Path>/api/idle-account-identification/v1/inactive-users</Path>
-                    <Path>/api/expired-password-identification/v1/password-expired-users</Path>
+                    <Path>/api/server/v1/expired-password-identification/password-expired-users</Path>
                 </SubPaths>
             </Context>
             <Context>
