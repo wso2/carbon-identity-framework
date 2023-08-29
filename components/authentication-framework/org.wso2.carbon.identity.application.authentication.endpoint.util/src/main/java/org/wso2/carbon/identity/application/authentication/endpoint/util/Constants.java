@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -143,6 +143,14 @@ public class Constants {
         public static final String INVALID_CLIENT_APP_NOT_FOUND_I18N_KEY = "application.not.found";
         public static final String INVALID_REQUEST_INVALID_REDIRECT_URI = "invalid_request_invalid.redirect.uri";
         public static final String INVALID_REQUEST_INVALID_REDIRECT_URI_I18N_KEY = "invalid.redirect.uri";
+        public static final String INVALID_REQUEST_INVALID_PAR_REQUEST_URI = "invalid_request_par.invalid.request.uri";
+        public static final String INVALID_REQUEST_INVALID_PAR_REQUEST_URI_I18N_KEY = "par.invalid.request.uri";
+        public static final String INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED =
+                "invalid_request_par.request.uri.expired";
+        public static final String INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED_I18N_KEY =
+                "par.request.uri.expired";
+        public static final String INVALID_CLIENT_PAR_CLIENT_ID_NOT_MATCH = "invalid_client_par.client.id.not.match";
+        public static final String INVALID_CLIENT_PAR_CLIENT_ID_NOT_MATCH_I18N_KEY = "par.client.id.not.match";
         public static final String AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED =
                 "authentication.attempt.failed_authorization.failed";
         public static final String AUTHENTICATION_ATTEMPT_FAILED_CLAIM_REQUEST_MISSING =
