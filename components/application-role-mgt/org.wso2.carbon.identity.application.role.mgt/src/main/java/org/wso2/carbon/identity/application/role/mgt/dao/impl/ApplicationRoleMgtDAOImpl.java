@@ -219,8 +219,8 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
     }
 
     @Override
-    public void updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers, List<String> removedUsers,
-                                                   String tenantDomain)
+    public ApplicationRole updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers,
+                                                              List<String> removedUsers, String tenantDomain)
             throws ApplicationRoleManagementException {
 
         // Validate given userIds are exists.
@@ -228,7 +228,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         validateUserIds(removedUsers, tenantDomain);
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
-            namedJdbcTemplate.withTransaction(template -> {
+            return namedJdbcTemplate.withTransaction(template -> {
                 namedJdbcTemplate.executeBatchInsert(SQLConstants.ADD_APPLICATION_ROLE_USER, (preparedStatement -> {
                     for (String userId : addedUsers) {
                         preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
@@ -246,7 +246,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                                         getTenantId(tenantDomain));
                             });
                 }
-                return null;
+                return getApplicationRoleAssignedUsers(roleId, tenantDomain);
             });
         } catch (TransactionException e) {
             if (checkUniqueKeyConstrainViolated(e, USER_ROLE_UNIQUE_CONSTRAINT)) {
@@ -272,7 +272,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
             for (User user : users) {
                 user.setUserName(getUserNamesByID(user.getId(), tenantDomain));
             }
-            ApplicationRole applicationRole = new ApplicationRole(roleId);
+            ApplicationRole applicationRole = new ApplicationRole();
             applicationRole.setAssignedUsers(users);
             return  applicationRole;
         } catch (DataAccessException e) {
@@ -281,7 +281,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
     }
 
     @Override
-    public void updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
+    public ApplicationRole updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
                                                     List<String> addedGroups, List<String> removedGroups,
                                                     String tenantDomain)
             throws ApplicationRoleManagementException {
@@ -290,7 +290,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         validateGroupIds(identityProvider, removedGroups, tenantDomain);
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
-            namedJdbcTemplate.withTransaction(template -> {
+            return namedJdbcTemplate.withTransaction(template -> {
                 if (addedGroups.size() > 0) {
                     namedJdbcTemplate.executeBatchInsert(SQLConstants.ADD_APPLICATION_ROLE_GROUP,
                             (preparedStatement -> {
@@ -316,7 +316,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                                 });
                     }
                 }
-                return null;
+                return getApplicationRoleAssignedGroups(roleId, identityProvider, tenantDomain);
             });
         } catch (TransactionException e) {
             if (checkUniqueKeyConstrainViolated(e, GROUP_ROLE_UNIQUE_CONSTRAINT)) {
@@ -361,7 +361,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                     }
                 }
             }
-            ApplicationRole applicationRole = new ApplicationRole(roleId);
+            ApplicationRole applicationRole = new ApplicationRole();
             applicationRole.setAssignedGroups(groups);
             return  applicationRole;
         } catch (DataAccessException e) {

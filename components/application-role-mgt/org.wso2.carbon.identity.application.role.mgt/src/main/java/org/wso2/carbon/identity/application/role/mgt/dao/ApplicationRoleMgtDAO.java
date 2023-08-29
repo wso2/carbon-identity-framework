@@ -49,15 +49,16 @@ public interface ApplicationRoleMgtDAO {
 
     boolean checkRoleExists(String roleId, String tenantDomain) throws ApplicationRoleManagementServerException;
 
-    void updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers, List<String> removedUsers,
-                                            String tenantDomain) throws
+    ApplicationRole updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers,
+                                                       List<String> removedUsers, String tenantDomain) throws
             ApplicationRoleManagementException;
 
     ApplicationRole getApplicationRoleAssignedUsers(String roleId, String tenantDomain)
             throws ApplicationRoleManagementException;
 
-    void updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider, List<String> addedGroups,
-                                             List<String> removedGroups, String tenantDomain)
+    ApplicationRole updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
+                                                        List<String> addedGroups, List<String> removedGroups,
+                                                        String tenantDomain)
             throws ApplicationRoleManagementException;
 
     ApplicationRole getApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,

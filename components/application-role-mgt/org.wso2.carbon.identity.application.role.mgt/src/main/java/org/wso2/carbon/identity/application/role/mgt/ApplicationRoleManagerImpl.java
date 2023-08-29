@@ -98,12 +98,14 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     }
 
     @Override
-    public void updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers, List<String> removedUsers)
+    public ApplicationRole updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers,
+                                                              List<String> removedUsers)
             throws ApplicationRoleManagementException {
 
         validateAppRoleId(roleId);
         removeCommonValues(addedUsers, removedUsers);
-        applicationRoleMgtDAO.updateApplicationRoleAssignedUsers(roleId, addedUsers, removedUsers, getTenantDomain());
+        return applicationRoleMgtDAO.updateApplicationRoleAssignedUsers(roleId, addedUsers, removedUsers,
+                getTenantDomain());
     }
 
     @Override
@@ -115,7 +117,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     }
 
     @Override
-    public void updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
+    public ApplicationRole updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
                                                     List<String> removedGroups)
             throws ApplicationRoleManagementException {
 
@@ -134,7 +136,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
                 throw handleClientException(ERROR_CODE_IDP_NOT_FOUND, idpId);
             }
             removeCommonValues(addedGroups, removedGroups);
-            applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider,
+            return applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider,
                     addedGroups, removedGroups, getTenantDomain());
         }   catch (IdentityProviderManagementException e) {
         throw new ApplicationRoleManagementException("Error while retrieving idp",

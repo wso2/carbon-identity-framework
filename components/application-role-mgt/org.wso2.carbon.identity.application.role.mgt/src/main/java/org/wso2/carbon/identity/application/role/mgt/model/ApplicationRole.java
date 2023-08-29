@@ -60,6 +60,10 @@ public class ApplicationRole {
         this.applicationId = applicationId;
     }
 
+    public ApplicationRole() {
+
+    }
+
     public ApplicationRole(String roleId) {
 
         this.roleId = roleId;

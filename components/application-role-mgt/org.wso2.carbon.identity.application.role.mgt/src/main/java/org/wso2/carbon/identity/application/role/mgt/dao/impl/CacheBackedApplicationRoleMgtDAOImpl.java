@@ -108,11 +108,11 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     }
 
     @Override
-    public void updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers, List<String> removedUsers,
-                                                   String tenantDomain)
+    public ApplicationRole updateApplicationRoleAssignedUsers(String roleId, List<String> addedUsers,
+                                                              List<String> removedUsers, String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        applicationRoleMgtDAO.updateApplicationRoleAssignedUsers(roleId, addedUsers, removedUsers, tenantDomain);
+        return applicationRoleMgtDAO.updateApplicationRoleAssignedUsers(roleId, addedUsers, removedUsers, tenantDomain);
     }
 
     @Override
@@ -130,13 +130,13 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     }
 
     @Override
-    public void updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
+    public ApplicationRole updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
                                                     List<String> addedGroups, List<String> removedGroups,
                                                     String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider, addedGroups, removedGroups,
-                tenantDomain);
+        return applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider, addedGroups,
+                removedGroups, tenantDomain);
     }
 
     @Override
