@@ -13,6 +13,7 @@ BEGIN
     DECLARE @backupTables BIT
     DECLARE @cleanUpRequestsTimeLimit INT
     DECLARE @cleanUpDateTimeLimit DATETIME
+    DECLARE @cleanUpDateTimeLimitInMillis BIGINT
 
     -- ------------------------------------------
     -- CONFIGURABLE VARIABLES
@@ -20,13 +21,14 @@ BEGIN
     SET @batchSize    = 10000 -- SET BATCH SIZE FOR AVOID TABLE LOCKS [DEFAULT : 10000]
     SET @chunkSize    = 500000 -- CHUNK WISE DELETE FOR LARGE TABLES [DEFAULT : 500000]
     SET @enableLog    = 0 -- ENABLE LOGGING [DEFAULT : 0]
-    SET @backupTables = 0 -- SET IF OAUTH PAR TABLE NEEDS TO BACKED-UP BEFORE DELETE [DEFAULT : 0]. WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
+    SET @backupTables = 0 -- SET IF OAUTH PAR TABLE NEEDS TO BE BACKED-UP BEFORE DELETE [DEFAULT : 0]. WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
     SET @cleanUpRequestsTimeLimit = 720  -- SET SAFE PERIOD OF HOURS FOR REQUEST DELETE [DEFAULT : 720 hrs (30 days)]. REQUESTS OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
 
     SET @rowCount = 0
     SET @batchCount = 1
     SET @chunkCount = 1
-    SET @cleanUpDateTimeLimit = DATEADD(DAY, -(@cleanUpRequestsTimeLimit), GetUTCDate())
+    SET @cleanUpDateTimeLimit = DATEADD(HOUR, -(@cleanUpRequestsTimeLimit), GetUTCDate())
+    SET @cleanUpDateTimeLimitInMillis = DATEDIFF_BIG(MILLISECOND, '1970-01-01 00:00:00', @cleanUpDateTimeLimit);
 
     IF (@enableLog = 1)
     BEGIN
@@ -63,7 +65,7 @@ BEGIN
         -- CREATE CHUNK TABLE
         DROP TABLE IF EXISTS IDN_OAUTH_PAR_CHUNK_TMP
         CREATE TABLE IDN_OAUTH_PAR_CHUNK_TMP(REQ_URI_REF VARCHAR (255))
-        INSERT INTO IDN_OAUTH_PAR_CHUNK_TMP(REQ_URI_REF) SELECT TOP (@chunkSize) REQ_URI_REF FROM IDN_OAUTH_PAR where (@cleanUpDateTimeLimit >= SCHEDULED_EXPIRY);
+        INSERT INTO IDN_OAUTH_PAR_CHUNK_TMP(REQ_URI_REF) SELECT TOP (@chunkSize) REQ_URI_REF FROM IDN_OAUTH_PAR where (@cleanUpDateTimeLimitInMillis > SCHEDULED_EXPIRY);
         SET @chunkCount = @@ROWCOUNT
 
         IF (@chunkCount = 0)

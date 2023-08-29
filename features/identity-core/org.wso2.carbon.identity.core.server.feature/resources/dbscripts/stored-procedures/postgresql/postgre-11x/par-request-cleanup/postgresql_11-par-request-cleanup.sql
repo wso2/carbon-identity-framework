@@ -12,7 +12,7 @@ DECLARE
     enableLog boolean;
     backupTables boolean;
     cleanUpRequestsTimeLimit int;
-    cleanUpDateTimeLimit timestamp;
+    cleanUpDateTimeLimit bigint;
     backupTable text;
     cusrRecord record;
 
@@ -26,14 +26,14 @@ BEGIN
     -- ------------------------------------------
     batchSize    := 10000; -- SET BATCH SIZE FOR AVOID TABLE LOCKS [DEFAULT : 10000]
     chunkSize    := 500000; -- CHUNK WISE DELETE FOR LARGE TABLES [DEFAULT : 500000]
-    backupTables := FALSE; -- SET IF PAR TABLE NEEDS TO BACKUP BEFORE DELETE [DEFAULT : FALSE] , WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
+    backupTables := FALSE; -- SET IF PAR TABLE NEEDS TO BE BACKED-UP BEFORE DELETE [DEFAULT : FALSE] , WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
     enableLog    := FALSE; -- ENABLE LOGGING [DEFAULT : FALSE]
 
     batchCount := 1000;
     chunkCount := 1000;
     rowCount   := 0;
-    cleanUpRequestsTimeLimit := 720; -- SET SAFE PERIOD OF HOURS FOR REQUESTS DELETE [DEFAULT : 720 hrs (30 days)]. REQUESTS OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
-    cleanUpDateTimeLimit :=  timezone('UTC'::text, now()) - INTERVAL '1hour' * cleanUpRequestsTimeLimit;
+    cleanUpRequestsTimeLimit := 720; -- SET SAFE PERIOD OF HOURS FOR REQUEST DELETE [DEFAULT : 720 hrs (30 days)]. REQUESTS OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
+    cleanUpDateTimeLimit := (extract(epoch from timezone('UTC'::text, now())) - (3600 * cleanUpRequestsTimeLimit)) * 1000;
     backupTable = 'idn_oauth_par_backup';
 
     IF (enableLog) THEN
@@ -74,7 +74,7 @@ BEGIN
         -- CREATE CHUNK TABLE
         DROP TABLE IF EXISTS idn_oauth_par_chunk_tmp;
         CREATE TABLE idn_oauth_par_chunk_tmp AS SELECT req_uri_ref FROM idn_oauth_par
-        WHERE (cleanUpDateTimeLimit > TIME_CREATED) LIMIT chunkSize;
+        WHERE (cleanUpDateTimeLimit > SCHEDULED_EXPIRY) LIMIT chunkSize;
         GET DIAGNOSTICS chunkCount := ROW_COUNT;
         COMMIT;
         IF (enableLog) THEN

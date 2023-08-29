@@ -4,11 +4,13 @@ CREATE OR REPLACE PROCEDURE WSO2_PAR_REQUEST_CLEANUP IS
     -- ------------------------------------------
     systime TIMESTAMP := systimestamp;
     utcTime TIMESTAMP := sys_extract_utc(systimestamp);
+    unixEpoch TIMESTAMP := TO_TIMESTAMP('1970-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS');
     batchCount INT := 1000;
     chunkCount INT := 1000;
     rowCount INT   := 0;
     current_schema VARCHAR(20);
     cleanUpRequestsTimeLimit TIMESTAMP;
+    cleanUpRequestsTimeLimitInMillis NUMBER;
 
     -- ------------------------------------------
     -- CONFIGURABLE VARIABLES
@@ -16,13 +18,14 @@ CREATE OR REPLACE PROCEDURE WSO2_PAR_REQUEST_CLEANUP IS
     batchSize INT        := 10000; -- SET BATCH SIZE FOR AVOID TABLE LOCKS [DEFAULT : 10000]
     chunkSize INT        := 500000; -- CHUNK WISE DELETE FOR LARGE TABLES [DEFAULT : 500000]
     enableLog BOOLEAN    := FALSE; -- ENABLE LOGGING [DEFAULT : FALSE]
-    backupTables BOOLEAN := FALSE; -- SET IF TOKEN TABLE NEEDS TO BACKUP BEFORE DELETE [DEFAULT : FALSE], WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
-    cleanUpRequestsTimeLimitInHrs INT := 720; -- SET SAFE PERIOD OF HOURS FOR REQUESTS DELETE [DEFAULT : 720 hrs (30 days)]. REQUESTS OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
+    backupTables BOOLEAN := FALSE; -- SET IF TOKEN TABLE NEEDS TO BE BACKED-UP BEFORE DELETE [DEFAULT : FALSE], WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
+    cleanUpRequestsTimeLimitInHrs INT := 720; -- SET SAFE PERIOD OF HOURS FOR REQUEST DELETE [DEFAULT : 720 hrs (30 days)]. REQUESTS OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
 
 BEGIN
 
     SELECT sys_context('USERENV', 'CURRENT_SCHEMA') INTO current_schema FROM DUAL;
     cleanUpRequestsTimeLimit := utcTime - cleanUpRequestsTimeLimitInHrs/24;
+    cleanUpRequestsTimeLimitInMillis := (cleanUpRequestsTimeLimit - unixEpoch) * 24 * 60 * 60 * 1000;
 
     IF ( enableLog ) THEN
         SELECT COUNT(*) INTO rowCount FROM all_tables WHERE owner = current_schema AND table_name = UPPER('LOG_WSO2_PAR_REQUEST_CLEANUP');
@@ -97,8 +100,8 @@ BEGIN
             THEN
                 EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_PAR_REQUEST_CLEANUP (TIMESTAMP,LOG) VALUES (TO_CHAR(SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''BATCH DELETE STARTED ON IDN_OAUTH_PAR...'')';
             END IF;
-            EXECUTE IMMEDIATE 'DELETE FROM IDN_OAUTH_PAR WHERE REQ_URI_REF IN (SELECT REQ_URI_REF FROM IDN_OAUTH_PAR_BATCH_TMP where (:cleanUpRequestsTimeLimit  > TIME_CREATED))'
-            using  cleanUpRequestsTimeLimit;
+            EXECUTE IMMEDIATE 'DELETE FROM IDN_OAUTH_PAR WHERE REQ_URI_REF IN (SELECT REQ_URI_REF FROM IDN_OAUTH_PAR_BATCH_TMP where (:cleanUpRequestsTimeLimitInMillis  > SCHEDULED_EXPIRY))'
+            using  cleanUpRequestsTimeLimitInMillis;
             rowCount:= sql%rowcount;
             COMMIT;
             IF (enableLog)
