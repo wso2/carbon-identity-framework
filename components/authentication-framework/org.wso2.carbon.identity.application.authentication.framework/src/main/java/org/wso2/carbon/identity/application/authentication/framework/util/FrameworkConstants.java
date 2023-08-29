@@ -38,6 +38,7 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
+    public static final String USER_ID_CLAIM = "http://wso2.org/claims/userid";
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
     public static final String APP_ROLES_CLAIM = "http://wso2.org/claims/applicationRoles";
     public static final String GROUPS_CLAIM = "http://wso2.org/claims/groups";
