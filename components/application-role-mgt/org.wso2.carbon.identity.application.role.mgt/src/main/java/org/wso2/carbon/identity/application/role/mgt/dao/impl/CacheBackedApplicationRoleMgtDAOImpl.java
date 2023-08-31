@@ -77,12 +77,12 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     }
 
     @Override
-    public void updateApplicationRole(String roleId, String newName, List<String> addedScopes,
+    public ApplicationRole updateApplicationRole(String roleId, String newName, List<String> addedScopes,
                                       List<String> removedScopes, String tenantDomain)
             throws ApplicationRoleManagementServerException {
 
         clearFromCache(roleId, tenantDomain);
-        applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes, tenantDomain);
+        return applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes, tenantDomain);
     }
 
     @Override

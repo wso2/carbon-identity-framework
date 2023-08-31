@@ -71,8 +71,19 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
         closeH2Database();
     }
 
-    @Test
-    public void testAddApplicationRole() throws Exception {
+    @DataProvider
+    public Object[][] addApplicationRoleData() {
+        return new Object[][]{
+                {ROLE_ID, ROLE_NAME},
+                {"TEST_ROLE_ID-1", "TEST_ROLE_NAME-1"},
+                {"TEST_ROLE_ID-2", "TEST_ROLE_NAME-2"},
+                {"TEST_ROLE_ID-3", "TEST_ROLE_NAME-3"},
+
+        };
+    }
+
+    @Test(dataProvider = "addApplicationRoleData", priority = 2)
+    public void testAddApplicationRole(String roleId, String roleName) throws Exception {
 
         mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
@@ -80,24 +91,84 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
         Mockito.when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
         ApplicationRole applicationRole = new ApplicationRole();
         applicationRole.setApplicationId(String.valueOf(APP_ID));
-        applicationRole.setRoleId(ROLE_ID);
-        applicationRole.setRoleName(ROLE_NAME);
+        applicationRole.setRoleId(roleId);
+        applicationRole.setRoleName(roleName);
         ApplicationRole addedApplicationRole = daoImpl.addApplicationRole(applicationRole, TENANT_DOMAIN);
         Assert.assertNotNull(addedApplicationRole);
+    }
+
+    @Test(priority = 2)
+    public void testGetApplicationRoles() throws Exception {
+
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        mockStatic(IdentityDatabaseUtil.class);
+        Mockito.when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        List<ApplicationRole> applicationRoles = daoImpl.getApplicationRoles(String.valueOf(APP_ID));
+        Assert.assertNotNull(applicationRoles);
+    }
+
+    @DataProvider
+    public Object[][] getApplicationRoleByIdData() {
+        return new Object[][]{
+                {ROLE_ID},
+                {"TEST_ROLE_ID-1"},
+                {"TEST_ROLE_ID-2"},
+                {"TEST_ROLE_ID-3"},
+
+        };
+    }
+    @Test(dataProvider = "getApplicationRoleByIdData", priority = 2)
+    public void testGetApplicationRoleById(String roleId) throws Exception {
+
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        mockStatic(IdentityDatabaseUtil.class);
+        Mockito.when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        ApplicationRole applicationRole = daoImpl.getApplicationRoleById(roleId, TENANT_DOMAIN);
+        Assert.assertNotNull(applicationRole);
+    }
+
+    @DataProvider
+    public Object[][] updateApplicationRoleData() {
+        return new Object[][]{
+                {"TEST_ROLE_ID-1", "TEST_ROLE_NEW_NAME-1"},
+                {"TEST_ROLE_ID-2", "TEST_ROLE_NEW_NAME-2"},
+                {"TEST_ROLE_ID-3", "TEST_ROLE_NEW_NAME-3"},
+
+        };
+    }
+    @Test(dataProvider = "updateApplicationRoleData", priority = 2)
+    public void testUpdateApplicationRole(String roleId, String newName) throws Exception {
+
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        mockStatic(IdentityDatabaseUtil.class);
+        Mockito.when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        ApplicationRole applicationRole = daoImpl.updateApplicationRole(roleId, newName, new ArrayList<>(),
+                new ArrayList<>(), TENANT_DOMAIN);
+        Assert.assertEquals(applicationRole.getRoleName(), newName);
     }
 
     @DataProvider
     public Object[][] updateApplicationRoleAssignedUsersData() {
         return new Object[][]{
                 {new ArrayList<>(Arrays.asList("USER_1", "USER_2", "USER_3")),
-                        new ArrayList<>(Collections.emptyList()),
+                        new ArrayList<>(Collections.emptyList()), 3
+                },
+                {new ArrayList<>(Arrays.asList("USER_4", "USER_5", "USER_6")),
+                        new ArrayList<>(Arrays.asList("USER_1", "USER_2", "USER_3")), 3
+                },
+                {new ArrayList<>(Collections.emptyList()),
+                        new ArrayList<>(Arrays.asList("USER_4", "USER_5", "USER_6")), 0
                 },
 
         };
     }
 
     @Test(dataProvider = "updateApplicationRoleAssignedUsersData", priority = 2)
-    public void testUpdateApplicationRoleAssignedUsers(List<String> addedUsers, List<String> removedUsers)
+    public void testUpdateApplicationRoleAssignedUsers(List<String> addedUsers, List<String> removedUsers,
+                                                       int resultCount)
             throws Exception {
 
         mockStatic(ApplicationRoleMgtUtils.class);
@@ -107,21 +178,27 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
         when(ApplicationRoleMgtUtils.isUserExists(anyString())).thenReturn(true);
         ApplicationRole role =
                 daoImpl.updateApplicationRoleAssignedUsers(ROLE_ID, addedUsers, removedUsers, TENANT_DOMAIN);
-        Assert.assertEquals(role.getAssignedUsers().size(), addedUsers.size());
+        Assert.assertEquals(role.getAssignedUsers().size(), resultCount);
     }
 
     @DataProvider
     public Object[][] updateApplicationRoleAssignedGroupsData() {
         return new Object[][]{
                 {new ArrayList<>(Arrays.asList("GROUP_1", "GROUP_2", "GROUP_3")),
-                        new ArrayList<>(Collections.emptyList()),
+                        new ArrayList<>(Collections.emptyList()), 3
                 },
-
+                {new ArrayList<>(Arrays.asList("GROUP_4", "GROUP_5", "GROUP_6")),
+                        new ArrayList<>(Arrays.asList("GROUP_1", "GROUP_2", "GROUP_3")), 3
+                },
+                {new ArrayList<>(Collections.emptyList()),
+                        new ArrayList<>(Arrays.asList("GROUP_4", "GROUP_5", "GROUP_6")), 0
+                },
         };
     }
 
     @Test(dataProvider = "updateApplicationRoleAssignedGroupsData", priority = 2)
-    public void testUpdateApplicationRoleAssignedGroups(List<String> addedGroups, List<String> removedGroups)
+    public void testUpdateApplicationRoleAssignedGroups(List<String> addedGroups, List<String> removedGroups,
+                                                        int resultCount)
             throws Exception {
 
         mockStatic(ApplicationRoleMgtUtils.class);
@@ -142,7 +219,7 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
         ApplicationRole role =
                 daoImpl.updateApplicationRoleAssignedGroups(ROLE_ID, identityProvider, addedGroups, removedGroups,
                         TENANT_DOMAIN);
-        Assert.assertEquals(role.getAssignedGroups().size(), addedGroups.size());
+        Assert.assertEquals(role.getAssignedGroups().size(), resultCount);
     }
 
     private void populateApplication() throws Exception {

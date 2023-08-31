@@ -138,7 +138,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
     }
 
     @Override
-    public void updateApplicationRole(String roleId, String newName, List<String> addedScopes,
+    public ApplicationRole updateApplicationRole(String roleId, String newName, List<String> addedScopes,
                                       List<String> removedScopes, String tenantDomain)
             throws ApplicationRoleManagementServerException {
 
@@ -156,6 +156,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                 // TODO: Remove scopes
                 return null;
             });
+            return getApplicationRoleById(roleId, tenantDomain);
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_UPDATE_ROLE, e, roleId);
         }
@@ -219,7 +220,6 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
 
         // Validate given userIds are exists.
         validateUserIds(addedUsers, tenantDomain);
-        validateUserIds(removedUsers, tenantDomain);
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
             namedJdbcTemplate.withTransaction(template -> {
@@ -282,7 +282,6 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
             throws ApplicationRoleManagementException {
 
         validateGroupIds(identityProvider, addedGroups, tenantDomain);
-        validateGroupIds(identityProvider, removedGroups, tenantDomain);
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
             return namedJdbcTemplate.withTransaction(template -> {

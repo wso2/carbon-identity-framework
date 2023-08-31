@@ -72,11 +72,13 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     }
 
     @Override
-    public void updateApplicationRole(String applicationId, String roleId, String newName, List<String> addedScopes,
-                                      List<String> removedScopes) throws ApplicationRoleManagementException {
+    public ApplicationRole updateApplicationRole(String applicationId, String roleId, String newName,
+                                                 List<String> addedScopes, List<String> removedScopes)
+            throws ApplicationRoleManagementException {
 
         // TODO: Check authorized scopes for the app and filter out added permissions
-        applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes, getTenantDomain());
+        return applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes,
+                getTenantDomain());
     }
 
     @Override
@@ -138,10 +140,10 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             removeCommonValues(addedGroups, removedGroups);
             return applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider,
                     addedGroups, removedGroups, getTenantDomain());
-        }   catch (IdentityProviderManagementException e) {
-        throw new ApplicationRoleManagementException("Error while retrieving idp",
-                "Error while retrieving idp for idpId: " + idpId, e);
-    }
+        }  catch (IdentityProviderManagementException e) {
+            throw new ApplicationRoleManagementException("Error while retrieving idp",
+                    "Error while retrieving idp for idpId: " + idpId, e);
+        }
     }
 
     @Override

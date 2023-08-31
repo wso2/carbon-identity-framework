@@ -45,7 +45,7 @@ public interface ApplicationRoleManager {
      * @param removedScopes List of scopes to be removed.
      * @throws ApplicationRoleManagementException Error occurred while updating the application role.
      */
-    void updateApplicationRole(String applicationId, String roleId, String newName, List<String> addedScopes,
+    ApplicationRole updateApplicationRole(String applicationId, String roleId, String newName, List<String> addedScopes,
                                List<String> removedScopes) throws ApplicationRoleManagementException;
 
     /**

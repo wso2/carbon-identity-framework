@@ -38,8 +38,8 @@ public interface ApplicationRoleMgtDAO {
 
     List<ApplicationRole> getApplicationRoles(String applicationId) throws ApplicationRoleManagementServerException;
 
-    void updateApplicationRole(String roleId, String newName, List<String> addedScopes, List<String> removedScopes,
-                               String tenantDomain)
+    ApplicationRole updateApplicationRole(String roleId, String newName, List<String> addedScopes,
+                                          List<String> removedScopes, String tenantDomain)
             throws ApplicationRoleManagementServerException;
 
     void deleteApplicationRole(String roleId, String tenantDomain) throws ApplicationRoleManagementServerException;
