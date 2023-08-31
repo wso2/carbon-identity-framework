@@ -13,6 +13,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementServerException;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
 import org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
@@ -148,6 +149,50 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
         ApplicationRole applicationRole = daoImpl.updateApplicationRole(roleId, newName, new ArrayList<>(),
                 new ArrayList<>(), TENANT_DOMAIN);
         Assert.assertEquals(applicationRole.getRoleName(), newName);
+    }
+
+    @DataProvider
+    public Object[][] checkRoleExistsData() {
+        return new Object[][]{
+                {"TEST_ROLE_ID-1", true},
+                {"TEST_ROLE_ID-2", true},
+                {"TEST_ROLE_ID-3", true},
+                {"FAKE_ROLE_ID-3", false},
+
+        };
+    }
+    @Test(dataProvider = "checkRoleExistsData", priority = 2)
+    public void testCheckRoleExists(String roleId, boolean isExists) throws Exception {
+
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        mockStatic(IdentityDatabaseUtil.class);
+        Mockito.when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        boolean isRoleExists = daoImpl.checkRoleExists(roleId, TENANT_DOMAIN);
+        Assert.assertEquals(isRoleExists, isExists);
+    }
+
+    @DataProvider
+    public Object[][] deleteApplicationRoleData() {
+        return new Object[][]{
+                {"TEST_ROLE_ID-1"},
+                {"TEST_ROLE_ID-2"},
+                {"TEST_ROLE_ID-3"},
+
+        };
+    }
+    @Test(dataProvider = "deleteApplicationRoleData", priority = 3)
+    public void testDeleteApplicationRole(String roleId) {
+
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
+        mockStatic(IdentityDatabaseUtil.class);
+        Mockito.when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try {
+            daoImpl.deleteApplicationRole(roleId, TENANT_DOMAIN);
+        } catch (ApplicationRoleManagementServerException e) {
+            Assert.fail();
+        }
     }
 
     @DataProvider
