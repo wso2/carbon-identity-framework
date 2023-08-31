@@ -85,6 +85,7 @@
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
   "oauth.endpoints.oauth1_access_token_url": "$ref{server.base_path}/oauth/access-token",
   "oauth.endpoints.oauth2_authz_url": "$ref{server.base_path}/oauth2/authorize",
+  "oauth.endpoints.oauth2_par_url": "$ref{server.base_path}/oauth2/par",
   "oauth.endpoints.oauth2_token_url": "$ref{server.base_path}/oauth2/token",
   "oauth.endpoints.oauth2_revoke_url": "$ref{server.base_path}/oauth2/revoke",
   "oauth.endpoints.oauth2_introspect_url": "$ref{server.base_path}/oauth2/introspect",
