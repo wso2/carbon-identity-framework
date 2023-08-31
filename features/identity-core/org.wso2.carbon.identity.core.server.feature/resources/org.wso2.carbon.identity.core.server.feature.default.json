@@ -33,6 +33,8 @@
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
   "session.timeout.extend_remember_me_session_timeout_on_auth": true,
+  "par.cleanup.enable_expired_requests_cleanup": true,
+  "par.cleanup.clean_expired_requests_every": "1d",
   "key_mgt.keystore_dir": "${carbon.home}/conf/keystores",
   "key_mgt.key_manager_type": "SunX509",
   "key_mgt.trust_manager_type": "SunX509",
