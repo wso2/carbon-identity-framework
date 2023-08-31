@@ -54,6 +54,7 @@
         <module>components/idp-mgt</module>
         <module>components/claim-mgt</module>
         <module>components/directory-server-manager</module>
+        <module>components/security-mgt</module>
         <module>components/workflow-mgt</module>
         <module>components/policy-editor</module>
         <module>components/carbon-authenticators</module>
@@ -71,6 +72,7 @@
         <module>components/input-validation-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
+        <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>
         <module>features/identity-event</module>
@@ -362,14 +364,14 @@
                 <type>zip</type>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.security.mgt</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.security.mgt</artifactId>
-                <version>${carbon.security.mgt.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.security.mgt</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.security.mgt.ui</artifactId>
-                <version>${carbon.security.mgt.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -377,21 +379,21 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.security.mgt</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.security.mgt.feature</artifactId>
-                <version>${carbon.security.mgt.version}</version>
+                <version>${project.version}</version>
                 <type>zip</type>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.security.mgt</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.security.mgt.server.feature</artifactId>
-                <version>${carbon.security.mgt.version}</version>
+                <version>${project.version}</version>
                 <type>zip</type>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.security.mgt</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.security.mgt.ui.feature</artifactId>
-                <version>${carbon.security.mgt.version}</version>
+                <version>${project.version}</version>
                 <type>zip</type>
             </dependency>
             <dependency>
@@ -455,9 +457,9 @@
             </dependency>
 
             <dependency>
-                <groupId>org.wso2.carbon.security.mgt</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.security.mgt.stub</artifactId>
-                <version>${carbon.security.mgt.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>junit</groupId>
@@ -1808,11 +1810,6 @@
         </org.wso2.carbon.identity.organization.management.core.version>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
-
-        <!--Carbon security mgt version-->
-        <carbon.security.mgt.version>1.0.0</carbon.security.mgt.version>
-        <carbon.security.mgt.imp.pkg.version.range>[1.0.0,2.0.0)</carbon.security.mgt.imp.pkg.version.range>
-        <carbon.security.mgt.exp.pkg.version>${carbon.security.mgt.version}</carbon.security.mgt.exp.pkg.version>
 
         <!--Carbon registry version-->
         <org.wso2.carbon.registry.version>4.8.12</org.wso2.carbon.registry.version>
