@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core-feature</artifactId>
-        <version>5.25.281-SNAPSHOT</version>
+        <version>5.25.304-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -71,7 +71,7 @@
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.security.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.security.mgt.server:compatible:${carbon.security.mgt.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-provider-management</artifactId>
-        <version>5.25.281-SNAPSHOT</version>
+        <version>5.25.304-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -80,7 +80,7 @@
             <artifactId>org.wso2.carbon.identity.application.default.auth.sequence.mgt.stub</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <groupId>org.wso2.carbon.security.mgt</groupId>
             <artifactId>org.wso2.carbon.security.mgt</artifactId>
         </dependency>
     </dependencies>

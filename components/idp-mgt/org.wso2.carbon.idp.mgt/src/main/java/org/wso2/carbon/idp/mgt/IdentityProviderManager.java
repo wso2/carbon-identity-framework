@@ -132,6 +132,7 @@ public class IdentityProviderManager implements IdpManager {
         String oauth1AuthorizeUrl;
         String oauth1AccessTokenUrl;
         String oauth2AuthzEPUrl;
+        String oauth2ParEPUrl;
         String oauth2TokenEPUrl;
         String oauth2RevokeEPUrl;
         String oauth2IntrospectEpUrl;
@@ -154,6 +155,7 @@ public class IdentityProviderManager implements IdpManager {
         oauth1AuthorizeUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL);
         oauth1AccessTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL);
         oauth2AuthzEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_AUTHZ_EP_URL);
+        oauth2ParEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_PAR_EP_URL);
         oauth2TokenEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_TOKEN_EP_URL);
         oauth2UserInfoEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_USERINFO_EP_URL);
         oidcCheckSessionEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL);
@@ -188,6 +190,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl, tenantDomain);
+        oauth2ParEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.PAR, oauth2ParEPUrl, tenantDomain);
         oauth2TokenEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl, tenantDomain);
         oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl, tenantDomain);
         oauth2IntrospectEpUrl = resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl,
@@ -377,6 +380,10 @@ public class IdentityProviderManager implements IdpManager {
         Property authzUrlProp = resolveFedAuthnProperty(oauth2AuthzEPUrl, oidcFedAuthn,
                 IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL);
         propertiesList.add(authzUrlProp);
+
+        Property parUrlProp = resolveFedAuthnProperty(oauth2ParEPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.OAuth2.OAUTH2_PAR_URL);
+        propertiesList.add(parUrlProp);
 
         Property tokenUrlProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
                 IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL);

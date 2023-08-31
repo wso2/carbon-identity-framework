@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -210,15 +211,17 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                     .getAuthenticatedSubjectIdentifier(), serviceProvider.getApplicationName(), getSPTenantDomain
                     (serviceProvider));
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
-                        LoggerUtils.getMaskedContent(authenticatedUser.getAuthenticatedSubjectIdentifier()) :
-                        authenticatedUser.getAuthenticatedSubjectIdentifier());
-                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
-                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
-                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
-                        LogConstants.FAILED, "Error occurred while processing consent data of user: " + e.getMessage(),
-                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT)
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, serviceProvider.getApplicationName())
+                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, getSPTenantDomain(serviceProvider))
+                        .inputParam(LogConstants.InputKeys.USER, LoggerUtils.isLogMaskingEnable ?
+                                LoggerUtils.getMaskedContent(authenticatedUser.getAuthenticatedSubjectIdentifier()) :
+                                authenticatedUser.getAuthenticatedSubjectIdentifier())
+                        .resultMessage("Error occurred while processing consent data.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED));
             }
             throw new PostAuthenticationFailedException("Authentication failed. Error occurred while processing user " +
                     "consent.", error, e);
@@ -314,13 +317,17 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
         Map<String, String> claimMappings = applicationConfig.getClaimMappings();
         ServiceProvider serviceProvider = getServiceProvider(context);
-        Map<String, Object> params = new HashMap<>();
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
+            diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT);
+            diagnosticLogBuilder.inputParam(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
                     LoggerUtils.getMaskedContent(authenticatedUser.getAuthenticatedSubjectIdentifier()) :
-                    authenticatedUser.getAuthenticatedSubjectIdentifier());
-            params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
-            params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
+                    authenticatedUser.getAuthenticatedSubjectIdentifier()).
+                    inputParam(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName())
+                    .inputParam(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider))
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
         }
         if (request.getParameter(USER_CONSENT_INPUT).equalsIgnoreCase(USER_CONSENT_APPROVE)) {
             if (isDebugEnabled()) {
@@ -330,10 +337,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                         serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider));
                 logDebug(message);
             }
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
-                        LogConstants.SUCCESS, "User has approved consent for service provider.",
-                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
+            if (diagnosticLogBuilder != null) {
+                // diagnosticLogBuilder is null only if diagnostic logs are disabled.
+                diagnosticLogBuilder.resultMessage("User has approved consent for service provider.")
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             UserConsent userConsent = processUserConsent(request, context);
             ConsentClaimsData consentClaimsData = getConsentClaimsData(context, authenticatedUser, serviceProvider);
@@ -351,10 +359,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 String error = "Authentication Failure: Consent management is disabled for SSO.";
                 String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
                                    "sso consent management is invoked.";
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                            params, LogConstants.FAILED, "Consent management is disabled for SSO: " + e.getMessage(),
-                            FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
+                if (diagnosticLogBuilder != null) {
+                    // diagnosticLogBuilder is null only if diagnostic logs are disabled.
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                            .resultMessage("Consent management is disabled for SSO.")
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
                 throw new PostAuthenticationFailedException(error, errorDesc, e);
             } catch (SSOConsentServiceException e) {
@@ -362,11 +372,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                "in tenant domain: %s.";
                 error = String.format(error, authenticatedUser.getAuthenticatedSubjectIdentifier(), serviceProvider
                         .getApplicationName(), getSPTenantDomain(serviceProvider));
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                            params, LogConstants.FAILED, "Error occurred while processing consent input: "
-                                    + e.getMessage(), FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT,
-                            null);
+                if (diagnosticLogBuilder != null) {
+                    // diagnosticLogBuilder is null only if diagnostic logs are disabled.
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                            .resultMessage("Error occurred while processing consent input.")
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
                 }
                 throw new PostAuthenticationFailedException("Authentication failed. Error while processing user " +
                                                             "consent input.", error, e);
@@ -380,10 +391,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                 "provider: %s.", authenticatedUser.getAuthenticatedSubjectIdentifier(),
                         applicationConfig.getApplicationName()));
             }
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                LoggerUtils.triggerDiagnosticLogEvent(FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
-                        LogConstants.FAILED, "User denied consent to share information with the service provider.",
-                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
+            if (diagnosticLogBuilder != null) {
+                // diagnosticLogBuilder is null only if diagnostic logs are disabled.
+                diagnosticLogBuilder.resultMessage("User denied consent to share information with the service " +
+                                "provider.")
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             throw new PostAuthenticationFailedException(error, error);
         }
@@ -416,16 +429,19 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                                              authenticatedUser.getAuthenticatedSubjectIdentifier(),
                                              serviceProvider.getApplicationName(), getSPTenantDomain(serviceProvider));
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put(FrameworkConstants.LogConstants.USER, LoggerUtils.isLogMaskingEnable ?
-                            LoggerUtils.getMaskedContent(authenticatedUser.getAuthenticatedSubjectIdentifier()) :
-                            authenticatedUser.getAuthenticatedSubjectIdentifier());
-                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, serviceProvider.getApplicationName());
-                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, getSPTenantDomain(serviceProvider));
-                    LoggerUtils.triggerDiagnosticLogEvent(
-                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
-                            "Error occurred while processing user consent: " + e.getMessage(),
-                            FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT, null);
+                    LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                            FrameworkConstants.LogConstants.ActionIDs.PROCESS_CLAIM_CONSENT)
+                            .inputParam(LogConstants.InputKeys.APPLICATION_NAME, serviceProvider.getApplicationName())
+                            .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, getSPTenantDomain(serviceProvider))
+                            .inputParam(LogConstants.InputKeys.USER, LoggerUtils.isLogMaskingEnable ?
+                                    LoggerUtils.getMaskedContent(
+                                            authenticatedUser.getAuthenticatedSubjectIdentifier()) : authenticatedUser
+                                    .getAuthenticatedSubjectIdentifier())
+                            .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                            .resultMessage("Error occurred while processing consent data.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED));
                 }
                 throw new PostAuthenticationFailedException("Authentication failed. Error occurred while processing " +
                                                             "user consent.", error, e);

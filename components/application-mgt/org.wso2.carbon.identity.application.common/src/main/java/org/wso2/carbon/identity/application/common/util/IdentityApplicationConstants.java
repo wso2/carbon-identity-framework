@@ -323,6 +323,7 @@ public class IdentityApplicationConstants {
         public static final String CLIENT_ID = "ClientId";
         public static final String CLIENT_SECRET = "ClientSecret";
         public static final String OAUTH2_AUTHZ_URL = "OAuth2AuthzEPUrl";
+        public static final String OAUTH2_PAR_URL = "OAuth2ParEPUrl";
         public static final String OAUTH2_TOKEN_URL = "OAuth2TokenEPUrl";
         public static final String OAUTH2_REVOKE_URL = "OAuth2RevokeEPUrl";
         public static final String OAUTH2_INTROSPECT_URL = "OAuth2IntrospectEPUrl";

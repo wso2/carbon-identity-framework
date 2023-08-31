@@ -85,6 +85,7 @@
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
   "oauth.endpoints.oauth1_access_token_url": "$ref{server.base_path}/oauth/access-token",
   "oauth.endpoints.oauth2_authz_url": "$ref{server.base_path}/oauth2/authorize",
+  "oauth.endpoints.oauth2_par_url": "$ref{server.base_path}/oauth2/par",
   "oauth.endpoints.oauth2_token_url": "$ref{server.base_path}/oauth2/token",
   "oauth.endpoints.oauth2_revoke_url": "$ref{server.base_path}/oauth2/revoke",
   "oauth.endpoints.oauth2_introspect_url": "$ref{server.base_path}/oauth2/introspect",
@@ -138,6 +139,7 @@
   "oauth.grant_type.client_credentials.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.ClientCredentialsGrantHandler",
   "oauth.grant_type.client_credentials.allow_refresh_tokens": false,
   "oauth.grant_type.client_credentials.allow_id_token": false,
+  "oauth.grant_type.client_credentials.skip_oidc_claims": true,
   "oauth.grant_type.saml_bearer.enable": true,
   "oauth.grant_type.saml_bearer.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.saml.SAML2BearerGrantHandler",
   "oauth.grant_type.iwa_ntlm.enable": true,
@@ -266,6 +268,8 @@
   "saml.metadata.sp_enable_sha256_alg": true,
 
   "sts.endpoint.idp": "$ref{server.base_path}/services/wso2carbon-sts",
+  "sts.local_subject_identifier.include_user_store_domain": true,
+  "sts.local_subject_identifier.include_tenant_domain": false,
 
   "passive_sts.token_store_class": "org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore",
   "passive_sts.slo.host_name_verification": true,
