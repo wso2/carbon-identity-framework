@@ -34,8 +34,6 @@ import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
 import org.wso2.carbon.identity.application.role.mgt.model.Group;
 import org.wso2.carbon.identity.application.role.mgt.model.User;
 import org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils;
-import org.wso2.carbon.identity.application.role.mgt.util.GroupIDResolver;
-import org.wso2.carbon.identity.application.role.mgt.util.UserIDResolver;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -79,8 +77,6 @@ import static org.wso2.carbon.identity.application.role.mgt.util.ApplicationRole
 public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
 
     private static final Log LOG = LogFactory.getLog(ApplicationRoleMgtDAOImpl.class);
-    private final UserIDResolver userIDResolver = new UserIDResolver();
-    private final GroupIDResolver groupIDResolver = new GroupIDResolver();
 
     @Override
     public ApplicationRole addApplicationRole(ApplicationRole applicationRole, String tenantDomain)
@@ -88,20 +84,18 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
 
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
-            namedJdbcTemplate.withTransaction(template -> {
-                template.executeInsert(SQLConstants.ADD_APPLICATION_ROLE, namedPreparedStatement -> {
-                    namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, applicationRole.getRoleId());
-                    namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_APP_ID, applicationRole.getApplicationId());
-                    namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME, applicationRole.getRoleName());
-                    namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
-                }, null, false);
-                return null;
-            });
+            namedJdbcTemplate.withTransaction(template -> template.executeInsert(SQLConstants.ADD_APPLICATION_ROLE,
+                    namedPreparedStatement -> {
+                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, applicationRole.getRoleId());
+                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_APP_ID, applicationRole.getApplicationId());
+                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME, applicationRole.getRoleName());
+                namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+            }, null, false));
+            return getApplicationRoleById(applicationRole.getRoleId(), tenantDomain);
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_INSERT_ROLE, e, applicationRole.getRoleName(),
                     applicationRole.getApplicationId());
         }
-        return applicationRole;
     }
 
     @Override
@@ -228,7 +222,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         validateUserIds(removedUsers, tenantDomain);
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
-            return namedJdbcTemplate.withTransaction(template -> {
+            namedJdbcTemplate.withTransaction(template -> {
                 namedJdbcTemplate.executeBatchInsert(SQLConstants.ADD_APPLICATION_ROLE_USER, (preparedStatement -> {
                     for (String userId : addedUsers) {
                         preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
@@ -246,8 +240,9 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                                         getTenantId(tenantDomain));
                             });
                 }
-                return getApplicationRoleAssignedUsers(roleId, tenantDomain);
+                return null;
             });
+            return getApplicationRoleAssignedUsers(roleId, tenantDomain);
         } catch (TransactionException e) {
             if (checkUniqueKeyConstrainViolated(e, USER_ROLE_UNIQUE_CONSTRAINT)) {
                 throw ApplicationRoleMgtUtils.handleClientException(ERROR_CODE_USER_ALREADY_ASSIGNED, roleId);
@@ -414,7 +409,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
 
         if (LOCAL_IDP.equals(identityProvider.getIdentityProviderName())) {
             for (String groupId : groups) {
-                boolean isExists = groupIDResolver.isExists(groupId, tenantDomain);
+                boolean isExists = ApplicationRoleMgtUtils.isGroupExists(groupId);
                 if (!isExists) {
                     throw ApplicationRoleMgtUtils.handleClientException(ERROR_CODE_GROUP_NOT_FOUND, groupId);
                 }
@@ -437,7 +432,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
             throws ApplicationRoleManagementException {
 
         for (String userId : users) {
-            boolean isExists = userIDResolver.isExists(userId, tenantDomain);
+            boolean isExists = ApplicationRoleMgtUtils.isUserExists(userId);
             if (!isExists) {
                 throw ApplicationRoleMgtUtils.handleClientException(ERROR_CODE_USER_NOT_FOUND, userId);
             }
@@ -447,13 +442,13 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
     private String getUserNamesByID(String userID, String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        return userIDResolver.getNameByID(userID, tenantDomain);
+        return ApplicationRoleMgtUtils.getUserNameByID(userID, tenantDomain);
     }
 
     private String getGroupNamesByID(String groupID, String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        return groupIDResolver.getNameByID(groupID, tenantDomain);
+        return ApplicationRoleMgtUtils.getGroupNameByID(groupID, tenantDomain);
     }
 
     private boolean checkUniqueKeyConstrainViolated(TransactionException e, String constraint) {
