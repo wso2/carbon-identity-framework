@@ -269,7 +269,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
             }
             ApplicationRole applicationRole = new ApplicationRole();
             applicationRole.setAssignedUsers(users);
-            return  applicationRole;
+            return applicationRole;
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_ROLE_ASSIGNED_USERS, e, roleId);
         }
@@ -357,7 +357,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
             }
             ApplicationRole applicationRole = new ApplicationRole();
             applicationRole.setAssignedGroups(groups);
-            return  applicationRole;
+            return applicationRole;
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_ROLE_ASSIGNED_GROUPS, e, roleId);
         }

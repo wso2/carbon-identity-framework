@@ -82,6 +82,12 @@ public class ApplicationRoleMgtUtils {
         return new ApplicationRoleManagementClientException(error.getMessage(), description, error.getCode());
     }
 
+    /**
+     * Check group exists by id.
+     *
+     * @param id Group ID.
+     * @throws ApplicationRoleManagementException Error occurred while checking group exists.
+     */
     public static boolean isGroupExists(String id) throws ApplicationRoleManagementException {
 
         AbstractUserStoreManager userStoreManager;
@@ -94,6 +100,14 @@ public class ApplicationRoleMgtUtils {
                     + "to resolve group name for the groupID: " + id, e);
         }
     }
+
+    /**
+     * Get group name by id.
+     *
+     * @param id Group ID.
+     * @param tenantDomain Tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while getting group name by id.
+     */
     public static String getGroupNameByID(String id, String tenantDomain) throws ApplicationRoleManagementException {
 
         String groupName;
@@ -113,6 +127,12 @@ public class ApplicationRoleMgtUtils {
         return groupName;
     }
 
+    /**
+     * Check user exists by id.
+     *
+     * @param id User ID.
+     * @throws ApplicationRoleManagementException Error occurred while checking user exists.
+     */
     public static boolean isUserExists(String id) throws ApplicationRoleManagementException {
 
         AbstractUserStoreManager userStoreManager;
@@ -126,6 +146,13 @@ public class ApplicationRoleMgtUtils {
         }
     }
 
+    /**
+     * Get username by id.
+     *
+     * @param id User ID.
+     * @param tenantDomain Tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while getting username by id.
+     */
     public static String getUserNameByID(String id, String tenantDomain) throws ApplicationRoleManagementException {
 
         String userName;
