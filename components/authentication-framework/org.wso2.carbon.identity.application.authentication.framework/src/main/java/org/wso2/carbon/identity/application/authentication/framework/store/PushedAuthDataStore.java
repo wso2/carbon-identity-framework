@@ -110,7 +110,7 @@ public class PushedAuthDataStore {
 
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getSessionDBConnection(true);
+            connection = IdentityDatabaseUtil.getDBConnection(true);
             String nonFormattedQuery;
             String driverName = connection.getMetaData().getDriverName();
             if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
@@ -164,7 +164,7 @@ public class PushedAuthDataStore {
         }
         long currentTime = FrameworkUtils.getCurrentStandardNano();
         long cleanUpTime = currentTime - EXPIRATION_GRACE_PERIOD_IN_MINUTES * 60 * 1000;
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             boolean deleteCompleted = false;
             int totalDeletedEntries = 0;
             while (!deleteCompleted) {
