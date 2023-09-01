@@ -1377,6 +1377,18 @@
             {% endif %}
             <PasswordGenerator>{{identity_mgt.user_onboarding.password_generator}}</PasswordGenerator>
             <DisableRandomValueForCredentials>{{identity_mgt.user_onboarding.disable_random_value_for_credentials}}</DisableRandomValueForCredentials>
+            <Notification>
+                <!--
+                    This property was introduced to keep the email confirmation code tolerance time period value of the
+                    ask password scenario. This can be configured in minutes and must be lower that confirmation
+                    code expiry time for ask password. If the following config is configured, the existing confirmation
+                    code will be send again in the email when user ask for resend code. If this was not configured, a
+                    default value of zero (0) will be set internally.
+                -->
+                {% if identity_mgt.user_onboarding.ask_password_confirmation_code_tolerance_period is defined %}
+                <ConfirmationCodeTolerancePeriod>{{identity_mgt.user_onboarding.ask_password_confirmation_code_tolerance_period}}</ConfirmationCodeTolerancePeriod>
+                {% endif %}
+            </Notification>
         </AskPassword>
     </EmailVerification>
 
@@ -1397,6 +1409,30 @@
         <NotifyAccountConfirmation>{{identity_mgt.user_self_registration.notify_account_confirmation}}</NotifyAccountConfirmation>
         <Notification>
             <InternallyManage>{{identity_mgt.user_self_registration.notification.manage_internally}}</InternallyManage>
+            <Email>
+                <!--
+                    This property was introduced to keep the email confirmation code tolerance time period value of the
+                    self registration scenario using EMAIL channel. This can be configured in minutes and must be lower
+                    that confirmation code expiry time for self registration. If the following config is configured, the
+                    existing confirmation code will be send again in the email when user ask for resend code. If this
+                    was not configured, a default value of zero (0) will be set internally.
+                -->
+                {% if identity_mgt.user_self_registration.email.confirmation_code_tolerance_period is defined %}
+                <ConfirmationCodeTolerancePeriod>{{identity_mgt.user_self_registration.email.confirmation_code_tolerance_period}}</ConfirmationCodeTolerancePeriod>
+                {% endif %}
+            </Email>
+            <SMS>
+                <!--
+                    This property was introduced to keep the email confirmation code tolerance time period value of the
+                    self registration scenario using SMS channel. This can be configured in minutes and must be lower
+                    that confirmation code expiry time for self registration using SMS channel. If the following config
+                    is configured, the existing confirmation code will be send again in the email when user ask for
+                    resend code. If this was not configured, a default value of zero (0) will be set internally.
+                -->
+                {% if identity_mgt.user_self_registration.sms.confirmation_code_tolerance_period is defined %}
+                <ConfirmationCodeTolerancePeriod>{{identity_mgt.user_self_registration.sms.confirmation_code_tolerance_period}}</ConfirmationCodeTolerancePeriod>
+                {% endif %}
+            </SMS>
         </Notification>
         <ReCaptcha>{{identity_mgt.user_self_registration.enable_recaptcha}}</ReCaptcha>
         <VerificationCode>
