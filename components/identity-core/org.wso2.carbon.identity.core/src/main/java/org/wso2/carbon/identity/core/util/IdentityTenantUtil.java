@@ -420,14 +420,4 @@ public class IdentityTenantUtil {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_LEGACY_SAAS_AUTHENTICATION));
     }
-
-    /**
-     * Checks whether the SaaS apps are allowed to be created in tenants.
-     *
-     * @return true if the config is set to true, false otherwise.
-     */
-    public static boolean isSaaSAppsAllowedInTenants() {
-
-        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_SAAS_APPS_IN_TENANTS));
-    }
 }
