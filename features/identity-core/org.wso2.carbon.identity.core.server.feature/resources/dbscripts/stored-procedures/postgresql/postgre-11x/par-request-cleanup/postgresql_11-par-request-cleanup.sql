@@ -32,7 +32,7 @@ BEGIN
     batchCount := 1000;
     chunkCount := 1000;
     rowCount   := 0;
-    cleanUpRequestsTimeLimit := 720; -- SET SAFE PERIOD OF HOURS FOR REQUEST DELETE [DEFAULT : 720 hrs (30 days)]. REQUESTS OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
+    cleanUpRequestsTimeLimit := 24; -- SET SAFE PERIOD OF HOURS FOR REQUEST DELETE [DEFAULT : 24 hrs (1 day)]. REQUESTS OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
     cleanUpDateTimeLimit := (extract(epoch from timezone('UTC'::text, now())) - (3600 * cleanUpRequestsTimeLimit)) * 1000;
     backupTable = 'idn_oauth_par_backup';
 
