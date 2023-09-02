@@ -3,7 +3,7 @@
     "category": "DEFAULT",
     "description": "Configure a new enterprise identity provider with SAML 2.0",
     "docLink": "/guides/authentication/enterprise-login/",
-    "displayOrder": 6,
+    "displayOrder": 7,
     "id": "enterprise-saml-idp",
     "tags": [ "SAML" ],
     "idp": {

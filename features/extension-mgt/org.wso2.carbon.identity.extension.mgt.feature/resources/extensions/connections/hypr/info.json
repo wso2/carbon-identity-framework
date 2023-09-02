@@ -4,7 +4,7 @@
     "description": "Enable login for users with existing HYPR accounts.",
     "image": "assets/images/logos/hypr.svg",
     "category": "DEFAULT",
-    "displayOrder": 4,
+    "displayOrder": 6,
     "tags": [ "Social-Login" ],
     "type": "identity-provider"
 }

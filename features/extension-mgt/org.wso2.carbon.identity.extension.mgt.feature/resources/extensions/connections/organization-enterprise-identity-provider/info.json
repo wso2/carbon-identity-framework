@@ -4,7 +4,7 @@
     "description": "Organization SSO login",
     "image": "assets/images/logos/organization-sso.svg",
     "category": "DEFAULT",
-    "displayOrder": 5,
+    "displayOrder": 7,
     "tags": [ "Organization-Login" ],
     "type": "identity-provider",
     "templateId": "organization-enterprise-idp"

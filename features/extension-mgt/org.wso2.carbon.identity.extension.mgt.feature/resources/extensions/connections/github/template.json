@@ -4,7 +4,7 @@
     "description": "Login users with existing GitHub accounts.",
     "image": "assets/images/logos/github.svg",
     "category": "DEFAULT",
-    "displayOrder": 3,
+    "displayOrder": 4,
     "docLink": "/guides/authentication/social-login/add-github-login/",
     "services": [],
     "tags": [ "Social-Login" ],

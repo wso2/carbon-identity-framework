@@ -4,7 +4,7 @@
     "description": "Enable login for users with existing Microsoft accounts.",
     "image": "assets/images/logos/microsoft.svg",
     "category": "DEFAULT",
-    "displayOrder": 1,
+    "displayOrder": 2,
     "tags": [ "Social-Login" ],
     "type": "identity-provider"
 }

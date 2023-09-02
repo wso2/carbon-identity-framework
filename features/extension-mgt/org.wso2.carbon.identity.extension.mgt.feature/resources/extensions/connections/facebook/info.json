@@ -4,7 +4,7 @@
     "description": "Login users with existing Facebook accounts.",
     "image": "assets/images/logos/facebook.svg",
     "category": "DEFAULT",
-    "displayOrder": 2,
+    "displayOrder": 3,
     "tags": [ "Social-Login" ],
     "type": "identity-provider"
 }

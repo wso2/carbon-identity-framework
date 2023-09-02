@@ -5,7 +5,7 @@
     "docLink": "/guides/authentication/social-login/add-microsoft-login/",
     "image": "assets/images/logos/microsoft.svg",
     "category": "DEFAULT",
-    "displayOrder": 1,
+    "displayOrder": 2,
     "services": [],
     "tags": [ "Social-Login" ],
     "idp": {

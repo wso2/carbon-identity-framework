@@ -5,7 +5,7 @@
     "docLink": "/guides/authentication/decentralized-login/sign-in-with-ethereum",
     "image": "assets/images/logos/ethereum.svg",
     "category": "DEFAULT",
-    "displayOrder": 8,
+    "displayOrder": 9,
     "services": [],
     "tags": [ "OIDC" ],
     "disabled": false,

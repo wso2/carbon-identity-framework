@@ -1,7 +1,7 @@
 {
     "category": "DEFAULT",
     "description": "Enterprise login via standard protocols",
-    "displayOrder": 5,
+    "displayOrder": 7,
     "id": "enterprise-idp",
     "idp": {
         "certificate": {},

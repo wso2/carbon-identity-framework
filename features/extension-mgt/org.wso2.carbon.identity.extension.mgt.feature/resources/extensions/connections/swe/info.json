@@ -4,7 +4,7 @@
     "description": "Login users with their Ethereum wallet.",
     "image": "assets/images/logos/ethereum.svg",
     "category": "DEFAULT",
-    "displayOrder": 8,
+    "displayOrder": 9,
     "tags": [ "OIDC" ],
     "type": "identity-provider"
 }

@@ -4,7 +4,7 @@
     "templateId": "organization-enterprise-idp",
     "category": "DEFAULT",
     "description": "Organization SSO login",
-    "displayOrder": 5,
+    "displayOrder": 7,
     "tags": [
         "Organization-Login"
     ],

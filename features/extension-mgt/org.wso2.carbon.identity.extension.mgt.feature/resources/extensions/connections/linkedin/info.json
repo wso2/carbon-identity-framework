@@ -5,7 +5,7 @@
     "docLink": "/guides/authentication/#manage-connections",
     "image": "assets/images/logos/linkedin.svg",
     "category": "DEFAULT",
-    "displayOrder": 2,
+    "displayOrder": 10,
     "services": [],
     "tags": [ "Social-Login" ],
     "idp": {},
