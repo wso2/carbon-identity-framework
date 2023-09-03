@@ -2040,6 +2040,10 @@
             <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/add</Permissions>
             <Scopes>internal_guest_mgt_invite_add</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="true" http-method="POST">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
