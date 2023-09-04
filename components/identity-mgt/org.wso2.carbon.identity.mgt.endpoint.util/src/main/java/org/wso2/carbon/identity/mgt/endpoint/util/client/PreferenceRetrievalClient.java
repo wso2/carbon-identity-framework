@@ -196,9 +196,9 @@ public class PreferenceRetrievalClient {
                 MULTI_ATTRIBUTE_LOGIN_ALLOWED_ATTRIBUTES_PROPERTY);
         if (optional.isPresent()) {
             return optional.get();
-        } else {
-            return null;
-        }
+        } 
+        return null;
+    
     }
 
     /**
