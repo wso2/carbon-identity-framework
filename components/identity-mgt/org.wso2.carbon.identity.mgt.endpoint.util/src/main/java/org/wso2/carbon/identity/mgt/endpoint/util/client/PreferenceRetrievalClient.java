@@ -198,7 +198,6 @@ public class PreferenceRetrievalClient {
             return optional.get();
         } 
         return null;
-    
     }
 
     /**
