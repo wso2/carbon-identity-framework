@@ -225,6 +225,9 @@
              currently used by JWT token issuer for issuing access token-->
         <SkipOIDCClaimsForClientCredentialGrant>true</SkipOIDCClaimsForClientCredentialGrant>
 
+        <!-- If enabled, hostname will be used to build the issuer instead of entity ID -->
+        <BuildIssuerWithHostname>false</BuildIssuerWithHostname>
+
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>300</AuthorizationCodeDefaultValidityPeriod>
         <!-- Default validity period for application access tokens in seconds -->

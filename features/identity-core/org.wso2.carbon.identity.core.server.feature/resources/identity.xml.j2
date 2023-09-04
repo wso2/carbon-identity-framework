@@ -269,6 +269,9 @@
              currently used by JWT token issuer for issuing access token-->
         <SkipOIDCClaimsForClientCredentialGrant>{{oauth.grant_type.client_credentials.skip_oidc_claims}}</SkipOIDCClaimsForClientCredentialGrant>
 
+        <!-- If enabled, hostname will be used to build the issuer instead of entity ID -->
+        <BuildIssuerWithHostname>{{oauth.build_issuer_with_hostname}}</BuildIssuerWithHostname>
+
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>{{oauth.token_validation.authorization_code_validity}}</AuthorizationCodeDefaultValidityPeriod>
         <!-- Default validity period for application access tokens in seconds -->
