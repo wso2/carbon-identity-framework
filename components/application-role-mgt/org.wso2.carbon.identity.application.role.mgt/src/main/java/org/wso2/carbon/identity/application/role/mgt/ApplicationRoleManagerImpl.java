@@ -58,7 +58,8 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             new CacheBackedApplicationRoleMgtDAOImpl(new ApplicationRoleMgtDAOImpl());
 
     @Override
-    public void addApplicationRole(ApplicationRole applicationRole) throws ApplicationRoleManagementException {
+    public ApplicationRole addApplicationRole(ApplicationRole applicationRole)
+            throws ApplicationRoleManagementException {
 
         String tenantDomain = getTenantDomain();
         boolean existingRole =
@@ -68,7 +69,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             throw handleClientException(ERROR_CODE_DUPLICATE_ROLE, applicationRole.getRoleName(),
                     applicationRole.getApplicationId());
         }
-        applicationRoleMgtDAO.addApplicationRole(applicationRole, tenantDomain);
+        return applicationRoleMgtDAO.addApplicationRole(applicationRole, tenantDomain);
     }
 
     @Override
@@ -76,6 +77,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
                                                  List<String> addedScopes, List<String> removedScopes)
             throws ApplicationRoleManagementException {
 
+        validateAppRoleId(roleId);
         // TODO: Check authorized scopes for the app and filter out added permissions
         return applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes,
                 getTenantDomain());
@@ -84,6 +86,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     @Override
     public ApplicationRole getApplicationRoleById(String roleId) throws ApplicationRoleManagementException {
 
+        validateAppRoleId(roleId);
         return applicationRoleMgtDAO.getApplicationRoleById(roleId, getTenantDomain());
     }
 
@@ -96,6 +99,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     @Override
     public void deleteApplicationRole(String roleId) throws ApplicationRoleManagementException {
 
+        validateAppRoleId(roleId);
         applicationRoleMgtDAO.deleteApplicationRole(roleId, getTenantDomain());
     }
 
@@ -184,6 +188,12 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
         return applicationRoleMgtDAO.getApplicationRolesByGroupId(groupId, tenantDomain);
     }
 
+    /**
+     * Validate application role id.
+     *
+     * @param roleId Role ID.
+     * @throws  ApplicationRoleManagementException Error occurred while validating roleId.
+     */
     private void validateAppRoleId(String roleId) throws ApplicationRoleManagementException {
 
         boolean isExists = applicationRoleMgtDAO.checkRoleExists(roleId, getTenantDomain());
@@ -193,11 +203,21 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
         }
     }
 
+    /**
+     * Get tenant domain.
+     *
+     */
     private static String getTenantDomain() {
 
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
 
+    /**
+     * Remove common values in given two lists.
+     *
+     * @param list1 List 1.
+     * @param list2 List 2.
+     */
     private void removeCommonValues(List<String> list1, List<String> list2) {
         HashSet<String> set = new HashSet<>(list1);
 

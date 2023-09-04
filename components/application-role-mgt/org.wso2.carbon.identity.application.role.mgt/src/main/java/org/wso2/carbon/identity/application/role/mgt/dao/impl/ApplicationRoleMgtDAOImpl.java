@@ -219,7 +219,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
             throws ApplicationRoleManagementException {
 
         // Validate given userIds are exists.
-        validateUserIds(addedUsers, tenantDomain);
+        validateUserIds(addedUsers);
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
             namedJdbcTemplate.withTransaction(template -> {
@@ -281,7 +281,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                                                     String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        validateGroupIds(identityProvider, addedGroups, tenantDomain);
+        validateGroupIds(identityProvider, addedGroups);
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
             return namedJdbcTemplate.withTransaction(template -> {
@@ -403,7 +403,14 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         }
     }
 
-    public void validateGroupIds(IdentityProvider identityProvider, List<String> groups, String tenantDomain)
+    /**
+     * Validate groups.
+     *
+     * @param identityProvider Identity Provider.
+     * @param groups Group IDs.
+     * @throws ApplicationRoleManagementException Error occurred while validating groups.
+     */
+    private void validateGroupIds(IdentityProvider identityProvider, List<String> groups)
             throws ApplicationRoleManagementException {
 
         if (LOCAL_IDP.equals(identityProvider.getIdentityProviderName())) {
@@ -427,7 +434,13 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         }
     }
 
-    public void validateUserIds(List<String> users, String tenantDomain)
+    /**
+     * Validate users.
+     *
+     * @param users User IDs.
+     * @throws ApplicationRoleManagementException Error occurred while validating users.
+     */
+    private void validateUserIds(List<String> users)
             throws ApplicationRoleManagementException {
 
         for (String userId : users) {
@@ -438,24 +451,49 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         }
     }
 
+    /**
+     * Get username by user id.
+     *
+     * @param userID User IDs.
+     * @param tenantDomain Tenant Domain.
+     * @throws ApplicationRoleManagementException Error occurred while getting username by id.
+     */
     private String getUserNamesByID(String userID, String tenantDomain)
             throws ApplicationRoleManagementException {
 
         return ApplicationRoleMgtUtils.getUserNameByID(userID, tenantDomain);
     }
 
+    /**
+     * Get group name by user id.
+     *
+     * @param groupID Group IDs.
+     * @param tenantDomain Tenant Domain.
+     * @throws ApplicationRoleManagementException Error occurred while getting group name by id.
+     */
     private String getGroupNamesByID(String groupID, String tenantDomain)
             throws ApplicationRoleManagementException {
 
         return ApplicationRoleMgtUtils.getGroupNameByID(groupID, tenantDomain);
     }
 
+    /**
+     * Check SQL Unique Key Constrain Violated.
+     *
+     * @param e Transaction Exception.
+     * @param constraint SQL constraint.
+     */
     private boolean checkUniqueKeyConstrainViolated(TransactionException e, String constraint) {
 
         String errorMessage = e.getCause().getCause().getMessage();
         return errorMessage.toLowerCase().contains(constraint.toLowerCase());
     }
 
+    /**
+     * Get tenant id by name.
+     *
+     * @param tenantDomain Tenant Domain.
+     */
     private int getTenantId(String tenantDomain) {
 
         int tenantID;

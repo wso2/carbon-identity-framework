@@ -174,6 +174,12 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
         return applicationRole;
     }
 
+    /**
+     * Add to cache.
+     *
+     * @param applicationRole Application role.
+     * @param tenantDomain Tenant domain.
+     */
     private void addToCache(ApplicationRole applicationRole, String tenantDomain) {
 
         if (LOG.isDebugEnabled()) {
@@ -186,6 +192,12 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
         applicationRoleCache.addToCache(cacheKey, cacheEntry, tenantDomain);
     }
 
+    /**
+     * Clear from cache.
+     *
+     * @param applicationRoleId Application role id.
+     * @param tenantDomain Tenant domain.
+     */
     private void clearFromCache(String applicationRoleId, String tenantDomain) {
 
         if (LOG.isDebugEnabled()) {

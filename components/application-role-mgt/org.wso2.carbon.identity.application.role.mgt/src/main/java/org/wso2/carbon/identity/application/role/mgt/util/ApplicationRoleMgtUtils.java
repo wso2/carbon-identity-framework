@@ -172,6 +172,12 @@ public class ApplicationRoleMgtUtils {
         return userName;
     }
 
+    /**
+     * Get username by id.
+     *
+     * @param tenantId Tenant ID.
+     * @throws UserStoreException Error occurred while getting user store manager.
+     */
     private static AbstractUserStoreManager getUserStoreManager(int tenantId) throws UserStoreException {
 
         RealmService realmService = ApplicationRoleMgtServiceComponentHolder.getInstance().getRealmService();

@@ -34,7 +34,7 @@ public interface ApplicationRoleManager {
      * @param applicationRole Application role.
      * @throws ApplicationRoleManagementException Error occurred while adding application role.
      */
-    void addApplicationRole(ApplicationRole applicationRole) throws ApplicationRoleManagementException;
+    ApplicationRole addApplicationRole(ApplicationRole applicationRole) throws ApplicationRoleManagementException;
 
     /**
      * Update application role.

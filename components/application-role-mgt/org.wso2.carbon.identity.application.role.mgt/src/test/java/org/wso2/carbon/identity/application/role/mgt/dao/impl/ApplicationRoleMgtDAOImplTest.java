@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,14 +43,9 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
     private static final String TENANT_DOMAIN = "TEST_TENANT_DOMAIN";
     private static final int TENANT_ID = 2;
     private static final int APP_ID = 1;
-    private static final String APP_NAME = "TEST_APP_NAME";
-    private static final String USER_STORE = "TEST_USER_STORE";
-    private static final String USERNAME = "TEST_USERNAME";
-    private static final String AUTH_TYPE = "TEST_AUTH_TYPE";
     private static final String ROLE_ID = "TEST_ROLE_ID";
     private static final String ROLE_NAME = "TEST_ROLE_NAME";
     private static final int IDP_ID = 1;
-    private static final String IDP_NAME = "TEST_IDP_NAME";
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private ApplicationRoleMgtDAOImpl daoImpl;
@@ -62,8 +56,6 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
 
         daoImpl = new ApplicationRoleMgtDAOImpl();
         initiateH2Database(getFilePath());
-        populateApplication();
-        populateIdp();
     }
 
     @AfterClass
@@ -267,32 +259,6 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
         Assert.assertEquals(role.getAssignedGroups().size(), resultCount);
     }
 
-    private void populateApplication() throws Exception {
-
-        String domainDataSQL = "INSERT INTO SP_APP (ID, TENANT_ID, APP_NAME, USER_STORE, USERNAME, AUTH_TYPE, UUID) " +
-                "VALUES " + "(" + APP_ID + "," + TENANT_ID + ",'" + APP_NAME + "','" + USER_STORE + "','" + USERNAME
-                + "','" + AUTH_TYPE + "','" + APP_ID + "')";
-
-        try {
-            connection.createStatement().executeUpdate(domainDataSQL);
-        } catch (SQLException e) {
-            String errorMessage = "Error while Adding test data for SP_APP table";
-            throw new Exception(errorMessage, e);
-        }
-    }
-
-    private void populateIdp() throws Exception {
-
-        String domainDataSQL = "INSERT INTO IDP (ID, TENANT_ID, NAME, UUID) " +
-                "VALUES " + "(" + IDP_ID + "," + TENANT_ID + ",'" + IDP_NAME + "','" + IDP_ID + "')";
-
-        try {
-            connection.createStatement().executeUpdate(domainDataSQL);
-        } catch (SQLException e) {
-            String errorMessage = "Error while Adding test data for IDP table";
-            throw new Exception(errorMessage, e);
-        }
-    }
 
     /**
      * Initiate H2 database.

@@ -22,6 +22,7 @@
     <test name="api-resource-mgt-tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.application.role.mgt.dao.impl.ApplicationRoleMgtDAOImplTest"/>
+            <class name="org.wso2.carbon.identity.application.role.mgt.ApplicationRoleManagerImplTest"/>
         </classes>
     </test>
 </suite>
