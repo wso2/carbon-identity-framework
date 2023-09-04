@@ -2423,7 +2423,7 @@
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
-        <ExtensionTypes>applications,identity-providers</ExtensionTypes>
+        <ExtensionTypes>applications,connections,identity-providers</ExtensionTypes>
     </ExtensionManagementService>
 
     <!-- IdentityDataStore configurations -->
