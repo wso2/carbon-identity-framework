@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -62,6 +61,7 @@ public class PushedAuthDataStore {
     private static final int DEFAULT_DELETE_LIMIT = 50000;
     private static final int EXPIRATION_GRACE_PERIOD_IN_MINUTES = 10;
     private static final int DELETE_CHUNK_SIZE = DEFAULT_DELETE_LIMIT;
+    private static final String CLEAN_UP_PERIOD_DEFAULT_IN_MINUTES = "1440";
     private String sqlDeleteExpiredDataTask;
     private boolean requestCleanupEnabled = true;
 
@@ -147,7 +147,7 @@ public class PushedAuthDataStore {
 
         String cleanUpPeriod = IdentityUtil.getProperty("JDBCPersistenceManager.PushedAuthReqCleanUp.CleanUpPeriod");
         if (StringUtils.isBlank(cleanUpPeriod) || !StringUtils.isNumeric(cleanUpPeriod)) {
-            cleanUpPeriod = IdentityConstants.ServerConfig.CLEAN_UP_PERIOD_DEFAULT;
+            cleanUpPeriod = CLEAN_UP_PERIOD_DEFAULT_IN_MINUTES;
         }
         return Long.parseLong(cleanUpPeriod);
     }
