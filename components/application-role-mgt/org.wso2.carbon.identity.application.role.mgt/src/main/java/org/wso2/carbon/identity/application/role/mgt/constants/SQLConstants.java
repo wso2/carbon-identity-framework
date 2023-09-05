@@ -30,8 +30,22 @@ public class SQLConstants {
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";, :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + ";);";
 
+    public static final String ADD_ROLE_SCOPE =  "INSERT INTO ROLE_SCOPE (ROLE_ID, SCOPE_NAME, TENANT_ID) " +
+            "VALUES (:" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";, :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SCOPE_NAME + ";, :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";);";
+
+    public static final String DELETE_ROLE_SCOPE = "DELETE FROM ROLE_SCOPE WHERE ROLE_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND SCOPE_NAME = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SCOPE_NAME + "; AND TENANT_ID = :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
     public static final String GET_APPLICATION_ROLE_BY_ID = "SELECT ROLE_ID, ROLE_NAME, TENANT_ID, APP_ID " +
             "FROM APP_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";";
+
+    public static final String GET_APPLICATION_ROLE_SCOPE = "SELECT SCOPE_NAME " +
+            "FROM ROLE_SCOPE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID
+            + "; AND TENANT_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
     public static final String GET_APPLICATION_ROLES_OF_APPLICATION = "SELECT ROLE_ID, ROLE_NAME, TENANT_ID, APP_ID " +
             "FROM APP_ROLE WHERE APP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + ";";
@@ -102,6 +116,7 @@ public class SQLConstants {
 
         public static final String DB_SCHEMA_COLUMN_NAME_ROLE_ID = "ROLE_ID";
         public static final String DB_SCHEMA_COLUMN_NAME_ROLE_NAME = "ROLE_NAME";
+        public static final String DB_SCHEMA_COLUMN_NAME_SCOPE_NAME = "SCOPE_NAME";
         public static final String DB_SCHEMA_COLUMN_NAME_TENANT_ID = "TENANT_ID";
         public static final String DB_SCHEMA_COLUMN_NAME_APP_ID = "APP_ID";
         public static final String DB_SCHEMA_COLUMN_NAME_USER_ID = "USER_ID";

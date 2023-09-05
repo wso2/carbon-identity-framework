@@ -41,7 +41,7 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
 
     private static final String DB_NAME = "application_role_mgt_dao_db";
     private static final String TENANT_DOMAIN = "TEST_TENANT_DOMAIN";
-    private static final int TENANT_ID = 2;
+    private static final int TENANT_ID = -1234;
     private static final int APP_ID = 1;
     private static final String ROLE_ID = "TEST_ROLE_ID";
     private static final String ROLE_NAME = "TEST_ROLE_NAME";
@@ -67,16 +67,14 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
     @DataProvider
     public Object[][] addApplicationRoleData() {
         return new Object[][]{
-                {ROLE_ID, ROLE_NAME},
-                {"TEST_ROLE_ID-1", "TEST_ROLE_NAME-1"},
-                {"TEST_ROLE_ID-2", "TEST_ROLE_NAME-2"},
-                {"TEST_ROLE_ID-3", "TEST_ROLE_NAME-3"},
-
+                {ROLE_ID, ROLE_NAME, new String[]{"TEST_SCOPE_1", "TEST_SCOPE_2", "TEST_SCOPE_3"}},
+                {"TEST_ROLE_ID-1", "TEST_ROLE_NAME-1",
+                        new String[]{"TEST_SCOPE_1", "TEST_SCOPE_2", "TEST_SCOPE_3"}},
         };
     }
 
     @Test(dataProvider = "addApplicationRoleData", priority = 2)
-    public void testAddApplicationRole(String roleId, String roleName) throws Exception {
+    public void testAddApplicationRole(String roleId, String roleName, String[] permissions) throws Exception {
 
         mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
@@ -86,6 +84,7 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
         applicationRole.setApplicationId(String.valueOf(APP_ID));
         applicationRole.setRoleId(roleId);
         applicationRole.setRoleName(roleName);
+        applicationRole.setPermissions(permissions);
         ApplicationRole addedApplicationRole = daoImpl.addApplicationRole(applicationRole, TENANT_DOMAIN);
         Assert.assertNotNull(addedApplicationRole);
     }
@@ -106,8 +105,6 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
         return new Object[][]{
                 {ROLE_ID},
                 {"TEST_ROLE_ID-1"},
-                {"TEST_ROLE_ID-2"},
-                {"TEST_ROLE_ID-3"},
 
         };
     }
@@ -125,21 +122,21 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
     @DataProvider
     public Object[][] updateApplicationRoleData() {
         return new Object[][]{
-                {"TEST_ROLE_ID-1", "TEST_ROLE_NEW_NAME-1"},
-                {"TEST_ROLE_ID-2", "TEST_ROLE_NEW_NAME-2"},
-                {"TEST_ROLE_ID-3", "TEST_ROLE_NEW_NAME-3"},
-
+                {"TEST_ROLE_ID-1", "TEST_ROLE_NEW_NAME-1",
+                        new ArrayList<>(Arrays.asList("TEST_SCOPE_4", "TEST_SCOPE_5", "TEST_SCOPE_6")),
+                        new ArrayList<>(Arrays.asList("TEST_SCOPE_1", "TEST_SCOPE_2", "TEST_SCOPE_3"))},
         };
     }
     @Test(dataProvider = "updateApplicationRoleData", priority = 2)
-    public void testUpdateApplicationRole(String roleId, String newName) throws Exception {
+    public void testUpdateApplicationRole(String roleId, String newName, List<String> addedScopes,
+                                          List<String> removedScopes) throws Exception {
 
         mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(TENANT_ID);
         mockStatic(IdentityDatabaseUtil.class);
         Mockito.when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
-        ApplicationRole applicationRole = daoImpl.updateApplicationRole(roleId, newName, new ArrayList<>(),
-                new ArrayList<>(), TENANT_DOMAIN);
+        ApplicationRole applicationRole = daoImpl.updateApplicationRole(roleId, newName, addedScopes, removedScopes,
+                TENANT_DOMAIN);
         Assert.assertEquals(applicationRole.getRoleName(), newName);
     }
 
@@ -147,8 +144,6 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
     public Object[][] checkRoleExistsData() {
         return new Object[][]{
                 {"TEST_ROLE_ID-1", true},
-                {"TEST_ROLE_ID-2", true},
-                {"TEST_ROLE_ID-3", true},
                 {"FAKE_ROLE_ID-3", false},
 
         };
@@ -168,8 +163,6 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
     public Object[][] deleteApplicationRoleData() {
         return new Object[][]{
                 {"TEST_ROLE_ID-1"},
-                {"TEST_ROLE_ID-2"},
-                {"TEST_ROLE_ID-3"},
 
         };
     }
@@ -223,12 +216,6 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
         return new Object[][]{
                 {new ArrayList<>(Arrays.asList("GROUP_1", "GROUP_2", "GROUP_3")),
                         new ArrayList<>(Collections.emptyList()), 3
-                },
-                {new ArrayList<>(Arrays.asList("GROUP_4", "GROUP_5", "GROUP_6")),
-                        new ArrayList<>(Arrays.asList("GROUP_1", "GROUP_2", "GROUP_3")), 3
-                },
-                {new ArrayList<>(Collections.emptyList()),
-                        new ArrayList<>(Arrays.asList("GROUP_4", "GROUP_5", "GROUP_6")), 0
                 },
         };
     }

@@ -74,6 +74,8 @@ public class ApplicationRoleMgtConstants {
                 "Group with id: %s doesn't exist"),
         ERROR_CODE_IDP_NOT_FOUND("60007", "IDP doesn't exist.",
                 "IDP with id: %s doesn't exist."),
+        ERROR_CODE_INVALID_ROLE_NAME("60008", "Invalid role name.",
+                "Invalid role name."),
         ;
 
         private final String code;

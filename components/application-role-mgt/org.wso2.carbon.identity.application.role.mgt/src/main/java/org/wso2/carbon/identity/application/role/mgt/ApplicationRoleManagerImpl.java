@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.role.mgt;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.role.mgt.dao.ApplicationRoleMgtDAO;
@@ -26,14 +27,17 @@ import org.wso2.carbon.identity.application.role.mgt.dao.impl.CacheBackedApplica
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
 import org.wso2.carbon.identity.application.role.mgt.internal.ApplicationRoleMgtServiceComponentHolder;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
+import org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_DUPLICATE_ROLE;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_IDP_NOT_FOUND;
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ROLE_NAME;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_ROLE_NOT_FOUND;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.LOCAL_IDP;
 import static org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils.handleClientException;
@@ -62,6 +66,9 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             throws ApplicationRoleManagementException {
 
         String tenantDomain = getTenantDomain();
+        if (StringUtils.isBlank(applicationRole.getRoleName())) {
+            throw handleClientException(ERROR_CODE_INVALID_ROLE_NAME);
+        }
         boolean existingRole =
                 applicationRoleMgtDAO.isExistingRole(applicationRole.getApplicationId(), applicationRole.getRoleName(),
                         tenantDomain);
@@ -69,6 +76,8 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             throw handleClientException(ERROR_CODE_DUPLICATE_ROLE, applicationRole.getRoleName(),
                     applicationRole.getApplicationId());
         }
+        ApplicationRoleMgtUtils.validateAuthorizedScopes(applicationRole.getApplicationId(),
+                Arrays.asList(applicationRole.getPermissions()));
         return applicationRoleMgtDAO.addApplicationRole(applicationRole, tenantDomain);
     }
 
@@ -78,7 +87,20 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             throws ApplicationRoleManagementException {
 
         validateAppRoleId(roleId);
-        // TODO: Check authorized scopes for the app and filter out added permissions
+        if (newName != null) {
+            if (StringUtils.isBlank(newName)) {
+                throw handleClientException(ERROR_CODE_INVALID_ROLE_NAME);
+            }
+            boolean existingRole =
+                    applicationRoleMgtDAO.isExistingRole(applicationId, newName,
+                            getTenantDomain());
+            if (existingRole) {
+                throw handleClientException(ERROR_CODE_DUPLICATE_ROLE, newName,
+                        applicationId);
+            }
+        }
+        removeCommonValues(addedScopes, removedScopes);
+        ApplicationRoleMgtUtils.validateAuthorizedScopes(applicationId, addedScopes);
         return applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes,
                 getTenantDomain());
     }

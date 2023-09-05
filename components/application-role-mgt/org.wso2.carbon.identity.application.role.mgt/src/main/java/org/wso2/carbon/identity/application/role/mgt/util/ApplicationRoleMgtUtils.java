@@ -32,6 +32,8 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.List;
+
 /**
  * Application role management util.
  */
@@ -80,6 +82,18 @@ public class ApplicationRoleMgtUtils {
             description = String.format(description, data);
         }
         return new ApplicationRoleManagementClientException(error.getMessage(), description, error.getCode());
+    }
+
+    /**
+     * Check scopes are authorized to the application.
+     *
+     * @param appId Application ID.
+     * @throws ApplicationRoleManagementException Error occurred while checking group exists.
+     */
+    public static void validateAuthorizedScopes(String appId, List<String> scopes)
+            throws ApplicationRoleManagementException {
+
+        // TODO : validate scopes
     }
 
     /**

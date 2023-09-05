@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.role.mgt.dao.impl;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
@@ -65,6 +64,7 @@ import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstan
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_ID;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_NAME;
+import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SCOPE_NAME;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID;
 import static org.wso2.carbon.identity.application.role.mgt.constants.SQLConstants.USER_ROLE_UNIQUE_CONSTRAINT;
@@ -84,13 +84,30 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
 
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
-            namedJdbcTemplate.withTransaction(template -> template.executeInsert(SQLConstants.ADD_APPLICATION_ROLE,
-                    namedPreparedStatement -> {
-                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, applicationRole.getRoleId());
-                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_APP_ID, applicationRole.getApplicationId());
-                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME, applicationRole.getRoleName());
-                namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
-            }, null, false));
+            namedJdbcTemplate.withTransaction(template -> {
+                // Insert app id, role id, role name.
+                template.executeInsert(SQLConstants.ADD_APPLICATION_ROLE, preparedStatement -> {
+                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, applicationRole.getRoleId());
+                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_APP_ID,
+                        applicationRole.getApplicationId());
+                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME,
+                        applicationRole.getRoleName());
+                    preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                    }, null, false);
+                // Insert scopes.
+                if (applicationRole.getPermissions().length > 0) {
+                    template.executeBatchInsert(SQLConstants.ADD_ROLE_SCOPE,
+                        preparedStatement -> {
+                            for (String scope : applicationRole.getPermissions()) {
+                                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, applicationRole.getRoleId());
+                                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SCOPE_NAME, scope);
+                                preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                                preparedStatement.addBatch();
+                            }
+                        }, applicationRole.getRoleId());
+                }
+                return null;
+            });
             return getApplicationRoleById(applicationRole.getRoleId(), tenantDomain);
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_INSERT_ROLE, e, applicationRole.getRoleName(),
@@ -104,15 +121,25 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
 
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
-            return namedJdbcTemplate.fetchSingleRecord(SQLConstants.GET_APPLICATION_ROLE_BY_ID,
-                    (resultSet, rowNumber) ->
-                            new ApplicationRole(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_ID),
-                                    resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME),
-                                    resultSet.getString(DB_SCHEMA_COLUMN_NAME_APP_ID)),
-                    namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                        namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+            ApplicationRole applicationRole =
+                    namedJdbcTemplate.fetchSingleRecord(SQLConstants.GET_APPLICATION_ROLE_BY_ID,
+                        (resultSet, rowNumber) ->
+                                new ApplicationRole(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_ID),
+                                        resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME),
+                                        resultSet.getString(DB_SCHEMA_COLUMN_NAME_APP_ID)),
+                        preparedStatement -> {
+                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                            preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
                     });
+            List<String> scopes;
+            scopes = namedJdbcTemplate.executeQuery(SQLConstants.GET_APPLICATION_ROLE_SCOPE,
+                    (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_SCOPE_NAME),
+                    preparedStatement -> {
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                    });
+            applicationRole.setPermissions(scopes.toArray(new String[0]));
+            return  applicationRole;
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_ROLE_BY_ID, e, roleId);
         }
@@ -129,8 +156,8 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                             new ApplicationRole(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_ID),
                                     resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME),
                                     resultSet.getString(DB_SCHEMA_COLUMN_NAME_APP_ID)),
-                    namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_APP_ID, applicationId);
+                    preparedStatement -> {
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_APP_ID, applicationId);
                     });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_ROLES_BY_APPLICATION, e, applicationId);
@@ -145,15 +172,37 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
             namedJdbcTemplate.withTransaction(template -> {
-                if (StringUtils.isNotBlank(newName)) {
-                    template.executeUpdate(SQLConstants.UPDATE_APPLICATION_ROLE_BY_ID, namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME, newName);
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                        namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                // Update role name.
+                if (newName != null) {
+                    template.executeUpdate(SQLConstants.UPDATE_APPLICATION_ROLE_BY_ID, preparedStatement -> {
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME, newName);
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
                     });
                 }
-                // TODO: Add scopes
-                // TODO: Remove scopes
+                // Add scopes.
+                if (addedScopes.size() > 0) {
+                    template.executeBatchInsert(SQLConstants.ADD_ROLE_SCOPE,
+                        preparedStatement -> {
+                            for (String scope : addedScopes) {
+                                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SCOPE_NAME, scope);
+                                preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                                preparedStatement.addBatch();
+                            }
+                        }, roleId);
+                }
+                // Remove scopes.
+                if (removedScopes.size() > 0) {
+                    for (String scope: removedScopes) {
+                        template.executeUpdate(SQLConstants.DELETE_ROLE_SCOPE,
+                            preparedStatement -> {
+                                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SCOPE_NAME, scope);
+                                preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                            });
+                    }
+                }
                 return null;
             });
             return getApplicationRoleById(roleId, tenantDomain);
@@ -169,10 +218,10 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
             namedJdbcTemplate.executeUpdate(SQLConstants.DELETE_APPLICATION_ROLE_BY_ID,
-                    namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                        namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
-                    });
+                preparedStatement -> {
+                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                    preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_DELETE_ROLE, e, roleId);
         }
@@ -187,10 +236,10 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         try {
             return namedJdbcTemplate.fetchSingleRecord(SQLConstants.IS_APPLICATION_ROLE_EXISTS,
                     (resultSet, rowNumber) -> resultSet.getInt(1) > 0,
-                    namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME, roleName);
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_APP_ID, applicationId);
-                        namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                    preparedStatement -> {
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME, roleName);
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_APP_ID, applicationId);
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
                     });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_CHECKING_ROLE_EXISTENCE, e, roleName, applicationId);
@@ -204,9 +253,9 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         try {
             return namedJdbcTemplate.fetchSingleRecord(SQLConstants.IS_APPLICATION_ROLE_EXISTS_BY_ID,
                     (resultSet, rowNumber) -> resultSet.getInt(1) > 0,
-                    namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                        namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                    preparedStatement -> {
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
                     });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_CHECKING_ROLE_EXISTENCE_BY_ID, e, roleId);
@@ -223,22 +272,28 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
             namedJdbcTemplate.withTransaction(template -> {
-                namedJdbcTemplate.executeBatchInsert(SQLConstants.ADD_APPLICATION_ROLE_USER, (preparedStatement -> {
-                    for (String userId : addedUsers) {
-                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_USER_ID, userId);
-                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
-                        preparedStatement.addBatch();
+                // Add users.
+                if (addedUsers.size() > 0) {
+                    template.executeBatchInsert(SQLConstants.ADD_APPLICATION_ROLE_USER, (preparedStatement -> {
+                        for (String userId : addedUsers) {
+                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_USER_ID, userId);
+                            preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                            preparedStatement.addBatch();
+                        }
+                    }), roleId);
+                }
+                // Remove users.
+                if (removedUsers.size() > 0) {
+                    for (String userId: removedUsers) {
+                        template.executeUpdate(SQLConstants.DELETE_ASSIGNED_USER_APPLICATION_ROLE,
+                                preparedStatement -> {
+                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_USER_ID, userId);
+                                    preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID,
+                                            getTenantId(tenantDomain));
+                                });
                     }
-                }), roleId);
-                for (String userId: removedUsers) {
-                    namedJdbcTemplate.executeUpdate(SQLConstants.DELETE_ASSIGNED_USER_APPLICATION_ROLE,
-                            namedPreparedStatement -> {
-                                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_USER_ID, userId);
-                                namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID,
-                                        getTenantId(tenantDomain));
-                            });
                 }
                 return null;
             });
@@ -260,9 +315,9 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
             List<User> users;
             users = namedJdbcTemplate.executeQuery(SQLConstants.GET_ASSIGNED_USERS_OF_APPLICATION_ROLE,
                     (resultSet, rowNumber) -> new User(resultSet.getString(DB_SCHEMA_COLUMN_NAME_USER_ID)),
-                    namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                        namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                    preparedStatement -> {
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
                     });
             for (User user : users) {
                 user.setUserName(getUserNamesByID(user.getId(), tenantDomain));
@@ -284,34 +339,36 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
         validateGroupIds(identityProvider, addedGroups);
         NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
         try {
-            return namedJdbcTemplate.withTransaction(template -> {
+            namedJdbcTemplate.withTransaction(template -> {
+                // Add groups.
                 if (addedGroups.size() > 0) {
-                    namedJdbcTemplate.executeBatchInsert(SQLConstants.ADD_APPLICATION_ROLE_GROUP,
-                            (preparedStatement -> {
-                                for (String groupId : addedGroups) {
-                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
-                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_IDP_ID,
-                                            identityProvider.getResourceId());
-                                    preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID,
-                                            getTenantId(tenantDomain));
-                                    preparedStatement.addBatch();
+                    template.executeBatchInsert(SQLConstants.ADD_APPLICATION_ROLE_GROUP, (preparedStatement -> {
+                        for (String groupId : addedGroups) {
+                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
+                            preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_IDP_ID,
+                                    identityProvider.getResourceId());
+                            preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID,
+                                    getTenantId(tenantDomain));
+                            preparedStatement.addBatch();
                         }
                     }), roleId);
                 }
+                // Remove groups.
                 if (removedGroups.size() > 0) {
                     for (String groupId: removedGroups) {
-                        namedJdbcTemplate.executeUpdate(SQLConstants.DELETE_ASSIGNED_GROUP_APPLICATION_ROLE,
-                                namedPreparedStatement -> {
-                                    namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                                    namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
-                                    namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID,
+                        template.executeUpdate(SQLConstants.DELETE_ASSIGNED_GROUP_APPLICATION_ROLE,
+                                preparedStatement -> {
+                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
+                                    preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID,
                                             getTenantId(tenantDomain));
                                 });
                     }
                 }
-                return getApplicationRoleAssignedGroups(roleId, identityProvider, tenantDomain);
+                return null;
             });
+            return getApplicationRoleAssignedGroups(roleId, identityProvider, tenantDomain);
         } catch (TransactionException e) {
             if (checkUniqueKeyConstrainViolated(e, GROUP_ROLE_UNIQUE_CONSTRAINT)) {
                 throw ApplicationRoleMgtUtils.handleClientException(ERROR_CODE_GROUP_ALREADY_ASSIGNED, roleId);
@@ -331,11 +388,11 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
             groups = namedJdbcTemplate.executeQuery(SQLConstants.GET_ASSIGNED_GROUPS_OF_APPLICATION_ROLE,
                     (resultSet, rowNumber) -> new Group(resultSet.getString(DB_SCHEMA_COLUMN_NAME_GROUP_ID),
                             resultSet.getString(DB_SCHEMA_COLUMN_NAME_IDP_ID)),
-                    namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_IDP_ID,
+                    preparedStatement -> {
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ROLE_ID, roleId);
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_IDP_ID,
                                 identityProvider.getResourceId());
-                        namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
                     });
             if (LOCAL_IDP.equals(identityProvider.getIdentityProviderName())) {
                 for (Group group : groups) {
@@ -374,9 +431,9 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                             new ApplicationRole(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_ID),
                                     resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME),
                                     resultSet.getString(DB_SCHEMA_COLUMN_NAME_APP_ID)),
-                    namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_USER_ID, userId);
-                        namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                    preparedStatement -> {
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_USER_ID, userId);
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
                     });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_ROLES_BY_USER_ID, e, userId);
@@ -394,9 +451,9 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                             new ApplicationRole(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_ID),
                                     resultSet.getString(DB_SCHEMA_COLUMN_NAME_ROLE_NAME),
                                     resultSet.getString(DB_SCHEMA_COLUMN_NAME_APP_ID)),
-                    namedPreparedStatement -> {
-                        namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
-                        namedPreparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
+                    preparedStatement -> {
+                        preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_GROUP_ID, groupId);
+                        preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
                     });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_ROLES_BY_GROUP_ID, e, groupId);

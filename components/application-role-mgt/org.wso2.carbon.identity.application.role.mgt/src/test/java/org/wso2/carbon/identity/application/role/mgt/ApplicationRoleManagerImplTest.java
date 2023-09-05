@@ -15,6 +15,8 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @WithAxisConfiguration
 @WithCarbonHome
@@ -109,16 +111,21 @@ public class ApplicationRoleManagerImplTest extends PowerMockTestCase {
         applicationRoleManager.addApplicationRole(applicationRole1);
         applicationRoleManager.addApplicationRole(applicationRole2);
         return new Object[][]{
-                {applicationRole1, "NEW_NAME-1"},
-                {applicationRole2, "NEW_NAME-2"}
+                {applicationRole1, "NEW_NAME-1",
+                        new ArrayList<>(Arrays.asList("TEST_SCOPE_4", "TEST_SCOPE_5", "TEST_SCOPE_6")),
+                        new ArrayList<>(Arrays.asList("TEST_SCOPE_1", "TEST_SCOPE_2", "TEST_SCOPE_3"))},
+                {applicationRole2, "NEW_NAME-2",
+                        new ArrayList<>(Arrays.asList("TEST_SCOPE_4", "TEST_SCOPE_5", "TEST_SCOPE_6")),
+                        new ArrayList<>(Arrays.asList("TEST_SCOPE_1", "TEST_SCOPE_2", "TEST_SCOPE_3"))}
         };
     }
 
     @Test(dataProvider = "updateApplicationRoleData", priority = 2)
-    public void testUpdateApplicationRole(ApplicationRole applicationRole, String newName) throws Exception {
+    public void testUpdateApplicationRole(ApplicationRole applicationRole, String newName, List<String> addedScopes,
+                                          List<String> removedScopes) throws Exception {
 
         ApplicationRole role =  applicationRoleManager.updateApplicationRole(applicationRole.getApplicationId(),
-                applicationRole.getRoleId(), newName, new ArrayList<>(), new ArrayList<>());
+                applicationRole.getRoleId(), newName, addedScopes, removedScopes);
         Assert.assertNotNull(role);
     }
 
@@ -186,7 +193,7 @@ public class ApplicationRoleManagerImplTest extends PowerMockTestCase {
         applicationRole.setRoleId("testAppRoleId-" + postFix);
         applicationRole.setRoleName("testAppRoleName-" + postFix);
         applicationRole.setApplicationId("1");
-        applicationRole.setPermissions(new String[0]);
+        applicationRole.setPermissions(new String[]{"TEST_SCOPE_1", "TEST_SCOPE_2", "TEST_SCOPE_3"});
         return applicationRole;
     }
 }
