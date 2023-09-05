@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.application.role.mgt.dao;
 
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementServerException;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
+import org.wso2.carbon.identity.application.role.mgt.model.Group;
 
 import java.util.List;
 
@@ -128,27 +128,35 @@ public interface ApplicationRoleMgtDAO {
      * Update application role assigned groups.
      *
      * @param roleId Application roleId.
-     * @param identityProvider Identity provider.
      * @param addedGroups Assigned groups to be added.
      * @param removedGroups Assigned groups to be removed.
      * @param tenantDomain Tenant domain.
      * @throws ApplicationRoleManagementException Error occurred while updating application role assigned groups.
      */
-    ApplicationRole updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
-                                                        List<String> addedGroups, List<String> removedGroups,
-                                                        String tenantDomain)
+    ApplicationRole updateApplicationRoleAssignedGroups(String roleId, List<Group> addedGroups,
+                                                        List<String> removedGroups, String tenantDomain)
             throws ApplicationRoleManagementException;
 
     /**
      * Get application role assigned groups.
      *
      * @param roleId Application roleId.
-     * @param identityProvider Identity provider.
      * @param tenantDomain Tenant domain.
      * @throws ApplicationRoleManagementException Error occurred while getting application role assigned groups.
      */
-    ApplicationRole getApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
-                                                     String tenantDomain) throws ApplicationRoleManagementException;
+    ApplicationRole getApplicationRoleAssignedGroups(String roleId, String tenantDomain)
+            throws ApplicationRoleManagementException;
+
+    /**
+     * Get application role assigned groups.
+     *
+     * @param roleId Application roleId.
+     * @param idpId IDP id.
+     * @param tenantDomain Tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while getting application role assigned groups.
+     */
+    ApplicationRole getApplicationRoleAssignedGroups(String roleId, String idpId, String tenantDomain)
+            throws ApplicationRoleManagementException;
 
     /**
      * Get application roles by userId.

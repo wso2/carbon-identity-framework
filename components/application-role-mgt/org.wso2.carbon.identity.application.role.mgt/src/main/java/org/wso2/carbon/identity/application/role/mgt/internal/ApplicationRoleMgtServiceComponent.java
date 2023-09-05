@@ -50,6 +50,7 @@ public class ApplicationRoleMgtServiceComponent {
         try {
             BundleContext bundleCtx = ctxt.getBundleContext();
             bundleCtx.registerService(ApplicationRoleManager.class, ApplicationRoleManagerImpl.getInstance(), null);
+            LOG.debug("application role management bundle is activated");
         } catch (Throwable e) {
             LOG.error("Error while initializing application role management component.", e);
         }
@@ -61,9 +62,7 @@ public class ApplicationRoleMgtServiceComponent {
         try {
             BundleContext bundleCtx = ctxt.getBundleContext();
             bundleCtx.ungetService(bundleCtx.getServiceReference(ApplicationRoleManager.class));
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("application role management bundle is deactivated");
-            }
+            LOG.debug("application role management bundle is deactivated");
         } catch (Throwable e) {
             LOG.error("Error while deactivating application role management component.", e);
         }

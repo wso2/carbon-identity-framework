@@ -19,24 +19,22 @@
 package org.wso2.carbon.identity.application.role.mgt;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.role.mgt.dao.ApplicationRoleMgtDAO;
 import org.wso2.carbon.identity.application.role.mgt.dao.impl.ApplicationRoleMgtDAOImpl;
 import org.wso2.carbon.identity.application.role.mgt.dao.impl.CacheBackedApplicationRoleMgtDAOImpl;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
-import org.wso2.carbon.identity.application.role.mgt.internal.ApplicationRoleMgtServiceComponentHolder;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
+import org.wso2.carbon.identity.application.role.mgt.model.Group;
 import org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_DUPLICATE_ROLE;
-import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_IDP_NOT_FOUND;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ROLE_NAME;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_ROLE_NOT_FOUND;
 import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.LOCAL_IDP;
@@ -65,7 +63,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     public ApplicationRole addApplicationRole(ApplicationRole applicationRole)
             throws ApplicationRoleManagementException {
 
-        String tenantDomain = getTenantDomain();
+        String tenantDomain = ApplicationRoleMgtUtils.getTenantDomain();
         if (StringUtils.isBlank(applicationRole.getRoleName())) {
             throw handleClientException(ERROR_CODE_INVALID_ROLE_NAME);
         }
@@ -76,6 +74,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             throw handleClientException(ERROR_CODE_DUPLICATE_ROLE, applicationRole.getRoleName(),
                     applicationRole.getApplicationId());
         }
+        // Validate scopes are authorized to given application.
         ApplicationRoleMgtUtils.validateAuthorizedScopes(applicationRole.getApplicationId(),
                 Arrays.asList(applicationRole.getPermissions()));
         return applicationRoleMgtDAO.addApplicationRole(applicationRole, tenantDomain);
@@ -86,30 +85,33 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
                                                  List<String> addedScopes, List<String> removedScopes)
             throws ApplicationRoleManagementException {
 
+        String tenantDomain = ApplicationRoleMgtUtils.getTenantDomain();
         validateAppRoleId(roleId);
         if (newName != null) {
+            // Check whether new role name is valid.
             if (StringUtils.isBlank(newName)) {
                 throw handleClientException(ERROR_CODE_INVALID_ROLE_NAME);
             }
+            // Check whether new role name is already exists.
             boolean existingRole =
-                    applicationRoleMgtDAO.isExistingRole(applicationId, newName,
-                            getTenantDomain());
+                    applicationRoleMgtDAO.isExistingRole(applicationId, newName, tenantDomain);
             if (existingRole) {
                 throw handleClientException(ERROR_CODE_DUPLICATE_ROLE, newName,
                         applicationId);
             }
         }
-        removeCommonValues(addedScopes, removedScopes);
+        // Remove common scopes in both added and removed scopes.
+        ApplicationRoleMgtUtils.removeCommonValues(addedScopes, removedScopes);
+        // Validate scopes are authorized to given application.
         ApplicationRoleMgtUtils.validateAuthorizedScopes(applicationId, addedScopes);
-        return applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes,
-                getTenantDomain());
+        return applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes, tenantDomain);
     }
 
     @Override
     public ApplicationRole getApplicationRoleById(String roleId) throws ApplicationRoleManagementException {
 
         validateAppRoleId(roleId);
-        return applicationRoleMgtDAO.getApplicationRoleById(roleId, getTenantDomain());
+        return applicationRoleMgtDAO.getApplicationRoleById(roleId, ApplicationRoleMgtUtils.getTenantDomain());
     }
 
     @Override
@@ -122,7 +124,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     public void deleteApplicationRole(String roleId) throws ApplicationRoleManagementException {
 
         validateAppRoleId(roleId);
-        applicationRoleMgtDAO.deleteApplicationRole(roleId, getTenantDomain());
+        applicationRoleMgtDAO.deleteApplicationRole(roleId, ApplicationRoleMgtUtils.getTenantDomain());
     }
 
     @Override
@@ -131,9 +133,9 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             throws ApplicationRoleManagementException {
 
         validateAppRoleId(roleId);
-        removeCommonValues(addedUsers, removedUsers);
+        ApplicationRoleMgtUtils.removeCommonValues(addedUsers, removedUsers);
         return applicationRoleMgtDAO.updateApplicationRoleAssignedUsers(roleId, addedUsers, removedUsers,
-                getTenantDomain());
+                ApplicationRoleMgtUtils.getTenantDomain());
     }
 
     @Override
@@ -141,59 +143,45 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             throws ApplicationRoleManagementException {
 
         validateAppRoleId(roleId);
-        return applicationRoleMgtDAO.getApplicationRoleAssignedUsers(roleId, getTenantDomain());
+        return applicationRoleMgtDAO.getApplicationRoleAssignedUsers(roleId, ApplicationRoleMgtUtils.getTenantDomain());
     }
 
     @Override
-    public ApplicationRole updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
+    public ApplicationRole updateApplicationRoleAssignedGroups(String roleId, List<Group> addedGroups,
                                                     List<String> removedGroups)
             throws ApplicationRoleManagementException {
 
+        String tenantDomain = ApplicationRoleMgtUtils.getTenantDomain();
         validateAppRoleId(roleId);
-        try {
-            IdentityProvider identityProvider;
-            if (LOCAL_IDP.equals(idpId)) {
-
-                identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
-                        .getIdentityProviderManager().getResidentIdP(getTenantDomain());
-            } else {
-                identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
-                        .getIdentityProviderManager().getIdPByResourceId(idpId, getTenantDomain(), true);
-            }
-            if (identityProvider == null) {
-                throw handleClientException(ERROR_CODE_IDP_NOT_FOUND, idpId);
-            }
-            removeCommonValues(addedGroups, removedGroups);
-            return applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider,
-                    addedGroups, removedGroups, getTenantDomain());
-        }  catch (IdentityProviderManagementException e) {
-            throw new ApplicationRoleManagementException("Error while retrieving idp",
-                    "Error while retrieving idp for idpId: " + idpId, e);
-        }
+        ApplicationRoleMgtUtils.removeCommonGroupValues(addedGroups, removedGroups);
+        ApplicationRoleMgtUtils.validateGroupIds(addedGroups);
+        ApplicationRole applicationRole = applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, addedGroups,
+                removedGroups, tenantDomain);
+        resolveAssignedGroupsOfRole(applicationRole.getAssignedGroups(), tenantDomain);
+        return  applicationRole;
     }
 
     @Override
     public ApplicationRole getApplicationRoleAssignedGroups(String roleId, String idpId)
             throws ApplicationRoleManagementException {
 
+        String tenantDomain = ApplicationRoleMgtUtils.getTenantDomain();
         validateAppRoleId(roleId);
-        try {
-            IdentityProvider identityProvider;
+        ApplicationRole applicationRole;
+        if (StringUtils.isNotBlank(idpId)) {
             if (LOCAL_IDP.equalsIgnoreCase(idpId)) {
-                identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
-                        .getIdentityProviderManager().getResidentIdP(getTenantDomain());
+                IdentityProvider identityProvider = ApplicationRoleMgtUtils.getResidentIdp();
+                applicationRole = applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId,
+                        identityProvider.getResourceId(), tenantDomain);
             } else {
-                identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
-                        .getIdentityProviderManager().getIdPByResourceId(idpId, getTenantDomain(), true);
+                applicationRole = applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, idpId, tenantDomain);
             }
-            if (identityProvider == null) {
-                throw handleClientException(ERROR_CODE_IDP_NOT_FOUND, idpId);
-            }
-            return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, identityProvider, getTenantDomain());
-        } catch (IdentityProviderManagementException e) {
-            throw new ApplicationRoleManagementException("Error while retrieving idp", "Error while retrieving idp " +
-                    "for idpId: " + idpId, e);
+
+        } else {
+            applicationRole = applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, tenantDomain);
         }
+        resolveAssignedGroupsOfRole(applicationRole.getAssignedGroups(), tenantDomain);
+        return applicationRole;
     }
 
     @Override
@@ -218,7 +206,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
      */
     private void validateAppRoleId(String roleId) throws ApplicationRoleManagementException {
 
-        boolean isExists = applicationRoleMgtDAO.checkRoleExists(roleId, getTenantDomain());
+        boolean isExists = applicationRoleMgtDAO.checkRoleExists(roleId, ApplicationRoleMgtUtils.getTenantDomain());
 
         if (!isExists) {
             throw handleClientException(ERROR_CODE_ROLE_NOT_FOUND, roleId);
@@ -226,29 +214,30 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     }
 
     /**
-     * Get tenant domain.
+     * Resolve assigned groups of a role.
      *
+     * @param assignedGroups Role ID.
+     * @throws  ApplicationRoleManagementException Error occurred while validating roleId.
      */
-    private static String getTenantDomain() {
+    private void resolveAssignedGroupsOfRole(List<Group> assignedGroups, String tenantDomain)
+            throws ApplicationRoleManagementException {
 
-        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-    }
+        for (Group group : assignedGroups) {
 
-    /**
-     * Remove common values in given two lists.
-     *
-     * @param list1 List 1.
-     * @param list2 List 2.
-     */
-    private void removeCommonValues(List<String> list1, List<String> list2) {
-        HashSet<String> set = new HashSet<>(list1);
-
-        Iterator<String> iterator = list2.iterator();
-        while (iterator.hasNext()) {
-            String value = iterator.next();
-            if (set.contains(value)) {
-                iterator.remove();
-                list1.remove(value);
+            IdentityProvider identityProvider = ApplicationRoleMgtUtils.getIdpById(group.getIdpId());
+            if (LOCAL_IDP.equalsIgnoreCase(identityProvider.getIdentityProviderName())) {
+                    group.setGroupName(ApplicationRoleMgtUtils.getGroupNameByID(group.getGroupId(), tenantDomain));
+                    group.setIdpName(identityProvider.getIdentityProviderName());
+            } else {
+                IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
+                Map<String, String> idToNameMap = new HashMap<>();
+                for (IdPGroup idpGroup : idpGroups) {
+                    idToNameMap.put(idpGroup.getIdpGroupId(), idpGroup.getIdpGroupName());
+                }
+                if (idToNameMap.containsKey(group.getGroupId())) {
+                    group.setGroupName(idToNameMap.get(group.getGroupId()));
+                    group.setIdpName(identityProvider.getIdentityProviderName());
+                }
             }
         }
     }

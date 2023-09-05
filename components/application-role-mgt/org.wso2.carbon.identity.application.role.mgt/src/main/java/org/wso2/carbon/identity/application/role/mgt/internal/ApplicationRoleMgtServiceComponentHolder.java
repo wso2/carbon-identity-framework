@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.role.mgt.internal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -32,7 +30,6 @@ public class ApplicationRoleMgtServiceComponentHolder {
             new ApplicationRoleMgtServiceComponentHolder();
     private RealmService realmService;
     private IdpManager identityProviderManager;
-    private static final Log LOG = LogFactory.getLog(ApplicationRoleMgtServiceComponentHolder.class);
 
     public static ApplicationRoleMgtServiceComponentHolder getInstance() {
 

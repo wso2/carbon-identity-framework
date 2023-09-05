@@ -21,18 +21,30 @@ package org.wso2.carbon.identity.application.role.mgt.util;
 import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementClientException;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementServerException;
 import org.wso2.carbon.identity.application.role.mgt.internal.ApplicationRoleMgtServiceComponentHolder;
+import org.wso2.carbon.identity.application.role.mgt.model.Group;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_GROUP_NOT_FOUND;
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.ErrorMessages.ERROR_CODE_IDP_NOT_FOUND;
+import static org.wso2.carbon.identity.application.role.mgt.constants.ApplicationRoleMgtConstants.LOCAL_IDP;
 
 /**
  * Application role management util.
@@ -198,5 +210,123 @@ public class ApplicationRoleMgtUtils {
         UserRealm tenantUserRealm = realmService.getTenantUserRealm(tenantId);
 
         return (AbstractUserStoreManager) tenantUserRealm.getUserStoreManager();
+    }
+
+    /**
+     * Remove common values in given two lists.
+     *
+     * @param list1 List 1.
+     * @param list2 List 2.
+     */
+    public static void removeCommonValues(List<String> list1, List<String> list2) {
+        HashSet<String> set = new HashSet<>(list1);
+
+        Iterator<String> iterator = list2.iterator();
+        while (iterator.hasNext()) {
+            String value = iterator.next();
+            if (set.contains(value)) {
+                iterator.remove();
+                list1.remove(value);
+            }
+        }
+    }
+
+    /**
+     * Remove common values in given two lists.
+     *
+     * @param list1 List 1.
+     * @param list2 List 2.
+     */
+    public static void removeCommonGroupValues(List<Group> list1, List<String> list2) {
+        HashSet<String> set = new HashSet<>(list2);
+
+        Iterator<Group> iterator = list1.iterator();
+        while (iterator.hasNext()) {
+            Group value = iterator.next();
+            if (set.contains(value.getGroupId())) {
+                iterator.remove();
+                list2.remove(value.getGroupId());
+            }
+        }
+    }
+
+    /**
+     * Validate groups.
+     *
+     * @param groups Groups.
+     * @throws ApplicationRoleManagementException Error occurred while validating groups.
+     */
+    public static void validateGroupIds(List<Group> groups)
+            throws ApplicationRoleManagementException {
+
+        for (Group group : groups) {
+
+            IdentityProvider identityProvider;
+            if (LOCAL_IDP.equalsIgnoreCase(group.getIdpId()) || group.getIdpId() == null) {
+
+                identityProvider = getResidentIdp();
+                boolean isExists = ApplicationRoleMgtUtils.isGroupExists(group.getGroupId());
+                if (!isExists) {
+                    throw ApplicationRoleMgtUtils.handleClientException(ERROR_CODE_GROUP_NOT_FOUND,
+                            group.getGroupId());
+                }
+            } else {
+                identityProvider = getIdpById(group.getIdpId());
+                IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
+                Map<String, String> idToNameMap = new HashMap<>();
+                for (IdPGroup idpGroup : idpGroups) {
+                    idToNameMap.put(idpGroup.getIdpGroupId(), idpGroup.getIdpGroupName());
+                }
+                if (!idToNameMap.containsKey(group.getGroupId())) {
+                    throw ApplicationRoleMgtUtils.handleClientException(ERROR_CODE_GROUP_NOT_FOUND,
+                            group.getGroupId());
+                }
+            }
+            if (identityProvider == null) {
+                throw handleClientException(ERROR_CODE_IDP_NOT_FOUND, group.getGroupId());
+            }
+            group.setIdpId(identityProvider.getResourceId());
+        }
+    }
+
+    /**
+     * Get resident idp.
+     *
+     * @throws ApplicationRoleManagementException Error occurred while validating groups.
+     */
+    public static IdentityProvider getResidentIdp() throws ApplicationRoleManagementException {
+
+        IdentityProvider identityProvider;
+        try {
+            identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
+                    .getIdentityProviderManager().getResidentIdP(getTenantDomain());
+        } catch (IdentityProviderManagementException e) {
+            throw new ApplicationRoleManagementException("Error while retrieving idp", "Error while retrieving " +
+                    "resident idp.", e);
+        }
+        return identityProvider;
+    }
+
+    /**
+     * Get idp by id.
+     *
+     * @throws ApplicationRoleManagementException Error occurred while validating groups.
+     */
+    public static IdentityProvider getIdpById(String idpId) throws ApplicationRoleManagementException {
+
+        IdentityProvider identityProvider;
+        try {
+            identityProvider = ApplicationRoleMgtServiceComponentHolder.getInstance()
+                    .getIdentityProviderManager().getIdPByResourceId(idpId, getTenantDomain(), true);
+        } catch (IdentityProviderManagementException e) {
+            throw new ApplicationRoleManagementException("Error while retrieving idp", "Error while retrieving idp "
+                    + "for idpId: " + idpId, e);
+        }
+        return identityProvider;
+    }
+
+    public static String getTenantDomain() {
+
+        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
     }
 }

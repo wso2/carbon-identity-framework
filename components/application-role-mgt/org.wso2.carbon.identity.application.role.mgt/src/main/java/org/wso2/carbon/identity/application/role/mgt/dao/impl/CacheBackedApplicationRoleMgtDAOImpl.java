@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.role.mgt.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.role.mgt.cache.ApplicationRoleCache;
 import org.wso2.carbon.identity.application.role.mgt.cache.ApplicationRoleCacheEntry;
 import org.wso2.carbon.identity.application.role.mgt.cache.ApplicationRoleCacheKey;
@@ -29,6 +28,7 @@ import org.wso2.carbon.identity.application.role.mgt.dao.ApplicationRoleMgtDAO;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementServerException;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
+import org.wso2.carbon.identity.application.role.mgt.model.Group;
 
 import java.util.List;
 
@@ -97,7 +97,6 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     public boolean isExistingRole(String applicationId, String roleName, String tenantDomain)
             throws ApplicationRoleManagementServerException {
 
-        // TODO: introduce a cache key with app id and role name.
         return applicationRoleMgtDAO.isExistingRole(applicationId, roleName, tenantDomain);
     }
 
@@ -130,21 +129,27 @@ public class CacheBackedApplicationRoleMgtDAOImpl implements ApplicationRoleMgtD
     }
 
     @Override
-    public ApplicationRole updateApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
-                                                    List<String> addedGroups, List<String> removedGroups,
-                                                    String tenantDomain)
+    public ApplicationRole updateApplicationRoleAssignedGroups(String roleId, List<Group> addedGroups,
+                                                               List<String> removedGroups,
+                                                               String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        return applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, identityProvider, addedGroups,
+        return applicationRoleMgtDAO.updateApplicationRoleAssignedGroups(roleId, addedGroups,
                 removedGroups, tenantDomain);
     }
 
     @Override
-    public ApplicationRole getApplicationRoleAssignedGroups(String roleId, IdentityProvider identityProvider,
-                                                            String tenantDomain)
+    public ApplicationRole getApplicationRoleAssignedGroups(String roleId, String tenantDomain)
             throws ApplicationRoleManagementException {
 
-        return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, identityProvider, tenantDomain);
+        return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, tenantDomain);
+    }
+
+    @Override
+    public ApplicationRole getApplicationRoleAssignedGroups(String roleId, String idpId, String tenantDomain)
+            throws ApplicationRoleManagementException {
+
+        return applicationRoleMgtDAO.getApplicationRoleAssignedGroups(roleId, idpId, tenantDomain);
     }
 
     @Override

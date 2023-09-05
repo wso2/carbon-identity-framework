@@ -63,6 +63,7 @@ public class SQLConstants {
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND TENANT_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
+    // Application role assigned users queries.
     public static final String ADD_APPLICATION_ROLE_USER =  "INSERT INTO USER_ROLE (ROLE_ID, USER_ID, TENANT_ID) " +
             "VALUES (:" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";, :" +
@@ -78,6 +79,7 @@ public class SQLConstants {
             "FROM USER_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID +
             "; AND TENANT_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
+    // Application role assigned groups queries.
     public static final String ADD_APPLICATION_ROLE_GROUP =  "INSERT INTO GROUP_ROLE (ROLE_ID, GROUP_ID, IDP_ID," +
             " TENANT_ID) VALUES (:" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";, :" +
@@ -92,9 +94,12 @@ public class SQLConstants {
 
     public static final String GET_ASSIGNED_GROUPS_OF_APPLICATION_ROLE = "SELECT GROUP_ID, IDP_ID " +
             "FROM GROUP_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID +
-            "; AND IDP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_ID +
             "; AND TENANT_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
+    public static final String GET_ASSIGNED_GROUPS_OF_APPLICATION_ROLE_IDP_FILTER = "SELECT GROUP_ID, IDP_ID " +
+            "FROM GROUP_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID +
+            "; AND IDP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_ID +
+            "; AND TENANT_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
     public static final String GET_APPLICATION_ROLES_BY_USER_ID = "SELECT ar.ROLE_ID, ar.ROLE_NAME, ar.TENANT_ID, " +
             "ar.APP_ID FROM APP_ROLE as ar INNER JOIN USER_ROLE as ur ON ar.ROLE_ID = ur.ROLE_ID WHERE ur.USER_ID = :"
             + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID + "; AND ar.TENANT_ID = :" +

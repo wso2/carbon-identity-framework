@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.role.mgt;
 
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementException;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
+import org.wso2.carbon.identity.application.role.mgt.model.Group;
 
 import java.util.List;
 
@@ -103,7 +104,7 @@ public interface ApplicationRoleManager {
      * @param removedGroups List of group IDs to be unassigned.
      * @throws ApplicationRoleManagementException Error occurred while updating the application role.
      */
-    ApplicationRole updateApplicationRoleAssignedGroups(String roleId, String idpId, List<String> addedGroups,
+    ApplicationRole updateApplicationRoleAssignedGroups(String roleId, List<Group> addedGroups,
                                              List<String> removedGroups) throws ApplicationRoleManagementException;
 
     /**

@@ -11,10 +11,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
-import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.role.mgt.exceptions.ApplicationRoleManagementServerException;
 import org.wso2.carbon.identity.application.role.mgt.model.ApplicationRole;
+import org.wso2.carbon.identity.application.role.mgt.model.Group;
 import org.wso2.carbon.identity.application.role.mgt.util.ApplicationRoleMgtUtils;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -213,15 +213,18 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
 
     @DataProvider
     public Object[][] updateApplicationRoleAssignedGroupsData() {
+        Group group1 = new Group("GROUP_1", "1");
+        Group group2 = new Group("GROUP_2", "1");
+        Group group3 = new Group("GROUP_3", "1");
         return new Object[][]{
-                {new ArrayList<>(Arrays.asList("GROUP_1", "GROUP_2", "GROUP_3")),
+                {new ArrayList<>(Arrays.asList(group1, group2, group3)),
                         new ArrayList<>(Collections.emptyList()), 3
                 },
         };
     }
 
     @Test(dataProvider = "updateApplicationRoleAssignedGroupsData", priority = 2)
-    public void testUpdateApplicationRoleAssignedGroups(List<String> addedGroups, List<String> removedGroups,
+    public void testUpdateApplicationRoleAssignedGroups(List<Group> addedGroups, List<String> removedGroups,
                                                         int resultCount)
             throws Exception {
 
@@ -232,16 +235,8 @@ public class ApplicationRoleMgtDAOImplTest extends PowerMockTestCase {
         when(ApplicationRoleMgtUtils.isGroupExists(anyString())).thenReturn(true);
         IdentityProvider identityProvider = new IdentityProvider();
         identityProvider.setResourceId(String.valueOf(IDP_ID));
-        List<IdPGroup> idPGroups = new ArrayList<>();
-        for (String group: addedGroups) {
-            IdPGroup idPGroup = new IdPGroup();
-            idPGroup.setIdpGroupId(group);
-            idPGroup.setIdpGroupName(group);
-            idPGroups.add(idPGroup);
-        }
-        identityProvider.setIdPGroupConfig(idPGroups.toArray(new IdPGroup[0]));
         ApplicationRole role =
-                daoImpl.updateApplicationRoleAssignedGroups(ROLE_ID, identityProvider, addedGroups, removedGroups,
+                daoImpl.updateApplicationRoleAssignedGroups(ROLE_ID, addedGroups, removedGroups,
                         TENANT_DOMAIN);
         Assert.assertEquals(role.getAssignedGroups().size(), resultCount);
     }
