@@ -36,6 +36,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.api.resource.mgt</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -69,6 +73,7 @@
                                 <importFeatureDef>org.wso2.carbon.security.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.idp.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.identity.core.server:compatible:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.api.resource.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>
