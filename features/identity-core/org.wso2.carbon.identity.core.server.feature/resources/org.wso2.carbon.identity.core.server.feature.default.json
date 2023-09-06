@@ -743,6 +743,94 @@
   "console.route_paths.home": "/develop/applications",
   "console.route_paths.login": "",
   "console.route_paths.logout": "/logout",
+  "console.extensions": {
+    "emailTemplates": [
+      {
+          "id": "cmVzZW5kUGFzc3dvcmRSZXNldA",
+          "displayName": "Resend Password Reset",
+          "description": "This email is sent when the organization admin reinitiates password reset for a user"
+      },
+      {
+          "id": "cGFzc3dvcmRSZXNldFN1Y2Vzcw",
+          "displayName": "Password Reset Success",
+          "description": "This email notifies the user that password reset is successfully completed"
+      },
+      {
+          "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
+          "displayName": "Admin-Requested Password Reset",
+          "description": "This email notifies the user that the organization admin has requested a password reset."
+      },
+      {
+          "id": "VW5zZWVuRGV2aWNlTG9naW4",
+          "displayName": "New Device Login",
+          "description": "This email notifies the user that a login from a new device is detected"
+      },
+      {
+          "id": "QWNjb3VudFVubG9ja0FkbWlu",
+          "displayName": "Account Unlocked By Admin",
+          "description": "This email notifies the user that their account is unlocked by the organization admin"
+      },
+      {
+          "id": "QWNjb3VudENvbmZpcm1hdGlvbg",
+          "displayName": "Account Confirmation",
+          "description": "This email is used to request the user to confirm their email address for the new account"
+      },
+      {
+          "id": "UGFzc3dvcmRSZXNldA",
+          "displayName": "Password Reset",
+          "description": "This email is sent when the user has requested a password reset"
+      },
+      {
+          "id": "QXNrUGFzc3dvcmQ",
+          "displayName": "Request New User Password",
+          "description": "This email is sent to request a password from the user when the new account is created"
+      },
+      {
+          "id": "QWNjb3VudFVubG9ja1RpbWVCYXNlZA",
+          "displayName": "Account Unlocked",
+          "description": "This email notifies the user that their account is now unlocked (Time-Based)"
+      },
+      {
+          "id": "bWFnaWNMaW5r",
+          "displayName": "Magic Link",
+          "description": "This email sends the Magic Link to the user"
+      },
+      {
+          "id": "QWNjb3VudExvY2tBZG1pbg",
+          "displayName": "Account Locked By Admin",
+          "description": "This email notifies the user that the account is locked by the organization admin"
+      },
+      {
+          "id": "QWNjb3VudExvY2tGYWlsZWRBdHRlbXB0",
+          "displayName": "Account Locked By Failed Attempts",
+          "description": "This email notifies the user that the account is locked by due to too many failed login attempts"
+      },
+      {
+          "id": "QWNjb3VudEVuYWJsZQ",
+          "displayName": "Account Enabled",
+          "description": "This email notifies the user that the account is now enabled"
+      },
+      {
+          "id": "UmVzZW5kQWNjb3VudENvbmZpcm1hdGlvbg",
+          "displayName": "Resend Account Confirmation",
+          "description": "This email is used to re-send the notification to confirm user's email address"
+      },
+      {
+          "id": "UmVzZW5kRW1haWxPVFA",
+          "displayName": "Resend Email OTP",
+          "description": "This email resends the Email OTP to a user"
+      },
+      {
+          "id": "RW1haWxPVFA",
+          "displayName": "Email OTP",
+          "description": "This email sends the Email OTP to a user"
+      },
+      {
+          "id": "QWNjb3VudERpc2FibGU",
+          "displayName": "Account Disabled"
+      }
+    ]
+  },
   "console.ui.app_copyright": "WSO2 Identity Server",
   "console.ui.app_title": "WSO2 Identity Server Console",
   "console.ui.app_name": "Console",
