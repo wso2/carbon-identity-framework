@@ -2632,11 +2632,11 @@
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
             <Scopes>internal_user_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/applications/(.*)/roles/(.*)/identity-providers/(.*)/assigned-groups" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/applications/(.*)/roles/(.*)/assigned-groups" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/applications/(.*)/roles/(.*)/identity-providers/(.*)/assigned-groups" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/applications/(.*)/roles/(.*)/assigned-groups" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
             <Scopes>internal_role_mgt_update</Scopes>
         </Resource>
