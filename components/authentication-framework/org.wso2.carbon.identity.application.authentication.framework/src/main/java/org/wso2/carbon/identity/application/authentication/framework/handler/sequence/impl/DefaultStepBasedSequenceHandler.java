@@ -301,6 +301,15 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     externalIdPConfig = ConfigurationFacade.getInstance()
                             .getIdPConfigByName(stepConfig.getAuthenticatedIdP(),
                                     context.getTenantDomain());
+                    if (externalIdPConfig == null) {
+                        /*
+                            The tenant domain of the context might have changed during B2B organization login flow.
+                            In that case tenant domain of the authenticatorConfig is used to fetch IDP configs.
+                        */
+                        externalIdPConfig = ConfigurationFacade.getInstance()
+                                .getIdPConfigByName(stepConfig.getAuthenticatedIdP(),
+                                        authenticatorConfig.getTenantDomain());
+                    }
                 } catch (IdentityProviderManagementException e) {
                     log.error("Exception while getting IdP by name", e);
                 }

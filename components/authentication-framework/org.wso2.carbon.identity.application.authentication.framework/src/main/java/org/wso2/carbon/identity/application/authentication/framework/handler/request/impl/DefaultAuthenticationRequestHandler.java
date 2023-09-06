@@ -659,8 +659,18 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
                             if (FrameworkUtils.isIdpIdColumnAvailableInFedAuthTable()) {
-                                int idpId = Integer.parseInt(IdentityProviderManager.getInstance()
-                                        .getIdPByName(authHistory.getIdpName(), context.getTenantDomain()).getId());
+                                String id = IdentityProviderManager.getInstance()
+                                        .getIdPByName(authHistory.getIdpName(), context.getTenantDomain()).getId();
+                                if (id == null) {
+                                    /*
+                                        The tenant domain of the context might have changed during B2B organization
+                                        login flow. In that case tenant domain of the authentication request is used to
+                                        fetch IDP ID.
+                                     */
+                                    id = IdentityProviderManager.getInstance()
+                                            .getIdPByName(authHistory.getIdpName(), context.getAuthenticationRequest().getTenantDomain()).getId();
+                                }
+                                int idpId = Integer.parseInt(id);
                                 if (FrameworkUtils.isTenantIdColumnAvailableInFedAuthTable()) {
                                     storeFedAuthSessionWithTenantIdAndIdpId(context.getTenantDomain(),
                                             sessionContextKey, authHistory, idpId);

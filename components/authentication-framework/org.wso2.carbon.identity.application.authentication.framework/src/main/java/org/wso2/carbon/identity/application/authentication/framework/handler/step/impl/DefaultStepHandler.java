@@ -819,9 +819,10 @@ public class DefaultStepHandler implements StepHandler {
 
             // store authenticated user
             AuthenticatedUser authenticatedUser = context.getSubject();
-            String federatedUserOrganization = FrameworkUtils.fetchUserOrganizationClaimIfExist(authenticatedUser);
-            if (StringUtils.isNotEmpty(federatedUserOrganization)) {
-                linkFederateUserToLocalUserInFederatedOrganization(authenticatedUser, federatedUserOrganization);
+            if (isLoggedInWithOrganizationLogin(authenticatorConfig)) {
+                associateFederateUserByOrganizationLoginToLocalUserInFederatedOrganization(authenticatedUser);
+                // Change the tenant domain of authentication context after associating federated user to local user.
+                context.setTenantDomain(authenticatedUser.getTenantDomain());
             }
             stepConfig.setAuthenticatedUser(authenticatedUser);
             authenticatedIdPData.setUser(authenticatedUser);
@@ -1403,5 +1404,77 @@ public class DefaultStepHandler implements StepHandler {
                 }
             }
         }
+    }
+
+    /**
+     * Associate the federated user with the organization login authenticator to the local user who resides in the
+     * corresponding federated organization.
+     *
+     * @param authenticatedUser      The current authenticated user.
+     */
+    private void associateFederateUserByOrganizationLoginToLocalUserInFederatedOrganization(
+            AuthenticatedUser authenticatedUser) {
+
+        // Extract the user ID of the federated user who resides in child organization.
+        String federatedUserIdentifier = authenticatedUser.getUserName();
+        if (federatedUserIdentifier == null) {
+            return;
+        }
+        if (federatedUserIdentifier.contains(UserCoreConstants.TENANT_DOMAIN_COMBINER)) {
+            federatedUserIdentifier = federatedUserIdentifier.split(UserCoreConstants.TENANT_DOMAIN_COMBINER)[0];
+        }
+        if (federatedUserIdentifier.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            federatedUserIdentifier = federatedUserIdentifier.split(UserCoreConstants.DOMAIN_SEPARATOR)[1];
+        }
+
+        // Fetch the organization ID of the federated user who resides in child organization.
+        String userResideOrganization = getUserAttributeByClaimUri(authenticatedUser,
+                FrameworkConstants.ORGANIZATION_ID_CLAIM);
+        if (StringUtils.isBlank(userResideOrganization)) {
+            return;
+        }
+        try {
+            String userResideTenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveTenantDomain(userResideOrganization);
+
+            /*
+                Change the tenant domain of the current authenticated user to the tenant domain of the child
+                organization where the identity is managed.
+             */
+            authenticatedUser.setTenantDomain(userResideTenantDomain);
+
+            /*
+                Set the extracted federated user ID as the user ID of the current authenticated user. Mark the user as
+                a local user.
+             */
+            authenticatedUser.setUserId(federatedUserIdentifier);
+            authenticatedUser.setFederatedUser(false);
+            authenticatedUser.setFederatedIdPName(null);
+
+            /*
+                Resolve the user from the resident organization in order to fetch the user name and user store domain.
+             */
+            FrameworkServiceDataHolder.getInstance().getOrganizationUserResidentResolverService()
+                    .resolveUserFromResidentOrganization(null, federatedUserIdentifier,
+                            userResideOrganization).ifPresent(user -> {
+                        authenticatedUser.setUserName(user.getUsername());
+                        authenticatedUser.setUserStoreDomain(user.getUserStoreDomain());
+                    });
+        } catch (OrganizationManagementException e) {
+            LOG.error("Error while resolving user from resident organization", e);
+        }
+    }
+
+    private String getUserAttributeByClaimUri(AuthenticatedUser authenticatedUser, String claimUri) {
+
+        if (authenticatedUser.getUserAttributes() == null) {
+            return null;
+        }
+        for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
+            if (claimUri.equals(userAttributes.getKey().getLocalClaim().getClaimUri())) {
+                return userAttributes.getValue();
+            }
+        }
+        return null;
     }
 }
