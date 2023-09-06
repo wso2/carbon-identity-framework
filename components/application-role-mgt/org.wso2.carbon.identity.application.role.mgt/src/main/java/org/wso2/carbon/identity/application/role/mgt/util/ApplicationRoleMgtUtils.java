@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.role.mgt.util;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
@@ -146,9 +147,9 @@ public class ApplicationRoleMgtUtils {
                     + "to resolve group name for the groupID", "Error occurred while retrieving the userstore manager "
                     + "to resolve group name for the groupID: " + id, e);
         }
-        if (groupName == null) {
+        if (StringUtils.isBlank(groupName)) {
             String errorMessage = "A group doesn't exist with id: " + id + " in the tenantDomain: " + tenantDomain;
-            throw new ApplicationRoleManagementClientException(errorMessage, errorMessage, "");
+            throw new ApplicationRoleManagementServerException(errorMessage);
         }
         return groupName;
     }
@@ -191,9 +192,9 @@ public class ApplicationRoleMgtUtils {
                     + "to resolve username for the groupID", "Error occurred while retrieving the userstore manager "
                     + "to resolve username for the groupID: " + id, e);
         }
-        if (userName == null) {
+        if (StringUtils.isBlank(userName)) {
             String errorMessage = "A user doesn't exist with id: " + id + " in the tenantDomain: " + tenantDomain;
-            throw new ApplicationRoleManagementClientException(errorMessage, errorMessage, "");
+            throw new ApplicationRoleManagementServerException(errorMessage);
         }
         return userName;
     }
