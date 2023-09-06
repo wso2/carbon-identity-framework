@@ -12,7 +12,7 @@
             "roleClaim": {
                 "uri": ""
             },
-            "userIdClaim": {/Users/wso2/Public/WSO2/sources/asgardeo/backend/carbon-identity-framework/features/extension-mgt/org.wso2.carbon.identity.extension.mgt.feature/resources/extensions/connections/trusted-token-issuer/info.json
+            "userIdClaim": {
                 "uri": ""
             }
         },
