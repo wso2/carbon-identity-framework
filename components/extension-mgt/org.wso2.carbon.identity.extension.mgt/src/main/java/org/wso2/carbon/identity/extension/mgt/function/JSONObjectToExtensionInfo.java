@@ -24,7 +24,9 @@ import org.wso2.carbon.identity.extension.mgt.model.ExtensionInfo;
 import org.wso2.carbon.identity.extension.mgt.utils.ExtensionMgtConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -43,6 +45,25 @@ public class JSONObjectToExtensionInfo implements Function<JSONObject, Extension
         extensionInfo.setDisplayOrder(jsonObject.getInt(ExtensionMgtConstants.DISPLAY_ORDER));
         extensionInfo.setTags(getTags(jsonObject.getJSONArray(ExtensionMgtConstants.TAGS)));
         extensionInfo.setCategory(jsonObject.getString(ExtensionMgtConstants.CATEGORY));
+
+        // Process the "additionalProperties" array
+        JSONArray additionalPropertiesArray = jsonObject.getJSONArray(ExtensionMgtConstants.ADDITIONAL_PROPERTIES);
+        List<Map<String, Object>> additionalPropertiesList = new ArrayList<>();
+
+        for (int i = 0; i < additionalPropertiesArray.length(); i++) {
+            JSONObject additionalPropertyObject = additionalPropertiesArray.getJSONObject(i);
+            String key = additionalPropertyObject.getString("key");
+            Object value = additionalPropertyObject.get("value");
+
+            Map<String, Object> additionalPropertyMap = new HashMap<>();
+            additionalPropertyMap.put("key", key);
+            additionalPropertyMap.put("value", value);
+
+            additionalPropertiesList.add(additionalPropertyMap);
+        }
+
+        extensionInfo.setAdditionalProperties(additionalPropertiesList);
+
         return extensionInfo;
     }
 

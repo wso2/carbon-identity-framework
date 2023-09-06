@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.extension.mgt.model;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Extension information model.
@@ -34,6 +35,7 @@ public class ExtensionInfo {
     private String category;
 
     private String type;
+    private List<Map<String, Object>> additionalProperties;
 
     /**
      **/
@@ -119,5 +121,13 @@ public class ExtensionInfo {
     public void setType(String type) {
 
         this.type = type;
+    }
+
+    public List<Map<String, Object>> getAdditionalProperties() {
+        return additionalProperties;
+    }
+
+    public void setAdditionalProperties(List<Map<String, Object>> additionalProperties) {
+        this.additionalProperties = additionalProperties;
     }
 }

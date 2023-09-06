@@ -53,5 +53,7 @@ public class ExtensionMgtConstants {
 
     public static final String CATEGORY = "category";
 
+    public static final String ADDITIONAL_PROPERTIES = "additionalProperties";
+
     public static final String EXTENSION_TYPES_CONFIG = "ExtensionManagementService.ExtensionTypes";
 }
