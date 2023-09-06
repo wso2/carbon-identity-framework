@@ -3622,4 +3622,17 @@
         <DataStoreType>{{identity_datastore.datastore_type}}</DataStoreType>
     </IdentityDataStore>
 
+    <UserProfileExport>
+        <AdditionalClaims>
+            {% for item in user_profile_export.additional_claims %}
+            <AdditionalClaim>{{item}}</AdditionalClaim>
+            {% endfor %}
+        </AdditionalClaims>
+        <RestrictedClaims>
+            {% for item in user_profile_export.restricted_claims %}
+            <RestrictedClaim>{{item}}</RestrictedClaim>
+            {% endfor %}
+        </RestrictedClaims>
+    </UserProfileExport>
+
 </Server>

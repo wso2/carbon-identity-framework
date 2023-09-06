@@ -2431,4 +2431,11 @@
         <DataStoreType>org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</DataStoreType>
     </IdentityDataStore>
 
+    <UserProfileExport>
+        <AdditionalClaims>
+        </AdditionalClaims>
+        <RestrictedClaims>
+        </RestrictedClaims>
+    </UserProfileExport>
+
 </Server>
