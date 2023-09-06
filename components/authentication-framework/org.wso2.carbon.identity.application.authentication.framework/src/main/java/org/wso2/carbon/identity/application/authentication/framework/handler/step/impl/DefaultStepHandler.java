@@ -1417,6 +1417,7 @@ public class DefaultStepHandler implements StepHandler {
                 if (StringUtils.isNotBlank(organizationId)) {
                     request.setAttribute(FrameworkConstants.ORG_ID_PARAMETER, organizationId);
                 }
+                return;
             }
         }
     }
