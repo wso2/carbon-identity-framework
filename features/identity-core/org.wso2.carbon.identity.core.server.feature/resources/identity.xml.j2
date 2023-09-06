@@ -2672,6 +2672,10 @@
             <Permissions>none</Permissions>
             <Scopes>none</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/admin-advisory-management/banner" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
@@ -3182,6 +3186,7 @@
                     <Path>/api/users/v1/([^/]+)/sessions</Path>
                     <Path>/api/server/v1/admin-advisory-management</Path>
                     <Path>/api/server/v1/guests</Path>
+                    <Path>/api/server/v1/admin-advisory-management/banner</Path>
                     <Path>/api/idle-account-identification/v1/inactive-users</Path>
                     <Path>/api/server/v1/expired-password-identification/password-expired-users</Path>
                 </SubPaths>
