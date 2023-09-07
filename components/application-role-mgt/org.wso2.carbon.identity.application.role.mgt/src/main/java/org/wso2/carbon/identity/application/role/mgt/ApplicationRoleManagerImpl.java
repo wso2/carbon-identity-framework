@@ -75,7 +75,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
                     applicationRole.getApplicationId());
         }
         // Validate scopes are authorized to given application.
-        ApplicationRoleMgtUtils.validateAuthorizedScopes(applicationRole.getApplicationId(),
+        validateAuthorizedScopes(applicationRole.getApplicationId(),
                 Arrays.asList(applicationRole.getPermissions()));
         return applicationRoleMgtDAO.addApplicationRole(applicationRole, tenantDomain);
     }
@@ -105,7 +105,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
             ApplicationRoleMgtUtils.removeCommonValues(addedScopes, removedScopes);
         }
         // Validate scopes are authorized to given application.
-        ApplicationRoleMgtUtils.validateAuthorizedScopes(applicationId, addedScopes);
+        validateAuthorizedScopes(applicationId, addedScopes);
         return applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes, tenantDomain);
     }
 
@@ -270,5 +270,17 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
                 }
             }
         }
+    }
+
+    /**
+     * Check scopes are authorized to the application.
+     *
+     * @param appId Application ID.
+     * @throws ApplicationRoleManagementException Error occurred while checking group exists.
+     */
+    private void validateAuthorizedScopes(String appId, List<String> scopes)
+            throws ApplicationRoleManagementException {
+
+        // TODO : validate scopes
     }
 }

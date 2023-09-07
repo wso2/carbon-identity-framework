@@ -88,7 +88,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                     preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, getTenantId(tenantDomain));
                     }, null, false);
                 // Insert scopes.
-                if (applicationRole.getPermissions().length > 0) {
+                if (applicationRole != null && applicationRole.getPermissions().length > 0) {
                     template.executeBatchInsert(SQLConstants.ADD_ROLE_SCOPE,
                         preparedStatement -> {
                             for (String scope : applicationRole.getPermissions()) {
@@ -176,7 +176,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                     });
                 }
                 // Add scopes.
-                if (addedScopes.size() > 0) {
+                if (addedScopes != null && !addedScopes.isEmpty()) {
                     template.executeBatchInsert(SQLConstants.ADD_ROLE_SCOPE,
                         preparedStatement -> {
                             for (String scope : addedScopes) {
@@ -188,7 +188,7 @@ public class ApplicationRoleMgtDAOImpl implements ApplicationRoleMgtDAO {
                         }, roleId);
                 }
                 // Remove scopes.
-                if (removedScopes.size() > 0) {
+                if (removedScopes != null && !removedScopes.isEmpty()) {
                     for (String scope: removedScopes) {
                         template.executeUpdate(SQLConstants.DELETE_ROLE_SCOPE,
                             preparedStatement -> {

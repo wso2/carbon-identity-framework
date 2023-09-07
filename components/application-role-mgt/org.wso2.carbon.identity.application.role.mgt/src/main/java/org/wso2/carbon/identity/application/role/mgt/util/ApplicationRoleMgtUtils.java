@@ -98,18 +98,6 @@ public class ApplicationRoleMgtUtils {
     }
 
     /**
-     * Check scopes are authorized to the application.
-     *
-     * @param appId Application ID.
-     * @throws ApplicationRoleManagementException Error occurred while checking group exists.
-     */
-    public static void validateAuthorizedScopes(String appId, List<String> scopes)
-            throws ApplicationRoleManagementException {
-
-        // TODO : validate scopes
-    }
-
-    /**
      * Check group exists by id.
      *
      * @param id Group ID.
