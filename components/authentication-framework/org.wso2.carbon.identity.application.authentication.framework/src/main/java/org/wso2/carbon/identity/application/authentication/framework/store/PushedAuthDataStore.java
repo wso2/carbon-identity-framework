@@ -90,12 +90,13 @@ public class PushedAuthDataStore {
         }
         if (requestCleanupEnabled) {
             long requestCleanupPeriod = getCleanUpPeriod();
+            long initialDelayForTask = requestCleanupPeriod / 4;
             if (log.isDebugEnabled()) {
                 log.debug(String.format("PAR clean up task enabled to run in %d minutes intervals",
                         requestCleanupPeriod));
             }
             PushedAuthReqCleanupService pushedAuthReqCleanupService =
-                    new PushedAuthReqCleanupService(requestCleanupPeriod / 4, requestCleanupPeriod);
+                    new PushedAuthReqCleanupService(initialDelayForTask, requestCleanupPeriod);
             pushedAuthReqCleanupService.activateCleanUp();
         }
     }
