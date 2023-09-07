@@ -1611,6 +1611,9 @@
         {% if authentication.jit_provisioning.preserve_locally_added_claims is defined %}
         <PreserveLocallyAddedClaims>{{authentication.jit_provisioning.preserve_locally_added_claims}}</PreserveLocallyAddedClaims>
         {% endif %}
+        {% if authentication.jit_provisioning.allow_idp_login is defined %}
+            <AllowLoginToIDP>{{authentication.jit_provisioning.allow_idp_login}}</AllowLoginToIDP>
+        {% endif %}
     </JITProvisioning>
 
     <!--Application management service configurations-->
