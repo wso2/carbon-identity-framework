@@ -59,6 +59,9 @@ public class ApplicationRoleMgtConstants {
         ERROR_CODE_CHECKING_ROLE_EXISTENCE_BY_ID("65011", "Error occurred while checking the role " +
                 "existence by id.", "Error occurred while checking whether the role with id : %s."),
 
+        ERROR_CODE_GET_SCOPES_BY_ROLE_ID("65010", "Error occurred while retrieving scopes by " +
+                "roleId", "Error occurred while retrieving the scopes by roleId: %s."),
+
         // Client Errors.
         ERROR_CODE_DUPLICATE_ROLE("60001", "Role already exists.",
                 "Role with name: %s already exists in application: %s."),
@@ -76,6 +79,8 @@ public class ApplicationRoleMgtConstants {
                 "IDP with id: %s doesn't exist."),
         ERROR_CODE_INVALID_ROLE_NAME("60008", "Invalid role name.",
                 "Invalid role name."),
+        ERROR_CODE_SCOPE_ALREADY_ASSIGNED("60009", "Unable to assign scope to app role.",
+                "Scope already assign for the roleId: %s."),
         ;
 
         private final String code;

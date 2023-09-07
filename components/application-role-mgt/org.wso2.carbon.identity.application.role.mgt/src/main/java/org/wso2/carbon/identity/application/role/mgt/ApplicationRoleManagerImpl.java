@@ -100,8 +100,10 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
                         applicationId);
             }
         }
-        // Remove common scopes in both added and removed scopes.
-        ApplicationRoleMgtUtils.removeCommonValues(addedScopes, removedScopes);
+        if (addedScopes != null && removedScopes != null) {
+            // Remove common scopes in both added and removed scopes.
+            ApplicationRoleMgtUtils.removeCommonValues(addedScopes, removedScopes);
+        }
         // Validate scopes are authorized to given application.
         ApplicationRoleMgtUtils.validateAuthorizedScopes(applicationId, addedScopes);
         return applicationRoleMgtDAO.updateApplicationRole(roleId, newName, addedScopes, removedScopes, tenantDomain);
@@ -192,10 +194,38 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
     }
 
     @Override
+    public List<ApplicationRole> getApplicationRolesByUserId(String userId, String appId, String tenantDomain)
+            throws ApplicationRoleManagementException {
+
+        return applicationRoleMgtDAO.getApplicationRolesByUserId(userId, appId, tenantDomain);
+    }
+
+    @Override
     public List<ApplicationRole> getApplicationRolesByGroupId(String groupId, String tenantDomain)
             throws ApplicationRoleManagementException {
 
         return applicationRoleMgtDAO.getApplicationRolesByGroupId(groupId, tenantDomain);
+    }
+
+    @Override
+    public List<ApplicationRole> getApplicationRolesByGroupId(String groupId, String appId, String tenantDomain)
+            throws ApplicationRoleManagementException {
+
+        return applicationRoleMgtDAO.getApplicationRolesByGroupId(groupId, appId, tenantDomain);
+    }
+
+    @Override
+    public List<ApplicationRole> getApplicationRolesByGroupIds(List<String> groupIds, String appId, String tenantDomain)
+            throws ApplicationRoleManagementException {
+
+        return applicationRoleMgtDAO.getApplicationRolesByGroupIds(groupIds, appId, tenantDomain);
+    }
+
+    @Override
+    public List<String> getScopesByRoleIds(List<String> roleIds, String tenantDomain)
+            throws ApplicationRoleManagementException {
+
+        return applicationRoleMgtDAO.getScopesByRoleIds(roleIds, tenantDomain);
     }
 
     /**

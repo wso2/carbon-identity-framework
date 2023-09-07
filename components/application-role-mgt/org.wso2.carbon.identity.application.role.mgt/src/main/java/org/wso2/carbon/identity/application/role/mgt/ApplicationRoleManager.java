@@ -127,6 +127,17 @@ public interface ApplicationRoleManager {
             throws ApplicationRoleManagementException;
 
     /**
+     * Get the list of application roles of a user.
+     *
+     * @param userId user ID.
+     * @param appId app ID.
+     * @param tenantDomain tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while updating the application role.
+     */
+    List<ApplicationRole> getApplicationRolesByUserId(String userId, String appId, String tenantDomain)
+            throws ApplicationRoleManagementException;
+
+    /**
      * Get the list of application roles of a group.
      *
      * @param groupId group ID.
@@ -134,6 +145,38 @@ public interface ApplicationRoleManager {
      * @throws ApplicationRoleManagementException Error occurred while updating the application role.
      */
     List<ApplicationRole> getApplicationRolesByGroupId(String groupId, String tenantDomain)
+            throws ApplicationRoleManagementException;
+
+    /**
+     * Get the list of application roles of a group.
+     *
+     * @param groupId group ID.
+     * @param appId app ID.
+     * @param tenantDomain tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while updating the application role.
+     */
+    List<ApplicationRole> getApplicationRolesByGroupId(String groupId, String appId, String tenantDomain)
+            throws ApplicationRoleManagementException;
+
+    /**
+     * Get the list of application roles of list of groups.
+     *
+     * @param groupIds group IDs.
+     * @param appId app ID.
+     * @param tenantDomain tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while updating the application role.
+     */
+    List<ApplicationRole> getApplicationRolesByGroupIds(List<String> groupIds, String appId, String tenantDomain)
+            throws ApplicationRoleManagementException;
+
+    /**
+     * Get the list of scopes of list of roles.
+     *
+     * @param roleIds role IDs.
+     * @param tenantDomain tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while updating the application role.
+     */
+    List<String> getScopesByRoleIds(List<String> roleIds, String tenantDomain)
             throws ApplicationRoleManagementException;
 
 

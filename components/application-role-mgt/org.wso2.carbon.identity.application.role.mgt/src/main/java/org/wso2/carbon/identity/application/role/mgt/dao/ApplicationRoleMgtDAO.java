@@ -35,10 +35,10 @@ public interface ApplicationRoleMgtDAO {
      *
      * @param applicationRole Application role.
      * @param tenantDomain Tenant domain.
-     * @throws ApplicationRoleManagementServerException Error occurred while adding application role.
+     * @throws ApplicationRoleManagementException Error occurred while adding application role.
      */
     ApplicationRole addApplicationRole(ApplicationRole applicationRole, String tenantDomain)
-            throws ApplicationRoleManagementServerException;
+            throws ApplicationRoleManagementException;
 
     /**
      * Get application role by id.
@@ -66,11 +66,11 @@ public interface ApplicationRoleMgtDAO {
      * @param addedScopes Scope to be added.
      * @param removedScopes Scope to be removed.
      * @param tenantDomain Tenant domain.
-     * @throws ApplicationRoleManagementServerException Error occurred while updating application role.
+     * @throws ApplicationRoleManagementException Error occurred while updating application role.
      */
     ApplicationRole updateApplicationRole(String roleId, String newName, List<String> addedScopes,
                                           List<String> removedScopes, String tenantDomain)
-            throws ApplicationRoleManagementServerException;
+            throws ApplicationRoleManagementException;
 
     /**
      * Delete application role.
@@ -169,6 +169,17 @@ public interface ApplicationRoleMgtDAO {
             throws ApplicationRoleManagementException;
 
     /**
+     * Get application roles by userId.
+     *
+     * @param userId User Id.
+     * @param appId App Id.
+     * @param tenantDomain Tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while getting application roles by userId.
+     */
+    List<ApplicationRole> getApplicationRolesByUserId(String userId, String appId, String tenantDomain)
+            throws ApplicationRoleManagementException;
+
+    /**
      * Get application roles by groupId.
      *
      * @param groupId Group Id.
@@ -176,5 +187,36 @@ public interface ApplicationRoleMgtDAO {
      * @throws ApplicationRoleManagementException Error occurred while getting application roles by groupId.
      */
     List<ApplicationRole> getApplicationRolesByGroupId(String groupId, String tenantDomain)
+            throws ApplicationRoleManagementException;
+
+    /**
+     * Get application roles by groupId.
+     *
+     * @param groupId Group Id.
+     * @param appId App Id.
+     * @param tenantDomain Tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while getting application roles by groupId.
+     */
+    List<ApplicationRole> getApplicationRolesByGroupId(String groupId, String appId, String tenantDomain)
+            throws ApplicationRoleManagementException;
+
+    /**
+     * Get application roles by groupIds.
+     *
+     * @param groupIds Group Ids.
+     * @param tenantDomain Tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while getting application roles by groupId.
+     */
+    List<ApplicationRole> getApplicationRolesByGroupIds(List<String> groupIds, String appId, String tenantDomain)
+            throws ApplicationRoleManagementException;
+
+    /**
+     * Get the list of scopes of list of roles.
+     *
+     * @param roleIds role IDs.
+     * @param tenantDomain tenant domain.
+     * @throws ApplicationRoleManagementException Error occurred while updating the application role.
+     */
+    List<String> getScopesByRoleIds(List<String> roleIds, String tenantDomain)
             throws ApplicationRoleManagementException;
 }
