@@ -839,7 +839,7 @@
   "console.ui.product_name": "WSO2 Identity Server",
   "console.ui.hiddenAuthenticators": [],
   "console.ui.google_one_tap_enabled_tenants": [],
-  "console.theme": "asgardio",
+  "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
   "console.session.params.userIdleWarningTimeOut": 580,
   "console.session.params.sessionRefreshTimeOut": 300,
