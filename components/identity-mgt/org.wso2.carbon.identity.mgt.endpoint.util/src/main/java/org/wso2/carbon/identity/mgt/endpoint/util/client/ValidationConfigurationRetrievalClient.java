@@ -116,9 +116,11 @@ public class ValidationConfigurationRetrievalClient {
             for (int i = 0; i < configurations.length(); i++) {
                 JSONObject config = (JSONObject) configurations.get(i);
                 if (((String)config.get("field")).equalsIgnoreCase("password")) {
-                    JSONArray rules = (JSONArray) config.get("rules");
-                    for (int j = 0; j < rules.length(); j++) {
-                        addRuleToConfiguration(rules.getJSONObject(j), passwordConfig);
+                    if (config.has("rules")) {
+                        JSONArray rules = (JSONArray) config.get("rules");
+                        for (int j = 0; j < rules.length(); j++) {
+                            addRuleToConfiguration(rules.getJSONObject(j), passwordConfig);
+                        }
                     }
                 }
             }
@@ -151,9 +153,11 @@ public class ValidationConfigurationRetrievalClient {
             for (int i = 0; i < configurations.length(); i++) {
                 JSONObject config = (JSONObject) configurations.get(i);
                 if (((String)config.get("field")).equalsIgnoreCase("username")) {
-                    JSONArray rules = (JSONArray) config.get("rules");
-                    for (int j = 0; j < rules.length(); j++) {
-                        addRuleToConfiguration(rules.getJSONObject(j), usernameConfig);
+                    if (config.has("rules")) {
+                        JSONArray rules = (JSONArray) config.get("rules");
+                        for (int j = 0; j < rules.length(); j++) {
+                            addRuleToConfiguration(rules.getJSONObject(j), usernameConfig);
+                        }
                     }
                 }
             }

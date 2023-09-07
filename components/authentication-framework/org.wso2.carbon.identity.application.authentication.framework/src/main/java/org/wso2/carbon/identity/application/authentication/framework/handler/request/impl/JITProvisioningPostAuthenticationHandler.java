@@ -87,6 +87,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ALLOW_LOGIN_TO_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
@@ -335,6 +336,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
                                     stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
                                     context.getTenantDomain());
+                    boolean isUserAllowsToLoginIdp =  Boolean.parseBoolean(IdentityUtil
+                            .getProperty(ALLOW_LOGIN_TO_IDP));
 
                     // If associatedLocalUser is null, that means relevant association not exist already.
                     if (StringUtils.isEmpty(associatedLocalUser) && externalIdPConfig.isPromptConsentEnabled()) {
@@ -380,7 +383,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             }
                         }
                     }
-                    if (StringUtils.isNotBlank(associatedLocalUser)) {
+                    if (StringUtils.isNotBlank(associatedLocalUser) && !isUserAllowsToLoginIdp) {
                         // Check if the associated local account is locked.
                         if (isAccountLocked(associatedLocalUser, context.getTenantDomain())) {
                             if (log.isDebugEnabled()) {

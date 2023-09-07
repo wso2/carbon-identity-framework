@@ -225,6 +225,9 @@
              currently used by JWT token issuer for issuing access token-->
         <SkipOIDCClaimsForClientCredentialGrant>true</SkipOIDCClaimsForClientCredentialGrant>
 
+        <!-- If enabled, hostname will be used to build the issuer instead of entity ID -->
+        <BuildIssuerWithHostname>false</BuildIssuerWithHostname>
+
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>300</AuthorizationCodeDefaultValidityPeriod>
         <!-- Default validity period for application access tokens in seconds -->
@@ -2040,6 +2043,10 @@
             <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/add</Permissions>
             <Scopes>internal_guest_mgt_invite_add</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="true" http-method="POST">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
@@ -2419,7 +2426,7 @@
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
-        <ExtensionTypes>applications,identity-providers</ExtensionTypes>
+        <ExtensionTypes>applications,connections,identity-providers</ExtensionTypes>
     </ExtensionManagementService>
 
     <!-- IdentityDataStore configurations -->

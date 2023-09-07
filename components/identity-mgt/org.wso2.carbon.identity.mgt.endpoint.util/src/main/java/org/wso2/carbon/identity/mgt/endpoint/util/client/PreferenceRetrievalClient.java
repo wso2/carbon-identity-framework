@@ -67,6 +67,8 @@ public class PreferenceRetrievalClient {
     private static final String RECOVERY_CONNECTOR = "account-recovery";
     private static final String LITE_USER_CONNECTOR = "lite-user-sign-up";
     private static final String MULTI_ATTRIBUTE_LOGIN_HANDLER = "multiattribute.login.handler";
+    private static final String MULTI_ATTRIBUTE_LOGIN_ALLOWED_ATTRIBUTES_PROPERTY =
+            "account.multiattributelogin.handler.allowedattributes";
     private static final String PROPERTY_NAME = "name";
     private static final String PROPERTY_ID = "id";
     private static final String PROPERTY_VALUE = "value";
@@ -179,6 +181,23 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiAttributeLogin(String tenant) throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, MULTI_ATTRIBUTE_LOGIN_HANDLER, MULTI_ATTRIBUTE_LOGIN_PROPERTY);
+    }
+
+    /**
+     * Get the multi attribute login allowed attributes
+     *
+     * @param tenant tenant domain name.
+     * @return set of attributes allowed for multi attribute login.
+     * @throws PreferenceRetrievalClientException
+     */
+    public String checkMultiAttributeLoginProperty(String tenant) throws PreferenceRetrievalClientException {
+
+        Optional<String> optional = getPropertyValue(tenant, ACCOUNT_MGT_GOVERNANCE, MULTI_ATTRIBUTE_LOGIN_HANDLER,
+                MULTI_ATTRIBUTE_LOGIN_ALLOWED_ATTRIBUTES_PROPERTY);
+        if (optional.isPresent()) {
+            return optional.get();
+        } 
+        return null;
     }
 
     /**
