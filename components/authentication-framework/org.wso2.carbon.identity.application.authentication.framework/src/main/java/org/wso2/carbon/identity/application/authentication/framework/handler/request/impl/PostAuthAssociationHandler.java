@@ -153,10 +153,10 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedLocalUserName));
-        String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
+        String fullQualifiedAssociatedUsername = FrameworkUtils.prependUserStoreDomainToName(
                 associatedLocalUserName + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
         AuthenticatedUser user =
-                AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId);
+                AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUsername);
         sequenceConfig.setAuthenticatedUser(user);
         stepConfig.setAuthenticatedUser(user);
         sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
@@ -172,7 +172,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             }
         }
         // in this case associatedID is a local user name - belongs to a tenant in IS.
-        String tenantDomain = MultitenantUtils.getTenantDomain(associatedLocalUserName);
+        String tenantDomain = MultitenantUtils.getTenantDomain(fullQualifiedAssociatedUsername);
         Map<String, Object> authProperties = context.getProperties();
 
         if (authProperties == null) {
