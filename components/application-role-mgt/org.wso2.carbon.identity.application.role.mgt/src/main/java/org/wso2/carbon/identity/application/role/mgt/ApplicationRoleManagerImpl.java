@@ -67,13 +67,8 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
         if (StringUtils.isBlank(applicationRole.getRoleName())) {
             throw handleClientException(ERROR_CODE_INVALID_ROLE_NAME);
         }
-        boolean existingRole =
-                applicationRoleMgtDAO.isExistingRole(applicationRole.getApplicationId(), applicationRole.getRoleName(),
-                        tenantDomain);
-        if (existingRole) {
-            throw handleClientException(ERROR_CODE_DUPLICATE_ROLE, applicationRole.getRoleName(),
-                    applicationRole.getApplicationId());
-        }
+        // Validate role name.
+        validateAppRoleName(applicationRole.getRoleName(), applicationRole.getApplicationId(), tenantDomain);
         // Validate scopes are authorized to given application.
         validateAuthorizedScopes(applicationRole.getApplicationId(),
                 Arrays.asList(applicationRole.getPermissions()));
@@ -93,12 +88,7 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
                 throw handleClientException(ERROR_CODE_INVALID_ROLE_NAME);
             }
             // Check whether new role name is already exists.
-            boolean existingRole =
-                    applicationRoleMgtDAO.isExistingRole(applicationId, newName, tenantDomain);
-            if (existingRole) {
-                throw handleClientException(ERROR_CODE_DUPLICATE_ROLE, newName,
-                        applicationId);
-            }
+            validateAppRoleName(newName, applicationId, tenantDomain);
         }
         if (addedScopes != null && removedScopes != null) {
             // Remove common scopes in both added and removed scopes.
@@ -240,6 +230,22 @@ public class ApplicationRoleManagerImpl implements ApplicationRoleManager {
 
         if (!isExists) {
             throw handleClientException(ERROR_CODE_ROLE_NOT_FOUND, roleId);
+        }
+    }
+
+    /**
+     * Validate application role name.
+     *
+     * @param name Role name.
+     * @throws  ApplicationRoleManagementException Error occurred while validating roleId.
+     */
+    private void validateAppRoleName(String name, String applicationId, String tenantDomain) throws ApplicationRoleManagementException {
+
+        boolean existingRole =
+                applicationRoleMgtDAO.isExistingRole(applicationId, name, tenantDomain);
+        if (existingRole) {
+            throw handleClientException(ERROR_CODE_DUPLICATE_ROLE, name,
+                    applicationId);
         }
     }
 

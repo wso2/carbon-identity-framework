@@ -40,6 +40,7 @@ public class SQLConstants {
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND SCOPE_NAME = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SCOPE_NAME + "; AND TENANT_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
+
     public static final String GET_APPLICATION_ROLE_BY_ID = "SELECT ROLE_ID, ROLE_NAME, TENANT_ID, APP_ID " +
             "FROM APP_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + ";";
 
@@ -96,23 +97,28 @@ public class SQLConstants {
             "FROM GROUP_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID +
             "; AND TENANT_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
 
+
     public static final String GET_ASSIGNED_GROUPS_OF_APPLICATION_ROLE_IDP_FILTER = "SELECT GROUP_ID, IDP_ID " +
             "FROM GROUP_ROLE WHERE ROLE_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID +
             "; AND IDP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_ID +
             "; AND TENANT_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
+
     public static final String GET_APPLICATION_ROLES_BY_USER_ID = "SELECT ar.ROLE_ID, ar.ROLE_NAME, ar.TENANT_ID, " +
             "ar.APP_ID FROM APP_ROLE as ar INNER JOIN USER_ROLE as ur ON ar.ROLE_ID = ur.ROLE_ID WHERE ur.USER_ID = :"
             + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID + "; AND ar.TENANT_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
+
     public static final String GET_APPLICATION_ROLES_BY_USER_ID_APP_ID = "SELECT ar.ROLE_ID, ar.ROLE_NAME, " +
             "ar.TENANT_ID, ar.APP_ID FROM APP_ROLE as ar INNER JOIN USER_ROLE as ur ON ar.ROLE_ID = ur.ROLE_ID " +
             "WHERE ur.USER_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_USER_ID + "; AND ar.APP_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + "; AND ar.TENANT_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
+
     public static final String GET_APPLICATION_ROLES_BY_GROUP_ID = "SELECT ar.ROLE_ID, ar.ROLE_NAME, ar.TENANT_ID, " +
             "ar.APP_ID FROM APP_ROLE as ar INNER JOIN GROUP_ROLE as gr ON ar.ROLE_ID = gr.ROLE_ID WHERE gr.GROUP_ID = :"
             + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_GROUP_ID + "; AND ar.TENANT_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
+
     public static final String GET_APPLICATION_ROLES_BY_GROUP_ID_APP_ID = "SELECT ar.ROLE_ID, ar.ROLE_NAME, " +
             "ar.TENANT_ID, ar.APP_ID FROM APP_ROLE as ar INNER JOIN GROUP_ROLE as gr ON ar.ROLE_ID = gr.ROLE_ID " +
             "WHERE gr.GROUP_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_GROUP_ID + "; AND ar.APP_ID = :" +
@@ -126,9 +132,15 @@ public class SQLConstants {
 
     public static final String GET_SCOPES_BY_ROLE_IDS = "SELECT SCOPE_NAME FROM ROLE_SCOPE WHERE " +
             "TENANT_ID = :" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + ";";
+
     public static final String IS_APPLICATION_ROLE_EXISTS_BY_ID = "SELECT COUNT(1) FROM APP_ROLE WHERE ROLE_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "; AND TENANT_ID = :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TENANT_ID + "; ";
+
+    public static final String USER_ROLE_UNIQUE_CONSTRAINT = "user_role_unique";
+    public static final String GROUP_ROLE_UNIQUE_CONSTRAINT = "group_role_unique";
+    public static final String ROLE_SCOPE_UNIQUE_CONSTRAINT = "role_scope_unique";
+
 
     /**
      * SQL Placeholders.
@@ -144,8 +156,4 @@ public class SQLConstants {
         public static final String DB_SCHEMA_COLUMN_NAME_GROUP_ID = "GROUP_ID";
         public static final String DB_SCHEMA_COLUMN_NAME_IDP_ID = "IDP_ID";
     }
-
-    public static final String USER_ROLE_UNIQUE_CONSTRAINT = "user_role_unique";
-    public static final String GROUP_ROLE_UNIQUE_CONSTRAINT = "group_role_unique";
-    public static final String ROLE_SCOPE_UNIQUE_CONSTRAINT = "role_scope_unique";
 }

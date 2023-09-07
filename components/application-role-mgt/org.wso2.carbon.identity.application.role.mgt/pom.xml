@@ -129,7 +129,7 @@
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
                     <argLine>
-                    --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
+                        --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
                         --add-exports java.base/jdk.internal.loader=ALL-UNNAMED
                     </argLine>
                         <suiteXmlFiles>
