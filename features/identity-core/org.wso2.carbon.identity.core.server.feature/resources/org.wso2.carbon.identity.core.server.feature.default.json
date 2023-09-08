@@ -730,7 +730,6 @@
     "profile",
     "openid"
   ],
-  "console.idp_configs.serverOrigin": "https://localhost:9443",
   "console.idp_configs.storage": "webWorker",
   "console.idp_configs.periodicTokenRefresh": false,
   "console.idp_configs.authorizeEndpointURL": "${serverOrigin}/${tenantPrefix}/${superTenantDomain}/oauth2/authorize?ut=${userTenantDomain}",
