@@ -739,7 +739,7 @@
   "console.login_callback_path": "",
   "console.logout_callback_path": "",
   "console.server_origin": "https://localhost:9443",
-  "console.route_paths.home": "/develop/applications",
+  "console.route_paths.home": "/getting-started",
   "console.route_paths.login": "",
   "console.route_paths.logout": "/logout",
   "console.extensions": {
