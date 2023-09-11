@@ -839,6 +839,47 @@
                 {% endif %}
             </FAPI>
             {% endif %}
+
+            {% if oauth.oidc.pushed_authorization_request_endpoint is defined %}
+                <PushedAuthorizationRequestEndpoint>{{oauth.oidc.pushed_authorization_request_endpoint}}</PushedAuthorizationRequestEndpoint>
+            {% endif %}
+
+            {% if oauth.oidc.tls_client_certificate_bound_access_tokens is defined %}
+                <TLSClientCertificateBoundAccessTokens>{{oauth.oidc.tls_client_certificate_bound_access_tokens}}</TLSClientCertificateBoundAccessTokens>
+            {% endif %}
+
+            <SupportedTokenEndpointAuthMethods>
+                {% if oauth.oidc.token_endpoint.auth_methods|length %}
+                    {% for authmethod in oauth.oidc.token_endpoint.auth_methods %}
+                        <SupportedTokenEndpointAuthMethod>{{authmethod}}</SupportedTokenEndpointAuthMethod>
+                    {% endfor %}
+                {% else %}
+                    <SupportedTokenEndpointAuthMethod>client_secret_basic</SupportedTokenEndpointAuthMethod>
+                    <SupportedTokenEndpointAuthMethod>client_secret_post</SupportedTokenEndpointAuthMethod>
+                {% endif %}
+            </SupportedTokenEndpointAuthMethods>
+
+            <SupportedTokenEndpointSigningAlgorithms>
+                {% if oauth.oidc.token_endpoint.signing_algorithms|length %}
+                    {% for algorithm in oauth.oidc.token_endpoint.signing_algorithms %}
+                        <SupportedTokenEndpointSigningAlgorithm>{{algorithm}}</SupportedTokenEndpointSigningAlgorithm>
+                    {% endfor %}
+                {% else %}
+                    <SupportedTokenEndpointSigningAlgorithm>PS256</SupportedTokenEndpointSigningAlgorithm>
+                    <SupportedTokenEndpointSigningAlgorithm>ES256</SupportedTokenEndpointSigningAlgorithm>
+                {% endif %}
+            </SupportedTokenEndpointSigningAlgorithms>
+
+            <UserInfoJWTSignatureAlgorithms>
+                {% if oauth.oidc.user_info.jwt_signature_algorithms|length %}
+                    {% for algorithm auth.oidc.user_info.jwt_signature_algorithms %}
+                        <UserInfoJWTSignatureAlgorithm>{{algorithm}}</UserInfoJWTSignatureAlgorithm>
+                    {% endfor %}
+                {% else %}
+                    <UserInfoJWTSignatureAlgorithm>SHA256withRSA</UserInfoJWTSignatureAlgorithm>
+                {% endif %}
+            </UserInfoJWTSignatureAlgorithms>
+
         </OpenIDConnect>
 
         <!--
