@@ -1011,6 +1011,15 @@
             </RenewTokenWithoutRevokingExisting>
         </JWT>
         {% endif %}
+
+        {% if oauth.restricted_scopes is defined %}
+        <RestrictedScopes>
+            {% for restricted_scope in oauth.restricted_scopes %}
+            <RestrictedScope>{{restricted_scope}}</RestrictedScope>
+            {% endfor %}
+        </RestrictedScopes>
+        {% endif %}
+
     </OAuth>
 
     <RestApiAuthentication>
@@ -3192,6 +3201,7 @@
                     <Path>/api/server/v1/admin-advisory-management/banner</Path>
                     <Path>/api/idle-account-identification/v1/inactive-users</Path>
                     <Path>/api/server/v1/expired-password-identification/password-expired-users</Path>
+                    <Path>/api/server/v1/api-resources</Path>
                 </SubPaths>
             </Context>
             <Context>

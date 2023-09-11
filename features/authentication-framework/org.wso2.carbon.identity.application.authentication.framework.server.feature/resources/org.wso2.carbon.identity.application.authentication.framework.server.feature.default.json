@@ -233,5 +233,10 @@
     "http://wso2.org/claims/created",
     "http://wso2.org/claims/modified",
     "http://wso2.org/claims/groups"
+  ],
+  "oauth.restricted_scopes": [
+    "internal",
+    "console",
+    "SYSTEM"
   ]
 }
