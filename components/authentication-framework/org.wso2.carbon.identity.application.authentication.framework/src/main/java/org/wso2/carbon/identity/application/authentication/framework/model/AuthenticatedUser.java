@@ -371,7 +371,6 @@ public class AuthenticatedUser extends User {
             }
             userId = this.getFederatedUserIdInternal();
         }
-        userId = getLoggableUserId();
 
         return userId;
     }
