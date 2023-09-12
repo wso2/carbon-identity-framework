@@ -19,6 +19,7 @@
 package org.wso2.carbon.security.keystore.service;
 
 
+import org.wso2.carbon.core.keystore.service.KeyStoreData;
 import org.wso2.carbon.security.SecurityConfigException;
 
 public interface KeyStoreAdminInterface {
