@@ -839,6 +839,9 @@
                 {% endif %}
             </FAPI>
             {% endif %}
+            {% if oauth.oidc.enable_pairwise_subject_identifier_for_access_token is defined %}
+                <EnablePairwiseSubForAccessToken>{{oauth.oidc.enable_pairwise_subject_identifier_for_access_token}}</EnablePairwiseSubForAccessToken>
+            {% endif %}
         </OpenIDConnect>
 
         <!--
