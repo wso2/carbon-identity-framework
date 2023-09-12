@@ -279,7 +279,12 @@ public class ValidationConfigurationRetrievalClient {
             enableRegExValidation(rule, config);
         }
     }
-
+    /**
+     * Method to add a rule to the regex validation configuration json.
+     *
+     * @param rule      Rule need to be added to the regex validation configuration.
+     * @param config    Configuration object.
+     */
     private void enableRegExValidation(JSONObject rule, JSONObject config) {
 
         config.put(JS_REG_EX_VALIDATOR_KEY, true);
