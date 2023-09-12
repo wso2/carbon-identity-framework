@@ -43,7 +43,8 @@ import java.util.List;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_JS_REGEX_PATTERN;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_VALIDATOR;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.EMAIL_CLAIM_URI;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
@@ -77,11 +78,15 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
             RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
             String usernameRegEx = getUsernameRegEx(realmConfiguration);
 
-            // Return the JsRegex if the default regex has been updated by the user.
+            // Return the Default JsRegex -> AlphaNumeric Validator
+            // if the default regex has been updated by the user.
             if (!usernameRegEx.isEmpty() &&
                     !DEFAULT_EMAIL_JS_REGEX_PATTERN.equals(usernameRegEx)) {
-                rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx));
-                configuration.setRegEx(rules);
+                rules.add(getRuleConfig(AlphanumericValidator.class.getSimpleName(),
+                        ENABLE_VALIDATOR, Boolean.TRUE.toString()));
+                rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MIN_LENGTH, "5"));
+                rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MAX_LENGTH, "30"));
+                configuration.setRules(rules);
             } else {
                 rules.add(getRuleConfig(EmailFormatValidator.class.getSimpleName(),
                         ENABLE_VALIDATOR, Boolean.TRUE.toString()));
