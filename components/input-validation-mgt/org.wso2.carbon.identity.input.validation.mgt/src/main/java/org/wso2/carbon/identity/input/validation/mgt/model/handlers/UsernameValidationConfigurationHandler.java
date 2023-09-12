@@ -79,7 +79,7 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
             String usernameRegEx = getUsernameRegEx(realmConfiguration);
 
             // Return the Default JsRegex -> AlphaNumeric Validator
-            // if the default regex has been updated by the user.
+            // TODO: Need to add a config to provide legacy behaviour using JSRegex validator.
             if (!usernameRegEx.isEmpty() &&
                     !DEFAULT_EMAIL_JS_REGEX_PATTERN.equals(usernameRegEx)) {
                 rules.add(getRuleConfig(AlphanumericValidator.class.getSimpleName(),
