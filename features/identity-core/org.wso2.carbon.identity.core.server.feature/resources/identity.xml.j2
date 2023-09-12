@@ -840,10 +840,6 @@
             </FAPI>
             {% endif %}
 
-            {% if oauth.oidc.pushed_authorization_request_endpoint is defined %}
-                <PushedAuthorizationRequestEndpoint>{{oauth.oidc.pushed_authorization_request_endpoint}}</PushedAuthorizationRequestEndpoint>
-            {% endif %}
-
             {% if oauth.oidc.tls_client_certificate_bound_access_tokens is defined %}
                 <TLSClientCertificateBoundAccessTokens>{{oauth.oidc.tls_client_certificate_bound_access_tokens}}</TLSClientCertificateBoundAccessTokens>
             {% endif %}
