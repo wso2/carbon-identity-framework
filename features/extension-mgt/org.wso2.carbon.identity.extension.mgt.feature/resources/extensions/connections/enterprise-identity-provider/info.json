@@ -1,0 +1,10 @@
+{
+    "id": "enterprise-idp",
+    "name": "Enterprise",
+    "description": "Enterprise login via standard protocols",
+    "image": "enterprise-idp",
+    "category": "DEFAULT",
+    "displayOrder": -1,
+    "tags": [],
+    "type": "identity-provider"
+}

@@ -56,6 +56,10 @@
                 <Enable>true</Enable>
             </UserSessionMapping>
         </SessionDataPersist>
+        <PushedAuthReqCleanUp>
+            <Enable>true</Enable>
+            <CleanUpPeriod>1440</CleanUpPeriod>
+        </PushedAuthReqCleanUp>
     </JDBCPersistenceManager>
 
     <!-- Time configurations are in minutes -->
@@ -196,6 +200,7 @@
         <OAuth1AuthorizeUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/authorize-url</OAuth1AuthorizeUrl>
         <OAuth1AccessTokenUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/access-token</OAuth1AccessTokenUrl>
         <OAuth2AuthzEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/authorize</OAuth2AuthzEPUrl>
+        <OAuth2ParEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/par</OAuth2ParEPUrl>
         <OAuth2TokenEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/token</OAuth2TokenEPUrl>
         <OAuth2RevokeEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/revoke</OAuth2RevokeEPUrl>
         <OAuth2IntrospectEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/introspect</OAuth2IntrospectEPUrl>
@@ -219,6 +224,13 @@
 
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>true</UseEntityIdAsIssuerInOidcDiscovery>
+
+        <!-- If enabled, OIDC claims will be skipped when requesting token for client credential grant type
+             currently used by JWT token issuer for issuing access token-->
+        <SkipOIDCClaimsForClientCredentialGrant>true</SkipOIDCClaimsForClientCredentialGrant>
+
+        <!-- If enabled, hostname will be used to build the issuer instead of entity ID -->
+        <BuildIssuerWithHostname>false</BuildIssuerWithHostname>
 
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>300</AuthorizationCodeDefaultValidityPeriod>
@@ -2031,6 +2043,26 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
             <Scopes>internal_organization_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invite" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/add</Permissions>
+            <Scopes>internal_guest_mgt_invite_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="true" http-method="POST">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitations(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/list</Permissions>
+            <Scopes>internal_guest_mgt_invite_list</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitations/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/delete</Permissions>
+            <Scopes>internal_guest_mgt_invite_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/organizations/check-name" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
             <Scopes>internal_organization_view</Scopes>
@@ -2139,7 +2171,7 @@
 	    If none defines for any handler, then this authorization control will be not applied for that.
 	 -->
     <AuthorizationControl>
-        <SkipAuthorization authHandler="ClientAuthentication" endpoints="(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*)"/>
+        <SkipAuthorization authHandler="ClientAuthentication" endpoints="(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*)"/>
     </AuthorizationControl>
 
     <!--
@@ -2216,6 +2248,7 @@
                     <Path>/api/server/v1/branding-preference</Path>
                     <Path>/api/server/v1/validation-rules</Path>
                     <Path>/api/users/v1/([^/]+)/sessions</Path>
+                    <Path>/api/server/v1/guests</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2397,7 +2430,7 @@
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
-        <ExtensionTypes>applications,identity-providers</ExtensionTypes>
+        <ExtensionTypes>applications,connections,identity-providers</ExtensionTypes>
     </ExtensionManagementService>
 
     <!-- IdentityDataStore configurations -->

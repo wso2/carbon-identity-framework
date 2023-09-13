@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -374,17 +375,52 @@ public class AuthenticatedUser extends User {
         return userId;
     }
 
+    /**
+     * Returns the user id of the authenticated user.
+     * If the user id is not available, it will return the fully qualified username.
+     *
+     * @return the user id of the authenticated user.
+     * @deprecated use {@link #getLoggableMaskedUserId()}
+     */
+    @Deprecated
+    @Override
     public String getLoggableUserId() {
 
         if (userId != null) {
             return userId;
         }
 
-        // User id can be null sometimes in some flows. Hence trying to resolve it here.
+        // User id can be null sometimes in some flows. Hence, trying to resolve it here.
         String loggableUserId = resolveUserIdInternal();
         if (loggableUserId == null) {
             // If the user id is still null, lets get the fully qualified username as the user id for logging purposes.
             loggableUserId = toFullQualifiedUsername();
+        }
+        return loggableUserId;
+    }
+
+    /**
+     * Returns the user id of the authenticated user.
+     * If the user id is not available, it will return the fully qualified username. Masked username is returned if
+     * masking is enabled.
+     *
+     * @return the user id of the authenticated user.
+     */
+    @Override
+    public String getLoggableMaskedUserId() {
+
+        if (userId != null) {
+            return userId;
+        }
+
+        // User id can be null sometimes in some flows. Hence, trying to resolve it here.
+        String loggableUserId = resolveUserIdInternal();
+        if (loggableUserId == null) {
+            // If the user id is still null, lets get the fully qualified username as the user id for logging purposes.
+            loggableUserId = toFullQualifiedUsername();
+            if (LoggerUtils.isLogMaskingEnable) {
+                loggableUserId = LoggerUtils.getMaskedContent(loggableUserId);
+            }
         }
         return loggableUserId;
     }
@@ -400,23 +436,7 @@ public class AuthenticatedUser extends User {
     public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier,
                                                   ServiceProvider serviceProvider) {
 
-        if (!isFederatedUser() && serviceProvider != null) {
-            boolean useUserstoreDomainInLocalSubjectIdentifier
-                    = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                    .isUseUserstoreDomainInLocalSubjectIdentifier();
-            boolean useTenantDomainInLocalSubjectIdentifier
-                    = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                    .isUseTenantDomainInLocalSubjectIdentifier();
-            if (useUserstoreDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(userStoreDomain)) {
-                authenticatedSubjectIdentifier = IdentityUtil.addDomainToName(userName, userStoreDomain);
-            }
-            if (useTenantDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(tenantDomain) &&
-                    StringUtils.isNotEmpty(authenticatedSubjectIdentifier)) {
-                authenticatedSubjectIdentifier = UserCoreUtil.addTenantDomainToEntry(authenticatedSubjectIdentifier,
-                        tenantDomain);
-            }
-        }
-        this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
+        setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
     }
 
     /**

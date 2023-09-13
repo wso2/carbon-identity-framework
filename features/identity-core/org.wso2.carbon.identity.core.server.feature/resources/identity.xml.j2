@@ -64,6 +64,10 @@
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
         </SessionDataPersist>
+        <PushedAuthReqCleanUp>
+            <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
+            <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
+        </PushedAuthReqCleanUp>
     </JDBCPersistenceManager>
 
     <!-- Time configurations are in minutes -->
@@ -239,6 +243,7 @@
         <OAuth1AuthorizeUrl>{{oauth.endpoints.oauth1_authorize_url}}</OAuth1AuthorizeUrl>
         <OAuth1AccessTokenUrl>{{oauth.endpoints.oauth1_access_token_url}}</OAuth1AccessTokenUrl>
         <OAuth2AuthzEPUrl>{{oauth.endpoints.oauth2_authz_url}}</OAuth2AuthzEPUrl>
+        <OAuth2ParEPUrl>{{oauth.endpoints.oauth2_par_url}}</OAuth2ParEPUrl>
         <OAuth2TokenEPUrl>{{oauth.endpoints.oauth2_token_url}}</OAuth2TokenEPUrl>
         <OAuth2RevokeEPUrl>{{oauth.endpoints.oauth2_revoke_url}}</OAuth2RevokeEPUrl>
         <OAuth2IntrospectEPUrl>{{oauth.endpoints.oauth2_introspect_url}}</OAuth2IntrospectEPUrl>
@@ -263,6 +268,13 @@
 
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>{{oauth.use_entityid_as_issuer_in_oidc_discovery}}</UseEntityIdAsIssuerInOidcDiscovery>
+
+        <!-- If enabled, OIDC claims will be skipped when requesting token for client credential grant type
+             currently used by JWT token issuer for issuing access token-->
+        <SkipOIDCClaimsForClientCredentialGrant>{{oauth.grant_type.client_credentials.skip_oidc_claims}}</SkipOIDCClaimsForClientCredentialGrant>
+
+        <!-- If enabled, hostname will be used to build the issuer instead of entity ID -->
+        <BuildIssuerWithHostname>{{oauth.build_issuer_with_hostname}}</BuildIssuerWithHostname>
 
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>{{oauth.token_validation.authorization_code_validity}}</AuthorizationCodeDefaultValidityPeriod>
@@ -1003,6 +1015,15 @@
             </RenewTokenWithoutRevokingExisting>
         </JWT>
         {% endif %}
+
+        {% if oauth.restricted_scopes is defined %}
+        <RestrictedScopes>
+            {% for restricted_scope in oauth.restricted_scopes %}
+            <RestrictedScope>{{restricted_scope}}</RestrictedScope>
+            {% endfor %}
+        </RestrictedScopes>
+        {% endif %}
+
     </OAuth>
 
     <RestApiAuthentication>
@@ -1096,6 +1117,10 @@
             If that doesn't satisfy uncomment the following config and explicitly configure the value
         -->
         <IdentityProviderURL>{{sts.endpoint.idp}}</IdentityProviderURL>
+        <LocalSubjectIdentifier>
+            <IncludeUserStoreDomain>{{sts.local_subject_identifier.include_user_store_domain}}</IncludeUserStoreDomain>
+            <IncludeTenantDomain>{{sts.local_subject_identifier.include_tenant_domain}}</IncludeTenantDomain>
+        </LocalSubjectIdentifier>
     </SecurityTokenService>
 
     <PassiveSTS>
@@ -1368,6 +1393,18 @@
             {% endif %}
             <PasswordGenerator>{{identity_mgt.user_onboarding.password_generator}}</PasswordGenerator>
             <DisableRandomValueForCredentials>{{identity_mgt.user_onboarding.disable_random_value_for_credentials}}</DisableRandomValueForCredentials>
+            <Notification>
+                <!--
+                    This property was introduced to keep the email confirmation code tolerance time period value of the
+                    ask password scenario. This can be configured in minutes and must be lower that confirmation
+                    code expiry time for ask password. If the following config is configured, the existing confirmation
+                    code will be send again in the email when user ask for resend code. If this was not configured, a
+                    default value of zero (0) will be set internally.
+                -->
+                {% if identity_mgt.user_onboarding.ask_password_confirmation_code_tolerance_period is defined %}
+                <ConfirmationCodeTolerancePeriod>{{identity_mgt.user_onboarding.ask_password_confirmation_code_tolerance_period}}</ConfirmationCodeTolerancePeriod>
+                {% endif %}
+            </Notification>
         </AskPassword>
     </EmailVerification>
 
@@ -1388,6 +1425,30 @@
         <NotifyAccountConfirmation>{{identity_mgt.user_self_registration.notify_account_confirmation}}</NotifyAccountConfirmation>
         <Notification>
             <InternallyManage>{{identity_mgt.user_self_registration.notification.manage_internally}}</InternallyManage>
+            <Email>
+                <!--
+                    This property was introduced to keep the email confirmation code tolerance time period value of the
+                    self registration scenario using EMAIL channel. This can be configured in minutes and must be lower
+                    that confirmation code expiry time for self registration. If the following config is configured, the
+                    existing confirmation code will be send again in the email when user ask for resend code. If this
+                    was not configured, a default value of zero (0) will be set internally.
+                -->
+                {% if identity_mgt.user_self_registration.email.confirmation_code_tolerance_period is defined %}
+                <ConfirmationCodeTolerancePeriod>{{identity_mgt.user_self_registration.email.confirmation_code_tolerance_period}}</ConfirmationCodeTolerancePeriod>
+                {% endif %}
+            </Email>
+            <SMS>
+                <!--
+                    This property was introduced to keep the email confirmation code tolerance time period value of the
+                    self registration scenario using SMS channel. This can be configured in minutes and must be lower
+                    that confirmation code expiry time for self registration using SMS channel. If the following config
+                    is configured, the existing confirmation code will be send again in the email when user ask for
+                    resend code. If this was not configured, a default value of zero (0) will be set internally.
+                -->
+                {% if identity_mgt.user_self_registration.sms.confirmation_code_tolerance_period is defined %}
+                <ConfirmationCodeTolerancePeriod>{{identity_mgt.user_self_registration.sms.confirmation_code_tolerance_period}}</ConfirmationCodeTolerancePeriod>
+                {% endif %}
+            </SMS>
         </Notification>
         <ReCaptcha>{{identity_mgt.user_self_registration.enable_recaptcha}}</ReCaptcha>
         <VerificationCode>
@@ -1562,6 +1623,9 @@
         </IndelibleClaims>
         {% if authentication.jit_provisioning.preserve_locally_added_claims is defined %}
         <PreserveLocallyAddedClaims>{{authentication.jit_provisioning.preserve_locally_added_claims}}</PreserveLocallyAddedClaims>
+        {% endif %}
+        {% if authentication.jit_provisioning.allow_idp_login is defined %}
+            <AllowLoginToIDP>{{authentication.jit_provisioning.allow_idp_login}}</AllowLoginToIDP>
         {% endif %}
     </JITProvisioning>
 
@@ -2624,6 +2688,10 @@
             <Permissions>none</Permissions>
             <Scopes>none</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/admin-advisory-management/banner" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
@@ -2866,6 +2934,23 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
             <Scopes>internal_organization_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
+        <Resource context="(.*)/api/server/v1/guests/invite" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/add</Permissions>
+            <Scopes>internal_guest_mgt_invite_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitations(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/list</Permissions>
+            <Scopes>internal_guest_mgt_invite_list</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitations/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/delete</Permissions>
+            <Scopes>internal_guest_mgt_invite_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/organizations/check-name" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
             <Scopes>internal_organization_view</Scopes>
@@ -2954,6 +3039,14 @@
         </Resource>
         <Resource context="(.*)/fileupload/resource(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/idle-account-identification/v1/inactive-users(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
+            <Scopes>internal_user_mgt_list</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
+            <Scopes>internal_user_mgt_list</Scopes>
         </Resource>
         <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
@@ -3105,6 +3198,11 @@
                     <Path>/api/server/v1/validation-rules</Path>
                     <Path>/api/users/v1/([^/]+)/sessions</Path>
                     <Path>/api/server/v1/admin-advisory-management</Path>
+                    <Path>/api/server/v1/guests</Path>
+                    <Path>/api/server/v1/admin-advisory-management/banner</Path>
+                    <Path>/api/idle-account-identification/v1/inactive-users</Path>
+                    <Path>/api/server/v1/expired-password-identification/password-expired-users</Path>
+                    <Path>/api/server/v1/api-resources</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -3540,6 +3638,12 @@
 
     <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
     <EnableSHA256RandomNumberGenerator>{{identity_util.enable_sha256_random_numbers}}</EnableSHA256RandomNumberGenerator>
+
+    <OrganizationUserInvitation>
+        <DefaultExpiryTime>{{organization.user.invitation.default.expiry_time}}</DefaultExpiryTime>
+        <PrimaryUserDomain>{{organization.user.invitation.primary.user_domain}}</PrimaryUserDomain>
+        <DefaultAcceptURL>{{organization.user.invitation.default.accept_url}}</DefaultAcceptURL>
+    </OrganizationUserInvitation>
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>

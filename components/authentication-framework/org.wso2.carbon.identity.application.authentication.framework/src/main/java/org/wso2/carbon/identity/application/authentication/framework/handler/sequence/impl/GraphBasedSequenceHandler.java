@@ -137,13 +137,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         if (!graph.isBuildSuccessful()) {
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
-                LoggerUtils.triggerDiagnosticLogEvent(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.FAILED,
-                        "Error while parsing the authentication script. Nested exception is: " + graph.getErrorReason(),
-                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING, null);
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
+                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                        .resultMessage("Error while parsing the authentication script. Nested exception is: " + graph
+                                .getErrorReason())
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED));
             }
             throw new FrameworkException(
                     "Error while building graph from Javascript. Nested exception is: " + graph.getErrorReason());
@@ -201,13 +203,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
         boolean isInterrupt = false;
         if (currentNode instanceof ShowPromptNode) {
-            log.info("Current node is an instance of ShowPromptNode.");
             isInterrupt = handlePrompt(request, response, context, sequenceConfig, (ShowPromptNode) currentNode);
-            log.info("Handled prompt for current node");
         } else if (currentNode instanceof LongWaitNode) {
-            log.info("Current node is an instance of LongWaitNode.");
             isInterrupt = handleLongWait(request, response, context, sequenceConfig, (LongWaitNode) currentNode);
-            log.info("Handled long wait for current node");
         } else if (currentNode instanceof DynamicDecisionNode) {
             handleDecisionPoint(request, response, context, sequenceConfig, (DynamicDecisionNode) currentNode);
         } else if (currentNode instanceof StepConfigGraphNode) {
@@ -252,10 +250,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                                  AuthenticationContext context, SequenceConfig sequenceConfig,
                                  ShowPromptNode promptNode) throws FrameworkException {
 
-        log.info("Handle prompt invoked for context identifier: " + context.getContextIdentifier());
         boolean isPromptToBeDisplayed = false;
         if (context.isReturning()) {
-            log.info("Prompt is returning for context identifier: " + context.getContextIdentifier());
             String action = PROMPT_DEFAULT_ACTION;
             for (String s : request.getParameterMap().keySet()) {
                 if (s.startsWith(PROMPT_ACTION_PREFIX)) {
@@ -270,28 +266,19 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
             context.setReturning(false);
         } else {
-            log.info("Prompt is starting for context identifier: " + context.getContextIdentifier());
             if (promptNode.getHandlerMap().get(ShowPromptNode.PRE_HANDLER) != null) {
                 Object result = evaluateHandler(ShowPromptNode.PRE_HANDLER, promptNode, context, promptNode
                         .getParameters().get(STEP_IDENTIFIER_PARAM));
-                log.info("Result of prompt pre handler: " + result + " for context identifier: " + context
-                        .getContextIdentifier());
                 if (Boolean.TRUE.equals(result)) {
                     executeFunction(SKIPPED_CALLBACK_NAME, promptNode, context);
                     AuthGraphNode nextNode = promptNode.getDefaultEdge();
-                    log.info("Prompt pre handler returned true. Going to next node: " + nextNode
-                            .getName() + " for context identifier: " + context.getContextIdentifier());
                     context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
                 } else {
-                    log.info("Prompt pre handler returned false. Displaying prompt for context identifier: " + context
-                            .getContextIdentifier());
                     displayPrompt(context, request, response, promptNode);
                     isPromptToBeDisplayed = true;
                 }
                 return isPromptToBeDisplayed;
             }
-            log.info("Prompt pre handler is not defined. Displaying prompt for context identifier: " + context
-                    .getContextIdentifier());
             displayPrompt(context, request, response, promptNode);
             isPromptToBeDisplayed = true;
         }
@@ -432,8 +419,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 }
                 response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
                 if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
-                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.REDIREDCT_URI, redirectURL)
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                    diagnosticLogBuilder.resultStatus(DiagnosticLog.ResultStatus.FAILED)
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
                 }
             } catch (IOException e) {
@@ -457,8 +443,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
                 diagnosticLogBuilder.resultMessage("Error initiated from authentication script. User will be" +
-                        " redirected.")
-                        .inputParam(LogConstants.InputKeys.REDIREDCT_URI, redirectURL);
+                        " redirected.");
                 LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
             }
             throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
@@ -611,7 +596,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                                    AuthenticationContext context, SequenceConfig sequenceConfig,
                                    LongWaitNode longWaitNode) throws FrameworkException {
 
-        log.info("Started handling long wait for context identifier: " + context.getContextIdentifier());
         boolean isWaiting;
         LongWaitStatusStoreService longWaitStatusStoreService =
                 FrameworkServiceDataHolder.getInstance().getLongWaitStatusStoreService();
@@ -680,7 +664,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         AsyncCaller caller = asyncProcess.getAsyncCaller();
 
-        log.info("AsyncCaller is set for the long wait process: " + context.getContextIdentifier());
         AsyncReturn asyncReturn = rethrowTriConsumer((authenticationContext, data, result) -> {
             log.info("For session data key: " + context.getContextIdentifier() + " asyncReturn.accept() has been" +
                     " set by the async process flow of the custom function.");
