@@ -26,17 +26,12 @@ import org.wso2.carbon.identity.input.validation.mgt.model.validators.LowerCaseV
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.NumeralValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.SpecialCharacterValidator;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.UpperCaseValidator;
-import org.wso2.carbon.user.api.RealmConfiguration;
-import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX_PATTERN;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 
 /**
  * Password Validation Configuration Handler.
