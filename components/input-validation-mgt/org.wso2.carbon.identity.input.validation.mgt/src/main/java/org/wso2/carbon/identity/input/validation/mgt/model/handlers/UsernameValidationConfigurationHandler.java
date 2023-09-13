@@ -21,8 +21,11 @@ package org.wso2.carbon.identity.input.validation.mgt.model.handlers;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtServerException;
@@ -40,14 +43,15 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_EMAIL_JS_REGEX_PATTERN;
+import static java.lang.Boolean.parseBoolean;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ALPHA_NUMERIC;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_VALIDATOR;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VALIDATION_DEFAULT_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.EMAIL_CLAIM_URI;
-import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATORS_COMBINATION;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG_EX;
@@ -74,29 +78,28 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
         configuration.setField(USERNAME);
         List<RulesConfiguration> rules = new ArrayList<>();
 
-        try {
-            RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
-            String usernameRegEx = getUsernameRegEx(realmConfiguration);
-
-            // Return the Default JsRegex -> AlphaNumeric Validator
-            // TODO: Need to add a config to provide legacy behaviour using JSRegex validator.
-            if (!usernameRegEx.isEmpty() &&
-                    !DEFAULT_EMAIL_JS_REGEX_PATTERN.equals(usernameRegEx)) {
-                rules.add(getRuleConfig(AlphanumericValidator.class.getSimpleName(),
-                        ENABLE_VALIDATOR, Boolean.TRUE.toString()));
-                rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MIN_LENGTH, "5"));
-                rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MAX_LENGTH, "30"));
-                configuration.setRules(rules);
-            } else {
-                rules.add(getRuleConfig(EmailFormatValidator.class.getSimpleName(),
-                        ENABLE_VALIDATOR, Boolean.TRUE.toString()));
-                configuration.setRules(rules);
-            }
-            return configuration;
-        } catch (InputValidationMgtException e) {
-            throw new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(), e.getMessage(),
-                    e.getDescription());
+        if (isAlphaNumericValidationByDefault()) {
+            rules.add(getRuleConfig(AlphanumericValidator.class.getSimpleName(),
+                    ENABLE_VALIDATOR, Boolean.TRUE.toString()));
+            rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MIN_LENGTH, "5"));
+            rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MAX_LENGTH, "30"));
+            configuration.setRules(rules);
+        } else {
+            rules.add(getRuleConfig(EmailFormatValidator.class.getSimpleName(),
+                    ENABLE_VALIDATOR, Boolean.TRUE.toString()));
+            configuration.setRules(rules);
         }
+        return configuration;
+    }
+
+    private boolean isAlphaNumericValidationByDefault() {
+
+        String defaultValidator = IdentityUtil.getProperty(INPUT_VALIDATION_DEFAULT_VALIDATOR);
+        if (defaultValidator != null) {
+            return StringUtils.equalsIgnoreCase(ALPHA_NUMERIC, defaultValidator);
+        }
+        // Config is not set. Hence going with email validator By default.
+        return false;
     }
 
     @Override
@@ -110,12 +113,12 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
         validator is set to true along with Length Validator. */
         for (RulesConfiguration configuration: configurationList) {
             if (EmailFormatValidator.class.getSimpleName().equals(configuration.getValidatorName())) {
-                if (Boolean.parseBoolean(configuration.getProperties().get(ENABLE_VALIDATOR))) {
+                if (parseBoolean(configuration.getProperties().get(ENABLE_VALIDATOR))) {
                     validConfigurations += 1;
                 }
                 validatorNames.remove(EmailFormatValidator.class.getSimpleName());
             } else if (AlphanumericValidator.class.getSimpleName().equals(configuration.getValidatorName())) {
-                if (Boolean.parseBoolean(configuration.getProperties().get(ENABLE_VALIDATOR))) {
+                if (parseBoolean(configuration.getProperties().get(ENABLE_VALIDATOR))) {
                     if (validatorNames.contains(LengthValidator.class.getSimpleName())) {
                         validConfigurations += 1;
                         validatorNames.remove(LengthValidator.class.getSimpleName());
@@ -183,7 +186,7 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
              validation configurations are set to emailFormatValidator.
              */
             if (rule != null && EMAIL_FORMAT_VALIDATOR.equals(rule.getValidatorName())) {
-                if (Boolean.parseBoolean(rule.getProperties().get(ENABLE_VALIDATOR))) {
+                if (parseBoolean(rule.getProperties().get(ENABLE_VALIDATOR))) {
                     try {
                         updateEmailClaim(tenantDomain);
                     } catch (ClaimMetadataException e) {
@@ -219,4 +222,6 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
             }
         }
     }
+
+
 }
