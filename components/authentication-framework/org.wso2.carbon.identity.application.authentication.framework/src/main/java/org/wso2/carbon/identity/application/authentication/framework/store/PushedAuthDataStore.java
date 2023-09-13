@@ -37,6 +37,8 @@ public class PushedAuthDataStore {
 
     private static final Log log = LogFactory.getLog(PushedAuthDataStore.class);
     private static volatile PushedAuthDataStore instance;
+    private static final String ENABLE_CLEANUP = "JDBCPersistenceManager.PushedAuthReqCleanUp.Enable";
+    private static final String CLEANUP_PERIOD = "JDBCPersistenceManager.PushedAuthReqCleanUp.CleanUpPeriod";
     private static final String SQL_DELETE_EXPIRED_DATA_TASK_MYSQL =
             "DELETE FROM IDN_OAUTH_PAR WHERE SCHEDULED_EXPIRY < ? LIMIT %d";
     private static final String SQL_DELETE_EXPIRED_DATA_TASK_MSSQL =
@@ -84,7 +86,7 @@ public class PushedAuthDataStore {
     private PushedAuthDataStore() {
 
         String isCleanUpEnabledVal
-                = IdentityUtil.getProperty("JDBCPersistenceManager.PushedAuthReqCleanUp.Enable");
+                = IdentityUtil.getProperty(ENABLE_CLEANUP);
         if (StringUtils.isNotBlank(isCleanUpEnabledVal)) {
             requestCleanupEnabled = Boolean.parseBoolean(isCleanUpEnabledVal);
         }
@@ -146,9 +148,12 @@ public class PushedAuthDataStore {
      */
     private long getCleanUpPeriod() {
 
-        String cleanUpPeriod = IdentityUtil.getProperty("JDBCPersistenceManager.PushedAuthReqCleanUp.CleanUpPeriod");
+        String cleanUpPeriod = IdentityUtil.getProperty(CLEANUP_PERIOD);
         if (StringUtils.isBlank(cleanUpPeriod) || !StringUtils.isNumeric(cleanUpPeriod)) {
             cleanUpPeriod = CLEAN_UP_PERIOD_DEFAULT_IN_MINUTES;
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Default cleanup period %s will be used.", cleanUpPeriod));
+            }
         }
         return Long.parseLong(cleanUpPeriod);
     }
