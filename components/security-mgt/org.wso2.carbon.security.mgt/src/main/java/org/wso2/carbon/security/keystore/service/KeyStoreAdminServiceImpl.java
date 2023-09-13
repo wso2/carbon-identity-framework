@@ -23,7 +23,6 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.core.keystore.KeyStoreAdmin;
 import org.wso2.carbon.core.keystore.KeyStoreManagementException;
-import org.wso2.carbon.core.keystore.service.KeyStoreAdminInterface;
 import org.wso2.carbon.core.keystore.service.KeyStoreData;
 import org.wso2.carbon.core.keystore.service.PaginatedKeyStoreData;
 

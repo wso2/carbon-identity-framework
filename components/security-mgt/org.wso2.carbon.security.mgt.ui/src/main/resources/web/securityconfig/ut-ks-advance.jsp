@@ -23,7 +23,7 @@
 <%@page import="org.wso2.carbon.identity.sts.common.stub.config.xsd.KerberosConfigData" %>
 <%@page import="org.wso2.carbon.identity.sts.common.stub.config.xsd.SecurityConfigData" %>
 <%@page import="org.wso2.carbon.identity.sts.common.stub.config.xsd.SecurityScenarioData" %>
-<%@page import="org.wso2.carbon.security.mgt.stub.keystore.xsd.KeyStoreData" %>
+<%@page import="org.wso2.carbon.core.keystore.service.xsd.KeyStoreData" %>
 <%@page import="org.wso2.carbon.security.ui.SecurityUIConstants" %>
 <%@page import="org.wso2.carbon.security.ui.Util" %>
 <%@page import="org.wso2.carbon.security.ui.client.KeyStoreAdminClient" %>

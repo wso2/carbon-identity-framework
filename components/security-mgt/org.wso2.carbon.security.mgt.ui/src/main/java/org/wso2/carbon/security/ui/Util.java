@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.security.ui;
 
-import org.wso2.carbon.security.mgt.stub.keystore.xsd.CertData;
-import org.wso2.carbon.security.mgt.stub.keystore.xsd.KeyStoreData;
+import org.wso2.carbon.core.keystore.service.xsd.CertData;
+import org.wso2.carbon.core.keystore.service.xsd.KeyStoreData;
 import org.wso2.carbon.user.mgt.stub.types.carbon.FlaggedName;
 
 import java.util.ArrayList;
