@@ -1110,6 +1110,9 @@
 
   "show_pending_user_information.enable": true,
   "identity_util.enable_sha256_random_numbers": true,
+  "organization.user.invitation.default.expiry_time": "4320",
+  "organization.user.invitation.primary.user_domain": "PRIMARY",
+  "organization.user.invitation.default.accept_url": "/accountrecoveryendpoint/acceptinvitation.do",
   "extension_mgt.extension_types": "applications,identity-providers,connections,identity-verification-providers",
 
   "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore"
