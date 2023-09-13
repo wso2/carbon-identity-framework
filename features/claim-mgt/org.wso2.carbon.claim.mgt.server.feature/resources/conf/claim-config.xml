@@ -818,7 +818,7 @@
 				<Description>Claim to store failed Backup Code Attempts</Description>
 			</Claim>
 			<Claim>
-				<ClaimURI>http://wso2.org/claims/managedOrg</ClaimURI>
+				<ClaimURI>http://wso2.org/claims/identity/managedOrg</ClaimURI>
 				<DisplayName>Managed Organization</DisplayName>
 				<AttributeID>managedOrg</AttributeID>
 				<Description>Claim to store the organization which the user is stored</Description>
@@ -2718,7 +2718,7 @@
 				<Description>Organization where the user is managed</Description>
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/managedOrg</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/identity/managedOrg</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 		<Dialect dialectURI="http://eidas.europa.eu/attributes/naturalperson">
