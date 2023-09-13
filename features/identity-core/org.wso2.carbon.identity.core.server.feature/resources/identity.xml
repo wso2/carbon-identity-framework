@@ -56,6 +56,10 @@
                 <Enable>true</Enable>
             </UserSessionMapping>
         </SessionDataPersist>
+        <PushedAuthReqCleanUp>
+            <Enable>true</Enable>
+            <CleanUpPeriod>1440</CleanUpPeriod>
+        </PushedAuthReqCleanUp>
     </JDBCPersistenceManager>
 
     <!-- Time configurations are in minutes -->

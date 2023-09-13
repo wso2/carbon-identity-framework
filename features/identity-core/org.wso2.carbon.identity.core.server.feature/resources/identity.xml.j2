@@ -64,6 +64,10 @@
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
         </SessionDataPersist>
+        <PushedAuthReqCleanUp>
+            <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
+            <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
+        </PushedAuthReqCleanUp>
     </JDBCPersistenceManager>
 
     <!-- Time configurations are in minutes -->
