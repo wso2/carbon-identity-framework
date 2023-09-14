@@ -217,6 +217,21 @@
 
   "oauth.global_rbac_scope_issuer.enable": false,
 
+  "oauth.jarm.enable": true,
+  "oauth.jarm.jwt.enable": true,
+  "oauth.jarm.query_jwt.enable": true,
+  "oauth.jarm.fragment_jwt.enable": true,
+  "oauth.jarm.form_post_jwt.enable": true,
+  "oauth.jarm.jarm_response_jwt_validity": "7200",
+  "oauth.response_mode.name.jwt": "jwt",
+  "oauth.response_mode.class.jwt": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.JwtResponseModeProvider",
+  "oauth.response_mode.name.query_jwt": "query.jwt",
+  "oauth.response_mode.class.query_jwt": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.QueryJwtResponseModeProvider",
+  "oauth.response_mode.name.fragment_jwt": "fragment.jwt",
+  "oauth.response_mode.class.fragment_jwt": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FragmentJwtResponseModeProvider",
+  "oauth.response_mode.name.form_post_jwt": "form_post.jwt",
+  "oauth.response_mode.class.form_post_jwt": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider",
+
   "rest_api_authentication.add_realm_user_to_error": false,
 
   "saml.entity_id": "${carbon.host}",
