@@ -92,11 +92,7 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
     private boolean isAlphaNumericValidationByDefault() {
 
         String defaultValidator = IdentityUtil.getProperty(INPUT_VALIDATION_DEFAULT_VALIDATOR);
-        if (defaultValidator != null) {
-            return StringUtils.equalsIgnoreCase(ALPHA_NUMERIC, defaultValidator);
-        }
-        // Config is not set. Hence going with email validator By default.
-        return false;
+        return StringUtils.equalsIgnoreCase(ALPHA_NUMERIC, defaultValidator);
     }
 
     @Override
