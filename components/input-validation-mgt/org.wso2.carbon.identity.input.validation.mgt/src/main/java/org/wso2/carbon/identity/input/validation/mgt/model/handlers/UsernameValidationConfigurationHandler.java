@@ -41,7 +41,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Boolean.parseBoolean;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ALPHA_NUMERIC;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_VALIDATOR;
@@ -111,12 +110,12 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
         validator is set to true along with Length Validator. */
         for (RulesConfiguration configuration: configurationList) {
             if (EmailFormatValidator.class.getSimpleName().equals(configuration.getValidatorName())) {
-                if (parseBoolean(configuration.getProperties().get(ENABLE_VALIDATOR))) {
+                if (Boolean.parseBoolean(configuration.getProperties().get(ENABLE_VALIDATOR))) {
                     validConfigurations += 1;
                 }
                 validatorNames.remove(EmailFormatValidator.class.getSimpleName());
             } else if (AlphanumericValidator.class.getSimpleName().equals(configuration.getValidatorName())) {
-                if (parseBoolean(configuration.getProperties().get(ENABLE_VALIDATOR))) {
+                if (Boolean.parseBoolean(configuration.getProperties().get(ENABLE_VALIDATOR))) {
                     if (validatorNames.contains(LengthValidator.class.getSimpleName())) {
                         validConfigurations += 1;
                         validatorNames.remove(LengthValidator.class.getSimpleName());
@@ -184,7 +183,7 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
              validation configurations are set to emailFormatValidator.
              */
             if (rule != null && EMAIL_FORMAT_VALIDATOR.equals(rule.getValidatorName())) {
-                if (parseBoolean(rule.getProperties().get(ENABLE_VALIDATOR))) {
+                if (Boolean.parseBoolean(rule.getProperties().get(ENABLE_VALIDATOR))) {
                     try {
                         updateEmailClaim(tenantDomain);
                     } catch (ClaimMetadataException e) {
