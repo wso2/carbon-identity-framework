@@ -220,6 +220,4 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
             }
         }
     }
-
-
 }

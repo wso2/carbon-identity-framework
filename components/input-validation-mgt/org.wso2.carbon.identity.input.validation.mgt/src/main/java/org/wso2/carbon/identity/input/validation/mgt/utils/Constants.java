@@ -86,7 +86,6 @@ public class Constants {
         public static final String INPUT_VALIDATION_DEFAULT_VALIDATOR = "InputValidation.DefaultValidator";
 
         public static final String ALPHA_NUMERIC = "alphaNumeric";
-
     }
 
     /**
