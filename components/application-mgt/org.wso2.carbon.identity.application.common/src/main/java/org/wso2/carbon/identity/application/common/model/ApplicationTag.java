@@ -16,22 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.tag.common.model;
+package org.wso2.carbon.identity.application.common.model;
 
 /**
  * Application Tag POST.
  */
-public class ApplicationTagPOST {
+public class ApplicationTag {
     private String name;
     private String colour;
 
-    public ApplicationTagPOST() {
+    public ApplicationTag() {
     }
 
-    public ApplicationTagPOST(ApplicationTagPOSTBuilder applicationTagPOSTBuilder) {
+    public ApplicationTag(ApplicationTagBuilder applicationTagBuilder) {
 
-        this.name = applicationTagPOSTBuilder.name;
-        this.colour = applicationTagPOSTBuilder.colour;
+        this.name = applicationTagBuilder.name;
+        this.colour = applicationTagBuilder.colour;
     }
 
     public String getName() {
@@ -57,28 +57,28 @@ public class ApplicationTagPOST {
     /**
      * Application Tag POST builder.
      */
-    public static class ApplicationTagPOSTBuilder {
+    public static class ApplicationTagBuilder {
         private String name;
         private String colour;
 
-        public ApplicationTagPOSTBuilder() {
+        public ApplicationTagBuilder() {
         }
 
-        public ApplicationTagPOSTBuilder name(String name) {
+        public ApplicationTagBuilder name(String name) {
 
             this.name = name;
             return this;
         }
 
-        public ApplicationTagPOSTBuilder colour(String colour) {
+        public ApplicationTagBuilder colour(String colour) {
 
             this.colour = colour;
             return this;
         }
 
-        public ApplicationTagPOST build() {
+        public ApplicationTag build() {
 
-            return new ApplicationTagPOST(this);
+            return new ApplicationTag(this);
         }
     }
 }

@@ -29,8 +29,9 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagPOST;
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagsListItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTag;
+import org.wso2.carbon.identity.application.common.model.ApplicationTag.ApplicationTagBuilder;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
 import org.wso2.carbon.identity.application.tag.mgt.dao.impl.ApplicationTagDAOImpl;
 import org.wso2.carbon.identity.application.tag.mgt.util.ApplicationTagManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -58,23 +59,16 @@ public class ApplicationTagDAOImplTest extends PowerMockTestCase {
     private static final String DB_NAME = "application_tag_mgt_dao_db";
     private static final String TEST_TAG_1_NAME = "test_tag_1";
     private static final String TEST_TAG_1_COLOUR = "#677b66";
-    private static final String TEST_TAG_1_UPDATED_NAME = "test_tag_1_updated";
-    private static final String TEST_TAG_1_UPDATED_COLOUR = "#927b66";
+    private static final String TEST_TAG_UPDATED_COLOUR = "#927b66";
     private static final String TEST_TAG_2_NAME = "test_tag_2";
     private static final String TEST_TAG_2_COLOUR = "#589b66";
+    private static final String TEST_TAG_DEFAULT_COLOUR = "#345f66";
     private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
+    private static final Integer SUPER_TENANT_DOMAIN_ID = -1234;
+    private static final Integer SAMPLE_TENANT_DOMAIN_ID = 2;
     private static final String SUPER_TENANT_DOMAIN_NAME = "carbon.super";
-    private static final String SAMPLE_TENANT_DOMAIN = "wso2.com";
+    private static final String  SAMPLE_TENANT_DOMAIN_NAME = "wso2.com";
     private ApplicationTagDAOImpl daoImpl;
-    private String tenantDomain;
-    private String tagId1;
-    private String tagId2;
-
-//    @Factory(dataProvider = "applicationTagTestDataProvider")
-//    public ApplicationTagDAOImplTest(String tenantDomain) {
-//
-//        this.tenantDomain = tenantDomain;
-//    }
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -92,65 +86,74 @@ public class ApplicationTagDAOImplTest extends PowerMockTestCase {
     @DataProvider(name = "applicationTagTestDataProvider")
     public Object[][] applicationTagDataProvider() {
 
-        return new Object[][]{{SUPER_TENANT_DOMAIN_NAME}, {SAMPLE_TENANT_DOMAIN}};
+        return new Object[][]{{SUPER_TENANT_DOMAIN_ID}, {SAMPLE_TENANT_DOMAIN_ID}};
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider", priority = 1)
-    public void testCreateApplicationTag(String tenantDomain) throws Exception {
+    public void testGetAllApplicationTags(Integer tenantID) throws Exception {
 
-//        daoImpl = new ApplicationTagDAOImpl();
-//        initiateH2Database(getFilePath());
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(ApplicationTagManagementUtil.class);
-//        throw new IllegalArgumentException("Hi ###");
-        Connection connection = getConnection();
-        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-        PowerMockito.doAnswer((Answer<Void>) invocation -> {
-            connection.commit();
-            return null;
-        }).when(IdentityDatabaseUtil.class, "commitTransaction", any(Connection.class));
-        ApplicationTagPOST inputTag = createApplicationTag(TEST_TAG_1_NAME, TEST_TAG_1_COLOUR);
-        tagId1 = daoImpl.createApplicationTag(inputTag, tenantDomain);
-        Assert.assertNotNull(tagId1);
+
+        String tagId1 = addApplicationTagToDB(TEST_TAG_1_NAME, TEST_TAG_1_COLOUR, getConnection(), tenantID);
+        String tagId2 = addApplicationTagToDB(TEST_TAG_2_NAME, TEST_TAG_2_COLOUR, getConnection(), tenantID);
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        List<ApplicationTagsItem> fetchedTags = daoImpl.getAllApplicationTags(tenantID);
+
+        Assert.assertNotNull(fetchedTags);
+        Assert.assertEquals(fetchedTags.size(), 2);
+        boolean isTag1Exist = false;
+        boolean isTag2Exist = false;
+        for (ApplicationTagsItem appTag: fetchedTags) {
+            if (tagId1.equals(appTag.getId()) && TEST_TAG_1_NAME.equals(appTag.getName()) &&
+                    TEST_TAG_1_COLOUR.equals(appTag.getColour())) {
+                isTag1Exist = true;
+            } else if (tagId2.equals(appTag.getId()) && TEST_TAG_2_NAME.equals(appTag.getName()) &&
+                    TEST_TAG_2_COLOUR.equals(appTag.getColour())) {
+                isTag2Exist = true;
+            }
+        }
+        Assert.assertTrue(isTag1Exist);
+        Assert.assertTrue(isTag2Exist);
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider", priority = 2)
-    public void testGetApplicationTagById(String tenantDomain) throws Exception {
+    public void testCreateApplicationTag(Integer tenantID) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(ApplicationTagManagementUtil.class);
 
-        Connection connection = getConnection();
-        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-        PowerMockito.doAnswer((Answer<Void>) invocation -> {
-            connection.commit();
-            return null;
-        }).when(IdentityDatabaseUtil.class, "commitTransaction", any(Connection.class));
-        tagId2 = addApplicationTagToDB(TEST_TAG_2_NAME, TEST_TAG_2_COLOUR, getConnection(), tenantDomain);
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        ApplicationTagsListItem fetchedTag = daoImpl.getApplicationTagById(tagId2, tenantDomain);
-        Assert.assertNotNull(fetchedTag);
-        Assert.assertEquals(fetchedTag.getName(), TEST_TAG_2_NAME);
-        Assert.assertEquals(fetchedTag.getColour(), TEST_TAG_2_COLOUR);
+        ApplicationTag inputTag = createApplicationTag("testCreateAppTag_" + getTenantDomain(tenantID),
+                TEST_TAG_DEFAULT_COLOUR);
+        String tagId1 = daoImpl.createApplicationTag(inputTag, tenantID);
+        Assert.assertNotNull(tagId1);
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider", priority = 3)
-    public void testGetAllApplicationTags(String tenantDomain) throws Exception {
+    public void testGetApplicationTagById(Integer tenantID) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(ApplicationTagManagementUtil.class);
 
+        String tagName = "testGetAppTagById_" + getTenantDomain(tenantID);
+        String tagId = addApplicationTagToDB(tagName, TEST_TAG_DEFAULT_COLOUR, getConnection(), tenantID);
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        List<ApplicationTagsListItem> fetchedTags = daoImpl.getAllApplicationTags(tenantDomain);
-        Assert.assertNotNull(fetchedTags);
-        Assert.assertEquals(fetchedTags.size(), 2);
+        ApplicationTagsItem fetchedTag = daoImpl.getApplicationTagById(tagId, tenantID);
+        Assert.assertNotNull(fetchedTag);
+        Assert.assertEquals(fetchedTag.getId(), tagId);
+        Assert.assertEquals(fetchedTag.getName(), tagName);
+        Assert.assertEquals(fetchedTag.getColour(), TEST_TAG_DEFAULT_COLOUR);
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider", priority = 4)
-    public void testUpdateApplicationTag(String tenantDomain) throws Exception {
+    public void testUpdateApplicationTag(Integer tenantID) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(ApplicationTagManagementUtil.class);
+
+        String tagId = addApplicationTagToDB("testAppTag_" + getTenantDomain(tenantID), TEST_TAG_DEFAULT_COLOUR,
+                getConnection(), tenantID);
 
         Connection connection = getConnection();
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
@@ -158,30 +161,36 @@ public class ApplicationTagDAOImplTest extends PowerMockTestCase {
             connection.commit();
             return null;
         }).when(IdentityDatabaseUtil.class, "commitTransaction", any(Connection.class));
-        ApplicationTagPOST inputUpdateTag = createApplicationTag(TEST_TAG_1_UPDATED_NAME, TEST_TAG_1_UPDATED_COLOUR);
-        daoImpl.updateApplicationTag(inputUpdateTag, tagId1, tenantDomain);
+        String updatedTagName = "testUpdatedAppTag_" + getTenantDomain(tenantID);
+        ApplicationTag inputUpdateTag = createApplicationTag(updatedTagName, TEST_TAG_UPDATED_COLOUR);
+        daoImpl.updateApplicationTag(inputUpdateTag, tagId, tenantID);
+
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        ApplicationTagsListItem fetchedTag = daoImpl.getApplicationTagById(tagId1, tenantDomain);
+        ApplicationTagsItem fetchedTag = daoImpl.getApplicationTagById(tagId, tenantID);
+
         Assert.assertNotNull(fetchedTag);
-        Assert.assertEquals(fetchedTag.getName(), TEST_TAG_1_UPDATED_NAME);
-        Assert.assertEquals(fetchedTag.getColour(), TEST_TAG_1_UPDATED_COLOUR);
+        Assert.assertEquals(fetchedTag.getId(), tagId);
+        Assert.assertEquals(fetchedTag.getName(), updatedTagName);
+        Assert.assertEquals(fetchedTag.getColour(), TEST_TAG_UPDATED_COLOUR);
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider", priority = 5)
-    public void testDeleteApplicationTag(String tenantDomain) throws Exception {
+    public void testDeleteApplicationTag(Integer tenantID) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
         mockStatic(ApplicationTagManagementUtil.class);
 
+        String tagId = addApplicationTagToDB("testDeleteAppTag_" + getTenantDomain(tenantID),
+                TEST_TAG_DEFAULT_COLOUR, getConnection(), tenantID);
         Connection connection = getConnection();
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
         PowerMockito.doAnswer((Answer<Void>) invocation -> {
             connection.commit();
             return null;
         }).when(IdentityDatabaseUtil.class, "commitTransaction", any(Connection.class));
-        daoImpl.deleteApplicationTagById(tagId1, tenantDomain);
+        daoImpl.deleteApplicationTagById(tagId, tenantID);
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        ApplicationTagsListItem fetchedTag = daoImpl.getApplicationTagById(tagId1, tenantDomain);
+        ApplicationTagsItem fetchedTag = daoImpl.getApplicationTagById(tagId, tenantID);
         Assert.assertNull(fetchedTag);
     }
 
@@ -192,10 +201,10 @@ public class ApplicationTagDAOImplTest extends PowerMockTestCase {
      * @param colour    Tag Colour.
      * @return ApplicationTagPOST.
      */
-    private static ApplicationTagPOST createApplicationTag(String name, String colour) {
+    private static ApplicationTag createApplicationTag(String name, String colour) {
 
-        ApplicationTagPOST.ApplicationTagPOSTBuilder appTagBuilder =
-                new ApplicationTagPOST.ApplicationTagPOSTBuilder()
+        ApplicationTagBuilder appTagBuilder =
+                new ApplicationTagBuilder()
                 .name(name)
                 .colour(colour);
         return appTagBuilder.build();
@@ -204,23 +213,23 @@ public class ApplicationTagDAOImplTest extends PowerMockTestCase {
     /**
      * Add Application Tag to the database.
      *
-     * @param name          Tag Name.
-     * @param colour        Tag Colour.
-     * @param connection    Database connection.
-     * @param tenantDomain  Tenant Domain.
+     * @param name       Tag Name.
+     * @param colour     Tag Colour.
+     * @param connection Database connection.
+     * @param tenantID   Tenant Domain.
      * @return Application Tag Id.
      * @throws Exception Error when adding Application Tag.
      */
-    private String addApplicationTagToDB(String name, String colour, Connection connection, String tenantDomain)
+    private String addApplicationTagToDB(String name, String colour, Connection connection, Integer tenantID)
             throws Exception {
 
-        ApplicationTagPOST inputApplicationTag = createApplicationTag(name, colour);
+        ApplicationTag inputApplicationTag = createApplicationTag(name, colour);
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
         PowerMockito.doAnswer((Answer<Void>) invocation -> {
             connection.commit();
             return null;
         }).when(IdentityDatabaseUtil.class, "commitTransaction", any(Connection.class));
-        return daoImpl.createApplicationTag(inputApplicationTag, tenantDomain);
+        return daoImpl.createApplicationTag(inputApplicationTag, tenantID);
     }
 
     private static Connection getConnection() throws SQLException {
@@ -278,5 +287,15 @@ public class ApplicationTagDAOImplTest extends PowerMockTestCase {
                     .toString();
         }
         throw new IllegalArgumentException("DB Script file name cannot be empty.");
+    }
+
+    private static String getTenantDomain(int tenantId) {
+
+        if (tenantId == SUPER_TENANT_DOMAIN_ID) {
+            return SUPER_TENANT_DOMAIN_NAME;
+        } else if (tenantId == SAMPLE_TENANT_DOMAIN_ID) {
+            return SAMPLE_TENANT_DOMAIN_NAME;
+        }
+        return null;
     }
 }

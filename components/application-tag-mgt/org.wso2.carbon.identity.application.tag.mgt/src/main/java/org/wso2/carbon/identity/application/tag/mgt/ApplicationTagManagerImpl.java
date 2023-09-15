@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.identity.application.tag.mgt;
 
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagPOST;
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagsListItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTag;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
 import org.wso2.carbon.identity.application.tag.mgt.dao.impl.ApplicationTagDAOImpl;
 import org.wso2.carbon.identity.application.tag.mgt.dao.impl.CacheBackedApplicationTagDAO;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.List;
 
@@ -44,36 +45,36 @@ public class ApplicationTagManagerImpl implements ApplicationTagManager {
     }
 
     @Override
-    public String createApplicationTag(ApplicationTagPOST applicationTagDTO, String tenantDomain)
+    public String createApplicationTag(ApplicationTag applicationTagDTO, String tenantDomain)
             throws ApplicationTagMgtException {
 
-        return dao.createApplicationTag(applicationTagDTO, tenantDomain);
+        return dao.createApplicationTag(applicationTagDTO, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
-    public List<ApplicationTagsListItem> getAllApplicationTags(String tenantDomain) throws ApplicationTagMgtException {
+    public List<ApplicationTagsItem> getAllApplicationTags(String tenantDomain) throws ApplicationTagMgtException {
 
-        return dao.getAllApplicationTags(tenantDomain);
+        return dao.getAllApplicationTags(IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
-    public ApplicationTagsListItem getApplicationTagById(String applicationTagId, String tenantDomain)
+    public ApplicationTagsItem getApplicationTagById(String applicationTagId, String tenantDomain)
             throws ApplicationTagMgtException {
 
-        return dao.getApplicationTagById(applicationTagId, tenantDomain);
+        return dao.getApplicationTagById(applicationTagId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
     public void deleteApplicationTagById(String applicationTagId, String tenantDomain)
             throws ApplicationTagMgtException {
 
-        dao.deleteApplicationTagById(applicationTagId, tenantDomain);
+        dao.deleteApplicationTagById(applicationTagId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
-    public void updateApplicationTag(ApplicationTagPOST applicationTagPatch, String applicationTagId,
+    public void updateApplicationTag(ApplicationTag applicationTagPatch, String applicationTagId,
                                      String tenantDomain) throws ApplicationTagMgtException {
 
-        dao.updateApplicationTag(applicationTagPatch, applicationTagId, tenantDomain);
+        dao.updateApplicationTag(applicationTagPatch, applicationTagId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 }

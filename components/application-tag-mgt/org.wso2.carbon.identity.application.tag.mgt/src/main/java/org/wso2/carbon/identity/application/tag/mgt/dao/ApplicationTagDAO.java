@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.application.tag.mgt.dao;
 
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagPOST;
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagsListItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTag;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
 import org.wso2.carbon.identity.application.tag.mgt.ApplicationTagMgtException;
 
 import java.util.List;
@@ -31,50 +31,50 @@ public interface ApplicationTagDAO {
 
     /**
      * @param applicationTagDTO Application Tag Model.
-     * @param tenantDomain      Tenant Domain.
+     * @param tenantID          Tenant ID.
      * @return Tag Id.
      * @throws ApplicationTagMgtException If an error occurs while creating the Application tag.
      */
-    String createApplicationTag(ApplicationTagPOST applicationTagDTO, String tenantDomain)
+    String createApplicationTag(ApplicationTag applicationTagDTO, Integer tenantID)
             throws ApplicationTagMgtException;
 
     /**
      * Get all application tags when the tags reside in the same tenant of the request initiated.
      *
-     * @param tenantDomain Tenant Domain.
+     * @param tenantID Tenant ID.
      * @return Application Tag object
      * @throws ApplicationTagMgtException If an error occurs while retrieving the Application tag by Id.
      */
-    List<ApplicationTagsListItem> getAllApplicationTags(String tenantDomain) throws ApplicationTagMgtException;
+    List<ApplicationTagsItem> getAllApplicationTags(Integer tenantID) throws ApplicationTagMgtException;
 
     /**
      * Get application tag when the tag resides in the same tenant of the request initiated.
      *
      * @param applicationTagId Application tag id.
-     * @param tenantDomain     Tenant Domain.
+     * @param tenantID         Tenant ID.
      * @return Application Tag object
      * @throws ApplicationTagMgtException If an error occurs while retrieving the Application tag by Id.
      */
-    ApplicationTagsListItem getApplicationTagById(String applicationTagId, String tenantDomain)
+    ApplicationTagsItem getApplicationTagById(String applicationTagId, Integer tenantID)
             throws ApplicationTagMgtException;
 
     /**
      * Delete the Application Tag for the given id.
      *
      * @param applicationTagId Application tag id.
-     * @param tenantDomain     Tenant Domain.
+     * @param tenantID         Tenant ID.
      * @throws ApplicationTagMgtException If an error occurs while deleting the Application Tag.
      */
-    void deleteApplicationTagById(String applicationTagId, String tenantDomain) throws ApplicationTagMgtException;
+    void deleteApplicationTagById(String applicationTagId, Integer tenantID) throws ApplicationTagMgtException;
 
     /**
      * Update the Application Tag for the given id.
      *
      * @param applicationTagPatch Application Tag Patch Object.
      * @param applicationTagId    Application tag id.
-     * @param tenantDomain        Tenant Domain.
+     * @param tenantID            Tenant ID.
      * @throws ApplicationTagMgtException If an error occurs while updating the Application Tag.
      */
-    void updateApplicationTag(ApplicationTagPOST applicationTagPatch, String applicationTagId, String tenantDomain)
+    void updateApplicationTag(ApplicationTag applicationTagPatch, String applicationTagId, Integer tenantID)
             throws ApplicationTagMgtException;
 }

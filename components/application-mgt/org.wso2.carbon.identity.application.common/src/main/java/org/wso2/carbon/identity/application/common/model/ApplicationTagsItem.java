@@ -16,21 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.tag.common.model;
+package org.wso2.carbon.identity.application.common.model;
 
 /**
  * Application Tags List Item.
  */
-public class ApplicationTagsListItem {
+public class ApplicationTagsItem {
 
     private String id;
     private String name;
     private String colour;
 
-    public ApplicationTagsListItem() {
+    public ApplicationTagsItem() {
     }
 
-    public ApplicationTagsListItem(ApplicationTagsListItemBuilder applicationTagsListItemBuilder) {
+    public ApplicationTagsItem(ApplicationTagsListItemBuilder applicationTagsListItemBuilder) {
 
         this.id = applicationTagsListItemBuilder.id;
         this.name = applicationTagsListItemBuilder.name;
@@ -97,9 +97,9 @@ public class ApplicationTagsListItem {
             return this;
         }
 
-        public ApplicationTagsListItem build() {
+        public ApplicationTagsItem build() {
 
-            return new ApplicationTagsListItem(this);
+            return new ApplicationTagsItem(this);
         }
     }
 }

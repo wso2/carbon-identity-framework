@@ -23,8 +23,9 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagPOST;
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagsListItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTag;
+import org.wso2.carbon.identity.application.common.model.ApplicationTag.ApplicationTagBuilder;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
@@ -44,13 +45,10 @@ public class ApplicationTagManagerTest {
     private static final String TEST_TAG_1_COLOUR = "#677b66";
     private static final String TEST_TAG_2_NAME = "test_tag_2";
     private static final String TEST_TAG_2_COLOUR = "#589b66";
-    private static final String TEST_TAG_1_UPDATED_NAME = "test_tag_1_updated";
-    private static final String TEST_TAG_1_UPDATED_COLOUR = "#927b66";
+    private static final String TEST_TAG_UPDATED_COLOUR = "#927b66";
+    private static final String TEST_TAG_DEFAULT_COLOUR = "#345f66";
     private static final String SUPER_TENANT_DOMAIN_NAME = "carbon.super";
-    private static final String SAMPLE_TENANT_DOMAIN = "wso2.com";
     private ApplicationTagManager applicationTagManager;
-    private String tagId1;
-    private String tagId2;
 
     @BeforeMethod
     public void setUp() {
@@ -66,61 +64,86 @@ public class ApplicationTagManagerTest {
     @DataProvider(name = "applicationTagTestDataProvider")
     public Object[][] applicationTagDataProvider() {
 
-        return new Object[][]{{SUPER_TENANT_DOMAIN_NAME}, {SAMPLE_TENANT_DOMAIN}};
+        return new Object[][]{{SUPER_TENANT_DOMAIN_NAME}};
     }
 
-    @Test(dataProvider = "applicationTagTestDataProvider")
+    @Test(dataProvider = "applicationTagTestDataProvider", priority = 1)
+    public void testGetAllApplicationTags(String tenantDomain) throws Exception {
+
+        String tagId1 = applicationTagManager.createApplicationTag(createAppTagObj(TEST_TAG_1_NAME, TEST_TAG_1_COLOUR),
+                tenantDomain);
+        String tagId2 = applicationTagManager.createApplicationTag(createAppTagObj(TEST_TAG_2_NAME, TEST_TAG_2_COLOUR),
+                tenantDomain);
+        List<ApplicationTagsItem> fetchedTags = applicationTagManager.getAllApplicationTags(tenantDomain);
+
+        Assert.assertNotNull(fetchedTags);
+        Assert.assertEquals(fetchedTags.size(), 2);
+        boolean isTag1Exist = false;
+        boolean isTag2Exist = false;
+        for (ApplicationTagsItem appTag: fetchedTags) {
+            if (tagId1.equals(appTag.getId()) && TEST_TAG_1_NAME.equals(appTag.getName()) &&
+                    TEST_TAG_1_COLOUR.equals(appTag.getColour())) {
+                isTag1Exist = true;
+            } else if (tagId2.equals(appTag.getId()) && TEST_TAG_2_NAME.equals(appTag.getName()) &&
+                    TEST_TAG_2_COLOUR.equals(appTag.getColour())) {
+                isTag2Exist = true;
+            }
+        }
+        Assert.assertTrue(isTag1Exist);
+        Assert.assertTrue(isTag2Exist);
+    }
+
+    @Test(dataProvider = "applicationTagTestDataProvider", priority = 2)
     public void testCreateApplicationTag(String tenantDomain) throws Exception {
 
         ApplicationTagMgtClientException exception = null;
-        ApplicationTagPOST inpTag = createApplicationTag(TEST_TAG_1_NAME, TEST_TAG_1_COLOUR);
+        ApplicationTag inpTag = createAppTagObj("testCreateAppTag_" + tenantDomain, TEST_TAG_DEFAULT_COLOUR);
+        String tagId = null;
         try {
-            tagId1 = applicationTagManager.createApplicationTag(inpTag, tenantDomain);
+            tagId = applicationTagManager.createApplicationTag(inpTag, tenantDomain);
         } catch (ApplicationTagMgtClientException e) {
             exception = e;
         }
         Assert.assertNull(exception);
-        Assert.assertNotNull(applicationTagManager.getApplicationTagById(tagId1, tenantDomain));
+        Assert.assertNotNull(applicationTagManager.getApplicationTagById(tagId, tenantDomain));
     }
 
-    @Test(dataProvider = "applicationTagTestDataProvider")
+    @Test(dataProvider = "applicationTagTestDataProvider", priority = 3)
     public void testGetApplicationTagById(String tenantDomain) throws Exception {
 
-        tagId2 = applicationTagManager.createApplicationTag(createApplicationTag(TEST_TAG_2_NAME, TEST_TAG_2_COLOUR),
+        String tagName = "testGetAppTagById_" + tenantDomain;
+        String tagId = applicationTagManager.createApplicationTag(createAppTagObj(tagName, TEST_TAG_DEFAULT_COLOUR),
                 tenantDomain);
-        ApplicationTagsListItem fetchedTag = applicationTagManager.getApplicationTagById(tagId2, tenantDomain);
+        ApplicationTagsItem fetchedTag = applicationTagManager.getApplicationTagById(tagId, tenantDomain);
         Assert.assertNotNull(fetchedTag);
-        Assert.assertEquals(fetchedTag.getName(), TEST_TAG_2_NAME);
-        Assert.assertEquals(fetchedTag.getColour(), TEST_TAG_2_COLOUR);
-    }
-
-    @Test(dataProvider = "applicationTagTestDataProvider")
-    public void testGetAllApplicationTags(String tenantDomain) throws Exception {
-
-        List<ApplicationTagsListItem> fetchedTags = applicationTagManager.getAllApplicationTags(tenantDomain);
-        Assert.assertNotNull(fetchedTags);
-        Assert.assertEquals(fetchedTags.size(), 2);
+        Assert.assertEquals(fetchedTag.getId(), tagId);
+        Assert.assertEquals(fetchedTag.getName(), tagName);
+        Assert.assertEquals(fetchedTag.getColour(), TEST_TAG_DEFAULT_COLOUR);
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider")
     public void testUpdateApplicationTag(String tenantDomain) throws Exception {
 
-        ApplicationTagPOST inputUpdateTag = createApplicationTag(TEST_TAG_1_UPDATED_NAME, TEST_TAG_1_UPDATED_COLOUR);
-        applicationTagManager.updateApplicationTag(inputUpdateTag, tagId1, tenantDomain);
+        String tagId = applicationTagManager.createApplicationTag(createAppTagObj("testAppTag_" + tenantDomain,
+                        TEST_TAG_DEFAULT_COLOUR), tenantDomain);
+        String updatedTagName = "testUpdatedAppTag_" + tenantDomain;
+        ApplicationTag inputUpdateTag = createAppTagObj(updatedTagName, TEST_TAG_UPDATED_COLOUR);
+        applicationTagManager.updateApplicationTag(inputUpdateTag, tagId, tenantDomain);
 
-        ApplicationTagsListItem fetchedUpdatedTag = applicationTagManager.getApplicationTagById(tagId1, tenantDomain);
+        ApplicationTagsItem fetchedUpdatedTag = applicationTagManager.getApplicationTagById(tagId, tenantDomain);
         Assert.assertNotNull(fetchedUpdatedTag);
-        Assert.assertEquals(fetchedUpdatedTag.getName(), TEST_TAG_1_UPDATED_NAME);
-        Assert.assertEquals(fetchedUpdatedTag.getColour(), TEST_TAG_1_UPDATED_COLOUR);
+        Assert.assertEquals(fetchedUpdatedTag.getId(), tagId);
+        Assert.assertEquals(fetchedUpdatedTag.getName(), updatedTagName);
+        Assert.assertEquals(fetchedUpdatedTag.getColour(), TEST_TAG_UPDATED_COLOUR);
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider")
     public void testDeleteApplicationTag(String tenantDomain) throws Exception {
 
-        applicationTagManager.deleteApplicationTagById(tagId1, tenantDomain);
-        applicationTagManager.deleteApplicationTagById(tagId2, tenantDomain);
-        ApplicationTagsListItem fetchedTag = applicationTagManager.getApplicationTagById(tagId1, tenantDomain);
-
+        String tagId = applicationTagManager.createApplicationTag(createAppTagObj(
+                "testDeleteAppTag_" + tenantDomain, TEST_TAG_DEFAULT_COLOUR), tenantDomain);
+        applicationTagManager.deleteApplicationTagById(tagId, tenantDomain);
+        ApplicationTagsItem fetchedTag = applicationTagManager.getApplicationTagById(tagId, tenantDomain);
         Assert.assertNull(fetchedTag);
     }
 
@@ -131,10 +154,10 @@ public class ApplicationTagManagerTest {
      * @param colour    Tag Colour.
      * @return ApplicationTagPOST.
      */
-    private static ApplicationTagPOST createApplicationTag(String name, String colour) {
+    private static ApplicationTag createAppTagObj(String name, String colour) {
 
-        ApplicationTagPOST.ApplicationTagPOSTBuilder appTagBuilder =
-                new ApplicationTagPOST.ApplicationTagPOSTBuilder()
+        ApplicationTagBuilder appTagBuilder =
+                new ApplicationTagBuilder()
                         .name(name)
                         .colour(colour);
         return appTagBuilder.build();

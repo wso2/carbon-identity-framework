@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.application.tag.mgt;
 
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagPOST;
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagsListItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTag;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public interface ApplicationTagManager {
      * @return Tag Id.
      * @throws ApplicationTagMgtException If an error occurs while creating the Application tag.
      */
-    String createApplicationTag(ApplicationTagPOST applicationTagDTO, String tenantDomain)
+    String createApplicationTag(ApplicationTag applicationTagDTO, String tenantDomain)
             throws ApplicationTagMgtException;
 
     /**
@@ -46,7 +46,7 @@ public interface ApplicationTagManager {
      * @return Application Tag object
      * @throws ApplicationTagMgtException If an error occurs while retrieving the Application tag by Id.
      */
-    List<ApplicationTagsListItem> getAllApplicationTags(String tenantDomain) throws ApplicationTagMgtException;
+    List<ApplicationTagsItem> getAllApplicationTags(String tenantDomain) throws ApplicationTagMgtException;
 
     /**
      * Get Application Tag.
@@ -56,7 +56,7 @@ public interface ApplicationTagManager {
      * @return Application Tag object
      * @throws ApplicationTagMgtException If an error occurs while retrieving the Application tag by Id.
      */
-    ApplicationTagsListItem getApplicationTagById(String applicationTagId, String tenantDomain)
+    ApplicationTagsItem getApplicationTagById(String applicationTagId, String tenantDomain)
             throws ApplicationTagMgtException;
 
     /**
@@ -76,6 +76,6 @@ public interface ApplicationTagManager {
      * @param tenantDomain        Tenant Domain.
      * @throws ApplicationTagMgtException If an error occurs while updating the Application Tag.
      */
-    void updateApplicationTag(ApplicationTagPOST applicationTagPatch, String applicationTagId, String tenantDomain)
+    void updateApplicationTag(ApplicationTag applicationTagPatch, String applicationTagId, String tenantDomain)
             throws ApplicationTagMgtException;
 }

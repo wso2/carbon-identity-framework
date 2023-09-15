@@ -43,7 +43,7 @@ public class SQLConstants {
     public static final String APP_TAG_TENANT_ID_COLUMN_NAME = "APP_TAG_TENANT_ID";
 
     // Database constraint names.
-    public static final String APP_TAG_UNIQUE_CONSTRAINT = "identifier_unique";
+    public static final String APP_TAG_UNIQUE_CONSTRAINT = "tag_unique";
     public static final String DB2_SQL_ERROR_CODE_UNIQUE_CONSTRAINT = "-803";
 
     // SQL queries.
@@ -53,7 +53,7 @@ public class SQLConstants {
             " UUID AS APP_TAG_ID," +
             " NAME AS APP_TAG_NAME," +
             " COLOUR AS APP_TAG_COLOUR" +
-            " FROM TAG WHERE TENANT_ID = ? ORDER BY ID DESC";
+            " FROM TAG WHERE TENANT_ID = ? ORDER BY NAME ASC";
     public static final String GET_APP_TAG_BY_ID = "SELECT" +
             " UUID AS APP_TAG_ID," +
             " NAME AS APP_TAG_NAME," +
@@ -61,6 +61,6 @@ public class SQLConstants {
             " FROM TAG WHERE UUID = ? AND TENANT_ID = ?";
     public static final String DELETE_APP_TAG = "DELETE FROM TAG WHERE UUID = ? AND TENANT_ID = ?";
     public static final String UPDATE_APP_TAG = "UPDATE TAG SET NAME = ?, COLOUR = ? WHERE UUID = ? AND TENANT_ID = ?";
-    public static final String LOAD_APP_TAG_ID_BY_TAG_NAME = "SELECT UUID AS APP_TAG_ID FROM TAG WHERE TAG_NAME = ? " +
+    public static final String LOAD_APP_TAG_ID_BY_TAG_NAME = "SELECT UUID AS APP_TAG_ID FROM TAG WHERE NAME = ? " +
             "AND TENANT_ID = ?";
 }

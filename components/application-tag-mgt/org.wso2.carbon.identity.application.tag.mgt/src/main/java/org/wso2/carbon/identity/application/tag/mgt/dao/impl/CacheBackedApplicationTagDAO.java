@@ -21,14 +21,13 @@ package org.wso2.carbon.identity.application.tag.mgt.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagPOST;
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagsListItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTag;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
 import org.wso2.carbon.identity.application.tag.mgt.ApplicationTagMgtException;
 import org.wso2.carbon.identity.application.tag.mgt.cache.ApplicationTagCacheById;
 import org.wso2.carbon.identity.application.tag.mgt.cache.ApplicationTagCacheEntry;
 import org.wso2.carbon.identity.application.tag.mgt.cache.ApplicationTagIdCacheKey;
 import org.wso2.carbon.identity.application.tag.mgt.dao.ApplicationTagDAO;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.List;
 
@@ -38,7 +37,7 @@ import java.util.List;
 public class CacheBackedApplicationTagDAO implements ApplicationTagDAO {
 
     private static final Log LOG = LogFactory.getLog(CacheBackedApplicationTagDAO.class);
-    private ApplicationTagCacheById applicationTagCacheById;
+    private final ApplicationTagCacheById applicationTagCacheById;
     private final ApplicationTagDAO applicationTagDAO;
 
     public CacheBackedApplicationTagDAO(ApplicationTagDAO applicationTagDAO) {
@@ -47,25 +46,24 @@ public class CacheBackedApplicationTagDAO implements ApplicationTagDAO {
     }
 
     @Override
-    public String createApplicationTag(ApplicationTagPOST applicationTagDTO, String tenantDomain)
+    public String createApplicationTag(ApplicationTag applicationTagDTO, Integer tenantID)
             throws ApplicationTagMgtException {
 
-        return applicationTagDAO.createApplicationTag(applicationTagDTO, tenantDomain);
+        return applicationTagDAO.createApplicationTag(applicationTagDTO, tenantID);
     }
 
     @Override
-    public List<ApplicationTagsListItem> getAllApplicationTags(String tenantDomain) throws ApplicationTagMgtException {
+    public List<ApplicationTagsItem> getAllApplicationTags(Integer tenantID) throws ApplicationTagMgtException {
 
-        return applicationTagDAO.getAllApplicationTags(tenantDomain);
+        return applicationTagDAO.getAllApplicationTags(tenantID);
     }
 
     @Override
-    public ApplicationTagsListItem getApplicationTagById(String applicationTagId, String tenantDomain)
+    public ApplicationTagsItem getApplicationTagById(String applicationTagId, Integer tenantID)
             throws ApplicationTagMgtException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         ApplicationTagIdCacheKey cacheKey = new ApplicationTagIdCacheKey(applicationTagId);
-        ApplicationTagCacheEntry entry = applicationTagCacheById.getValueFromCache(cacheKey, tenantId);
+        ApplicationTagCacheEntry entry = applicationTagCacheById.getValueFromCache(cacheKey, tenantID);
 
         if (entry != null) {
             if (LOG.isDebugEnabled()) {
@@ -79,14 +77,13 @@ public class CacheBackedApplicationTagDAO implements ApplicationTagDAO {
             }
         }
 
-        ApplicationTagsListItem applicationTag = applicationTagDAO.getApplicationTagById(applicationTagId,
-                tenantDomain);
+        ApplicationTagsItem applicationTag = applicationTagDAO.getApplicationTagById(applicationTagId, tenantID);
 
         if (applicationTag != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Entry fetched from DB for Application Tag " + applicationTagId + ". Updating cache");
             }
-            applicationTagCacheById.addToCache(cacheKey, new ApplicationTagCacheEntry(applicationTag), tenantId);
+            applicationTagCacheById.addToCache(cacheKey, new ApplicationTagCacheEntry(applicationTag), tenantID);
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Entry for Application Tag " + applicationTagId + " not found in cache or DB");
@@ -97,38 +94,38 @@ public class CacheBackedApplicationTagDAO implements ApplicationTagDAO {
     }
 
     @Override
-    public void deleteApplicationTagById(String applicationTagId, String tenantDomain)
+    public void deleteApplicationTagById(String applicationTagId, Integer tenantID)
             throws ApplicationTagMgtException {
 
-        clearApplicationTagCache(applicationTagId, tenantDomain);
-        applicationTagDAO.deleteApplicationTagById(applicationTagId, tenantDomain);
+        clearApplicationTagCache(applicationTagId, tenantID);
+        applicationTagDAO.deleteApplicationTagById(applicationTagId, tenantID);
     }
 
     @Override
-    public void updateApplicationTag(ApplicationTagPOST applicationTagPatch, String applicationTagId,
-                                     String tenantDomain) throws ApplicationTagMgtException {
+    public void updateApplicationTag(ApplicationTag applicationTagPatch, String applicationTagId,
+                                     Integer tenantID) throws ApplicationTagMgtException {
 
-        clearApplicationTagCache(applicationTagId, tenantDomain);
-        applicationTagDAO.updateApplicationTag(applicationTagPatch, applicationTagId, tenantDomain);
+        clearApplicationTagCache(applicationTagId, tenantID);
+        applicationTagDAO.updateApplicationTag(applicationTagPatch, applicationTagId, tenantID);
     }
 
-    private void clearApplicationTagCache(String applicationTagId, String tenantDomain) throws
+    private void clearApplicationTagCache(String applicationTagId, Integer tenantID) throws
             ApplicationTagMgtException {
 
         // clearing cache entries related to the Application Tag.
-        ApplicationTagsListItem applicationTag = null;
+        ApplicationTagsItem applicationTag = null;
         if (StringUtils.isNotBlank(applicationTagId)) {
-            applicationTag = this.getApplicationTagById(applicationTagId, tenantDomain);
+            applicationTag = this.getApplicationTagById(applicationTagId, tenantID);
         }
 
         if (applicationTag != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Removing entry for Application Tag " + applicationTag.getName() + " of tenantDomain:"
-                        + tenantDomain + " from cache.");
+                        + tenantID + " from cache.");
             }
 
             ApplicationTagIdCacheKey applicationTagIdCacheKey = new ApplicationTagIdCacheKey(applicationTagId);
-            applicationTagCacheById.clearCacheEntry(applicationTagIdCacheKey, tenantDomain);
+            applicationTagCacheById.clearCacheEntry(applicationTagIdCacheKey, tenantID);
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Entry for Application Tag " + applicationTagId + " not found in cache or DB");

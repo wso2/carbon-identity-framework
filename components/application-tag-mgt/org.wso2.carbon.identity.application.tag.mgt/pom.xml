@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-tag-mgt</artifactId>
-        <version>5.25.312-SNAPSHOT</version>
+        <version>5.25.319-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -35,32 +35,15 @@
     <url>http://wso2.org</url>
 
     <dependencies>
+
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.application.tag.common</artifactId>
-            <version>5.25.312-SNAPSHOT</version>
-            <scope>compile</scope>
+            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.powermock</groupId>-->
-<!--            <artifactId>powermock-core</artifactId>-->
-<!--            <version>2.0.2</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.powermock</groupId>-->
-<!--            <artifactId>powermock-module-testng-common</artifactId>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.powermock</groupId>-->
-<!--            <artifactId>powermock-api-mockito2</artifactId>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
 
         <!-- Test dependencies -->
         <dependency>

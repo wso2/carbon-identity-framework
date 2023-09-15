@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.tag.mgt.cache;
 
-import org.wso2.carbon.identity.application.tag.common.model.ApplicationTagsListItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 /**
@@ -26,19 +26,19 @@ import org.wso2.carbon.identity.core.cache.CacheEntry;
  */
 public class ApplicationTagCacheEntry extends CacheEntry {
 
-    private ApplicationTagsListItem applicationTag;
+    private ApplicationTagsItem applicationTag;
 
-    public ApplicationTagCacheEntry(ApplicationTagsListItem applicationTag) {
+    public ApplicationTagCacheEntry(ApplicationTagsItem applicationTag) {
 
         this.applicationTag = applicationTag;
     }
 
-    public ApplicationTagsListItem getApplicationTag() {
+    public ApplicationTagsItem getApplicationTag() {
 
         return applicationTag;
     }
 
-    public void setApplicationTag(ApplicationTagsListItem applicationTag) {
+    public void setApplicationTag(ApplicationTagsItem applicationTag) {
 
         this.applicationTag = applicationTag;
     }
