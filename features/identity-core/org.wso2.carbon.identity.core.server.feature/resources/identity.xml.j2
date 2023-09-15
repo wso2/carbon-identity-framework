@@ -3299,8 +3299,8 @@
           <HTTPReadTimeout>{{authentication.adaptive.call_choreo.http_connections.read_timeout}}</HTTPReadTimeout>
           <HTTPConnectionRequestTimeout>{{authentication.adaptive.call_choreo.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
           <!--Default retry counts-->
-          <TokenRequestRetryCount>{{authentication.adaptive.call_choreo.retry_count.token_request_retry_count}}</TokenRequestRetryCount>
-          <ChoreoAPIRequestRetryCount>{{authentication.adaptive.call_choreo.retry_count.choreo_api_request_retry_count}}</ChoreoAPIRequestRetryCount>
+          <TokenRequestRetryCount>{{authentication.adaptive.call_choreo.http_connections.token_request_retry_count}}</TokenRequestRetryCount>
+          <ChoreoAPIRequestRetryCount>{{authentication.adaptive.call_choreo.http_connections.choreo_api_request_retry_count}}</ChoreoAPIRequestRetryCount>
         </CallChoreo>
         <!--End of default configs for callChore timeouts and request retry counts-->
 
