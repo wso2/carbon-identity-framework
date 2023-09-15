@@ -273,6 +273,23 @@ public class IdentityManagementServiceUtil {
         return user;
     }
 
+    public User resolveUser(String username, String tenantDomain) {
+
+        if (username == null) {
+            return null;
+        }
+        String userStoreDomain = extractDomainFromName(username);
+        User user = new User();
+        if (MultitenantUtils.isEmailUserName() && username.indexOf('@') != username.lastIndexOf('@')) {
+            username = username.substring(0, username.lastIndexOf('@'));
+        }
+
+        user.setUsername(username);
+        user.setTenantDomain(tenantDomain);
+        user.setRealm(userStoreDomain);
+        return user;
+    }
+
     public String getAppName() {
         return appName;
     }
