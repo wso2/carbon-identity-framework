@@ -110,6 +110,7 @@
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
                             org.wso2.carbon.utils.multitenancy;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.utils.multitenancy.userinfo;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.stratos.common.*;version="${carbon.commons.imp.pkg.version}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
