@@ -22,7 +22,19 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
+import org.wso2.carbon.identity.input.validation.mgt.model.RulesConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfiguration;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.EmailFormatValidator;
+import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
+import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
 import org.wso2.carbon.utils.multitenancy.userinfo.UserInfoHandler;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 
 /**
  * This class implemented to use username input validation.
@@ -32,6 +44,8 @@ public class UserInfoHandlerImpl implements UserInfoHandler {
 
     private static final Log LOG = LogFactory.getLog(UserInfoHandlerImpl.class);
     private static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
+    private final InputValidationManagementService inputValidationMgtService =
+            new InputValidationManagementServiceImpl();
 
     /**
      * Since thread local properties has tenant domain context, we can retrieve the tenant from the context.
@@ -44,9 +58,20 @@ public class UserInfoHandlerImpl implements UserInfoHandler {
     public String getTenantAwareUsername(String username) {
 
         String tenantDomain = getTenantDomainFromContext();
-        if (tenantDomain.equalsIgnoreCase(username.substring(username.lastIndexOf('@') + 1))) {
-                username = username.substring(0, username.lastIndexOf('@'));
+        String emailDomain = username.substring(username.lastIndexOf('@') + 1);
+
+        // Check if the tenant domain matches the email domain
+        if (tenantDomain.equalsIgnoreCase(emailDomain)) {
+            boolean isEmailTypeUserName = isEmailAsUserName(tenantDomain);
+
+            // Check if emailType username is enabled and there are multiple '@' symbols in the username
+            int lastAtSymbolIndex = username.lastIndexOf('@');
+            if (isEmailTypeUserName && username.indexOf('@') != lastAtSymbolIndex) {
+                // Return the modified username with the last '@' symbol and everything after it removed
+                return username.substring(0, lastAtSymbolIndex);
+            }
         }
+        // Return the username as is
         return username;
     }
 
@@ -74,5 +99,34 @@ public class UserInfoHandlerImpl implements UserInfoHandler {
             tenantDomain = (String) IdentityUtil.threadLocalProperties.get().get(TENANT_NAME_FROM_CONTEXT);
         }
         return tenantDomain;
+    }
+
+    private boolean isEmailAsUserName(String tenantDomain) {
+
+        List<ValidationConfiguration> configurations;
+        boolean isEmailAsUsername = false;
+        try {
+            configurations = inputValidationMgtService.getInputValidationConfiguration(tenantDomain);
+            ValidationConfiguration configurationList = configurations.stream().filter(config ->
+                    USERNAME.equalsIgnoreCase(config.getField())).collect(Collectors.toList()).get(0);
+
+            /* If configuration for username field is found in Input Validation Mgt service, validate against them,
+             if not validate against the regex from the userStore. */
+            if (configurationList != null && configurationList.getRules() != null &&
+                    !configurationList.getRules().isEmpty()) {
+                for (RulesConfiguration configuration : configurationList.getRules()) {
+                    if (EmailFormatValidator.class.getSimpleName().equals(configuration.getValidatorName())) {
+                        isEmailAsUsername = true;
+                        break;
+                    }
+                }
+            }
+            return isEmailAsUsername;
+
+        } catch (InputValidationMgtException e) {
+            LOG.error(new InputValidationMgtException(ERROR_GETTING_EXISTING_CONFIGURATIONS.getCode(), e.getMessage(),
+                    e.getDescription()), e);
+            return false;
+        }
     }
 }
