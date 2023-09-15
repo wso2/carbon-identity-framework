@@ -659,6 +659,8 @@
   "authentication.adaptive.http_connections.connection_timeout": "$ref{authentication.adaptive.http_connections.default_timeout}",
   "authentication.adaptive.http_connections.read_timeout": "$ref{authentication.adaptive.http_connections.default_timeout}",
   "authentication.adaptive.http_connections.request_timeout": "$ref{authentication.adaptive.http_connections.default_timeout}",
+  "authentication.adaptive.call_choreo.http_connections.token_request_retry_count": "2",
+  "authentication.adaptive.call_choreo.http_connections.choreo_api_request_retry_count": "2",
   "authentication.adaptive.long_wait.page_refresh_interval": "500ms",
   "authentication.adaptive.long_wait.timout": "10s",
   "authentication.adaptive.long_wait.prompt": false,
