@@ -33,14 +33,9 @@ public class SQLConstants {
     public static final String DB2 = "DB2";
 
     // Column names.
-    public static final String ID_COLUMN_NAME = "ID";
-    public static final String NAME_COLUMN_NAME = "NAME";
-    public static final String COLOUR_COLUMN_NAME = "COLOUR";
-    public static final String TENANT_ID_COLUMN_NAME = "TENANT_ID";
     public static final String APP_TAG_ID_COLUMN_NAME = "APP_TAG_ID";
     public static final String APP_TAG_NAME_COLUMN_NAME = "APP_TAG_NAME";
     public static final String APP_TAG_COLOUR_COLUMN_NAME = "APP_TAG_COLOUR";
-    public static final String APP_TAG_TENANT_ID_COLUMN_NAME = "APP_TAG_TENANT_ID";
 
     // Database constraint names.
     public static final String APP_TAG_UNIQUE_CONSTRAINT = "tag_unique";
