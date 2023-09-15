@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.application.common.model;
 
 /**
- * Application Tag POST.
+ * Application Tag Creation Object.
  */
 public class ApplicationTag {
     private String name;
@@ -55,7 +55,7 @@ public class ApplicationTag {
     }
 
     /**
-     * Application Tag POST builder.
+     * Application Tag builder.
      */
     public static class ApplicationTagBuilder {
         private String name;
