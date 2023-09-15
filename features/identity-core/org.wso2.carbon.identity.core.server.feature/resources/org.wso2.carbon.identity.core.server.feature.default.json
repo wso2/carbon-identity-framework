@@ -1117,5 +1117,6 @@
   "organization.user.invitation.default.accept_url": "/accountrecoveryendpoint/acceptinvitation.do",
   "extension_mgt.extension_types": "applications,identity-providers,connections,identity-verification-providers",
 
-  "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore"
+  "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
+  "input_validation.default_validator": "alphaNumeric"
 }

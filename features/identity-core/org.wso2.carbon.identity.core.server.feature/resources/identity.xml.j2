@@ -187,6 +187,15 @@
         <WorkingDirectory>{{remote_fetch.working_directory}}</WorkingDirectory>
     </RemoteFetch>
 
+    <!--
+    Configuration to select default validation.
+    Currently we are supporting two username validation "alphaNumeric" and "email".
+    This should be secondary configuration along with input validation event listener.
+    -->
+    <InputValidation>
+        <DefaultUserNameValidator>{{input_validation.default_validator}}</DefaultUserNameValidator>
+    </InputValidation>
+
     <OAuth>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>

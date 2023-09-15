@@ -153,6 +153,14 @@
 		<OpenIDAssociationCleanupPeriod>15</OpenIDAssociationCleanupPeriod>
 	-->
     </OpenID>
+    <!--
+    Configuration to select default validation.
+    Currently we are supporting two username validation "alphaNumeric" and "email".
+    This should be secondary configuration along with input validation event listener.
+    -->
+    <InputValidation>
+        <DefaultUserNameValidator>alphaNumeric</DefaultUserNameValidator>
+    </InputValidation>
 
     <OAuth>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
