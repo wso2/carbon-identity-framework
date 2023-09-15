@@ -618,6 +618,7 @@
             </xs:complexType>
             <xs:complexType name="User">
                 <xs:sequence>
+                    <xs:element minOccurs="0" name="loggableMaskedUserId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="loggableUserId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>

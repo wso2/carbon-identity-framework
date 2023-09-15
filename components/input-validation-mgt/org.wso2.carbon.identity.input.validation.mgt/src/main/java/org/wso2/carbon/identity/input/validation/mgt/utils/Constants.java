@@ -82,6 +82,10 @@ public class Constants {
         public static final String DEFAULT_EMAIL_JS_REGEX_PATTERN =
             "(^[\\u00C0-\\u00FFa-zA-Z0-9](?:(?![.+\\-_]{2})[\\u00C0-\\u00FF\\w.+\\-]){0,63}(?=[\\u00C0-\\u00FFa-zA-Z0" +
             "-9]).\\@(?![+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10})";
+
+        public static final String INPUT_VALIDATION_DEFAULT_VALIDATOR = "InputValidation.DefaultUserNameValidator";
+
+        public static final String ALPHA_NUMERIC = "alphaNumeric";
     }
 
     /**

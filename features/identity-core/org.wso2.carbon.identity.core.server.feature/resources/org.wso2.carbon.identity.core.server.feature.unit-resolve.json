@@ -14,6 +14,8 @@
     "session.timeout.idle_session_timeout": "m",
     "session.timeout.remember_me_session_timeout": "m",
 
+    "par.cleanup.clean_expired_requests_every": "m",
+
     "oauth.token_validation.authorization_code_validity": "s",
     "oauth.token_validation.app_access_token_validity": "s",
     "oauth.token_validation.user_access_token_validity": "s",

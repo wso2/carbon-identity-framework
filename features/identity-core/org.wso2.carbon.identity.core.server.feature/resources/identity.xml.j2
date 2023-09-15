@@ -64,6 +64,10 @@
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
         </SessionDataPersist>
+        <PushedAuthReqCleanUp>
+            <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
+            <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
+        </PushedAuthReqCleanUp>
     </JDBCPersistenceManager>
 
     <!-- Time configurations are in minutes -->
@@ -182,6 +186,15 @@
         <FetchEnabled>{{remote_fetch.enable}}</FetchEnabled>
         <WorkingDirectory>{{remote_fetch.working_directory}}</WorkingDirectory>
     </RemoteFetch>
+
+    <!--
+    Configuration to select default validation.
+    Currently we are supporting two username validation "alphaNumeric" and "email".
+    This should be secondary configuration along with input validation event listener.
+    -->
+    <InputValidation>
+        <DefaultUserNameValidator>{{input_validation.default_validator}}</DefaultUserNameValidator>
+    </InputValidation>
 
     <OAuth>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
@@ -2930,13 +2943,10 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
             <Scopes>internal_organization_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
         <Resource context="(.*)/api/server/v1/guests/invite" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/add</Permissions>
             <Scopes>internal_guest_mgt_invite_add</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="true" http-method="POST">
-            <Permissions>none</Permissions>
-            <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
             <Permissions>none</Permissions>
@@ -3638,6 +3648,12 @@
 
     <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
     <EnableSHA256RandomNumberGenerator>{{identity_util.enable_sha256_random_numbers}}</EnableSHA256RandomNumberGenerator>
+
+    <OrganizationUserInvitation>
+        <DefaultExpiryTime>{{organization.user.invitation.default.expiry_time}}</DefaultExpiryTime>
+        <PrimaryUserDomain>{{organization.user.invitation.primary.user_domain}}</PrimaryUserDomain>
+        <DefaultAcceptURL>{{organization.user.invitation.default.accept_url}}</DefaultAcceptURL>
+    </OrganizationUserInvitation>
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
