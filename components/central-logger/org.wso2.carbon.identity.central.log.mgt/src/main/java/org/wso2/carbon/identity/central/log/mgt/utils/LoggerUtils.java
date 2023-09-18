@@ -56,6 +56,7 @@ public class LoggerUtils {
     private static final Log log = LogFactory.getLog(LoggerUtils.class);
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
     private static final String FLOW_ID_MDC = "Flow-ID";
+    private static final String TENANT_DOMAIN = "tenantDomain";
 
     /**
     * Config value related to masking sensitive information from logs.
@@ -138,15 +139,27 @@ public class LoggerUtils {
             IdentityEventService eventMgtService =
                     CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
             diagnosticLogProperties.put(CarbonConstants.LogEventConstants.DIAGNOSTIC_LOG, diagnosticLog);
-            int tenantId =
-                    IdentityTenantUtil.getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-            diagnosticLogProperties.put(CarbonConstants.LogEventConstants.TENANT_ID, tenantId);
+            diagnosticLogProperties.put(CarbonConstants.LogEventConstants.TENANT_ID, resolveTenantId());
             Event diagnosticLogEvent = new Event(PUBLISH_DIAGNOSTIC_LOG, diagnosticLogProperties);
             eventMgtService.handleEvent(diagnosticLogEvent);
         } catch (IdentityEventException e) {
             String errorLog = "Error occurred when firing the diagnostic log event.";
             log.error(errorLog, e);
         }
+    }
+
+    /**
+     * Resolves the tenant id
+     *
+     * @return tenant id
+     */
+    public static int resolveTenantId() {
+
+        String tenantDomain = MDC.get(TENANT_DOMAIN);
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        }
+        return IdentityTenantUtil.getTenantId(tenantDomain);
     }
 
     /**
