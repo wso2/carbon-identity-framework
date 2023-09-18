@@ -1008,11 +1008,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
         String path = null;
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
-            if (FrameworkUtils.isOrganizationQualifiedRequest()) {
-                path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
-            } else {
-                path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
-            }
+            path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+        }
+        if (FrameworkUtils.isOrganizationQualifiedRequest()) {
+            path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
         }
         FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge, path);
     }

@@ -122,19 +122,19 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String resolvedUrlContext = buildUrlPath(urlPaths);
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
 
+        String organizationId = StringUtils.isNotBlank(orgId) ? orgId :
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
-                !resolvedUrlContext.startsWith("o/")) {
-            if (mandateTenantedPath || isNotSuperTenant(tenantDomain)) {
-                String organizationId = StringUtils.isNotBlank(orgId) ? orgId :
-                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-                if (organizationId != null) {
-                    // When requesting from an organization qualified url, the service urls should also be organization
-                    // qualified.
-                    resolvedUrlStringBuilder.append("/o/").append(organizationId);
-                } else {
-                    resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
-                }
-            }
+                (mandateTenantedPath || isNotSuperTenant(tenantDomain)) && organizationId == null) {
+            resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+        }
+
+        if (!resolvedUrlContext.startsWith("o/") && organizationId != null) {
+            /*
+            When requesting from an organization qualified url, the service urls should also be organization qualified.
+            */
+            resolvedUrlStringBuilder.append("/o/").append(organizationId);
         }
 
         if (StringUtils.isNotBlank(resolvedUrlContext)) {

@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
@@ -44,7 +45,7 @@ import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN
 import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
-@PrepareForTest({IdentityUtil.class, IdentityCoreServiceComponent.class, IdentityTenantUtil.class})
+@PrepareForTest({IdentityUtil.class, IdentityCoreServiceComponent.class, IdentityTenantUtil.class, PrivilegedCarbonContext.class,})
 @PowerMockIgnore("org.mockito.*")
 @WithCarbonHome
 @WithAxisConfiguration
@@ -70,6 +71,10 @@ public class AuthenticationEndpointUtilTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
+
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = Mockito.mock(PrivilegedCarbonContext.class);
+        Mockito.when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
     }
 
     @AfterMethod
