@@ -64,6 +64,10 @@
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
         </SessionDataPersist>
+        <PushedAuthReqCleanUp>
+            <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
+            <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
+        </PushedAuthReqCleanUp>
     </JDBCPersistenceManager>
 
     <!-- Time configurations are in minutes -->
@@ -182,6 +186,15 @@
         <FetchEnabled>{{remote_fetch.enable}}</FetchEnabled>
         <WorkingDirectory>{{remote_fetch.working_directory}}</WorkingDirectory>
     </RemoteFetch>
+
+    <!--
+    Configuration to select default validation.
+    Currently we are supporting two username validation "alphaNumeric" and "email".
+    This should be secondary configuration along with input validation event listener.
+    -->
+    <InputValidation>
+        <DefaultUserNameValidator>{{input_validation.default_validator}}</DefaultUserNameValidator>
+    </InputValidation>
 
     <OAuth>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
@@ -1271,6 +1284,11 @@
 
     </SCIM2>
 
+      <PasswordPolicy>
+        <PasswordPolicyValidationHandler>
+            <Enable>{{identity_mgt.password_policy.password_policy_validation_handler.enable}}</Enable>
+        </PasswordPolicyValidationHandler>
+      </PasswordPolicy>
       <Recovery>
         <ReCaptcha>
             <Password>
@@ -2930,13 +2948,10 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
             <Scopes>internal_organization_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
         <Resource context="(.*)/api/server/v1/guests/invite" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/add</Permissions>
             <Scopes>internal_guest_mgt_invite_add</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="true" http-method="POST">
-            <Permissions>none</Permissions>
-            <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
             <Permissions>none</Permissions>
@@ -3278,13 +3293,16 @@
         <!--End of default configs for timeouts-->
 
         <!--Timeouts for callChore token call and adaptive endpoint-->
-        <!--Default timeout in milliseconds-->
         <CallChoreo>
+          <!--Default timeout in milliseconds-->
           <HTTPConnectionTimeout>{{authentication.adaptive.call_choreo.http_connections.connection_timeout}}</HTTPConnectionTimeout>
           <HTTPReadTimeout>{{authentication.adaptive.call_choreo.http_connections.read_timeout}}</HTTPReadTimeout>
           <HTTPConnectionRequestTimeout>{{authentication.adaptive.call_choreo.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
+          <!--Default retry counts-->
+          <TokenRequestRetryCount>{{authentication.adaptive.call_choreo.http_connections.token_request_retry_count}}</TokenRequestRetryCount>
+          <ChoreoAPIRequestRetryCount>{{authentication.adaptive.call_choreo.http_connections.choreo_api_request_retry_count}}</ChoreoAPIRequestRetryCount>
         </CallChoreo>
-        <!--End of default configs for callChore timeouts-->
+        <!--End of default configs for callChore timeouts and request retry counts-->
 
         <RefreshInterval>{{authentication.adaptive.long_wait.page_refresh_interval}}</RefreshInterval>
         <!--End of timeouts in milliseconds-->
@@ -3637,6 +3655,12 @@
 
     <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
     <EnableSHA256RandomNumberGenerator>{{identity_util.enable_sha256_random_numbers}}</EnableSHA256RandomNumberGenerator>
+
+    <OrganizationUserInvitation>
+        <DefaultExpiryTime>{{organization.user.invitation.default.expiry_time}}</DefaultExpiryTime>
+        <PrimaryUserDomain>{{organization.user.invitation.primary.user_domain}}</PrimaryUserDomain>
+        <DefaultAcceptURL>{{organization.user.invitation.default.accept_url}}</DefaultAcceptURL>
+    </OrganizationUserInvitation>
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
