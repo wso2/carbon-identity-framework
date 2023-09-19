@@ -309,6 +309,30 @@
                 <ResponseModeName>form_post</ResponseModeName>
                 <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FormPostResponseModeProvider</ResponseModeProviderClass>
             </SupportedResponseMode>
+            {% if oauth.jarm.jwt.enable is sameas true %}
+            <SupportedResponseMode>
+                <ResponseModeName>jwt</ResponseModeName>
+                <ResponseModeProviderClass>{{oauth.jarm.response_mode.jwt.class}}</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            {% endif %}
+            {% if oauth.jarm.query_jwt.enable is sameas true %}
+            <SupportedResponseMode>
+                <ResponseModeName>query.jwt</ResponseModeName>
+                <ResponseModeProviderClass>{{oauth.jarm.response_mode.query_jwt.class}}</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            {% endif %}
+            {% if oauth.jarm.fragment_jwt.enable is sameas true %}
+            <SupportedResponseMode>
+                <ResponseModeName>fragment.jwt</ResponseModeName>
+                <ResponseModeProviderClass>{{oauth.jarm.response_mode.fragment_jwt.class}}</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            {% endif %}
+            {% if oauth.jarm.form_post_jwt.enable is sameas true %}
+            <SupportedResponseMode>
+                <ResponseModeName>form_post.jwt</ResponseModeName>
+                <ResponseModeProviderClass>{{oauth.jarm.response_mode.form_post_jwt.class}}</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            {% endif %}
             {% for response_mode in oauth.response_mode %}
             <SupportedResponseMode>
                 <ResponseModeName>{{response_mode.name}}</ResponseModeName>
@@ -317,36 +341,10 @@
             {% endfor %}
         </SupportedResponseModes>
 
-        <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
-
         <!-- Validity period for jarm response jwt in seconds -->
-        {% if oauth.jarm.enable is sameas true %}
         <JARMResponseJwtValidityPeriodInSeconds>{{oauth.jarm.jarm_response_jwt_validity}}</JARMResponseJwtValidityPeriodInSeconds>
-            {% if oauth.jarm.jwt.enable is sameas true %}
-            <SupportedResponseModes>
-                <ResponseModeName>jwt</ResponseModeName>
-                <ResponseModeProviderClass>{{oauth.response_mode.jwt.class}}</ResponseModeProviderClass>
-            </SupportedResponseModes>
-            {% endif %}
-            {% if oauth.jarm.query_jwt.enable is sameas true %}
-            <SupportedResponseModes>
-                <ResponseModeName>query.jwt</ResponseModeName>
-                <ResponseModeProviderClass>{{oauth.response_mode.query_jwt.class}}</ResponseModeProviderClass>
-            </SupportedResponseModes>
-            {% endif %}
-            {% if oauth.jarm.fragment_jwt.enable is sameas true %}
-            <SupportedResponseModes>
-                <ResponseModeName>fragment.jwt</ResponseModeName>
-                <ResponseModeProviderClass>{{oauth.response_mode.fragment_jwt.class}}</ResponseModeProviderClass>
-            </SupportedResponseModes>
-            {% endif %}
-            {% if oauth.jarm.form_post_jwt.enable is sameas true %}
-            <SupportedResponseModes>
-                <ResponseModeName>form_post.jwt</ResponseModeName>
-                <ResponseModeProviderClass>{{oauth.response_mode.form_post_jwt.class}}</ResponseModeProviderClass>
-            </SupportedResponseModes>
-            {% endif %}
-        {% endif %}
+
+        <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
 
         <!-- Supported Response Types -->
         <SupportedResponseTypes>

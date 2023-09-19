@@ -223,10 +223,10 @@
   "oauth.jarm.fragment_jwt.enable": true,
   "oauth.jarm.form_post_jwt.enable": true,
   "oauth.jarm.jarm_response_jwt_validity": "7200",
-  "oauth.response_mode.jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.JwtResponseModeProvider",
-  "oauth.response_mode.query_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.QueryJwtResponseModeProvider",
-  "oauth.response_mode.fragment_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FragmentJwtResponseModeProvider",
-  "oauth.response_mode.form_post_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider",
+  "oauth.jarm.response_mode.jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.JwtResponseModeProvider",
+  "oauth.jarm.response_mode.query_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.QueryJwtResponseModeProvider",
+  "oauth.jarm.response_mode.fragment_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FragmentJwtResponseModeProvider",
+  "oauth.jarm.response_mode.form_post_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider",
 
   "rest_api_authentication.add_realm_user_to_error": false,
 
