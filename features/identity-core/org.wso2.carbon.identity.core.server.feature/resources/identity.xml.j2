@@ -868,7 +868,7 @@
 
             <UserInfoJWTSignatureAlgorithms>
                 {% if oauth.oidc.user_info.jwt_signature_algorithms|length %}
-                    {% for algorithm auth.oidc.user_info.jwt_signature_algorithms %}
+                    {% for algorithm in auth.oidc.user_info.jwt_signature_algorithms %}
                         <UserInfoJWTSignatureAlgorithm>{{algorithm}}</UserInfoJWTSignatureAlgorithm>
                     {% endfor %}
                 {% else %}
