@@ -443,7 +443,7 @@ public class IdentityConstants {
     }
 
     /**
-     * Common constants related to Recovery
+     * Common constants related to Recovery.
      */
     public static class Recovery {
 
