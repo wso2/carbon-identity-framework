@@ -217,7 +217,6 @@
 
   "oauth.global_rbac_scope_issuer.enable": false,
 
-  "oauth.jarm.enable": true,
   "oauth.jarm.jwt.enable": true,
   "oauth.jarm.query_jwt.enable": true,
   "oauth.jarm.fragment_jwt.enable": true,
