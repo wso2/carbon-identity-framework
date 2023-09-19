@@ -1,0 +1,10 @@
+{
+    "id": "apple-idp",
+    "name": "Apple",
+    "description": "Login users with their Apple IDs.",
+    "image": "assets/images/logos/apple.svg",
+    "displayOrder": 5,
+    "category": "DEFAULT",
+    "tags": [ "Social-Login" ],
+    "type": "identity-provider"
+}

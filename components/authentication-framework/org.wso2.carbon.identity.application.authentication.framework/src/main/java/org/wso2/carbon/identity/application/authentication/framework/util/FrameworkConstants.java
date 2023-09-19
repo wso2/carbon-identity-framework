@@ -38,6 +38,7 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
+    public static final String USER_ID_CLAIM = "http://wso2.org/claims/userid";
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
     public static final String APP_ROLES_CLAIM = "http://wso2.org/claims/applicationRoles";
     public static final String GROUPS_CLAIM = "http://wso2.org/claims/groups";
@@ -127,6 +128,7 @@ public abstract class FrameworkConstants {
     public static final String ASSOCIATED_ID = "associatedID";
 
     public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
+    public static final String ALLOW_LOGIN_TO_IDP = "JITProvisioning.AllowLoginToIDP";
     public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
     public static final String IDP_RESOURCE_ID = "IDPResourceID";
     public static final String ENABLE_JIT_PROVISION_ENHANCE_FEATURE = "JITProvisioning.EnableEnhancedFeature";
@@ -226,6 +228,8 @@ public abstract class FrameworkConstants {
 
     public static final String BLOCKED_USERSTORE_DOMAINS_LIST = "BlockedUserStoreDomains";
     public static final String BLOCKED_USERSTORE_DOMAINS_SEPARATOR = ",";
+
+    public static final String IS_USER_RESOLVED = "isUserResolved";
 
     private FrameworkConstants() {
 

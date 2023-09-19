@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -123,9 +124,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 context.setCurrentStep(currentStep);
 
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                    params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getTenantDomain());
                     Map<String, Object> stepMap = new HashMap<>();
                     context.getSequenceConfig().getStepMap().forEach((key, value) -> {
                         List<Map<String, Object>> stepConfigParams = new ArrayList<>();
@@ -139,11 +137,15 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         });
                         stepMap.put(FrameworkConstants.LogConstants.STEP + " " + key.toString(), stepConfigParams);
                     });
-                    params.put(FrameworkConstants.LogConstants.STEPS, stepMap);
-                    LoggerUtils.triggerDiagnosticLogEvent(
-                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                            "Executing step-based authentication",
-                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+                    LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST)
+                            .inputParam(LogConstants.InputKeys.AUTHENTICATOR_NAME, context.getServiceProviderName())
+                            .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
+                            .inputParam(FrameworkConstants.LogConstants.STEPS, stepMap)
+                            .resultMessage("Executing step-based authentication.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
                 }
             }
 

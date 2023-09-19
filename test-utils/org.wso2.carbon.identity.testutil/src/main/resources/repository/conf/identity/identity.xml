@@ -138,6 +138,7 @@
         <OAuth1AuthorizeUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/authorize-url</OAuth1AuthorizeUrl>
         <OAuth1AccessTokenUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/access-token</OAuth1AccessTokenUrl>
         <OAuth2AuthzEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/authorize</OAuth2AuthzEPUrl>
+        <OAuth2ParEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/par</OAuth2ParEPUrl>
         <OAuth2TokenEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/token</OAuth2TokenEPUrl>
         <OAuth2RevokeEPUrll>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/revoke</OAuth2RevokeEPUrll>
         <OAuth2IntrospectEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/introspect</OAuth2IntrospectEPUrl>

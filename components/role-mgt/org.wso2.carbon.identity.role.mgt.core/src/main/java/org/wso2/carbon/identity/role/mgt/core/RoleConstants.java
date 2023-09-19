@@ -54,6 +54,10 @@ public class RoleConstants {
     // Administrator role name.
     public static final String ADMINISTRATOR = "Administrator";
 
+    // Domain names
+    public static final String APPLICATION_DOMAIN = "Application";
+    public static final String INTERNAL_DOMAIN = "Internal";
+
     /**
      * Grouping of constants related to database table names.
      */
@@ -97,6 +101,9 @@ public class RoleConstants {
         ROLE_ALREADY_EXISTS("60008"),
         OPERATION_FORBIDDEN("60009"),
         OPERATION_NOT_SUPPORTED("60010"),
+
+        // Error thrown by custom event handler.
+        ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR("55001"),
 
         UNEXPECTED_SERVER_ERROR("65001"),
         SORTING_NOT_IMPLEMENTED("65002");

@@ -1,0 +1,11 @@
+{
+    "id": "organization-enterprise-idp",
+    "name": "Organization SSO",
+    "description": "Organization SSO login",
+    "image": "assets/images/logos/organization-sso.svg",
+    "category": "DEFAULT",
+    "displayOrder": 7,
+    "tags": [ "Organization-Login" ],
+    "type": "identity-provider",
+    "templateId": "organization-enterprise-idp"
+}

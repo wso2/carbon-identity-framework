@@ -63,6 +63,7 @@ public class ValidationConfigurationRetrievalClient {
     private static final String VALIDATOR = "enable.validator";
     private static final String EMAIL_VALIDATOR_KEY = "emailFormatValidator";
     private static final String ALPHANUMERIC_VALIDATOR_KEY = "alphanumericFormatValidator";
+    private static final String JS_REG_EX_VALIDATOR_KEY = "JsRegExValidator";
 
     /**
      * Get validation configurations.
@@ -116,9 +117,11 @@ public class ValidationConfigurationRetrievalClient {
             for (int i = 0; i < configurations.length(); i++) {
                 JSONObject config = (JSONObject) configurations.get(i);
                 if (((String)config.get("field")).equalsIgnoreCase("password")) {
-                    JSONArray rules = (JSONArray) config.get("rules");
-                    for (int j = 0; j < rules.length(); j++) {
-                        addRuleToConfiguration(rules.getJSONObject(j), passwordConfig);
+                    if (config.has("rules")) {
+                        JSONArray rules = (JSONArray) config.get("rules");
+                        for (int j = 0; j < rules.length(); j++) {
+                            addRuleToConfiguration(rules.getJSONObject(j), passwordConfig);
+                        }
                     }
                 }
             }
@@ -151,9 +154,16 @@ public class ValidationConfigurationRetrievalClient {
             for (int i = 0; i < configurations.length(); i++) {
                 JSONObject config = (JSONObject) configurations.get(i);
                 if (((String)config.get("field")).equalsIgnoreCase("username")) {
-                    JSONArray rules = (JSONArray) config.get("rules");
-                    for (int j = 0; j < rules.length(); j++) {
-                        addRuleToConfiguration(rules.getJSONObject(j), usernameConfig);
+                    if (config.has("rules")) {
+                        JSONArray rules = (JSONArray) config.get("rules");
+                        for (int j = 0; j < rules.length(); j++) {
+                            addRuleToConfiguration(rules.getJSONObject(j), usernameConfig);
+                        }
+                    } else if (config.has("regEx")) {
+                        JSONArray rules = (JSONArray) config.get("regEx");
+                        for (int j = 0; j < rules.length(); j++) {
+                            addRuleToConfiguration(rules.getJSONObject(j), usernameConfig);
+                        }
                     }
                 }
             }
@@ -265,6 +275,27 @@ public class ValidationConfigurationRetrievalClient {
         } else if (name.equalsIgnoreCase("EmailFormatValidator")) {
             addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), config,
                     EMAIL_VALIDATOR_KEY);
+        } else if (name.equalsIgnoreCase(JS_REG_EX_VALIDATOR_KEY)) {
+            enableRegExValidation(rule, config);
+        }
+    }
+    /**
+     * Method to add a rule to the regex validation configuration json.
+     *
+     * @param rule      Rule need to be added to the regex validation configuration.
+     * @param config    Configuration object.
+     */
+    private void enableRegExValidation(JSONObject rule, JSONObject config) {
+
+        config.put(JS_REG_EX_VALIDATOR_KEY, true);
+        if (rule.has(PROPERTIES)) {
+            JSONArray properties = (JSONArray) rule.get(PROPERTIES);
+            for(int i = 0; i < properties.length(); i++) {
+                JSONObject property = properties.getJSONObject(i);
+                if (((String)property.get("key")).equalsIgnoreCase("regex")) {
+                    config.put("regex", property.get("value"));
+                }
+            }
         }
     }
 }

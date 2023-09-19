@@ -363,6 +363,7 @@ public class IdentityConstants {
         public static final String OAUTH1_AUTHORIZE_URL = "OAuth.OAuth1AuthorizeUrl";
         public static final String OAUTH1_ACCESSTOKEN_URL = "OAuth.OAuth1AccessTokenUrl";
         public static final String OAUTH2_AUTHZ_EP_URL = "OAuth.OAuth2AuthzEPUrl";
+        public static final String OAUTH2_PAR_EP_URL = "OAuth.OAuth2ParEPUrl";
         public static final String OAUTH2_TOKEN_EP_URL = "OAuth.OAuth2TokenEPUrl";
         public static final String OAUTH2_USERINFO_EP_URL = "OAuth.OAuth2UserInfoEPUrl";
         public static final String OAUTH2_REVOKE_EP_URL = "OAuth.OAuth2RevokeEPUrl";
@@ -378,6 +379,7 @@ public class IdentityConstants {
         public static final String AUTHORIZE_URL = "oauth/authorize-url";
         public static final String ACCESS_TOKEN = "oauth/access-token";
         public static final String AUTHORIZE = "oauth2/authorize";
+        public static final String PAR = "oauth2/par";
         public static final String TOKEN = "oauth2/token";
         public static final String REVOKE = "oauth2/revoke";
         public static final String INTROSPECT = "oauth2/introspect";
