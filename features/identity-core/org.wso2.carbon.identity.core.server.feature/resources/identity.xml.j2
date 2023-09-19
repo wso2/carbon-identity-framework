@@ -854,6 +854,11 @@
             {% endif %}
         </OpenIDConnect>
 
+        <!-- OIDCSessionStateManager configuration -->
+        {% if oauth.oidc.session_state_manager is defined %}
+        <OIDCSessionStateManager>{{oauth.oidc.session_state_manager}}</OIDCSessionStateManager>
+        {% endif %}
+
         <!--
             Configs related to OAuth2 Device Code Grant.
             Supported versions: IS 5.12.0 onwards
