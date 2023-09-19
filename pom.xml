@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.25.317-SNAPSHOT</version>
+    <version>5.25.346-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -101,6 +101,8 @@
         <module>features/central-logger</module>
         <module>features/input-validation-mgt</module>
         <module>features/consent-server-configs-mgt</module>
+        <module>components/api-resource-mgt</module>
+        <module>features/api-resource-mgt</module>
     </modules>
 
 
@@ -635,6 +637,18 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.provisioning.server.feature</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.api.resource.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.api.resource.mgt.server.feature</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
