@@ -25,6 +25,7 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.user.core.util.UserCoreUtil" %>
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.FlaggedName" %>
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo" %>
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserStoreInfo" %>
@@ -160,6 +161,7 @@
     session.setAttribute(UserAdminUIConstants.ROLE_COUNT_FILTER, countFilter.trim());
 
     String currentUser = (String) session.getAttribute("logged-user");
+    currentUser = UserCoreUtil.removeDomainFromName(currentUser);
     userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
     if (userRealmInfo != null) {
         multipleUserStores = userRealmInfo.getMultipleUserStore();
