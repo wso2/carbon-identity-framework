@@ -164,6 +164,7 @@
   "oauth.grant_type.organization_switch.enable": true,
   "oauth.grant_type.organization_switch.grant_handler": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchGrant",
   "oauth.grant_type.organization_switch.grant_validator": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchGrantValidator",
+  "oauth.par.endpoint.enabled": true,
   "oauth.par.expiry_time": "60s",
   "oauth.grant_type.token_exchange.grant_handler": "org.wso2.carbon.identity.oauth2.grant.token.exchange.TokenExchangeGrantHandler",
   "oauth.grant_type.token_exchange.grant_validator": "org.wso2.carbon.identity.oauth2.grant.token.exchange.TokenExchangeGrantValidator",

@@ -3003,7 +3003,9 @@
         <Resource context="(.*)/oauth2/jwks(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/oauth2/par(.*)" secured="false" http-method="all"/>
+        {% if oauth.par.endpoint.enabled is sameas true %}
+                <Resource context="(.*)/oauth2/par(.*)" secured="false" http-method="all"/>
+        {% endif %}
         <Resource context="(.*)/oidc/checksession(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/logout(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
