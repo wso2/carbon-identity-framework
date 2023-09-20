@@ -1,6 +1,7 @@
 package org.wso2.carbon.identity.application.mgt.provider;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 /**
  * Interface to provide application roles.
@@ -8,11 +9,14 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 public interface ApplicationRoleProvider {
 
     /**
-     * Get user roles.
+     * Get roles of the application creator.
      *
-     * @param username Username.
-     * @param tenantId Tenant ID.
-     * @return Array of user roles.
+     * @param application Application.
+     * @param creator     Application Creator username.
+     * @param tenantId    Tenant id.
+     * @return Roles of the application.
+     * @throws IdentityApplicationManagementException If an error occurs while getting the roles.
      */
-    String[] getUserRoles(String username, int tenantId) throws IdentityApplicationManagementException;
+    String[] getRoles(ServiceProvider application, String creator, int tenantId)
+            throws IdentityApplicationManagementException;
 }

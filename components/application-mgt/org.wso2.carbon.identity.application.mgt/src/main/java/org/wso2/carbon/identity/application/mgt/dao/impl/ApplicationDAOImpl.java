@@ -471,7 +471,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             if (ApplicationManagementServiceComponentHolder.getInstance().isInternalApplicationRolesEnabled()) {
                 String[] roles = ApplicationManagementServiceComponentHolder.getInstance().
-                        getApplicationRoleProvider().getUserRoles(username, tenantID);
+                        getApplicationRoleProvider().getRoles(application, username, tenantID);
                 addApplicationRoles(applicationId, roles, connection);
                 application.setApplicationRoles(roles);
             }
@@ -2199,9 +2199,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             // TODO: Remove this if condition once all application roles are added to the database for existing users.
             if (ApplicationManagementServiceComponentHolder.getInstance().isInternalApplicationRolesEnabled()) {
                 if (!isAppRolesExistsForApplication(applicationId, connection)) {
-                    String[] roles = ApplicationManagementServiceComponentHolder.getInstance().
-                            getApplicationRoleProvider()
-                            .getUserRoles(serviceProvider.getOwner().getUserName(), tenantID);
+                    String[] roles =
+                            ApplicationManagementServiceComponentHolder.getInstance().getApplicationRoleProvider()
+                                    .getRoles(serviceProvider, serviceProvider.getOwner().getUserName(), tenantID);
                     addApplicationRoles(applicationId, roles, connection);
                 }
                 serviceProvider.setApplicationRoles(getApplicationRoles(applicationId, connection));
@@ -6132,7 +6132,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws IdentityApplicationManagementException {
 
         try (PreparedStatement storeAppRolesPrepStatement = connection.prepareStatement(
-                ApplicationMgtDBQueries.ADD_APPLICATION_ROLES)) {
+                ApplicationMgtDBQueries.ADD_INTERNAL_APPLICATION_ROLES)) {
             if (roles != null && roles.length > 0) {
                 for (String role : roles) {
                     storeAppRolesPrepStatement.setInt(1, applicationId);
@@ -6151,7 +6151,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         int count;
         try (PreparedStatement getAppRoleCountPrepStatement = connection
-                .prepareStatement(ApplicationMgtDBQueries.COUNT_APP_ROLE_OF_APP);) {
+                .prepareStatement(ApplicationMgtDBQueries.COUNT_INTERNAL_APP_ROLE_OF_APP);) {
 
             getAppRoleCountPrepStatement.setInt(1, applicationId);
             try (ResultSet appNameResultSet = getAppRoleCountPrepStatement.executeQuery()) {
@@ -6170,7 +6170,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws IdentityApplicationManagementServerException {
 
         try (PreparedStatement statementForFetchingAppRoles = connection.prepareStatement(
-                ApplicationMgtDBQueries.GET_APPLICATION_ROLES)) {
+                ApplicationMgtDBQueries.GET_INTERNAL_APPLICATION_ROLES)) {
             statementForFetchingAppRoles.setInt(1, applicationId);
             try (ResultSet results = statementForFetchingAppRoles.executeQuery()) {
                 ArrayList<String> appRoles = new ArrayList<>();
