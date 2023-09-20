@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>input-validation-mgt-feature</artifactId>
-        <version>5.25.348</version>
+        <version>5.25.349-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
