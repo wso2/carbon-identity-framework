@@ -279,6 +279,24 @@
                 <ResponseModeName>form_post</ResponseModeName>
                 <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FormPostResponseModeProvider</ResponseModeProviderClass>
             </SupportedResponseMode>
+            <!-- Validity period for jarm response jwt in seconds -->
+            <JARMResponseJwtValidityPeriodInSeconds>7200</JARMResponseJwtValidityPeriodInSeconds>
+            <SupportedResponseMode>
+                <ResponseModeName>jwt</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.JwtResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>query.jwt</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.QueryJwtResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>fragment.jwt</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FragmentJwtResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>form_post.jwt</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
         </SupportedResponseModes>
 
         <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
