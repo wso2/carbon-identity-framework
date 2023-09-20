@@ -943,6 +943,7 @@
     </SCIM2>
 
     <!--Recovery>
+        <EnableV1API>false</EnableV1API>
         <ReCaptcha>
             <Password>
                 <Enable>false</Enable>
