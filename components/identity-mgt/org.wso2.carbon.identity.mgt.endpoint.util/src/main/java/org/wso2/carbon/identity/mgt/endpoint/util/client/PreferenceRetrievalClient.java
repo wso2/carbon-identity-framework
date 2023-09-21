@@ -43,6 +43,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -83,6 +85,278 @@ public class PreferenceRetrievalClient {
     private static final String ACCOUNT_MGT_GOVERNANCE = "Account Management";
     private static final String USER_ONBOARDING_GOVERNANCE = "User Onboarding";
     private static final String CONNECTORS = "connectors";
+
+    // Introduced to define the connectors configuration properties
+    private HashMap<String, ArrayList<String>> connectorsPropertyConfig;
+    private HashMap<String, HashMap<String, Boolean>> connectorConfigurationPropertyResults;
+
+    public PreferenceRetrievalClient() {
+
+        connectorsPropertyConfig = new HashMap<>();
+        connectorsPropertyConfig.put(SELF_SIGN_UP_CONNECTOR, new ArrayList<>(Arrays.asList(SELF_REGISTRATION_PROPERTY,
+                SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY, AUTO_LOGIN_AFTER_SELF_SIGN_UP)));
+        connectorsPropertyConfig.put(RECOVERY_CONNECTOR, new ArrayList<>(Arrays.asList(USERNAME_RECOVERY_PROPERTY,
+                NOTIFICATION_PASSWORD_RECOVERY_PROPERTY, QUESTION_PASSWORD_RECOVERY_PROPERTY,
+                AUTO_LOGIN_AFTER_PASSWORD_RECOVERY)));
+        connectorsPropertyConfig.put(MULTI_ATTRIBUTE_LOGIN_HANDLER,
+                new ArrayList<>(Arrays.asList(MULTI_ATTRIBUTE_LOGIN_PROPERTY)));
+        connectorsPropertyConfig.put(TYPING_DNA_CONNECTOR, new ArrayList<>(Arrays.asList(TYPING_DNA_PROPERTY)));
+    }
+
+    /**
+     * Check self registration is enabled or not.
+     *
+     * @return returns true if self registration enabled.
+     */
+    public boolean isSelfRegistrationEnabled() {
+
+        if(connectorConfigurationPropertyResults.containsKey(SELF_SIGN_UP_CONNECTOR) &&
+                connectorConfigurationPropertyResults.get(SELF_SIGN_UP_CONNECTOR)
+                        .containsKey(SELF_REGISTRATION_PROPERTY)) {
+            return connectorConfigurationPropertyResults.get(SELF_SIGN_UP_CONNECTOR)
+                    .get(SELF_REGISTRATION_PROPERTY);
+        }
+        return false;
+    }
+
+    /**
+     * Check lock on self registration is enabled or not.
+     *
+     * @return returns true if lock on self registration enabled.
+     */
+    public boolean isSelfRegistrationLockOnCreationEnabled() {
+
+        if(connectorConfigurationPropertyResults.containsKey(SELF_SIGN_UP_CONNECTOR) &&
+                connectorConfigurationPropertyResults.get(SELF_SIGN_UP_CONNECTOR)
+                        .containsKey(SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY)) {
+            return connectorConfigurationPropertyResults.get(SELF_SIGN_UP_CONNECTOR)
+                    .get(SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY);
+        }
+        return false;
+    }
+
+    /**
+     * Check username recovery is enabled or not.
+     *
+     * @return returns true if  username recovery enabled.
+     */
+    public boolean isUsernameRecoveryEnabled() {
+
+        if(connectorConfigurationPropertyResults.containsKey(RECOVERY_CONNECTOR) &&
+                connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                        .containsKey(USERNAME_RECOVERY_PROPERTY)) {
+            return connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                    .get(USERNAME_RECOVERY_PROPERTY);
+        }
+        return false;
+    }
+
+    /**
+     * Check notification based password recovery is enabled or not.
+     *
+     * @return returns true if  notification based password recovery enabled.
+     */
+    public boolean isNotificationBasedPasswordRecoveryEnabled() {
+
+        if(connectorConfigurationPropertyResults.containsKey(RECOVERY_CONNECTOR) &&
+                connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                        .containsKey(NOTIFICATION_PASSWORD_RECOVERY_PROPERTY)) {
+            return connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                    .get(NOTIFICATION_PASSWORD_RECOVERY_PROPERTY);
+        }
+        return false;
+    }
+
+    /**
+     * Check question based password recovery is enabled or not.
+     *
+     * @return returns true if  question based password recovery enabled.
+     */
+    public boolean isQuestionBasedPasswordRecoveryEnabled() {
+
+        if (connectorConfigurationPropertyResults.containsKey(RECOVERY_CONNECTOR) &&
+                connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                        .containsKey(QUESTION_PASSWORD_RECOVERY_PROPERTY)) {
+            return connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                    .get(QUESTION_PASSWORD_RECOVERY_PROPERTY);
+        }
+        return false;
+    }
+
+    /**
+     * Check password recovery is enabled or not.
+     *
+     * @return returns true if password recovery enabled.
+     */
+    public boolean isPasswordRecoveryEnabled() {
+
+        if (connectorConfigurationPropertyResults.containsKey(RECOVERY_CONNECTOR) &&
+                connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                        .containsKey(QUESTION_PASSWORD_RECOVERY_PROPERTY)) {
+            return connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                    .get(QUESTION_PASSWORD_RECOVERY_PROPERTY);
+        }
+        else if (connectorConfigurationPropertyResults.containsKey(RECOVERY_CONNECTOR) &&
+                connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                        .containsKey(NOTIFICATION_PASSWORD_RECOVERY_PROPERTY)) {
+            return connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                    .get(NOTIFICATION_PASSWORD_RECOVERY_PROPERTY);
+        }
+        return false;
+    }
+
+    /**
+     * Check multiple attribute login is enabled or not.
+     *
+     * @return returns true if password multi-attribute login enabled.
+     */
+    public boolean isMultiAttributeLoginEnabled() {
+
+        if (connectorConfigurationPropertyResults.containsKey(MULTI_ATTRIBUTE_LOGIN_HANDLER) &&
+                connectorConfigurationPropertyResults.get(MULTI_ATTRIBUTE_LOGIN_HANDLER)
+                        .containsKey(MULTI_ATTRIBUTE_LOGIN_PROPERTY)) {
+            return connectorConfigurationPropertyResults.get(MULTI_ATTRIBUTE_LOGIN_HANDLER)
+                    .get(MULTI_ATTRIBUTE_LOGIN_PROPERTY);
+        }
+        return false;
+    }
+
+    /**
+     * Check typingDNA authentication is enabled or not.
+     *
+     * @return returns true if typingDNA enabled.
+     */
+    public boolean isTypingDNAEnabled( ) {
+
+        if (connectorConfigurationPropertyResults.containsKey(TYPING_DNA_CONNECTOR) &&
+                connectorConfigurationPropertyResults.get(TYPING_DNA_CONNECTOR)
+                        .containsKey(TYPING_DNA_PROPERTY)) {
+            return connectorConfigurationPropertyResults.get(TYPING_DNA_CONNECTOR)
+                    .get(TYPING_DNA_PROPERTY);
+        }
+        return false;
+    }
+
+    /**
+     * Check auto login after self sign up is enabled or not.
+     *
+     * @return returns true if auto login after self sign up is enabled .
+     */
+    public boolean isAutoLoginAfterSelfRegistrationEnabled() {
+
+        if (connectorConfigurationPropertyResults.containsKey(SELF_SIGN_UP_CONNECTOR) &&
+                connectorConfigurationPropertyResults.get(SELF_SIGN_UP_CONNECTOR)
+                        .containsKey(AUTO_LOGIN_AFTER_SELF_SIGN_UP)) {
+            return connectorConfigurationPropertyResults.get(SELF_SIGN_UP_CONNECTOR)
+                    .get(AUTO_LOGIN_AFTER_SELF_SIGN_UP);
+        }
+        return false;
+    }
+
+    /**
+     * Check auto login after password recovery is enabled or not.
+     *
+     * @return returns true if auto login after password recover is enabled .
+     */
+    public boolean isAutoLoginAfterPasswordRecoveryEnabled() {
+
+        if (connectorConfigurationPropertyResults.containsKey(RECOVERY_CONNECTOR) &&
+                connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                        .containsKey(AUTO_LOGIN_AFTER_PASSWORD_RECOVERY)) {
+            return connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
+                    .get(AUTO_LOGIN_AFTER_PASSWORD_RECOVERY);
+        }
+        return false;
+    }
+
+    /**
+     * Returns connectors with property configuration.
+     *
+     * @return List of connectors with the properties.
+     */
+    private HashMap<String, ArrayList<String>> getConnectorsPropertyConfiguration() {
+
+        return connectorsPropertyConfig;
+    }
+
+    /**
+     * Load Connectors Configuration Preferences in the given tenant.
+     *
+     * @param tenant tenant domain name.
+     * @throws PreferenceRetrievalClientException
+     */
+    public void loadConnectorPreferences(String tenant) throws PreferenceRetrievalClientException {
+
+        retrieveConnectorConfigurationPreferences(tenant, getConnectorsPropertyConfiguration());
+    }
+
+    /**
+     * Retrieve Configuration Preferences in the given tenant.
+     *
+     * @param tenant tenant domain name.
+     * @param connectorConfigurationPropertyNames configuration property Names.
+     * @return returns configuration properties list.
+     * @throws PreferenceRetrievalClientException
+     */
+    private void retrieveConnectorConfigurationPreferences(String tenant, HashMap<String, ArrayList<String>>
+                                                                  connectorConfigurationPropertyNames)
+            throws PreferenceRetrievalClientException {
+
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+
+            JSONArray main = new JSONArray();
+
+            for (String connectorName : connectorConfigurationPropertyNames.keySet()) {
+                JSONObject preferences = new JSONObject();
+                preferences.put(CONNECTOR_NAME, connectorName);
+                preferences.put(PROPERTIES, connectorConfigurationPropertyNames.get(connectorName));
+                main.put(preferences);
+            }
+
+            HttpPost post = new HttpPost(getUserGovernancePreferenceEndpoint(tenant));
+            setAuthorizationHeader(post);
+            post.setEntity(new StringEntity(main.toString(), ContentType.create(HTTPConstants
+                    .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
+
+            try (CloseableHttpResponse response = httpclient.execute(post)) {
+
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    this.connectorConfigurationPropertyResults = new HashMap<>();
+                    JSONArray jsonResponse = new JSONArray(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    HashMap<String,Boolean> configurationConnectorProperties = new HashMap<>();
+
+                    for (int configurationConnectors = 0; configurationConnectors < jsonResponse.length();
+                         configurationConnectors++) {
+                        JSONObject connector = (JSONObject) jsonResponse.get(configurationConnectors);
+
+                        if(connector.has(PROPERTIES) && connector.has(CONNECTOR_NAME)){
+                            JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
+                            for (int responseProperty = 0; responseProperty < responseProperties.length();
+                                 responseProperty++) {
+                                JSONObject configProperty = responseProperties.getJSONObject(responseProperty);
+                                configurationConnectorProperties.put(configProperty.getString(PROPERTY_NAME),
+                                        Boolean.valueOf(configProperty.getString(PROPERTY_VALUE)));
+                            }
+                            this.connectorConfigurationPropertyResults.put(jsonResponse
+                                            .getJSONObject(configurationConnectors).getString(CONNECTOR_NAME),
+                                    configurationConnectorProperties);
+                        }
+                    }
+                }
+            } finally {
+                post.releaseConnection();
+            }
+        } catch (IOException e) {
+            // Logging and throwing since this is a client.
+            String msg = "Error while checking preferences for connectors in tenant : " + tenant;
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new PreferenceRetrievalClientException(msg, e);
+        }
+    }
+
 
     /**
      * Check self registration is enabled or not.
