@@ -2965,6 +2965,18 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
             <Scopes>internal_organization_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
+            <Scopes>internal_config_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/me/organizations/root" secured="true" http-method="GET">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
@@ -3247,6 +3259,7 @@
                     <Path>/api/server/v1/expired-password-identification/password-expired-users</Path>
                     <Path>/api/server/v1/api-resources</Path>
                     <Path>/api/server/v1/extensions</Path>
+                    <Path>/api/server/v1/organization-configs</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -3273,6 +3286,7 @@
 
     <OrgRoutingOnlySupportedAPIPaths>
         <Path>/api/server/v1/organizations</Path>
+        <Path>/api/server/v1/organization-configs</Path>
         <Path>/api/users/v1/me/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
