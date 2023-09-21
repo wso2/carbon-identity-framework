@@ -54,4 +54,10 @@ public class ExtensionMgtConstants {
     public static final String CATEGORY = "category";
 
     public static final String EXTENSION_TYPES_CONFIG = "ExtensionManagementService.ExtensionTypes";
+
+    public static final String CUSTOM_ATTRIBUTES = "customAttributes";
+
+    public static final String KEY = "key";
+
+    public static final String VALUE = "value";
 }
