@@ -110,7 +110,7 @@ public class PreferenceRetrievalClient {
      */
     public boolean isSelfRegistrationEnabled() {
 
-        if(connectorConfigurationPropertyResults.containsKey(SELF_SIGN_UP_CONNECTOR) &&
+        if (connectorConfigurationPropertyResults.containsKey(SELF_SIGN_UP_CONNECTOR) &&
                 connectorConfigurationPropertyResults.get(SELF_SIGN_UP_CONNECTOR)
                         .containsKey(SELF_REGISTRATION_PROPERTY)) {
             return connectorConfigurationPropertyResults.get(SELF_SIGN_UP_CONNECTOR)
@@ -126,7 +126,7 @@ public class PreferenceRetrievalClient {
      */
     public boolean isSelfRegistrationLockOnCreationEnabled() {
 
-        if(connectorConfigurationPropertyResults.containsKey(SELF_SIGN_UP_CONNECTOR) &&
+        if (connectorConfigurationPropertyResults.containsKey(SELF_SIGN_UP_CONNECTOR) &&
                 connectorConfigurationPropertyResults.get(SELF_SIGN_UP_CONNECTOR)
                         .containsKey(SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY)) {
             return connectorConfigurationPropertyResults.get(SELF_SIGN_UP_CONNECTOR)
@@ -142,7 +142,7 @@ public class PreferenceRetrievalClient {
      */
     public boolean isUsernameRecoveryEnabled() {
 
-        if(connectorConfigurationPropertyResults.containsKey(RECOVERY_CONNECTOR) &&
+        if (connectorConfigurationPropertyResults.containsKey(RECOVERY_CONNECTOR) &&
                 connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
                         .containsKey(USERNAME_RECOVERY_PROPERTY)) {
             return connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
@@ -158,7 +158,7 @@ public class PreferenceRetrievalClient {
      */
     public boolean isNotificationBasedPasswordRecoveryEnabled() {
 
-        if(connectorConfigurationPropertyResults.containsKey(RECOVERY_CONNECTOR) &&
+        if (connectorConfigurationPropertyResults.containsKey(RECOVERY_CONNECTOR) &&
                 connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
                         .containsKey(NOTIFICATION_PASSWORD_RECOVERY_PROPERTY)) {
             return connectorConfigurationPropertyResults.get(RECOVERY_CONNECTOR)
@@ -330,7 +330,7 @@ public class PreferenceRetrievalClient {
                          configurationConnectors++) {
                         JSONObject connector = (JSONObject) jsonResponse.get(configurationConnectors);
 
-                        if(connector.has(PROPERTIES) && connector.has(CONNECTOR_NAME)){
+                        if (connector.has(PROPERTIES) && connector.has(CONNECTOR_NAME)){
                             JSONArray responseProperties = connector.getJSONArray(PROPERTIES);
                             for (int responseProperty = 0; responseProperty < responseProperties.length();
                                  responseProperty++) {
