@@ -174,11 +174,13 @@
   "oauth.grant_type.organization_switch.enable": true,
   "oauth.grant_type.organization_switch.grant_handler": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchGrant",
   "oauth.grant_type.organization_switch.grant_validator": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchGrantValidator",
+  "oauth.grant_type.organization_switch.allow_public_client": true,
   "oauth.par.expiry_time": "60s",
   "oauth.grant_type.token_exchange.grant_handler": "org.wso2.carbon.identity.oauth2.grant.token.exchange.TokenExchangeGrantHandler",
   "oauth.grant_type.token_exchange.grant_validator": "org.wso2.carbon.identity.oauth2.grant.token.exchange.TokenExchangeGrantValidator",
   "oauth.grant_type.token_exchange.enable": true,
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
+  "oauth.grant_type.token_exchange.allow_public_client": true,
   "oauth.public_client_support.grant_type_names": [],
   "oauth.dcrm.application_role_permission_required_to_view": true,
 

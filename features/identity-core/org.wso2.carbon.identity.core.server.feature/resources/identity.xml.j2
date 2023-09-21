@@ -502,6 +502,7 @@
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.organization_switch.grant_handler}}</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
+                <PublicClientAllowed>{{oauth.grant_type.organization_switch.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
@@ -511,6 +512,7 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.token_exchange.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>false</IdTokenAllowed>
                 <IsRefreshTokenAllowed>{{oauth.grant_type.token_exchange.allow_refresh_tokens}}</IsRefreshTokenAllowed>
+                <PublicClientAllowed>{{oauth.grant_type.token_exchange.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
