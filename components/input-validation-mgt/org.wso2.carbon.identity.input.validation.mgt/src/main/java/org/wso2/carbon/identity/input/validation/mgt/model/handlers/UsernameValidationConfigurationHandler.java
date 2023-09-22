@@ -39,7 +39,9 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ALPHA_NUMERIC;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.EMAIL_FORMAT_VALIDATOR;
@@ -76,10 +78,9 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
         List<RulesConfiguration> rules = new ArrayList<>();
 
         if (isAlphaNumericValidationByDefault()) {
+            rules.add(getDefaultLengthValidatorRuleConfig());
             rules.add(getRuleConfig(AlphanumericValidator.class.getSimpleName(),
                     ENABLE_VALIDATOR, Boolean.TRUE.toString()));
-            rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MIN_LENGTH, "5"));
-            rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MAX_LENGTH, "30"));
             configuration.setRules(rules);
         } else {
             rules.add(getRuleConfig(EmailFormatValidator.class.getSimpleName(),
@@ -214,5 +215,21 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
                 break;
             }
         }
+    }
+
+    /**
+     * Method to retrieve to default length validation for alpha numeric rule configuration.
+     *
+     * @return RulesConfiguration.
+     */
+    private RulesConfiguration getDefaultLengthValidatorRuleConfig() {
+
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName(LengthValidator.class.getSimpleName());
+        Map<String, String> properties = new HashMap<>();
+        properties.put(MIN_LENGTH, "5");
+        properties.put(MAX_LENGTH, "30");
+        rule.setProperties(properties);
+        return rule;
     }
 }
