@@ -265,9 +265,6 @@ public class IdentityManagementServiceUtil {
             user.setTenantDomain(MultitenantUtils.getTenantDomain(username));
         } else {
             user.setTenantDomain(tenantDomain);
-            if (IdentityUtil.isTenantValidationForNonSaaSUsernameEnabled()) {
-                user.setUsername(UserCoreUtil.removeDomainFromName(username));
-            }
         }
         user.setRealm(userStoreDomain);
         return user;
