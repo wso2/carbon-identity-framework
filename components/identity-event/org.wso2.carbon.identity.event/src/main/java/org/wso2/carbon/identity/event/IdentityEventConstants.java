@@ -106,7 +106,8 @@ public class IdentityEventConstants {
         public static final String POST_GET_PERMISSION_LIST_OF_ROLE_EVENT = "POST_GET_PERMISSION_LIST_OF_ROLE_EVENT";
         public static final String PRE_SET_PERMISSIONS_FOR_ROLE_EVENT = "PRE_SET_PERMISSIONS_FOR_ROLE_EVENT";
         public static final String POST_SET_PERMISSIONS_FOR_ROLE_EVENT = "POST_SET_PERMISSIONS_FOR_ROLE_EVENT";
-
+        public static final String PRE_UPDATE_PERMISSIONS_FOR_ROLE_EVENT = "PRE_UPDATE_PERMISSIONS_FOR_ROLE_EVENT";
+        public static final String POST_UPDATE_PERMISSIONS_FOR_ROLE_EVENT = "POST_UPDATE_PERMISSIONS_FOR_ROLE_EVENT";
         public static final String UPDATE_GOVERNANCE_CONFIGURATION= "UPDATE_GOVERNANCE_CONFIGURATION";
         public static final String PRE_ADD_NEW_PASSWORD = "PRE_ADD_NEW_PASSWORD";
         public static final String POST_ADD_NEW_PASSWORD = "POST_ADD_NEW_PASSWORD";
@@ -274,6 +275,8 @@ public class IdentityEventConstants {
         public static final String CLAIM_VALUE = "CLAIM_VALUE";
         public static final String USER_LIST = "USER_LIST";
         public static final String PERMISSIONS = "PERMISSIONS";
+        public static final String ADDED_PERMISSIONS = "ADDED_PERMISSIONS";
+        public static final String DELETED_PERMISSIONS = "DELETED_PERMISSIONS";
         public static final String OLD_CREDENTIAL = "OLD_CREDENTIAL";
         public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
         public static final String DELETED_USERS = "DELETED_USERS";
