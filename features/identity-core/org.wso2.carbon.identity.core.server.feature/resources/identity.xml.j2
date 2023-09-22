@@ -841,7 +841,7 @@
             {% endif %}
 
             {% if oauth.oidc.tls_client_certificate_bound_access_tokens is defined %}
-                <TLSClientCertificateBoundAccessTokens>{{oauth.oidc.tls_client_certificate_bound_access_tokens}}</TLSClientCertificateBoundAccessTokens>
+                <TLSClientCertificateBoundAccessTokensEnabled>{{oauth.oidc.tls_client_certificate_bound_access_tokens_enabled}}</TLSClientCertificateBoundAccessTokensEnabled>
             {% endif %}
 
             <SupportedTokenEndpointAuthMethods>
