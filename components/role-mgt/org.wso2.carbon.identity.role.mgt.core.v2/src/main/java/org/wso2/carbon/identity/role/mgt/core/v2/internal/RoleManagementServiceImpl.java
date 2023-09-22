@@ -7,10 +7,12 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.mgt.core.v2.Role;
+import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.v2.Permission;
+import org.wso2.carbon.identity.role.mgt.core.v2.Role;
 import org.wso2.carbon.identity.role.mgt.core.v2.RoleBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.v2.RoleManagementEventPublisherProxy;
 import org.wso2.carbon.identity.role.mgt.core.v2.RoleManagementService;
@@ -19,9 +21,13 @@ import org.wso2.carbon.identity.role.mgt.core.v2.dao.RoleMgtDAOFactory;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID_REQUEST;
+import static org.wso2.carbon.identity.role.mgt.core.v2.RoleConstants.APPLICATION;
+import static org.wso2.carbon.identity.role.mgt.core.v2.RoleConstants.ORGANIZATION;
 
 /**
  * Implementation of the {@link RoleManagementService} interface.
@@ -31,6 +37,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     private static final Log log = LogFactory.getLog(RoleManagementServiceImpl.class);
     private static final Log audit = CarbonConstants.AUDIT_LOG;
     private final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getRoleDAO();
+    private final org.wso2.carbon.identity.role.mgt.core.RoleManagementService roleManagementServiceV1 =
+            new org.wso2.carbon.identity.role.mgt.core.internal.RoleManagementServiceImpl();
     private static final String auditMessage
             = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
     private final String success = "Success";
@@ -50,6 +58,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             // SCIM2 API only adds roles to the internal domain.
             throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
                     + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + roleName + ".");
+        }
+
+        // Validate audience.
+        if (StringUtils.isNotEmpty(audience)) {
+            if (!(ORGANIZATION.equalsIgnoreCase(audience) || APPLICATION.equalsIgnoreCase(audience))) {
+                throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid role audience");
+            }
         }
 
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
@@ -86,7 +101,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     @Override
     public List<RoleBasicInfo> getRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
-                                                                               String tenantDomain) throws IdentityRoleManagementException {
+                                                                               String tenantDomain)
+            throws IdentityRoleManagementException {
 
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
@@ -113,6 +129,151 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s get role of id : %s successfully.", getUser(tenantDomain), roleID));
         }
         return role;
+    }
+
+    @Override
+    public RoleBasicInfo updateRoleName(String roleID, String newRoleName,
+                                                                               String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        org.wso2.carbon.identity.role.mgt.core.RoleBasicInfo roleBasicInfo =
+                roleManagementServiceV1.updateRoleName(roleID, newRoleName, tenantDomain);
+        return new RoleBasicInfo(roleBasicInfo.getId(), roleBasicInfo.getName());
+    }
+
+    @Override
+    public void deleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+
+        roleManagementServiceV1.deleteRole(roleID, tenantDomain);
+        // Delete permissions, associate apps and shared roles when deleting a role.
+        roleDAO.deleteRole(roleID);
+    }
+
+    @Override
+    public List<UserBasicInfo> getUserListOfRole(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleManagementServiceV1.getUserListOfRole(roleID, tenantDomain);
+    }
+
+    @Override
+    public RoleBasicInfo updateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
+                                              String tenantDomain) throws IdentityRoleManagementException {
+
+        org.wso2.carbon.identity.role.mgt.core.RoleBasicInfo roleBasicInfo =
+                roleManagementServiceV1.updateGroupListOfRole(roleID, newUserIDList, deletedUserIDList, tenantDomain);
+        return new RoleBasicInfo(roleBasicInfo.getId(), roleBasicInfo.getName());
+    }
+
+    @Override
+    public List<GroupBasicInfo> getGroupListOfRole(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleManagementServiceV1.getGroupListOfRole(roleID, tenantDomain);
+    }
+
+    @Override
+    public RoleBasicInfo updateGroupListOfRole(String roleID, List<String> newGroupIDList,
+                                               List<String> deletedGroupIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        org.wso2.carbon.identity.role.mgt.core.RoleBasicInfo roleBasicInfo =
+                roleManagementServiceV1.updateGroupListOfRole(roleID, newGroupIDList, deletedGroupIDList, tenantDomain);
+        return new RoleBasicInfo(roleBasicInfo.getId(), roleBasicInfo.getName());
+    }
+
+    @Override
+    public List<Permission> getPermissionListOfRole(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreGetPermissionListOfRoleWithException(roleID, tenantDomain);
+        List<Permission> permissionListOfRole = roleDAO.getPermissionListOfRole(roleID, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostGetPermissionListOfRole(roleID, tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s get list of permissions of role of id : %s successfully.",
+                    getUser(tenantDomain), roleID));
+        }
+        return permissionListOfRole;
+    }
+
+    @Override
+    public RoleBasicInfo setPermissionsForRole(String roleID, List<String> permissions, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        org.wso2.carbon.identity.role.mgt.core.RoleBasicInfo roleBasicInfo =
+                roleManagementServiceV1.setPermissionsForRole(roleID, permissions, tenantDomain);
+        return new RoleBasicInfo(roleBasicInfo.getId(), roleBasicInfo.getName());
+    }
+
+    @Override
+    public RoleBasicInfo updatePermissionListOfRole(String roleID, List<Permission> addedPermissions,
+                                                       List<Permission> deletedPermissions, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreUpdatePermissionsForRoleWithException(roleID, addedPermissions,
+                deletedPermissions, tenantDomain);
+        removeSimilarPermissions(addedPermissions, deletedPermissions);
+        RoleBasicInfo roleBasicInfo = roleDAO.updatePermissionListOfRole(roleID, addedPermissions,
+                deletedPermissions, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostUpdatePermissionsForRole(roleID, addedPermissions,
+                deletedPermissions, tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s set list of permissions of role of id : %s successfully.",
+                    getUser(tenantDomain), roleID));
+        }
+        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Set permission for role by id",
+                roleID, getAuditData(tenantDomain), success));
+        return roleBasicInfo;
+    }
+
+    @Override
+    public boolean isExistingRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleManagementServiceV1.isExistingRole(roleID, tenantDomain);
+    }
+
+    @Override
+    public boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleManagementServiceV1.isExistingRoleName(roleName, tenantDomain);
+    }
+
+    @Override
+    public Set<String> getSystemRoles() {
+
+        return roleManagementServiceV1.getSystemRoles();
+    }
+
+    @Override
+    public int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleManagementServiceV1.getRolesCount(tenantDomain);
+    }
+
+    @Override
+    public Role getRoleWithoutUsers(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        org.wso2.carbon.identity.role.mgt.core.Role role = roleManagementServiceV1.getRoleWithoutUsers(roleID,
+                tenantDomain);
+        Role roleV2 = new Role();
+        roleV2.setName(role.getName());
+        roleV2.setId(role.getId());
+        roleV2.setDomain(role.getDomain());
+        roleV2.setTenantDomain(role.getTenantDomain());
+        roleV2.setGroups(role.getGroups());
+        roleV2.setPermissions(roleDAO.getPermissionListOfRole(roleID, tenantDomain));
+        return roleV2;
+    }
+
+    @Override
+    public String getRoleNameByRoleId(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleManagementServiceV1.getRoleNameByRoleId(roleID, tenantDomain);
     }
 
     private String getUser(String tenantDomain) {
@@ -165,5 +326,21 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             return user + "@" + tenantDomain;
         }
         return CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+    }
+
+    public static void removeSimilarPermissions(List<Permission> arr1, List<Permission> arr2) {
+        List<Permission> toRemove = new ArrayList<>();
+
+        for (Permission p1 : arr1) {
+            for (Permission p2 : arr2) {
+                if (p1.getName().equals(p2.getName())) {
+                    toRemove.add(p1);
+                    break;
+                }
+            }
+        }
+
+        arr1.removeAll(toRemove);
+        arr2.removeAll(toRemove);
     }
 }

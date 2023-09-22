@@ -172,6 +172,59 @@ public class RoleManagementEventPublisherProxy {
         }
     }
 
+    public void publishPreGetPermissionListOfRoleWithException(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_GET_PERMISSION_LIST_OF_ROLE_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostGetPermissionListOfRole(String roleID, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_PERMISSION_LIST_OF_ROLE_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreUpdatePermissionsForRoleWithException(String roleID, List<Permission> addedPermissions,
+                                                                List<Permission> deletedPermissions,
+                                                                String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.ADDED_PERMISSIONS, addedPermissions);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETED_PERMISSIONS, deletedPermissions);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_UPDATE_PERMISSIONS_FOR_ROLE_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostUpdatePermissionsForRole(String roleID, List<Permission> addedPermissions,
+                                                 List<Permission> deletedPermissions, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.ADDED_PERMISSIONS, addedPermissions);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETED_PERMISSIONS, deletedPermissions);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_PERMISSIONS_FOR_ROLE_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
     private Event createEvent(Map<String, Object> eventProperties, String eventName) {
 
         return new Event(eventName, eventProperties);

@@ -19,6 +19,8 @@ public class Role {
     private List<Permission> permissions;
     private String audience;
     private String audienceId;
+    private String audienceName;
+    private List<AssociatedApplication> associatedApplications;
 
     public Role() {
 
@@ -112,5 +114,25 @@ public class Role {
     public void setAudienceId(String audienceId) {
 
         this.audienceId = audienceId;
+    }
+
+    public String getAudienceName() {
+
+        return audienceName;
+    }
+
+    public void setAudienceName(String audienceName) {
+
+        this.audienceName = audienceName;
+    }
+
+    public List<AssociatedApplication> getAssociatedApplications() {
+
+        return associatedApplications;
+    }
+
+    public void setAssociatedApplications(List<AssociatedApplication> associatedApplications) {
+
+        this.associatedApplications = associatedApplications;
     }
 }

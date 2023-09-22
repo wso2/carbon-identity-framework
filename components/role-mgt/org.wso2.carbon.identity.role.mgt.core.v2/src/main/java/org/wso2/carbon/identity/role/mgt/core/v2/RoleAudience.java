@@ -1,5 +1,8 @@
 package org.wso2.carbon.identity.role.mgt.core.v2;
 
+/**
+ * Represents the Role Audience.
+ */
 public class RoleAudience {
 
     private String audience;

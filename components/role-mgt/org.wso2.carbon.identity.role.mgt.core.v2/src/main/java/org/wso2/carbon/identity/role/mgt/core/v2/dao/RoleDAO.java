@@ -1,8 +1,8 @@
 package org.wso2.carbon.identity.role.mgt.core.v2.dao;
 
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.mgt.core.v2.Role;
 import org.wso2.carbon.identity.role.mgt.core.v2.Permission;
+import org.wso2.carbon.identity.role.mgt.core.v2.Role;
 import org.wso2.carbon.identity.role.mgt.core.v2.RoleBasicInfo;
 
 import java.util.List;
@@ -68,4 +68,36 @@ public interface RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     Role getRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get permission list of the given role.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return List of permissions.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<Permission> getPermissionListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get permission list of the given role.
+     *
+     * @param roleID       Role ID.
+     * @param addedPermissions      Added Permissions.
+     * @param deletedPermissions       Deleted Permissions.
+     * @param tenantDomain Tenant domain.
+     * @return List of permissions.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    RoleBasicInfo updatePermissionListOfRole(String roleID, List<Permission> addedPermissions,
+                                             List<Permission> deletedPermissions, String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
+     * Handle role deletion (delete permissions, app associations, shared roles).
+     *
+     * @param roleID       Role ID.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    void deleteRole(String roleID) throws IdentityRoleManagementException;
 }

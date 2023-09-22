@@ -1,8 +1,11 @@
 package org.wso2.carbon.identity.role.mgt.core.v2;
 
+import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * OSGi service interface which use to manage roles.
@@ -65,4 +68,167 @@ public interface RoleManagementService {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     Role getRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get permission list of the given role.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return List of permissions.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+
+    /**
+     * Update Role ID.
+     *
+     * @param roleID       Role ID.
+     * @param newRoleName  New Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return Basic role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    RoleBasicInfo updateRoleName(String roleID, String newRoleName, String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
+     * Delete the given role.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    void deleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get user list of the given role.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return List of users.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<UserBasicInfo> getUserListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Update the list of users in the given role.
+     *
+     * @param roleID            Role ID.
+     * @param newUserIDList     The set of new users IDs.
+     * @param deletedUserIDList The set of deleted users IDs.
+     * @param tenantDomain      Tenant domain.
+     * @return Basic role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    RoleBasicInfo updateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
+                                       String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get group list of the given role.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return List of groups.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<GroupBasicInfo> getGroupListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Update the list of groups in the given role.
+     *
+     * @param roleID             Role ID.
+     * @param newGroupIDList     The set of new group IDs.
+     * @param deletedGroupIDList The set of deleted group IDs.
+     * @param tenantDomain       Tenant domain.
+     * @return Basic role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    RoleBasicInfo updateGroupListOfRole(String roleID, List<String> newGroupIDList, List<String> deletedGroupIDList,
+                                        String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get permission list of the given role.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return List of permissions.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<Permission> getPermissionListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Set the list of permission to the given role.
+     *
+     * @param roleID      Role ID.
+     * @param permissions List of permissions.
+     * @return Basic role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    RoleBasicInfo setPermissionsForRole(String roleID, List<String> permissions, String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
+     * Get permission list of the given role.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return List of permissions.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    RoleBasicInfo updatePermissionListOfRole(String roleID, List<Permission> addedPermissions,
+                                                List<Permission> deletedPermissions, String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
+     * Check whether the given role ID exist.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return {@code true} if the the given role ID exist.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    boolean isExistingRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Check whether the given role name exist.
+     *
+     * @param roleName     Role name.
+     * @param tenantDomain Tenant domain.
+     * @return {@code true} if the the given role ID exist.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get the list of system roles.
+     *
+     * @return A set of system roles.
+     */
+     Set<String> getSystemRoles();
+
+    /**
+     * Retrieve the count of tenant roles.
+     *
+     * @param tenantDomain tenant domain.
+     */
+     int getRolesCount(String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get role without users.
+     *
+     * @param roleID          Role ID.
+     * @param tenantDomain    Tenant domain.
+     * @return The role object without users.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    Role getRoleWithoutUsers(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get Role name by role id.
+     *
+     * @param roleID       Role Id.
+     * @param tenantDomain Tenant Domain.
+     * @return Role name for the given role id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    String getRoleNameByRoleId(String roleID, String tenantDomain) throws IdentityRoleManagementException;
 }
