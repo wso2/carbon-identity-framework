@@ -840,7 +840,7 @@
             </FAPI>
             {% endif %}
 
-            {% if oauth.oidc.tls_client_certificate_bound_access_tokens is defined %}
+            {% if oauth.oidc.tls_client_certificate_bound_access_tokens_enabled is defined %}
                 <TLSClientCertificateBoundAccessTokensEnabled>{{oauth.oidc.tls_client_certificate_bound_access_tokens_enabled}}</TLSClientCertificateBoundAccessTokensEnabled>
             {% endif %}
 
@@ -868,13 +868,23 @@
 
             <UserInfoJWTSignatureAlgorithms>
                 {% if oauth.oidc.user_info.jwt_signature_algorithms|length %}
-                    {% for algorithm in auth.oidc.user_info.jwt_signature_algorithms %}
+                    {% for algorithm in oauth.oidc.user_info.jwt_signature_algorithms %}
                         <UserInfoJWTSignatureAlgorithm>{{algorithm}}</UserInfoJWTSignatureAlgorithm>
                     {% endfor %}
                 {% else %}
                     <UserInfoJWTSignatureAlgorithm>SHA256withRSA</UserInfoJWTSignatureAlgorithm>
                 {% endif %}
             </UserInfoJWTSignatureAlgorithms>
+
+            <IDTokenSigningAlgorithms>
+                {% if oauth.oidc.id_token.signing_algorithms|length %}
+                    {% for algorithm in oauth.oidc.id_token.signing_algorithms %}
+                        <IDTokenSigningAlgorithm>{{algorithm}}</IDTokenSigningAlgorithm>
+                    {% endfor %}
+                {% else %}
+                    <IDTokenSigningAlgorithm>SHA256withRSA</IDTokenSigningAlgorithm>
+                {% endif %}
+            </IDTokenSigningAlgorithms>
 
         </OpenIDConnect>
 
