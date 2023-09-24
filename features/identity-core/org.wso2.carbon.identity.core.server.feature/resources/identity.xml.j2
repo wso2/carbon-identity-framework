@@ -330,6 +330,34 @@
                 <ResponseModeName>form_post</ResponseModeName>
                 <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FormPostResponseModeProvider</ResponseModeProviderClass>
             </SupportedResponseMode>
+            {% if oauth.jarm.enable is sameas true %}
+             <!-- Validity period for jarm response jwt in seconds -->
+            <JARMResponseJwtValidityPeriodInSeconds>{{oauth.jarm.jarm_response_jwt_validity}}</JARMResponseJwtValidityPeriodInSeconds>
+                {% if oauth.jarm.jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+                {% if oauth.jarm.query_jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>query.jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.query_jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+                {% if oauth.jarm.fragment_jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>fragment.jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.fragment_jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+                {% if oauth.jarm.form_post_jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>form_post.jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.form_post_jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+            {% endif %}
             {% for response_mode in oauth.response_mode %}
             <SupportedResponseMode>
                 <ResponseModeName>{{response_mode.name}}</ResponseModeName>
@@ -339,11 +367,6 @@
         </SupportedResponseModes>
 
         <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
-
-        <!-- Validity period for jarm response jwt in seconds -->
-        {% if oauth.jarm.jarm_response_jwt_validity is defined %}
-        <JARMResponseJwtValidityPeriodInSeconds>{{oauth.jarm.jarm_response_jwt_validity}}</JARMResponseJwtValidityPeriodInSeconds>
-        {% endif %}
 
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
@@ -1295,6 +1318,7 @@
         </PasswordPolicyValidationHandler>
       </PasswordPolicy>
       <Recovery>
+        <EnableV1API>{{identity_mgt.recovery.enable_v1_api}}</EnableV1API>
         <ReCaptcha>
             <Password>
                 <Enable>{{identity_mgt.password_reset_email.enable_recaptcha}}</Enable>
@@ -2941,6 +2965,18 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
             <Scopes>internal_organization_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
+            <Scopes>internal_config_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/me/organizations/root" secured="true" http-method="GET">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
@@ -3222,6 +3258,8 @@
                     <Path>/api/idle-account-identification/v1/inactive-users</Path>
                     <Path>/api/server/v1/expired-password-identification/password-expired-users</Path>
                     <Path>/api/server/v1/api-resources</Path>
+                    <Path>/api/server/v1/extensions</Path>
+                    <Path>/api/server/v1/organization-configs</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -3248,6 +3286,7 @@
 
     <OrgRoutingOnlySupportedAPIPaths>
         <Path>/api/server/v1/organizations</Path>
+        <Path>/api/server/v1/organization-configs</Path>
         <Path>/api/users/v1/me/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
