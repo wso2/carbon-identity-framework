@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.tag.mgt.dao;
 
 import org.wso2.carbon.identity.application.common.model.ApplicationTag;
 import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsListItem;
 import org.wso2.carbon.identity.application.tag.mgt.ApplicationTagMgtException;
 
 import java.util.List;
@@ -35,17 +36,21 @@ public interface ApplicationTagDAO {
      * @return Tag Id.
      * @throws ApplicationTagMgtException If an error occurs while creating the Application tag.
      */
-    String createApplicationTag(ApplicationTag applicationTagDTO, Integer tenantID)
+    ApplicationTagsItem createApplicationTag(ApplicationTag applicationTagDTO, Integer tenantID)
             throws ApplicationTagMgtException;
 
     /**
      * Get all application tags when the tags reside in the same tenant of the request initiated.
      *
-     * @param tenantID Tenant ID.
-     * @return Application Tag object
+     * @param tenantID  Tenant ID.
+     * @param offset    Offset for pagination.
+     * @param limit     Limit.
+     * @param filter    Filter query.
+     * @return ApplicationTags List
      * @throws ApplicationTagMgtException If an error occurs while retrieving the Application tag by Id.
      */
-    List<ApplicationTagsItem> getAllApplicationTags(Integer tenantID) throws ApplicationTagMgtException;
+    List<ApplicationTagsListItem> getAllApplicationTags(Integer tenantID, Integer offset, Integer limit, String filter)
+            throws ApplicationTagMgtException;
 
     /**
      * Get application tag when the tag resides in the same tenant of the request initiated.
@@ -77,4 +82,14 @@ public interface ApplicationTagDAO {
      */
     void updateApplicationTag(ApplicationTag applicationTagPatch, String applicationTagId, Integer tenantID)
             throws ApplicationTagMgtException;
+
+    /**
+     * Get count of Application Tags matching the filter.
+     *
+     * @param filter        Application Tag search filter.
+     * @param tenantID      Tenant ID.
+     * @return Matched Application Tags count in an int value.
+     * @throws ApplicationTagMgtException If an error occurs while retrieving the Application Tags count.
+     */
+    int getCountOfApplicationTags(String filter, Integer tenantID) throws ApplicationTagMgtException;
 }

@@ -33,6 +33,7 @@ import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.identity.application.common.model.ApplicationTag;
 import org.wso2.carbon.identity.application.common.model.ApplicationTag.ApplicationTagBuilder;
 import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsListItem;
 import org.wso2.carbon.identity.application.tag.mgt.dao.impl.ApplicationTagDAOImpl;
 import org.wso2.carbon.identity.application.tag.mgt.dao.impl.CacheBackedApplicationTagDAO;
 import org.wso2.carbon.identity.application.tag.mgt.util.ApplicationTagManagementUtil;
@@ -60,12 +61,9 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class CacheBackedApplicationTagDAOTest extends PowerMockTestCase {
 
     private static final String DB_NAME = "cache_backed_application_tag_mgt_dao_db";
-    private static final String TEST_TAG_1_NAME = "test_tag_1";
-    private static final String TEST_TAG_1_COLOUR = "#677b66";
-    private static final String TEST_TAG_1_UPDATED_NAME = "test_tag_1_updated";
+    private static final String TEST_TAG_NAME = "test_tag_";
+    private static final String TEST_TAG_COLOUR = "#677b6";
     private static final String TEST_TAG_UPDATED_COLOUR = "#927b66";
-    private static final String TEST_TAG_2_NAME = "test_tag_2";
-    private static final String TEST_TAG_2_COLOUR = "#589b66";
     private static final String TEST_TAG_DEFAULT_COLOUR = "#345f66";
     private static final Integer SUPER_TENANT_DOMAIN_ID = -1234;
     private static final String SUPER_TENANT_DOMAIN_NAME = "carbon.super";
@@ -73,8 +71,9 @@ public class CacheBackedApplicationTagDAOTest extends PowerMockTestCase {
     private static final String SAMPLE_TENANT_DOMAIN_NAME = "wso2.com";
     private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private CacheBackedApplicationTagDAO cacheBackedDaoImpl;
-    private String tagId1;
-    private String tagId2;
+    private String[] tagIdList;
+    private String[] tagNameList;
+    private String[] tagColourList;
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -112,40 +111,149 @@ public class CacheBackedApplicationTagDAOTest extends PowerMockTestCase {
         mockStatic(IdentityTenantUtil.class);
         mockStatic(ApplicationTagManagementUtil.class);
 
-        when(IdentityTenantUtil.getTenantDomain(tenantID)).thenReturn(getTenantDomain(tenantID));
-        String tagId1 = addApplicationTagToDB(TEST_TAG_1_NAME, TEST_TAG_1_COLOUR, getConnection(), tenantID);
-        String tagId2 = addApplicationTagToDB(TEST_TAG_2_NAME, TEST_TAG_2_COLOUR, getConnection(), tenantID);
-        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        List<ApplicationTagsItem> fetchedTags = cacheBackedDaoImpl.getAllApplicationTags(tenantID);
+        int tagCount  = 12;
+        tagIdList = new String[tagCount];
+        tagNameList = new String[tagCount];
+        tagColourList = new String[tagCount];
 
-        Assert.assertNotNull(fetchedTags);
-        Assert.assertEquals(fetchedTags.size(), 2);
-        boolean isTag1Exist = false;
-        boolean isTag2Exist = false;
-        for (ApplicationTagsItem appTag: fetchedTags) {
-            if (tagId1.equals(appTag.getId()) && TEST_TAG_1_NAME.equals(appTag.getName()) &&
-                    TEST_TAG_1_COLOUR.equals(appTag.getColour())) {
-                isTag1Exist = true;
-            } else if (tagId2.equals(appTag.getId()) && TEST_TAG_2_NAME.equals(appTag.getName()) &&
-                    TEST_TAG_2_COLOUR.equals(appTag.getColour())) {
-                isTag2Exist = true;
+        when(IdentityTenantUtil.getTenantDomain(tenantID)).thenReturn(getTenantDomain(tenantID));
+        for (int count = 0; count < tagCount; count++) {
+            String number = count < 9 ? "0" + String.valueOf(count + 1) : String.valueOf(count + 1);
+            tagNameList[count] = TEST_TAG_NAME + number + getTenantDomain(tenantID);
+            tagColourList[count] = TEST_TAG_COLOUR + number;
+            tagIdList[count] = addApplicationTagToDB(tagNameList[count], tagColourList[count], getConnection(),
+                    tenantID);
+        }
+
+        // Get all Tags without setting offset or filter
+        int limit = 12;
+        int offset = 0;
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        List<ApplicationTagsListItem> fetchedTags = cacheBackedDaoImpl.getAllApplicationTags(tenantID, offset, limit,
+                null);
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        Assert.assertEquals(cacheBackedDaoImpl.getCountOfApplicationTags(null, tenantID), tagCount);
+        Assert.assertEquals(fetchedTags.size(), tagCount);
+        Assert.assertTrue(isAllApplicationTagsFetched(offset, fetchedTags),
+                "Failed to retrieve Application Tags without offset and filter");
+
+        // Get all Tags with limit, offset and without filter
+        limit = 10;
+        offset = 0;
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        fetchedTags = cacheBackedDaoImpl.getAllApplicationTags(tenantID, offset, limit, null);
+        Assert.assertEquals(fetchedTags.size(), limit);
+        Assert.assertTrue(isAllApplicationTagsFetched(offset, fetchedTags),
+                "Failed to retrieve Application Tags with limit and without offset and filter");
+
+        limit = 10;
+        offset = 10;
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        fetchedTags = cacheBackedDaoImpl.getAllApplicationTags(tenantID, offset, limit, null);
+        Assert.assertEquals(fetchedTags.size(), tagCount - limit);
+        Assert.assertTrue(isAllApplicationTagsFetched(offset, fetchedTags),
+                "Failed to retrieve Application Tags with limit, offset and without filter");
+
+        // Get all Tags with filter 'eq' operation and without offset
+        limit = 12;
+        offset = 0;
+        String filter = "name eq " + TEST_TAG_NAME + "02" + getTenantDomain(tenantID);
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        fetchedTags = cacheBackedDaoImpl.getAllApplicationTags(tenantID, offset, limit, filter);
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        Assert.assertEquals(cacheBackedDaoImpl.getCountOfApplicationTags(filter, tenantID), 1);
+        Assert.assertEquals(fetchedTags.size(), 1);
+        Assert.assertTrue(tagIdList[1].equals(fetchedTags.get(0).getId()) && tagNameList[1].equals(
+                        fetchedTags.get(0).getName()) && tagColourList[1].equals(fetchedTags.get(0).getColour()),
+                "Failed to retrieve Application Tags with filter 'eq' operation and without offset");
+
+        // Get all Tags with filter 'co' operation and without offset
+        limit = 12;
+        offset = 0;
+        filter = "name co 1";
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        fetchedTags = cacheBackedDaoImpl.getAllApplicationTags(tenantID, offset, limit, filter);
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        Assert.assertEquals(cacheBackedDaoImpl.getCountOfApplicationTags(filter, tenantID), 4);
+        Assert.assertEquals(fetchedTags.size(), 4);
+        boolean isAllExpectedTagsFetched = false;
+        for (ApplicationTagsListItem fetchedTag : fetchedTags) {
+            if (fetchedTag.getName().contains("1")) {
+                isAllExpectedTagsFetched = true;
+            } else {
+                isAllExpectedTagsFetched = false;
+                break;
             }
         }
-        Assert.assertTrue(isTag1Exist);
-        Assert.assertTrue(isTag2Exist);
+        Assert.assertTrue(isAllExpectedTagsFetched,
+                "Failed to retrieve Application Tags with filter 'co' operation and without offset");
+
+        // Get all Tags with filter 'sw' operation and without offset
+        limit = 12;
+        offset = 0;
+        filter = "name sw test";
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        fetchedTags = cacheBackedDaoImpl.getAllApplicationTags(tenantID, offset, limit, filter);
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        Assert.assertEquals(cacheBackedDaoImpl.getCountOfApplicationTags(filter, tenantID), tagCount);
+        Assert.assertEquals(fetchedTags.size(), limit);
+        Assert.assertTrue(isAllApplicationTagsFetched(offset, fetchedTags),
+                "Failed to retrieve Application Tags with filter 'sw' operation and without offset");
+
+        // Get all Tags with filter 'ew' operation and offset
+        limit = 10;
+        offset = 0;
+        filter = "name ew " + getTenantDomain(tenantID);
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        fetchedTags = cacheBackedDaoImpl.getAllApplicationTags(tenantID, offset, limit, filter);
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        Assert.assertEquals(cacheBackedDaoImpl.getCountOfApplicationTags(filter, tenantID), tagCount);
+        Assert.assertEquals(fetchedTags.size(), limit);
+        Assert.assertTrue(isAllApplicationTagsFetched(offset, fetchedTags),
+                "Failed to retrieve Application Tags with filter 'ew' operation, limit and without offset");
+
+        limit = 10;
+        offset = 10;
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        fetchedTags = cacheBackedDaoImpl.getAllApplicationTags(tenantID, offset, limit, filter);
+        Assert.assertEquals(fetchedTags.size(), tagCount - limit);
+        Assert.assertTrue(isAllApplicationTagsFetched(offset, fetchedTags),
+                "Failed to retrieve Application Tags with filter 'ew' operation, limit and offset");
+
+        // Get all Tags with multiple filter operations and without offset
+        limit = 12;
+        offset = 0;
+        filter = "name sw test and name co 1 and name ew 2" + getTenantDomain(tenantID);
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        fetchedTags = cacheBackedDaoImpl.getAllApplicationTags(tenantID, offset, limit, filter);
+        when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        Assert.assertEquals(cacheBackedDaoImpl.getCountOfApplicationTags(filter, tenantID), 1);
+        Assert.assertEquals(fetchedTags.size(), 1);
+        Assert.assertTrue(tagIdList[11].equals(fetchedTags.get(0).getId()) && tagNameList[11].equals(
+                        fetchedTags.get(0).getName()) && tagColourList[11].equals(fetchedTags.get(0).getColour()),
+                "Failed to retrieve Application Tags with multiple filter operations and without offset");
+
+        // Delete created application Tags
+        deleteApplicationTags(tagIdList, tenantID);
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider", priority = 3)
     public void testCreateApplicationTag(Integer tenantID) throws Exception {
 
         mockStatic(IdentityDatabaseUtil.class);
+        mockStatic(IdentityTenantUtil.class);
         mockStatic(ApplicationTagManagementUtil.class);
 
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
         ApplicationTag inputTag = createApplicationTag("testCreateAppTag" + tenantID.toString(),
                 TEST_TAG_DEFAULT_COLOUR);
-        String tagId1 = cacheBackedDaoImpl.createApplicationTag(inputTag, tenantID);
-        Assert.assertNotNull(tagId1);
+        ApplicationTagsItem createdTag = cacheBackedDaoImpl.createApplicationTag(inputTag, tenantID);
+        Assert.assertNotNull(createdTag.getId());
+        Assert.assertEquals(createdTag.getName(), "testCreateAppTag" + tenantID.toString());
+        Assert.assertEquals(createdTag.getColour(), TEST_TAG_DEFAULT_COLOUR);
+
+        //Delete created Application Tags
+        deleteApplicationTags(new String[]{createdTag.getId()}, tenantID);
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider", priority = 3)
@@ -164,6 +272,9 @@ public class CacheBackedApplicationTagDAOTest extends PowerMockTestCase {
         Assert.assertEquals(fetchedTag.getId(), tagId);
         Assert.assertEquals(fetchedTag.getName(), tagName);
         Assert.assertEquals(fetchedTag.getColour(), TEST_TAG_DEFAULT_COLOUR);
+
+        //Delete created Application Tags
+        deleteApplicationTags(new String[]{tagId}, tenantID);
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider", priority = 4)
@@ -194,6 +305,9 @@ public class CacheBackedApplicationTagDAOTest extends PowerMockTestCase {
         Assert.assertEquals(fetchedTag.getId(), tagId);
         Assert.assertEquals(fetchedTag.getName(), updatedTagName);
         Assert.assertEquals(fetchedTag.getColour(), TEST_TAG_UPDATED_COLOUR);
+
+        //Delete created Application Tags
+        deleteApplicationTags(new String[]{tagId}, tenantID);
     }
 
     @Test(dataProvider = "applicationTagTestDataProvider", priority = 5)
@@ -262,7 +376,7 @@ public class CacheBackedApplicationTagDAOTest extends PowerMockTestCase {
             connection.commit();
             return null;
         }).when(IdentityDatabaseUtil.class, "commitTransaction", any(Connection.class));
-        return cacheBackedDaoImpl.createApplicationTag(inputApplicationTag, tenantID);
+        return cacheBackedDaoImpl.createApplicationTag(inputApplicationTag, tenantID).getId();
     }
 
     /**
@@ -321,5 +435,37 @@ public class CacheBackedApplicationTagDAOTest extends PowerMockTestCase {
             return SAMPLE_TENANT_DOMAIN_NAME;
         }
         return null;
+    }
+
+    private boolean isAllApplicationTagsFetched(Integer offset, List<ApplicationTagsListItem> fetchedTags) {
+
+        boolean isAllTagsFetched = false;
+        for (int count = offset; count < offset + fetchedTags.size(); count++) {
+            // Applications should be sorted by Name by default
+            if (tagIdList[count].equals(fetchedTags.get(count - offset).getId()) &&
+                    tagNameList[count].equals(fetchedTags.get(count - offset).getName()) &&
+                    tagColourList[count].equals(fetchedTags.get(count - offset).getColour())) {
+                isAllTagsFetched = true;
+            } else {
+                isAllTagsFetched = false;
+                break;
+            }
+        }
+        return isAllTagsFetched;
+    }
+
+    private void deleteApplicationTags(String[] applicationTagIds, Integer tenantID) throws Exception {
+
+        when(IdentityTenantUtil.getTenantDomain(tenantID)).thenReturn(getTenantDomain(tenantID));
+        for (String tagId : applicationTagIds) {
+            Connection connection = getConnection();
+            when(IdentityDatabaseUtil.getDBConnection(true)).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(getConnection());
+            PowerMockito.doAnswer((Answer<Void>) invocation -> {
+                connection.commit();
+                return null;
+            }).when(IdentityDatabaseUtil.class, "commitTransaction", any(Connection.class));
+            cacheBackedDaoImpl.deleteApplicationTagById(tagId, tenantID);
+        }
     }
 }

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.tag.mgt;
 
 import org.wso2.carbon.identity.application.common.model.ApplicationTag;
 import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsListItem;
 
 import java.util.List;
 
@@ -36,17 +37,21 @@ public interface ApplicationTagManager {
      * @return Tag Id.
      * @throws ApplicationTagMgtException If an error occurs while creating the Application tag.
      */
-    String createApplicationTag(ApplicationTag applicationTagDTO, String tenantDomain)
+    ApplicationTagsItem createApplicationTag(ApplicationTag applicationTagDTO, String tenantDomain)
             throws ApplicationTagMgtException;
 
     /**
      * Get All Application Tags
      *
      * @param tenantDomain Tenant Domain.
-     * @return Application Tag object
+     * @param offset    Offset for pagination.
+     * @param limit     Limit.
+     * @param filter    Filter query.
+     * @return Application Tag List object.
      * @throws ApplicationTagMgtException If an error occurs while retrieving the Application tag by Id.
      */
-    List<ApplicationTagsItem> getAllApplicationTags(String tenantDomain) throws ApplicationTagMgtException;
+    List<ApplicationTagsListItem> getAllApplicationTags(String tenantDomain, Integer offset, Integer limit,
+                                                        String filter) throws ApplicationTagMgtException;
 
     /**
      * Get Application Tag.
@@ -78,4 +83,14 @@ public interface ApplicationTagManager {
      */
     void updateApplicationTag(ApplicationTag applicationTagPatch, String applicationTagId, String tenantDomain)
             throws ApplicationTagMgtException;
+
+    /**
+     * Get count of Application Tags matching the filter.
+     *
+     * @param filter        Application Tag search filter.
+     * @param tenantDomain      Tenant Domain.
+     * @return Matched Application Tags count in an int value.
+     * @throws ApplicationTagMgtException If an error occurs while retrieving the Application Tags count.
+     */
+    int getCountOfApplicationTags(String filter, String tenantDomain) throws ApplicationTagMgtException;
 }

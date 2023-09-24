@@ -104,7 +104,7 @@
         <module>components/api-resource-mgt</module>
         <module>features/api-resource-mgt</module>
         <module>components/application-tag-mgt</module>
-        <module>features/application-tag-mgt-feature</module>
+        <module>features/application-tag-mgt</module>
     </modules>
 
 

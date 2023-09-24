@@ -22,7 +22,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <artifactId>application-tag-mgt-feature</artifactId>
+        <artifactId>application-tag-management-feature</artifactId>
         <version>5.25.332-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>

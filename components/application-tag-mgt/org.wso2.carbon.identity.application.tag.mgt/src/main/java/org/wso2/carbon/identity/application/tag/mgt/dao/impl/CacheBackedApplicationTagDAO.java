@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.ApplicationTag;
 import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsListItem;
 import org.wso2.carbon.identity.application.tag.mgt.ApplicationTagMgtException;
 import org.wso2.carbon.identity.application.tag.mgt.cache.ApplicationTagCacheById;
 import org.wso2.carbon.identity.application.tag.mgt.cache.ApplicationTagCacheEntry;
@@ -46,16 +47,21 @@ public class CacheBackedApplicationTagDAO implements ApplicationTagDAO {
     }
 
     @Override
-    public String createApplicationTag(ApplicationTag applicationTagDTO, Integer tenantID)
+    public ApplicationTagsItem createApplicationTag(ApplicationTag applicationTag, Integer tenantID)
             throws ApplicationTagMgtException {
 
-        return applicationTagDAO.createApplicationTag(applicationTagDTO, tenantID);
+//        ApplicationTagsItem createdTag = applicationTagDAO.createApplicationTag(applicationTag, tenantID);
+//        ApplicationTagIdCacheKey cacheKey = new ApplicationTagIdCacheKey(createdTag.getId());
+//        applicationTagCacheById.addToCache(cacheKey, new ApplicationTagCacheEntry(createdTag), tenantID);
+//        return createdTag;
+        return applicationTagDAO.createApplicationTag(applicationTag, tenantID);
     }
 
     @Override
-    public List<ApplicationTagsItem> getAllApplicationTags(Integer tenantID) throws ApplicationTagMgtException {
+    public List<ApplicationTagsListItem> getAllApplicationTags(Integer tenantID, Integer offset, Integer limit,
+                                                               String filter) throws ApplicationTagMgtException {
 
-        return applicationTagDAO.getAllApplicationTags(tenantID);
+        return applicationTagDAO.getAllApplicationTags(tenantID, offset, limit, filter);
     }
 
     @Override
@@ -107,6 +113,12 @@ public class CacheBackedApplicationTagDAO implements ApplicationTagDAO {
 
         clearApplicationTagCache(applicationTagId, tenantID);
         applicationTagDAO.updateApplicationTag(applicationTagPatch, applicationTagId, tenantID);
+    }
+
+    @Override
+    public int getCountOfApplicationTags(String filter, Integer tenantID) throws ApplicationTagMgtException {
+
+        return applicationTagDAO.getCountOfApplicationTags(filter, tenantID);
     }
 
     private void clearApplicationTagCache(String applicationTagId, Integer tenantID) throws

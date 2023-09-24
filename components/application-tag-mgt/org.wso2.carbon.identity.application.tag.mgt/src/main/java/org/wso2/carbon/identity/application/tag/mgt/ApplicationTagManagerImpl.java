@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.tag.mgt;
 
 import org.wso2.carbon.identity.application.common.model.ApplicationTag;
 import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsListItem;
 import org.wso2.carbon.identity.application.tag.mgt.dao.impl.ApplicationTagDAOImpl;
 import org.wso2.carbon.identity.application.tag.mgt.dao.impl.CacheBackedApplicationTagDAO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -45,16 +46,17 @@ public class ApplicationTagManagerImpl implements ApplicationTagManager {
     }
 
     @Override
-    public String createApplicationTag(ApplicationTag applicationTagDTO, String tenantDomain)
+    public ApplicationTagsItem createApplicationTag(ApplicationTag applicationTagDTO, String tenantDomain)
             throws ApplicationTagMgtException {
 
         return dao.createApplicationTag(applicationTagDTO, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
-    public List<ApplicationTagsItem> getAllApplicationTags(String tenantDomain) throws ApplicationTagMgtException {
+    public List<ApplicationTagsListItem> getAllApplicationTags(String tenantDomain, Integer offset, Integer limit,
+                                                               String filter) throws ApplicationTagMgtException {
 
-        return dao.getAllApplicationTags(IdentityTenantUtil.getTenantId(tenantDomain));
+        return dao.getAllApplicationTags(IdentityTenantUtil.getTenantId(tenantDomain), offset, limit, filter);
     }
 
     @Override
@@ -76,5 +78,11 @@ public class ApplicationTagManagerImpl implements ApplicationTagManager {
                                      String tenantDomain) throws ApplicationTagMgtException {
 
         dao.updateApplicationTag(applicationTagPatch, applicationTagId, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public int getCountOfApplicationTags(String filter, String tenantDomain) throws ApplicationTagMgtException {
+
+        return dao.getCountOfApplicationTags(filter, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 }

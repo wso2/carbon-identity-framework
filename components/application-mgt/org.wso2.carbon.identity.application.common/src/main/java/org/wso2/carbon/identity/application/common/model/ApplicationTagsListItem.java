@@ -19,22 +19,24 @@
 package org.wso2.carbon.identity.application.common.model;
 
 /**
- * Application Tags List Item.
+ * Application Tags List Item object.
  */
-public class ApplicationTagsItem {
+public class ApplicationTagsListItem {
 
     private String id;
     private String name;
     private String colour;
+    private Integer associatedAppsCount;
 
-    public ApplicationTagsItem() {
+    public ApplicationTagsListItem() {
     }
 
-    public ApplicationTagsItem(ApplicationTagsItemBuilder applicationTagsItemBuilder) {
+    public ApplicationTagsListItem(ApplicationTagsListItemBuilder applicationTagsItemBuilder) {
 
         this.id = applicationTagsItemBuilder.id;
         this.name = applicationTagsItemBuilder.name;
         this.colour = applicationTagsItemBuilder.colour;
+        this.associatedAppsCount = applicationTagsItemBuilder.associatedAppsCount;
     }
 
     public String getId() {
@@ -67,39 +69,56 @@ public class ApplicationTagsItem {
         this.colour = colour;
     }
 
+    public Integer getAssociatedAppsCount() {
+
+        return associatedAppsCount;
+    }
+
+    public void setColour(Integer associatedAppsCount) {
+
+        this.associatedAppsCount = associatedAppsCount;
+    }
+
     /**
      * Application Tags List Item builder.
      */
-    public static class ApplicationTagsItemBuilder {
+    public static class ApplicationTagsListItemBuilder {
 
         private String id;
         private String name;
         private String colour;
+        private Integer associatedAppsCount;
 
-        public ApplicationTagsItemBuilder() {
+        public ApplicationTagsListItemBuilder() {
         }
 
-        public ApplicationTagsItemBuilder id(String id) {
+        public ApplicationTagsListItemBuilder id(String id) {
 
             this.id = id;
             return this;
         }
 
-        public ApplicationTagsItemBuilder name(String name) {
+        public ApplicationTagsListItemBuilder name(String name) {
 
             this.name = name;
             return this;
         }
 
-        public ApplicationTagsItemBuilder colour(String colour) {
+        public ApplicationTagsListItemBuilder colour(String colour) {
 
             this.colour = colour;
             return this;
         }
 
-        public ApplicationTagsItem build() {
+        public ApplicationTagsListItemBuilder associatedAppsCount(Integer associatedAppsCount) {
 
-            return new ApplicationTagsItem(this);
+            this.associatedAppsCount = associatedAppsCount;
+            return this;
+        }
+
+        public ApplicationTagsListItem build() {
+
+            return new ApplicationTagsListItem(this);
         }
     }
 }

@@ -26,8 +26,8 @@
         <version>5.25.332-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
+    <modelVersion>4.0.0</modelVersion>
     <artifactId>application-tag-mgt</artifactId>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - Application Tag Management Aggregator Module</name>
@@ -39,10 +39,4 @@
     <modules>
         <module>org.wso2.carbon.identity.application.tag.mgt</module>
     </modules>
-
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-    </properties>
-
 </project>
