@@ -149,8 +149,8 @@ public class Constants {
                 "invalid_request_par.request.uri.expired";
         public static final String INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED_I18N_KEY =
                 "par.request.uri.expired";
-        public static final String INVALID_CLIENT_PAR_CLIENT_ID_NOT_MATCH = "invalid_client_par.client.id.not.match";
-        public static final String INVALID_CLIENT_PAR_CLIENT_ID_NOT_MATCH_I18N_KEY = "par.client.id.not.match";
+        public static final String INVALID_REQUEST_PAR_CLIENT_ID_NOT_MATCH = "invalid_request_par.client.id.not.match";
+        public static final String INVALID_REQUEST_PAR_CLIENT_ID_NOT_MATCH_I18N_KEY = "par.client.id.not.match";
         public static final String AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED =
                 "authentication.attempt.failed_authorization.failed";
         public static final String AUTHENTICATION_ATTEMPT_FAILED_CLAIM_REQUEST_MISSING =

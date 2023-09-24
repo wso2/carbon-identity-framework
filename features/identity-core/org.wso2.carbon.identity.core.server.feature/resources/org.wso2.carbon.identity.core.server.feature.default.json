@@ -229,6 +229,17 @@
 
   "oauth.global_rbac_scope_issuer.enable": false,
 
+  "oauth.jarm.enable": true,
+  "oauth.jarm.jwt.enable": true,
+  "oauth.jarm.query_jwt.enable": true,
+  "oauth.jarm.fragment_jwt.enable": true,
+  "oauth.jarm.form_post_jwt.enable": true,
+  "oauth.jarm.jarm_response_jwt_validity": "7200",
+  "oauth.jarm.response_mode.jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.JwtResponseModeProvider",
+  "oauth.jarm.response_mode.query_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.QueryJwtResponseModeProvider",
+  "oauth.jarm.response_mode.fragment_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FragmentJwtResponseModeProvider",
+  "oauth.jarm.response_mode.form_post_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider",
+
   "rest_api_authentication.add_realm_user_to_error": false,
 
   "saml.entity_id": "${carbon.host}",
@@ -310,6 +321,8 @@
   "scim2.consider_max_limit_for_total_results": false,
   "scim2.consider_total_records_for_total_results_of_ldap": false,
 
+  "identity_mgt.password_policy.password_policy_validation_handler.enable": true,
+  "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": "${carbon.protocol}:\\/\\/${carbon.host}:${carbon.management.port}\\/.*",
   "identity_mgt.recovery.enable_detailed_error_messages": false,
@@ -658,6 +671,8 @@
   "authentication.adaptive.http_connections.connection_timeout": "$ref{authentication.adaptive.http_connections.default_timeout}",
   "authentication.adaptive.http_connections.read_timeout": "$ref{authentication.adaptive.http_connections.default_timeout}",
   "authentication.adaptive.http_connections.request_timeout": "$ref{authentication.adaptive.http_connections.default_timeout}",
+  "authentication.adaptive.call_choreo.http_connections.token_request_retry_count": "2",
+  "authentication.adaptive.call_choreo.http_connections.choreo_api_request_retry_count": "2",
   "authentication.adaptive.long_wait.page_refresh_interval": "500ms",
   "authentication.adaptive.long_wait.timout": "10s",
   "authentication.adaptive.long_wait.prompt": false,
@@ -740,7 +755,6 @@
   "console.i18n_resource_path": "",
   "console.login_callback_path": "",
   "console.logout_callback_path": "",
-  "console.server_origin": "https://localhost:9443",
   "console.route_paths.home": "/getting-started",
   "console.route_paths.login": "",
   "console.route_paths.logout": "/logout",
@@ -857,7 +871,7 @@
   "console.account_login.enabled": true,
   "console.account_login.scopes.feature": [],
   "console.account_login.scopes.update": ["internal_config_mgt_update"],
-  "console.administrators.enabled": false,
+  "console.administrators.enabled": true,
   "console.administrators.scopes.feature": [],
   "console.administrators.scopes.create": [],
   "console.administrators.scopes.read": [],

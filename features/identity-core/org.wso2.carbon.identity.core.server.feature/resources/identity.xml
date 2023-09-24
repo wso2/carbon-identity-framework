@@ -279,6 +279,24 @@
                 <ResponseModeName>form_post</ResponseModeName>
                 <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FormPostResponseModeProvider</ResponseModeProviderClass>
             </SupportedResponseMode>
+            <!-- Validity period for jarm response jwt in seconds -->
+            <JARMResponseJwtValidityPeriodInSeconds>7200</JARMResponseJwtValidityPeriodInSeconds>
+            <SupportedResponseMode>
+                <ResponseModeName>jwt</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.JwtResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>query.jwt</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.QueryJwtResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>fragment.jwt</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FragmentJwtResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
+            <SupportedResponseMode>
+                <ResponseModeName>form_post.jwt</ResponseModeName>
+                <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider</ResponseModeProviderClass>
+            </SupportedResponseMode>
         </SupportedResponseModes>
 
         <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
@@ -943,6 +961,7 @@
     </SCIM2>
 
     <!--Recovery>
+        <EnableV1API>false</EnableV1API>
         <ReCaptcha>
             <Password>
                 <Enable>false</Enable>
@@ -2039,6 +2058,18 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
             <Scopes>internal_organization_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
+            <Scopes>internal_config_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/me/organizations/root" secured="true" http-method="GET">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
@@ -2257,6 +2288,7 @@
                     <Path>/api/server/v1/validation-rules</Path>
                     <Path>/api/users/v1/([^/]+)/sessions</Path>
                     <Path>/api/server/v1/guests</Path>
+                    <Path>/api/server/v1/organization-configs</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2277,6 +2309,7 @@
 
     <OrgRoutingOnlySupportedAPIPaths>
         <Path>/api/server/v1/organizations</Path>
+        <Path>/api/server/v1/organization-configs</Path>
         <Path>/api/users/v1/me/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
@@ -2327,14 +2360,17 @@
         <!--Timeout in milliseconds for the waiting external calls-->
         <LongWaitTimeout>10000</LongWaitTimeout>
 
-        <!--Timeouts for callChore token call and adaptive endpoint-->
-        <!--Default timeout in milliseconds-->
+        <!--Timeouts and retry count for callChore token call and adaptive endpoint-->
         <CallChoreo>
+            <!--Default timeout in milliseconds-->
             <HTTPConnectionTimeout>1000</HTTPConnectionTimeout>
             <HTTPReadTimeout>1000</HTTPReadTimeout>
             <HTTPConnectionRequestTimeout>1000</HTTPConnectionRequestTimeout>
+            <!--Default retry counts-->
+            <TokenRequestRetryCount>2</TokenRequestRetryCount>
+            <ChoreoAPIRequestRetryCount>2</ChoreoAPIRequestRetryCount>
         </CallChoreo>
-        <!--End of default configs for callChore timeouts-->
+        <!--End of default configs for callChore timeouts and request retry counts-->
 
         <!--Whether to use authenticator name or display name in authenticationOptions-->
         <AuthenticatorNameInAuthConfig>
@@ -2445,5 +2481,12 @@
     <IdentityDataStore>
         <DataStoreType>org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</DataStoreType>
     </IdentityDataStore>
+
+    <UserProfileExport>
+        <AdditionalClaims>
+        </AdditionalClaims>
+        <RestrictedClaims>
+        </RestrictedClaims>
+    </UserProfileExport>
 
 </Server>

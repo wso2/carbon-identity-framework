@@ -170,6 +170,7 @@ CREATE TABLE IF NOT EXISTS IDN_OAUTH2_DEVICE_FLOW (
             TENANT_ID INTEGER,
             USER_DOMAIN VARCHAR(50),
             IDP_ID INTEGER,
+            SUBJECT_IDENTIFIER VARCHAR(255),
             PRIMARY KEY (DEVICE_CODE),
             UNIQUE (CODE_ID),
             CONSTRAINT USRCDE_QNTFR_CONSTRAINT UNIQUE (USER_CODE, QUANTIFIER),
@@ -1034,7 +1035,8 @@ INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('899c69b2-8bf7-46b5-9666-f7f99f90d6cc', 'fido-config', 'A resource type to store FIDO authenticator related preferences'),
 ('7f24050f-3e3d-4a00-b10f-fd5450d6523e', 'input-validation-configurations', 'A resource type to store input validation related configurations'),
 ('f4e83b8a-d1c4-a0d6-03a7-d48e268c60c5', 'PK_JWT_CONFIGURATION', 'A resource type to keep the tenant private key jwt configuration.'),
-('9ec61e9d-f0e6-4952-9a09-ab842aeb2db2', 'ATTRIBUTE_CONFIGURATION', 'A resource type to store attribute related configurations.');
+('9ec61e9d-f0e6-4952-9a09-ab842aeb2db2', 'ATTRIBUTE_CONFIGURATION', 'A resource type to store attribute related configurations.'),
+('132b0ee6-43e0-462d-8b4b-15b68109d71d', 'ORGANIZATION_CONFIGURATION', 'A resource type to keep the organization configurations.');
 
 CREATE TABLE IF NOT EXISTS IDN_CONFIG_RESOURCE (
     ID VARCHAR(255) NOT NULL,

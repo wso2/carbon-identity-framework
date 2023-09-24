@@ -3021,11 +3021,13 @@ public class IdPManagementDAO {
             List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties(identityProvider
                     .getJustInTimeProvisioningConfig(), idpProperties);
 
-            IdentityProviderProperty trustedIdpProperty = new IdentityProviderProperty();
-            trustedIdpProperty.setName(IS_TRUSTED_TOKEN_ISSUER);
-            trustedIdpProperty.setValue(String.valueOf(identityProvider.isTrustedTokenIssuer()));
-            identityProviderProperties.add(trustedIdpProperty);
-
+            if (!identityProviderProperties.stream().anyMatch(identityProviderProperty ->
+                    IS_TRUSTED_TOKEN_ISSUER.equals(identityProviderProperty.getName()))) {
+                IdentityProviderProperty trustedIdpProperty = new IdentityProviderProperty();
+                trustedIdpProperty.setName(IS_TRUSTED_TOKEN_ISSUER);
+                trustedIdpProperty.setValue(String.valueOf(identityProvider.isTrustedTokenIssuer()));
+                identityProviderProperties.add(trustedIdpProperty);
+            }
             addTemplateIdProperty(identityProviderProperties, identityProvider);
             addIdentityProviderProperties(dbConnection, idPId, identityProviderProperties, tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);

@@ -330,6 +330,34 @@
                 <ResponseModeName>form_post</ResponseModeName>
                 <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FormPostResponseModeProvider</ResponseModeProviderClass>
             </SupportedResponseMode>
+            {% if oauth.jarm.enable is sameas true %}
+             <!-- Validity period for jarm response jwt in seconds -->
+            <JARMResponseJwtValidityPeriodInSeconds>{{oauth.jarm.jarm_response_jwt_validity}}</JARMResponseJwtValidityPeriodInSeconds>
+                {% if oauth.jarm.jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+                {% if oauth.jarm.query_jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>query.jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.query_jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+                {% if oauth.jarm.fragment_jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>fragment.jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.fragment_jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+                {% if oauth.jarm.form_post_jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>form_post.jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.form_post_jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+            {% endif %}
             {% for response_mode in oauth.response_mode %}
             <SupportedResponseMode>
                 <ResponseModeName>{{response_mode.name}}</ResponseModeName>
@@ -339,11 +367,6 @@
         </SupportedResponseModes>
 
         <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
-
-        <!-- Validity period for jarm response jwt in seconds -->
-        {% if oauth.jarm.jarm_response_jwt_validity is defined %}
-        <JARMResponseJwtValidityPeriodInSeconds>{{oauth.jarm.jarm_response_jwt_validity}}</JARMResponseJwtValidityPeriodInSeconds>
-        {% endif %}
 
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
@@ -854,6 +877,11 @@
             {% endif %}
         </OpenIDConnect>
 
+        <!-- OIDCSessionStateManager configuration -->
+        {% if oauth.oidc.session_state_manager is defined %}
+        <OIDCSessionStateManager>{{oauth.oidc.session_state_manager}}</OIDCSessionStateManager>
+        {% endif %}
+
         <!--
             Configs related to OAuth2 Device Code Grant.
             Supported versions: IS 5.12.0 onwards
@@ -1284,7 +1312,13 @@
 
     </SCIM2>
 
+      <PasswordPolicy>
+        <PasswordPolicyValidationHandler>
+            <Enable>{{identity_mgt.password_policy.password_policy_validation_handler.enable}}</Enable>
+        </PasswordPolicyValidationHandler>
+      </PasswordPolicy>
       <Recovery>
+        <EnableV1API>{{identity_mgt.recovery.enable_v1_api}}</EnableV1API>
         <ReCaptcha>
             <Password>
                 <Enable>{{identity_mgt.password_reset_email.enable_recaptcha}}</Enable>
@@ -2931,6 +2965,18 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
             <Scopes>internal_organization_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
+            <Scopes>internal_config_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/me/organizations/root" secured="true" http-method="GET">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
@@ -3212,6 +3258,8 @@
                     <Path>/api/idle-account-identification/v1/inactive-users</Path>
                     <Path>/api/server/v1/expired-password-identification/password-expired-users</Path>
                     <Path>/api/server/v1/api-resources</Path>
+                    <Path>/api/server/v1/extensions</Path>
+                    <Path>/api/server/v1/organization-configs</Path>
                     <Path>/api/server/v1/applications-tags</Path>
                 </SubPaths>
             </Context>
@@ -3239,6 +3287,7 @@
 
     <OrgRoutingOnlySupportedAPIPaths>
         <Path>/api/server/v1/organizations</Path>
+        <Path>/api/server/v1/organization-configs</Path>
         <Path>/api/users/v1/me/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
@@ -3289,13 +3338,16 @@
         <!--End of default configs for timeouts-->
 
         <!--Timeouts for callChore token call and adaptive endpoint-->
-        <!--Default timeout in milliseconds-->
         <CallChoreo>
+          <!--Default timeout in milliseconds-->
           <HTTPConnectionTimeout>{{authentication.adaptive.call_choreo.http_connections.connection_timeout}}</HTTPConnectionTimeout>
           <HTTPReadTimeout>{{authentication.adaptive.call_choreo.http_connections.read_timeout}}</HTTPReadTimeout>
           <HTTPConnectionRequestTimeout>{{authentication.adaptive.call_choreo.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
+          <!--Default retry counts-->
+          <TokenRequestRetryCount>{{authentication.adaptive.call_choreo.http_connections.token_request_retry_count}}</TokenRequestRetryCount>
+          <ChoreoAPIRequestRetryCount>{{authentication.adaptive.call_choreo.http_connections.choreo_api_request_retry_count}}</ChoreoAPIRequestRetryCount>
         </CallChoreo>
-        <!--End of default configs for callChore timeouts-->
+        <!--End of default configs for callChore timeouts and request retry counts-->
 
         <RefreshInterval>{{authentication.adaptive.long_wait.page_refresh_interval}}</RefreshInterval>
         <!--End of timeouts in milliseconds-->
@@ -3664,5 +3716,18 @@
     <IdentityDataStore>
         <DataStoreType>{{identity_datastore.datastore_type}}</DataStoreType>
     </IdentityDataStore>
+
+    <UserProfileExport>
+        <AdditionalClaims>
+            {% for item in user_profile_export.additional_claims %}
+            <AdditionalClaim>{{item}}</AdditionalClaim>
+            {% endfor %}
+        </AdditionalClaims>
+        <RestrictedClaims>
+            {% for item in user_profile_export.restricted_claims %}
+            <RestrictedClaim>{{item}}</RestrictedClaim>
+            {% endfor %}
+        </RestrictedClaims>
+    </UserProfileExport>
 
 </Server>
