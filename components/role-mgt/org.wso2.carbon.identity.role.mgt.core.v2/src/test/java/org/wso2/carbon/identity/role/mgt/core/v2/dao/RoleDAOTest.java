@@ -44,6 +44,7 @@ import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 @WithCarbonHome
@@ -240,6 +241,28 @@ public class RoleDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection6);
             List<Permission> rolePermissions = roleDAO.getPermissionListOfRole(role.getId(), SAMPLE_TENANT_DOMAIN);
             Assert.assertEquals(getPermissionNameList(rolePermissions), getPermissionNameList(newPermissions));
+        }
+    }
+
+    @Test
+    public void testGetRoleBasicInfoById() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            mockCacheClearing();
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            RoleBasicInfo  role = addRole("role1", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            RoleBasicInfo roleBasicInfo =  roleDAO.getRoleBasicInfoById(role.getId(), SAMPLE_TENANT_DOMAIN);
+            assertEquals(roleBasicInfo.getAudience(), APPLICATION_AUD);
+            assertEquals(roleBasicInfo.getAudienceId(), "test-app-id");
+            assertEquals(roleBasicInfo.getAudienceName(), "TEST_APP_NAME");
         }
     }
 
