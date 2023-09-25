@@ -18,12 +18,16 @@
 
 package org.wso2.carbon.identity.role.mgt.core.v2.dao;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -61,11 +65,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
+import javax.xml.namespace.QName;
+
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
@@ -73,6 +83,8 @@ import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_SCIM_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL_MSSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_ROLE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_SCIM_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
@@ -128,6 +140,7 @@ public class RoleDAOImpl implements RoleDAO {
     private Log log = LogFactory.getLog(org.wso2.carbon.identity.role.mgt.core.dao.RoleDAOImpl.class);
     private GroupIDResolver groupIDResolver = new GroupIDResolver();
     private UserIDResolver userIDResolver = new UserIDResolver();
+    private Set<String> systemRoles = getSystemRoles();
 
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
@@ -213,11 +226,7 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementClientException(ROLE_ALREADY_EXISTS.getCode(),
                     "Role already exist for the role name: " + roleName);
         }
-        RoleBasicInfo roleBasicInfo = new RoleBasicInfo(roleID, roleName);
-        roleBasicInfo.setAudience(audience);
-        roleBasicInfo.setAudienceId(audienceId);
-        roleBasicInfo.setAudienceName(getAudienceName(audience, audienceId, tenantDomain));
-        return roleBasicInfo;
+        return new RoleBasicInfo(roleID, roleName);
     }
 
     @Override
@@ -299,7 +308,8 @@ public class RoleDAOImpl implements RoleDAO {
         return role;
     }
 
-    private RoleBasicInfo getRoleBasicInfoById(String roleID, String tenantDomain)
+    @Override
+    public RoleBasicInfo getRoleBasicInfoById(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
         String roleName = getRoleNameByID(roleID, tenantDomain);
@@ -350,26 +360,128 @@ public class RoleDAOImpl implements RoleDAO {
         return getRoleBasicInfoById(roleId, tenantDomain);
     }
 
-    @Override
-    public void deleteRole(String roleId) throws IdentityRoleManagementException {
+    /**
+     * Delete all role associations (permissions, apps, shared roles).
+     *
+     * @param roleId Role ID.
+     * @param connection DB connection.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private void deleteRoleAssociations(String roleId, Connection connection) throws IdentityRoleManagementException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try {
-                deleteAllPermissionsOfRole(roleId, connection);
-                deleteAppRoleAssociation(roleId, connection);
-                // TODO: handle shared roles
-                IdentityDatabaseUtil.commitTransaction(connection);
-            } catch (IdentityRoleManagementException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                String errorMessage = "Error while handling role deletion of roleID : " + roleId;
-                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                        errorMessage, e);
-            }
-        } catch (SQLException e) {
+        try {
+            deleteAllPermissionsOfRole(roleId, connection);
+            deleteAppRoleAssociation(roleId, connection);
+            // TODO: handle shared roles
+        } catch (IdentityRoleManagementException e) {
             String errorMessage = "Error while handling role deletion of roleID : " + roleId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     errorMessage, e);
         }
+    }
+
+    @Override
+    public void deleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+
+        String roleName = getRoleNameByID(roleID, tenantDomain);
+        if (systemRoles.contains(roleName)) {
+            throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                    "Invalid operation. Role: " + roleName + " Cannot be deleted since it's a read only system role.");
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        UserRealm userRealm;
+        try {
+            userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            if (UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())) {
+                throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                        "Invalid operation. Role: " + roleName + " Cannot be deleted.");
+            }
+        } catch (UserStoreException e) {
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    "Error while getting the realmConfiguration.", e);
+        }
+
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
+            try {
+                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_ROLE_SQL,
+                        RoleConstants.RoleTableColumns.UM_ID)) {
+                    statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
+                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                    statement.executeUpdate();
+                }
+
+                // Delete the role from IDN_SCIM_GROUP table.
+                deleteSCIMRole(roleID, roleName, tenantDomain);
+
+                /* UM_ROLE_PERMISSION Table, roles are associated with Domain ID.
+                   At this moment Role name doesn't contain the Domain prefix.
+                   clearRoleAuthorization() expects domain qualified name.
+                   Hence we add the "Internal" Domain name explicitly here. */
+                if (!roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+                    roleName = UserCoreUtil.addDomainToName(roleName, UserCoreConstants.INTERNAL_DOMAIN);
+                }
+                // Also need to clear role authorization.
+                try {
+                    userRealm.getAuthorizationManager().clearRoleAuthorization(roleName);
+                } catch (UserStoreException e) {
+                    throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR
+                            .getCode(),
+                            "Error while getting the authorizationManager.", e);
+                }
+
+                IdentityDatabaseUtil.commitUserDBTransaction(connection);
+            } catch (SQLException | IdentityRoleManagementException e) {
+                IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
+                String message = "Error while deleting the role name: %s in the tenantDomain: %s";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        String.format(message, roleName, tenantDomain), e);
+            }
+        } catch (SQLException e) {
+            String message = "Error while deleting the role name: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(message, roleName, tenantDomain), e);
+        }
+        clearUserRolesCacheByTenant(tenantId);
+    }
+
+    private Set<String> getSystemRoles() {
+
+        // If the system roles are not enabled in the system no need to continue.
+        if (!IdentityUtil.isSystemRolesEnabled()) {
+            return Collections.emptySet();
+        }
+        Set<String> systemRoles = new HashSet<>();
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemRolesConfig = configParser
+                .getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT);
+        if (systemRolesConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT
+                        + "' config cannot be found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Iterator roleIdentifierIterator = systemRolesConfig
+                .getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT);
+        if (roleIdentifierIterator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT + "' config cannot be found.");
+            }
+            return Collections.emptySet();
+        }
+
+        while (roleIdentifierIterator.hasNext()) {
+            OMElement roleIdentifierConfig = (OMElement) roleIdentifierIterator.next();
+            String roleName = roleIdentifierConfig.getFirstChildWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                            IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)).getText();
+
+            if (StringUtils.isNotBlank(roleName)) {
+                systemRoles.add(roleName.trim());
+            }
+        }
+        return systemRoles;
     }
 
     /**
@@ -1406,5 +1518,53 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         return groupIDResolver.getIDsByNames(names, tenantDomain);
+    }
+
+    private void deleteSCIMRole(String roleId, String roleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        // Append internal domain in order to maintain the backward compatibility.
+        roleName = appendInternalDomain(roleName);
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting the role: " + roleName + " for the role: " + roleName + " in the tenantDomain: "
+                    + tenantDomain);
+        }
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_SCIM_ROLE_SQL)) {
+                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
+                statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
+                statement.executeUpdate();
+
+                deleteRoleAssociations(roleId, connection);
+
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException | IdentityRoleManagementException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                String errorMessage = "Error while deleting the the role: %s for the role: %s in the tenantDomain: %s";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        String.format(errorMessage, roleName, roleName, tenantDomain), e);
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while deleting the the role: %s for the role: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, roleName, tenantDomain), e);
+        }
+    }
+
+    private void clearUserRolesCacheByTenant(int tenantId) {
+
+        /*
+          Ideally we need to check all userstores to see if the UserRolesCache is enabled in at least one userstore
+          before removing the cache. This needs to be done by iterating over all userstores of the tenant.
+          Since this method is triggered only when a role related configuration is changed it is not worth
+          it to iterate over the userstores and check whether UserRolesCache is enabled. Therefore we are simply
+          removing the cache so the cache will be removed if its available.
+         */
+        UserRolesCache.getInstance().clearCacheByTenant(tenantId);
+
+        AuthorizationCache authorizationCache = AuthorizationCache.getInstance();
+        authorizationCache.clearCacheByTenant(tenantId);
     }
 }

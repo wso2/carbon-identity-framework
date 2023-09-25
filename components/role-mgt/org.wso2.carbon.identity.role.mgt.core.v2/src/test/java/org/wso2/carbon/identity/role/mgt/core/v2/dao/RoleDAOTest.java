@@ -6,6 +6,7 @@ import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
@@ -65,7 +66,7 @@ public class RoleDAOTest extends PowerMockTestCase {
     @Mock
     UserRealm mockUserRealm;
 
-    @BeforeMethod
+    @BeforeClass
     public void setUp() throws Exception {
 
         userNamesList.add("user1");
@@ -89,12 +90,21 @@ public class RoleDAOTest extends PowerMockTestCase {
         populateData();
     }
 
+    @BeforeMethod
+    public void setUpBeforeMethod() {
+
+        mockStatic(IdentityDatabaseUtil.class);
+        mockStatic(IdentityTenantUtil.class);
+    }
+
     @Test
     public void testAddOrgRole() throws Exception {
 
         try (Connection connection1 = getConnection();
              Connection connection2 = getConnection();
-             Connection connection3 = getConnection()) {
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection()) {
 
             roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
             mockCacheClearing();
@@ -104,6 +114,9 @@ public class RoleDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
             doCallRealMethod().when(roleDAO, "isExistingRoleName", anyString(), anyString());
             assertTrue(roleDAO.isExistingRoleName("role1", SAMPLE_TENANT_DOMAIN));
+//            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+//            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
+//            assertEquals(roleDAO.getRole(role.getId(), SAMPLE_TENANT_DOMAIN).getAudience(), ORGANIZATION_AUD);
         }
     }
 
@@ -195,9 +208,6 @@ public class RoleDAOTest extends PowerMockTestCase {
 
     private Connection getConnection() throws Exception {
         if (dataSourceMap.get(RoleDAOTest.DB_NAME) != null) {
-            if (dataSourceMap.get(RoleDAOTest.DB_NAME).getConnection().isClosed()) {
-                initializeDataSource(getFilePath("h2.sql"));
-            }
             return dataSourceMap.get(RoleDAOTest.DB_NAME).getConnection();
         }
         throw new RuntimeException("Invalid datasource.");

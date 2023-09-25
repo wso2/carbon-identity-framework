@@ -98,7 +98,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         }
         audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Add Role", roleName,
                 getAuditData(tenantDomain), success));
-        return roleBasicInfo;
+        return roleDAO.getRoleBasicInfoById(roleBasicInfo.getId(), tenantDomain);
     }
 
     @Override
@@ -150,21 +150,27 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
-    public RoleBasicInfo updateRoleName(String roleID, String newRoleName,
-                                                                               String tenantDomain)
+    public RoleBasicInfo updateRoleName(String roleID, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        org.wso2.carbon.identity.role.mgt.core.RoleBasicInfo roleBasicInfo =
-                roleManagementServiceV1.updateRoleName(roleID, newRoleName, tenantDomain);
-        return new RoleBasicInfo(roleBasicInfo.getId(), roleBasicInfo.getName());
+        roleManagementServiceV1.updateRoleName(roleID, newRoleName, tenantDomain);
+        return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
     @Override
     public void deleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
-        roleManagementServiceV1.deleteRole(roleID, tenantDomain);
-        // Delete permissions, associate apps and shared roles when deleting a role.
-        roleDAO.deleteRole(roleID);
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreDeleteRoleWithException(roleID, tenantDomain);
+        roleDAO.deleteRole(roleID, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostDeleteRole(roleID, tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s deleted role of id : %s successfully.",
+                    getUser(tenantDomain), roleID));
+        }
+        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Delete role by id", roleID,
+                getAuditData(tenantDomain), success));
     }
 
     @Override
@@ -178,9 +184,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public RoleBasicInfo updateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
                                               String tenantDomain) throws IdentityRoleManagementException {
 
-        org.wso2.carbon.identity.role.mgt.core.RoleBasicInfo roleBasicInfo =
-                roleManagementServiceV1.updateGroupListOfRole(roleID, newUserIDList, deletedUserIDList, tenantDomain);
-        return new RoleBasicInfo(roleBasicInfo.getId(), roleBasicInfo.getName());
+        roleManagementServiceV1.updateGroupListOfRole(roleID, newUserIDList, deletedUserIDList, tenantDomain);
+        return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
     @Override
@@ -195,9 +200,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                                                List<String> deletedGroupIDList, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        org.wso2.carbon.identity.role.mgt.core.RoleBasicInfo roleBasicInfo =
-                roleManagementServiceV1.updateGroupListOfRole(roleID, newGroupIDList, deletedGroupIDList, tenantDomain);
-        return new RoleBasicInfo(roleBasicInfo.getId(), roleBasicInfo.getName());
+        roleManagementServiceV1.updateGroupListOfRole(roleID, newGroupIDList, deletedGroupIDList, tenantDomain);
+        return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
     @Override
@@ -220,9 +224,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public RoleBasicInfo setPermissionsForRole(String roleID, List<String> permissions, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        org.wso2.carbon.identity.role.mgt.core.RoleBasicInfo roleBasicInfo =
-                roleManagementServiceV1.setPermissionsForRole(roleID, permissions, tenantDomain);
-        return new RoleBasicInfo(roleBasicInfo.getId(), roleBasicInfo.getName());
+        roleManagementServiceV1.setPermissionsForRole(roleID, permissions, tenantDomain);
+        return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
     @Override
@@ -276,16 +279,9 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public Role getRoleWithoutUsers(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        org.wso2.carbon.identity.role.mgt.core.Role role = roleManagementServiceV1.getRoleWithoutUsers(roleID,
-                tenantDomain);
-        Role roleV2 = new Role();
-        roleV2.setName(role.getName());
-        roleV2.setId(role.getId());
-        roleV2.setDomain(role.getDomain());
-        roleV2.setTenantDomain(role.getTenantDomain());
-        roleV2.setGroups(role.getGroups());
-        roleV2.setPermissions(roleDAO.getPermissionListOfRole(roleID, tenantDomain));
-        return roleV2;
+        Role role = roleDAO.getRole(roleID, tenantDomain);
+        role.setUsers(null);
+        return role;
     }
 
     @Override

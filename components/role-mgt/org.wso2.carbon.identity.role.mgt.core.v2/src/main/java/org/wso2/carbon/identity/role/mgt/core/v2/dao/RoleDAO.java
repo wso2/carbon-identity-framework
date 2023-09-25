@@ -115,9 +115,10 @@ public interface RoleDAO {
      * Handle role deletion (delete permissions, app associations, shared roles).
      *
      * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    void deleteRole(String roleID) throws IdentityRoleManagementException;
+    void deleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Check whether the given role name exist.
@@ -128,4 +129,14 @@ public interface RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get role basic info by id.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return RoleBasicInfo.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    RoleBasicInfo getRoleBasicInfoById(String roleID, String tenantDomain) throws IdentityRoleManagementException;
 }

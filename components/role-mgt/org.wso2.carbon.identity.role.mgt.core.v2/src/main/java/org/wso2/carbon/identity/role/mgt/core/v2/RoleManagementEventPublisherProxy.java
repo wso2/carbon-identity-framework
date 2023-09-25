@@ -225,6 +225,29 @@ public class RoleManagementEventPublisherProxy {
         }
     }
 
+    public void publishPreDeleteRoleWithException(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_DELETE_ROLE_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostDeleteRole(String roleID, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_DELETE_ROLE_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
     private Event createEvent(Map<String, Object> eventProperties, String eventName) {
 
         return new Event(eventName, eventProperties);
