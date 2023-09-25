@@ -844,8 +844,8 @@
             {% else %}
                 <DefaultSubjectType>public</DefaultSubjectType>
             {% endif %}
-            {% if oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_on_pairwise_subject_type_selection is defined %}
-                <EnablePairwiseSubForAccessToken>{{oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_on_pairwise_subject_type_selection}}</EnablePairwiseSubForAccessToken>
+            {% if oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection is defined %}
+                <EnablePairwiseSubForAccessToken>{{oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection}}</EnablePairwiseSubForAccessToken>
             {% endif %}
         </OpenIDConnect>
 
