@@ -90,7 +90,6 @@ import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_LI
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.v2.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.mgt.core.v2.RoleConstants.DB2;
@@ -134,6 +133,7 @@ import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.GET_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.IS_ROLE_EXIST_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.IS_SHARED_ROLE_SQL;
 
 /**
@@ -171,15 +171,15 @@ public class RoleDAOImpl implements RoleDAO {
             audienceId = getOrganizationIdByTenantDomain(tenantDomain);
         }
 
-        if (!isExistingRoleName(roleName, tenantDomain)) {
+        if (!isExistingRoleName(roleName, audience, audienceId, tenantDomain)) {
             try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
-                int roleAudienceId = getRoleAudienceId(audience, audienceId, connection);
+                int audienceRefId = getRoleAudienceId(audience, audienceId, connection);
                 try {
                     try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                             ADD_ROLE_WITH_AUDIENCE_SQL, RoleConstants.RoleTableColumns.UM_ID)) {
                         statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                         statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                        statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_ID, roleAudienceId);
+                        statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
                         statement.executeUpdate();
                     }
 
@@ -344,21 +344,20 @@ public class RoleDAOImpl implements RoleDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             addPermissions(roleId, addedPermissions, tenantDomain, connection);
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    DELETE_ROLE_SCOPE_BY_SCOPE_NAME_SQL)) {
-                for (Permission permission : deletedPermissions) {
+            for (Permission permission : deletedPermissions) {
+                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                        DELETE_ROLE_SCOPE_BY_SCOPE_NAME_SQL)) {
                     statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
                     statement.setString(RoleConstants.RoleTableColumns.SCOPE_NAME, permission.getName());
-                    statement.addBatch();
+                    statement.executeUpdate();
+                } catch (SQLException e) {
+                    IdentityDatabaseUtil.rollbackTransaction(connection);
+                    String errorMessage = "Error while adding permissions to roleID : " + roleId;
+                    throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                            errorMessage, e);
                 }
-                statement.executeUpdate();
-                IdentityDatabaseUtil.commitTransaction(connection);
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                String errorMessage = "Error while adding permissions to roleID : " + roleId;
-                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                        errorMessage, e);
             }
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException | IdentityRoleManagementException e) {
             String errorMessage = "Error while adding permissions to roleID : " + roleId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
@@ -936,15 +935,18 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     @Override
-    public boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException {
+    public boolean isExistingRoleName(String roleName, String audience, String audienceId, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         boolean isExist = false;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+            int audienceRefId = getRoleAudienceId(audience, audienceId, connection);
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_EXIST_SQL,
                     RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, removeInternalDomain(roleName));
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
                         isExist = resultSet.getInt(1) > 0;
@@ -1096,10 +1098,12 @@ public class RoleDAOImpl implements RoleDAO {
     private String getApplicationName(String applicationID, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String name = null;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_APP_NAME_BY_APP_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.APP_ID, applicationID);
+                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         name = resultSet.getString(1);

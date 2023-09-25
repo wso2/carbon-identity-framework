@@ -128,7 +128,8 @@ public interface RoleDAO {
      * @return {@code true} if the the given role exist.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException;
+    boolean isExistingRoleName(String roleName, String audience, String audienceId, String tenantDomain)
+            throws IdentityRoleManagementException;
 
     /**
      * Get role basic info by id.

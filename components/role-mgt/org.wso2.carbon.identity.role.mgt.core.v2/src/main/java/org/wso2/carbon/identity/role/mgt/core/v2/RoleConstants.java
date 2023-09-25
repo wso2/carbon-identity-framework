@@ -81,6 +81,7 @@ public class RoleConstants {
         public static final String ROLE_NAME = "ROLE_NAME";
         public static final String AUDIENCE = "AUDIENCE";
         public static final String AUDIENCE_ID = "AUDIENCE_ID";
+        public static final String AUDIENCE_REF_ID = "AUDIENCE_REF_ID";
         public static final String ROLE_ID = "ROLE_ID";
         public static final String SCOPE_NAME = "SCOPE_NAME";
         public static final String APP_ID = "APP_ID";
