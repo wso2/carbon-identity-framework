@@ -84,6 +84,10 @@ public class RoleConstants {
         public static final String ROLE_ID = "ROLE_ID";
         public static final String SCOPE_NAME = "SCOPE_NAME";
         public static final String APP_ID = "APP_ID";
+        public static final String SHARED_ROLE_ID = "SHARED_ROLE_ID";
+        public static final String SHARED_ROLE_TENANT_ID = "SHARED_ROLE_TENANT_ID";
+        public static final String MAIN_ROLE_ID = "MAIN_ROLE_ID";
+        public static final String MAIN_ROLE_TENANT_ID = "MAIN_ROLE_TENANT_ID";
         public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
         public static final String USER_NOT_FOUND_ERROR_MESSAGE = "A user doesn't exist with name: %s " +
                 "in the tenantDomain: %s";

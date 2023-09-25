@@ -38,6 +38,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertTrue;
+import static org.testng.AssertJUnit.assertEquals;
 
 @WithCarbonHome
 @PrepareForTest({IdentityDatabaseUtil.class, IdentityTenantUtil.class, IdentityUtil.class, UserCoreUtil.class,
@@ -84,8 +85,6 @@ public class RoleDAOTest extends PowerMockTestCase {
         groupIDsList.add("groupID2");
         permissions.add(new Permission("read", "read"));
         permissions.add(new Permission("write", "write"));
-        mockStatic(IdentityDatabaseUtil.class);
-        mockStatic(IdentityTenantUtil.class);
         initializeDataSource(getFilePath("h2.sql"));
         populateData();
     }
@@ -114,9 +113,9 @@ public class RoleDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
             doCallRealMethod().when(roleDAO, "isExistingRoleName", anyString(), anyString());
             assertTrue(roleDAO.isExistingRoleName("role1", SAMPLE_TENANT_DOMAIN));
-//            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
-//            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
-//            assertEquals(roleDAO.getRole(role.getId(), SAMPLE_TENANT_DOMAIN).getAudience(), ORGANIZATION_AUD);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
+            assertEquals(roleDAO.getRole(role.getId(), SAMPLE_TENANT_DOMAIN).getAudience(), ORGANIZATION_AUD);
         }
     }
 
@@ -151,7 +150,7 @@ public class RoleDAOTest extends PowerMockTestCase {
         doReturn(roleName).when(roleDAO, "getRoleNameByID", anyString(), anyString());
         doReturn("test-org").when(roleDAO, "getOrganizationName", anyString());
         when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
-        return roleDAO.addRole(roleName, userIDsList, groupIDsList, permissions, audience, audienceId ,
+        return roleDAO.addRole(roleName, userIDsList, groupIDsList, permissions, audience, audienceId,
                 SAMPLE_TENANT_DOMAIN);
     }
 
@@ -192,16 +191,16 @@ public class RoleDAOTest extends PowerMockTestCase {
                 " REQUIRES_AUTHORIZATION) VALUES (1,'DOC','DOC',1,'DOC','RBAC',true);";
         String scopeSQL = "INSERT INTO SCOPE (ID,API_ID,NAME,DISPLAY_NAME,TENANT_ID,DESCRIPTION) VALUES " +
                 "(1,1,'read','read',1,'read'), (2,1,'write','write',1,'write')";
-        String sPAppSQL = "INSERT INTO SP_APP (ID, TENANT_ID, APP_NAME, USER_STORE, USERNAME, AUTH_TYPE, UUID) " +
+        String spAppSQL = "INSERT INTO SP_APP (ID, TENANT_ID, APP_NAME, USER_STORE, USERNAME, AUTH_TYPE, UUID) " +
                 "VALUES (1, 1, 'TEST_APP_NAME','TEST_USER_STORE', 'TEST_USERNAME', 'TEST_AUTH_TYPE', 'test-app-id')";
 
         try (Connection connection = getConnection()) {
             connection.createStatement().executeUpdate(domainDataSQL);
             connection.createStatement().executeUpdate(aPIResourceSQL);
             connection.createStatement().executeUpdate(scopeSQL);
-            connection.createStatement().executeUpdate(sPAppSQL);
+            connection.createStatement().executeUpdate(spAppSQL);
         } catch (SQLException e) {
-            String errorMessage = "Error while Adding test data for UM_DOMAIN table";
+            String errorMessage = "Error while Adding test data for tables";
             throw new Exception(errorMessage, e);
         }
     }

@@ -77,6 +77,7 @@ import javax.xml.namespace.QName;
 
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColumns.UM_ROLE_NAME;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
@@ -107,6 +108,7 @@ import static org.wso2.carbon.identity.role.mgt.core.v2.RoleConstants.MY_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.v2.RoleConstants.ORACLE;
 import static org.wso2.carbon.identity.role.mgt.core.v2.RoleConstants.ORGANIZATION;
 import static org.wso2.carbon.identity.role.mgt.core.v2.RoleConstants.POSTGRE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.v2.RoleConstants.RoleTableColumns.MAIN_ROLE_TENANT_ID;
 import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.ADD_APP_ROLE_ASSOCIATION_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.ADD_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.ADD_ROLE_SCOPE_SQL;
@@ -131,6 +133,8 @@ import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.GET_ROLES
 import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.GET_ROLE_AUDIENCE_BY_ROLE_NAME_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.GET_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.v2.dao.SQLQueries.IS_SHARED_ROLE_SQL;
 
 /**
  * Implementation of the {@link RoleDAO} interface.
@@ -303,8 +307,11 @@ public class RoleDAOImpl implements RoleDAO {
         role.setTenantDomain(tenantDomain);
         role.setUsers(getUserListOfRole(roleID, tenantDomain));
         role.setGroups(getGroupListOfRole(roleID, tenantDomain));
-        role.setPermissions(getPermissions(roleID, tenantDomain));
-
+        if (isSharedRole(roleName, tenantDomain)) {
+            role.setPermissions(getPermissionsOfSharedRole(roleName, tenantDomain));
+        } else {
+            role.setPermissions(getPermissions(roleID, tenantDomain));
+        }
         return role;
     }
 
@@ -503,7 +510,7 @@ public class RoleDAOImpl implements RoleDAO {
             try {
                 id = addRoleID(roleName, tenantDomain, connection);
                 addPermissions(id, permissions, tenantDomain, connection);
-                if (APPLICATION.equals(audience)) {
+                if (APPLICATION.equalsIgnoreCase(audience)) {
                     addAppRoleAssociation(id, audienceId, connection);
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -518,6 +525,65 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
         return id;
+    }
+
+    private boolean isSharedRole(String roleName, String tenantDomain) throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        boolean isShared = false;
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_SHARED_ROLE_SQL,
+                    RoleConstants.RoleTableColumns.MAIN_ROLE_ID)) {
+                statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
+                statement.setInt(RoleConstants.RoleTableColumns.SHARED_ROLE_TENANT_ID, tenantId);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        isShared = resultSet.getInt(1) > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while checking is existing role for role name: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, tenantDomain), e);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Is roleName: " + roleName + " Shared: " + isShared + " in the tenantDomain: " + tenantDomain);
+        }
+        return isShared;
+    }
+
+    private List<Permission> getPermissionsOfSharedRole(String roleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        String mainRoleName = null;
+        int mainTenantId = -1;
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_SHARED_ROLE_MAIN_ROLE_ID_SQL, RoleConstants.RoleTableColumns.MAIN_ROLE_ID)) {
+                statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
+                statement.setInt(RoleConstants.RoleTableColumns.SHARED_ROLE_TENANT_ID, tenantId);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        mainRoleName = resultSet.getString(UM_ROLE_NAME);
+                        mainTenantId =  resultSet.getInt(MAIN_ROLE_TENANT_ID);
+                    }
+                }
+            }
+            if (StringUtils.isNotEmpty(mainRoleName) && mainTenantId != -1) {
+                String mainTenantDomain = IdentityTenantUtil.getTenantDomain(mainTenantId);
+                String mainRoleId =  getRoleIDByName(mainRoleName, mainTenantDomain);
+                if (StringUtils.isNotEmpty(mainRoleId) && StringUtils.isNotEmpty(mainTenantDomain)) {
+                    return getPermissions(mainRoleId, mainTenantDomain, connection);
+                }
+            }
+        } catch (SQLException | IdentityRoleManagementException e) {
+            String errorMessage = "Error while checking is existing role for role name: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, tenantDomain), e);
+        }
+        return null;
     }
 
     /**
@@ -742,6 +808,37 @@ public class RoleDAOImpl implements RoleDAO {
                         permissions.add(new Permission(resultSet.getString(1),
                                 resultSet.getString(2)));
                     }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while retrieving permissions for role id: " + roleId + " and tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return permissions;
+    }
+
+    /**
+     * Get permissions by role id.
+     *
+     * @param roleId Role name.
+     * @param tenantDomain Tenant Domain.
+     * @param connection DB connection.
+     * @return List of permissions.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private List<Permission> getPermissions(String roleId, String tenantDomain, Connection connection)
+            throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<Permission> permissions = new ArrayList<>();
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_SCOPE_SQL)) {
+            statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
+            statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    permissions.add(new Permission(resultSet.getString(1),
+                            resultSet.getString(2)));
                 }
             }
         } catch (SQLException e) {
@@ -988,9 +1085,9 @@ public class RoleDAOImpl implements RoleDAO {
     private String getAudienceName(String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (APPLICATION.equals(audience)) {
+        if (APPLICATION.equalsIgnoreCase(audience)) {
             return getApplicationName(audienceId, tenantDomain);
-        } else if (ORGANIZATION.equals(audience)) {
+        } else if (ORGANIZATION.equalsIgnoreCase(audience)) {
             return getOrganizationName(audienceId);
         }
         return null;
@@ -1206,6 +1303,47 @@ public class RoleDAOImpl implements RoleDAO {
             roles.add(roleBasicInfo);
         }
         return roles;
+    }
+
+    private String getRoleIDByName(String roleName, String tenantDomain) throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        String roleID = null;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_ID_BY_NAME_SQL)) {
+                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
+                statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
+                statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
+                int count = 0;
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        // Handle multiple matching roles.
+                        count++;
+                        if (count > 1) {
+                            String errorMessage =
+                                    "Invalid scenario. Multiple roles found for the given role name: " + roleName
+                                            + " and tenantDomain: " + tenantDomain;
+                            throw new IdentityRoleManagementClientException(
+                                    RoleConstants.Error.INVALID_REQUEST.getCode(), errorMessage);
+                        }
+                        roleID = resultSet.getString(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while resolving the role ID for the given role name: " + roleName + " and tenantDomain: "
+                            + tenantDomain;
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    errorMessage, e);
+        }
+        if (roleID == null) {
+            String errorMessage =
+                    "A role doesn't exist with name: " + roleName + " in the tenantDomain: " + tenantDomain;
+            throw new IdentityRoleManagementClientException(RoleConstants.Error.INVALID_REQUEST.getCode(),
+                    errorMessage);
+        }
+        return roleID;
     }
 
     private Map<String, String> getRoleIDsByNames(List<String> roleNames, String tenantDomain)
