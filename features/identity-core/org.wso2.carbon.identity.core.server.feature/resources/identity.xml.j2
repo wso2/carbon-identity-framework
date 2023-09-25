@@ -829,7 +829,6 @@
             <!--
                 FAPI Profile Support.
             -->
-            {% if oauth.oidc.fapi is defined %}
             <FAPI>
                 {% if oauth.oidc.fapi.enable_ciba_profile is defined %}
                 <EnableCibaProfile>{{oauth.oidc.fapi.enable_ciba_profile}}</EnableCibaProfile>
@@ -837,8 +836,27 @@
                 {% if oauth.oidc.fapi.enable_security_profile is defined %}
                 <EnableSecurityProfile>{{oauth.oidc.fapi.enable_security_profile}}</EnableSecurityProfile>
                 {% endif %}
+                <SupportedClientAuthenticationMethods>
+                    {% if oauth.oidc.fapi.client_authentication_methods|length %}
+                        {% for authmethod in oauth.oidc.fapi.client_authentication_methods %}
+                            <SupportedClientAuthenticationMethod>{{authmethod}}</SupportedClientAuthenticationMethod>
+                        {% endfor %}
+                    {% else %}
+                        <SupportedClientAuthenticationMethod>private_key_jwt</SupportedClientAuthenticationMethod>
+                        <SupportedClientAuthenticationMethod>tls_client_auth</SupportedClientAuthenticationMethod>
+                    {% endif %}
+                </SupportedClientAuthenticationMethods>
+                <SupportedSignatureAlgorithms>
+                    {% if oauth.oidc.fapi.signature_algorithms|length %}
+                        {% for algorithm in oauth.oidc.fapi.signature_algorithms %}
+                            <SupportedSignatureAlgorithm>{{algorithm}}</SupportedSignatureAlgorithm>
+                        {% endfor %}
+                    {% else %}
+                        <SupportedSignatureAlgorithm>PS256</SupportedSignatureAlgorithm>
+                        <SupportedSignatureAlgorithm>ES256</SupportedSignatureAlgorithm>
+                    {% endif %}
+                </SupportedSignatureAlgorithms>
             </FAPI>
-            {% endif %}
         </OpenIDConnect>
 
         <!--
