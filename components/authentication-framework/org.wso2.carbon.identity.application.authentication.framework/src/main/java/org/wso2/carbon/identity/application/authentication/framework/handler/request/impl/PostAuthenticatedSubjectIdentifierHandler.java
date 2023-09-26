@@ -91,14 +91,22 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
         String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
         String subjectValue = (String) context.getProperty(FrameworkConstants.SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE);
         try {
-            if (StringUtils.isNotBlank(subjectClaimURI)) {
-                if (subjectValue != null) {
-                    handleUserStoreAndTenantDomain(sequenceConfig, subjectValue);
-                } else {
-                    log.warn("Subject claim could not be found. Defaulting to Name Identifier.");
-                    setAuthenticatedSubjectIdentifierBasedOnUserId(sequenceConfig);
-                }
+
+            /**
+             * Generally SAAS applications (Console and MyAccount) are having a subject claim uri setup at SP_APP.
+             * The "if" segment will handle the subject identifier for those applications which distinguish the
+             * database scheme at the end.
+             *
+             * Since the normal business applications does not have a subject claim uri setup at SP_APP, the "else"
+             */
+
+            if (StringUtils.isNotBlank(subjectClaimURI) && StringUtils.isNotBlank(subjectValue)) {
+                handleUserStoreAndTenantDomain(sequenceConfig, subjectValue);
+            } else if (FrameworkUtils.isUserIdFoundAmongClaims(context)) {
+                handleUserStoreAndTenantDomain(sequenceConfig, sequenceConfig.getAuthenticatedUser()
+                        .getAuthenticatedSubjectIdentifier());
             } else {
+                log.warn("Subject claim could not be found.");
                 setAuthenticatedSubjectIdentifierBasedOnUserId(sequenceConfig);
             }
         } catch (UserIdNotFoundException e) {

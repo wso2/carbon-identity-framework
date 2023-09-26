@@ -31,6 +31,7 @@ import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -381,12 +382,20 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         }
     }
 
-    private User getAssociatedUser(String tenantDomain, String userStoreDomain, String username) {
+    /**
+     * Creating an authenticated user.
+     *
+     * @param tenantDomain    The tenant domain of the user.
+     * @param userStoreDomain The user store domain of the user.
+     * @param username        The username of the user.
+     * @return The AuthenticatedUser object.
+     */
+    private AuthenticatedUser getAssociatedUser(String tenantDomain, String userStoreDomain, String username) {
 
-        User user = new User();
+        AuthenticatedUser user = new AuthenticatedUser();
         user.setTenantDomain(tenantDomain);
         user.setUserStoreDomain(userStoreDomain);
-        user.setUserName(MultitenantUtils.getTenantAwareUsername(username));
+        user.setUserName(username);
         return user;
     }
 
