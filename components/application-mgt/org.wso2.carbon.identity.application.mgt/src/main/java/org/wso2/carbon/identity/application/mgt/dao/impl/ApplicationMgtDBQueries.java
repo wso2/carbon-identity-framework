@@ -268,6 +268,8 @@ public class ApplicationMgtDBQueries {
     // DELETE query - Oauth
     @Deprecated
     public static final String REMOVE_OAUTH_APPLICATION = "DELETE FROM IDN_OAUTH_CONSUMER_APPS WHERE CONSUMER_KEY=?";
+    public static final String REMOVE_OAUTH_APPLICATION_WITH_TENANT = "DELETE FROM IDN_OAUTH_CONSUMER_APPS WHERE " +
+            "CONSUMER_KEY=? AND TENANT_ID=?";
 
     public static final String LOAD_IDP_AUTHENTICATOR_ID = "SELECT A.ID FROM IDP_AUTHENTICATOR A JOIN IDP B ON A" +
             ".IDP_ID= B.ID WHERE A.NAME =? AND B.NAME=? AND ((A.TENANT_ID =? AND B.TENANT_ID =?) OR (B.TENANT_ID=? " +
