@@ -18,9 +18,11 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.mgt.core.v2.Permission;
 import org.wso2.carbon.identity.role.mgt.core.v2.RoleBasicInfo;
+import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.authorization.JDBCAuthorizationManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.nio.file.Paths;
@@ -45,6 +47,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 @WithCarbonHome
@@ -199,6 +202,42 @@ public class RoleDAOTest extends PowerMockTestCase {
     }
 
     @Test
+    public void testDeleteRole() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection();
+             Connection connection6 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            mockCacheClearing();
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            RoleBasicInfo role = addRole("role1", APPLICATION_AUD, "test-app-id");
+            mockRealmConfiguration();
+
+            mockStatic(UserCoreUtil.class);
+            when(UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class))).thenReturn(false);
+
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            AuthorizationManager authorizationManager = mock(JDBCAuthorizationManager.class);
+            when(mockUserRealm.getAuthorizationManager()).thenReturn(authorizationManager);
+            doNothing().when(authorizationManager).clearRoleAuthorization(anyString());
+            roleDAO.deleteRole(role.getId(), SAMPLE_TENANT_DOMAIN);
+
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection6);
+            doCallRealMethod().when(roleDAO, "isExistingRoleName", anyString(), anyString(), anyString(),
+                    anyString());
+            assertFalse(roleDAO.isExistingRoleName("role1", APPLICATION_AUD, "test-app-id",
+                    SAMPLE_TENANT_DOMAIN));
+        }
+    }
+
+    @Test
     public void testGetPermissionListOfRole() throws Exception {
 
         try (Connection connection1 = getConnection();
@@ -287,6 +326,7 @@ public class RoleDAOTest extends PowerMockTestCase {
     private void mockCacheClearing() throws Exception {
 
         doNothing().when(roleDAO, "clearUserRolesCache", anyString(), anyInt());
+        doNothing().when(roleDAO, "clearUserRolesCacheByTenant", anyInt());
     }
 
     private void mockRealmConfiguration() throws UserStoreException {
