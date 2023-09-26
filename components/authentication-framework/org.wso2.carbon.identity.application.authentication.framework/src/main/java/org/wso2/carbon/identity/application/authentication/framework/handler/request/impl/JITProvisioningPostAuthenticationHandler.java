@@ -443,8 +443,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
         String username;
 
-        if (FrameworkUtils.isUserIdFoundAmongClaims(context)) {
-            username = sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+        if (FrameworkUtils.isUserIdFoundAmongClaims(context) && StringUtils.isNotBlank(localClaimValues.get
+                (USERNAME_CLAIM))) {
+            username = localClaimValues.get(USERNAME_CLAIM);
         } else {
             if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
                 username = getFederatedUsername(stepConfig.getAuthenticatedUser().getUserName(),
