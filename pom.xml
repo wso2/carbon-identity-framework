@@ -2027,7 +2027,7 @@
         <account.lock.service.version>1.4.23</account.lock.service.version>
         <account.lock.service.imp.pkg.version.range>[1.4.23, 2.0.0)</account.lock.service.imp.pkg.version.range>
         <openjdk.nashorn.version>15.3</openjdk.nashorn.version>
-        <org.javassist.version>3.29.0-GA</org.javassist.version>
+        <org.javassist.version>3.24.0-GA</org.javassist.version>
     </properties>
 
     <build>
