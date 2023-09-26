@@ -1786,6 +1786,17 @@
                        orderId="{{event.default_listener.mutual_tls_authenticator.priority}}"
                        enable="{{event.default_listener.mutual_tls_authenticator.enable}}">
         </EventListener>
+        <EventListener id="private_key_jwt_authenticator"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.jwt.PrivateKeyJWTClientAuthenticator"
+                       orderId="{{event.default_listener.private_key_jwt_authenticator.priority}}"
+                       enable="{{event.default_listener.private_key_jwt_authenticator.enable}}">
+            <Property name="PreventTokenReuse">{{event.default_listener.private_key_jwt_authenticator.property.prevent_token_reuse}}</Property>
+            <Property name="RejectBeforeInMinutes">{{event.default_listener.private_key_jwt_authenticator.property.reject_before_in_minutes}}</Property>
+            {% if event.default_listener.private_key_jwt_authenticator.property.token_endpoint_alias is defined %}
+            <Property name="TokenEndpointAlias">{{event.default_listener.private_key_jwt_authenticator.property.token_endpoint_alias}}</Property>
+            {% endif %}
+        </EventListener>
 
         <!-- Basic OAuth client authenticator -->
         <EventListener id="basic_auth_client_authenticator"
@@ -2104,6 +2115,11 @@
                    enable="{{cache.idp_cache_by_name.enable}}"
                    timeout="{{cache.idp_cache_by_name.timeout}}"
                    capacity="{{cache.idp_cache_by_name.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="private_key_jwt" name="PrivateKeyJWT"
+                   enable="{{cache.private_key_jwt.enable}}"
+                   timeout="{{cache.private_key_jwt.timeout}}"
+                   capacity="{{cache.private_key_jwt.capacity}}"
                    isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
