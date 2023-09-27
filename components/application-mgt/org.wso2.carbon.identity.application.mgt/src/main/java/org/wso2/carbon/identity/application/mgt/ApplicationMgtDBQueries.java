@@ -275,9 +275,11 @@ public class ApplicationMgtDBQueries {
     public static final String REMOVE_UM_ROLE_PERMISSION = "DELETE FROM UM_ROLE_PERMISSION WHERE UM_PERMISSION_ID = ?";
 
     // DELETE query - OAuth.
+    /**
+     * @deprecated Use the REMOVE_OAUTH_APPLICATION_WITH_TENANT query in
+     * {@link org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries} class.
+     */
     @Deprecated
-    // Use the REMOVE_OAUTH_APPLICATION_WITH_TENANT query in
-    // org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries class.
     public static final String REMOVE_OAUTH_APPLICATION = "DELETE FROM IDN_OAUTH_CONSUMER_APPS WHERE CONSUMER_KEY=?";
 
     public static final String LOAD_IDP_AUTHENTICATOR_ID = "SELECT A.ID FROM IDP_AUTHENTICATOR A JOIN IDP B ON A" +
