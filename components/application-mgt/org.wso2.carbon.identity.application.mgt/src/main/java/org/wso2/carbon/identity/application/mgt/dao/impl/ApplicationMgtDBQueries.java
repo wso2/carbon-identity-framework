@@ -446,4 +446,9 @@ public class ApplicationMgtDBQueries {
 
     public static final String GET_TOTAL_SP_CLAIM_USAGES = "SELECT COUNT(*) FROM SP_CLAIM_MAPPING WHERE TENANT_ID = ?" +
             " AND IDP_CLAIM = ?";
+
+    public static final String VALIDATE_APPLICATION_TAGS = "SELECT UUID AS TAG_ID FROM TAG WHERE UUID IN (%s) AND " +
+            "TENANT_ID = ?";
+
+    public static final String ASSIGN_TAGS_TO_APPLICATION = "INSERT INTO SP_TAG (APP_ID, TAG_UUID) VALUES (?, ?)";
 }

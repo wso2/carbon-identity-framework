@@ -146,6 +146,7 @@ public class ApplicationConstants {
         public static final String UUID = "UUID";
         public static final String IMAGE_URL = "IMAGE_URL";
         public static final String ACCESS_URL = "ACCESS_URL";
+        public static final String TAG_ID_COLUMN_NAME = "TAG_ID";
 
         private ApplicationTableColumns() {
 

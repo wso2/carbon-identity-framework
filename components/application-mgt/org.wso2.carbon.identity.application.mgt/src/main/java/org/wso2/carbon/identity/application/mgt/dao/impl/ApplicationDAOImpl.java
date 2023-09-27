@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationCo
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.InboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
+import org.wso2.carbon.identity.application.common.model.ListValue;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
@@ -501,6 +502,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             updateServiceProviderProperties(connection, applicationId, Arrays.asList(spProperties), tenantID);
         }
 
+        if (serviceProvider.getTags() != null) {
+            updateApplicationTags(applicationId, serviceProvider.getTags(), tenantID, connection);
+        }
         // Will be supported with 'Advance Consent Management Feature'.
             /*
             if (serviceProvider.getConsentConfig() != null) {
@@ -5584,5 +5588,70 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
 
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, action, data, result));
+    }
+
+    private void updateApplicationTags(int applicationId, List<ListValue> tags, Integer tenantID, Connection connection)
+            throws IdentityApplicationManagementException {
+
+        List<String> notExistingTagIDList = getNotExistingTagIds(tags, tenantID, connection);
+
+        try (PreparedStatement preparedStatement =
+                     connection.prepareStatement(ApplicationMgtDBQueries.ASSIGN_TAGS_TO_APPLICATION)) {
+            for (ListValue tag: tags) {
+                String tagId = tag.getValue();
+                if (!notExistingTagIDList.contains(tagId)) {
+                    preparedStatement.setInt(1, applicationId);
+                    preparedStatement.setString(2, tagId);
+                    preparedStatement.addBatch();
+                } else {
+                    if (log.isDebugEnabled()) {
+                        String msg = "Application Tag of id : %s of tenantId: %d is empty or null. " +
+                                "Not adding the tag association to 'SP_TAG' table.";
+                        log.debug(String.format(msg, tagId, tenantID));
+                    }
+                }
+            }
+            preparedStatement.executeBatch();
+        } catch (SQLException e) {
+            String errorMsg = "Error while adding Application Tags for SP ID: " + applicationId +
+                    " and tenant domain: " + IdentityTenantUtil.getTenantDomain(tenantID);;
+            throw new IdentityApplicationManagementException(errorMsg, e);
+        }
+    }
+
+    private List<String> getNotExistingTagIds(List<ListValue> tags, Integer tenantID, Connection connection)
+            throws IdentityApplicationManagementException {
+
+        List<String> tagIdList = new ArrayList<>();
+
+        StringBuilder idString = new StringBuilder(StringUtils.EMPTY);
+
+        for (int index = 0; index < tags.size(); index++) {
+            String tagId = tags.get(index).getValue();
+            if (index != tags.size() - 1) {
+                idString.append("'").append(tagId).append("', ");
+            } else {
+                idString.append("'").append(tagId).append("'");
+            }
+            tagIdList.add(tagId);
+        }
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                String.format(ApplicationMgtDBQueries.VALIDATE_APPLICATION_TAGS, idString))) {
+            preparedStatement.setInt(1, tenantID);
+            
+            try (ResultSet tagIdResultSet = preparedStatement.executeQuery()) {
+                while (tagIdResultSet.next()) {
+                    String existingTagId = tagIdResultSet.getString(ApplicationTableColumns.TAG_ID_COLUMN_NAME);
+                    if (tagIdList.contains(existingTagId)) {
+                        tagIdList.remove(existingTagId);
+                    }
+                }
+            }
+            return tagIdList;
+        } catch (SQLException e) {
+            String errorMsg = "Error while validating the Application Tag Ids";
+            throw new IdentityApplicationManagementException(errorMsg, e);
+        }
     }
 }

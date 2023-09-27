@@ -53,6 +53,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+    private static final String TAGS = "tags";
 
     @XmlTransient
     @JsonIgnore
@@ -134,6 +135,10 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_B2B_SELF_SERVICE_APP)
     private boolean isB2BSelfServiceApp;
+
+    @IgnoreNullElement
+    @XmlElement(name = TAGS)
+    private List<ListValue> tags;
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -536,6 +541,16 @@ public class ServiceProvider implements Serializable {
     public void setB2BSelfServiceApp(boolean isB2BSelfServiceApp) {
 
         this.isB2BSelfServiceApp = isB2BSelfServiceApp;
+    }
+
+    public List<ListValue> getTags() {
+
+        return tags;
+    }
+
+    public void setTags(List<ListValue> tags) {
+
+        this.tags = tags;
     }
 }
 
