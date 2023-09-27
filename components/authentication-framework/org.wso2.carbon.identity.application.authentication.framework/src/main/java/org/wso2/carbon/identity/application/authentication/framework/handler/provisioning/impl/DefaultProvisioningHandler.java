@@ -150,19 +150,34 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             Map<String, String> userClaims = prepareClaimMappings(attributes);
 
             if (userStoreManager.isExistingUser(username)) {
+                Claim[] existingUserClaimList = userStoreManager.getUserClaimValues(
+                        UserCoreUtil.removeDomainFromName(username), UserCoreConstants.DEFAULT_PROFILE);
+
+                boolean isUserIdInClaims = Boolean.parseBoolean(
+                        attributes.remove(IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS));
+
+                boolean syncAllowedForUser = true;
+                if (isUserIdInClaims && StringUtils.isNotBlank(subjectVal)) {
+                    /**
+                     * Following segment checks if existingUserClaimList contains the external id claim and
+                     * the value is matched with the subject value or not.
+                     */
+                    syncAllowedForUser = Arrays.stream(existingUserClaimList).anyMatch(
+                            claim -> claim.getClaimUri().equalsIgnoreCase(FrameworkConstants.EXTERNAL_ID) &&
+                                    claim.getValue().equalsIgnoreCase(subjectVal));
+                }
                 /*
                 Set PROVISIONED_USER thread local property to true, to identify already provisioned
                 user claim update scenario.
                  */
                 IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
-                if (!userClaims.isEmpty() && !FrameworkConstants.SYNC_NONE.equals(attributeSyncMethod)) {
+                if (StringUtils.isNotBlank(subjectVal) && syncAllowedForUser && !userClaims.isEmpty()
+                        && !FrameworkConstants.SYNC_NONE.equals(attributeSyncMethod)) {
                     /*
                     In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned user,
                     To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
                      */
                     List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
-                    Claim[] existingUserClaimList = userStoreManager.getUserClaimValues(
-                            UserCoreUtil.removeDomainFromName(username), UserCoreConstants.DEFAULT_PROFILE);
                     if (existingUserClaimList != null) {
                         List<Claim> toBeDeletedFromExistingUserClaims = new ArrayList<>(
                                 Arrays.asList(existingUserClaimList));

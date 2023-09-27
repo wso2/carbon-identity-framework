@@ -102,7 +102,9 @@ public class PostAuthenticatedSubjectIdentifierHandler extends AbstractPostAuthn
 
             if (StringUtils.isNotBlank(subjectClaimURI) && StringUtils.isNotBlank(subjectValue)) {
                 handleUserStoreAndTenantDomain(sequenceConfig, subjectValue);
-            } else if (FrameworkUtils.isUserIdFoundAmongClaims(context)) {
+            } else if (FrameworkUtils.isUserIdFoundAmongClaims(context.getExternalIdP(),
+                    sequenceConfig.getStepMap().get(context.getCurrentStep()).getAuthenticatedAutenticator()
+                            .getName())) {
                 handleUserStoreAndTenantDomain(sequenceConfig, sequenceConfig.getAuthenticatedUser()
                         .getAuthenticatedSubjectIdentifier());
             } else {

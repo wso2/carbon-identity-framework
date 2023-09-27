@@ -442,8 +442,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             throws PostAuthenticationFailedException {
 
         String username;
-
-        if (FrameworkUtils.isUserIdFoundAmongClaims(context) && StringUtils.isNotBlank(localClaimValues.get
+        if (FrameworkUtils.isUserIdFoundAmongClaims(externalIdPConfig,
+                stepConfig.getAuthenticatedAutenticator().getName()) && StringUtils.isNotBlank(localClaimValues.get
                 (USERNAME_CLAIM))) {
             username = localClaimValues.get(USERNAME_CLAIM);
         } else {
@@ -876,7 +876,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         localClaimValues.put(FrameworkConstants.ASSOCIATED_ID,
                 stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
-
+        localClaimValues.put(IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS,
+                String.valueOf(FrameworkUtils.isUserIdFoundAmongClaims(externalIdPConfig,
+                        stepConfig.getAuthenticatedAutenticator().getName())));
         /*
         If TOTP is enabled for federated users, the initial federated user login will be identified with the following
         check and will set the secret key claim for the federated user who is going to be provisioned.

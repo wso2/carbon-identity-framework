@@ -3533,9 +3533,23 @@ public class FrameworkUtils {
                                 authenticator.getApplicationAuthenticator() instanceof AuthenticationFlowHandler);
     }
 
-    public static boolean isUserIdFoundAmongClaims(AuthenticationContext context) {
+    /**
+     * This method checks the value of the authenticator property named IsUserIdInClaims.
+     *
+     * @param externalIdPConfig              Selected ExternalIdPConfig for the authenticator step.
+     * @param authenticatedAuthenticatorName Name of the authenticator.
+     * @return Whether the user id is found among claims.
+     */
+    public static boolean isUserIdFoundAmongClaims(ExternalIdPConfig externalIdPConfig,
+                                                   String authenticatedAuthenticatorName) {
 
-        return Boolean.parseBoolean(context.getAuthenticatorProperties()
-                .get(IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS));
+        Map<String, String> authenticatorProperties =
+                FrameworkUtils.getAuthenticatorPropertyMapFromIdP(externalIdPConfig,
+                        authenticatedAuthenticatorName);
+        if (authenticatorProperties.containsKey(IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS)) {
+            return Boolean.parseBoolean(authenticatorProperties.get(IdentityApplicationConstants.Authenticator.OIDC
+                    .IS_USER_ID_IN_CLAIMS));
+        }
+        return false;
     }
 }
