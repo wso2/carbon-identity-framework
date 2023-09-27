@@ -1637,6 +1637,11 @@
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>3.24.0-GA</version>
+            </dependency>
             <!-- Common test utility -->
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -1727,11 +1732,6 @@
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.javassist</groupId>
-                <artifactId>javassist</artifactId>
-                <version>${org.javassist.version}</version>
             </dependency>
         </dependencies>
 
