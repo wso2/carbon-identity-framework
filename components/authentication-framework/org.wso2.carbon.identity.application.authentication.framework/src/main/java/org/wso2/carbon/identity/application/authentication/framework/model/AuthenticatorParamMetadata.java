@@ -28,6 +28,7 @@ public class AuthenticatorParamMetadata {
     private String name;
     private FrameworkConstants.AuthenticatorParamType type;
     private boolean isConfidential = false;
+    private boolean isRequired = false;
     private int paramOrder;
     private int paramGroup = 0;
     private String i18nKey;
@@ -40,13 +41,14 @@ public class AuthenticatorParamMetadata {
     }
 
     public AuthenticatorParamMetadata(String name, FrameworkConstants.AuthenticatorParamType type, int paramOrder,
-                                      boolean isConfidential, String i18Key) {
+                                      boolean isConfidential, boolean isRequired, String i18nKey) {
 
         this.name = name;
         this.type = type;
         this.paramOrder = paramOrder;
         this.isConfidential = isConfidential;
-        this.i18nKey = i18Key;
+        this.isRequired = isRequired;
+        this.i18nKey = i18nKey;
     }
 
     public String getName() {
