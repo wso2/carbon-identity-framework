@@ -32,22 +32,22 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
-import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementClientException;
-import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementServerException;
-import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
-import org.wso2.carbon.identity.role.mgt.core.util.GroupIDResolver;
-import org.wso2.carbon.identity.role.mgt.core.util.RoleManagementUtils;
-import org.wso2.carbon.identity.role.mgt.core.util.UserIDResolver;
 import org.wso2.carbon.identity.role.v2.mgt.core.AssociatedApplication;
+import org.wso2.carbon.identity.role.v2.mgt.core.GroupBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementClientException;
+import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementServerException;
 import org.wso2.carbon.identity.role.v2.mgt.core.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleAudience;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.GroupIDResolver;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.UserIDResolver;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -76,22 +76,14 @@ import java.util.UUID;
 
 import javax.xml.namespace.QName;
 
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColumns.UM_ROLE_NAME;
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_ROLE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_SCIM_ROLE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.SORTING_NOT_IMPLEMENTED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.H2;
@@ -102,6 +94,8 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MY_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORACLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.POSTGRE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.UM_ROLE_NAME;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_IDP_GROUPS_SQL;
@@ -111,14 +105,23 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_SCIM_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL_MSSQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_DB2;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_INFORMIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_MSSQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_MYSQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_ORACLE;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_POSTGRESQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_APP_ROLE_ASSOCIATION_BY_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_IDP_GROUPS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLE_SCOPE_BY_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLE_SCOPE_BY_SCOPE_NAME_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SCIM_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_APP_NAME_BY_APP_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ASSOCIATED_APPS_BY_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIENCE_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIENCE_REF_BY_ID_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_IDP_GROUPS_INFO_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_IDP_GROUPS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_DB2;
@@ -136,17 +139,23 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_SHARED_ROLE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.REMOVE_GROUP_FROM_ROLE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.UPDATE_ROLE_NAME_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.UPDATE_SCIM_ROLE_NAME_SQL;
 
 /**
  * Implementation of the {@link RoleDAO} interface.
  */
 public class RoleDAOImpl implements RoleDAO {
 
-    private Log log = LogFactory.getLog(org.wso2.carbon.identity.role.mgt.core.dao.RoleDAOImpl.class);
+    private Log log = LogFactory.getLog(RoleDAOImpl.class);
     private GroupIDResolver groupIDResolver = new GroupIDResolver();
     private UserIDResolver userIDResolver = new UserIDResolver();
     private Set<String> systemRoles = getSystemRoles();
@@ -497,6 +506,114 @@ public class RoleDAOImpl implements RoleDAO {
                     String.format(message, roleName, tenantDomain), e);
         }
         clearUserRolesCacheByTenant(tenantId);
+    }
+
+    @Override
+    public void updateRoleName(String roleID, String newRoleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        String roleName = getRoleNameByID(roleID, tenantDomain);
+        if (systemRoles.contains(roleName)) {
+            throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                    "Invalid operation. Role: " + roleName + " Cannot be renamed since it's a read only system role.");
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (!isExistingRoleID(roleID, tenantDomain)) {
+            throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
+                    "Role id: " + roleID + " does not exist in the system.");
+        }
+        RoleAudience roleAudience = getAudienceByRoleID(roleID, tenantDomain);
+        if (!StringUtils.equalsIgnoreCase(roleName, newRoleName) && isExistingRoleName(newRoleName,
+                roleAudience.getAudience(), roleAudience.getAudienceId(), tenantDomain)) {
+            throw new IdentityRoleManagementClientException(RoleConstants.Error.ROLE_ALREADY_EXISTS.getCode(),
+                    "Role name: " + newRoleName + " is already there in the system. Please pick another role name.");
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Updating the roleName: " + roleName + " to :" + newRoleName + " in the tenantDomain: "
+                    + tenantDomain);
+        }
+        int audienceRefId = getAudienceRefByID(roleID, tenantDomain);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
+
+            try {
+                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_ROLE_NAME_SQL,
+                        RoleConstants.RoleTableColumns.UM_ID)) {
+                    statement.setString(RoleConstants.RoleTableColumns.NEW_UM_ROLE_NAME, newRoleName);
+                    statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
+                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                    statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                    statement.executeUpdate();
+                }
+
+                // Update the role name in IDN_SCIM_GROUP table.
+                updateSCIMRoleName(roleName, newRoleName, audienceRefId, tenantDomain);
+
+                IdentityDatabaseUtil.commitUserDBTransaction(connection);
+            } catch (SQLException | IdentityRoleManagementException e) {
+                IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
+                String message = "Error while updating the role name: %s in the tenantDomain: %s";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        String.format(message, roleName, tenantDomain), e);
+            }
+        } catch (SQLException e) {
+            String message = "Error while updating the role name: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(message, roleName, tenantDomain), e);
+        }
+
+        clearUserRolesCacheByTenant(tenantId);
+    }
+
+    @Override
+    public int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    getDBTypeSpecificRolesCountQuery(databaseProductName))) {
+                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID,
+                        tenantId);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    "Error while getting total roles count in tenantDomain: " + tenantDomain, e);
+        }
+        return 0;
+    }
+
+    protected void updateSCIMRoleName(String roleName, String newRoleName, int audienceRefId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        // Append internal domain in order to maintain the backward compatibility.
+        roleName = appendInternalDomain(roleName);
+        newRoleName = appendInternalDomain(newRoleName);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_SCIM_ROLE_NAME_SQL)) {
+                statement.setString(RoleConstants.RoleTableColumns.NEW_ROLE_NAME, newRoleName);
+                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
+                statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
+                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                statement.executeUpdate();
+
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                String errorMessage = "Error while updating the the roleName: %s in the tenantDomain: " + "%s";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        String.format(errorMessage, roleName, tenantDomain), e);
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while updating the the roleName: %s in the tenantDomain: " + "%s";
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, tenantDomain), e);
+        }
     }
 
     /**
@@ -1348,6 +1465,29 @@ public class RoleDAOImpl implements RoleDAO {
                         + "could not be identified or not supported.");
     }
 
+    private String getDBTypeSpecificRolesCountQuery(String databaseProductName) throws IdentityRoleManagementException {
+
+        if (RoleConstants.MY_SQL.equals(databaseProductName)
+                || RoleConstants.MARIADB.equals(databaseProductName)
+                || RoleConstants.H2.equals(databaseProductName)) {
+            return COUNT_ROLES_BY_TENANT_MYSQL;
+        } else if (RoleConstants.ORACLE.equals(databaseProductName)) {
+            return COUNT_ROLES_BY_TENANT_ORACLE;
+        } else if (RoleConstants.MICROSOFT.equals(databaseProductName)) {
+            return COUNT_ROLES_BY_TENANT_MSSQL;
+        } else if (RoleConstants.POSTGRE_SQL.equals(databaseProductName)) {
+            return COUNT_ROLES_BY_TENANT_POSTGRESQL;
+        } else if (databaseProductName != null && databaseProductName.contains(RoleConstants.DB2)) {
+            return COUNT_ROLES_BY_TENANT_DB2;
+        } else if (RoleConstants.INFORMIX.equals(databaseProductName)) {
+            return COUNT_ROLES_BY_TENANT_INFORMIX;
+        }
+
+        throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                "Error while counting roles from DB. Database driver for " + databaseProductName
+                        + "could not be identified or not supported.");
+    }
+
     private List<RoleBasicInfo> processListRolesQuery(int limit, int offset, NamedPreparedStatement statement,
                                                       String tenantDomain) throws SQLException,
             IdentityRoleManagementException {
@@ -1508,7 +1648,8 @@ public class RoleDAOImpl implements RoleDAO {
         return sqlfilter;
     }
 
-    private String getRoleNameByID(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+    @Override
+    public String getRoleNameByID(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String roleName = null;
@@ -1624,7 +1765,8 @@ public class RoleDAOImpl implements RoleDAO {
         return refId;
     }
 
-    private List<UserBasicInfo> getUserListOfRole(String roleID, String tenantDomain)
+    @Override
+    public List<UserBasicInfo> getUserListOfRole(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
         if (!isExistingRoleID(roleID, tenantDomain)) {
@@ -1649,12 +1791,13 @@ public class RoleDAOImpl implements RoleDAO {
         }
 
         List<String> disabledDomainName = getDisabledDomainNames();
-
+        int audienceRefId = getAudienceRefByID(roleID, tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_USER_LIST_OF_ROLE_SQL,
                     RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         String name = resultSet.getString(1);
@@ -1691,7 +1834,69 @@ public class RoleDAOImpl implements RoleDAO {
         return userList;
     }
 
-    private boolean isExistingRoleID(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+    @Override
+    public void updateGroupListOfRole(String roleID, List<String> newGroupIDList,
+                                               List<String> deletedGroupIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        if (!isExistingRoleID(roleID, tenantDomain)) {
+            throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
+                    "Role id: " + roleID + " does not exist in the system.");
+        }
+        String roleName = getRoleNameByID(roleID, tenantDomain);
+        // Validate the group removal operation based on the default system roles.
+        validateGroupRemovalFromRole(deletedGroupIDList, roleName, tenantDomain);
+        if (CollectionUtils.isEmpty(newGroupIDList) && CollectionUtils.isEmpty(deletedGroupIDList)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Group lists are empty.");
+            }
+            return;
+        }
+
+        String primaryDomainName = IdentityUtil.getPrimaryDomainName();
+        if (primaryDomainName != null) {
+            primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
+        }
+
+        // Resolve group names from group IDs.
+        Map<String, String> newGroupIdsToNames = getGroupNamesByIDs(newGroupIDList, tenantDomain);
+        List<String> newGroupNamesList = new ArrayList<>(newGroupIdsToNames.values());
+        Map<String, String> deletedGroupIdsToNames = getGroupNamesByIDs(deletedGroupIDList, tenantDomain);
+        List<String> deletedGroupNamesList = new ArrayList<>(deletedGroupIdsToNames.values());
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        int audienceRefId = getAudienceRefByID(roleID, tenantDomain);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
+            try {
+                // Add new groups to the role.
+                String addGroupsSQL = ADD_GROUP_TO_ROLE_SQL;
+                String databaseProductName = connection.getMetaData().getDatabaseProductName();
+                if (RoleConstants.MICROSOFT.equals(databaseProductName)) {
+                    addGroupsSQL = SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
+                }
+                processBatchUpdateForGroups(roleName, audienceRefId, newGroupNamesList, tenantId, primaryDomainName,
+                        connection, addGroupsSQL);
+
+                // Delete existing groups from the role.
+                processBatchUpdateForGroups(roleName, audienceRefId, deletedGroupNamesList, tenantId,
+                        primaryDomainName, connection, REMOVE_GROUP_FROM_ROLE_SQL);
+
+                IdentityDatabaseUtil.commitUserDBTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
+                String errorMessage = "Error while updating groups to the role: %s in the tenantDomain: %s";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        String.format(errorMessage, roleName, tenantDomain), e);
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while updating groups to the role: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, tenantDomain), e);
+        }
+        clearUserRolesCacheByTenant(tenantId);
+    }
+
+    @Override
+    public boolean isExistingRoleID(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
         boolean isExist = false;
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -1755,7 +1960,8 @@ public class RoleDAOImpl implements RoleDAO {
         return userIDResolver.getIDByName(name, tenantDomain);
     }
 
-    private List<GroupBasicInfo> getGroupListOfRole(String roleID, String tenantDomain)
+    @Override
+    public List<GroupBasicInfo> getGroupListOfRole(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
         if (!isExistingRoleID(roleID, tenantDomain)) {
@@ -1772,12 +1978,13 @@ public class RoleDAOImpl implements RoleDAO {
         if (primaryDomainName != null) {
             primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
         }
-
+        int audienceRefId = getAudienceRefByID(roleID, tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                     GET_GROUP_LIST_OF_ROLE_SQL, RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         String name = resultSet.getString(1);
@@ -1810,7 +2017,8 @@ public class RoleDAOImpl implements RoleDAO {
         return groupIDResolver.getIDsByNames(names, tenantDomain);
     }
 
-    private Set<String> getSystemRoles() {
+    @Override
+    public Set<String> getSystemRoles() {
 
         // If the system roles are not enabled in the system no need to continue.
         if (!IdentityUtil.isSystemRolesEnabled()) {
@@ -1848,6 +2056,39 @@ public class RoleDAOImpl implements RoleDAO {
             }
         }
         return systemRoles;
+    }
+
+    private void validateGroupRemovalFromRole(List<String> deletedGroupIDList, String roleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        if (!IdentityUtil.isSystemRolesEnabled() || deletedGroupIDList.isEmpty()) {
+            return;
+        }
+        try {
+            String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+            UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            String adminUserName = userRealm.getRealmConfiguration().getAdminUserName();
+            org.wso2.carbon.user.core.UserStoreManager userStoreManager =
+                    (org.wso2.carbon.user.core.UserStoreManager) userRealm
+                            .getUserStoreManager();
+            boolean isUseCaseSensitiveUsernameForCacheKeys = IdentityUtil
+                    .isUseCaseSensitiveUsernameForCacheKeys(userStoreManager);
+            // Only the tenant owner can remove groups from Administrator role.
+            if (RoleConstants.ADMINISTRATOR.equalsIgnoreCase(roleName)) {
+                if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
+                        !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
+                                .equalsIgnoreCase(username, adminUserName))) {
+                    String errorMessage = "Invalid operation. Only the tenant owner can remove groups from the role: "
+                            + "%s";
+                    throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                            String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                }
+            }
+        } catch (UserStoreException e) {
+            String errorMessage = "Error while validating group removal from the role: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, tenantDomain), e);
+        }
     }
 
     private void deleteSCIMRole(String roleId, String roleName, String tenantDomain)

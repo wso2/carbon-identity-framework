@@ -24,9 +24,7 @@ import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
-import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.mgt.core.RoleConstants;
-import org.wso2.carbon.identity.role.mgt.core.internal.RoleManagementServiceComponentHolder;
+import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 
 import java.util.HashMap;
 import java.util.List;

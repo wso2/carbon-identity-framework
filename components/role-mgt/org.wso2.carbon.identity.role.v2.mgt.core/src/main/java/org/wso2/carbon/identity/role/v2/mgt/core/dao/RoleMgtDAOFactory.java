@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.dao;
 
-import org.wso2.carbon.identity.role.mgt.core.dao.GroupDAO;
-import org.wso2.carbon.identity.role.mgt.core.dao.GroupDAOImpl;
-
 /**
  * Role management DAO factory.
  */

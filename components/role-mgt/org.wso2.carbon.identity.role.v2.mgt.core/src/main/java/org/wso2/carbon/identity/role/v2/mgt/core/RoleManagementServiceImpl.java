@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.role.v2.mgt.core.internal;
+package org.wso2.carbon.identity.role.v2.mgt.core;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -27,18 +27,9 @@ import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
-import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementClientException;
-import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdpGroup;
-import org.wso2.carbon.identity.role.v2.mgt.core.Permission;
-import org.wso2.carbon.identity.role.v2.mgt.core.Role;
-import org.wso2.carbon.identity.role.v2.mgt.core.RoleBasicInfo;
-import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementEventPublisherProxy;
-import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
+import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -59,8 +50,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     private static final Log log = LogFactory.getLog(RoleManagementServiceImpl.class);
     private static final Log audit = CarbonConstants.AUDIT_LOG;
     private final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getRoleDAO();
-    private final org.wso2.carbon.identity.role.mgt.core.RoleManagementService roleManagementServiceV1 =
-            new org.wso2.carbon.identity.role.mgt.core.internal.RoleManagementServiceImpl();
     private static final String auditMessage
             = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
     private final String success = "Success";
@@ -157,7 +146,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public RoleBasicInfo updateRoleName(String roleID, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        roleManagementServiceV1.updateRoleName(roleID, newRoleName, tenantDomain);
+        roleDAO.updateRoleName(roleID, newRoleName, tenantDomain);
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -181,14 +170,14 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public List<UserBasicInfo> getUserListOfRole(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return roleManagementServiceV1.getUserListOfRole(roleID, tenantDomain);
+        return roleDAO.getUserListOfRole(roleID, tenantDomain);
     }
 
     @Override
     public RoleBasicInfo updateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
                                               String tenantDomain) throws IdentityRoleManagementException {
 
-        roleManagementServiceV1.updateGroupListOfRole(roleID, newUserIDList, deletedUserIDList, tenantDomain);
+        roleDAO.updateGroupListOfRole(roleID, newUserIDList, deletedUserIDList, tenantDomain);
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -196,7 +185,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public List<GroupBasicInfo> getGroupListOfRole(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return roleManagementServiceV1.getGroupListOfRole(roleID, tenantDomain);
+        return roleDAO.getGroupListOfRole(roleID, tenantDomain);
     }
 
     @Override
@@ -204,7 +193,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                                                List<String> deletedGroupIDList, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        roleManagementServiceV1.updateGroupListOfRole(roleID, newGroupIDList, deletedGroupIDList, tenantDomain);
+        roleDAO.updateGroupListOfRole(roleID, newGroupIDList, deletedGroupIDList, tenantDomain);
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -243,14 +232,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
-    public RoleBasicInfo setPermissionsForRole(String roleID, List<String> permissions, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        roleManagementServiceV1.setPermissionsForRole(roleID, permissions, tenantDomain);
-        return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
-    }
-
-    @Override
     public RoleBasicInfo updatePermissionListOfRole(String roleID, List<Permission> addedPermissions,
                                                        List<Permission> deletedPermissions, String tenantDomain)
             throws IdentityRoleManagementException {
@@ -276,25 +257,26 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     @Override
     public boolean isExistingRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
-        return roleManagementServiceV1.isExistingRole(roleID, tenantDomain);
+        return roleDAO.isExistingRoleID(roleID, tenantDomain);
     }
 
     @Override
-    public boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException {
+    public boolean isExistingRoleName(String roleName, String audience, String audienceId, String tenantDomain)
+            throws IdentityRoleManagementException {
 
-        return roleManagementServiceV1.isExistingRoleName(roleName, tenantDomain);
+        return roleDAO.isExistingRoleName(roleName, audience, audienceId, tenantDomain);
     }
 
     @Override
-    public Set<String> getSystemRoles() {
+    public Set<String> getSystemRoles() throws IdentityRoleManagementException {
 
-        return roleManagementServiceV1.getSystemRoles();
+        return roleDAO.getSystemRoles();
     }
 
     @Override
     public int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
 
-        return roleManagementServiceV1.getRolesCount(tenantDomain);
+        return roleDAO.getRolesCount(tenantDomain);
     }
 
     @Override
@@ -309,7 +291,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     @Override
     public String getRoleNameByRoleId(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
-        return roleManagementServiceV1.getRoleNameByRoleId(roleID, tenantDomain);
+        return roleDAO.getRoleNameByID(roleID, tenantDomain);
     }
 
     private String getUser(String tenantDomain) {

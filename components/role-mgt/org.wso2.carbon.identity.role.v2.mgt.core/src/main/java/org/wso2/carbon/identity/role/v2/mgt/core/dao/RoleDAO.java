@@ -18,13 +18,16 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.dao;
 
-import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.GroupBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.UserBasicInfo;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * RoleDAO interface.
@@ -143,6 +146,60 @@ public interface RoleDAO {
     void deleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Update role name.
+     *
+     * @param roleID       Role ID.
+     * @param newRoleName  New role name.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    void updateRoleName(String roleID, String newRoleName, String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
+     * Get user list of the given role.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return List of users.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<UserBasicInfo> getUserListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Update the list of groups in the given role.
+     *
+     * @param roleID             Role ID.
+     * @param newGroupIDList     The set of new group IDs.
+     * @param deletedGroupIDList The set of deleted group IDs.
+     * @param tenantDomain       Tenant domain.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    void updateGroupListOfRole(String roleID, List<String> newGroupIDList, List<String> deletedGroupIDList,
+                                                                               String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
+     * Get group list of the given role.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return List of groups.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<GroupBasicInfo> getGroupListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Retrieve the role name for the given ID.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain tenant domain.
+     * @return role ID.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    String getRoleNameByID(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
      * Check whether the given role name exist.
      *
      * @param roleName     Role name.
@@ -154,6 +211,16 @@ public interface RoleDAO {
             throws IdentityRoleManagementException;
 
     /**
+     * Check whether the given role ID exist.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return {@code true} if the the given role exist.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    boolean isExistingRoleID(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
      * Get role basic info by id.
      *
      * @param roleID       Role ID.
@@ -162,4 +229,18 @@ public interface RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     RoleBasicInfo getRoleBasicInfoById(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get the list of system roles.
+     *
+     * @return A set of system roles.
+     */
+    Set<String> getSystemRoles() throws IdentityRoleManagementException;
+
+    /**
+     * Retrieve the count of tenant roles.
+     *
+     * @param tenantDomain tenant domain.
+     */
+    int getRolesCount(String tenantDomain) throws IdentityRoleManagementException;
 }

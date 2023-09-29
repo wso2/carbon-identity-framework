@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core;
 
-import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
-import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
-
 import java.util.List;
 
 /**

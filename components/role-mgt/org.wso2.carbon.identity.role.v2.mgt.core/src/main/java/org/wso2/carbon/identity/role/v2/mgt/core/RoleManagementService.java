@@ -18,10 +18,6 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core;
 
-import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
-import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
-
 import java.util.List;
 import java.util.Set;
 
@@ -196,16 +192,6 @@ public interface RoleManagementService {
      */
     List<Permission> getPermissionListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
 
-    /**
-     * Set the list of permission to the given role.
-     *
-     * @param roleID      Role ID.
-     * @param permissions List of permissions.
-     * @return Basic role object.
-     * @throws IdentityRoleManagementException IdentityRoleManagementException.
-     */
-    RoleBasicInfo setPermissionsForRole(String roleID, List<String> permissions, String tenantDomain)
-            throws IdentityRoleManagementException;
 
     /**
      * Get permission list of the given role.
@@ -237,14 +223,15 @@ public interface RoleManagementService {
      * @return {@code true} if the the given role ID exist.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException;
+    boolean isExistingRoleName(String roleName, String audience, String audienceId, String tenantDomain)
+            throws IdentityRoleManagementException;
 
     /**
      * Get the list of system roles.
      *
      * @return A set of system roles.
      */
-     Set<String> getSystemRoles();
+     Set<String> getSystemRoles() throws IdentityRoleManagementException;
 
     /**
      * Retrieve the count of tenant roles.

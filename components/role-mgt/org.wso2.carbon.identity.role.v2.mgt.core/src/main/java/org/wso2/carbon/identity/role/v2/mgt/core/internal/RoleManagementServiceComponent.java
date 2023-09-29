@@ -31,13 +31,14 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementServiceImpl;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * Role management service component.
  */
-@Component(name = "org.wso2.carbon.identity.role.mgt.core.v2..internal.RoleManagementServiceComponent",
+@Component(name = "org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponent",
            immediate = true)
 public class RoleManagementServiceComponent {
 
@@ -51,10 +52,10 @@ public class RoleManagementServiceComponent {
             bundleContext.registerService(RoleManagementService.class, new RoleManagementServiceImpl(), null);
 
             if (log.isDebugEnabled()) {
-                log.debug("Role management service is activated.");
+                log.debug("Role V2 management service is activated.");
             }
         } catch (Throwable e) {
-            log.error("Error while activating Role management service.", e);
+            log.error("Error while activating Role V2 management service.", e);
         }
     }
 
@@ -62,7 +63,7 @@ public class RoleManagementServiceComponent {
     protected void deactivate(ComponentContext context) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Role management service is deactivated.");
+            log.debug("Role V2 management service is deactivated.");
         }
     }
 
