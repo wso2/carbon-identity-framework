@@ -138,7 +138,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_POSTGRESQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
@@ -464,18 +463,19 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
                     "Error while getting the realmConfiguration.", e);
         }
-
+        int audienceRefId = getAudienceRefByID(roleID, tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             try {
                 try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_ROLE_SQL,
                         RoleConstants.RoleTableColumns.UM_ID)) {
                     statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                     statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                    statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
                     statement.executeUpdate();
                 }
 
                 // Delete the role from IDN_SCIM_GROUP table.
-                deleteSCIMRole(roleID, roleName, tenantDomain);
+                deleteSCIMRole(roleID, roleName, audienceRefId, tenantDomain);
 
                 /* UM_ROLE_PERMISSION Table, roles are associated with Domain ID.
                    At this moment Role name doesn't contain the Domain prefix.
@@ -1226,6 +1226,7 @@ public class RoleDAOImpl implements RoleDAO {
                 statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_NAME, nameWithoutDomain);
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
                 statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
                 statement.addBatch();
             }
@@ -1609,7 +1610,8 @@ public class RoleDAOImpl implements RoleDAO {
         for (int i = 0; i < roleNames.size(); i++) {
             String roleName = roleNames.get(i);
             int audienceRefID = audienceRefIDs.get(i);
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_ID_BY_NAME_SQL)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL)) {
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
@@ -2091,7 +2093,7 @@ public class RoleDAOImpl implements RoleDAO {
         }
     }
 
-    private void deleteSCIMRole(String roleId, String roleName, String tenantDomain)
+    private void deleteSCIMRole(String roleId, String roleName, int audienceRefId,  String tenantDomain)
             throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -2106,6 +2108,7 @@ public class RoleDAOImpl implements RoleDAO {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_SCIM_ROLE_SQL)) {
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
+                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
                 statement.executeUpdate();
 
                 deleteRoleAssociations(roleId, connection);
