@@ -36,6 +36,8 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsPatch;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -1210,6 +1212,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         return appDAO.getApplicationWithRequiredAttributes(applicationId, requiredAttributes);
+    }
+
+    @Override
+    public Map<Integer, List<ApplicationTagsItem>> getAssociatedTagsOfApplications(List<Integer> applicationIdList,
+           String tenantDomain) throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getAssociatedTagsOfApplications(applicationIdList, tenantDomain);
     }
 
     /**
@@ -2606,6 +2616,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     .data(buildSPData(updatedApp));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
+    }
+
+    @Override
+    public void updateApplicationTags(int applicationId, List<ApplicationTagsPatch> applicationTagsPatchModel,
+                                      String tenantDomain) throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        appDAO.updateApplicationTags(applicationId, applicationTagsPatchModel, tenantDomain);
     }
 
     @Override

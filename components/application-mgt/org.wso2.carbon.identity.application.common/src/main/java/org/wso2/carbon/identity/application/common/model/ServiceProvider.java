@@ -138,7 +138,7 @@ public class ServiceProvider implements Serializable {
 
     @IgnoreNullElement
     @XmlElement(name = TAGS)
-    private List<ListValue> tags;
+    private List<ApplicationTagsItem> tags;
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -543,12 +543,12 @@ public class ServiceProvider implements Serializable {
         this.isB2BSelfServiceApp = isB2BSelfServiceApp;
     }
 
-    public List<ListValue> getTags() {
+    public List<ApplicationTagsItem> getTags() {
 
         return tags;
     }
 
-    public void setTags(List<ListValue> tags) {
+    public void setTags(List<ApplicationTagsItem> tags) {
 
         this.tags = tags;
     }

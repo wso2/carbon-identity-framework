@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import java.io.Serializable;
+
 /**
  * Application Tags List Item.
  */
-public class ApplicationTagsItem {
+public class ApplicationTagsItem implements Serializable {
 
     private String id;
     private String name;
