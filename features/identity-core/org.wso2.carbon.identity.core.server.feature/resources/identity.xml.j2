@@ -3460,6 +3460,9 @@
         <WebAuthn>
             <Enable>{{fido.webauthn.enable}}</Enable>
         </WebAuthn>
+        <ProgressiveRegistration>
+            <Enable>{{fido.progressive_registration.enable}}</Enable>
+        </ProgressiveRegistration>
         <FIDO2TrustedOrigins>
             {% for origin in fido.trusted.origins %}
                 <Origin>{{origin}}</Origin>
