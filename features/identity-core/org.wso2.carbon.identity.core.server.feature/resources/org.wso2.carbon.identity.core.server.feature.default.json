@@ -989,6 +989,7 @@
   "console.identity_verification_providers.scopes.update": ["internal_idvp_update"],
   "console.identity_verification_providers.scopes.delete": ["internal_idvp_delete"],
   "console.insights.enabled": false, 
+  "console.logs.enabled": false,
   "console.my_account.enabled": false,
   "console.oidc_scopes.enabled": true,
   "console.oidc_scopes.scopes.feature": ["console:scopes:oidc"],
