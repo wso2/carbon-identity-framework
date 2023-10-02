@@ -1211,7 +1211,15 @@
                        orderId="158"
                        enable="true">
         </EventListener>
-
+        <EventListener id="private_key_jwt_authenticator"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.jwt.PrivateKeyJWTClientAuthenticator"
+                       orderId="899"
+                       enable="true">
+            <Property name="RejectBeforeInMinutes">100</Property>
+            <Property name="PreventTokenReuse">false</Property>
+            <Property name="TokenEndpointAlias">sampleurl</Property>
+        </EventListener>
         <!-- Basic client authenticator -->
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.oauth2.client.authentication.BasicAuthClientAuthenticator"
@@ -1329,6 +1337,7 @@
             <Cache name="IdPCacheByAuthProperty"     enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="IdPCacheByHRI"              enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="IdPCacheByName"             enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
+            <Cache name="PrivateKeyJWT"              enable="true"  timeout="10" capacity="5000" isDistributed="false"/>
         </CacheManager>
     </CacheConfig>
 
