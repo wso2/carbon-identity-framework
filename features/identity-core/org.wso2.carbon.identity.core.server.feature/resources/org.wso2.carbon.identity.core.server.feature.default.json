@@ -528,6 +528,9 @@
   "event.default_listener.unique_claim_user_operation_event_listener.priority": "101",
   "event.default_listener.unique_claim_user_operation_event_listener.enable": false,
 
+  "event.default_listener.basic_user_info_provider.priority": "91",
+  "event.default_listener.basic_user_info_provider.enable": false,
+
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,
   "event.default_recorder.user_delete_event.write_to_separate_csv.enable": false,
