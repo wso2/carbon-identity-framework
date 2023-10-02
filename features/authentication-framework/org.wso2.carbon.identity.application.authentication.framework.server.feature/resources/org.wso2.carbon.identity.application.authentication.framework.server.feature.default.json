@@ -222,6 +222,10 @@
   "authentication.authenticator.iwa_kerberos.name": "IWAKerberosAuthenticator",
   "authentication.authenticator.iwa_kerberos.parameters.Tags": "Enterprise",
 
+  "authentication.authenticator.email_otp_local.name": "email-otp-authenticator",
+  "authentication.authenticator.email_otp_local.enable": true,
+  "authentication.authenticator.email_otp_local.parameters.Tags": "Passwordless,MFA",
+
   "account_recovery.endpoint.auth.name":"dashboard",
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
 
