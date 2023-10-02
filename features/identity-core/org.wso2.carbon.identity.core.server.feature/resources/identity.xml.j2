@@ -1918,6 +1918,12 @@
             </EventListener>
         {% endif %}
 
+        <EventListener id="basic_user_info_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.user.export.core.internal.service.impl.BasicUserInformationProvider"
+                       orderId="{{event.default_listener.basic_user_info_provider.priority}}"
+                       enable="{{event.default_listener.basic_user_info_provider.enable}}">
+        </EventListener>
+
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"
