@@ -812,70 +812,73 @@ public class DefaultStepHandler implements StepHandler {
                 }
             }
 
-            AuthenticatedIdPData authenticatedIdPData = getAuthenticatedIdPData(context, idpName);
+            if (status.equals(AuthenticatorFlowStatus.SUCCESS_COMPLETED)) {
+                AuthenticatedIdPData authenticatedIdPData = getAuthenticatedIdPData(context, idpName);
 
-            // store authenticated user
-            AuthenticatedUser authenticatedUser = context.getSubject();
-            stepConfig.setAuthenticatedUser(authenticatedUser);
-            authenticatedIdPData.setUser(authenticatedUser);
+                // store authenticated user
+                AuthenticatedUser authenticatedUser = context.getSubject();
+                stepConfig.setAuthenticatedUser(authenticatedUser);
+                authenticatedIdPData.setUser(authenticatedUser);
 
-            authenticatorConfig.setAuthenticatorStateInfo(context.getStateInfo());
-            stepConfig.setAuthenticatedAutenticator(authenticatorConfig);
+                authenticatorConfig.setAuthenticatorStateInfo(context.getStateInfo());
+                stepConfig.setAuthenticatedAutenticator(authenticatorConfig);
 
-            // store authenticated idp
-            stepConfig.setAuthenticatedIdP(idpName);
-            authenticatedIdPData.setIdpName(idpName);
-            authenticatedIdPData.addAuthenticator(authenticatorConfig);
-            //add authenticated idp data to the session wise map
-            context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
+                // store authenticated idp
+                stepConfig.setAuthenticatedIdP(idpName);
+                authenticatedIdPData.setIdpName(idpName);
+                authenticatedIdPData.addAuthenticator(authenticatorConfig);
+                //add authenticated idp data to the session wise map
+                context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
 
-            // Add SAML federated idp session index into the authentication step history.
-            String idpSessionIndex = null;
-            String parameterName = FEDERATED_IDP_SESSION_ID + idpName;
-            AuthHistory authHistory = new AuthHistory(authenticator.getName(), idpName);
+                // Add SAML federated idp session index into the authentication step history.
+                String idpSessionIndex = null;
+                String parameterName = FEDERATED_IDP_SESSION_ID + idpName;
+                AuthHistory authHistory = new AuthHistory(authenticator.getName(), idpName);
 
-            if (context.getParameters() != null && context.getParameters().containsKey(parameterName)) {
-                Object idpSessionIndexParamValue = context.getParameter(parameterName);
-                if (idpSessionIndexParamValue != null) {
-                    idpSessionIndex = idpSessionIndexParamValue.toString();
+                if (context.getParameters() != null && context.getParameters().containsKey(parameterName)) {
+                    Object idpSessionIndexParamValue = context.getParameter(parameterName);
+                    if (idpSessionIndexParamValue != null) {
+                        idpSessionIndex = idpSessionIndexParamValue.toString();
+                    }
                 }
-            }
-            if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) && StringUtils.isNotBlank(idpSessionIndex)) {
-                authHistory.setIdpSessionIndex(idpSessionIndex);
-                authHistory.setRequestType(context.getRequestType());
-            }
-            Serializable startTime =
-                    context.getAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME);
-            if (startTime instanceof Long) {
-                authHistory.setDuration((long) startTime - System.currentTimeMillis());
-            }
-            authHistory.setSuccess(true);
-            context.addAuthenticationStepHistory(authHistory);
-
-            String initiator = null;
-            if (stepConfig.getAuthenticatedUser() != null) {
-                initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
-                if (LoggerUtils.isLogMaskingEnable) {
-                    initiator = LoggerUtils.getMaskedContent(initiator);
+                if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) &&
+                        StringUtils.isNotBlank(idpSessionIndex)) {
+                    authHistory.setIdpSessionIndex(idpSessionIndex);
+                    authHistory.setRequestType(context.getRequestType());
                 }
-            }
-            String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
-                    ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
-            if (!isLegacyAuditLogsDisabled()) {
-                audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
-                        data, SUCCESS));
-            }
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                        FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
-                diagLogBuilder.inputParam(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder())
-                        .inputParams(getContextParamsForDiagnosticLogs(context, authenticatorConfig,
-                                stepConfig))
-                        .inputParam(FrameworkConstants.LogConstants.IDP, stepConfig.getAuthenticatedIdP())
-                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
-                        .resultMessage("Authentication success for step: " + stepConfig.getOrder());
-                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+                Serializable startTime =
+                        context.getAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME);
+                if (startTime instanceof Long) {
+                    authHistory.setDuration((long) startTime - System.currentTimeMillis());
+                }
+                authHistory.setSuccess(true);
+                context.addAuthenticationStepHistory(authHistory);
+
+                String initiator = null;
+                if (stepConfig.getAuthenticatedUser() != null) {
+                    initiator = stepConfig.getAuthenticatedUser().toFullQualifiedUsername();
+                    if (LoggerUtils.isLogMaskingEnable) {
+                        initiator = LoggerUtils.getMaskedContent(initiator);
+                    }
+                }
+                String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
+                        ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
+                if (!isLegacyAuditLogsDisabled()) {
+                    audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate",
+                            "ApplicationAuthenticationFramework", data, SUCCESS));
+                }
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
+                    diagLogBuilder.inputParam(FrameworkConstants.LogConstants.STEP, stepConfig.getOrder())
+                            .inputParams(getContextParamsForDiagnosticLogs(context, authenticatorConfig,
+                                    stepConfig))
+                            .inputParam(FrameworkConstants.LogConstants.IDP, stepConfig.getAuthenticatedIdP())
+                            .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                            .resultMessage("Authentication success for step: " + stepConfig.getOrder());
+                    LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+                }
             }
         } catch (InvalidCredentialsException e) {
             if (LOG.isDebugEnabled()) {
