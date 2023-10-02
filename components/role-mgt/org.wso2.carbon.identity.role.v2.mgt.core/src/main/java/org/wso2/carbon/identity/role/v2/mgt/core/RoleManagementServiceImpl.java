@@ -146,7 +146,22 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public RoleBasicInfo updateRoleName(String roleID, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreUpdateRoleNameWithException(roleID, newRoleName, tenantDomain);
+        if (isDomainSeparatorPresent(newRoleName)) {
+            // SCIM2 API only adds roles to the internal domain.
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
+                    + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + newRoleName + ".");
+        }
         roleDAO.updateRoleName(roleID, newRoleName, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostUpdateRoleName(roleID, newRoleName, tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s updated role name of role id : %s successfully.",
+                    getUser(tenantDomain), roleID));
+        }
+        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Update role name by ID", roleID,
+                getAuditData(tenantDomain, newRoleName), success));
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -170,14 +185,36 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public List<UserBasicInfo> getUserListOfRole(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return roleDAO.getUserListOfRole(roleID, tenantDomain);
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreGetUserListOfRoleWithException(roleID, tenantDomain);
+        List<UserBasicInfo> userBasicInfoList = roleDAO.getUserListOfRole(roleID, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostGetUserListOfRole(roleID, tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s get list of users of role of id : %s successfully.",
+                    getUser(tenantDomain), roleID));
+        }
+        return userBasicInfoList;
     }
 
     @Override
     public RoleBasicInfo updateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
                                               String tenantDomain) throws IdentityRoleManagementException {
 
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreUpdateUserListOfRoleWithException(roleID, newUserIDList,
+                deletedUserIDList,
+                tenantDomain);
         roleDAO.updateGroupListOfRole(roleID, newUserIDList, deletedUserIDList, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostUpdateUserListOfRole(roleID, newUserIDList, deletedUserIDList,
+                tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s updated list of users of role of id : %s successfully.",
+                    getUser(tenantDomain), roleID));
+        }
+        audit.info(String.format(auditMessage, getInitiator(tenantDomain),
+                "Update users list of role by id", roleID, getAuditData(tenantDomain), success));
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -185,7 +222,16 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public List<GroupBasicInfo> getGroupListOfRole(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return roleDAO.getGroupListOfRole(roleID, tenantDomain);
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreGetGroupListOfRoleWithException(roleID, tenantDomain);
+        List<GroupBasicInfo> groupBasicInfoList = roleDAO.getGroupListOfRole(roleID, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostGetGroupListOfRole(roleID, tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s get list of groups of role of id : %s successfully.",
+                    getUser(tenantDomain), roleID));
+        }
+        return groupBasicInfoList;
     }
 
     @Override
@@ -193,7 +239,19 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                                                List<String> deletedGroupIDList, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreUpdateGroupListOfRoleWithException(roleID, newGroupIDList,
+                deletedGroupIDList, tenantDomain);
         roleDAO.updateGroupListOfRole(roleID, newGroupIDList, deletedGroupIDList, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostUpdateGroupListOfRole(roleID, newGroupIDList, deletedGroupIDList,
+                tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s updated list of groups of role of id : %s successfully.",
+                    getUser(tenantDomain), roleID));
+        }
+        audit.info(String.format(auditMessage, getInitiator(tenantDomain),
+                "Update group list of role by id", roleID, getAuditData(tenantDomain), success));
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -201,7 +259,16 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public List<IdpGroup> getIdpGroupListOfRole(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return roleDAO.getIdpGroupListOfRole(roleID, tenantDomain);
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreGetIdpGroupListOfRoleWithException(roleID, tenantDomain);
+        List<IdpGroup> idpGroups = roleDAO.getIdpGroupListOfRole(roleID, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostIdpGetGroupListOfRole(roleID, tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s get list of idp groups of role of id : %s successfully.",
+                    getUser(tenantDomain), roleID));
+        }
+        return idpGroups;
     }
 
     @Override
@@ -209,9 +276,21 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                                                   List<IdpGroup> deletedGroupList, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreUpdateIdpGroupListOfRoleWithException(roleID, newGroupList,
+                deletedGroupList, tenantDomain);
         removeSimilarIdpGroups(newGroupList, deletedGroupList);
         validateGroupIds(newGroupList, tenantDomain);
         roleDAO.updateIdpGroupListOfRole(roleID, newGroupList, deletedGroupList, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostUpdateIdpGroupListOfRole(roleID, newGroupList, deletedGroupList,
+                tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s updated list of idp groups of role of id : %s successfully.",
+                    getUser(tenantDomain), roleID));
+        }
+        audit.info(String.format(auditMessage, getInitiator(tenantDomain),
+                "Update group list of role by id", roleID, getAuditData(tenantDomain), success));
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -318,6 +397,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     private String getAuditData(String tenantDomain) {
 
         return (String.format("Tenant Domain : %s", tenantDomain));
+    }
+
+    private String getAuditData(String tenantDomain, String newRoleName) {
+
+        return (String.format("Tenant Domain : %s, New Role Name : %s", tenantDomain, newRoleName));
     }
 
     /**

@@ -246,6 +246,187 @@ public class RoleManagementEventPublisherProxy {
         }
     }
 
+    public void publishPreUpdateRoleNameWithException(String roleID, String newRoleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.NEW_ROLE_NAME, newRoleName);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_UPDATE_ROLE_NAME_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostUpdateRoleName(String roleID, String newRoleName, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.NEW_ROLE_NAME, newRoleName);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_ROLE_NAME_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreGetGroupListOfRoleWithException(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_GET_GROUP_LIST_OF_ROLES_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostGetGroupListOfRole(String roleID, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_GROUP_LIST_OF_ROLES_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreUpdateUserListOfRoleWithException(String roleID, List<String> newUserIDList,
+                                                            List<String> deletedUserIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.NEW_USER_ID_LIST, newUserIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETE_USER_ID_LIST, deletedUserIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_UPDATE_USER_LIST_OF_ROLE_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostUpdateUserListOfRole(String roleID, List<String> newUserIDList,
+                                                List<String> deletedUserIDList, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.NEW_USER_ID_LIST, newUserIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETE_USER_ID_LIST, deletedUserIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_USER_LIST_OF_ROLE_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreGetUserListOfRoleWithException(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_GET_USER_LIST_OF_ROLE_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostGetUserListOfRole(String roleID, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_USER_LIST_OF_ROLE_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreUpdateGroupListOfRoleWithException(String roleID, List<String> newGroupIDList,
+                                                             List<String> deletedGroupIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.NEW_GROUP_ID_LIST, newGroupIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETE_GROUP_ID_LIST, deletedGroupIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_UPDATE_GROUP_LIST_OF_ROLE_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostUpdateGroupListOfRole(String roleID, List<String> newGroupIDList,
+                                                 List<String> deletedGroupIDList, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.NEW_GROUP_ID_LIST, newGroupIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETE_GROUP_ID_LIST, deletedGroupIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_GROUP_LIST_OF_ROLE_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreGetIdpGroupListOfRoleWithException(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_GET_GROUP_LIST_OF_ROLES_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostIdpGetGroupListOfRole(String roleID, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_GROUP_LIST_OF_ROLES_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreUpdateIdpGroupListOfRoleWithException(String roleID, List<IdpGroup> newGroupIDList,
+                                                             List<IdpGroup> deletedGroupIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.NEW_GROUP_ID_LIST, newGroupIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETE_GROUP_ID_LIST, deletedGroupIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_UPDATE_GROUP_LIST_OF_ROLE_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostUpdateIdpGroupListOfRole(String roleID, List<IdpGroup> newGroupIDList,
+                                                 List<IdpGroup> deletedGroupIDList, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
+        eventProperties.put(IdentityEventConstants.EventProperty.NEW_GROUP_ID_LIST, newGroupIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETE_GROUP_ID_LIST, deletedGroupIDList);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_GROUP_LIST_OF_ROLE_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
     private Event createEvent(Map<String, Object> eventProperties, String eventName) {
 
         return new Event(eventName, eventProperties);
