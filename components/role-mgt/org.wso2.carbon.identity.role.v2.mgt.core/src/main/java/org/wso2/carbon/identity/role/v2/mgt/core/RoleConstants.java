@@ -118,6 +118,7 @@ public class RoleConstants {
         ROLE_ALREADY_EXISTS("60008"),
         OPERATION_FORBIDDEN("60009"),
         OPERATION_NOT_SUPPORTED("60010"),
+        INVALID_AUDIENCE("60011"),
 
         // Error thrown by custom event handler.
         ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR("55001"),

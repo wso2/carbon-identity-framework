@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Scope;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -85,6 +87,7 @@ import javax.xml.namespace.QName;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_USER_FROM_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.DB2;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
@@ -188,7 +191,7 @@ public class RoleDAOImpl implements RoleDAO {
             audienceId = getOrganizationIdByTenantDomain(tenantDomain);
         }
         if (APPLICATION.equalsIgnoreCase(audience)) {
-            // validate application has audience
+            validateApplicationRoleAudience(audienceId, tenantDomain);
         }
 
         if (!isExistingRoleName(roleName, audience, audienceId, tenantDomain)) {
@@ -2206,23 +2209,37 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     /**
-     * Validate permissions.
+     * Validate application role audience.
      *
      * @param applicationId Application Id.
      * @throws IdentityRoleManagementException Error occurred while validating groups.
      */
-    private void validateApplicationAudience(String applicationId)
+    private void validateApplicationRoleAudience(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-//        try {
-//            List<String> attributes  = new ArrayList<>();
-//            attributes.add("ROLE_AUDIENCE_TYPE");
-//            return RoleManagementServiceComponentHolder.getInstance().getApplicationManagementService()
-//                    .getApplicationWithRequiredAttributes(applicationId, attributes).getApplicationName();
-//        } catch (IdentityApplicationManagementException e) {
-//            String errorMessage = "Error while retrieving the application name for the given id: " + applicationID;
-//            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
-//        }
+        try {
+             ServiceProvider app = RoleManagementServiceComponentHolder.getInstance().getApplicationManagementService()
+                    .getApplicationByResourceId(applicationId, tenantDomain);
+             if (app == null) {
+                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
+                         "Audience Id: " + applicationId + " is not found");
+             }
+             boolean valid = false;
+             for (ServiceProviderProperty property : app.getSpProperties()) {
+                if ("ROLE_AUDIENCE_TYPE".equals(property.getName())) {
+                    if (APPLICATION.equalsIgnoreCase(property.getValue())) {
+                        valid = true;
+                    }
+                 }
+             }
+             if (!valid) {
+                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
+                         "Application: " + applicationId + " does not have Application role audience type");
+             }
+        } catch (IdentityApplicationManagementException e) {
+            String errorMessage = "Error while retrieving the application for the given id: " + applicationId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
     }
     /**
      * Validate permissions.
