@@ -11,19 +11,15 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.application.common.model.IdPGroup;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleAudience;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleBasicInfo;
-import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
@@ -44,7 +40,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyListOf;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -343,6 +338,8 @@ public class RoleDAOTest extends PowerMockTestCase {
             List<Permission> newPermissions = new ArrayList<>();
             newPermissions.add(new Permission("view", "view"));
             newPermissions.add(new Permission("update", "update"));
+            doReturn(new RoleAudience(APPLICATION_AUD, "test-app-id")).when(roleDAO,
+                    "getAudienceByRoleID", eq(role.getId()), anyString());
             roleDAO.updatePermissionListOfRole(role.getId(), newPermissions, permissions, SAMPLE_TENANT_DOMAIN);
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection6);
@@ -539,6 +536,7 @@ public class RoleDAOTest extends PowerMockTestCase {
         doReturn(groupIdsMap).when(roleDAO, "getGroupIDsByNames", anyCollection(), anyString());
         doReturn(roleName).when(roleDAO, "getRoleNameByID", anyString(), anyString());
         doReturn("test-org").when(roleDAO, "getOrganizationName", anyString());
+        doNothing().when(roleDAO, "validatePermissions", anyCollection(), anyString(), anyString(), anyString());
         when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
         return roleDAO.addRole(roleName, userIDsList, groupIDsList, permissions, audience, audienceId,
                 SAMPLE_TENANT_DOMAIN);

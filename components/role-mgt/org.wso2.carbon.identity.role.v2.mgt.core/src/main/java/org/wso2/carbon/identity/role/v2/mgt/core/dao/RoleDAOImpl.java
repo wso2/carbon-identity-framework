@@ -25,9 +25,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -228,6 +230,7 @@ public class RoleDAOImpl implements RoleDAO {
                     }
 
                     // Handle role id, permissions
+                    validatePermissions(permissions, audience, audienceId, tenantDomain);
                     roleID = addRoleInfo(roleName, permissions, audience, audienceId, audienceRefId, tenantDomain);
 
                     IdentityDatabaseUtil.commitUserDBTransaction(connection);
@@ -363,6 +366,8 @@ public class RoleDAOImpl implements RoleDAO {
                                                     List<Permission> deletedPermissions, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleAudience roleAudience =  getAudienceByRoleID(roleId, tenantDomain);
+        validatePermissions(addedPermissions, roleAudience.getAudience(), roleAudience.getAudienceId(), tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             addPermissions(roleId, addedPermissions, tenantDomain, connection);
             for (Permission permission : deletedPermissions) {
@@ -2193,6 +2198,89 @@ public class RoleDAOImpl implements RoleDAO {
             String errorMessage = "Error while validating user removal from the role: %s in the tenantDomain: %s";
             throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
                     String.format(errorMessage, roleName, tenantDomain), e);
+        }
+    }
+
+    /**
+     * Validate permissions.
+     *
+     * @param permissions Permissions.
+     * @param audience  Audience.
+     * @param audienceId  Audience ID.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while validating groups.
+     */
+    private void validatePermissions(List<Permission> permissions, String audience, String audienceId,
+                                    String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        switch (audience) {
+            case ORGANIZATION:
+                validatePermissionsForOrganization(permissions, tenantDomain);
+                break;
+            case APPLICATION:
+                validatePermissionsForApplication(permissions, audienceId, tenantDomain);
+                break;
+        }
+    }
+
+    /**
+     * Validate permissions for organization audience.
+     *
+     * @param permissions Permissions.
+     * @throws IdentityRoleManagementException Error occurred while validating permissions.
+     */
+    private void validatePermissionsForOrganization(List<Permission> permissions, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        try {
+            List<Scope> scopes = RoleManagementServiceComponentHolder.getInstance()
+                    .getApiResourceManager().getScopesByTenantDomain(tenantDomain, "");
+            List<String> scopeNameList = new ArrayList<>();
+            for (Scope scope : scopes) {
+                scopeNameList.add(scope.getName());
+            }
+            for (Permission permission : permissions) {
+
+                if (!scopeNameList.contains(permission.getName())) {
+                    throw new IdentityRoleManagementException("Permission not found.",
+                            "Permission not found for name : " + permission.getName());
+                }
+            }
+        } catch (APIResourceMgtException e) {
+            throw new IdentityRoleManagementException("Error while retrieving scopes", "Error while retrieving scopes "
+                    + "for tenantDomain: " + tenantDomain, e);
+        }
+    }
+
+    /**
+     * Validate permissions for application audience.
+     *
+     * @param permissions Permissions.
+     * @param applicationId Application Id.
+     * @throws IdentityRoleManagementException Error occurred while validating permissions.
+     */
+    private void validatePermissionsForApplication(List<Permission> permissions, String applicationId,
+                                                   String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        try {
+            // TODO : get authorized scopes for app
+            List<Scope> scopes = new ArrayList<>();
+            List<String> scopeNameList = new ArrayList<>();
+            for (Scope scope : scopes) {
+                scopeNameList.add(scope.getName());
+            }
+            for (Permission permission : permissions) {
+
+//                if (!scopeNameList.contains(permission.getName())) {
+//                    throw new IdentityRoleManagementException("Permission not found.",
+//                            "Permission not found for name : " + permission.getName());
+//                }
+            }
+        } catch (Exception e) {
+            throw new IdentityRoleManagementException("Error while retrieving scopes", "Error while retrieving scopes "
+                    + "for tenantDomain: " + tenantDomain, e);
         }
     }
 

@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -155,11 +156,30 @@ public class RoleManagementServiceComponent {
     )
     protected void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
 
-        RoleManagementServiceComponentHolder.getInstance().setApplicationManagementService(applicationManagementService);
+        RoleManagementServiceComponentHolder.getInstance()
+                .setApplicationManagementService(applicationManagementService);
     }
 
     protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
 
         RoleManagementServiceComponentHolder.getInstance().setApplicationManagementService(null);
     }
+
+    @Reference(
+            name = "api.resource.mgt.service.component",
+            service = APIResourceManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAPIResourceManager"
+    )
+    protected void setAPIResourceManager(APIResourceManager apiResourceManager) {
+
+        RoleManagementServiceComponentHolder.getInstance().setApiResourceManager(apiResourceManager);
+    }
+
+    protected void unsetAPIResourceManager(APIResourceManager apiResourceManager) {
+
+        RoleManagementServiceComponentHolder.getInstance().setApiResourceManager(null);
+    }
+
 }
