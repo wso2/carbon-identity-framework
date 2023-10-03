@@ -183,10 +183,12 @@ public class RoleDAOImpl implements RoleDAO {
         roleName = removeInternalDomain(roleName);
         String roleID;
 
-        // TODO: Here we need to validate, if audience is APPLICATION, the app should use application level roles.
         if (StringUtils.isEmpty(audience)) {
             audience = ORGANIZATION;
             audienceId = getOrganizationIdByTenantDomain(tenantDomain);
+        }
+        if (APPLICATION.equalsIgnoreCase(audience)) {
+            // validate application has audience
         }
 
         if (!isExistingRoleName(roleName, audience, audienceId, tenantDomain)) {
@@ -247,7 +249,8 @@ public class RoleDAOImpl implements RoleDAO {
             }
         } else {
             throw new IdentityRoleManagementClientException(ROLE_ALREADY_EXISTS.getCode(),
-                    "Role already exist for the role name: " + roleName);
+                    "Role already exist for the role name: " + roleName + "audience: " + audience + "audienceId: "
+                            + audienceId);
         }
         return new RoleBasicInfo(roleID, roleName);
     }
@@ -540,7 +543,8 @@ public class RoleDAOImpl implements RoleDAO {
         if (!StringUtils.equalsIgnoreCase(roleName, newRoleName) && isExistingRoleName(newRoleName,
                 roleAudience.getAudience(), roleAudience.getAudienceId(), tenantDomain)) {
             throw new IdentityRoleManagementClientException(RoleConstants.Error.ROLE_ALREADY_EXISTS.getCode(),
-                    "Role name: " + newRoleName + " is already there in the system. Please pick another role name.");
+                    "Role already exist for the role name: " + roleName + "audience: " + roleAudience.getAudience()
+                            + "audienceId: " + roleAudience.getAudienceId());
         }
         if (log.isDebugEnabled()) {
             log.debug("Updating the roleName: " + roleName + " to :" + newRoleName + " in the tenantDomain: "
@@ -2201,6 +2205,25 @@ public class RoleDAOImpl implements RoleDAO {
         }
     }
 
+    /**
+     * Validate permissions.
+     *
+     * @param applicationId Application Id.
+     * @throws IdentityRoleManagementException Error occurred while validating groups.
+     */
+    private void validateApplicationAudience(String applicationId)
+            throws IdentityRoleManagementException {
+
+//        try {
+//            List<String> attributes  = new ArrayList<>();
+//            attributes.add("ROLE_AUDIENCE_TYPE");
+//            return RoleManagementServiceComponentHolder.getInstance().getApplicationManagementService()
+//                    .getApplicationWithRequiredAttributes(applicationId, attributes).getApplicationName();
+//        } catch (IdentityApplicationManagementException e) {
+//            String errorMessage = "Error while retrieving the application name for the given id: " + applicationID;
+//            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+//        }
+    }
     /**
      * Validate permissions.
      *
