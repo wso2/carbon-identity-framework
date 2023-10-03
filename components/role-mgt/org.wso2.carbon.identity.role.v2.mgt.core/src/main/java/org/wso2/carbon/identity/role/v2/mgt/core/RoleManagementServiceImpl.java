@@ -342,7 +342,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
-    public Set<String> getSystemRoles() throws IdentityRoleManagementException {
+    public Set<String> getSystemRoles() {
 
         return roleDAO.getSystemRoles();
     }
@@ -416,7 +416,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
      * @param tenantDomain Tenant Domain.
      * @return Initiator based on whether log masking is enabled or not.
      */
-    private static String getInitiator(String tenantDomain) {
+    private String getInitiator(String tenantDomain) {
 
         String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
         if (LoggerUtils.isLogMaskingEnable) {
@@ -436,7 +436,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         return CarbonConstants.REGISTRY_SYSTEM_USERNAME;
     }
 
-    public static void removeSimilarPermissions(List<Permission> arr1, List<Permission> arr2) {
+    private void removeSimilarPermissions(List<Permission> arr1, List<Permission> arr2) {
         List<Permission> toRemove = new ArrayList<>();
 
         for (Permission p1 : arr1) {
@@ -451,7 +451,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         arr2.removeAll(toRemove);
     }
 
-    public static void removeSimilarIdpGroups(List<IdpGroup> arr1, List<IdpGroup> arr2) {
+    private void removeSimilarIdpGroups(List<IdpGroup> arr1, List<IdpGroup> arr2) {
         List<IdpGroup> toRemove = new ArrayList<>();
 
         for (IdpGroup p1 : arr1) {

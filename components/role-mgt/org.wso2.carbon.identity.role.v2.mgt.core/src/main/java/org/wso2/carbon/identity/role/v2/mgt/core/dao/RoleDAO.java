@@ -248,12 +248,13 @@ public interface RoleDAO {
      *
      * @return A set of system roles.
      */
-    Set<String> getSystemRoles() throws IdentityRoleManagementException;
+    Set<String> getSystemRoles();
 
     /**
      * Retrieve the count of tenant roles.
      *
      * @param tenantDomain tenant domain.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     int getRolesCount(String tenantDomain) throws IdentityRoleManagementException;
 

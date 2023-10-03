@@ -59,8 +59,8 @@ public class RoleConstants {
     public static final String INTERNAL_DOMAIN = "Internal";
 
     // Role audiences
-    public static final String APPLICATION = "Application";
-    public static final String ORGANIZATION = "Organization";
+    public static final String APPLICATION = "application";
+    public static final String ORGANIZATION = "organization";
 
     /**
      * Grouping of constants related to database table names.
@@ -119,6 +119,7 @@ public class RoleConstants {
         OPERATION_FORBIDDEN("60009"),
         OPERATION_NOT_SUPPORTED("60010"),
         INVALID_AUDIENCE("60011"),
+        INVALID_PERMISSION("60012"),
 
         // Error thrown by custom event handler.
         ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR("55001"),

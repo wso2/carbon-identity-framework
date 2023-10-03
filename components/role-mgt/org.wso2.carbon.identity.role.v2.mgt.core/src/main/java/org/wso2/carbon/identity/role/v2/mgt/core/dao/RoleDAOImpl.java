@@ -90,6 +90,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_OFFSET;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_ALREADY_EXISTS;
@@ -252,7 +253,7 @@ public class RoleDAOImpl implements RoleDAO {
             }
         } else {
             throw new IdentityRoleManagementClientException(ROLE_ALREADY_EXISTS.getCode(),
-                    "Role already exist for the role name: " + roleName + "audience: " + audience + "audienceId: "
+                    "Role already exist for the role name: " + roleName + " audience: " + audience + " audienceId: "
                             + audienceId);
         }
         return new RoleBasicInfo(roleID, roleName);
@@ -546,8 +547,8 @@ public class RoleDAOImpl implements RoleDAO {
         if (!StringUtils.equalsIgnoreCase(roleName, newRoleName) && isExistingRoleName(newRoleName,
                 roleAudience.getAudience(), roleAudience.getAudienceId(), tenantDomain)) {
             throw new IdentityRoleManagementClientException(RoleConstants.Error.ROLE_ALREADY_EXISTS.getCode(),
-                    "Role already exist for the role name: " + roleName + "audience: " + roleAudience.getAudience()
-                            + "audienceId: " + roleAudience.getAudienceId());
+                    "Role already exist for the role name: " + roleName + " audience: " + roleAudience.getAudience()
+                            + " audienceId: " + roleAudience.getAudienceId());
         }
         if (log.isDebugEnabled()) {
             log.debug("Updating the roleName: " + roleName + " to :" + newRoleName + " in the tenantDomain: "
@@ -640,7 +641,16 @@ public class RoleDAOImpl implements RoleDAO {
         return role;
     }
 
-    protected void updateSCIMRoleName(String roleName, String newRoleName, int audienceRefId, String tenantDomain)
+    /**
+     * Update scim role name.
+     *
+     * @param roleName roleName.
+     * @param newRoleName New role name.
+     * @param audienceRefId Audience Ref ID.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private void updateSCIMRoleName(String roleName, String newRoleName, int audienceRefId, String tenantDomain)
             throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -747,7 +757,6 @@ public class RoleDAOImpl implements RoleDAO {
         try {
             deleteAllPermissionsOfRole(roleId, connection);
             deleteAppRoleAssociation(roleId, connection);
-            // TODO: handle shared roles
         } catch (IdentityRoleManagementException e) {
             String errorMessage = "Error while handling role deletion of roleID : " + roleId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
@@ -824,6 +833,14 @@ public class RoleDAOImpl implements RoleDAO {
         return isShared;
     }
 
+    /**
+     * Update scim role name.
+     *
+     * @param roleName roleName.
+     * @param audienceRefId Audience Ref ID.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private List<Permission> getPermissionsOfSharedRole(String roleName, int audienceRefId, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -2254,7 +2271,7 @@ public class RoleDAOImpl implements RoleDAO {
                                     String tenantDomain)
             throws IdentityRoleManagementException {
 
-        switch (audience) {
+        switch (audience.toLowerCase()) {
             case ORGANIZATION:
                 validatePermissionsForOrganization(permissions, tenantDomain);
                 break;
@@ -2283,8 +2300,8 @@ public class RoleDAOImpl implements RoleDAO {
             for (Permission permission : permissions) {
 
                 if (!scopeNameList.contains(permission.getName())) {
-                    throw new IdentityRoleManagementException("Permission not found.",
-                            "Permission not found for name : " + permission.getName());
+                    throw new IdentityRoleManagementClientException(INVALID_PERMISSION.getCode(),
+                            "Permission: " + permission.getName() + " not found");
                 }
             }
         } catch (APIResourceMgtException e) {
@@ -2314,8 +2331,8 @@ public class RoleDAOImpl implements RoleDAO {
             for (Permission permission : permissions) {
 
 //                if (!scopeNameList.contains(permission.getName())) {
-//                    throw new IdentityRoleManagementException("Permission not found.",
-//                            "Permission not found for name : " + permission.getName());
+//                    throw new IdentityRoleManagementClientException(INVALID_PERMISSION.getCode(),
+//                            "Permission: " + permission.getName() + " not found");
 //                }
             }
         } catch (Exception e) {

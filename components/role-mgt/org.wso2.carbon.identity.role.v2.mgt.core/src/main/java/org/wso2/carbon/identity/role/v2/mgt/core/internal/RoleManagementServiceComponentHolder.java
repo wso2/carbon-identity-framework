@@ -158,6 +158,6 @@ public class RoleManagementServiceComponentHolder {
      */
     public void setApiResourceManager(APIResourceManager apiResourceManager) {
 
-        this.applicationManagementService = applicationManagementService;
+        this.apiResourceManager = apiResourceManager;
     }
 }

@@ -64,8 +64,8 @@ public class RoleDAOTest extends PowerMockTestCase {
     private static final int SAMPLE_TENANT_ID = 1;
     private static final String SAMPLE_TENANT_DOMAIN = "wso2.com";
     private static final String DB_NAME = "ROLE_DB";
-    private static final String ORGANIZATION_AUD  = "Organization";
-    private static final String APPLICATION_AUD  = "Application";
+    private static final String ORGANIZATION_AUD  = "organization";
+    private static final String APPLICATION_AUD  = "application";
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private RoleDAO roleDAO;
     private List<String> userNamesList = new ArrayList<>();
