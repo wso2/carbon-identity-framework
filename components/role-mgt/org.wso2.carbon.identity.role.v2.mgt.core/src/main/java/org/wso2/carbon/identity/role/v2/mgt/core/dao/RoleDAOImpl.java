@@ -2202,7 +2202,7 @@ public class RoleDAOImpl implements RoleDAO {
      * @param groups Groups.
      * @throws IdentityRoleManagementException Error occurred while validating groups.
      */
-    public static void validateGroupIds(List<IdpGroup> groups, String tenantDomain)
+    public void validateGroupIds(List<IdpGroup> groups, String tenantDomain)
             throws IdentityRoleManagementException {
 
         for (IdpGroup group : groups) {
@@ -2229,7 +2229,7 @@ public class RoleDAOImpl implements RoleDAO {
      *
      * @throws IdentityRoleManagementException Error occurred while validating groups.
      */
-    private static IdentityProvider getIdpById(String idpId, String tenantDomain)
+    private IdentityProvider getIdpById(String idpId, String tenantDomain)
             throws IdentityRoleManagementException {
 
         IdentityProvider identityProvider;

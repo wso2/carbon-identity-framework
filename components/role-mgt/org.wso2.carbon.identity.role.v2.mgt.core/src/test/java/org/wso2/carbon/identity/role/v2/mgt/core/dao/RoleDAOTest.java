@@ -44,6 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyListOf;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -60,7 +61,7 @@ import static org.testng.Assert.assertTrue;
 
 @WithCarbonHome
 @PrepareForTest({IdentityDatabaseUtil.class, IdentityTenantUtil.class, IdentityUtil.class, UserCoreUtil.class,
-        CarbonContext.class, RoleDAOImpl.class, IdentityProviderManager.class})
+        CarbonContext.class, RoleDAOImpl.class})
 @PowerMockIgnore("org.mockito.*")
 public class RoleDAOTest extends PowerMockTestCase {
 
@@ -84,9 +85,6 @@ public class RoleDAOTest extends PowerMockTestCase {
 
     @Mock
     UserRealm mockUserRealm;
-
-    @Mock
-    IdentityProviderManager identityProviderManager;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -390,24 +388,17 @@ public class RoleDAOTest extends PowerMockTestCase {
             List<IdpGroup> newGroups = new ArrayList<>();
             newGroups.add(new IdpGroup("test-group1-id", "test-idp-id"));
             newGroups.add(new IdpGroup("test-group2-id", "test-idp-id"));
-            mockStatic(IdentityProvider.class);
-            IdentityProvider identityProvider = new IdentityProvider();
-            IdPGroup idpGroup1 = new IdPGroup();
-            idpGroup1.setIdpGroupName("test-group1-name");
-            idpGroup1.setIdpGroupId("test-group1-id");
-            IdPGroup idpGroup2 = new IdPGroup();
-            idpGroup2.setIdpGroupName("test-group2-name");
-            idpGroup2.setIdpGroupId("test-group2-id");
-            identityProvider.setIdPGroupConfig(new IdPGroup[]{idpGroup1, idpGroup2});
+            doNothing().when(roleDAO, "validateGroupIds", anyCollection(), anyString());
+            doNothing().when(roleDAO, "resolveIdpGroups", anyCollection(), anyString());
             roleDAO.updateIdpGroupListOfRole(role.getId(), newGroups, new ArrayList<>(), SAMPLE_TENANT_DOMAIN);
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection6);
             doReturn(1).when(roleDAO, "getAudienceRefByID", anyString(), anyString());
             List<IdpGroup> groups = roleDAO.getIdpGroupListOfRole(role.getId(), SAMPLE_TENANT_DOMAIN);
-            List<String> groupNames = new ArrayList<>();
-            groupNames.add("group1");
-            groupNames.add("group2");
-            Assert.assertEquals(getIdpGroupNameList(groups), groupNames);
+            List<String> groupIds = new ArrayList<>();
+            groupIds.add("test-group1-id");
+            groupIds.add("test-group2-id");
+            Assert.assertEquals(getIdpGroupIdList(groups), groupIds);
         }
     }
 
@@ -587,13 +578,13 @@ public class RoleDAOTest extends PowerMockTestCase {
         return permissionNames.stream().sorted().collect(Collectors.toList());
     }
 
-    private List<String> getIdpGroupNameList(List<IdpGroup> idpGroups) {
+    private List<String> getIdpGroupIdList(List<IdpGroup> idpGroups) {
 
-        List<String> names = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
         for (IdpGroup group : idpGroups) {
-            names.add(group.getGroupName());
+            ids.add(group.getGroupId());
         }
-        return names.stream().sorted().collect(Collectors.toList());
+        return ids.stream().sorted().collect(Collectors.toList());
     }
     private void initializeDataSource(String scriptPath) throws Exception {
 
