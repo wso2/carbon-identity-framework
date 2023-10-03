@@ -836,26 +836,16 @@
                 {% if oauth.oidc.fapi.enable_security_profile is defined %}
                 <EnableSecurityProfile>{{oauth.oidc.fapi.enable_security_profile}}</EnableSecurityProfile>
                 {% endif %}
-                <SupportedClientAuthenticationMethods>
-                    {% if oauth.oidc.fapi.client_authentication_methods|length %}
-                        {% for authmethod in oauth.oidc.fapi.client_authentication_methods %}
-                            <SupportedClientAuthenticationMethod>{{authmethod}}</SupportedClientAuthenticationMethod>
-                        {% endfor %}
-                    {% else %}
-                        <SupportedClientAuthenticationMethod>private_key_jwt</SupportedClientAuthenticationMethod>
-                        <SupportedClientAuthenticationMethod>tls_client_auth</SupportedClientAuthenticationMethod>
-                    {% endif %}
-                </SupportedClientAuthenticationMethods>
-                <SupportedSignatureAlgorithms>
-                    {% if oauth.oidc.fapi.signature_algorithms|length %}
-                        {% for algorithm in oauth.oidc.fapi.signature_algorithms %}
-                            <SupportedSignatureAlgorithm>{{algorithm}}</SupportedSignatureAlgorithm>
-                        {% endfor %}
-                    {% else %}
-                        <SupportedSignatureAlgorithm>PS256</SupportedSignatureAlgorithm>
-                        <SupportedSignatureAlgorithm>ES256</SupportedSignatureAlgorithm>
-                    {% endif %}
-                </SupportedSignatureAlgorithms>
+                <AllowedClientAuthenticationMethods>
+                    {% for authmethod in oauth.oidc.fapi.client_authentication_methods %}
+                        <AllowedClientAuthenticationMethod>{{authmethod}}</AllowedClientAuthenticationMethod>
+                    {% endfor %}
+                </AllowedClientAuthenticationMethods>
+                <AllowedSignatureAlgorithms>
+                    {% for algorithm in oauth.oidc.fapi.signature_algorithms %}
+                        <AllowedSignatureAlgorithm>{{algorithm}}</AllowedSignatureAlgorithm>
+                    {% endfor %}
+                </AllowedSignatureAlgorithms>
             </FAPI>
         </OpenIDConnect>
 
