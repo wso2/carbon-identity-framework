@@ -19,7 +19,6 @@ package org.wso2.carbon.identity.user.store.configuration.deployer;
 
 import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.OMException;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.axiom.om.util.Base64;
 import org.apache.axis2.context.ConfigurationContext;
@@ -32,29 +31,22 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.CryptoException;
-import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.user.store.configuration.deployer.exception.UserStoreConfigurationDeployerException;
 import org.wso2.carbon.identity.user.store.configuration.deployer.internal.UserStoreConfigComponent;
 import org.wso2.carbon.identity.user.store.configuration.deployer.util.UserStoreConfigurationConstants;
 import org.wso2.carbon.identity.user.store.configuration.deployer.util.UserStoreUtil;
 import org.wso2.carbon.user.api.Property;
-import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.common.UserStoreDeploymentManager;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
 
-import javax.crypto.Cipher;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
