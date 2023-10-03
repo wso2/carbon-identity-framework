@@ -1,24 +1,25 @@
 /*
-*  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-*  WSO2 Inc. licenses this file to you under the Apache License,
-*  Version 2.0 (the "License"); you may not use this file except
-*  in compliance with the License.
-*  You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Copyright (c) (2005-2023), WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.carbon.identity.user.store.configuration.deployer;
 
 import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
+import org.apache.axiom.om.OMException;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.axiom.om.util.Base64;
 import org.apache.axis2.context.ConfigurationContext;
@@ -48,8 +49,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -132,16 +136,23 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
             String ext = FilenameUtils.getExtension(absolutePath);
 
             if (UserStoreConfigurationConstants.ENC_EXTENSION.equalsIgnoreCase(ext)) {
-                OutputStream outputStream = null;
-                try {
-                    OMElement secondaryStoreDocument = initializeOMElement(absolutePath);
+                try (InputStream inputStream = Files.newInputStream(Paths.get(absolutePath))) {
+                    OMElement secondaryStoreDocument = initializeOMElement(inputStream);
                     updateSecondaryUserStore(secondaryStoreDocument);
 
                     int index = absolutePath.lastIndexOf(".");
                     if (index != 1) {
                         String encFileName = absolutePath.substring(0, index + 1) + UserStoreConfigurationConstants.XML_EXTENSION;
-                        outputStream = new FileOutputStream(encFileName);
-                        secondaryStoreDocument.serialize(outputStream);
+                        try (OutputStream outputStream = Files.newOutputStream(Paths.get(encFileName))) {
+                            secondaryStoreDocument.serialize(outputStream);
+                        } catch (IOException e) {
+                            String errMsg = "Secondary user store File path " + absolutePath + " is invalid";
+                            throw new DeploymentException(errMsg, e);
+                        } catch (XMLStreamException e) {
+                            String errMsg = "Unexpected xml processing errors while trying to update file "
+                                    + absolutePath;
+                            throw new DeploymentException(errMsg, e);
+                        }
 
                         File file = new File(absolutePath);
                         if (file.exists()) {
@@ -152,15 +163,9 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
                 } catch (UserStoreConfigurationDeployerException e) {
                     String errMsg = "Secondary user store processing failed while processing " + absolutePath;
                     throw new DeploymentException(errMsg, e);
-                } catch (FileNotFoundException e) {
+                } catch (IOException e) {
                     String errMsg = "Secondary user store File path " + absolutePath + " is invalid";
                     throw new DeploymentException(errMsg, e);
-                } catch (XMLStreamException e) {
-                    String errMsg = "Unexpected xml processing errors while trying to update file "
-                            + absolutePath;
-                    throw new DeploymentException(errMsg, e);
-                } finally {
-                    IdentityIOStreamUtils.closeOutputStream(outputStream);
                 }
             }
 
@@ -197,26 +202,19 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
     /**
      * Initializes the XML Document object
      *
-     * @param absoluteFilePath xml path
+     * @param inStream InputStream of the file
      * @return OMElement object will be returned
      */
-
-    private OMElement initializeOMElement(String absoluteFilePath) throws
+    private OMElement initializeOMElement(InputStream inStream) throws
             UserStoreConfigurationDeployerException {
+
         StAXOMBuilder builder;
-        InputStream inStream = null;
         try {
-            inStream = new FileInputStream(absoluteFilePath);
             builder = new StAXOMBuilder(inStream);
             return builder.getDocumentElement();
-        } catch (FileNotFoundException e) {
-            String errMsg = " Secondary storage file Not found in given repo " + absoluteFilePath;
-            throw new UserStoreConfigurationDeployerException(errMsg, e);
         } catch (XMLStreamException e) {
-            String errMsg = " Secondary storage file reading for repo = " + absoluteFilePath + " failed ";
+            String errMsg = " Secondary storage file reading for repo failed ";
             throw new UserStoreConfigurationDeployerException(errMsg, e);
-        } finally {
-            IdentityIOStreamUtils.closeInputStream(inStream);
         }
     }
 
