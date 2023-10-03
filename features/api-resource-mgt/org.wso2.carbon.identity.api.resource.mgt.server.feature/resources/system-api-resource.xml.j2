@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  ~ Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<APIResources>
+    {% for api_resource in api_resources %}
+    <APIResource name="{{ api_resource.name }}" identifier="{{ api_resource.identifier }}" requiresAuthorization="{{ api_resource.requiresAuthorization }}" description="{{ api_resource.description }}">
+        <Scopes>
+            {% for scope in api_resource.scopes %}
+            <Scope displayName="{{ scope.displayName }}" name="{{ scope.name }}"/>
+            {% endfor %}
+        </Scopes>
+    </APIResource>
+    {% endfor %}
+    <APIResource name="Admin Advisory Management API" identifier="/api/server/v1/admin-advisory-management/banner" requiresAuthorization="true" description="API representation of the Admin Advisory Management API">
+        <Scopes>
+            <Scope displayName="Modify Admin Advisory" name="internal_admin_advisory_mgt_update" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="API Resource Management API" identifier="/api/server/v1/api-resources" requiresAuthorization="true" description="API representation of the API Resource Management API">
+        <Scopes>
+            <Scope displayName="Create API Resource" name="internal_api_resource_create" />
+            <Scope displayName="View API Resource" name="internal_api_resource_view" />
+            <Scope displayName="Update API Resource" name="internal_api_resource_update" />
+            <Scope displayName="Delete API Resource" name="internal_api_resource_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Application Management API" identifier="/api/server/v1/applications" requiresAuthorization="true" description="API representation of the Application Management API">
+        <Scopes>
+            <Scope displayName="Create Application Management" name="internal_application_mgt_create" />
+            <Scope displayName="Update Application Management" name="internal_application_mgt_update" />
+            <Scope displayName="View Application Management" name="internal_application_mgt_view" />
+            <Scope displayName="Delete Application Management" name="internal_application_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Authenticators Management API" identifier="/api/server/v1/authenticators" requiresAuthorization="true" description="API representation of the Authenticators Management API">
+        <Scopes>
+            <Scope displayName="View Authenticators" name="internal_authenticator_view" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Branding Preference Management API" identifier="/api/server/v1/branding-preference" requiresAuthorization="true" description="API representation of the Branding Preference Management API">
+        <Scopes>
+            <Scope displayName="Update Branding Preference" name="internal_branding_preference_update" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Challenges Management API" identifier="/api/server/v1/challenges" requiresAuthorization="true" description="API representation of the Challenges Management API">
+        <Scopes>
+            <Scope displayName="View Challenges" name="internal_challenges_view" />
+            <Scope displayName="Create Challenges" name="internal_challenges_create" />
+            <Scope displayName="Update Challenges" name="internal_challenges_update" />
+            <Scope displayName="Delete Challenges" name="internal_challenges_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Claim Management API" identifier="/api/server/v1/claim-dialects" requiresAuthorization="true" description="API representation of the Claim Management API">
+        <Scopes>
+            <Scope displayName="Create Claim Meta" name="internal_claim_meta_create" />
+            <Scope displayName="View Claim Meta" name="internal_claim_meta_view" />
+            <Scope displayName="Update Claim Meta" name="internal_claim_meta_update" />
+            <Scope displayName="Delete Claim Meta" name="internal_claim_meta_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Config Management API" identifier="/api/server/v1/configs" requiresAuthorization="true" description="API representation of the Config Management API">
+        <Scopes>
+            <Scope displayName="View Config" name="internal_config_view" />
+            <Scope displayName="Create Config" name="internal_config_create" />
+            <Scope displayName="Update Config" name="internal_config_update" />
+            <Scope displayName="Delete Config" name="internal_config_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="CORS Management API" identifier="/api/server/v1/cors/origins" requiresAuthorization="true" description="API representation of the CORS Management API">
+        <Scopes>
+            <Scope displayName="View CORS Origins" name="internal_cors_origins_view" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Expired Password Identification Management API" identifier="/api/server/v1/expired-password-identification" requiresAuthorization="true" description="API representation of the Expired Password Identification Management API">
+        <Scopes>
+            <Scope displayName="View Expired Password" name="internal_expired_password_view" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Extension Management API" identifier="/api/server/v1/extensions" requiresAuthorization="true" description="API representation of the Extension Management API">
+        <Scopes>
+            <Scope displayName="View Extensions" name="internal_extensions_view" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Remote Fetch Management API" identifier="/api/server/v1/remote-fetch" requiresAuthorization="true" description="API representation of the Remote Fetch Management API">
+        <Scopes>
+            <Scope displayName="View Remote Fetch" name="internal_remote_fetch_view" />
+            <Scope displayName="Create Remote Fetch" name="internal_remote_fetch_create" />
+            <Scope displayName="Update Remote Fetch" name="internal_remote_fetch_update" />
+            <Scope displayName="Delete Remote Fetch" name="internal_remote_fetch_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Governance Management API"
+        identifier="/api/server/v1/identity-governance" requiresAuthorization="true"
+        description="API representation of the Identity Governance Management API">
+        <Scopes>
+            <Scope displayName="View Identity Governance" name="internal_identity_governance_view" />
+            <Scope displayName="Update Identity Governance"
+                name="internal_identity_governance_update" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Idle Account Identification Management API"
+        identifier="/api/idle-account-identification/v1/inactive-users" requiresAuthorization="true"
+        description="API representation of the Idle Account Identification Management API">
+        <Scopes>
+            <Scope displayName="List Idle Accounts" name="internal_idle_account_list" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Provider Management API"
+        identifier="/api/server/v1/identity-providers" requiresAuthorization="true"
+        description="API representation of the Identity Provider Management API">
+        <Scopes>
+            <Scope displayName="View Identity Providers" name="internal_idp_view" />
+            <Scope displayName="Create Identity Provider" name="internal_idp_create" />
+            <Scope displayName="Update Identity Provider" name="internal_idp_update" />
+            <Scope displayName="Delete Identity Provider" name="internal_idp_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Verifier Management API" identifier="/api/server/v1/idv-providers"
+        requiresAuthorization="true"
+        description="API representation of the Identity Verifier Management API">
+        <Scopes>
+            <Scope displayName="View Identity Verifier Providers" name="internal_idvp_view" />
+            <Scope displayName="Add Identity Verifier Provider" name="internal_idvp_add" />
+            <Scope displayName="Update Identity Verifier Provider" name="internal_idvp_update" />
+            <Scope displayName="Delete Identity Verifier Provider" name="internal_idvp_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Validation Rules API" identifier="/api/server/v1/validation-rules"
+        requiresAuthorization="true" description="API representation of the Validation Rules API">
+        <Scopes>
+            <Scope displayName="Update Validation Rule Management"
+                name="internal_validation_rule_mgt_update" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Keystore Management API" identifier="/api/server/v1/keystores/certs"
+        requiresAuthorization="true" description="API representation of the Keystore Management API">
+        <Scopes>
+            <Scope displayName="View Keystore" name="internal_keystore_view" />
+            <Scope displayName="Update Keystore" name="internal_keystore_update" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Notification Sender Management API"
+        identifier="/api/server/v1/notification-senders/email" requiresAuthorization="true"
+        description="API representation of the Notification Sender Management API">
+        <Scopes>
+            <Scope displayName="View Notification Senders" name="internal_notification_senders_view" />
+            <Scope displayName="Create Notification Senders"
+                name="internal_notification_senders_create" />
+            <Scope displayName="Update Notification Senders"
+                name="internal_notification_senders_update" />
+            <Scope displayName="Delete Notification Senders"
+                name="internal_notification_senders_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="OIDC Scope Management API" identifier="/api/server/v1/oidc/scopes"
+        requiresAuthorization="true"
+        description="API representation of the OIDC Scope Management API">
+        <Scopes>
+            <Scope displayName="View OIDC Scopes" name="internal_oidc_scope_view" />
+            <Scope displayName="Create OIDC Scopes" name="internal_oidc_scope_create" />
+            <Scope displayName="Update OIDC Scopes" name="internal_oidc_scope_update" />
+            <Scope displayName="Delete OIDC Scopes" name="internal_oidc_scope_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Organization Management API" identifier="/api/server/v1/organizations"
+        requiresAuthorization="true"
+        description="API representation of the Organization Management API">
+        <Scopes>
+            <Scope displayName="View Organizations" name="internal_organization_view" />
+            <Scope displayName="Create Organizations" name="internal_organization_create" />
+            <Scope displayName="Update Organizations" name="internal_organization_update" />
+            <Scope displayName="Delete Organizations" name="internal_organization_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Organization Role Management API"
+        identifier="/api/server/v1/organizations/{organization-id}/roles"
+        requiresAuthorization="true"
+        description="API representation of the Organization Role Management API">
+        <Scopes>
+            <Scope displayName="View Organization Roles" name="internal_org_role_mgt_view" />
+            <Scope displayName="Create Organization Roles" name="internal_org_role_mgt_create" />
+            <Scope displayName="Update Organization Roles" name="internal_org_role_mgt_update" />
+            <Scope displayName="Delete Organization Roles" name="internal_org_role_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Organization Config Management API"
+        identifier="/api/server/v1/organization-configs/discovery" requiresAuthorization="true"
+        description="API representation of the Organization Config Management API">
+        <Scopes>
+            <Scope displayName="View Organization Configs" name="internal_org_config_mgt_view" />
+            <Scope displayName="Add Organization Configs" name="internal_org_config_mgt_add" />
+            <Scope displayName="Delete Organization Configs" name="internal_org_config_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Organization User Invitation Management API"
+        identifier="/api/server/v1/guests/invite" requiresAuthorization="true"
+        description="API representation of the Organization User Invitation Management API">
+        <Scopes>
+            <Scope displayName="List Guest Invitations" name="internal_guest_mgt_invite_list" />
+            <Scope displayName="Add Guest Invitations" name="internal_guest_mgt_invite_add" />
+            <Scope displayName="Delete Guest Invitations" name="internal_guest_mgt_invite_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Permission Management API"
+        identifier="/api/server/v1/permission-management/permissions" requiresAuthorization="true"
+        description="API representation of the Permission Management API">
+        <Scopes>
+            <Scope displayName="View Permissions" name="internal_permission_mgt_view" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Script Library Management API" identifier="/api/server/v1/script-libraries"
+        requiresAuthorization="true"
+        description="API representation of the Script Library Management API">
+        <Scopes>
+            <Scope displayName="Create Functional Library" name="internal_functional_lib_create" />
+            <Scope displayName="View Functional Library" name="internal_functional_lib_view" />
+            <Scope displayName="Update Functional Library" name="internal_functional_lib_update" />
+            <Scope displayName="Delete Functional Library" name="internal_functional_lib_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Secret Type Management API" identifier="/api/server/v1/secret-type"
+        requiresAuthorization="true"
+        description="API representation of the Secret Type Management API">
+        <Scopes>
+            <Scope displayName="Add Secret Type" name="internal_secret_type_mgt_add" />
+            <Scope displayName="Update Secret Type" name="internal_secret_type_mgt_update" />
+            <Scope displayName="View Secret Type" name="internal_secret_type_mgt_view" />
+            <Scope displayName="Delete Secret Type" name="internal_secret_type_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Secret Management API" identifier="/api/server/v1/secrets"
+        requiresAuthorization="true" description="API representation of the Secret Management API">
+        <Scopes>
+            <Scope displayName="Add Secret" name="internal_secret_mgt_add" />
+            <Scope displayName="Update Secret" name="internal_secret_mgt_update" />
+            <Scope displayName="View Secret" name="internal_secret_mgt_view" />
+            <Scope displayName="Delete Secret" name="internal_secret_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Userstore Management API" identifier="/api/server/v1/userstore"
+        requiresAuthorization="true"
+        description="API representation of the Userstore Management API">
+        <Scopes>
+            <Scope displayName="Create Userstore" name="internal_userstore_create" />
+            <Scope displayName="View Userstore" name="internal_userstore_view" />
+            <Scope displayName="Delete Userstore" name="internal_userstore_delete" />
+            <Scope displayName="Update Userstore" name="internal_userstore_update" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Management API" identifier="/api/server/v1/workflow-engines"
+        requiresAuthorization="true" description="API representation of the Workflow Management API">
+        <Scopes>
+            <Scope displayName="View Workflow" name="internal_workflow_view" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Approval Task Management API" identifier="/api/users/v1/me/approval-tasks"
+        requiresAuthorization="true"
+        description="API representation of the Approval Task Management API">
+        <Scopes>
+            <Scope displayName="View Approval Tasks" name="internal_approval_task_view" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Association Management API"
+        identifier="/api/users/v1/{user-id}/(.*)associations" requiresAuthorization="true"
+        description="API representation of the Association Management API">
+        <Scopes>
+            <Scope displayName="View User Associations" name="internal_user_association_view" />
+            <Scope displayName="Delete User Associations" name="internal_user_association_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Authorized Application Management API"
+        identifier="/api/users/v(.*)/{user-id}/authorized-apps" requiresAuthorization="true"
+        description="API representation of the Authorized Application Management V2 API">
+        <Scopes>
+            <Scope displayName="View Authorized Applications"
+                name="internal_user_authorizedapp_view" />
+            <Scope displayName="Delete Authorized Applications"
+                name="internal_user_authorizedapp_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Challenge Management API" identifier="/api/users/v1/{user-id}/challenge(.*)"
+        requiresAuthorization="true"
+        description="API representation of the Challenge Management API">
+        <Scopes>
+            <Scope displayName="View Challenge Answers" name="internal_challenge_view" />
+            <Scope displayName="Create Challenge Answers" name="internal_challenge_create" />
+            <Scope displayName="Update Challenge Answers" name="internal_challenge_update" />
+            <Scope displayName="Delete Challenge Answers" name="internal_challenge_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Functionality Management API"
+        identifier="/api/users/v1/{user-id}/user-functionality/{function-id}"
+        requiresAuthorization="true"
+        description="API representation of the Functionality Management API">
+        <Scopes>
+            <Scope displayName="View User Functionality" name="internal_user_fucntionality_view" />
+            <Scope displayName="Create User Functionality" name="internal_user_fucntionality_create" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="IDV Claim Management API" identifier="/api/users/v1/{user-id}/idv"
+        requiresAuthorization="true"
+        description="API representation of the IDV Claim Management API">
+        <Scopes>
+            <Scope displayName="Verify IDV Claim" name="internal_idv_claim_verify" />
+            <Scope displayName="View IDV Claim" name="internal_idv_claim_view" />
+            <Scope displayName="Update IDV Claim" name="internal_idv_claim_update" />
+            <Scope displayName="Add IDV Claim" name="internal_idv_claim_add" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Session Management API" identifier="/api/users/v1/(.*)sessions"
+        requiresAuthorization="true" description="API representation of the Session Management API">
+        <Scopes>
+            <Scope displayName="View Sessions" name="internal_session_view" />
+            <Scope displayName="Delete Sessions" name="internal_session_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Account Recovery V1 API" identifier="/api/users/v1/recovery"
+        requiresAuthorization="true" description="API representation of the Account Recovery V1 API">
+        <Scopes>
+            <Scope displayName="Create User Recovery" name="internal_user_recovery_create" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="SCIM2 Groups API" identifier="/scim2/Groups" requiresAuthorization="true"
+        description="API representation of the SCIM2 Groups API">
+        <Scopes>
+            <Scope displayName="View Group Management" name="internal_group_mgt_view" />
+            <Scope displayName="Create Group Management" name="internal_group_mgt_create" />
+            <Scope displayName="Update Group Management" name="internal_group_mgt_update" />
+            <Scope displayName="Delete Group Management" name="internal_group_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="SCIM2 Users API" identifier="/scim2/Users" requiresAuthorization="true"
+        description="API representation of the SCIM2 Users API">
+        <Scopes>
+            <Scope displayName="List User Management" name="internal_user_mgt_list" />
+            <Scope displayName="Create User Management" name="internal_user_mgt_create" />
+            <Scope displayName="Update User Management" name="internal_user_mgt_update" />
+            <Scope displayName="Delete User Management" name="internal_user_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="SCIM2 Roles API" identifier="/scim2/Roles" requiresAuthorization="true" description="API representation of the SCIM2 Roles API">
+        <Scopes>
+            <Scope displayName="View Role Management" name="internal_role_mgt_view" />
+            <Scope displayName="Create Role Management" name="internal_role_mgt_create" />
+            <Scope displayName="Update Role Management" name="internal_role_mgt_update" />
+            <Scope displayName="Delete Role Management" name="internal_role_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true" description="API representation of the SCIM2 Bulk API">
+        <Scopes>
+            <Scope displayName="Create Bulk User Management" name="internal_bulk_user_mgt_create" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Code Management API" identifier="/api/identity/user/v1.0/(.*)-code" requiresAuthorization="true" description="API representation of the Code Management API">
+        <Scopes>
+            <Scope displayName="View Code Management" name="internal_code_mgt_view" />
+            <Scope displayName="Create Code Management" name="internal_code_mgt_create" />
+            <Scope displayName="Update Code Management" name="internal_code_mgt_update" />
+            <Scope displayName="Delete Code Management" name="internal_code_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Personal Identification API" identifier="/api/identity/user/v1.0/pi-info" requiresAuthorization="true" description="API representation of the User Personal Identification API">
+        <Scopes>
+            <Scope displayName="View Personal Identification Information" name="internal_pi_info_view" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Configuration Management API" identifier="/api/identity/config-mgt/v1.0" requiresAuthorization="true" description="API representation of the Configuration Management API">
+        <Scopes>
+            <Scope displayName="List Configuration Management" name="internal_config_mgt_list" />
+            <Scope displayName="Add Configuration Management" name="internal_config_mgt_add" />
+            <Scope displayName="Update Configuration Management" name="internal_config_mgt_update" />
+            <Scope displayName="Delete Configuration Management" name="internal_config_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Consent Management API" identifier="/api/identity/consent-mgt/v1.0/consents" requiresAuthorization="true" description="API representation of the Consent Management API">
+        <Scopes>
+            <Scope displayName="Add Consent Management" name="internal_consent_mgt_add" />
+            <Scope displayName="Delete Consent Management" name="internal_consent_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Recovery API" identifier="/api/identity/recovery" requiresAuthorization="true" description="API representation of the Recovery API">
+        <Scopes>
+            <Scope displayName="View Recovery" name="internal_recovery_view" />
+            <Scope displayName="Create Recovery" name="internal_recvoery_create" />
+            <Scope displayName="Update Recovery" name="internal_recovery_update" />
+            <Scope displayName="Delete Recovery" name="internal_recovery_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="OAuth DCR API" identifier="/api/identity/oauth2/dcr/v1.1/register" requiresAuthorization="true" description="API representation of the OAuth DCR (Dynamic Client Registration) API">
+        <Scopes>
+            <Scope displayName="View DCR" name="internal_dcr_view" />
+            <Scope displayName="Create DCR" name="internal_dcr_create" />
+            <Scope displayName="Update DCR" name="internal_dcr_update" />
+            <Scope displayName="Delete DCR" name="internal_dcr_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="OAuth2 Scope Management API" identifier="/api/identity/oauth2/v1.0/scopes" requiresAuthorization="true" description="API representation of the OAuth2 Scope Management API">
+        <Scopes>
+            <Scope displayName="View OAuth Scope" name="internal_oauth_scope_view" />
+            <Scope displayName="Create OAuth Scope" name="internal_oauth_scope_create" />
+            <Scope displayName="Update OAuth Scope" name="internal_oauth_scope_update" />
+            <Scope displayName="Delete OAuth Scope" name="internal_oauth_scope_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Email Template Management API" identifier="/api/server/v1/email/template-types" requiresAuthorization="true" description="API representation of the Email Template Management API">
+        <Scopes>
+            <Scope displayName="View Email Template Management" name="internal_email_mgt_view" />
+            <Scope displayName="Create Email Template Management" name="internal_email_mgt_create" />
+            <Scope displayName="Update Email Template Management" name="internal_email_mgt_update" />
+            <Scope displayName="Delete Email Template Management" name="internal_email_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Entitlement Management API" identifier="/api/identity/entitlement/" requiresAuthorization="true" description="API representation of the Entitlement Management API">
+        <Scopes>
+            <Scope displayName="Manage PEP (Policy Enforcement Point)" name="internal_manage_pep" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Media Management API" identifier="/api/identity/media/v1.0/user/" requiresAuthorization="true" description="API representation of the Media Management API">
+        <Scopes>
+            <Scope displayName="Create Media Management" name="internal_media_mgt_create" />
+            <Scope displayName="View Media Management" name="internal_media_mgt_view" />
+            <Scope displayName="Delete Media Management" name="internal_media_mgt_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Guest Invitation Management API" identifier="/api/server/v1/guests/invitation" requiresAuthorization="true" description="API representation of the Guest Invitation Management API">
+        <Scopes>
+            <Scope displayName="List Guest Invitations" name="internal_guest_mgt_invite_list" />
+            <Scope displayName="Delete Guest Invitations" name="internal_guest_mgt_invite_delete" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="OAuth2 Introspection API" identifier="/oauth2/introspect" requiresAuthorization="true" description="API representation of the OAuth2 Introspection API">
+        <Scopes>
+            <Scope displayName="OAuth2 Introspection" name="internal_oauth2_introspect" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Register API" identifier="/identity/register" requiresAuthorization="true" description="API representation of the Identity Register API">
+        <Scopes>
+            <Scope displayName="Create Identity Register" name="internal_register_create" />
+            <Scope displayName="Delete Identity Register" name="internal_register_delete" />
+        </Scopes>
+    </APIResource>
+</APIResources>

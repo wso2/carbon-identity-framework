@@ -553,11 +553,12 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         List<Scope> scopes = new ArrayList<>();
         APIResource apiResource = null;
         while (resultSet.next()) {
+            String apiResourceIdentifier = resultSet.getString(SQLConstants.API_RESOURCE_IDENTIFIER_COLUMN_NAME);
             if (apiResource == null) {
                 APIResource.APIResourceBuilder apiResourceBuilder = new APIResource.APIResourceBuilder()
                         .id(resultSet.getString(SQLConstants.API_RESOURCE_ID_COLUMN_NAME))
                         .name(resultSet.getString(SQLConstants.API_RESOURCE_NAME_COLUMN_NAME))
-                        .identifier(resultSet.getString(SQLConstants.API_RESOURCE_IDENTIFIER_COLUMN_NAME))
+                        .identifier(apiResourceIdentifier)
                         .description(resultSet.getString(SQLConstants.API_RESOURCE_DESCRIPTION_COLUMN_NAME))
                         .type(resultSet.getString(SQLConstants.API_RESOURCE_TYPE_COLUMN_NAME))
                         .requiresAuthorization(resultSet.getBoolean(
@@ -565,12 +566,15 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                         .tenantId(resultSet.getInt(SQLConstants.API_RESOURCE_TENANT_ID_COLUMN_NAME));
                 apiResource = apiResourceBuilder.build();
             }
-            Scope.ScopeBuilder scopeBuilder = new Scope.ScopeBuilder()
-                    .id(resultSet.getString(SQLConstants.SCOPE_ID_COLUMN_NAME))
-                    .name(resultSet.getString(SQLConstants.SCOPE_QUALIFIED_NAME_COLUMN_NAME))
-                    .displayName(resultSet.getString(SQLConstants.SCOPE_DISPLAY_NAME_COLUMN_NAME))
-                    .description(resultSet.getString(SQLConstants.SCOPE_DESCRIPTION_COLUMN_NAME));
-            scopes.add(scopeBuilder.build());
+            String scopeName = resultSet.getString(SQLConstants.SCOPE_QUALIFIED_NAME_COLUMN_NAME);
+            if (scopeName != null) {
+                Scope.ScopeBuilder scopeBuilder = new Scope.ScopeBuilder()
+                        .id(resultSet.getString(SQLConstants.SCOPE_ID_COLUMN_NAME))
+                        .name(scopeName)
+                        .displayName(resultSet.getString(SQLConstants.SCOPE_DISPLAY_NAME_COLUMN_NAME))
+                        .description(resultSet.getString(SQLConstants.SCOPE_DESCRIPTION_COLUMN_NAME));
+                scopes.add(scopeBuilder.build());
+            }
         }
         if (apiResource != null) {
             apiResource.setScopes(scopes);

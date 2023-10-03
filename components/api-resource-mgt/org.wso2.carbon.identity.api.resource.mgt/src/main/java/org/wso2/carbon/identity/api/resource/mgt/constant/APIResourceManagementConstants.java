@@ -30,6 +30,8 @@ public class APIResourceManagementConstants {
     public static final String NAME = "name";
     public static final String IDENTIFIER = "identifier";
     public static final String TYPE = "type";
+    public static final String ASC = "asc";
+    public static final String SYSTEM_API_FILTER = "type eq SYSTEM";
     public static final String BEFORE = "before";
     public static final String AFTER = "after";
     public static final String EQ = "eq";
@@ -56,6 +58,22 @@ public class APIResourceManagementConstants {
         attributeColumnMap.put(TYPE, SQLConstants.TYPE_COLUMN_NAME);
 
         scopeAttributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
+    }
+
+    /**
+     * API resource configuration builder constants.
+     */
+    public static class APIResourceConfigBuilderConstants {
+
+        public static final String API_RESOURCE_ELEMENT = "APIResource";
+        public static final String SCOPES_ELEMENT = "Scopes";
+        public static final String SCOPE_ELEMENT = "Scope";
+        public static final String NAME = "name";
+        public static final String IDENTIFIER = "identifier";
+        public static final String DISPLAY_NAME = "displayName";
+        public static final String DESCRIPTION = "description";
+        public static final String REQUIRES_AUTHORIZATION = "requiresAuthorization";
+        public static final String SYSTEM_TYPE = "SYSTEM";
     }
 
     /**

@@ -40,6 +40,10 @@
             <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
             <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
         </dependency>
@@ -136,6 +140,8 @@
                             version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             org.wso2.carbon.identity.organization.management.service.util;
                             version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.user.core.tenant;version="${carbon.kernel.package.import.version.range}",
+                            *;resolution:=optional,
                         </Import-Package>
                     </instructions>
                 </configuration>
