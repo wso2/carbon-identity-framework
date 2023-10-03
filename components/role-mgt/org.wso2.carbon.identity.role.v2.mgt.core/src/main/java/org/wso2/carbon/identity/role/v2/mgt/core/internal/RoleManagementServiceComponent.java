@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
@@ -143,5 +144,22 @@ public class RoleManagementServiceComponent {
     protected void unsetIdentityProviderManager(IdpManager idpMgtService) {
 
         RoleManagementServiceComponentHolder.getInstance().setIdentityProviderManager(null);
+    }
+
+    @Reference(
+            name = "identity.application.management.component",
+            service = ApplicationManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationManagementService"
+    )
+    protected void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        RoleManagementServiceComponentHolder.getInstance().setApplicationManagementService(applicationManagementService);
+    }
+
+    protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        RoleManagementServiceComponentHolder.getInstance().setApplicationManagementService(null);
     }
 }

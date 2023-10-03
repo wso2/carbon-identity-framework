@@ -427,6 +427,26 @@ public class RoleManagementEventPublisherProxy {
         }
     }
 
+    public void publishPreGetRolesCountWithException(String tenantDomain) throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_GET_ROLES_COUNT_EVENT);
+        doPublishEvent(event);
+    }
+
+    public void publishPostGetRolesCount(String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLES_COUNT_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
     private Event createEvent(Map<String, Object> eventProperties, String eventName) {
 
         return new Event(eventName, eventProperties);

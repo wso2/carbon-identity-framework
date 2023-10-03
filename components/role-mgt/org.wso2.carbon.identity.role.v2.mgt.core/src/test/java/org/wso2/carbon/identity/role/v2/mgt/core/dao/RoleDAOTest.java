@@ -11,14 +11,19 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.Permission;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleAudience;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleBasicInfo;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
@@ -40,6 +45,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -54,7 +60,7 @@ import static org.testng.Assert.assertTrue;
 
 @WithCarbonHome
 @PrepareForTest({IdentityDatabaseUtil.class, IdentityTenantUtil.class, IdentityUtil.class, UserCoreUtil.class,
-        CarbonContext.class, RoleDAOImpl.class})
+        CarbonContext.class, RoleDAOImpl.class, IdentityProviderManager.class})
 @PowerMockIgnore("org.mockito.*")
 public class RoleDAOTest extends PowerMockTestCase {
 
@@ -78,6 +84,9 @@ public class RoleDAOTest extends PowerMockTestCase {
 
     @Mock
     UserRealm mockUserRealm;
+
+    @Mock
+    IdentityProviderManager identityProviderManager;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -251,6 +260,7 @@ public class RoleDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection8);
             doCallRealMethod().when(IdentityUtil.class, "extractDomainFromName", anyString());
             doCallRealMethod().when(UserCoreUtil.class, "removeDomainFromName", anyString());
+            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
             List<RoleBasicInfo> roles = roleDAO.getRoles(2, 1, null, null,
                     SAMPLE_TENANT_DOMAIN);
             Assert.assertEquals(getRoleNamesList(roles), expectedRoles);
@@ -380,6 +390,15 @@ public class RoleDAOTest extends PowerMockTestCase {
             List<IdpGroup> newGroups = new ArrayList<>();
             newGroups.add(new IdpGroup("test-group1-id", "test-idp-id"));
             newGroups.add(new IdpGroup("test-group2-id", "test-idp-id"));
+            mockStatic(IdentityProvider.class);
+            IdentityProvider identityProvider = new IdentityProvider();
+            IdPGroup idpGroup1 = new IdPGroup();
+            idpGroup1.setIdpGroupName("test-group1-name");
+            idpGroup1.setIdpGroupId("test-group1-id");
+            IdPGroup idpGroup2 = new IdPGroup();
+            idpGroup2.setIdpGroupName("test-group2-name");
+            idpGroup2.setIdpGroupId("test-group2-id");
+            identityProvider.setIdPGroupConfig(new IdPGroup[]{idpGroup1, idpGroup2});
             roleDAO.updateIdpGroupListOfRole(role.getId(), newGroups, new ArrayList<>(), SAMPLE_TENANT_DOMAIN);
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection6);
@@ -407,10 +426,112 @@ public class RoleDAOTest extends PowerMockTestCase {
             RoleBasicInfo  role = addRole("role1", APPLICATION_AUD, "test-app-id");
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
             RoleBasicInfo roleBasicInfo =  roleDAO.getRoleBasicInfoById(role.getId(), SAMPLE_TENANT_DOMAIN);
             assertEquals(roleBasicInfo.getAudience(), APPLICATION_AUD);
             assertEquals(roleBasicInfo.getAudienceId(), "test-app-id");
             assertEquals(roleBasicInfo.getAudienceName(), "TEST_APP_NAME");
+        }
+    }
+
+    @Test
+    public void testCountRoles() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection();
+             Connection connection6 = getConnection();
+             Connection connection7 = getConnection();
+             Connection connection8 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            addRole("role1", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            addRole("role2", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection6);
+            addRole("role3", APPLICATION_AUD, "test-app-id");
+
+            mockRealmConfiguration();
+            mockStatic(UserCoreUtil.class);
+            when(UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class))).thenReturn(false);
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection7);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection8);
+            int rolesCount = roleDAO.getRolesCount(SAMPLE_TENANT_DOMAIN);
+            assertEquals(rolesCount, 3);
+        }
+    }
+
+    @Test
+    public void testUpdateRoleName() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection();
+             Connection connection6 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            mockCacheClearing();
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            RoleBasicInfo role = addRole("role1", APPLICATION_AUD, "test-app-id");
+
+            mockRealmConfiguration();
+
+            AuthorizationManager authorizationManager = mock(JDBCAuthorizationManager.class);
+            when(mockUserRealm.getAuthorizationManager()).thenReturn(authorizationManager);
+            doNothing().when(authorizationManager).resetPermissionOnUpdateRole(anyString(), anyString());
+
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection4);
+            doReturn(true).when(roleDAO, "isExistingRoleID", eq(role.getId()), anyString());
+            doReturn(false).when(roleDAO, "isExistingRoleName", eq("newRole"), anyString(),
+                    anyString(), anyString());
+            doReturn(new RoleAudience(APPLICATION_AUD, "test-app-id")).when(roleDAO,
+                    "getAudienceByRoleID", eq(role.getId()), anyString());
+            doReturn(1).when(roleDAO, "getAudienceRefByID", eq(role.getId()), anyString());
+            roleDAO.updateRoleName(role.getId(), "newRole", APPLICATION_AUD);
+
+            doCallRealMethod().when(roleDAO, "isExistingRoleName", anyString(), anyString(), anyString(),
+                    anyString());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
+            assertFalse(roleDAO.isExistingRoleName("role1", APPLICATION_AUD, "test-app-id",
+                    SAMPLE_TENANT_DOMAIN));
+
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection6);
+            assertTrue(roleDAO.isExistingRoleName("newRole", APPLICATION_AUD, "test-app-id",
+                    SAMPLE_TENANT_DOMAIN));
+        }
+    }
+
+    @Test
+    public void testIsExistingRoleName() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            addRole("role1", APPLICATION_AUD, "test-app-id");
+
+            doCallRealMethod().when(roleDAO, "isExistingRoleName", anyString(), anyString(), anyString(),
+                    anyString());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            assertTrue(roleDAO.isExistingRoleName("role1", APPLICATION_AUD, "test-app-id",
+                    SAMPLE_TENANT_DOMAIN));
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection4);
+            assertFalse(roleDAO.isExistingRoleName("role2", APPLICATION_AUD, "test-app-id",
+                    SAMPLE_TENANT_DOMAIN));
         }
     }
 

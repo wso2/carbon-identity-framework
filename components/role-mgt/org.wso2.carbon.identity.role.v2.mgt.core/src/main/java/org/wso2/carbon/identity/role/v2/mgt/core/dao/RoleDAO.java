@@ -190,6 +190,19 @@ public interface RoleDAO {
     List<GroupBasicInfo> getGroupListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Update the list of users in the given role.
+     *
+     * @param roleID            Role ID.
+     * @param newUserIDList     The set of new users IDs.
+     * @param deletedUserIDList The set of deleted users IDs.
+     * @param tenantDomain      Tenant domain.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    void updateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
+                                                                              String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
      * Retrieve the role name for the given ID.
      *
      * @param roleID       Role ID.
@@ -204,7 +217,7 @@ public interface RoleDAO {
      *
      * @param roleName     Role name.
      * @param tenantDomain Tenant domain.
-     * @return {@code true} if the the given role exist.
+     * @return {@code true} if the given role exist.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     boolean isExistingRoleName(String roleName, String audience, String audienceId, String tenantDomain)
@@ -215,7 +228,7 @@ public interface RoleDAO {
      *
      * @param roleID       Role ID.
      * @param tenantDomain Tenant domain.
-     * @return {@code true} if the the given role exist.
+     * @return {@code true} if the given role exist.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     boolean isExistingRoleID(String roleID, String tenantDomain) throws IdentityRoleManagementException;
@@ -243,4 +256,14 @@ public interface RoleDAO {
      * @param tenantDomain tenant domain.
      */
     int getRolesCount(String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get role without users.
+     *
+     * @param roleID          Role ID.
+     * @param tenantDomain    Tenant domain.
+     * @return The role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    Role getRoleWithoutUsers(String roleID, String tenantDomain) throws IdentityRoleManagementException;
 }

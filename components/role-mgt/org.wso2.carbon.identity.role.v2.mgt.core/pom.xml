@@ -52,6 +52,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.idp.mgt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -84,6 +88,7 @@
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.event.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.organization.management.service.*; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             org.wso2.carbon.idp.mgt.*; version="${carbon.identity.package.import.version.range}",

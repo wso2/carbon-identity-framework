@@ -206,7 +206,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         roleManagementEventPublisherProxy.publishPreUpdateUserListOfRoleWithException(roleID, newUserIDList,
                 deletedUserIDList,
                 tenantDomain);
-        roleDAO.updateGroupListOfRole(roleID, newUserIDList, deletedUserIDList, tenantDomain);
+        roleDAO.updateUserListOfRole(roleID, newUserIDList, deletedUserIDList, tenantDomain);
         roleManagementEventPublisherProxy.publishPostUpdateUserListOfRole(roleID, newUserIDList, deletedUserIDList,
                 tenantDomain);
         if (log.isDebugEnabled()) {
@@ -281,7 +281,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         roleManagementEventPublisherProxy.publishPreUpdateIdpGroupListOfRoleWithException(roleID, newGroupList,
                 deletedGroupList, tenantDomain);
         removeSimilarIdpGroups(newGroupList, deletedGroupList);
-        validateGroupIds(newGroupList, tenantDomain);
         roleDAO.updateIdpGroupListOfRole(roleID, newGroupList, deletedGroupList, tenantDomain);
         roleManagementEventPublisherProxy.publishPostUpdateIdpGroupListOfRole(roleID, newGroupList, deletedGroupList,
                 tenantDomain);
@@ -355,15 +354,26 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     @Override
     public int getRolesCount(String tenantDomain) throws IdentityRoleManagementException {
 
-        return roleDAO.getRolesCount(tenantDomain);
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy =
+                RoleManagementEventPublisherProxy.getInstance();
+        roleManagementEventPublisherProxy.publishPreGetRolesCountWithException(tenantDomain);
+        int count = roleDAO.getRolesCount(tenantDomain);
+        roleManagementEventPublisherProxy.publishPostGetRolesCount(tenantDomain);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("%s get roles count successfully.", getUser(tenantDomain)));
+        }
+        return count;
     }
 
     @Override
     public Role getRoleWithoutUsers(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        Role role = roleDAO.getRole(roleID, tenantDomain);
-        role.setUsers(null);
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreGetRoleWithException(roleID, tenantDomain);
+        Role role = roleDAO.getRoleWithoutUsers(roleID, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostGetRole(roleID, tenantDomain);
         return role;
     }
 
@@ -458,53 +468,5 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         }
         arr1.removeAll(toRemove);
         arr2.removeAll(toRemove);
-    }
-
-    /**
-     * Validate groups.
-     *
-     * @param groups Groups.
-     * @throws IdentityRoleManagementException Error occurred while validating groups.
-     */
-    public static void validateGroupIds(List<IdpGroup> groups, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        for (IdpGroup group : groups) {
-
-            IdentityProvider identityProvider = getIdpById(group.getIdpId(), tenantDomain);
-            if (identityProvider == null) {
-                throw new IdentityRoleManagementException("Idp not found.",
-                        "Idp not found for id : " + group.getIdpId());
-            }
-            IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
-            List<String> idpGroupIdList = new ArrayList<>();
-            for (IdPGroup idpGroup : idpGroups) {
-                idpGroupIdList.add(idpGroup.getIdpGroupId());
-            }
-            if (!idpGroupIdList.contains(group.getGroupId())) {
-                throw new IdentityRoleManagementException("Idp group not found.",
-                        "Idp group not found for id : " + group.getGroupId());
-            }
-            group.setIdpId(identityProvider.getResourceId());
-        }
-    }
-
-    /**
-     * Get idp by id.
-     *
-     * @throws IdentityRoleManagementException Error occurred while validating groups.
-     */
-    private static IdentityProvider getIdpById(String idpId, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        IdentityProvider identityProvider;
-        try {
-            identityProvider = RoleManagementServiceComponentHolder.getInstance()
-                    .getIdentityProviderManager().getIdPByResourceId(idpId, tenantDomain, true);
-        } catch (IdentityProviderManagementException e) {
-            throw new IdentityRoleManagementException("Error while retrieving idp", "Error while retrieving idp "
-                    + "for idpId: " + idpId, e);
-        }
-        return identityProvider;
     }
 }

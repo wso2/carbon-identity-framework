@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.internal;
 
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -37,6 +38,7 @@ public class RoleManagementServiceComponentHolder {
     private IdentityEventService identityEventService;
     private OrganizationManager organizationManager;
     private IdpManager identityProviderManager;
+    private ApplicationManagementService applicationManagementService;
 
     private RoleManagementServiceComponentHolder() {
 
@@ -115,5 +117,25 @@ public class RoleManagementServiceComponentHolder {
     public void setIdentityProviderManager(IdpManager idpManager) {
 
         this.identityProviderManager = idpManager;
+    }
+
+    /**
+     * Get ApplicationManagementService osgi service.
+     *
+     * @return ApplicationManagementService
+     */
+    public ApplicationManagementService getApplicationManagementService() {
+
+        return applicationManagementService;
+    }
+
+    /**
+     * Set ApplicationManagementService osgi service.
+     *
+     * @param applicationManagementService ApplicationManagementService.
+     */
+    public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        this.applicationManagementService = applicationManagementService;
     }
 }
