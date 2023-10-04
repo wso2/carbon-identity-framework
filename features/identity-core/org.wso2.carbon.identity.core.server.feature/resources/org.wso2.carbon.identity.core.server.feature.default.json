@@ -990,7 +990,7 @@
   "console.identity_providers.scopes.update": ["internal_idp_update"],
   "console.identity_providers.scopes.delete": ["internal_idp_delete"],
   "console.identity_provider_groups.enabled": false,
-  "console.identity_verification_providers.enabled": true,
+  "console.identity_verification_providers.enabled": false,
   "console.identity_verification_providers.scopes.create": ["internal_idvp_add"],
   "console.identity_verification_providers.scopes.read": ["internal_idvp_view"],
   "console.identity_verification_providers.scopes.update": ["internal_idvp_update"],
