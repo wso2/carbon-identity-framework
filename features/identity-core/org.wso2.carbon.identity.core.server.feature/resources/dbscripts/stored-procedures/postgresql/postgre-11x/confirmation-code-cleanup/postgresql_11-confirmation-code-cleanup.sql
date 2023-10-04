@@ -18,6 +18,8 @@ DECLARE
 
 tablesCursor CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
 tablename  IN ('idn_recovery_data');
+tablesCursor1 CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
+tablename  IN ('idn_recovery_flow_data');
 
 BEGIN
 
@@ -61,6 +63,22 @@ BEGIN
 
         END LOOP;
         CLOSE tablesCursor;
+        OPEN tablesCursor1;
+        LOOP
+            FETCH tablesCursor1 INTO cusrRecord;
+            EXIT WHEN NOT FOUND;
+            backupTable := cusrRecord.tablename||'_backup';
+
+            EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING backupTable;
+            IF (rowcount = 1)
+            THEN
+                EXECUTE 'DROP TABLE '||quote_ident(backupTable);
+            END IF;
+
+            EXECUTE 'CREATE TABLE '||quote_ident(backupTable)||' as SELECT * FROM '||quote_ident(cusrRecord.tablename);
+
+        END LOOP;
+        CLOSE tablesCursor1;
     END IF;
 
     -- ------------------------------------------
@@ -116,9 +134,62 @@ BEGIN
         END LOOP;
     END LOOP;
 
+    chunkCount := 1000;
+    LOOP
+        IF ((chunkCount = 0)) THEN
+            EXIT;
+        END IF;
+
+        -- CREATE CHUNK TABLE
+        DROP TABLE IF EXISTS idn_recovery_flow_data_chunk_tmp;
+        CREATE TABLE idn_recovery_flow_data_chunk_tmp AS SELECT recovery_flow_id FROM idn_recovery_flow_data
+        WHERE (cleanUpDateTimeLimit > TIME_CREATED) LIMIT chunkSize;
+        GET DIAGNOSTICS chunkCount := ROW_COUNT;
+        COMMIT;
+        IF (enableLog) THEN
+            RAISE NOTICE 'CREATED IDN_RECOVERY_FLOW_DATA_CHUNK_TMP...';
+        END IF;
+
+        -- BATCH LOOP
+        batchCount := 1;
+        LOOP
+            -- CREATE BATCH TABLE
+            DROP TABLE IF EXISTS idn_recovery_flow_data_batch_tmp;
+            CREATE TABLE idn_recovery_flow_data_batch_tmp AS
+              SELECT recovery_flow_id FROM idn_recovery_flow_data_chunk_tmp LIMIT batchSize;
+            GET diagnostics batchCount := ROW_COUNT;
+            COMMIT;
+            IF ((batchCount = 0)) THEN
+                EXIT;
+            END IF;
+            IF (enableLog) THEN
+                RAISE NOTICE 'CREATED IDN_RECOVERY_FLOW_DATA_BATCH_TMP...';
+            END IF;
+
+            -- BATCH DELETION
+            IF (enableLog) THEN
+                RAISE NOTICE 'BATCH DELETE STARTED ON IDN_RECOVERY_FLOW_DATA...';
+            END IF;
+            DELETE
+            FROM idn_recovery_flow_data
+            WHERE recovery_flow_id IN (SELECT recovery_flow_id FROM idn_recovery_flow_data_batch_tmp);
+            GET DIAGNOSTICS rowCount := ROW_COUNT;
+            commit;
+            IF (enableLog) THEN
+                RAISE NOTICE 'BATCH DELETE FINISHED ON IDN_RECOVERY_FLOW_DATA : %', rowCount;
+            END IF;
+
+            -- DELETE FROM CHUNK
+            DELETE FROM idn_recovery_flow_data_chunk_tmp WHERE recovery_flow_id IN (SELECT recovery_flow_id FROM idn_recovery_flow_data_batch_tmp);
+
+        END LOOP;
+    END LOOP;
+
     -- DELETE TEMP TABLES
     DROP TABLE IF EXISTS idn_recovery_data_chunk_tmp;
     DROP TABLE IF EXISTS idn_recovery_data_batch_tmp;
+    DROP TABLE IF EXISTS idn_recovery_flow_data_chunk_tmp;
+    DROP TABLE IF EXISTS idn_recovery_flow_data_batch_tmp;
 
 END;
 $$
