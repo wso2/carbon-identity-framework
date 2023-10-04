@@ -169,8 +169,7 @@ public class LoggerUtils {
      */
     public static boolean isDiagnosticLogsEnabled() {
 
-        int tenantId = IdentityTenantUtil.getTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-        CarbonConstants.DiagnosticLogMode diagnosticLogMode = CarbonUtils.getDiagnosticLogMode(tenantId);
+        CarbonConstants.DiagnosticLogMode diagnosticLogMode = CarbonUtils.getDiagnosticLogMode(resolveTenantId());
 
         return !CarbonConstants.DiagnosticLogMode.NONE.equals(diagnosticLogMode);
     }
