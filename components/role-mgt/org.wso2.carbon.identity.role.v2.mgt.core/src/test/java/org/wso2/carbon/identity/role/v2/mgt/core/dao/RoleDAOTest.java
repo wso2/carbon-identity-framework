@@ -11,11 +11,18 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
+import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementClientException;
+import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleAudience;
@@ -27,6 +34,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.authorization.JDBCAuthorizationManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -53,6 +61,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 
 @WithCarbonHome
 @PrepareForTest({IdentityDatabaseUtil.class, IdentityTenantUtil.class, IdentityUtil.class, UserCoreUtil.class,
@@ -255,6 +264,51 @@ public class RoleDAOTest extends PowerMockTestCase {
             doCallRealMethod().when(UserCoreUtil.class, "removeDomainFromName", anyString());
             doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
             List<RoleBasicInfo> roles = roleDAO.getRoles(2, 1, null, null,
+                    SAMPLE_TENANT_DOMAIN);
+            Assert.assertEquals(getRoleNamesList(roles), expectedRoles);
+        }
+    }
+
+    @Test
+    public void testGetRolesWithFilter() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection();
+             Connection connection6 = getConnection();
+             Connection connection7 = getConnection();
+             Connection connection8 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            addRole("role1", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            addRole("roleA2", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection5);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection6);
+            addRole("role3", ORGANIZATION_AUD, "test-org-id");
+
+            List<String> expectedRoles = new ArrayList<>();
+            expectedRoles.add("roleA2");
+
+            mockRealmConfiguration();
+            mockStatic(UserCoreUtil.class);
+            when(UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class))).thenReturn(false);
+
+            when(IdentityUtil.getDefaultItemsPerPage()).thenReturn(IdentityCoreConstants.DEFAULT_ITEMS_PRE_PAGE);
+            when(IdentityUtil.getMaximumItemPerPage()).thenReturn(IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE);
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection7);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection8);
+            doCallRealMethod().when(IdentityUtil.class, "extractDomainFromName", anyString());
+            doCallRealMethod().when(UserCoreUtil.class, "removeDomainFromName", anyString());
+            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
+            List<ExpressionNode> expressionNodes =
+                    getExpressionNodes("name co roleA and audience co application and audienceId co test-app-id");
+            List<RoleBasicInfo> roles = roleDAO.getRoles(expressionNodes, 2, 1, null, null,
                     SAMPLE_TENANT_DOMAIN);
             Assert.assertEquals(getRoleNamesList(roles), expectedRoles);
         }
@@ -649,6 +703,46 @@ public class RoleDAOTest extends PowerMockTestCase {
         BasicDataSource dataSource = dataSourceMap.get(DB_NAME);
         try (Connection connection = dataSource.getConnection()) {
             connection.createStatement().executeUpdate("DROP ALL OBJECTS;");
+        }
+    }
+
+    /**
+     * Get the filter node as a list.
+     *
+     * @param filter Filter string.
+     * @throws IdentityRoleManagementException Error when validate filters.
+     */
+    private List<ExpressionNode> getExpressionNodes(String filter) throws IdentityRoleManagementException {
+
+        List<ExpressionNode> expressionNodes = new ArrayList<>();
+        filter = StringUtils.isBlank(filter) ? StringUtils.EMPTY : filter;
+        try {
+            if (StringUtils.isNotBlank(filter)) {
+                FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
+                Node rootNode = filterTreeBuilder.buildTree();
+                setExpressionNodeList(rootNode, expressionNodes);
+            }
+            return expressionNodes;
+        } catch (IOException | IdentityException e) {
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid filter");
+        }
+    }
+
+    /**
+     * Set the node values as list of expression.
+     *
+     * @param node       filter node.
+     * @param expression list of expression.
+     */
+    private void setExpressionNodeList(Node node, List<ExpressionNode> expression) {
+
+        if (node instanceof ExpressionNode) {
+            if (StringUtils.isNotBlank(((ExpressionNode) node).getAttributeValue())) {
+                expression.add((ExpressionNode) node);
+            }
+        } else if (node instanceof OperationNode) {
+            setExpressionNodeList(node.getLeftNode(), expression);
+            setExpressionNodeList(node.getRightNode(), expression);
         }
     }
 }

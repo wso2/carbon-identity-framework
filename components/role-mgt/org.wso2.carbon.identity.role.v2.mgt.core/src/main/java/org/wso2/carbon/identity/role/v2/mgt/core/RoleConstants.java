@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Role constants.
  */
@@ -139,5 +143,24 @@ public class RoleConstants {
 
             return ROLE_MANAGEMENT_ERROR_CODE_PREFIX + code;
         }
+    }
+
+    public static final String NAME = "name";
+    public static final String AUDIENCE = "audience";
+    public static final String AUDIENCE_ID = "audienceId";
+    public static final String EQ = "eq";
+    public static final String CO = "co";
+    public static final String SW = "sw";
+    public static final String EW = "ew";
+    public static final String GE = "ge";
+    public static final String LE = "le";
+    public static final String GT = "gt";
+    public static final String LT = "lt";
+    private static final Map<String, String> attributeColumnMap = new HashMap<>();
+    public static final Map<String, String> ATTRIBUTE_COLUMN_MAP = Collections.unmodifiableMap(attributeColumnMap);
+    static {
+        attributeColumnMap.put(NAME, RoleTableColumns.UM_ROLE_NAME);
+        attributeColumnMap.put(AUDIENCE, RoleTableColumns.AUDIENCE);
+        attributeColumnMap.put(AUDIENCE_ID, RoleTableColumns.AUDIENCE_ID);
     }
 }

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.dao;
 
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.role.v2.mgt.core.GroupBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.IdpGroup;
@@ -68,7 +69,7 @@ public interface RoleDAO {
     /**
      * Retrieve available roles matching the provided filter.
      *
-     * @param filter       Filter for the role name.
+     * @param expressionNodes List of expressionNodes.
      * @param limit        Limit value.
      * @param offset       Offset value.
      * @param sortBy       SortBy value.
@@ -77,8 +78,8 @@ public interface RoleDAO {
      * @return List of roles.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    List<RoleBasicInfo> getRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
-                                                                        String tenantDomain)
+    List<RoleBasicInfo> getRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset, String sortBy,
+                                 String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**

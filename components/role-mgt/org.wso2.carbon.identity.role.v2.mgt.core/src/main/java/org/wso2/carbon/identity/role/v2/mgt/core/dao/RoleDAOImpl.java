@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -40,6 +41,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.AssociatedApplication;
+import org.wso2.carbon.identity.role.v2.mgt.core.FilterQueryBuilder;
 import org.wso2.carbon.identity.role.v2.mgt.core.GroupBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
@@ -139,6 +141,12 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_MYSQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_ORACLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_POSTGRESQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_DB2;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_INFORMIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_MSSQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_MYSQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_ORACLE;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_POSTGRESQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_INFORMIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_MSSQL;
@@ -284,14 +292,14 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     @Override
-    public List<RoleBasicInfo> getRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
-                                        String tenantDomain) throws IdentityRoleManagementException {
+    public List<RoleBasicInfo> getRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
+                                        String sortBy, String sortOrder, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if (StringUtils.isBlank(filter) || RoleConstants.WILDCARD_CHARACTER.equals(filter)) {
-            return getRoles(limit, offset, sortBy, sortOrder, tenantDomain);
-        }
-        String filterResolvedForSQL = resolveSQLFilter(filter);
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        appendFilterQuery(expressionNodes, filterQueryBuilder);
+        Map<String, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         limit = validateLimit(limit);
         offset = validateOffset(offset);
         validateAttributesForSorting(sortBy, sortOrder);
@@ -300,10 +308,15 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    getDBTypeSpecificRolesRetrievalQueryByRoleName(databaseProductName),
+                    getDBTypeSpecificRolesRetrievalQueryByRoleName(databaseProductName,
+                            filterQueryBuilder.getFilterQuery()),
                     RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, filterResolvedForSQL);
+                if (filterAttributeValue != null) {
+                    for (Map.Entry<String, String> entry : filterAttributeValue.entrySet()) {
+                        statement.setString(entry.getKey(), entry.getValue());
+                    }
+                }
                 roles = processListRolesQuery(limit, offset, statement, tenantDomain);
             }
         } catch (SQLException e) {
@@ -1468,23 +1481,26 @@ public class RoleDAOImpl implements RoleDAO {
                         + "could not be identified or not supported.");
     }
 
-    private String getDBTypeSpecificRolesRetrievalQueryByRoleName(String databaseProductName)
+    private String getDBTypeSpecificRolesRetrievalQueryByRoleName(String databaseProductName, String filterQuery)
             throws IdentityRoleManagementException {
 
         if (RoleConstants.MY_SQL.equals(databaseProductName)
                 || RoleConstants.MARIADB.equals(databaseProductName)
                 || RoleConstants.H2.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_MYSQL;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_MYSQL + filterQuery + GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_MYSQL;
         } else if (RoleConstants.ORACLE.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_ORACLE;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_ORACLE + filterQuery +
+                    GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_ORACLE;
         } else if (RoleConstants.MICROSOFT.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_MSSQL;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_MSSQL + filterQuery + GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_MSSQL;
         } else if (RoleConstants.POSTGRE_SQL.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_POSTGRESQL;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_POSTGRESQL + filterQuery +
+                    GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_POSTGRESQL;
         } else if (databaseProductName != null && databaseProductName.contains(RoleConstants.DB2)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_DB2;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_DB2 + filterQuery + GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_DB2;
         } else if (RoleConstants.INFORMIX.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_INFORMIX;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_INFORMIX + filterQuery +
+                    GET_ROLES_BY_TENANT_AND_ROLE_NAME_TAIL_INFORMIX;
         }
 
         throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
@@ -2435,5 +2451,140 @@ public class RoleDAOImpl implements RoleDAO {
 
         AuthorizationCache authorizationCache = AuthorizationCache.getInstance();
         authorizationCache.clearCacheByTenant(tenantId);
+    }
+
+    /**
+     * Append the filter query to the query builder.
+     *
+     * @param expressionNodes    List of expression nodes.
+     * @param filterQueryBuilder Filter query builder.
+     * @throws IdentityRoleManagementException If an error occurs while appending the filter query.
+     */
+    private void appendFilterQuery(List<ExpressionNode> expressionNodes, FilterQueryBuilder filterQueryBuilder)
+            throws IdentityRoleManagementException {
+
+        StringBuilder filter = new StringBuilder();
+        if (CollectionUtils.isEmpty(expressionNodes)) {
+            filterQueryBuilder.setFilterQuery(StringUtils.EMPTY);
+        } else {
+            for (ExpressionNode expressionNode : expressionNodes) {
+                String operation = expressionNode.getOperation();
+                String value = expressionNode.getValue();
+                String attributeValue = expressionNode.getAttributeValue();
+                String attributeName = RoleConstants.ATTRIBUTE_COLUMN_MAP.get(attributeValue);
+
+                if (StringUtils.isNotBlank(attributeName) && StringUtils.isNotBlank(value) && StringUtils
+                        .isNotBlank(operation)) {
+                    switch (operation) {
+                        case RoleConstants.EQ: {
+                            equalFilterBuilder(value, attributeName, filter, filterQueryBuilder);
+                            break;
+                        }
+                        case RoleConstants.SW: {
+                            startWithFilterBuilder(value, attributeName, filter, filterQueryBuilder);
+                            break;
+                        }
+                        case RoleConstants.EW: {
+                            endWithFilterBuilder(value, attributeName, filter, filterQueryBuilder);
+                            break;
+                        }
+                        case RoleConstants.CO: {
+                            containsFilterBuilder(value, attributeName, filter, filterQueryBuilder);
+                            break;
+                        }
+                        case RoleConstants.GE: {
+                            greaterThanOrEqualFilterBuilder(value, attributeName, filter, filterQueryBuilder);
+                            break;
+                        }
+                        case RoleConstants.LE: {
+                            lessThanOrEqualFilterBuilder(value, attributeName, filter, filterQueryBuilder);
+                            break;
+                        }
+                        case RoleConstants.GT: {
+                            greaterThanFilterBuilder(value, attributeName, filter, filterQueryBuilder);
+                            break;
+                        }
+                        case RoleConstants.LT: {
+                            lessThanFilterBuilder(value, attributeName, filter, filterQueryBuilder);
+                            break;
+                        }
+                        default: {
+                            break;
+                        }
+                    }
+                } else {
+                    throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid filter");
+                }
+            }
+            if (StringUtils.isBlank(filter.toString())) {
+                filterQueryBuilder.setFilterQuery(StringUtils.EMPTY);
+            } else {
+                filterQueryBuilder.setFilterQuery(filter.toString());
+            }
+        }
+    }
+
+    private void equalFilterBuilder(String value, String attributeName, StringBuilder filter,
+                                    FilterQueryBuilder filterQueryBuilder) {
+
+        String filterString = " =:" + attributeName + "; AND ";
+        filter.append(attributeName).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+    }
+
+    private void startWithFilterBuilder(String value, String attributeName, StringBuilder filter,
+                                        FilterQueryBuilder filterQueryBuilder) {
+
+        String filterString = " LIKE :" + attributeName + "; AND ";
+        filter.append(attributeName).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(attributeName, value + "%");
+    }
+
+    private void endWithFilterBuilder(String value, String attributeName, StringBuilder filter,
+                                      FilterQueryBuilder filterQueryBuilder) {
+
+        String filterString = " LIKE :" + attributeName + "; AND ";
+        filter.append(attributeName).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(attributeName, "%" + value);
+    }
+
+    private void containsFilterBuilder(String value, String attributeName, StringBuilder filter,
+                                       FilterQueryBuilder filterQueryBuilder) {
+
+        String filterString = " LIKE :" + attributeName + "; AND ";
+        filter.append(attributeName).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(attributeName, "%" + value + "%");
+    }
+
+    private void greaterThanOrEqualFilterBuilder(String value, String attributeName, StringBuilder filter,
+                                                 FilterQueryBuilder filterQueryBuilder) {
+
+        String filterString = " >= :" + attributeName + "; AND ";
+        filter.append(attributeName).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+    }
+
+    private void lessThanOrEqualFilterBuilder(String value, String attributeName, StringBuilder filter,
+                                              FilterQueryBuilder filterQueryBuilder) {
+
+        String filterString = " <= :" + attributeName + "; AND ";
+        filter.append(attributeName).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+    }
+
+    private void greaterThanFilterBuilder(String value, String attributeName, StringBuilder filter,
+                                          FilterQueryBuilder filterQueryBuilder) {
+
+        String filterString = " > :" + attributeName + "; AND ";
+        filter.append(attributeName).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+    }
+
+    private void lessThanFilterBuilder(String value, String attributeName, StringBuilder filter,
+                                       FilterQueryBuilder filterQueryBuilder) {
+
+        String filterString = " < :" + attributeName + "; AND ";
+        filter.append(attributeName).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
     }
 }
