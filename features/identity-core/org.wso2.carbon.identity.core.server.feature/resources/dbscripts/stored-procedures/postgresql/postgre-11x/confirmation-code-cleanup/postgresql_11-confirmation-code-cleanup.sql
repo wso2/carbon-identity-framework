@@ -16,9 +16,9 @@ DECLARE
     backupTable text;
     cusrRecord record;
 
-tablesCursor CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
-tablename  IN ('idn_recovery_data');
 tablesCursor1 CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
+tablename  IN ('idn_recovery_data');
+tablesCursor2 CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND
 tablename  IN ('idn_recovery_flow_data');
 
 BEGIN
@@ -47,22 +47,6 @@ BEGIN
     -- ------------------------------------------
     IF (backupTables)
     THEN
-        OPEN tablesCursor;
-        LOOP
-            FETCH tablesCursor INTO cusrRecord;
-            EXIT WHEN NOT FOUND;
-            backupTable := cusrRecord.tablename||'_backup';
-
-            EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING backupTable;
-            IF (rowcount = 1)
-            THEN
-                EXECUTE 'DROP TABLE '||quote_ident(backupTable);
-            END IF;
-
-            EXECUTE 'CREATE TABLE '||quote_ident(backupTable)||' as SELECT * FROM '||quote_ident(cusrRecord.tablename);
-
-        END LOOP;
-        CLOSE tablesCursor;
         OPEN tablesCursor1;
         LOOP
             FETCH tablesCursor1 INTO cusrRecord;
@@ -79,6 +63,22 @@ BEGIN
 
         END LOOP;
         CLOSE tablesCursor1;
+        OPEN tablesCursor2;
+        LOOP
+            FETCH tablesCursor2 INTO cusrRecord;
+            EXIT WHEN NOT FOUND;
+            backupTable := cusrRecord.tablename||'_backup';
+
+            EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING backupTable;
+            IF (rowcount = 1)
+            THEN
+                EXECUTE 'DROP TABLE '||quote_ident(backupTable);
+            END IF;
+
+            EXECUTE 'CREATE TABLE '||quote_ident(backupTable)||' as SELECT * FROM '||quote_ident(cusrRecord.tablename);
+
+        END LOOP;
+        CLOSE tablesCursor2;
     END IF;
 
     -- ------------------------------------------
