@@ -21,6 +21,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -203,6 +204,20 @@ public interface ClaimMetadataManagementService {
      * @throws ClaimMetadataException If an error occurred while retrieving local claims.
      */
     default String getMaskingRegexForLocalClaim(String localClaimURI, String tenantDomain) throws
+            ClaimMetadataException {
+
+        return null;
+    }
+
+    /**
+     * Get mapped external claims for provided local claim.
+     *
+     * @param localClaimURI Local claim URI.
+     * @param tenantDomain  Tenant domain.
+     * @return List of mapped external claims.
+     * @throws ClaimMetadataException If an error occurred while retrieving external claims.
+     */
+    default List<Claim> getMappedExternalClaimsForLocalClaim(String localClaimURI, String tenantDomain) throws
             ClaimMetadataException {
 
         return null;
