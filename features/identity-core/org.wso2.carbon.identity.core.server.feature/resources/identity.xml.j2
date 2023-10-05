@@ -885,6 +885,9 @@
                 {% if oauth.oidc.fapi.enable_security_profile is defined %}
                 <EnableSecurityProfile>{{oauth.oidc.fapi.enable_security_profile}}</EnableSecurityProfile>
                 {% endif %}
+                {% if oauth.oidc.fapi.enable_sector_identifier_validation is defined %}
+                <EnableSectorIdentifierURIValidation>{{oauth.oidc.fapi.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
+                {% endif %}
             </FAPI>
             {% endif %}
         </OpenIDConnect>
@@ -975,6 +978,12 @@
         -->
         <DCRM>
             <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
+            {% if oauth.dcr.enable_fapi_validation%}
+            <EnableFAPIValidation>{{oauth.dcr.enable_fapi_validation}}</EnableFAPIValidation>
+            {% endif %}
+            {% if oauth.dcr.ssa_jkws%}
+            <SoftwareStatementJWKS></SoftwareStatementJWKS>
+            {% endif %}
         </DCRM>
 
         <!--
