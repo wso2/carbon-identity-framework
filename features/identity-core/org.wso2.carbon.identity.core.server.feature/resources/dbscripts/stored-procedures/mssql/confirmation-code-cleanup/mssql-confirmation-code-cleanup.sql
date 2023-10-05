@@ -54,14 +54,14 @@ BEGIN
         SELECT * INTO BAK_IDN_RECOVERY_DATA FROM IDN_RECOVERY_DATA
 
         IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BAK_IDN_RECOVERY_FLOW_DATA'))
-                BEGIN
-                    IF (@enableLog = 1)
-                    BEGIN
-                        SELECT '[' + convert(varchar, getdate(), 121) + '] DELETING OLD IDN_RECOVERY_FLOW_DATA BACKUP...' AS 'INFO LOG'
-                    END
-                    DROP TABLE BAK_IDN_RECOVERY_FLOW_DATA
-                END
-                SELECT * INTO BAK_IDN_RECOVERY_FLOW_DATA FROM IDN_RECOVERY_FLOW_DATA
+        BEGIN
+            IF (@enableLog = 1)
+            BEGIN
+                SELECT '[' + convert(varchar, getdate(), 121) + '] DELETING OLD IDN_RECOVERY_FLOW_DATA BACKUP...' AS 'INFO LOG'
+            END
+            DROP TABLE BAK_IDN_RECOVERY_FLOW_DATA
+        END
+        SELECT * INTO BAK_IDN_RECOVERY_FLOW_DATA FROM IDN_RECOVERY_FLOW_DATA
     END
 
     -- ------------------------------------------
