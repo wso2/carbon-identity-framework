@@ -623,7 +623,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         authenticationResult.getSubject().getUserName(), sessionContextKey,
                         authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
                         createdTimeMillis, sessionContext.isRememberMe());
-                if(request.getAttribute(SKIP_SET_COMMONAUTH_COOKIE)==null
+                if (request.getAttribute(SKIP_SET_COMMONAUTH_COOKIE) == null
                         || !Boolean.parseBoolean(request.getAttribute(SKIP_SET_COMMONAUTH_COOKIE).toString())) {
                     setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 }
