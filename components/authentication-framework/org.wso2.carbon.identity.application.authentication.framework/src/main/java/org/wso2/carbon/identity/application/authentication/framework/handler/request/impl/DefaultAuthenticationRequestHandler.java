@@ -86,6 +86,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static java.util.Objects.nonNull;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_USER_PROPERTIES;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.SKIP_SET_COMMONAUTH_COOKIE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
@@ -622,7 +623,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         authenticationResult.getSubject().getUserName(), sessionContextKey,
                         authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
                         createdTimeMillis, sessionContext.isRememberMe());
-                setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
+                if(StringUtils.isNotBlank(request.getAttribute(SKIP_SET_COMMONAUTH_COOKIE).toString())
+                        && Boolean.parseBoolean(request.getAttribute(SKIP_SET_COMMONAUTH_COOKIE).toString())) {
+                    log.info("Skipped setting commonAuth cookie for the request with sessionDataKey: " +
+                            request.getParameter("sessionDataKey"));
+                } else {
+                    setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
+                }
                 if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                     try {
                         storeSessionMetaData(sessionContextKey, request);

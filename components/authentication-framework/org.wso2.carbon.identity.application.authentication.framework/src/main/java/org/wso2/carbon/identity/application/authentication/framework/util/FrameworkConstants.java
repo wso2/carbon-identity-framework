@@ -29,6 +29,7 @@ public abstract class FrameworkConstants {
     public static final String DEFAULT_SEQUENCE = "default";
     public static final String AUTHENTICATED_AUTHENTICATORS = "authenticatedAuthenticators";
     public static final String COMMONAUTH_COOKIE = "commonAuthId";
+    public static final String SKIP_SET_COMMONAUTH_COOKIE = "skipSetCommonAuthCookie";
     public static final String CONTEXT_PROP_INVALID_EMAIL_USERNAME = "InvalidEmailUsername";
     // Cookie used for post authenticaion sequence tracking
     public static final String PASTR_COOKIE = "pastr";
