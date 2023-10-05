@@ -212,7 +212,7 @@ public class RoleDAOImpl implements RoleDAO {
                             ADD_ROLE_WITH_AUDIENCE_SQL, RoleConstants.RoleTableColumns.UM_ID)) {
                         statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                         statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                        statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                        statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                         statement.executeUpdate();
                     }
 
@@ -423,7 +423,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_IDP_GROUPS_SQL)) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
-                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
@@ -452,18 +452,20 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             try {
                 addIdpGroups(roleName, audienceRefId, newGroupList, tenantDomain, connection);
-                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                        DELETE_IDP_GROUPS_SQL)) {
-                    statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
-                    statement.setString(RoleConstants.RoleTableColumns.GROUP_ID, roleName);
-                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                    statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
-                    statement.executeUpdate();
-                } catch (SQLException e) {
-                    IdentityDatabaseUtil.rollbackTransaction(connection);
-                    String errorMessage = "Error while assign idp groups to roleID : " + roleID;
-                    throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                            errorMessage, e);
+                for (IdpGroup idpGroup : deletedGroupList) {
+                    try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                            DELETE_IDP_GROUPS_SQL)) {
+                        statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_ID, idpGroup.getGroupId());
+                        statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
+                        statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                        statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
+                        statement.executeUpdate();
+                    } catch (SQLException e) {
+                        IdentityDatabaseUtil.rollbackTransaction(connection);
+                        String errorMessage = "Error while assign idp groups to roleID : " + roleID;
+                        throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                                errorMessage, e);
+                    }
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
             } catch (IdentityRoleManagementException e) {
@@ -505,7 +507,7 @@ public class RoleDAOImpl implements RoleDAO {
                         RoleConstants.RoleTableColumns.UM_ID)) {
                     statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                     statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                    statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                    statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                     statement.executeUpdate();
                 }
 
@@ -577,7 +579,7 @@ public class RoleDAOImpl implements RoleDAO {
                     statement.setString(RoleConstants.RoleTableColumns.NEW_UM_ROLE_NAME, newRoleName);
                     statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                     statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                    statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                    statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                     statement.executeUpdate();
                 }
 
@@ -712,10 +714,10 @@ public class RoleDAOImpl implements RoleDAO {
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_IDP_GROUPS_SQL)) {
             for (IdpGroup group : groups) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
-                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID,
                         IdentityTenantUtil.getTenantId(tenantDomain));
-                statement.setString(RoleConstants.RoleTableColumns.GROUP_ID, group.getGroupId());
+                statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_ID, group.getGroupId());
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -824,10 +826,10 @@ public class RoleDAOImpl implements RoleDAO {
         boolean isShared = false;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_SHARED_ROLE_SQL,
-                    RoleConstants.RoleTableColumns.MAIN_ROLE_ID)) {
+                    RoleConstants.RoleTableColumns.UM_MAIN_ROLE_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
-                statement.setInt(RoleConstants.RoleTableColumns.SHARED_ROLE_TENANT_ID, tenantId);
-                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_SHARED_ROLE_TENANT_ID, tenantId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
                         isShared = resultSet.getInt(1) > 0;
@@ -862,15 +864,15 @@ public class RoleDAOImpl implements RoleDAO {
         int mainAudienceRefId = -1;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    GET_SHARED_ROLE_MAIN_ROLE_ID_SQL, RoleConstants.RoleTableColumns.MAIN_ROLE_ID)) {
+                    GET_SHARED_ROLE_MAIN_ROLE_ID_SQL, RoleConstants.RoleTableColumns.UM_MAIN_ROLE_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
-                statement.setInt(RoleConstants.RoleTableColumns.SHARED_ROLE_TENANT_ID, tenantId);
-                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_SHARED_ROLE_TENANT_ID, tenantId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
                         mainRoleName = resultSet.getString(UM_ROLE_NAME);
-                        mainTenantId =  resultSet.getInt(RoleConstants.RoleTableColumns.MAIN_ROLE_TENANT_ID);
-                        mainAudienceRefId = resultSet.getInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID);
+                        mainTenantId =  resultSet.getInt(RoleConstants.RoleTableColumns.UM_MAIN_ROLE_TENANT_ID);
+                        mainAudienceRefId = resultSet.getInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID);
                     }
                 }
             }
@@ -1115,8 +1117,8 @@ public class RoleDAOImpl implements RoleDAO {
 
         int id = -1;
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_AUDIENCE_SQL)) {
-                statement.setString(RoleConstants.RoleTableColumns.AUDIENCE, audience);
-                statement.setString(RoleConstants.RoleTableColumns.AUDIENCE_ID, audienceId);
+                statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
+                statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         id = resultSet.getInt(1);
@@ -1147,8 +1149,8 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_AUDIENCE_SQL)) {
-            statement.setString(RoleConstants.RoleTableColumns.AUDIENCE, audience);
-            statement.setString(RoleConstants.RoleTableColumns.AUDIENCE_ID, audienceId);
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
             statement.executeUpdate();
 
             IdentityDatabaseUtil.commitTransaction(connection);
@@ -1200,7 +1202,7 @@ public class RoleDAOImpl implements RoleDAO {
                     RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, removeInternalDomain(roleName));
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
                         isExist = resultSet.getInt(1) > 0;
@@ -1276,7 +1278,7 @@ public class RoleDAOImpl implements RoleDAO {
                 statement.setString(RoleConstants.RoleTableColumns.UM_USER_NAME, nameWithoutDomain);
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
                 statement.addBatch();
             }
@@ -1314,7 +1316,7 @@ public class RoleDAOImpl implements RoleDAO {
                 statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_NAME, nameWithoutDomain);
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
                 statement.addBatch();
             }
@@ -1878,7 +1880,7 @@ public class RoleDAOImpl implements RoleDAO {
         RoleAudience roleAudience = null;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_AUDIENCE_BY_ID_SQL)) {
-                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, getAudienceRefByID(roleID,
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, getAudienceRefByID(roleID,
                         tenantDomain));
                 int count = 0;
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -1980,7 +1982,7 @@ public class RoleDAOImpl implements RoleDAO {
                     RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         String name = resultSet.getString(1);
@@ -2176,7 +2178,7 @@ public class RoleDAOImpl implements RoleDAO {
                     GET_GROUP_LIST_OF_ROLE_SQL, RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         String name = resultSet.getString(1);

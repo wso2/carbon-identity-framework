@@ -83,17 +83,19 @@ public class RoleConstants {
         public static final String ATTR_NAME = "ATTR_NAME";
         public static final String ATTR_VALUE = "ATTR_VALUE";
         public static final String ROLE_NAME = "ROLE_NAME";
-        public static final String AUDIENCE = "AUDIENCE";
-        public static final String AUDIENCE_ID = "AUDIENCE_ID";
+        public static final String UM_AUDIENCE = "UM_AUDIENCE";
+        public static final String UM_AUDIENCE_ID = "UM_AUDIENCE_ID";
+        public static final String UM_AUDIENCE_REF_ID = "UM_AUDIENCE_REF_ID";
         public static final String AUDIENCE_REF_ID = "AUDIENCE_REF_ID";
         public static final String ROLE_ID = "ROLE_ID";
+        public static final String UM_ROLE_ID = "UM_ROLE_ID";
         public static final String SCOPE_NAME = "SCOPE_NAME";
         public static final String APP_ID = "APP_ID";
-        public static final String SHARED_ROLE_ID = "SHARED_ROLE_ID";
-        public static final String SHARED_ROLE_TENANT_ID = "SHARED_ROLE_TENANT_ID";
-        public static final String MAIN_ROLE_ID = "MAIN_ROLE_ID";
-        public static final String MAIN_ROLE_TENANT_ID = "MAIN_ROLE_TENANT_ID";
-        public static final String GROUP_ID = "GROUP_ID";
+        public static final String UM_SHARED_ROLE_ID = "UM_SHARED_ROLE_ID";
+        public static final String UM_SHARED_ROLE_TENANT_ID = "UM_SHARED_ROLE_TENANT_ID";
+        public static final String UM_MAIN_ROLE_ID = "UM_MAIN_ROLE_ID";
+        public static final String UM_MAIN_ROLE_TENANT_ID = "UM_MAIN_ROLE_TENANT_ID";
+        public static final String UM_GROUP_ID = "UM_GROUP_ID";
         public static final String GROUP_NAME = "GROUP_NAME";
 
         public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
@@ -160,7 +162,7 @@ public class RoleConstants {
     public static final Map<String, String> ATTRIBUTE_COLUMN_MAP = Collections.unmodifiableMap(attributeColumnMap);
     static {
         attributeColumnMap.put(NAME, RoleTableColumns.UM_ROLE_NAME);
-        attributeColumnMap.put(AUDIENCE, RoleTableColumns.AUDIENCE);
-        attributeColumnMap.put(AUDIENCE_ID, RoleTableColumns.AUDIENCE_ID);
+        attributeColumnMap.put(AUDIENCE, RoleTableColumns.UM_AUDIENCE);
+        attributeColumnMap.put(AUDIENCE_ID, RoleTableColumns.UM_AUDIENCE_ID);
     }
 }
