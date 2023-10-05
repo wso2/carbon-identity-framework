@@ -172,10 +172,10 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.UPDATE_SC
  */
 public class RoleDAOImpl implements RoleDAO {
 
-    private Log log = LogFactory.getLog(RoleDAOImpl.class);
-    private GroupIDResolver groupIDResolver = new GroupIDResolver();
-    private UserIDResolver userIDResolver = new UserIDResolver();
-    private Set<String> systemRoles = getSystemRoles();
+    private final Log log = LogFactory.getLog(RoleDAOImpl.class);
+    private final GroupIDResolver groupIDResolver = new GroupIDResolver();
+    private final UserIDResolver userIDResolver = new UserIDResolver();
+    private final Set<String> systemRoles = getSystemRoles();
 
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
@@ -309,7 +309,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    getDBTypeSpecificRolesRetrievalQueryByRoleName(databaseProductName,
+                    getDBTypeSpecificRolesRetrievalQueryByFilter(databaseProductName,
                             filterQueryBuilder.getFilterQuery()),
                     RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
@@ -1218,18 +1218,46 @@ public class RoleDAOImpl implements RoleDAO {
         return isExist;
     }
 
+    /**
+     * Get usernames by IDs.
+     *
+     * @param userIDs User IDs.
+     * @param tenantDomain Tenant Domain.
+     * @return List of usernames.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private List<String> getUserNamesByIDs(List<String> userIDs, String tenantDomain)
             throws IdentityRoleManagementException {
 
         return userIDResolver.getNamesByIDs(userIDs, tenantDomain);
     }
 
+    /**
+     * Get group names by IDs.
+     *
+     * @param groupIDs Group IDs.
+     * @param tenantDomain Tenant Domain.
+     * @return group names.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private Map<String, String> getGroupNamesByIDs(List<String> groupIDs, String tenantDomain)
             throws IdentityRoleManagementException {
 
         return groupIDResolver.getNamesByIDs(groupIDs, tenantDomain);
     }
 
+    /**
+     * Process Batch Update For Users.
+     *
+     * @param roleName Group IDs.
+     * @param audienceRefId Audience ref ID.
+     * @param userNamesList Username list
+     * @param tenantId Tenant ID.
+     * @param primaryDomainName Primary domain name.
+     * @param connection Connection.
+     * @param removeUserFromRoleSql removeUserFromRole SQL query.
+     * @throws SQLException SQLException.
+     */
     private void processBatchUpdateForUsers(String roleName, int audienceRefId, List<String> userNamesList,
                                             int tenantId, String primaryDomainName, Connection connection,
                                             String removeUserFromRoleSql) throws SQLException {
@@ -1256,6 +1284,18 @@ public class RoleDAOImpl implements RoleDAO {
         }
     }
 
+    /**
+     * Process Batch Update For Groups.
+     *
+     * @param roleName Group IDs.
+     * @param audienceRefId Audience ref ID.
+     * @param groupNamesList Group name list
+     * @param tenantId Tenant ID.
+     * @param primaryDomainName Primary domain name.
+     * @param connection Connection.
+     * @param sql SQL query.
+     * @throws SQLException SQLException.
+     */
     private void processBatchUpdateForGroups(String roleName, int audienceRefId, List<String> groupNamesList,
                                              int tenantId, String primaryDomainName, Connection connection, String sql)
             throws SQLException {
@@ -1282,6 +1322,12 @@ public class RoleDAOImpl implements RoleDAO {
         }
     }
 
+    /**
+     * Clear User Roles Cache.
+     *
+     * @param usernameWithDomain Group IDs.
+     * @param tenantId Tenant ID.
+     */
     private void clearUserRolesCache(String usernameWithDomain, int tenantId) {
 
         String userStoreDomain = IdentityUtil.extractDomainFromName(usernameWithDomain);
@@ -1293,12 +1339,26 @@ public class RoleDAOImpl implements RoleDAO {
         authorizationCache.clearCacheByUser(tenantId, usernameWithDomain);
     }
 
+    /**
+     * Check User Role Cache Enabled.
+     *
+     * @param userStoreDomain User store domain.
+     * @param tenantId Tenant ID.
+     * @return is user role cache enabled
+     */
     private boolean isUserRoleCacheEnabled(int tenantId, String userStoreDomain) {
 
         return Boolean.parseBoolean(getUserStoreProperty(
                 UserCoreConstants.RealmConfig.PROPERTY_ROLES_CACHE_ENABLED, tenantId, userStoreDomain));
     }
 
+    /**
+     * Get Cache Identifier.
+     *
+     * @param userStoreDomain User store domain.
+     * @param tenantId Tenant ID.
+     * @return cache identifier
+     */
     private String getCacheIdentifier(int tenantId, String userStoreDomain) {
 
         String userCoreCacheIdentifier = getUserStoreProperty(
@@ -1311,6 +1371,14 @@ public class RoleDAOImpl implements RoleDAO {
         return UserCoreConstants.DEFAULT_CACHE_IDENTIFIER;
     }
 
+    /**
+     * Get User Store Property.
+     *
+     * @param property Property
+     * @param userStoreDomain User store domain.
+     * @param tenantId Tenant ID.
+     * @return user store property
+     */
     private String getUserStoreProperty(String property, int tenantId, String userStoreDomain) {
 
         RealmService realmService = RoleManagementServiceComponentHolder.getInstance().getRealmService();
@@ -1340,6 +1408,15 @@ public class RoleDAOImpl implements RoleDAO {
         return propValue;
     }
 
+    /**
+     * Get Role Audience name.
+     *
+     * @param audience Audience.
+     * @param audienceId Audience ID.
+     * @param tenantDomain Tenant Domain.
+     * @return role audience name.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private String getAudienceName(String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -1351,6 +1428,14 @@ public class RoleDAOImpl implements RoleDAO {
         return null;
     }
 
+    /**
+     * Get application name.
+     *
+     * @param applicationID Application ID.
+     * @param tenantDomain Tenant Domain.
+     * @return application name.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private String getApplicationName(String applicationID, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -1376,6 +1461,13 @@ public class RoleDAOImpl implements RoleDAO {
         }
     }
 
+    /**
+     * Get organization name.
+     *
+     * @param organizationId Organization ID.n.
+     * @return organization name.
+     * @throws IdentityRoleManagementServerException IdentityRoleManagementServerException.
+     */
     private String getOrganizationName(String organizationId) throws IdentityRoleManagementServerException {
 
         try {
@@ -1456,6 +1548,13 @@ public class RoleDAOImpl implements RoleDAO {
         }
     }
 
+    /**
+     * Get type specific role retrieval query.
+     *
+     * @param databaseProductName DB type.
+     * @return sql query.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private String getDBTypeSpecificRolesRetrievalQuery(String databaseProductName)
             throws IdentityRoleManagementException {
 
@@ -1480,7 +1579,15 @@ public class RoleDAOImpl implements RoleDAO {
                         + "could not be identified or not supported.");
     }
 
-    private String getDBTypeSpecificRolesRetrievalQueryByRoleName(String databaseProductName, String filterQuery)
+    /**
+     * Get type specific role retrieval query with filter.
+     *
+     * @param databaseProductName DB type.
+     * @param filterQuery Filter query.
+     * @return sql query.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private String getDBTypeSpecificRolesRetrievalQueryByFilter(String databaseProductName, String filterQuery)
             throws IdentityRoleManagementException {
 
         if (RoleConstants.MY_SQL.equals(databaseProductName)
@@ -1507,6 +1614,13 @@ public class RoleDAOImpl implements RoleDAO {
                         + "could not be identified or not supported.");
     }
 
+    /**
+     * Get type specific role count query.
+     *
+     * @param databaseProductName DB type.
+     * @return sql query.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private String getDBTypeSpecificRolesCountQuery(String databaseProductName) throws IdentityRoleManagementException {
 
         if (RoleConstants.MY_SQL.equals(databaseProductName)
@@ -1530,6 +1644,16 @@ public class RoleDAOImpl implements RoleDAO {
                         + "could not be identified or not supported.");
     }
 
+    /**
+     * Process list of roles query.
+     *
+     * @param limit Limit.
+     * @param offset Offset.
+     * @param statement Statement.
+     * @param tenantDomain Tenant domain.
+     * @return list of role basic info.
+     * @throws SQLException SQLException.
+     */
     private List<RoleBasicInfo> processListRolesQuery(int limit, int offset, NamedPreparedStatement statement,
                                                       String tenantDomain) throws SQLException,
             IdentityRoleManagementException {
@@ -1542,6 +1666,14 @@ public class RoleDAOImpl implements RoleDAO {
         return buildRolesList(statement, tenantDomain);
     }
 
+    /**
+     * Build role list.
+     *
+     * @param statement Statement.
+     * @param tenantDomain Tenant domain.
+     * @return list of role basic info.
+     * @throws SQLException SQLException.
+     */
     private List<RoleBasicInfo> buildRolesList(NamedPreparedStatement statement, String tenantDomain)
             throws SQLException, IdentityRoleManagementException {
 
@@ -1561,7 +1693,8 @@ public class RoleDAOImpl implements RoleDAO {
         // Add roleIDs for scim disabled roles.
         for (RoleDTO roleDTO : roleDTOs) {
             if (roleDTO.getId() == null) {
-                addRoleID(roleDTO.getName(), roleDTO.getAudienceRefId(), tenantDomain);
+                String roleId = addRoleID(roleDTO.getName(), roleDTO.getAudienceRefId(), tenantDomain);
+                roleDTO.setId(roleId);
             }
         }
 
@@ -1579,6 +1712,15 @@ public class RoleDAOImpl implements RoleDAO {
         return roles;
     }
 
+    /**
+     * Get role ID by name.
+     *
+     * @param roleName Role name.
+     * @param audienceRefId Audience ref id.
+     * @param tenantDomain Tenant domain.
+     * @return role ID.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private String getRoleIDByName(String roleName, int audienceRefId, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -1623,10 +1765,17 @@ public class RoleDAOImpl implements RoleDAO {
         return roleID;
     }
 
+    /**
+     * Resolve role ids.
+     *
+     * @param roleDTOs List of role DTOs.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException SQLException.
+     */
     private void resolveRoleIDs(List<RoleDTO> roleDTOs, String tenantDomain) throws IdentityRoleManagementException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            batchProcessRoleNames(roleDTOs, tenantDomain, connection);
+            batchProcessRoles(roleDTOs, tenantDomain, connection);
         } catch (SQLException e) {
             String errorMessage =
                     "Error while resolving the role ID for the given group names in the tenantDomain: " + tenantDomain;
@@ -1634,7 +1783,15 @@ public class RoleDAOImpl implements RoleDAO {
         }
     }
 
-    private void batchProcessRoleNames(List<RoleDTO> roleDTOs, String tenantDomain, Connection connection)
+    /**
+     * Resolve role ids.
+     *
+     * @param roleDTOs List of role DTOs.
+     * @param tenantDomain Tenant domain.
+     * @param connection Connection.
+     * @throws IdentityRoleManagementException SQLException.
+     */
+    private void batchProcessRoles(List<RoleDTO> roleDTOs, String tenantDomain, Connection connection)
             throws SQLException,
             IdentityRoleManagementException {
 
@@ -1707,6 +1864,14 @@ public class RoleDAOImpl implements RoleDAO {
         return removeInternalDomain(roleName);
     }
 
+    /**
+     * Get role audience by role ID.
+     *
+     * @param roleID Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return role audience
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private RoleAudience getAudienceByRoleID(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -1944,6 +2109,7 @@ public class RoleDAOImpl implements RoleDAO {
      * Get the disabled domain names.
      *
      * @return disabled domain names.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     private List<String> getDisabledDomainNames() throws IdentityRoleManagementException {
 
@@ -1973,6 +2139,14 @@ public class RoleDAOImpl implements RoleDAO {
         return disableDomainName;
     }
 
+    /**
+     * Get user ID by name.
+     *
+     * @param name Username.
+     * @param tenantDomain Tenant domain.
+     * @return user ID.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private String getUserIDByName(String name, String tenantDomain) throws IdentityRoleManagementException {
 
         return userIDResolver.getIDByName(name, tenantDomain);
@@ -2097,6 +2271,14 @@ public class RoleDAOImpl implements RoleDAO {
         }
     }
 
+    /**
+     * Get group IDs by names.
+     *
+     * @param names Group names.
+     * @param tenantDomain Tenant domain.
+     * @return group ID.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
     private Map<String, String> getGroupIDsByNames(List<String> names, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -2144,6 +2326,14 @@ public class RoleDAOImpl implements RoleDAO {
         return systemRoles;
     }
 
+    /**
+     * Validate group removal from role.
+     *
+     * @param deletedGroupIDList Deleted group id list.
+     * @param roleName  Role name.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while validating group removal from role.
+     */
     private void validateGroupRemovalFromRole(List<String> deletedGroupIDList, String roleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -2177,6 +2367,14 @@ public class RoleDAOImpl implements RoleDAO {
         }
     }
 
+    /**
+     * Validate user removal from role.
+     *
+     * @param deletedUserNamesList Deleted user name list.
+     * @param roleName  Role name.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while validating user removal from role.
+     */
     private void validateUserRemovalFromRole(List<String> deletedUserNamesList, String roleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -2221,7 +2419,7 @@ public class RoleDAOImpl implements RoleDAO {
      * Validate application role audience.
      *
      * @param applicationId Application Id.
-     * @throws IdentityRoleManagementException Error occurred while validating groups.
+     * @throws IdentityRoleManagementException Error occurred while validating application role audience.
      */
     private void validateApplicationRoleAudience(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
@@ -2250,6 +2448,7 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
     }
+
     /**
      * Validate permissions.
      *
@@ -2257,7 +2456,7 @@ public class RoleDAOImpl implements RoleDAO {
      * @param audience  Audience.
      * @param audienceId  Audience ID.
      * @param tenantDomain Tenant domain.
-     * @throws IdentityRoleManagementException Error occurred while validating groups.
+     * @throws IdentityRoleManagementException Error occurred while validating permissions.
      */
     private void validatePermissions(List<Permission> permissions, String audience, String audienceId,
                                     String tenantDomain)
@@ -2337,7 +2536,7 @@ public class RoleDAOImpl implements RoleDAO {
      * Validate groups.
      *
      * @param groups Groups.
-     * @throws IdentityRoleManagementException Error occurred while validating groups.
+     * @throws IdentityRoleManagementException Error occurred while validating idp groups.
      */
     public void validateGroupIds(List<IdpGroup> groups, String tenantDomain)
             throws IdentityRoleManagementException {
@@ -2364,7 +2563,9 @@ public class RoleDAOImpl implements RoleDAO {
     /**
      * Get idp by id.
      *
-     * @throws IdentityRoleManagementException Error occurred while validating groups.
+     * @param idpId IDP ID.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while retrieving idp by id.
      */
     private IdentityProvider getIdpById(String idpId, String tenantDomain)
             throws IdentityRoleManagementException {
@@ -2380,6 +2581,15 @@ public class RoleDAOImpl implements RoleDAO {
         return identityProvider;
     }
 
+    /**
+     * Delete SCIM role.
+     *
+     * @param roleId Role ID.
+     * @param roleName  Role name.
+     * @param audienceRefId  Audience ref ID.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while deleting SCIM role.
+     */
     private void deleteSCIMRole(String roleId, String roleName, int audienceRefId,  String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -2413,7 +2623,11 @@ public class RoleDAOImpl implements RoleDAO {
                     String.format(errorMessage, roleName, roleName, tenantDomain), e);
         }
     }
-
+    /**
+     * Clear user role cache.
+     *
+     * @param tenantId Tenant ID.
+     */
     private void clearUserRolesCacheByTenant(int tenantId) {
 
         /*
