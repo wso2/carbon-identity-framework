@@ -178,6 +178,12 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
                     return null;
                 }
             }
+            // Add to cache if session is available in the database.
+            if (log.isDebugEnabled()) {
+                log.debug("Session corresponding to the key : " + key.getContextId() +
+                        " found in the db and is added to the cache.");
+            }
+            super.addToCache(key, cacheEntry, resolveLoginTenantDomain(getLoginTenantDomainFromContext()));
         }
         return cacheEntry;
     }
