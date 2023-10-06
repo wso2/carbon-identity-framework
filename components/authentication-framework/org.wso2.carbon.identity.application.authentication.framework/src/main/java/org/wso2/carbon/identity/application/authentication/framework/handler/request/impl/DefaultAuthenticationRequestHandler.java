@@ -85,8 +85,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static java.util.Objects.nonNull;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_USER_PROPERTIES;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.SKIP_SET_COMMONAUTH_COOKIE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.*;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
@@ -623,8 +622,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         authenticationResult.getSubject().getUserName(), sessionContextKey,
                         authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
                         createdTimeMillis, sessionContext.isRememberMe());
-                if (request.getAttribute(SKIP_SET_COMMONAUTH_COOKIE) == null
-                        || !Boolean.parseBoolean(request.getAttribute(SKIP_SET_COMMONAUTH_COOKIE).toString())) {
+                if (request.getAttribute(ALLOW_SESSION_CREATION) == null
+                        || Boolean.parseBoolean(request.getAttribute(ALLOW_SESSION_CREATION).toString())) {
                     setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 }
                 if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
