@@ -35,6 +35,7 @@ public class AuthenticatorData {
     private String i18Key;
     private List<AuthenticatorParamMetadata> authParams = new ArrayList<>();
     private Map<String, String> additionalData = new HashMap<>();
+    private List<String> requiredParameterList = new ArrayList<>();
 
     public String getI18Key() {
         return i18Key;
@@ -92,5 +93,15 @@ public class AuthenticatorData {
     public void setAdditionalData(Map<String, String> additionalData) {
 
         this.additionalData = additionalData;
+    }
+
+    public List<String> getRequiredParameterList() {
+
+        return requiredParameterList;
+    }
+
+    public void setRequiredParameterList(List<String> requiredParameterList) {
+
+        this.requiredParameterList = requiredParameterList;
     }
 }
