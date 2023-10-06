@@ -840,32 +840,18 @@
             </FAPI>
             {% endif %}
 
-            {% if oauth.oidc.tls_client_certificate_bound_access_tokens_supported is defined %}
-                <TLSClientCertificateBoundAccessTokensSupported>{{oauth.oidc.tls_client_certificate_bound_access_tokens_enabled}}</TLSClientCertificateBoundAccessTokensSupported>
-            {% else %}
-                <TLSClientCertificateBoundAccessTokensSupported>false</TLSClientCertificateBoundAccessTokensSupported>
-            {% endif %}
+            <TLSClientCertificateBoundAccessTokensSupported>{{oauth.oidc.tls_client_certificate_bound_access_tokens_supported}}</TLSClientCertificateBoundAccessTokensSupported>
 
             <SupportedTokenEndpointAuthMethods>
-                {% if oauth.oidc.token_endpoint.auth_methods|length %}
-                    {% for authmethod in oauth.oidc.token_endpoint.auth_methods %}
-                        <SupportedTokenEndpointAuthMethod>{{authmethod}}</SupportedTokenEndpointAuthMethod>
-                    {% endfor %}
-                {% else %}
-                    <SupportedTokenEndpointAuthMethod>client_secret_basic</SupportedTokenEndpointAuthMethod>
-                    <SupportedTokenEndpointAuthMethod>client_secret_post</SupportedTokenEndpointAuthMethod>
-                {% endif %}
+                {% for authmethod in oauth.oidc.token_endpoint.auth_methods %}
+                    <SupportedTokenEndpointAuthMethod>{{authmethod}}</SupportedTokenEndpointAuthMethod>
+                {% endfor %}
             </SupportedTokenEndpointAuthMethods>
 
             <SupportedTokenEndpointSigningAlgorithms>
-                {% if oauth.oidc.token_endpoint.signing_algorithms|length %}
-                    {% for algorithm in oauth.oidc.token_endpoint.signing_algorithms %}
-                        <SupportedTokenEndpointSigningAlgorithm>{{algorithm}}</SupportedTokenEndpointSigningAlgorithm>
-                    {% endfor %}
-                {% else %}
-                    <SupportedTokenEndpointSigningAlgorithm>PS256</SupportedTokenEndpointSigningAlgorithm>
-                    <SupportedTokenEndpointSigningAlgorithm>ES256</SupportedTokenEndpointSigningAlgorithm>
-                {% endif %}
+                {% for algorithm in oauth.oidc.token_endpoint.signing_algorithms %}
+                    <SupportedTokenEndpointSigningAlgorithm>{{algorithm}}</SupportedTokenEndpointSigningAlgorithm>
+                {% endfor %}
             </SupportedTokenEndpointSigningAlgorithms>
 
         </OpenIDConnect>

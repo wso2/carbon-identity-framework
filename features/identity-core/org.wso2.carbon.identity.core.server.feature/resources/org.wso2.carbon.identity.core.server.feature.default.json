@@ -222,6 +222,9 @@
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
   "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
 
+  "oauth.oidc.tls_client_certificate_bound_access_tokens_supported": false,
+  "oauth.oidc.token_endpoint.auth_methods": ["client_secret_basic", "client_secret_post"],
+
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
 
