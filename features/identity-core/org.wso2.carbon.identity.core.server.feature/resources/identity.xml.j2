@@ -840,10 +840,10 @@
             </FAPI>
             {% endif %}
 
-            {% if oauth.oidc.tls_client_certificate_bound_access_tokens_enabled is defined %}
-                <TLSClientCertificateBoundAccessTokensEnabled>{{oauth.oidc.tls_client_certificate_bound_access_tokens_enabled}}</TLSClientCertificateBoundAccessTokensEnabled>
+            {% if oauth.oidc.tls_client_certificate_bound_access_tokens_supported is defined %}
+                <TLSClientCertificateBoundAccessTokensSupported>{{oauth.oidc.tls_client_certificate_bound_access_tokens_enabled}}</TLSClientCertificateBoundAccessTokensSupported>
             {% else %}
-                <TLSClientCertificateBoundAccessTokensEnabled>false</TLSClientCertificateBoundAccessTokensEnabled>
+                <TLSClientCertificateBoundAccessTokensSupported>false</TLSClientCertificateBoundAccessTokensSupported>
             {% endif %}
 
             <SupportedTokenEndpointAuthMethods>
