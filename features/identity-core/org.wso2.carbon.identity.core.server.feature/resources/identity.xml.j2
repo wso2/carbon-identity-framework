@@ -978,9 +978,6 @@
         -->
         <DCRM>
             <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
-            {% if oauth.dcr.enable_fapi_validation%}
-            <EnableFAPIValidation>{{oauth.dcr.enable_fapi_validation}}</EnableFAPIValidation>
-            {% endif %}
             {% if oauth.dcr.ssa_jkws%}
             <SoftwareStatementJWKS></SoftwareStatementJWKS>
             {% endif %}
