@@ -1090,6 +1090,7 @@
   "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
   "myaccount.ui.app_name": "My Account",
   "myaccount.ui.app_logo_path": "/assets/images/branding/logo.svg",
+  "myaccount.ui.app_white_logo_path": "/assets/images/branding/logo-white.svg",
   "myaccount.ui.is_header_avatar_label_allowed": true,
   "myaccount.ui.product_name": "WSO2 Identity Server",
   "myaccount.theme": "default",
