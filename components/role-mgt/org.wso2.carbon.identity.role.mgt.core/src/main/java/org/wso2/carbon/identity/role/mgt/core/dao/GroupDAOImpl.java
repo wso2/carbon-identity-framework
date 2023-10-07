@@ -35,8 +35,8 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_ID_BY_NAME_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_NAME_BY_ID_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_ID_BY_NAME_WITH_AUDIENCE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_NAME_BY_ID_WITH_AUDIENCE_SQL;
 
 /**
  * RoleDAO Implementation.
@@ -49,7 +49,8 @@ public class GroupDAOImpl implements GroupDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String groupName = null;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_GROUP_NAME_BY_ID_SQL)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_GROUP_NAME_BY_ID_WITH_AUDIENCE_SQL)) {
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_VALUE, id);
@@ -99,7 +100,8 @@ public class GroupDAOImpl implements GroupDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String groupName;
         for (String id : ids) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_GROUP_NAME_BY_ID_SQL)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_GROUP_NAME_BY_ID_WITH_AUDIENCE_SQL)) {
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_VALUE, id);
@@ -129,7 +131,8 @@ public class GroupDAOImpl implements GroupDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String groupID = null;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_GROUP_ID_BY_NAME_SQL)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_GROUP_ID_BY_NAME_WITH_AUDIENCE_SQL)) {
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, name);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
@@ -179,7 +182,8 @@ public class GroupDAOImpl implements GroupDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String groupID;
         for (String name : names) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_GROUP_ID_BY_NAME_SQL)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_GROUP_ID_BY_NAME_WITH_AUDIENCE_SQL)) {
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, name);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
