@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
@@ -70,7 +71,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 throw e;
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while adding authorized API", e);
+            throw new IdentityApplicationManagementException("Error while adding authorized API.", e);
         }
     }
 
@@ -108,19 +109,19 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             }
             return authorizedAPIMap.values().isEmpty() ? new ArrayList<>() : new ArrayList<>(authorizedAPIMap.values());
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while adding authorized API", e);
+            throw new IdentityApplicationManagementException("Error while fetching authorized API.", e);
 
         }
     }
 
     @Override
-    public void patchAuthorizedAPIs(String appId, String apiId, List<String> addedScopes,
-                                    List<String> removedScopes, int tenantId)
+    public void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
+                                   List<String> removedScopes, int tenantId)
             throws IdentityApplicationManagementException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
-                if (addedScopes != null && !addedScopes.isEmpty()) {
+                if (CollectionUtils.isNotEmpty(addedScopes)) {
                     PreparedStatement prepStmt = dbConnection.prepareStatement(
                             ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE);
                     prepStmt.setString(1, appId);
@@ -133,7 +134,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                     prepStmt.executeBatch();
                 }
 
-                if (removedScopes != null && !removedScopes.isEmpty()) {
+                if (CollectionUtils.isNotEmpty(removedScopes)) {
                     PreparedStatement prepStmt = dbConnection.prepareStatement(
                             ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPE);
                     prepStmt.setString(1, appId);
@@ -151,12 +152,12 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 throw e;
             }
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while adding authorized API", e);
+            throw new IdentityApplicationManagementException("Error while updating the authorized API.", e);
         }
     }
 
     @Override
-    public void deleteAuthorizedAPIs(String appId, String apiId, int tenantId)
+    public void deleteAuthorizedAPI(String appId, String apiId, int tenantId)
             throws IdentityApplicationManagementException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -166,7 +167,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             prepStmt.setString(2, apiId);
             prepStmt.execute();
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while deleting authorized API", e);
+            throw new IdentityApplicationManagementException("Error while deleting the authorized API.", e);
         }
     }
 
@@ -200,8 +201,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             return authorizedScopesMap.values().isEmpty() ? new ArrayList<>() :
                     new ArrayList<>(authorizedScopesMap.values());
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while getting authorized scopes", e);
-
+            throw new IdentityApplicationManagementException("Error while getting authorized scopes.", e);
         }
     }
 
@@ -235,7 +235,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             }
             return authorizedAPI;
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while getting authorized API", e);
+            throw new IdentityApplicationManagementException("Error while getting authorized API.", e);
         }
     }
 }

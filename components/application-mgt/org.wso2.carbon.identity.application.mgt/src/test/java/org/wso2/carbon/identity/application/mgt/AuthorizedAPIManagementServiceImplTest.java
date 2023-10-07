@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -95,12 +94,6 @@ public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
         tenantDomain = "test_tenant_domain";
     }
 
-    @AfterClass
-    public void tearDown() throws Exception {
-
-//        removeTestAPIResources();
-    }
-
     @DataProvider
     public Object[][] createAuthorizedAPIDataProvider() throws Exception {
 
@@ -148,7 +141,7 @@ public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "getAuthorizedAPIDataProvider", priority = 1)
-    public void testGetAuthorizedAPI(AuthorizedAPI authorizedAPI, int expectedScopes)
+    public void testGetAuthorizedAPI(AuthorizedAPI authorizedAPI, int expectedScopesCount)
             throws Exception {
 
         authorizedAPIManagementService.addAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI, tenantDomain);
@@ -156,7 +149,7 @@ public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
                 authorizedAPI.getAPIId(), tenantDomain);
         Assert.assertNotNull(authzAPI);
         Assert.assertFalse(authzAPI.getScopes().isEmpty());
-        Assert.assertEquals(authzAPI.getScopes().size(), expectedScopes);
+        Assert.assertEquals(authzAPI.getScopes().size(), expectedScopesCount);
     }
 
     @DataProvider
@@ -188,17 +181,17 @@ public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "updateAuthorizedAPIDataProvider", priority = 2)
-    public void testUpdateAuthorizedAPI(AuthorizedAPI authorizedAPI, List<String> newScopes, int expectedScopes)
+    public void testUpdateAuthorizedAPI(AuthorizedAPI authorizedAPI, List<String> newScopes, int expectedScopesCount)
             throws Exception {
 
         authorizedAPIManagementService.addAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI, tenantDomain);
-        authorizedAPIManagementService.patchAuthorizedAPIs(authorizedAPI.getAppId(),
+        authorizedAPIManagementService.patchAuthorizedAPI(authorizedAPI.getAppId(),
                 authorizedAPI.getAPIId(), newScopes, new ArrayList<>(), tenantDomain);
         AuthorizedAPI authzAPI = authorizedAPIManagementService.getAuthorizedAPI(authorizedAPI.getAppId(),
                 authorizedAPI.getAPIId(), tenantDomain);
         Assert.assertNotNull(authzAPI);
         Assert.assertFalse(authzAPI.getScopes().isEmpty());
-        Assert.assertEquals(authzAPI.getScopes().size(), expectedScopes);
+        Assert.assertEquals(authzAPI.getScopes().size(), expectedScopesCount);
     }
 
     @Test(priority = 3)
@@ -244,7 +237,7 @@ public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
         AuthorizedAPI authzAPI = authorizedAPIManagementService.getAuthorizedAPI(authorizedAPI.getAppId(),
                 authorizedAPI.getAPIId(), tenantDomain);
         Assert.assertNotNull(authzAPI);
-        authorizedAPIManagementService.deleteAuthorizedAPIs(authorizedAPI.getAppId(),
+        authorizedAPIManagementService.deleteAuthorizedAPI(authorizedAPI.getAppId(),
                 authorizedAPI.getAPIId(), tenantDomain);
         authzAPI = authorizedAPIManagementService.getAuthorizedAPI(authorizedAPI.getAppId(),
                 authorizedAPI.getAPIId(), tenantDomain);

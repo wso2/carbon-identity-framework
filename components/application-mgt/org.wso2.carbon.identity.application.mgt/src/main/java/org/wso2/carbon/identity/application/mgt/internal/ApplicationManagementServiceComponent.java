@@ -496,17 +496,13 @@ public class ApplicationManagementServiceComponent {
 
             ApplicationManagementServiceComponentHolder.getInstance()
                     .setAPIResourceManager(apiResourceManager);
-            if (log.isDebugEnabled()) {
-                log.debug("APIResourceManager set in to bundle");
-            }
+            log.debug("APIResourceManager set in to bundle");
     }
 
     protected void unsetAPIResourceManager(APIResourceManager apiResourceManager) {
 
             ApplicationManagementServiceComponentHolder.getInstance()
                     .setAPIResourceManager(null);
-            if (log.isDebugEnabled()) {
-                log.debug("APIResourceManager unset in to bundle");
-            }
+            log.debug("APIResourceManager unset in to bundle");
     }
 }

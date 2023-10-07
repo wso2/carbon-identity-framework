@@ -55,18 +55,22 @@ public class AuthorizedAPI {
     }
 
     public String getAPIIdentifier() {
+
         return apiIdentifier;
     }
 
     public void setAPIIdentifier(String apiIdentifier) {
+
         this.apiIdentifier = apiIdentifier;
     }
 
     public String getAPIName() {
+
         return apiName;
     }
 
     public void setAPIName(String apiName) {
+        
         this.apiName = apiName;
     }
 

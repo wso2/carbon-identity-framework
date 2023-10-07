@@ -37,11 +37,11 @@ public interface AuthorizedAPIDAO {
     List<AuthorizedAPI> getAuthorizedAPIs(String applicationId, int tenantId)
             throws IdentityApplicationManagementException;
 
-    void patchAuthorizedAPIs(String appId, String apiId, List<String> addedScopes,
-                             List<String> removedScopes, int tenantId)
+    void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
+                            List<String> removedScopes, int tenantId)
             throws IdentityApplicationManagementException;
 
-    void deleteAuthorizedAPIs(String appId, String apiId, int tenantId)
+    void deleteAuthorizedAPI(String appId, String apiId, int tenantId)
             throws IdentityApplicationManagementException;
 
     List<AuthorizedScopes> getAuthorizedScopes(String applicationId, int tenantId)

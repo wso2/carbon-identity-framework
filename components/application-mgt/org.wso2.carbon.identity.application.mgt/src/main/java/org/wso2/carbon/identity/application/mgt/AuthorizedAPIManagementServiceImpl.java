@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -52,7 +53,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
         // Check if the application is a main application. If not, throw a client error.
         ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
         String mainAppId = applicationManagementService.getMainAppId(applicationId);
-        if (mainAppId != null) {
+        if (StringUtils.isNotBlank(mainAppId)) {
             throw buildClientException(INVALID_REQUEST, "Cannot add authorized APIs to a shared application.");
         }
         authorizedAPIDAO.addAuthorizedAPI(applicationId, authorizedAPI.getAPIId(),
@@ -60,11 +61,10 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
     }
 
     @Override
-    public void deleteAuthorizedAPIs(String appId, String apiId, String tenantDomain)
+    public void deleteAuthorizedAPI(String appId, String apiId, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-
-        authorizedAPIDAO.deleteAuthorizedAPIs(appId, apiId, IdentityTenantUtil.getTenantId(tenantDomain));
+        authorizedAPIDAO.deleteAuthorizedAPI(appId, apiId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
@@ -75,41 +75,43 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             // Check if the application is a main application else get the main application id and main tenant id.
             ApplicationManagementService applicationManagementService = ApplicationManagementServiceImpl.getInstance();
             String mainAppId = applicationManagementService.getMainAppId(applicationId);
-            if (mainAppId != null) {
+            if (StringUtils.isNotBlank(mainAppId)) {
                 applicationId = mainAppId;
                 int tenantId = applicationManagementService.getTenantIdByApp(mainAppId);
                 tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
             }
 
-            List<AuthorizedAPI> authorizedAPIS = authorizedAPIDAO.getAuthorizedAPIs(applicationId,
+            List<AuthorizedAPI> authorizedAPIs = authorizedAPIDAO.getAuthorizedAPIs(applicationId,
                     IdentityTenantUtil.getTenantId(tenantDomain));
-            for (AuthorizedAPI authorizedAPI : authorizedAPIS) {
-                // Get API resource data from DB.
+            for (AuthorizedAPI authorizedAPI : authorizedAPIs) {
+                // Get API resource data from OSGi service.
                 APIResource apiResource = ApplicationManagementServiceComponentHolder.getInstance()
                         .getAPIResourceManager().getAPIResourceById(authorizedAPI.getAPIId(), tenantDomain);
                 authorizedAPI.setAPIIdentifier(apiResource.getIdentifier());
                 authorizedAPI.setAPIName(apiResource.getName());
-                // Get Scope data from DB.
+                // Get Scope data from OSGi service.
                 List<Scope> scopeList = new ArrayList<>();
-                for (Scope scope : authorizedAPI.getScopes()) {
-                    Scope scopeFromDB = ApplicationManagementServiceComponentHolder.getInstance()
-                            .getAPIResourceManager().getScopeByName(scope.getName(), tenantDomain);
-                    scopeList.add(scopeFromDB);
+                if (authorizedAPI.getScopes() != null) {
+                    for (Scope scope : authorizedAPI.getScopes()) {
+                        Scope scopeWithMetadata = ApplicationManagementServiceComponentHolder.getInstance()
+                                .getAPIResourceManager().getScopeByName(scope.getName(), tenantDomain);
+                        scopeList.add(scopeWithMetadata);
+                    }
                 }
                 authorizedAPI.setScopes(scopeList);
             }
-            return authorizedAPIS;
+            return authorizedAPIs;
         } catch (APIResourceMgtException e) {
             throw buildServerException("Error while retrieving authorized APIs.", e);
         }
     }
 
     @Override
-    public void patchAuthorizedAPIs(String appId, String apiId, List<String> addedScopes,
-                                    List<String> removedScopes, String tenantDomain)
+    public void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
+                                   List<String> removedScopes, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        authorizedAPIDAO.patchAuthorizedAPIs(appId, apiId, addedScopes, removedScopes,
+        authorizedAPIDAO.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -151,12 +153,12 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                     .getAPIResourceManager().getAPIResourceById(authorizedAPI.getAPIId(), tenantDomain);
             authorizedAPI.setAPIIdentifier(apiResource.getIdentifier());
             authorizedAPI.setAPIName(apiResource.getName());
-            // Get Scope data from DB.
+            // Get Scope data from OSGi service.
             List<Scope> scopeList = new ArrayList<>();
             for (Scope scope : authorizedAPI.getScopes()) {
-                Scope scopeFromDB = ApplicationManagementServiceComponentHolder.getInstance()
+                Scope scopeWithMetadata = ApplicationManagementServiceComponentHolder.getInstance()
                         .getAPIResourceManager().getScopeByName(scope.getName(), tenantDomain);
-                scopeList.add(scopeFromDB);
+                scopeList.add(scopeWithMetadata);
             }
             authorizedAPI.setScopes(scopeList);
             return authorizedAPI;
@@ -171,8 +173,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
         return new IdentityApplicationManagementClientException(errorMessage.getCode(), message);
     }
 
-    private IdentityApplicationManagementServerException buildServerException(String message,
-                                                                              Throwable ex) {
+    private IdentityApplicationManagementServerException buildServerException(String message, Throwable ex) {
 
         return new IdentityApplicationManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), message, ex);
     }

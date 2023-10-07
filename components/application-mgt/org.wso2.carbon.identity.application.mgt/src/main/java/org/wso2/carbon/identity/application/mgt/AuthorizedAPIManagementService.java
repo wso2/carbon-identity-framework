@@ -41,14 +41,14 @@ public interface AuthorizedAPIManagementService {
             throws IdentityApplicationManagementException;
 
     /**
-     * Delete authorized APIs from the application.
+     * Delete the authorized API from the application.
      *
      * @param appId        Application ID.
      * @param apiId        API ID.
      * @param tenantDomain Tenant Domain.
-     * @throws IdentityApplicationManagementException if an error occurs while deleting the authorized APIs.
+     * @throws IdentityApplicationManagementException if an error occurs while deleting the authorized API.
      */
-    public void deleteAuthorizedAPIs(String appId, String apiId, String tenantDomain)
+    public void deleteAuthorizedAPI(String appId, String apiId, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**
@@ -63,17 +63,17 @@ public interface AuthorizedAPIManagementService {
             throws IdentityApplicationManagementException;
 
     /**
-     * Patch authorized APIs of the application.
+     * Patch the authorized API of the application.
      *
      * @param appId         Application ID.
      * @param apiId         API ID.
      * @param addedScopes   Added scopes.
      * @param removedScopes Removed scopes.
      * @param tenantDomain  Tenant Domain.
-     * @throws IdentityApplicationManagementException if an error occurs while patching the authorized APIs.
+     * @throws IdentityApplicationManagementException if an error occurs while patching the authorized API.
      */
-    public void patchAuthorizedAPIs(String appId, String apiId, List<String> addedScopes,
-                                    List<String> removedScopes, String tenantDomain)
+    public void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
+                                   List<String> removedScopes, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**
@@ -87,7 +87,7 @@ public interface AuthorizedAPIManagementService {
             throws IdentityApplicationManagementException;
 
     /**
-     * Get authorized API of the application by ID.
+     * Get an authorized API of the application by ID.
      *
      * @param appId        Application ID.
      * @param apiId        API Resource ID.
