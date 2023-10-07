@@ -224,8 +224,8 @@
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
-  "oauth.oidc.fapi.client_authentication_methods": ["private_key_jwt", "tls_client_auth"],
-  "oauth.oidc.fapi.signature_algorithms": ["PS256", "ES256"],
+  "oauth.oidc.fapi.allowed_client_authentication_methods": ["private_key_jwt", "tls_client_auth"],
+  "oauth.oidc.fapi.allowed_signature_algorithms": ["PS256", "ES256"],
 
   "oauth.global_rbac_scope_issuer.enable": false,
 

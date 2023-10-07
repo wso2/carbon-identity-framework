@@ -837,12 +837,12 @@
                 <EnableSecurityProfile>{{oauth.oidc.fapi.enable_security_profile}}</EnableSecurityProfile>
                 {% endif %}
                 <AllowedClientAuthenticationMethods>
-                    {% for authmethod in oauth.oidc.fapi.client_authentication_methods %}
+                    {% for authmethod in oauth.oidc.allowed_fapi.client_authentication_methods %}
                         <AllowedClientAuthenticationMethod>{{authmethod}}</AllowedClientAuthenticationMethod>
                     {% endfor %}
                 </AllowedClientAuthenticationMethods>
                 <AllowedSignatureAlgorithms>
-                    {% for algorithm in oauth.oidc.fapi.signature_algorithms %}
+                    {% for algorithm in oauth.oidc.fapi.allowed_signature_algorithms %}
                         <AllowedSignatureAlgorithm>{{algorithm}}</AllowedSignatureAlgorithm>
                     {% endfor %}
                 </AllowedSignatureAlgorithms>
