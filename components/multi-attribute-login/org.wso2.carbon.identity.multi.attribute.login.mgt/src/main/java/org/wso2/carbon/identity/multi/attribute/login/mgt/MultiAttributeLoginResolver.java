@@ -64,4 +64,16 @@ public interface MultiAttributeLoginResolver {
     AuthenticationResult authenticateWithIdentifier(String loginIdentifierValue, List<String> allowedAttributes,
                                                     Object credential, String tenantDomain);
 
+    /**
+     * Resolves possible users from given login identifier then returns resolved claim URI and user details if found a
+     * matching users.
+     *
+     * @param loginAttribute    User input when user try to login using multi attribute login.
+     * @param allowedAttributes List of claim URIs which are allowed by admin for multi attribute login.
+     * @param tenantDomain      User tenant domain.
+     * @return List<ResolvedUserResult> object with possible user details and resolved claim details.
+     */
+    List<ResolvedUserResult> resolvePossibleUsers(String loginAttribute, List<String> allowedAttributes,
+                                                  String tenantDomain);
+
 }

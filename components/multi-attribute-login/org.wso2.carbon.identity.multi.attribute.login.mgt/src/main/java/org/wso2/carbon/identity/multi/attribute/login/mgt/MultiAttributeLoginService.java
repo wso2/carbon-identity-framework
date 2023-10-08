@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.multi.attribute.login.mgt;
 
 import org.wso2.carbon.user.core.common.AuthenticationResult;
 
+import java.util.List;
+
 /**
  * This interface is used to implement a MultiAttributeLoginService component, which provides multi attribute login
  * feature
@@ -66,5 +68,15 @@ public interface MultiAttributeLoginService {
      * object.
      */
     ResolvedUserResult resolveUser(String loginIdentifier, String tenantDomain, String hint);
+
+    /**
+     * Resolves possible users from given login identifier and returns resolved user details.
+     *
+     * @param loginIdentifierValue Multi attribute login identifier.
+     * @param tenantDomain         User tenant domain.
+     * @return List<ResolvedUserResult> object, which gives whether user input resolved or not and if resolve, gives
+     * the list of user objects.
+     */
+    List<ResolvedUserResult> resolvePossibleUsers(String loginIdentifierValue, String tenantDomain);
 
 }
