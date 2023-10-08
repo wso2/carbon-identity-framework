@@ -79,6 +79,12 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             if (!(ORGANIZATION.equalsIgnoreCase(audience) || APPLICATION.equalsIgnoreCase(audience))) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(), "Invalid role audience");
             }
+            if (ORGANIZATION.equalsIgnoreCase(audience)) {
+                audience = ORGANIZATION;
+            }
+            if (APPLICATION.equalsIgnoreCase(audience)) {
+                audience = APPLICATION;
+            }
         }
 
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
