@@ -95,27 +95,8 @@ public class ApplicationTagDAOImpl implements ApplicationTagDAO {
                 prepStmt.setInt(4, tenantID);
                 prepStmt.execute();
 
-                results = prepStmt.getGeneratedKeys();
-
-                ApplicationTagsItem applicationTag = null;
-                if (results.next()) {
-                    ApplicationTagsItemBuilder appTagBuilder =
-                            new ApplicationTagsItemBuilder()
-                                    .id(results.getString(SQLConstants.TAG_ID_COLUMN_NAME))
-                                    .name(results.getString(SQLConstants.TAG_NAME_COLUMN_NAME))
-                                    .colour(results.getString(SQLConstants.TAG_COLOUR_COLUMN_NAME));
-                    applicationTag = appTagBuilder.build();
-                }
-                // some JDBC Drivers returns this in the result, some don't
-                if (applicationTag == null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("JDBC Driver did not return the tag id, executing Select operation");
-                    }
-                    applicationTag = getApplicationTagByName(applicationTagDTO.getName(), tenantID, dbConnection);
-                }
-
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
-                return applicationTag;
+                return getApplicationTagByName(applicationTagDTO.getName(), tenantID, dbConnection);
             } catch (SQLException e) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
                 if (e.getMessage().toLowerCase().contains(SQLConstants.APP_TAG_UNIQUE_CONSTRAINT.toLowerCase())) {
@@ -196,14 +177,14 @@ public class ApplicationTagDAOImpl implements ApplicationTagDAO {
     }
 
     @Override
-    public ApplicationTagsItem getApplicationTagById(String applicationTagId, Integer tenantID)
+    public ApplicationTagsListItem getApplicationTagById(String applicationTagId, Integer tenantID)
             throws ApplicationTagMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Reading Application Tag " + applicationTagId);
         }
         ResultSet resultSet = null;
-        ApplicationTagsItem applicationTag = null;
+        ApplicationTagsListItem applicationTag = null;
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement preparedStatement = dbConnection.prepareStatement(SQLConstants.GET_APP_TAG_BY_ID)) {
             preparedStatement.setString(1, applicationTagId);
@@ -213,11 +194,12 @@ public class ApplicationTagDAOImpl implements ApplicationTagDAO {
 
             while (resultSet.next()) {
                 if (applicationTag == null) {
-                    ApplicationTagsItemBuilder appTagBuilder =
-                            new ApplicationTagsItemBuilder()
+                    ApplicationTagsListItemBuilder appTagBuilder =
+                            new ApplicationTagsListItemBuilder()
                                     .id(resultSet.getString(SQLConstants.TAG_ID_COLUMN_NAME))
                                     .name(resultSet.getString(SQLConstants.TAG_NAME_COLUMN_NAME))
-                                    .colour(resultSet.getString(SQLConstants.TAG_COLOUR_COLUMN_NAME));
+                                    .colour(resultSet.getString(SQLConstants.TAG_COLOUR_COLUMN_NAME))
+                                    .associatedAppsCount(resultSet.getInt(SQLConstants.TAG_APP_COUNT_COLUMN_NAME));
                     applicationTag = appTagBuilder.build();
                 }
             }

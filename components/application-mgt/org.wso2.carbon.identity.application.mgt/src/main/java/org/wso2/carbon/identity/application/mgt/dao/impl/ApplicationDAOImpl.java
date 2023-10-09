@@ -37,7 +37,6 @@ import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
 import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem.ApplicationTagsItemBuilder;
-import org.wso2.carbon.identity.application.common.model.ApplicationTagsPatch;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -51,8 +50,6 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationCo
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.InboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.ListValue;
-import org.wso2.carbon.identity.application.common.model.ListValue.ListValueBuilder;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
@@ -456,32 +453,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
-    @Override
-    public void updateApplicationTags(int applicationId, List<ApplicationTagsPatch> applicationTagsPatchModel,
-                                       String tenantDomain) throws IdentityApplicationManagementException {
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
-            for (ApplicationTagsPatch applicationTags : applicationTagsPatchModel) {
-                switch (applicationTags.getOperation()) {
-                    case "ADD":
-                        addApplicationTags(applicationId, applicationTags.getTags(), tenantID, connection);
-                        break;
-                    case "REMOVE":
-                        removeApplicationTags(applicationId, applicationTags.getTags(), connection);
-                        break;
-                    default:
-                        throw new IdentityApplicationManagementException("Given patch operation is not supported for " +
-                                "patching Application Tags");
-                }
-            }
-            IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Failed to update application tags of app id: "
-                    + applicationId, e);
-        }
-    }
-
     private void addApplicationConfigurations(Connection connection, ServiceProvider serviceProvider,
                                               String tenantDomain)
             throws SQLException, UserStoreException, IdentityApplicationManagementException {
@@ -534,9 +505,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             updateServiceProviderProperties(connection, applicationId, Arrays.asList(spProperties), tenantID);
         }
 
-        if (!serviceProvider.getTags().isEmpty()) {
-            List<ListValue> tagsList = serviceProvider.getTags().stream()
-                    .map(tag -> new ListValueBuilder().value(tag.getId()).build())
+        if (!CollectionUtils.isEmpty(serviceProvider.getTags())) {
+            List<String> tagsList = serviceProvider.getTags().stream().map(ApplicationTagsItem::getId)
                     .collect(Collectors.toList());
             addApplicationTags(applicationId, tagsList, tenantID, connection);
         }
@@ -560,6 +530,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         deleteClaimConfiguration(applicationId, connection);
         deleteOutboundProvisioningConfiguration(applicationId, connection);
         deletePermissionAndRoleConfiguration(applicationId, connection);
+        deleteApplicationTags(applicationId, connection);
         // deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
     }
 
@@ -4049,6 +4020,25 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
+     * @param applicationId     Application ID.
+     * @param connection        Connection to the DB.
+     * @throws SQLException If error occurs when deleting tags of an application.
+     */
+    private void deleteApplicationTags(int applicationId, Connection connection)
+            throws SQLException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting Application Tags of Application " + applicationId);
+        }
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                ApplicationMgtDBQueries.REMOVE_ALL_APP_TAGS_OF_AN_APPLICATION)) {
+            preparedStatement.setInt(1, applicationId);
+            preparedStatement.execute();
+        }
+    }
+
+    /**
      * Delete the certificate of the given application if there is one.
      *
      * @param connection
@@ -5663,26 +5653,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, action, data, result));
     }
 
-    private void addApplicationTags(int applicationId, List<ListValue> tags, Integer tenantID,
+    private void addApplicationTags(int applicationId, List<String> tagIdList, Integer tenantID,
                                     Connection connection) throws IdentityApplicationManagementException {
 
-        List<String> notExistingTagIDList = getNotExistingTagIds(tags, tenantID, connection);
-
+        List<String> validatedTagIDList = validateTagIds(tagIdList, tenantID, connection);
         try (PreparedStatement preparedStatement =
                      connection.prepareStatement(ApplicationMgtDBQueries.ASSIGN_TAGS_TO_APPLICATION)) {
-            for (ListValue tag: tags) {
-                String tagId = tag.getValue();
-                if (!notExistingTagIDList.contains(tagId)) {
-                    preparedStatement.setInt(1, applicationId);
-                    preparedStatement.setString(2, tagId);
-                    preparedStatement.addBatch();
-                } else {
-                    if (log.isDebugEnabled()) {
-                        String msg = "Application Tag of id : %s of tenantId: %d is empty or null. " +
-                                "Not adding the tag association to 'SP_TAG' table.";
-                        log.debug(String.format(msg, tagId, tenantID));
-                    }
-                }
+            for (String tagId: validatedTagIDList) {
+                preparedStatement.setInt(1, applicationId);
+                preparedStatement.setString(2, tagId);
+                preparedStatement.addBatch();
             }
             preparedStatement.executeBatch();
         } catch (SQLException e) {
@@ -5692,58 +5672,37 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
-    private List<String> getNotExistingTagIds(List<ListValue> tags, Integer tenantID, Connection connection)
+    private List<String> validateTagIds(List<String> tags, Integer tenantID, Connection connection)
             throws IdentityApplicationManagementException {
 
         List<String> tagIdList = new ArrayList<>();
-
         StringBuilder idString = new StringBuilder(StringUtils.EMPTY);
 
         for (int index = 0; index < tags.size(); index++) {
-            String tagId = tags.get(index).getValue();
             if (index != tags.size() - 1) {
                 idString.append("?, ");
             } else {
                 idString.append("?");
             }
-            tagIdList.add(tagId);
         }
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 String.format(ApplicationMgtDBQueries.VALIDATE_APPLICATION_TAGS, String.valueOf(idString)))) {
             int index = 0;
             for (int i = 1; i <= tags.size(); i++) {
-                preparedStatement.setString(i, tagIdList.get(i - 1));
+                preparedStatement.setString(i, tags.get(i - 1));
                 index = i + 1;
             }
             preparedStatement.setInt(index, tenantID);
             
             try (ResultSet tagIdResultSet = preparedStatement.executeQuery()) {
                 while (tagIdResultSet.next()) {
-                    tagIdList.remove(tagIdResultSet.getString(ApplicationTableColumns.TAG_ID_COLUMN_NAME));
+                    tagIdList.add(tagIdResultSet.getString(ApplicationTableColumns.TAG_ID_COLUMN_NAME));
                 }
             }
             return tagIdList;
         } catch (SQLException e) {
             String errorMsg = "Error while validating the Application Tag Ids";
-            throw new IdentityApplicationManagementException(errorMsg, e);
-        }
-    }
-
-    private void removeApplicationTags(int applicationId, List<ListValue> tags, Connection connection)
-            throws IdentityApplicationManagementException {
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(
-                ApplicationMgtDBQueries.REMOVE_SPECIFIED_APP_TAGS_OF_AN_APPLICATION)) {
-
-            for (ListValue tag: tags) {
-                preparedStatement.setInt(1, applicationId);
-                preparedStatement.setString(2, tag.getValue());
-                preparedStatement.addBatch();
-            }
-            preparedStatement.executeBatch();
-        } catch (SQLException e) {
-            String errorMsg = "Error while removing Application Tags for SP ID: " + applicationId;
             throw new IdentityApplicationManagementException(errorMsg, e);
         }
     }

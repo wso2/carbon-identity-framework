@@ -61,7 +61,7 @@ public interface ApplicationTagManager {
      * @return Application Tag object
      * @throws ApplicationTagMgtException If an error occurs while retrieving the Application tag by Id.
      */
-    ApplicationTagsItem getApplicationTagById(String applicationTagId, String tenantDomain)
+    ApplicationTagsListItem getApplicationTagById(String applicationTagId, String tenantDomain)
             throws ApplicationTagMgtException;
 
     /**

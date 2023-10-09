@@ -248,7 +248,7 @@ public class ApplicationTagDAOImplTest extends PowerMockTestCase {
         String tagName = "testGetAppTagById_" + getTenantDomain(tenantID);
         String tagId = addApplicationTagToDB(tagName, TEST_TAG_DEFAULT_COLOUR, getConnection(), tenantID);
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        ApplicationTagsItem fetchedTag = daoImpl.getApplicationTagById(tagId, tenantID);
+        ApplicationTagsListItem fetchedTag = daoImpl.getApplicationTagById(tagId, tenantID);
         Assert.assertNotNull(fetchedTag);
         Assert.assertEquals(fetchedTag.getId(), tagId);
         Assert.assertEquals(fetchedTag.getName(), tagName);
@@ -275,7 +275,7 @@ public class ApplicationTagDAOImplTest extends PowerMockTestCase {
         daoImpl.updateApplicationTag(inputUpdateTag, tagId, tenantID);
 
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        ApplicationTagsItem fetchedTag = daoImpl.getApplicationTagById(tagId, tenantID);
+        ApplicationTagsListItem fetchedTag = daoImpl.getApplicationTagById(tagId, tenantID);
 
         Assert.assertNotNull(fetchedTag);
         Assert.assertEquals(fetchedTag.getId(), tagId);
@@ -299,7 +299,7 @@ public class ApplicationTagDAOImplTest extends PowerMockTestCase {
         }).when(IdentityDatabaseUtil.class, "commitTransaction", any(Connection.class));
         daoImpl.deleteApplicationTagById(tagId, tenantID);
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        ApplicationTagsItem fetchedTag = daoImpl.getApplicationTagById(tagId, tenantID);
+        ApplicationTagsListItem fetchedTag = daoImpl.getApplicationTagById(tagId, tenantID);
         Assert.assertNull(fetchedTag);
     }
 

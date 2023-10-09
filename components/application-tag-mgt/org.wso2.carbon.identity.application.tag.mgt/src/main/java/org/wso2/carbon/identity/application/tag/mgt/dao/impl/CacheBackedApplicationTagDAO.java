@@ -50,10 +50,6 @@ public class CacheBackedApplicationTagDAO implements ApplicationTagDAO {
     public ApplicationTagsItem createApplicationTag(ApplicationTag applicationTag, Integer tenantID)
             throws ApplicationTagMgtException {
 
-//        ApplicationTagsItem createdTag = applicationTagDAO.createApplicationTag(applicationTag, tenantID);
-//        ApplicationTagIdCacheKey cacheKey = new ApplicationTagIdCacheKey(createdTag.getId());
-//        applicationTagCacheById.addToCache(cacheKey, new ApplicationTagCacheEntry(createdTag), tenantID);
-//        return createdTag;
         return applicationTagDAO.createApplicationTag(applicationTag, tenantID);
     }
 
@@ -65,7 +61,7 @@ public class CacheBackedApplicationTagDAO implements ApplicationTagDAO {
     }
 
     @Override
-    public ApplicationTagsItem getApplicationTagById(String applicationTagId, Integer tenantID)
+    public ApplicationTagsListItem getApplicationTagById(String applicationTagId, Integer tenantID)
             throws ApplicationTagMgtException {
 
         ApplicationTagIdCacheKey cacheKey = new ApplicationTagIdCacheKey(applicationTagId);
@@ -83,7 +79,7 @@ public class CacheBackedApplicationTagDAO implements ApplicationTagDAO {
             }
         }
 
-        ApplicationTagsItem applicationTag = applicationTagDAO.getApplicationTagById(applicationTagId, tenantID);
+        ApplicationTagsListItem applicationTag = applicationTagDAO.getApplicationTagById(applicationTagId, tenantID);
 
         if (applicationTag != null) {
             if (LOG.isDebugEnabled()) {
@@ -125,7 +121,7 @@ public class CacheBackedApplicationTagDAO implements ApplicationTagDAO {
             ApplicationTagMgtException {
 
         // clearing cache entries related to the Application Tag.
-        ApplicationTagsItem applicationTag = null;
+        ApplicationTagsListItem applicationTag = null;
         if (StringUtils.isNotBlank(applicationTagId)) {
             applicationTag = this.getApplicationTagById(applicationTagId, tenantID);
         }

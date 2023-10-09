@@ -267,7 +267,7 @@ public class CacheBackedApplicationTagDAOTest extends PowerMockTestCase {
         String tagName = "testGetAppTagById_" + getTenantDomain(tenantID);
         String tagId = addApplicationTagToDB(tagName, TEST_TAG_DEFAULT_COLOUR, getConnection(), tenantID);
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        ApplicationTagsItem fetchedTag = cacheBackedDaoImpl.getApplicationTagById(tagId, tenantID);
+        ApplicationTagsListItem fetchedTag = cacheBackedDaoImpl.getApplicationTagById(tagId, tenantID);
         Assert.assertNotNull(fetchedTag);
         Assert.assertEquals(fetchedTag.getId(), tagId);
         Assert.assertEquals(fetchedTag.getName(), tagName);
@@ -299,7 +299,7 @@ public class CacheBackedApplicationTagDAOTest extends PowerMockTestCase {
         cacheBackedDaoImpl.updateApplicationTag(inputUpdateTag, tagId, tenantID);
 
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        ApplicationTagsItem fetchedTag = cacheBackedDaoImpl.getApplicationTagById(tagId, tenantID);
+        ApplicationTagsListItem fetchedTag = cacheBackedDaoImpl.getApplicationTagById(tagId, tenantID);
 
         Assert.assertNotNull(fetchedTag);
         Assert.assertEquals(fetchedTag.getId(), tagId);
@@ -329,7 +329,7 @@ public class CacheBackedApplicationTagDAOTest extends PowerMockTestCase {
         }).when(IdentityDatabaseUtil.class, "commitTransaction", any(Connection.class));
         cacheBackedDaoImpl.deleteApplicationTagById(tagId, tenantID);
         when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        ApplicationTagsItem fetchedTag = cacheBackedDaoImpl.getApplicationTagById(tagId, tenantID);
+        ApplicationTagsListItem fetchedTag = cacheBackedDaoImpl.getApplicationTagById(tagId, tenantID);
         Assert.assertNull(fetchedTag);
     }
 

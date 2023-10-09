@@ -208,7 +208,7 @@ public class ApplicationTagManagerTest {
         String tagName = "testGetAppTagById_" + tenantDomain;
         String tagId = applicationTagManager.createApplicationTag(createAppTagObj(tagName, TEST_TAG_DEFAULT_COLOUR),
                 tenantDomain).getId();
-        ApplicationTagsItem fetchedTag = applicationTagManager.getApplicationTagById(tagId, tenantDomain);
+        ApplicationTagsListItem fetchedTag = applicationTagManager.getApplicationTagById(tagId, tenantDomain);
         Assert.assertNotNull(fetchedTag);
         Assert.assertEquals(fetchedTag.getId(), tagId);
         Assert.assertEquals(fetchedTag.getName(), tagName);
@@ -227,7 +227,7 @@ public class ApplicationTagManagerTest {
         ApplicationTag inputUpdateTag = createAppTagObj(updatedTagName, TEST_TAG_UPDATED_COLOUR);
         applicationTagManager.updateApplicationTag(inputUpdateTag, tagId, tenantDomain);
 
-        ApplicationTagsItem fetchedUpdatedTag = applicationTagManager.getApplicationTagById(tagId, tenantDomain);
+        ApplicationTagsListItem fetchedUpdatedTag = applicationTagManager.getApplicationTagById(tagId, tenantDomain);
         Assert.assertNotNull(fetchedUpdatedTag);
         Assert.assertEquals(fetchedUpdatedTag.getId(), tagId);
         Assert.assertEquals(fetchedUpdatedTag.getName(), updatedTagName);
@@ -243,7 +243,7 @@ public class ApplicationTagManagerTest {
         String tagId = applicationTagManager.createApplicationTag(createAppTagObj(
                 "testDeleteAppTag_" + tenantDomain, TEST_TAG_DEFAULT_COLOUR), tenantDomain).getId();
         applicationTagManager.deleteApplicationTagById(tagId, tenantDomain);
-        ApplicationTagsItem fetchedTag = applicationTagManager.getApplicationTagById(tagId, tenantDomain);
+        ApplicationTagsListItem fetchedTag = applicationTagManager.getApplicationTagById(tagId, tenantDomain);
         Assert.assertNull(fetchedTag);
     }
 

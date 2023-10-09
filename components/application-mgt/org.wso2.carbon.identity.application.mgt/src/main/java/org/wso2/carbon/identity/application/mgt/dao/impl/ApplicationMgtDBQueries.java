@@ -466,7 +466,6 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_APP_TAGS_INFO_BY_TENANT_ID_FOR_GIVEN_APP_IDS = "SELECT SP_TAG.APP_ID AS ID, " +
             "TAG.UUID AS TAG_ID, TAG.NAME AS TAG_NAME, TAG.COLOUR AS TAG_COLOUR FROM SP_TAG LEFT JOIN TAG ON " +
             "SP_TAG.TAG_UUID = TAG.UUID WHERE TENANT_ID = ? AND SP_TAG.APP_ID IN (%s)";
-
-    public static final String REMOVE_SPECIFIED_APP_TAGS_OF_AN_APPLICATION = "DELETE FROM SP_TAG WHERE " +
-            "SP_TAG.APP_ID = ? AND SP_TAG.TAG_UUID = ?";
+    
+    public static final String REMOVE_ALL_APP_TAGS_OF_AN_APPLICATION = "DELETE FROM SP_TAG WHERE APP_ID = ?";
 }

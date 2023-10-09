@@ -53,18 +53,16 @@ public class SQLConstants {
             "(SELECT SP_TAG.TAG_UUID, COUNT(1) APP_COUNT FROM SP_TAG GROUP BY SP_TAG.TAG_UUID) as TAG_CNT " +
             "ON TAG_CNT.TAG_UUID = TAG.UUID WHERE TAG.TENANT_ID = ? ORDER BY TAG_NAME ASC LIMIT ?, ?";
     public static final String GET_ALL_APP_TAGS_WITH_FILTER = "SELECT TAG.UUID AS TAG_ID, TAG.NAME AS TAG_NAME, " +
-            "TAG.COLOUR AS TAG_COLOUR, IFNULL(TAG_CNT.APP_COUNT,0) as TAG_APP_COUNT FROM TAG LEFT JOIN " +
+            "TAG.COLOUR AS TAG_COLOUR, IFNULL(TAG_CNT.APP_COUNT,0) AS TAG_APP_COUNT FROM TAG LEFT JOIN " +
             "(SELECT SP_TAG.TAG_UUID, COUNT(1) APP_COUNT FROM SP_TAG GROUP BY SP_TAG.TAG_UUID) as TAG_CNT " +
             "ON TAG_CNT.TAG_UUID = TAG.UUID WHERE TAG.TENANT_ID = ? AND (%s) ORDER BY TAG_NAME ASC LIMIT ?, ?";
-    public static final String GET_APP_TAG_BY_ID = "SELECT" +
-            " UUID AS TAG_ID," +
-            " NAME AS TAG_NAME," +
-            " COLOUR AS TAG_COLOUR," +
-            " FROM TAG WHERE UUID = ? AND TENANT_ID = ?";
+    public static final String GET_APP_TAG_BY_ID = "SELECT UUID AS TAG_ID, NAME AS TAG_NAME, COLOUR AS TAG_COLOUR, " +
+            "(SELECT COUNT(APP_ID) FROM SP_TAG WHERE SP_TAG.TAG_UUID = TAG.UUID) AS TAG_APP_COUNT FROM TAG " +
+            "WHERE UUID = ? AND TENANT_ID = ?";
     public static final String LOAD_APP_TAG_ID_BY_TAG_NAME = "SELECT" +
             " UUID AS TAG_ID," +
             " NAME AS TAG_NAME," +
-            " COLOUR AS TAG_COLOUR," +
+            " COLOUR AS TAG_COLOUR" +
             " FROM TAG WHERE NAME = ? AND TENANT_ID = ?";
     public static final String DELETE_APP_TAG = "DELETE FROM TAG WHERE UUID = ? AND TENANT_ID = ?";
     public static final String UPDATE_APP_TAG = "UPDATE TAG SET NAME = ?, COLOUR = ? WHERE UUID = ? AND TENANT_ID = ?";

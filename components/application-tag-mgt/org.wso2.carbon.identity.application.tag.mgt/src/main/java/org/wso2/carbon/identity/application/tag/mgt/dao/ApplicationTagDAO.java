@@ -60,7 +60,7 @@ public interface ApplicationTagDAO {
      * @return Application Tag object
      * @throws ApplicationTagMgtException If an error occurs while retrieving the Application tag by Id.
      */
-    ApplicationTagsItem getApplicationTagById(String applicationTagId, Integer tenantID)
+    ApplicationTagsListItem getApplicationTagById(String applicationTagId, Integer tenantID)
             throws ApplicationTagMgtException;
 
     /**

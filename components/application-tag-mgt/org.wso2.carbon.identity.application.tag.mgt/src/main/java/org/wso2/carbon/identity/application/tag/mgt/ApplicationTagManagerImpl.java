@@ -60,7 +60,7 @@ public class ApplicationTagManagerImpl implements ApplicationTagManager {
     }
 
     @Override
-    public ApplicationTagsItem getApplicationTagById(String applicationTagId, String tenantDomain)
+    public ApplicationTagsListItem getApplicationTagById(String applicationTagId, String tenantDomain)
             throws ApplicationTagMgtException {
 
         return dao.getApplicationTagById(applicationTagId, IdentityTenantUtil.getTenantId(tenantDomain));
