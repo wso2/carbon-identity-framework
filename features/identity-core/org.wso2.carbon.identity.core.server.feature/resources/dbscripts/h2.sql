@@ -1036,7 +1036,8 @@ INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('7f24050f-3e3d-4a00-b10f-fd5450d6523e', 'input-validation-configurations', 'A resource type to store input validation related configurations'),
 ('f4e83b8a-d1c4-a0d6-03a7-d48e268c60c5', 'PK_JWT_CONFIGURATION', 'A resource type to keep the tenant private key jwt configuration.'),
 ('9ec61e9d-f0e6-4952-9a09-ab842aeb2db2', 'ATTRIBUTE_CONFIGURATION', 'A resource type to store attribute related configurations.'),
-('132b0ee6-43e0-462d-8b4b-15b68109d71d', 'ORGANIZATION_CONFIGURATION', 'A resource type to keep the organization configurations.');
+('132b0ee6-43e0-462d-8b4b-15b68109d71d', 'ORGANIZATION_CONFIGURATION', 'A resource type to keep the organization configurations.'),
+('1fc809a0-dc0d-4cb2-82f3-58934d389236', 'CUSTOM_TEXT', 'A resource type to keep the tenant custom text preferences.');
 
 CREATE TABLE IF NOT EXISTS IDN_CONFIG_RESOURCE (
     ID VARCHAR(255) NOT NULL,
