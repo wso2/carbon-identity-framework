@@ -144,4 +144,19 @@ public interface ApplicationAuthenticator extends Serializable {
 
         return Optional.empty();
     }
+
+    /**
+     * Get the i18Key supported from the authenticator level.
+     *
+     * @return i18key
+     */
+    String getI18Key();
+
+    /**
+     * Get the required parameters for the authentication.
+     *
+     * @return required parameters list
+     */
+    List<String> getRequiredParams();
+
 }
