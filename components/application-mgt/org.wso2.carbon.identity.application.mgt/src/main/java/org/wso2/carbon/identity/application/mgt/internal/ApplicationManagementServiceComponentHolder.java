@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConf
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -59,6 +60,8 @@ public class ApplicationManagementServiceComponentHolder {
     private ApplicationPermissionProvider applicationPermissionProvider;
 
     private boolean isOrganizationManagementEnable = false;
+
+    private IdentityEventService identityEventService;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -248,5 +251,25 @@ public class ApplicationManagementServiceComponentHolder {
     public ApplicationPermissionProvider getApplicationPermissionProvider() {
 
         return applicationPermissionProvider;
+    }
+
+    /**
+     * Get {@link IdentityEventService}.
+     *
+     * @return IdentityEventService.
+     */
+    public IdentityEventService getIdentityEventService() {
+
+        return identityEventService;
+    }
+
+    /**
+     * Set {@link IdentityEventService}.
+     *
+     * @param identityEventService Instance of {@link IdentityEventService}.
+     */
+    public void setIdentityEventService(IdentityEventService identityEventService) {
+
+        this.identityEventService = identityEventService;
     }
 }
