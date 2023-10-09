@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
@@ -66,6 +67,7 @@ import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
@@ -751,6 +753,12 @@ public class DefaultStepHandler implements StepHandler {
                 return;
             }
 
+            if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
+                String userOrganization = resolveUserOrganization(context.getSubject(), authenticatorConfig);
+                context.getSubject().setAuthorizedOrganization(userOrganization);
+                context.getSubject().setTenantDomain(resolveTenantDomain(userOrganization));
+            }
+
             if (authenticator instanceof FederatedApplicationAuthenticator) {
 
                 if (context.getSubject().getUserName() == null) {
@@ -1419,6 +1427,31 @@ public class DefaultStepHandler implements StepHandler {
                 }
                 return;
             }
+        }
+    }
+
+    private String resolveUserOrganization(AuthenticatedUser authenticatedUser,
+                                           AuthenticatorConfig authenticatorConfig) {
+
+        // Check for user organization claim for the authenticated user via the organization login authenticator.
+        if (authenticatedUser.getUserAttributes() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
+            for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
+                if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
+                        userAttributes.getKey().getLocalClaim().getClaimUri())) {
+                    return userAttributes.getValue();
+                }
+            }
+        }
+        return StringUtils.EMPTY;
+    }
+
+    private String resolveTenantDomain(String organizationId) throws FrameworkException {
+
+        try {
+            return FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                    .resolveTenantDomain(organizationId);
+        } catch (OrganizationManagementException e) {
+            throw new FrameworkException(e.getMessage());
         }
     }
 }

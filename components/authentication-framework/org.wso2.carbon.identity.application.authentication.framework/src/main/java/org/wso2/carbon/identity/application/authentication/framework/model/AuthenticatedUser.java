@@ -65,6 +65,7 @@ public class AuthenticatedUser extends User {
     private String authenticatedSubjectIdentifier;
     private String federatedIdPName;
     private boolean isFederatedUser;
+    private String authorizedOrganization;
     private Map<ClaimMapping, String> userAttributes = new HashMap<>();
 
     /**
@@ -101,6 +102,7 @@ public class AuthenticatedUser extends User {
         if (!isFederatedUser && StringUtils.isNotEmpty(userStoreDomain) && StringUtils.isNotEmpty(tenantDomain)) {
             updateCaseSensitivity();
         }
+        this.authorizedOrganization = authenticatedUser.getAuthorizedOrganization();
     }
 
     public AuthenticatedUser(org.wso2.carbon.user.core.common.User user) {
@@ -502,6 +504,17 @@ public class AuthenticatedUser extends User {
      */
     public void setFederatedIdPName(String federatedIdPName) {
         this.federatedIdPName = federatedIdPName;
+    }
+
+
+    public String getAuthorizedOrganization() {
+
+        return authorizedOrganization;
+    }
+
+    public void setAuthorizedOrganization(String authorizedOrganization) {
+
+        this.authorizedOrganization = authorizedOrganization;
     }
 
     @Override
