@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt;
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
@@ -491,6 +492,17 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
 
         return Collections.emptySet();
     }
+
+    /**
+     * Get associated tags information of All Applications.
+     *
+     * @param applicationIdList Application Id List.
+     * @param tenantDomain      Tenant Domain
+     * @return Map Object with associated Tags information of each application.
+     * @throws IdentityApplicationManagementException If Error occurs while retrieving the associated Tags.
+     */
+    public abstract Map<Integer, List<ApplicationTagsItem>> getAssociatedTagsOfApplications(
+            List<Integer> applicationIdList, String tenantDomain) throws IdentityApplicationManagementException;
 
 }
 

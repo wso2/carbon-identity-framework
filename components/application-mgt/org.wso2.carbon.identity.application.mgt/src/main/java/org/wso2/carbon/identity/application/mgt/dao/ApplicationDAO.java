@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.application.mgt.dao;
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsItem;
+import org.wso2.carbon.identity.application.common.model.ApplicationTagsPatch;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
@@ -335,5 +337,32 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException {
 
         return new ServiceProvider();
+    }
+
+    /**
+     * Method that returns tags information of the given applications ids.
+     *
+     * @param applicationIdList Ids of applications.
+     * @param tenantDomain      Tenant Domain.
+     * @return Map Object with associated Tags information of each application.
+     * @throws IdentityApplicationManagementException Error when obtaining applications tags.
+     */
+    default Map<Integer, List<ApplicationTagsItem>> getAssociatedTagsOfApplications(List<Integer> applicationIdList,
+            String tenantDomain) throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    /**
+     * Method that returns tags information of the given applications ids.
+     *
+     * @param applicationId                 ID of the application.
+     * @param applicationTagsPatchModel     Tags to be updated.
+     * @param tenantDomain                  Tenant Domain.
+     * @throws IdentityApplicationManagementException Error when updating applications tags.
+     */
+    default void updateApplicationTags(int applicationId, List<ApplicationTagsPatch> applicationTagsPatchModel,
+                                       String tenantDomain) throws IdentityApplicationManagementException {
+
     }
 }
