@@ -64,11 +64,12 @@ public class RoleManagementEventPublisherProxy {
         doPublishEvent(event);
     }
 
-    public void publishPostAddRole(String roleName, List<String> userList, List<String> groupList,
+    public void publishPostAddRole(String roleId, String roleName, List<String> userList, List<String> groupList,
                                    List<Permission> permissions, String audience, String audienceId,
                                    String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleId);
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_NAME, roleName);
         eventProperties.put(IdentityEventConstants.EventProperty.USER_LIST, userList);
         eventProperties.put(IdentityEventConstants.EventProperty.GROUP_LIST, groupList);

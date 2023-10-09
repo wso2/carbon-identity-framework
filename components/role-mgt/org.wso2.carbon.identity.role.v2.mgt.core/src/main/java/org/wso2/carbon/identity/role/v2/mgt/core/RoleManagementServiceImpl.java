@@ -93,8 +93,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 audience, audienceId, tenantDomain);
         RoleBasicInfo roleBasicInfo = roleDAO.addRole(roleName, userList, groupList, permissions, audience, audienceId,
                 tenantDomain);
-        roleManagementEventPublisherProxy.publishPostAddRole(roleName, userList, groupList, permissions,
-                audience, audienceId, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostAddRole(roleBasicInfo.getId(), roleName, userList, groupList,
+                permissions, audience, audienceId, tenantDomain);
         if (log.isDebugEnabled()) {
             log.debug(String.format("%s add role of name : %s successfully.", getUser(tenantDomain), roleName));
         }
@@ -391,6 +391,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public String getRoleNameByRoleId(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
         return roleDAO.getRoleNameByID(roleID, tenantDomain);
+    }
+
+    @Override
+    public String getRoleIdByName(String roleName, String audience, String audienceId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleIdByName(roleName, audience, audienceId, tenantDomain);
     }
 
     private String getUser(String tenantDomain) {

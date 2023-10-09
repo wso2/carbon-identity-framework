@@ -260,4 +260,17 @@ public interface RoleManagementService {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     String getRoleNameByRoleId(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get Role id by name.
+     *
+     * @param roleName       Role Id.
+     * @param audience  Audience.
+     * @param audienceId  Audience ID.
+     * @param tenantDomain Tenant Domain.
+     * @return Role name for the given role id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    String getRoleIdByName(String roleName, String audience, String audienceId, String tenantDomain)
+            throws IdentityRoleManagementException;
 }

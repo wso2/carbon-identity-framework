@@ -1866,6 +1866,22 @@ public class RoleDAOImpl implements RoleDAO {
         return removeInternalDomain(roleName);
     }
 
+    @Override
+    public String getRoleIdByName(String roleName, String audience, String audienceId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        int audienceRefId;
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
+            audienceRefId = getRoleAudienceRefId(audience, audienceId, connection);
+        } catch (SQLException e) {
+            String errorMessage = "Error while retrieving the role id by name :" + roleName + " audience :" + audience
+                    + " audienceId :" + audienceId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleName, tenantDomain), e);
+        }
+        return getRoleIDByName(roleName, audienceRefId, tenantDomain);
+    }
+
     /**
      * Get role audience by role ID.
      *
