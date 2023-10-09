@@ -64,9 +64,9 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class AuthenticationServiceTest extends AbstractFrameworkTest {
 
     private static final Log log = LogFactory.getLog(AuthenticationServiceTest.class);
-    private static final String MULTI_OPS_AUTHENTICATORS = "OpenIDConnectAuthenticator:google:google_myaccount;" +
-            "BasicAuthenticator:LOCAL;FIDOAuthenticator:LOCAL";
-    private static final String SINGLE_AUTHENTICATOR = "BasicAuthenticator:LOCAL";
+    private static final String MULTI_OPS_AUTHENTICATORS = "OpenIDConnectAuthenticator:google:authenticator.basic" +
+            ":google_myaccount;BasicAuthenticator:LOCAL:authenticator.basic;FIDOAuthenticator:LOCAL:authenticator.fido";
+    private static final String SINGLE_AUTHENTICATOR = "BasicAuthenticator:LOCAL:authenticator.basic";
     private static final String SESSION_DATA_KEY = "4458306a-5e77-497f-be67-8ccbec6ff6d0";
     private static final String FINAL_SESSION_DATA_KEY = "bcf793dc-4ea9-4324-a485-7d20999a063e";
     private static final String LOCATION_HEADER = "location";
@@ -227,19 +227,29 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         }
 
         for (AuthenticatorData expectedAuthenticatorData : expected) {
+
             boolean isNameMatch = actual.stream().anyMatch(actualAuthenticatorData ->
                     expectedAuthenticatorData.getName().equals(actualAuthenticatorData.getName()));
             boolean isDisplayNameMatch = actual.stream().anyMatch(actualAuthenticatorData ->
                     expectedAuthenticatorData.getDisplayName().equals(actualAuthenticatorData.getDisplayName()));
+            boolean isi18Key = actual.stream().anyMatch(actualAuthenticatorData ->
+                    expectedAuthenticatorData.getI18Key().equals(actualAuthenticatorData.getI18Key()));
             boolean isIdpNameMatch = actual.stream().anyMatch(actualAuthenticatorData ->
                     expectedAuthenticatorData.getIdp().equals(actualAuthenticatorData.getIdp()));
+            boolean isRequiredParamMatch = actual.stream().anyMatch(actualAuthenticatorData ->
+                    expectedAuthenticatorData.getRequiredParameterList().size() ==
+                            (actualAuthenticatorData.getRequiredParameterList().size()));
 
             Assert.assertTrue(isNameMatch, "Expected authenticator name is not present in the actual " +
                     "authenticator list");
-            Assert.assertTrue(isDisplayNameMatch, "Expected authenticator display name is not present in the actual " +
-                    "authenticator list");
+            Assert.assertTrue(isDisplayNameMatch, "Expected authenticator display name is not present in the" +
+                    " actual authenticator list");
             Assert.assertTrue(isIdpNameMatch, "Expected authenticator idp name is not present in the actual " +
                     "authenticator list");
+            Assert.assertTrue(isi18Key, "Expected i18Key is not present in the actual " +
+                    "authenticator list");
+            Assert.assertTrue(isRequiredParamMatch, "Expected required parameters list is not present in the" +
+                    " actual authenticator list");
         }
     }
 
@@ -303,6 +313,8 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
                 authenticatorData.setName(name);
                 authenticatorData.setIdp(idp);
                 authenticatorData.setDisplayName(authenticator.getFriendlyName());
+                authenticatorData.setI18Key(authenticator.getI18Key());
+                authenticatorData.setRequiredParameterList(authenticator.getRequiredParams());
                 authenticatorDataList.add(authenticatorData);
             }
         }

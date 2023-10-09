@@ -144,4 +144,17 @@ public interface ApplicationAuthenticator extends Serializable {
 
         return Optional.empty();
     }
+
+    /**
+     *
+     * @return
+     */
+    String getI18Key();
+
+    /**
+     *
+     * @return
+     */
+    List<String> getRequiredParams();
+
 }

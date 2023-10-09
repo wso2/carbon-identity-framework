@@ -22,6 +22,8 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -48,6 +50,8 @@ public class MockApiBasedAuthenticator extends AbstractApplicationAuthenticator 
         this.authenticatorData.setName(name);
         this.authenticatorData.setDisplayName(getFriendlyName());
         this.authenticatorData.setIdp(idp);
+        this.authenticatorData.setI18Key(getI18Key());
+        this.authenticatorData.setRequiredParameterList(getRequiredParams());
     }
 
     @Override
@@ -78,6 +82,16 @@ public class MockApiBasedAuthenticator extends AbstractApplicationAuthenticator 
     public String getFriendlyName() {
 
         return this.name + "-friendlyName";
+    }
+
+    @Override
+    public String getI18Key() {
+        return this.name + ".authenticator";
+    }
+
+    @Override
+    public List<String> getRequiredParams() {
+        return Collections.singletonList(this.name + ".authenticator");
     }
 
     @Override

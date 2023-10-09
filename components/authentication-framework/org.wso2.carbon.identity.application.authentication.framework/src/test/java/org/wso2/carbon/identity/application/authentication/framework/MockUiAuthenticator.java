@@ -22,6 +22,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -77,5 +80,15 @@ public class MockUiAuthenticator extends AbstractApplicationAuthenticator {
     public String getFriendlyName() {
 
         return name;
+    }
+
+    @Override
+    public String getI18Key() {
+        return this.name + ".authenticator";
+    }
+
+    @Override
+    public List<String> getRequiredParams() {
+        return Collections.singletonList(this.name + ".authenticator");
     }
 }

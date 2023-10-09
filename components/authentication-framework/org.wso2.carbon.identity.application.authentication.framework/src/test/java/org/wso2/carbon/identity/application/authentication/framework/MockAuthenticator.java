@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 import org.wso2.carbon.identity.application.common.model.Property;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -89,6 +90,16 @@ public class MockAuthenticator implements ApplicationAuthenticator {
     public List<Property> getConfigurationProperties() {
 
         return null;
+    }
+
+    @Override
+    public String getI18Key() {
+        return this.name + ".authenticator";
+    }
+
+    @Override
+    public List<String> getRequiredParams() {
+        return Collections.singletonList(this.name + ".authenticator");
     }
 
 }
