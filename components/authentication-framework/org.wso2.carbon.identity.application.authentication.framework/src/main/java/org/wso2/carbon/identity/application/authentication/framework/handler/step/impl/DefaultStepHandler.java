@@ -273,7 +273,7 @@ public class DefaultStepHandler implements StepHandler {
                  * TODO: This organization login specific logic should be moved out of authentication framework.
                  * This is tracked with https://github.com/wso2/product-is/issues/15922
                  */
-                boolean isOrganizationLogin = isLoggedInWithOrganizationLogin(authenticatorConfig);
+                boolean isOrganizationLogin = isLoggedInWithOrganizationSSO(authenticatorConfig);
 
                 if (context.isReAuthenticate() || isOrganizationLogin) {
 
@@ -753,10 +753,12 @@ public class DefaultStepHandler implements StepHandler {
                 return;
             }
 
-            if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
-                String userOrganization = resolveUserOrganization(context.getSubject(), authenticatorConfig);
-                context.getSubject().setAuthorizedOrganization(userOrganization);
-                context.getSubject().setTenantDomain(resolveTenantDomain(userOrganization));
+            // Set authorized organization and user resident tenant domain for B2B organization SSO users.
+            if (context.getSubject() != null && isLoggedInWithOrganizationSSO(authenticatorConfig)) {
+                String userResidentOrganization =
+                        resolveUserResidentOrganization(context.getSubject(), authenticatorConfig);
+                context.getSubject().setAuthorizedOrganization(userResidentOrganization);
+                context.getSubject().setTenantDomain(resolveTenantDomain(userResidentOrganization));
             }
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
@@ -1395,12 +1397,12 @@ public class DefaultStepHandler implements StepHandler {
     }
 
     /**
-     * Check whether the user is logged in with organization login.
+     * Check whether the user is logged in with organization SSO authenticator.
      *
      * @param authenticatorConfig Authenticator config.
-     * @return Whether the authenticator is organization authenticator or not.
+     * @return Whether the authenticator is organization SSO authenticator or not.
      */
-    private boolean isLoggedInWithOrganizationLogin(AuthenticatorConfig authenticatorConfig) {
+    private boolean isLoggedInWithOrganizationSSO(AuthenticatorConfig authenticatorConfig) {
 
         if (authenticatorConfig == null) {
             return false;
@@ -1430,11 +1432,18 @@ public class DefaultStepHandler implements StepHandler {
         }
     }
 
-    private String resolveUserOrganization(AuthenticatedUser authenticatedUser,
-                                           AuthenticatorConfig authenticatorConfig) {
+    /**
+     * Resolve user resident organization for the users authenticated via the B2B organization SSO authenticator.
+     *
+     * @param authenticatedUser   The authenticated user.
+     * @param authenticatorConfig The authenticator configurations.
+     * @return The organization where the user's identity is managed.
+     */
+    private String resolveUserResidentOrganization(AuthenticatedUser authenticatedUser,
+                                                   AuthenticatorConfig authenticatorConfig) {
 
-        // Check for user organization claim for the authenticated user via the organization login authenticator.
-        if (authenticatedUser.getUserAttributes() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
+        // Check for user organization claim for the authenticated user via the organization SSO authenticator.
+        if (authenticatedUser.getUserAttributes() != null && isLoggedInWithOrganizationSSO(authenticatorConfig)) {
             for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
                 if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
                         userAttributes.getKey().getLocalClaim().getClaimUri())) {
