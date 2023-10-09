@@ -981,6 +981,9 @@
             {% if oauth.dcr.ssa_jkws%}
             <SoftwareStatementJWKS></SoftwareStatementJWKS>
             {% endif %}
+            {% if oauth.dcr.enable_fapi_validation%}
+            <EnableFAPIValidation>{{oauth.dcr.enable_fapi_validation}}</EnableFAPIValidation>
+            {% endif %}
         </DCRM>
 
         <!--
