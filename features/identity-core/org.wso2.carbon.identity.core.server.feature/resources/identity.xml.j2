@@ -64,6 +64,10 @@
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
         </SessionDataPersist>
+        <PushedAuthReqCleanUp>
+            <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
+            <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
+        </PushedAuthReqCleanUp>
     </JDBCPersistenceManager>
 
     <!-- Time configurations are in minutes -->
@@ -182,6 +186,15 @@
         <FetchEnabled>{{remote_fetch.enable}}</FetchEnabled>
         <WorkingDirectory>{{remote_fetch.working_directory}}</WorkingDirectory>
     </RemoteFetch>
+
+    <!--
+    Configuration to select default validation.
+    Currently we are supporting two username validation "alphaNumeric" and "email".
+    This should be secondary configuration along with input validation event listener.
+    -->
+    <InputValidation>
+        <DefaultUserNameValidator>{{input_validation.default_validator}}</DefaultUserNameValidator>
+    </InputValidation>
 
     <OAuth>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
@@ -317,6 +330,34 @@
                 <ResponseModeName>form_post</ResponseModeName>
                 <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FormPostResponseModeProvider</ResponseModeProviderClass>
             </SupportedResponseMode>
+            {% if oauth.jarm.enable is sameas true %}
+             <!-- Validity period for jarm response jwt in seconds -->
+            <JARMResponseJwtValidityPeriodInSeconds>{{oauth.jarm.jarm_response_jwt_validity}}</JARMResponseJwtValidityPeriodInSeconds>
+                {% if oauth.jarm.jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+                {% if oauth.jarm.query_jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>query.jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.query_jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+                {% if oauth.jarm.fragment_jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>fragment.jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.fragment_jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+                {% if oauth.jarm.form_post_jwt.enable is sameas true %}
+                <SupportedResponseMode>
+                    <ResponseModeName>form_post.jwt</ResponseModeName>
+                    <ResponseModeProviderClass>{{oauth.jarm.response_mode.form_post_jwt.class}}</ResponseModeProviderClass>
+                </SupportedResponseMode>
+                {% endif %}
+            {% endif %}
             {% for response_mode in oauth.response_mode %}
             <SupportedResponseMode>
                 <ResponseModeName>{{response_mode.name}}</ResponseModeName>
@@ -326,11 +367,6 @@
         </SupportedResponseModes>
 
         <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
-
-        <!-- Validity period for jarm response jwt in seconds -->
-        {% if oauth.jarm.jarm_response_jwt_validity is defined %}
-        <JARMResponseJwtValidityPeriodInSeconds>{{oauth.jarm.jarm_response_jwt_validity}}</JARMResponseJwtValidityPeriodInSeconds>
-        {% endif %}
 
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
@@ -407,6 +443,7 @@
                 {% if oauth.grant_type.authorization_code.grant_validator is defined %}
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.authorization_code.grant_validator}}</GrantTypeValidatorImplClass>
                 {% endif %}
+                <PublicClientAllowed>{{oauth.grant_type.authorization_code.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.password.enable is sameas true %}
@@ -416,6 +453,7 @@
                 {% if oauth.grant_type.password.grant_validator is defined %}
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.password.grant_validator}}</GrantTypeValidatorImplClass>
                 {% endif %}
+                <PublicClientAllowed>{{oauth.grant_type.password.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.refresh_token.enable is sameas true %}
@@ -425,6 +463,7 @@
                 {% if oauth.grant_type.refresh_token.grant_validator is defined %}
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.refresh_token.grant_validator}}</GrantTypeValidatorImplClass>
                 {% endif %}
+                <PublicClientAllowed>{{oauth.grant_type.refresh_token.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.client_credentials.enable is sameas true %}
@@ -436,6 +475,7 @@
                 {% endif %}
                 <IsRefreshTokenAllowed>{{oauth.grant_type.client_credentials.allow_refresh_tokens}}</IsRefreshTokenAllowed>
                 <IdTokenAllowed>{{oauth.grant_type.client_credentials.allow_id_token}}</IdTokenAllowed>
+                <PublicClientAllowed>{{oauth.grant_type.client_credentials.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.saml_bearer.enable is sameas true %}
@@ -445,6 +485,7 @@
                 {% if oauth.grant_type.saml_bearer.grant_validator is defined %}
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.saml_bearer.grant_validator}}</GrantTypeValidatorImplClass>
                 {% endif %}
+                <PublicClientAllowed>{{oauth.grant_type.saml_bearer.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.iwa_ntlm.enable is sameas true %}
@@ -454,6 +495,7 @@
                 {% if oauth.grant_type.iwa_ntlm.grant_validator is defined %}
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.iwa_ntlm.grant_validator}}</GrantTypeValidatorImplClass>
                 {% endif %}
+                <PublicClientAllowed>{{oauth.grant_type.iwa_ntlm.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.jwt_bearer.enable is sameas true %}
@@ -462,6 +504,7 @@
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.jwt_bearer.grant_handler}}</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.jwt_bearer.grant_validator}}</GrantTypeValidatorImplClass>
                 <IsRefreshTokenAllowed>{{oauth.grant_type.jwt_bearer.allow_refresh_tokens}}</IsRefreshTokenAllowed>
+                <PublicClientAllowed>{{oauth.grant_type.jwt_bearer.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.kerberos.enable is sameas true %}
@@ -469,6 +512,7 @@
                 <GrantTypeName>kerberos</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.kerberos.grant_handler}}</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.kerberos.grant_validator}}</GrantTypeValidatorImplClass>
+                <PublicClientAllowed>{{oauth.grant_type.kerberos.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.account_switch.enable is sameas true %}
@@ -476,6 +520,7 @@
                 <GrantTypeName>account_switch</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.account_switch.grant_handler}}</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.account_switch.grant_validator}}</GrantTypeValidatorImplClass>
+                <PublicClientAllowed>{{oauth.grant_type.account_switch.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.device_code.enable is sameas true %}
@@ -484,6 +529,7 @@
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.device_code.grant_handler}}</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.device_code.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
+                <PublicClientAllowed>{{oauth.grant_type.device_code.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.organization_switch.enable is sameas true %}
@@ -492,6 +538,7 @@
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.organization_switch.grant_handler}}</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
+                <PublicClientAllowed>{{oauth.grant_type.organization_switch.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
@@ -501,6 +548,7 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.token_exchange.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>false</IdTokenAllowed>
                 <IsRefreshTokenAllowed>{{oauth.grant_type.token_exchange.allow_refresh_tokens}}</IsRefreshTokenAllowed>
+                <PublicClientAllowed>{{oauth.grant_type.token_exchange.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
@@ -856,6 +904,11 @@
 
         </OpenIDConnect>
 
+        <!-- OIDCSessionStateManager configuration -->
+        {% if oauth.oidc.session_state_manager is defined %}
+        <OIDCSessionStateManager>{{oauth.oidc.session_state_manager}}</OIDCSessionStateManager>
+        {% endif %}
+
         <!--
             Configs related to OAuth2 Device Code Grant.
             Supported versions: IS 5.12.0 onwards
@@ -1026,6 +1079,15 @@
             </RenewTokenWithoutRevokingExisting>
         </JWT>
         {% endif %}
+
+        {% if oauth.restricted_scopes is defined %}
+        <RestrictedScopes>
+            {% for restricted_scope in oauth.restricted_scopes %}
+            <RestrictedScope>{{restricted_scope}}</RestrictedScope>
+            {% endfor %}
+        </RestrictedScopes>
+        {% endif %}
+
     </OAuth>
 
     <RestApiAuthentication>
@@ -1277,7 +1339,13 @@
 
     </SCIM2>
 
+      <PasswordPolicy>
+        <PasswordPolicyValidationHandler>
+            <Enable>{{identity_mgt.password_policy.password_policy_validation_handler.enable}}</Enable>
+        </PasswordPolicyValidationHandler>
+      </PasswordPolicy>
       <Recovery>
+        <EnableV1API>{{identity_mgt.recovery.enable_v1_api}}</EnableV1API>
         <ReCaptcha>
             <Password>
                 <Enable>{{identity_mgt.password_reset_email.enable_recaptcha}}</Enable>
@@ -1733,6 +1801,17 @@
                        orderId="{{event.default_listener.mutual_tls_authenticator.priority}}"
                        enable="{{event.default_listener.mutual_tls_authenticator.enable}}">
         </EventListener>
+        <EventListener id="private_key_jwt_authenticator"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.jwt.PrivateKeyJWTClientAuthenticator"
+                       orderId="{{event.default_listener.private_key_jwt_authenticator.priority}}"
+                       enable="{{event.default_listener.private_key_jwt_authenticator.enable}}">
+            <Property name="PreventTokenReuse">{{event.default_listener.private_key_jwt_authenticator.property.prevent_token_reuse}}</Property>
+            <Property name="RejectBeforeInMinutes">{{event.default_listener.private_key_jwt_authenticator.property.reject_before_in_minutes}}</Property>
+            {% if event.default_listener.private_key_jwt_authenticator.property.token_endpoint_alias is defined %}
+            <Property name="TokenEndpointAlias">{{event.default_listener.private_key_jwt_authenticator.property.token_endpoint_alias}}</Property>
+            {% endif %}
+        </EventListener>
 
         <!-- Basic OAuth client authenticator -->
         <EventListener id="basic_auth_client_authenticator"
@@ -1864,6 +1943,12 @@
                     <Property name="ScopeWithinUserstore">{{identity_mgt.user_claim_update.uniqueness.scope_within_userstore}}</Property>
             </EventListener>
         {% endif %}
+
+        <EventListener id="basic_user_info_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.user.export.core.internal.service.impl.BasicUserInformationProvider"
+                       orderId="{{event.default_listener.basic_user_info_provider.priority}}"
+                       enable="{{event.default_listener.basic_user_info_provider.enable}}">
+        </EventListener>
 
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
@@ -2051,6 +2136,11 @@
                    enable="{{cache.idp_cache_by_name.enable}}"
                    timeout="{{cache.idp_cache_by_name.timeout}}"
                    capacity="{{cache.idp_cache_by_name.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="private_key_jwt" name="PrivateKeyJWT"
+                   enable="{{cache.private_key_jwt.enable}}"
+                   timeout="{{cache.private_key_jwt.timeout}}"
+                   capacity="{{cache.private_key_jwt.capacity}}"
                    isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
@@ -2924,6 +3014,18 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
             <Scopes>internal_organization_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
+            <Scopes>internal_config_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/me/organizations/root" secured="true" http-method="GET">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
@@ -2936,13 +3038,10 @@
             <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
             <Scopes>internal_organization_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
         <Resource context="(.*)/api/server/v1/guests/invite" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/guestmgt/user/invite/add</Permissions>
             <Scopes>internal_guest_mgt_invite_add</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="true" http-method="POST">
-            <Permissions>none</Permissions>
-            <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
             <Permissions>none</Permissions>
@@ -3207,6 +3306,9 @@
                     <Path>/api/server/v1/admin-advisory-management/banner</Path>
                     <Path>/api/idle-account-identification/v1/inactive-users</Path>
                     <Path>/api/server/v1/expired-password-identification/password-expired-users</Path>
+                    <Path>/api/server/v1/api-resources</Path>
+                    <Path>/api/server/v1/extensions</Path>
+                    <Path>/api/server/v1/organization-configs</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -3233,6 +3335,7 @@
 
     <OrgRoutingOnlySupportedAPIPaths>
         <Path>/api/server/v1/organizations</Path>
+        <Path>/api/server/v1/organization-configs</Path>
         <Path>/api/users/v1/me/organizations</Path>
     </OrgRoutingOnlySupportedAPIPaths>
 
@@ -3283,13 +3386,16 @@
         <!--End of default configs for timeouts-->
 
         <!--Timeouts for callChore token call and adaptive endpoint-->
-        <!--Default timeout in milliseconds-->
         <CallChoreo>
+          <!--Default timeout in milliseconds-->
           <HTTPConnectionTimeout>{{authentication.adaptive.call_choreo.http_connections.connection_timeout}}</HTTPConnectionTimeout>
           <HTTPReadTimeout>{{authentication.adaptive.call_choreo.http_connections.read_timeout}}</HTTPReadTimeout>
           <HTTPConnectionRequestTimeout>{{authentication.adaptive.call_choreo.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
+          <!--Default retry counts-->
+          <TokenRequestRetryCount>{{authentication.adaptive.call_choreo.http_connections.token_request_retry_count}}</TokenRequestRetryCount>
+          <ChoreoAPIRequestRetryCount>{{authentication.adaptive.call_choreo.http_connections.choreo_api_request_retry_count}}</ChoreoAPIRequestRetryCount>
         </CallChoreo>
-        <!--End of default configs for callChore timeouts-->
+        <!--End of default configs for callChore timeouts and request retry counts-->
 
         <RefreshInterval>{{authentication.adaptive.long_wait.page_refresh_interval}}</RefreshInterval>
         <!--End of timeouts in milliseconds-->
@@ -3643,6 +3749,12 @@
     <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
     <EnableSHA256RandomNumberGenerator>{{identity_util.enable_sha256_random_numbers}}</EnableSHA256RandomNumberGenerator>
 
+    <OrganizationUserInvitation>
+        <DefaultExpiryTime>{{organization.user.invitation.default.expiry_time}}</DefaultExpiryTime>
+        <PrimaryUserDomain>{{organization.user.invitation.primary.user_domain}}</PrimaryUserDomain>
+        <DefaultAcceptURL>{{organization.user.invitation.default.accept_url}}</DefaultAcceptURL>
+    </OrganizationUserInvitation>
+
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
         <ExtensionTypes>{{extension_mgt.extension_types}}</ExtensionTypes>
@@ -3652,5 +3764,18 @@
     <IdentityDataStore>
         <DataStoreType>{{identity_datastore.datastore_type}}</DataStoreType>
     </IdentityDataStore>
+
+    <UserProfileExport>
+        <AdditionalClaims>
+            {% for item in user_profile_export.additional_claims %}
+            <AdditionalClaim>{{item}}</AdditionalClaim>
+            {% endfor %}
+        </AdditionalClaims>
+        <RestrictedClaims>
+            {% for item in user_profile_export.restricted_claims %}
+            <RestrictedClaim>{{item}}</RestrictedClaim>
+            {% endfor %}
+        </RestrictedClaims>
+    </UserProfileExport>
 
 </Server>

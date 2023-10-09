@@ -59,6 +59,7 @@ import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationVali
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
@@ -458,4 +459,24 @@ public class ApplicationManagementServiceComponent {
             log.debug("SAMLSSOServiceProviderManager unset in to bundle");
         }
     }
+
+    @Reference(
+            name = "identity.event.service",
+            service = IdentityEventService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityEventService"
+    )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        log.debug("IdentityEventService set in Identity Application Management bundle");
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(null);
+        log.debug("IdentityEventService unset in Identity Application Management bundle");
+    }
+
 }
