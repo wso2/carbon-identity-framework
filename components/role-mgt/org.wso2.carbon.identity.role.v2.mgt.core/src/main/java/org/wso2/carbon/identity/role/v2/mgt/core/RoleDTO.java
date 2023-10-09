@@ -26,12 +26,20 @@ public class RoleDTO {
     private String name;
     private String id;
     private int audienceRefId;
+    private int tenantId;
     private RoleAudience roleAudience;
 
     public RoleDTO(String name, int audienceRefId) {
 
         this.name = name;
         this.audienceRefId = audienceRefId;
+    }
+
+    public RoleDTO(String name, int audienceRefId, int tenantId) {
+
+        this.name = name;
+        this.audienceRefId = audienceRefId;
+        this.tenantId = tenantId;
     }
 
     public String getName() {
@@ -72,5 +80,15 @@ public class RoleDTO {
     public void setId(String id) {
 
         this.id = id;
+    }
+
+    public int getTenantId() {
+
+        return tenantId;
+    }
+
+    public void setTenantId(int tenantId) {
+
+        this.tenantId = tenantId;
     }
 }
