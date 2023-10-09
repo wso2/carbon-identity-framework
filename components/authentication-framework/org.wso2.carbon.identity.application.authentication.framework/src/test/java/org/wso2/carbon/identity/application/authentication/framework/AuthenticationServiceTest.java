@@ -64,9 +64,9 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class AuthenticationServiceTest extends AbstractFrameworkTest {
 
     private static final Log log = LogFactory.getLog(AuthenticationServiceTest.class);
-    private static final String MULTI_OPS_AUTHENTICATORS = "OpenIDConnectAuthenticator:google:" +
-            ":google_myaccount;BasicAuthenticator:LOCAL;FIDOAuthenticator:LOCAL";
-    private static final String SINGLE_AUTHENTICATOR = "BasicAuthenticator:LOCAL:authenticator.basic";
+    private static final String MULTI_OPS_AUTHENTICATORS = "OpenIDConnectAuthenticator:google:google_myaccount;" +
+            "BasicAuthenticator:LOCAL;FIDOAuthenticator:LOCAL";
+    private static final String SINGLE_AUTHENTICATOR = "BasicAuthenticator:LOCAL";
     private static final String SESSION_DATA_KEY = "4458306a-5e77-497f-be67-8ccbec6ff6d0";
     private static final String FINAL_SESSION_DATA_KEY = "bcf793dc-4ea9-4324-a485-7d20999a063e";
     private static final String LOCATION_HEADER = "location";
