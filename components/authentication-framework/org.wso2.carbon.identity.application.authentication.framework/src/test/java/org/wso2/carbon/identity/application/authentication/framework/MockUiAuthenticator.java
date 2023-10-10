@@ -81,6 +81,7 @@ public class MockUiAuthenticator extends AbstractApplicationAuthenticator {
 
     @Override
     public String getI18nKey() {
+
         return this.name + ".authenticator";
     }
 }

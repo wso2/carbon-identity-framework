@@ -37,10 +37,12 @@ public class AuthenticatorData {
     private Map<String, String> additionalData = new HashMap<>();
 
     public String getI18nKey() {
+
         return i18nKey;
     }
 
     public void setI18nKey(String i18nKey) {
+
         this.i18nKey = i18nKey;
     }
 
