@@ -877,7 +877,6 @@
             <!--
                 FAPI Profile Support.
             -->
-            {% if oauth.oidc.fapi is defined %}
             <FAPI>
                 {% if oauth.oidc.fapi.enable_ciba_profile is defined %}
                 <EnableCibaProfile>{{oauth.oidc.fapi.enable_ciba_profile}}</EnableCibaProfile>
@@ -885,8 +884,17 @@
                 {% if oauth.oidc.fapi.enable_security_profile is defined %}
                 <EnableSecurityProfile>{{oauth.oidc.fapi.enable_security_profile}}</EnableSecurityProfile>
                 {% endif %}
+                <AllowedClientAuthenticationMethods>
+                    {% for authmethod in oauth.oidc.fapi.allowed_client_authentication_methods %}
+                        <AllowedClientAuthenticationMethod>{{authmethod}}</AllowedClientAuthenticationMethod>
+                    {% endfor %}
+                </AllowedClientAuthenticationMethods>
+                <AllowedSignatureAlgorithms>
+                    {% for algorithm in oauth.oidc.fapi.allowed_signature_algorithms %}
+                        <AllowedSignatureAlgorithm>{{algorithm}}</AllowedSignatureAlgorithm>
+                    {% endfor %}
+                </AllowedSignatureAlgorithms>
             </FAPI>
-            {% endif %}
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
