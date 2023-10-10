@@ -887,14 +887,6 @@
                 </AllowedSignatureAlgorithms>
             </FAPI>
 
-            <TLSClientCertificateBoundAccessTokensSupported>{{oauth.oidc.tls_client_certificate_bound_access_tokens_supported}}</TLSClientCertificateBoundAccessTokensSupported>
-
-            <SupportedTokenEndpointAuthMethods>
-                {% for authmethod in oauth.oidc.token_endpoint.auth_methods %}
-                    <SupportedTokenEndpointAuthMethod>{{authmethod}}</SupportedTokenEndpointAuthMethod>
-                {% endfor %}
-            </SupportedTokenEndpointAuthMethods>
-
             <SupportedTokenEndpointSigningAlgorithms>
                 {% for algorithm in oauth.oidc.token_endpoint.signing_algorithms %}
                     <SupportedTokenEndpointSigningAlgorithm>{{algorithm}}</SupportedTokenEndpointSigningAlgorithm>
