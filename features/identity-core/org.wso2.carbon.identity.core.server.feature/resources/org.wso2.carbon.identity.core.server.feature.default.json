@@ -183,7 +183,6 @@
   "oauth.grant_type.token_exchange.enable": true,
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
-  "oauth.public_client_support.grant_type_names": [],
   "oauth.dcrm.application_role_permission_required_to_view": true,
 
   "oauth.enable_jwt_token_validation_during_introspection": true,

@@ -566,15 +566,6 @@
         </SupportedGrantTypes>
 
         <!--
-            Defines the grant types which are supported for a client to be authorized as a public client.
-        -->
-        <PublicClientSupportedGrantTypes>
-        {% for grantTypeName in oauth.public_client_support.grant_type_names %}
-            <GrantTypeName>{{grantTypeName}}</GrantTypeName>
-        {% endfor %}
-        </PublicClientSupportedGrantTypes>
-
-        <!--
             Defines the grant types that will filter user claims based on user consent in their responses such as
             id_token or user info response.
 
