@@ -233,12 +233,9 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
             boolean isDisplayNameMatch = actual.stream().anyMatch(actualAuthenticatorData ->
                     expectedAuthenticatorData.getDisplayName().equals(actualAuthenticatorData.getDisplayName()));
             boolean isi18Key = actual.stream().anyMatch(actualAuthenticatorData ->
-                    expectedAuthenticatorData.getI18Key().equals(actualAuthenticatorData.getI18Key()));
+                    expectedAuthenticatorData.getI18nKey().equals(actualAuthenticatorData.getI18nKey()));
             boolean isIdpNameMatch = actual.stream().anyMatch(actualAuthenticatorData ->
                     expectedAuthenticatorData.getIdp().equals(actualAuthenticatorData.getIdp()));
-            boolean isRequiredParamMatch = actual.stream().anyMatch(actualAuthenticatorData ->
-                    expectedAuthenticatorData.getRequiredParameterList().size() ==
-                            (actualAuthenticatorData.getRequiredParameterList().size()));
 
             Assert.assertTrue(isNameMatch, "Expected authenticator name is not present in the actual " +
                     "authenticator list");
@@ -248,8 +245,6 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
                     "authenticator list");
             Assert.assertTrue(isi18Key, "Expected i18Key is not present in the actual " +
                     "authenticator list");
-            Assert.assertTrue(isRequiredParamMatch, "Expected required parameters list is not present in the" +
-                    " actual authenticator list");
         }
     }
 
@@ -313,8 +308,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
                 authenticatorData.setName(name);
                 authenticatorData.setIdp(idp);
                 authenticatorData.setDisplayName(authenticator.getFriendlyName());
-                authenticatorData.setI18Key(authenticator.getI18Key());
-                authenticatorData.setRequiredParameterList(authenticator.getRequiredParams());
+                authenticatorData.setI18nKey(authenticator.getI18nKey());
                 authenticatorDataList.add(authenticatorData);
             }
         }
