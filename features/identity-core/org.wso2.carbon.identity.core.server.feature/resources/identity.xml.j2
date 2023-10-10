@@ -2975,6 +2975,30 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
             <Scopes>internal_application_mgt_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
+            <Scopes>internal_organization_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/check-discovery" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
             <Scopes>internal_organization_view</Scopes>
