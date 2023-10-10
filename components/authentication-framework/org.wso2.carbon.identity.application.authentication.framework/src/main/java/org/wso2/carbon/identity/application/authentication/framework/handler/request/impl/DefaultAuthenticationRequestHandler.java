@@ -387,10 +387,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 String userTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
                 String authorizedOrganization = sequenceConfig.getAuthenticatedUser().getAuthorizedOrganization();
                 if (StringUtils.isNotEmpty(userTenantDomain)) {
-                    /*For non SaaS apps, user tenant domain and application tenant domain should be equal. But for
-                     organization bound tokens issued for B2B apps, the tenant domains should not be equal.*/
+                    /* For non SaaS apps, user tenant domain and application tenant domain should be equal. But for
+                     organization bound tokens issued for B2B apps, the tenant domains should not be equal. */
                     if (StringUtils.isNotEmpty(spTenantDomain) && !spTenantDomain.equals
-                            (userTenantDomain) && authorizedOrganization == null) {
+                            (userTenantDomain) && StringUtils.isBlank(authorizedOrganization)) {
                         throw new FrameworkException("Service Provider tenant domain must be equal to user tenant " +
                                 "domain for non-SaaS applications");
                     }

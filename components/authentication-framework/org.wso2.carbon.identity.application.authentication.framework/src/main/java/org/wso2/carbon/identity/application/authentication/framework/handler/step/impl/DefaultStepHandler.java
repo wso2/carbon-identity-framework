@@ -1460,7 +1460,7 @@ public class DefaultStepHandler implements StepHandler {
             return FrameworkServiceDataHolder.getInstance().getOrganizationManager()
                     .resolveTenantDomain(organizationId);
         } catch (OrganizationManagementException e) {
-            throw new FrameworkException(e.getMessage());
+            throw new FrameworkException(e.getMessage(), e);
         }
     }
 }
