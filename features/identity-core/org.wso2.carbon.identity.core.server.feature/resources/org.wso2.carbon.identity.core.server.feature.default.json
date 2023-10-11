@@ -238,6 +238,7 @@
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
+  "oauth.oidc.fapi.enable_validation": false,
   "oauth.oidc.fapi.enable_sector_identifier_validation": false,
   "oauth.global_rbac_scope_issuer.enable": false,
 

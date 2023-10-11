@@ -885,9 +885,13 @@
                 {% if oauth.oidc.fapi.enable_security_profile is defined %}
                 <EnableSecurityProfile>{{oauth.oidc.fapi.enable_security_profile}}</EnableSecurityProfile>
                 {% endif %}
+                {% if oauth.oidc.fapi.enable_validation is defined %}
+                <EnableFAPIValidation>{{oauth.oidc.fapi.enable_validation}}</EnableFAPIValidation>
+                {% endif %}
                 {% if oauth.oidc.fapi.enable_sector_identifier_validation is defined %}
                 <EnableSectorIdentifierURIValidation>{{oauth.oidc.fapi.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
                 {% endif %}
+
             </FAPI>
             {% endif %}
         </OpenIDConnect>
