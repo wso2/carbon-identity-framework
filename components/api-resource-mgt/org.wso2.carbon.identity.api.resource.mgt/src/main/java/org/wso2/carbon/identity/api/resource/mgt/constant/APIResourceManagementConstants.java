@@ -29,6 +29,7 @@ public class APIResourceManagementConstants {
 
     public static final String NAME = "name";
     public static final String IDENTIFIER = "identifier";
+    public static final String TYPE = "type";
     public static final String BEFORE = "before";
     public static final String AFTER = "after";
     public static final String EQ = "eq";
@@ -52,6 +53,7 @@ public class APIResourceManagementConstants {
         attributeColumnMap.put(IDENTIFIER, SQLConstants.IDENTIFIER_COLUMN_NAME);
         attributeColumnMap.put(BEFORE, SQLConstants.CURSOR_KEY_COLUMN_NAME);
         attributeColumnMap.put(AFTER, SQLConstants.CURSOR_KEY_COLUMN_NAME);
+        attributeColumnMap.put(TYPE, SQLConstants.TYPE_COLUMN_NAME);
 
         scopeAttributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
     }

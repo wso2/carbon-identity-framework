@@ -251,6 +251,8 @@ public class IdentityEventConstants {
         public static final String POST_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT = "POST_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT";
         public static final String PRE_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT = "PRE_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
         public static final String POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT = "POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
+
+        public static final String POST_APP_USER_ATTRIBUTE_UPDATE = "POST_APP_USER_ATTRIBUTE_UPDATE";
     }
 
     /**
@@ -371,8 +373,11 @@ public class IdentityEventConstants {
         public static final String AUTHENTICATOR_NAME = "authenticatorName";
         public static final String MAPPED_ATTRIBUTES = "mappedAttributes";
         public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
+
         public static final String AUDIENCE = "audience";
         public static final String AUDIENCE_ID = "audienceId";
+
+        public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
     }
 
     public class ErrorMessage {

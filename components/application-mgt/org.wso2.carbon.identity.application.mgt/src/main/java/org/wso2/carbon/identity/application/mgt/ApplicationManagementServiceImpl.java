@@ -78,6 +78,10 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
@@ -104,11 +108,13 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -2578,7 +2584,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             doPreUpdateChecks(storedAppName, updatedApp, tenantDomain, username);
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            ServiceProvider storedApp = getApplicationByResourceId(resourceId, tenantDomain);
             appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
+            postApplicationUserAttributeUpdate(updatedApp, storedApp, tenantDomain);
 
             if (isOwnerUpdateRequest(storedAppInfo.getAppOwner(), updatedApp.getOwner())) {
                 // User existence check is already done in appDAO.updateApplicationByResourceId() method.
@@ -2640,6 +2648,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return systemApplications;
+    }
+
+    @Override
+    public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getMainAppId(sharedAppId);
+    }
+
+    @Override
+    public int getTenantIdByApp(String appId) throws IdentityApplicationManagementServerException {
+
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getTenantIdByApp(appId);
     }
 
     private void doPreUpdateChecks(String storedAppName, ServiceProvider updatedApp, String tenantDomain,
@@ -2921,5 +2941,47 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         return localClaimsArray;
     }
-}
 
+    private void postApplicationUserAttributeUpdate(ServiceProvider updatedApp, ServiceProvider storedApp,
+                                                    String tenantDomain) {
+
+        if (updatedApp.getClaimConfig().getClaimMappings().length > 0) {
+            List<String> storedAppClaimUrls = Arrays.stream(storedApp.getClaimConfig()
+                            .getClaimMappings()).map(claimMapping -> claimMapping.getLocalClaim().getClaimUri())
+                    .collect(Collectors.toList());
+            List<org.wso2.carbon.identity.application.common.model.ClaimMapping> updatedClaimMappings =
+                    Arrays.stream(updatedApp.getClaimConfig().getClaimMappings())
+                            .filter(claimMapping ->
+                                    !storedAppClaimUrls.contains(claimMapping.getLocalClaim().getClaimUri()))
+                            .collect(Collectors.toList());
+
+            if (!updatedClaimMappings.isEmpty()) {
+                Map<String, Object> eventProperties = new HashMap<>();
+                eventProperties.put(IdentityEventConstants.EventProperty.UPDATED_CLAIM_MAPPINGS,
+                        updatedClaimMappings);
+                eventProperties.put(IdentityEventConstants.EventProperty.APPLICATION_ID,
+                        updatedApp.getApplicationResourceId());
+                eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+                Event event = new Event(IdentityEventConstants.Event.POST_APP_USER_ATTRIBUTE_UPDATE, eventProperties);
+                fireEvent(event);
+            }
+
+        }
+    }
+
+    private void fireEvent(Event event) {
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Event: " + event.getEventName() + " is published for the application user attribute " +
+                        "update operation in the tenant with the tenantId: " + event.getEventProperties().
+                        get(IdentityEventConstants.EventProperty.TENANT_ID));
+            }
+            IdentityEventService eventService =
+                    ApplicationManagementServiceComponentHolder.getInstance().getIdentityEventService();
+            eventService.handleEvent(event);
+        } catch (IdentityEventException e) {
+            log.error("Error while publishing the event: " + event.getEventName() + ".", e);
+        }
+    }
+}

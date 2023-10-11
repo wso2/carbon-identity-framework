@@ -634,6 +634,24 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                             + ". So ending the authentication flow. Add the correspoding event handler to the script");
                     nextNode = new FailNode();
                 }
+            // Handle timeout when the long wait process is in waiting status,
+            // when external call exceeds long wait timeout
+            } else if (isWaiting) {
+                outcomeName = "onTimeout";
+                data = new HashMap<>();
+                executeFunction(outcomeName, longWaitNode, context, data);
+                nextNode = longWaitNode.getDefaultEdge();
+                if (nextNode == null) {
+                    log.error("Authentication script does not have applicable event handler for outcome "
+                            + outcomeName + " from the long wait process : " + context.getContextIdentifier()
+                            + ". So ending the authentication flow. Add the correspoding event handler to the script");
+                    nextNode = new FailNode();
+                }
+                longWaitStatus = new LongWaitStatus();
+                longWaitStatus.setStatus(LongWaitStatus.Status.COMPLETED);
+                int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
+                longWaitStatusStoreService.addWait(tenantId, context.getContextIdentifier(), longWaitStatus);
+                isWaiting = false;
             } else {
                 log.error("The outcome from the long wait process " + context.getContextIdentifier()
                         + " is null. Because asyncReturn.accept() has not been used properly in the async process flow"

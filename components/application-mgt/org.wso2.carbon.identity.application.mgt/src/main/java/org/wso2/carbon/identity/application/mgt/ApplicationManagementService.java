@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -492,5 +493,26 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
         return Collections.emptySet();
     }
 
+    /**
+     * Get main application ID from the shared application ID.
+     *
+     * @param sharedAppId ID of the shared application.
+     * @return ID of the main application.
+     */
+    public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get tenant ID of the application.
+     *
+     * @param appId ID of the application.
+     * @return Tenant ID.
+     */
+    public int getTenantIdByApp(String appId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
 }
 

@@ -36,12 +36,15 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
+import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
+import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
 import org.wso2.carbon.identity.application.mgt.DiscoverableApplicationManager;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
@@ -59,6 +62,7 @@ import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationVali
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
@@ -123,6 +127,9 @@ public class ApplicationManagementServiceComponent {
 
             bundleContext.registerService(ClaimMetadataMgtListener.class.getName(), new ApplicationClaimMgtListener(),
                     null);
+
+            bundleContext.registerService(AuthorizedAPIManagementService.class,
+                    new AuthorizedAPIManagementServiceImpl(), null);
 
             // Register the ApplicationValidator.
             context.getBundleContext().registerService(ApplicationValidator.class,
@@ -457,5 +464,45 @@ public class ApplicationManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("SAMLSSOServiceProviderManager unset in to bundle");
         }
+    }
+
+    @Reference(
+            name = "identity.event.service",
+            service = IdentityEventService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityEventService"
+    )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        log.debug("IdentityEventService set in Identity Application Management bundle");
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(null);
+        log.debug("IdentityEventService unset in Identity Application Management bundle");
+    }
+
+
+    @Reference(
+            name = "api.resource.mgt.service.component",
+            service = APIResourceManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAPIResourceManager")
+    protected void setAPIResourceManager(APIResourceManager apiResourceManager) {
+
+            ApplicationManagementServiceComponentHolder.getInstance()
+                    .setAPIResourceManager(apiResourceManager);
+            log.debug("APIResourceManager set in to bundle");
+    }
+
+    protected void unsetAPIResourceManager(APIResourceManager apiResourceManager) {
+
+            ApplicationManagementServiceComponentHolder.getInstance()
+                    .setAPIResourceManager(null);
+            log.debug("APIResourceManager unset in to bundle");
     }
 }
