@@ -869,6 +869,7 @@
                 FAPI Profile Support.
             -->
             <FAPI>
+                <EnableFAPIValidation>{{oauth.oidc.fapi.enable_validation}}</EnableFAPIValidation>
                 {% if oauth.oidc.fapi.enable_ciba_profile is defined %}
                 <EnableCibaProfile>{{oauth.oidc.fapi.enable_ciba_profile}}</EnableCibaProfile>
                 {% endif %}
@@ -885,9 +886,6 @@
                         <AllowedSignatureAlgorithm>{{algorithm}}</AllowedSignatureAlgorithm>
                     {% endfor %}
                 </AllowedSignatureAlgorithms>
-                {% if oauth.oidc.fapi.enable_validation is defined %}
-                <EnableFAPIValidation>{{oauth.oidc.fapi.enable_validation}}</EnableFAPIValidation>
-                {% endif %}
                 {% if oauth.oidc.fapi.enable_sector_identifier_validation is defined %}
                 <EnableSectorIdentifierURIValidation>{{oauth.oidc.fapi.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
                 {% endif %}
@@ -984,9 +982,7 @@
             {% if oauth.dcr.ssa_jkws is defined %}
             <SoftwareStatementJWKS>{{oauth.dcr.ssa_jkws}}</SoftwareStatementJWKS>
             {% endif %}
-            {% if oauth.dcr.enable_fapi_validation%}
-            <EnableFAPIEnforcement>{{oauth.dcr.enable_fapi_validation}}</EnableFAPIEnforcement>
-            {% endif %}
+            <EnableFAPIEnforcement>{{oauth.dcr.enable_fapi_enforcement}}</EnableFAPIEnforcement>
         </DCRM>
 
         <!--
