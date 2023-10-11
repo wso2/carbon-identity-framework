@@ -185,6 +185,7 @@
   "oauth.grant_type.token_exchange.allow_public_client": true,
   "oauth.dcrm.application_role_permission_required_to_view": true,
   "oauth.dcr.enable_fapi_enforcement": false,
+  "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.enable_jwt_token_validation_during_introspection": true,
   "oauth.use_client_id_as_sub_claim_for_app_tokens": true,
   "oauth.remove_username_from_introspection_response_for_app_tokens": true,
@@ -241,7 +242,6 @@
   "oauth.oidc.fapi.allowed_signature_algorithms": ["PS256", "ES256"],
 
   "oauth.oidc.fapi.enable_validation": true,
-  "oauth.oidc.fapi.enable_sector_identifier_validation": false,
   "oauth.global_rbac_scope_issuer.enable": false,
 
   "oauth.jarm.enable": true,

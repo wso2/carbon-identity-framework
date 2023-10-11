@@ -886,10 +886,6 @@
                         <AllowedSignatureAlgorithm>{{algorithm}}</AllowedSignatureAlgorithm>
                     {% endfor %}
                 </AllowedSignatureAlgorithms>
-                {% if oauth.oidc.fapi.enable_sector_identifier_validation is defined %}
-                <EnableSectorIdentifierURIValidation>{{oauth.oidc.fapi.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
-                {% endif %}
-
             </FAPI>
         </OpenIDConnect>
 
@@ -983,6 +979,7 @@
             <SoftwareStatementJWKS>{{oauth.dcr.ssa_jkws}}</SoftwareStatementJWKS>
             {% endif %}
             <EnableFAPIEnforcement>{{oauth.dcr.enable_fapi_enforcement}}</EnableFAPIEnforcement>
+            <EnableSectorIdentifierURIValidation>{{oauth.dcr.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
         </DCRM>
 
         <!--
