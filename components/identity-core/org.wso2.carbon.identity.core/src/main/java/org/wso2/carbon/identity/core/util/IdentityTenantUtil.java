@@ -423,6 +423,16 @@ public class IdentityTenantUtil {
     }
 
     /**
+     * Checks if it is required to specify carbon.super in tenant qualified URLs.
+     *
+     * @return true if it is mandatory, false otherwise.
+     */
+    public static boolean isSuperTenantRequiredInUrl() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.APPEND_SUPER_TENANT_IN_URL));
+    }
+
+    /**
      *
      * Checks whether legacy SaaS authentication is enabled.
      *
