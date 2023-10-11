@@ -47,7 +47,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
@@ -67,7 +66,6 @@ import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
@@ -273,7 +271,7 @@ public class DefaultStepHandler implements StepHandler {
                  * TODO: This organization login specific logic should be moved out of authentication framework.
                  * This is tracked with https://github.com/wso2/product-is/issues/15922
                  */
-                boolean isOrganizationLogin = isLoggedInWithOrganizationSSO(authenticatorConfig);
+                boolean isOrganizationLogin = isLoggedInWithOrganizationLogin(authenticatorConfig);
 
                 if (context.isReAuthenticate() || isOrganizationLogin) {
 
@@ -753,12 +751,12 @@ public class DefaultStepHandler implements StepHandler {
                 return;
             }
 
-            // Set authorized organization and user resident tenant domain for B2B organization SSO users.
-            if (context.getSubject() != null && isLoggedInWithOrganizationSSO(authenticatorConfig)) {
+            // Set authorized organization and user resident organization for B2B user logins.
+            if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
                 String userResidentOrganization =
                         resolveUserResidentOrganization(context.getSubject(), authenticatorConfig);
-                context.getSubject().setAuthorizedOrganization(userResidentOrganization);
-                context.getSubject().setTenantDomain(resolveTenantDomain(userResidentOrganization));
+                context.getSubject().setAccessingOrganization(userResidentOrganization);
+                context.getSubject().setUserResidentOrganization(userResidentOrganization);
             }
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
@@ -1397,12 +1395,12 @@ public class DefaultStepHandler implements StepHandler {
     }
 
     /**
-     * Check whether the user is logged in with organization SSO authenticator.
+     * Check whether the user is logged in with organization login.
      *
      * @param authenticatorConfig Authenticator config.
-     * @return Whether the authenticator is organization SSO authenticator or not.
+     * @return Whether the authenticator is organization login or not.
      */
-    private boolean isLoggedInWithOrganizationSSO(AuthenticatorConfig authenticatorConfig) {
+    private boolean isLoggedInWithOrganizationLogin(AuthenticatorConfig authenticatorConfig) {
 
         if (authenticatorConfig == null) {
             return false;
@@ -1433,17 +1431,17 @@ public class DefaultStepHandler implements StepHandler {
     }
 
     /**
-     * Resolve user resident organization for the users authenticated via the B2B organization SSO authenticator.
+     * Resolve user resident organization for the users authenticated via the B2B organization login authenticator.
      *
      * @param authenticatedUser   The authenticated user.
      * @param authenticatorConfig The authenticator configurations.
      * @return The organization where the user's identity is managed.
      */
     private String resolveUserResidentOrganization(AuthenticatedUser authenticatedUser,
-                                                   AuthenticatorConfig authenticatorConfig) {
+                                                   AuthenticatorConfig authenticatorConfig) throws FrameworkException {
 
-        // Check for user organization claim for the authenticated user via the organization SSO authenticator.
-        if (authenticatedUser.getUserAttributes() != null && isLoggedInWithOrganizationSSO(authenticatorConfig)) {
+        // Check for user organization claim for the authenticated user via the organization login authenticator.
+        if (authenticatedUser.getUserAttributes() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
             for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
                 if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
                         userAttributes.getKey().getLocalClaim().getClaimUri())) {
@@ -1451,16 +1449,6 @@ public class DefaultStepHandler implements StepHandler {
                 }
             }
         }
-        return StringUtils.EMPTY;
-    }
-
-    private String resolveTenantDomain(String organizationId) throws FrameworkException {
-
-        try {
-            return FrameworkServiceDataHolder.getInstance().getOrganizationManager()
-                    .resolveTenantDomain(organizationId);
-        } catch (OrganizationManagementException e) {
-            throw new FrameworkException(e.getMessage(), e);
-        }
+        throw new FrameworkException("User resident organization could not found");
     }
 }
