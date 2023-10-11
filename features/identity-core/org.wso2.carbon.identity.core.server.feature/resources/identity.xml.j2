@@ -566,15 +566,6 @@
         </SupportedGrantTypes>
 
         <!--
-            Defines the grant types which are supported for a client to be authorized as a public client.
-        -->
-        <PublicClientSupportedGrantTypes>
-        {% for grantTypeName in oauth.public_client_support.grant_type_names %}
-            <GrantTypeName>{{grantTypeName}}</GrantTypeName>
-        {% endfor %}
-        </PublicClientSupportedGrantTypes>
-
-        <!--
             Defines the grant types that will filter user claims based on user consent in their responses such as
             id_token or user info response.
 
@@ -877,7 +868,6 @@
             <!--
                 FAPI Profile Support.
             -->
-            {% if oauth.oidc.fapi is defined %}
             <FAPI>
                 {% if oauth.oidc.fapi.enable_ciba_profile is defined %}
                 <EnableCibaProfile>{{oauth.oidc.fapi.enable_ciba_profile}}</EnableCibaProfile>
@@ -885,8 +875,17 @@
                 {% if oauth.oidc.fapi.enable_security_profile is defined %}
                 <EnableSecurityProfile>{{oauth.oidc.fapi.enable_security_profile}}</EnableSecurityProfile>
                 {% endif %}
+                <AllowedClientAuthenticationMethods>
+                    {% for authmethod in oauth.oidc.fapi.allowed_client_authentication_methods %}
+                        <AllowedClientAuthenticationMethod>{{authmethod}}</AllowedClientAuthenticationMethod>
+                    {% endfor %}
+                </AllowedClientAuthenticationMethods>
+                <AllowedSignatureAlgorithms>
+                    {% for algorithm in oauth.oidc.fapi.allowed_signature_algorithms %}
+                        <AllowedSignatureAlgorithm>{{algorithm}}</AllowedSignatureAlgorithm>
+                    {% endfor %}
+                </AllowedSignatureAlgorithms>
             </FAPI>
-            {% endif %}
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
@@ -2974,6 +2973,30 @@
         <Resource context="(.*)/api/server/v1/organizations/(.*)/share" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
             <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/update</Permissions>
+            <Scopes>internal_organization_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/delete</Permissions>
+            <Scopes>internal_organization_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/organizations/check-discovery" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>
+            <Scopes>internal_organization_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/organizationmgt/view</Permissions>

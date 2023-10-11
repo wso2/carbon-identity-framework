@@ -363,6 +363,26 @@ public class IdentityTenantUtil {
     }
 
     /**
+     * Get the tenant name from the thread local properties if available, otherwise get from the
+     * privileged carbon context.
+     *
+     * @return Tenant domain name.
+     */
+    public static String resolveTenantDomain() {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        if (StringUtils.isBlank(tenantDomain)) {
+            if (log.isDebugEnabled()) {
+                log.debug("The tenant domain is not set to the thread local. Hence using the tenant domain from the " +
+                        "privileged carbon context.");
+            }
+            return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        }
+
+        return tenantDomain;
+    }
+
+    /**
      * Get the login tenant id.
      * First it gets the tenant domain from the thread local properties. If empty, retrieve it from thread local
      * carbon context. If carbon context is also empty, returns super tenant id.

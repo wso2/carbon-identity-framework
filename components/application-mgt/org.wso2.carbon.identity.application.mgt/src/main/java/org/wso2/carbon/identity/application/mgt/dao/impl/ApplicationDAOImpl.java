@@ -5254,6 +5254,40 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
+    @Override
+    public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            PreparedStatement prepStmt = connection.prepareStatement(ApplicationMgtDBQueries.GET_MAIN_APP_ID);
+            prepStmt.setString(1, sharedAppId);
+            ResultSet resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString(ApplicationTableColumns.MAIN_APP_ID);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException("Error while getting main application id for " +
+                    "the shared application with id: %s", sharedAppId, e);
+        }
+    }
+
+    @Override
+    public int getTenantIdByApp(String applicationId) throws IdentityApplicationManagementServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            PreparedStatement prepStmt = connection.prepareStatement(ApplicationMgtDBQueries.GET_APP_TENANT_ID);
+            prepStmt.setString(1, applicationId);
+            ResultSet resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(ApplicationTableColumns.TENANT_ID);
+            }
+            return -1;
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException("Error while getting tenant id of the application " +
+                    "with id: %s", applicationId, e);
+        }
+    }
+
     private List<ApplicationBasicInfo> getDiscoverableApplicationBasicInfo(int limit, int offset, String
             tenantDomain) throws IdentityApplicationManagementException {
 
