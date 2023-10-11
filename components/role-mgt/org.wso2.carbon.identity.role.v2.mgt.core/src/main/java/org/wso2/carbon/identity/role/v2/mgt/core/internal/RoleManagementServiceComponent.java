@@ -30,6 +30,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
@@ -170,16 +171,34 @@ public class RoleManagementServiceComponent {
             service = APIResourceManager.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetAPIResourceManager"
+            unbind = "unsetAPIResourceManagerService"
     )
-    protected void setAPIResourceManager(APIResourceManager apiResourceManager) {
+    protected void setAPIResourceManagerService(APIResourceManager apiResourceManager) {
 
         RoleManagementServiceComponentHolder.getInstance().setApiResourceManager(apiResourceManager);
     }
 
-    protected void unsetAPIResourceManager(APIResourceManager apiResourceManager) {
+    protected void unsetAPIResourceManagerService(APIResourceManager apiResourceManager) {
 
         RoleManagementServiceComponentHolder.getInstance().setApiResourceManager(null);
+    }
+
+    @Reference(
+            name = "identity.authorized.api.management.component",
+            service = AuthorizedAPIManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAuthorizedAPIManagementService"
+    )
+    protected void setAuthorizedAPIManagementService(AuthorizedAPIManagementService authorizedAPIManagementService) {
+
+        RoleManagementServiceComponentHolder.getInstance()
+                .setAuthorizedAPIManagementService(authorizedAPIManagementService);
+    }
+
+    protected void unsetAuthorizedAPIManagementService(AuthorizedAPIManagementService authorizedAPIManagementService) {
+
+        RoleManagementServiceComponentHolder.getInstance().setAuthorizedAPIManagementService(null);
     }
 
 }

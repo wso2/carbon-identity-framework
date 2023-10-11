@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.role.v2.mgt.core.internal;
 
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -41,6 +42,7 @@ public class RoleManagementServiceComponentHolder {
     private IdpManager identityProviderManager;
     private ApplicationManagementService applicationManagementService;
     private APIResourceManager apiResourceManager;
+    private AuthorizedAPIManagementService authorizedAPIManagementService;
 
     private RoleManagementServiceComponentHolder() {
 
@@ -159,5 +161,25 @@ public class RoleManagementServiceComponentHolder {
     public void setApiResourceManager(APIResourceManager apiResourceManager) {
 
         this.apiResourceManager = apiResourceManager;
+    }
+
+    /**
+     * Get AuthorizedAPIManagementService osgi service.
+     *
+     * @return AuthorizedAPIManagementService
+     */
+    public AuthorizedAPIManagementService getAuthorizedAPIManagementService() {
+
+        return authorizedAPIManagementService;
+    }
+
+    /**
+     * Set setAuthorizedAPIManagementService osgi service.
+     *
+     * @param authorizedAPIManagementService setAuthorizedAPIManagementService.
+     */
+    public void setAuthorizedAPIManagementService(AuthorizedAPIManagementService authorizedAPIManagementService) {
+
+        this.authorizedAPIManagementService = authorizedAPIManagementService;
     }
 }
