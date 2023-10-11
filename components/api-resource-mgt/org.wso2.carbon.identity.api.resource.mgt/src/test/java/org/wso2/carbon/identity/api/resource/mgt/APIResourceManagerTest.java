@@ -189,7 +189,7 @@ public class APIResourceManagerTest extends PowerMockTestCase {
                 .scopes(createdAPIResource.getScopes())
                 .type(createdAPIResource.getType())
                 .identifier(createdAPIResource.getIdentifier())
-                .requiresAuthorization(createdAPIResource.isRequiresAuthorization());
+                .requiresAuthorization(createdAPIResource.isAuthorizationRequired());
 
         if (updatedName != null) {
             apiResourceBuilder.name(updatedName);

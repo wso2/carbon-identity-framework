@@ -183,7 +183,6 @@
   "oauth.grant_type.token_exchange.enable": true,
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
-  "oauth.public_client_support.grant_type_names": [],
   "oauth.dcrm.application_role_permission_required_to_view": true,
   "oauth.dcr.enable_fapi_validation": false,
   "oauth.enable_jwt_token_validation_during_introspection": true,
@@ -238,6 +237,9 @@
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
+  "oauth.oidc.fapi.allowed_client_authentication_methods": ["private_key_jwt", "tls_client_auth"],
+  "oauth.oidc.fapi.allowed_signature_algorithms": ["PS256", "ES256"],
+
   "oauth.oidc.fapi.enable_validation": false,
   "oauth.oidc.fapi.enable_sector_identifier_validation": false,
   "oauth.global_rbac_scope_issuer.enable": false,

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -144,4 +145,15 @@ public interface ApplicationAuthenticator extends Serializable {
 
         return Optional.empty();
     }
+
+    /**
+     * Get the i18Key supported from the authenticator level.
+     *
+     * @return i18key
+     */
+    default String getI18nKey() {
+
+        return StringUtils.EMPTY;
+    }
+
 }

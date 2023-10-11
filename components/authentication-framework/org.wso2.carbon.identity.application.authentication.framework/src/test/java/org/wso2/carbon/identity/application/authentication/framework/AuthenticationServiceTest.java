@@ -227,18 +227,23 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         }
 
         for (AuthenticatorData expectedAuthenticatorData : expected) {
+
             boolean isNameMatch = actual.stream().anyMatch(actualAuthenticatorData ->
                     expectedAuthenticatorData.getName().equals(actualAuthenticatorData.getName()));
             boolean isDisplayNameMatch = actual.stream().anyMatch(actualAuthenticatorData ->
                     expectedAuthenticatorData.getDisplayName().equals(actualAuthenticatorData.getDisplayName()));
+            boolean isi18Key = actual.stream().anyMatch(actualAuthenticatorData ->
+                    expectedAuthenticatorData.getI18nKey().equals(actualAuthenticatorData.getI18nKey()));
             boolean isIdpNameMatch = actual.stream().anyMatch(actualAuthenticatorData ->
                     expectedAuthenticatorData.getIdp().equals(actualAuthenticatorData.getIdp()));
 
             Assert.assertTrue(isNameMatch, "Expected authenticator name is not present in the actual " +
                     "authenticator list");
-            Assert.assertTrue(isDisplayNameMatch, "Expected authenticator display name is not present in the actual " +
-                    "authenticator list");
+            Assert.assertTrue(isDisplayNameMatch, "Expected authenticator display name is not present in the" +
+                    " actual authenticator list");
             Assert.assertTrue(isIdpNameMatch, "Expected authenticator idp name is not present in the actual " +
+                    "authenticator list");
+            Assert.assertTrue(isi18Key, "Expected i18Key is not present in the actual " +
                     "authenticator list");
         }
     }
@@ -303,6 +308,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
                 authenticatorData.setName(name);
                 authenticatorData.setIdp(idp);
                 authenticatorData.setDisplayName(authenticator.getFriendlyName());
+                authenticatorData.setI18nKey(authenticator.getI18nKey());
                 authenticatorDataList.add(authenticatorData);
             }
         }

@@ -240,5 +240,15 @@
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "38",
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
     "POST_ADD_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.OrgClaimMgtHandler.module_index": "39",
+  "identity_mgt.events.schemes.OrgClaimMgtHandler.subscriptions": [
+    "POST_SHARE_APPLICATION",
+    "POST_APP_USER_ATTRIBUTE_UPDATE",
+    "POST_DELETE_LOCAL_CLAIM",
+    "POST_DELETE_EXTERNAL_CLAIM",
+    "POST_UPDATE_LOCAL_CLAIM",
+    "POST_UPDATE_EXTERNAL_CLAIM",
+    "POST_ADD_EXTERNAL_CLAIM"
   ]
 }
