@@ -209,7 +209,8 @@ public class RoleDAOImpl implements RoleDAO {
             validateApplicationRoleAudience(audienceId, tenantDomain);
         }
         validatePermissions(permissions, audience, audienceId, tenantDomain);
-
+        List<String> userNamesList = getUserNamesByIDs(userList, tenantDomain);
+        Map<String, String> groupIdsToNames = getGroupNamesByIDs(groupList, tenantDomain);
         if (!isExistingRoleName(roleName, audience, audienceId, tenantDomain)) {
             try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
                 int audienceRefId = getRoleAudienceRefId(audience, audienceId, connection);
@@ -225,7 +226,6 @@ public class RoleDAOImpl implements RoleDAO {
                     String databaseProductName = connection.getMetaData().getDatabaseProductName();
                     // Add users to the created role.
                     if (CollectionUtils.isNotEmpty(userList)) {
-                        List<String> userNamesList = getUserNamesByIDs(userList, tenantDomain);
                         String addUsersSQL = ADD_USER_TO_ROLE_SQL;
                         if (MICROSOFT.equals(databaseProductName)) {
                             addUsersSQL = ADD_USER_TO_ROLE_SQL_MSSQL;
@@ -240,7 +240,6 @@ public class RoleDAOImpl implements RoleDAO {
 
                     // Add groups to the created role.
                     if (CollectionUtils.isNotEmpty(groupList)) {
-                        Map<String, String> groupIdsToNames = getGroupNamesByIDs(groupList, tenantDomain);
                         List<String> groupNamesList = new ArrayList<>(groupIdsToNames.values());
                         String addGroupsSQL = ADD_GROUP_TO_ROLE_SQL;
                         if (MICROSOFT.equals(databaseProductName)) {
