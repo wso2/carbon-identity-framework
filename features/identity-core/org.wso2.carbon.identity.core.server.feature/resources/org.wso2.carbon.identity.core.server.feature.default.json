@@ -1069,7 +1069,7 @@
   "console.self_app_identifier": "Console",
   "console.system_apps_identifiers": ["Console", "My Account"],
   "console.gravatar.configs.fallback": "404",
-  "console.list_all_attribute_dialects": false,
+  "console.list_all_attribute_dialects": true,
   "console.organizations.enabled": true,
   "console.organizations.scopes.feature": ["console:organizations"],
   "console.organizations.scopes.create": ["internal_organization_create"],
