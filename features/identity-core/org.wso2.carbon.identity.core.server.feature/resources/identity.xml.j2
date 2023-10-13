@@ -869,6 +869,7 @@
                 FAPI Profile Support.
             -->
             <FAPI>
+                <EnableFAPIValidation>{{oauth.oidc.fapi.enable_validation}}</EnableFAPIValidation>
                 {% if oauth.oidc.fapi.enable_ciba_profile is defined %}
                 <EnableCibaProfile>{{oauth.oidc.fapi.enable_ciba_profile}}</EnableCibaProfile>
                 {% endif %}
@@ -974,6 +975,11 @@
         -->
         <DCRM>
             <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
+            {% if oauth.dcr.ssa_jkws is defined %}
+            <SoftwareStatementJWKS>{{oauth.dcr.ssa_jkws}}</SoftwareStatementJWKS>
+            {% endif %}
+            <EnableFAPIEnforcement>{{oauth.dcr.enable_fapi_enforcement}}</EnableFAPIEnforcement>
+            <EnableSectorIdentifierURIValidation>{{oauth.dcr.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
         </DCRM>
 
         <!--
