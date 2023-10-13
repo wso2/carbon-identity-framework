@@ -265,8 +265,7 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        // Append internal domain in order to maintain the backward compatibility.
-        roleName = appendInternalDomain(roleName);
+        roleName = removeInternalDomain(roleName);
         if (log.isDebugEnabled()) {
             log.debug("Adding the roleID: " + roleId + " for the role: " + roleName + " in the tenantDomain: "
                     + tenantDomain);
@@ -393,7 +392,7 @@ public class RoleDAOImpl implements RoleDAO {
                 String roleName = resultSet.getString(1);
                 String roleId = resultSet.getString(2);
                 if (roleId == null) {
-                    roleNamesWithoutUUIDs.add(roleName);
+                    roleNamesWithoutUUIDs.add(appendInternalDomain(roleName));
                 }
                 roleNames.add(appendInternalDomain(roleName));
             }
