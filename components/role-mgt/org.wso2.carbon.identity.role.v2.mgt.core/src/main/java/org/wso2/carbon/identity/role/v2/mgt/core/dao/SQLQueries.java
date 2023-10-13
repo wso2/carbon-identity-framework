@@ -23,6 +23,9 @@ package org.wso2.carbon.identity.role.v2.mgt.core.dao;
  */
 public class SQLQueries {
 
+    public static final String GET_ROLE_UM_ID = "SELECT UM_ID FROM UM_HYBRID_ROLE WHERE " +
+            "UM_ROLE_NAME=:UM_ROLE_NAME; AND UM_AUDIENCE_REF_ID=:UM_AUDIENCE_REF_ID; AND UM_TENANT_ID=:UM_TENANT_ID;";
+
     public static final String ADD_ROLE_WITH_AUDIENCE_SQL = "INSERT INTO UM_HYBRID_ROLE (UM_ROLE_NAME, " +
             "UM_AUDIENCE_REF_ID, UM_UUID, UM_TENANT_ID) VALUES (:UM_ROLE_NAME;, :UM_AUDIENCE_REF_ID;, :UM_UUID;, " +
             ":UM_TENANT_ID;)";
@@ -273,4 +276,7 @@ public class SQLQueries {
     public static final String GET_GROUP_ID_BY_NAME_SQL = "SELECT ATTR_VALUE FROM IDN_SCIM_GROUP WHERE "
             + "TENANT_ID=:TENANT_ID; AND ROLE_NAME=:ROLE_NAME; AND ATTR_NAME=:ATTR_NAME;";
 
+    public static final String INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP = "INSERT INTO UM_SHARED_ROLE " +
+            "(UM_SHARED_ROLE_ID, UM_MAIN_ROLE_ID, UM_SHARED_ROLE_TENANT_ID, UM_MAIN_ROLE_TENANT_ID) " +
+            "VALUES (:UM_SHARED_ROLE_ID;, :UM_MAIN_ROLE_ID;, :UM_SHARED_ROLE_TENANT_ID;, :UM_MAIN_ROLE_TENANT_ID;)";
 }

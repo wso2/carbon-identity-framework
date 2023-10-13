@@ -157,9 +157,11 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_SHARED_ROLE_SQL;
@@ -636,6 +638,74 @@ public class RoleDAOImpl implements RoleDAO {
             role.setPermissions(getPermissions(roleID, tenantDomain));
         }
         return role;
+    }
+
+    @Override
+    public void addMainRoleToSharedRoleRelationship(String mainRoleUUID, String sharedRoleUUID,
+                                                    String mainRoleTenantDomain, String sharedRoleTenantDomain)
+            throws IdentityRoleManagementException {
+
+        String mainRoleName = getRoleNameByID(mainRoleUUID, mainRoleTenantDomain);
+        int mainRoleAudienceReference = getAudienceRefByID(mainRoleUUID, mainRoleTenantDomain);
+        int mainRoleTenantId = IdentityTenantUtil.getTenantId(mainRoleTenantDomain);
+
+        String sharedRoleName = getRoleNameByID(sharedRoleUUID, sharedRoleTenantDomain);
+        int sharedRoleAudienceReference = getAudienceRefByID(sharedRoleUUID, sharedRoleTenantDomain);
+        int sharedRoleTenantId = IdentityTenantUtil.getTenantId(sharedRoleTenantDomain);
+
+        int mainRoleUMId = 0;
+        int sharedRoleUMId = 0;
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+            try (NamedPreparedStatement stmt = new NamedPreparedStatement(connection, GET_ROLE_UM_ID)) {
+                stmt.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, mainRoleName);
+                stmt.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainRoleTenantId);
+                stmt.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, mainRoleAudienceReference);
+                ResultSet resultSet = stmt.executeQuery();
+                while (resultSet.next()) {
+                    mainRoleUMId = resultSet.getInt(1);
+                }
+            } catch (SQLException e) {
+                String message = "Error while resolving id of role name: %s in the tenantDomain: %s.";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        String.format(message, mainRoleName, mainRoleTenantDomain), e);
+            }
+
+            try (NamedPreparedStatement stmt = new NamedPreparedStatement(connection, GET_ROLE_UM_ID)) {
+                stmt.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, sharedRoleName);
+                stmt.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, sharedRoleTenantId);
+                stmt.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, sharedRoleAudienceReference);
+                ResultSet resultSet = stmt.executeQuery();
+                while (resultSet.next()) {
+                    sharedRoleUMId = resultSet.getInt(1);
+                }
+            } catch (SQLException e) {
+                String message = "Error while resolving id of role name: %s in the tenantDomain: %s.";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        String.format(message, sharedRoleName, sharedRoleTenantDomain), e);
+            }
+
+            if (mainRoleUMId == 0 || sharedRoleUMId == 0) {
+                String message = "Error while resolving role id.";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        message);
+            }
+            try (NamedPreparedStatement preparedStatement = new NamedPreparedStatement(connection,
+                    INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP)) {
+                preparedStatement.setInt(RoleConstants.RoleTableColumns.UM_SHARED_ROLE_ID, sharedRoleUMId);
+                preparedStatement.setInt(RoleConstants.RoleTableColumns.UM_MAIN_ROLE_ID, mainRoleUMId);
+                preparedStatement.setInt(RoleConstants.RoleTableColumns.UM_SHARED_ROLE_TENANT_ID, sharedRoleTenantId);
+                preparedStatement.setInt(RoleConstants.RoleTableColumns.UM_MAIN_ROLE_TENANT_ID, mainRoleTenantId);
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                String message = "Error while adding the role relationship of role: %s.";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        String.format(message, sharedRoleName), e);
+            }
+        } catch (SQLException e) {
+            String message = "Error while adding the role relationship of role: %s.";
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(message, sharedRoleName), e);
+        }
     }
 
     /**
