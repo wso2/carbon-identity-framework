@@ -23,8 +23,7 @@ package org.wso2.carbon.identity.role.v2.mgt.core.dao;
  */
 public class SQLQueries {
 
-    public static final String GET_ROLE_UM_ID = "SELECT UM_ID FROM UM_HYBRID_ROLE WHERE " +
-            "UM_ROLE_NAME=:UM_ROLE_NAME; AND UM_AUDIENCE_REF_ID=:UM_AUDIENCE_REF_ID; AND UM_TENANT_ID=:UM_TENANT_ID;";
+    public static final String GET_ROLE_UM_ID_BY_UUID = "SELECT UM_ID FROM UM_HYBRID_ROLE WHERE UM_UUID=:UM_UUID;";
 
     public static final String ADD_ROLE_WITH_AUDIENCE_SQL = "INSERT INTO UM_HYBRID_ROLE (UM_ROLE_NAME, " +
             "UM_AUDIENCE_REF_ID, UM_UUID, UM_TENANT_ID) VALUES (:UM_ROLE_NAME;, :UM_AUDIENCE_REF_ID;, :UM_UUID;, " +
@@ -159,7 +158,7 @@ public class SQLQueries {
             "UM_HYBRID_GROUP_ROLE.UM_DOMAIN_ID=UM_DOMAIN.UM_DOMAIN_ID";
 
     public static final String GET_ROLE_NAME_BY_ID_SQL = "SELECT UM_ROLE_NAME FROM UM_HYBRID_ROLE WHERE "
-            + "TENANT_ID=:TENANT_ID; AND UM_UUID=:UM_UUID;";
+            + "UM_TENANT_ID=:UM_TENANT_ID; AND UM_UUID=:UM_UUID;";
     public static final String IS_ROLE_ID_EXIST_SQL = "SELECT COUNT(ID) FROM IDN_SCIM_GROUP WHERE "
             + "TENANT_ID=:TENANT_ID; AND ATTR_NAME=:ATTR_NAME; AND ATTR_VALUE=:ATTR_VALUE;";
 

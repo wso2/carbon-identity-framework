@@ -157,7 +157,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
@@ -646,20 +646,16 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         String mainRoleName = getRoleNameByID(mainRoleUUID, mainRoleTenantDomain);
-        int mainRoleAudienceReference = getAudienceRefByID(mainRoleUUID, mainRoleTenantDomain);
         int mainRoleTenantId = IdentityTenantUtil.getTenantId(mainRoleTenantDomain);
 
         String sharedRoleName = getRoleNameByID(sharedRoleUUID, sharedRoleTenantDomain);
-        int sharedRoleAudienceReference = getAudienceRefByID(sharedRoleUUID, sharedRoleTenantDomain);
         int sharedRoleTenantId = IdentityTenantUtil.getTenantId(sharedRoleTenantDomain);
 
         int mainRoleUMId = 0;
         int sharedRoleUMId = 0;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
-            try (NamedPreparedStatement stmt = new NamedPreparedStatement(connection, GET_ROLE_UM_ID)) {
-                stmt.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, mainRoleName);
-                stmt.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainRoleTenantId);
-                stmt.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, mainRoleAudienceReference);
+            try (NamedPreparedStatement stmt = new NamedPreparedStatement(connection, GET_ROLE_UM_ID_BY_UUID)) {
+                stmt.setString(RoleConstants.RoleTableColumns.UM_UUID, mainRoleUUID);
                 ResultSet resultSet = stmt.executeQuery();
                 while (resultSet.next()) {
                     mainRoleUMId = resultSet.getInt(1);
@@ -670,10 +666,8 @@ public class RoleDAOImpl implements RoleDAO {
                         String.format(message, mainRoleName, mainRoleTenantDomain), e);
             }
 
-            try (NamedPreparedStatement stmt = new NamedPreparedStatement(connection, GET_ROLE_UM_ID)) {
-                stmt.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, sharedRoleName);
-                stmt.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, sharedRoleTenantId);
-                stmt.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, sharedRoleAudienceReference);
+            try (NamedPreparedStatement stmt = new NamedPreparedStatement(connection, GET_ROLE_UM_ID_BY_UUID)) {
+                stmt.setString(RoleConstants.RoleTableColumns.UM_UUID, sharedRoleUUID);
                 ResultSet resultSet = stmt.executeQuery();
                 while (resultSet.next()) {
                     sharedRoleUMId = resultSet.getInt(1);
@@ -1745,9 +1739,9 @@ public class RoleDAOImpl implements RoleDAO {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String roleName = null;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_NAME_BY_ID_SQL)) {
-                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleID);
                 int count = 0;
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -1771,7 +1765,7 @@ public class RoleDAOImpl implements RoleDAO {
                     errorMessage, e);
         }
         // Verify whether the roleName is either null or it's not contain any prefix Application/Internal
-        if (roleName == null || !RoleManagementUtils.isHybridRole(roleName)) {
+        if (roleName == null) {
             String errorMessage = "A role doesn't exist with id: " + roleID + " in the tenantDomain: " + tenantDomain;
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(), errorMessage);
         }
