@@ -83,6 +83,7 @@ public class RoleConstants {
         public static final String ATTR_NAME = "ATTR_NAME";
         public static final String ATTR_VALUE = "ATTR_VALUE";
         public static final String ROLE_NAME = "ROLE_NAME";
+        public static final String UM_UUID = "UM_UUID";
         public static final String UM_AUDIENCE = "UM_AUDIENCE";
         public static final String UM_AUDIENCE_ID = "UM_AUDIENCE_ID";
         public static final String UM_AUDIENCE_REF_ID = "UM_AUDIENCE_REF_ID";

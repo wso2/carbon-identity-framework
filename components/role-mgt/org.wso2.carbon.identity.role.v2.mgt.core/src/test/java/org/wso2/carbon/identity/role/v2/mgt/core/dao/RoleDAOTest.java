@@ -609,7 +609,6 @@ public class RoleDAOTest extends PowerMockTestCase {
         doReturn(roleName).when(roleDAO, "getRoleNameByID", anyString(), anyString());
         doReturn("test-org").when(roleDAO, "getOrganizationName", anyString());
         doNothing().when(roleDAO, "validatePermissions", anyCollection(), anyString(), anyString(), anyString());
-        doNothing().when(roleDAO, "validateApplicationRoleAudience", anyString(), anyString());
         when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
         return roleDAO.addRole(roleName, userIDsList, groupIDsList, permissions, audience, audienceId,
                 SAMPLE_TENANT_DOMAIN);

@@ -23,6 +23,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
@@ -30,8 +33,10 @@ import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
+import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -43,6 +48,7 @@ import java.util.Set;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 
 /**
@@ -83,8 +89,12 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 audience = ORGANIZATION;
             }
             if (APPLICATION.equalsIgnoreCase(audience)) {
+                validateApplicationRoleAudience(audienceId, tenantDomain);
                 audience = APPLICATION;
             }
+        } else {
+            audience = ORGANIZATION;
+            audienceId = getOrganizationIdByTenantDomain(tenantDomain);
         }
 
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
@@ -409,6 +419,59 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
         return user;
+    }
+
+    /**
+     * Get organization ID by tenantDomain.
+     *
+     * @param tenantDomain tenantDomain.
+     * @throws IdentityRoleManagementException Error occurred while retrieving organization id.
+     */
+    private String getOrganizationIdByTenantDomain(String tenantDomain) throws IdentityRoleManagementException {
+
+        try {
+            return RoleManagementServiceComponentHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(tenantDomain);
+
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while retrieving the organization id for the given tenantDomain: "
+                    + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+    }
+
+    /**
+     * Validate application role audience.
+     *
+     * @param applicationId Application Id.
+     * @throws IdentityRoleManagementException Error occurred while validating application role audience.
+     */
+    private void validateApplicationRoleAudience(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        try {
+            ServiceProvider app = RoleManagementServiceComponentHolder.getInstance().getApplicationManagementService()
+                    .getApplicationByResourceId(applicationId, tenantDomain);
+            if (app == null) {
+                throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
+                        "Audience Id: " + applicationId + " is not found");
+            }
+            boolean valid = false;
+            for (ServiceProviderProperty property : app.getSpProperties()) {
+                if ("ROLE_AUDIENCE_TYPE".equals(property.getName())) {
+                    if (APPLICATION.equalsIgnoreCase(property.getValue())) {
+                        valid = true;
+                    }
+                }
+            }
+            if (!valid) {
+                throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
+                        "Application: " + applicationId + " does not have Application role audience type");
+            }
+        } catch (IdentityApplicationManagementException e) {
+            String errorMessage = "Error while retrieving the application for the given id: " + applicationId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
     }
 
     /**
