@@ -25,7 +25,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -34,14 +33,11 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -174,40 +170,6 @@ public class AuthenticatedUser extends User {
     }
 
     /**
-     * Resolve userId from ancestor organizations when user is not found in the current organization.
-     *
-     * @return return user Id.
-     */
-    private String resolveUserIdFromAncestorOrganizations() {
-
-        try {
-            if (authenticatedSubjectIdentifier != null) {
-                String organizationId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
-                        .resolveOrganizationId(tenantDomain);
-                /*
-                    Extract user id from the authenticated subject identifier assuming user ID set as a part of the
-                    subject identifier.
-                */
-                String potentialUserId =
-                        authenticatedSubjectIdentifier.split(UserCoreConstants.TENANT_DOMAIN_COMBINER)[0];
-                if (potentialUserId.contains(CarbonConstants.DOMAIN_SEPARATOR)) {
-                    potentialUserId = potentialUserId.split(CarbonConstants.DOMAIN_SEPARATOR)[1];
-                }
-                Optional<String> userResideOrgId = FrameworkServiceDataHolder.getInstance()
-                        .getOrganizationUserResidentResolverService()
-                        .resolveResidentOrganization(potentialUserId, organizationId);
-                if (userResideOrgId.isPresent()) {
-                    return potentialUserId;
-                }
-            }
-        } catch (OrganizationManagementException e) {
-            log.error("Error occurred while resolving the user's resident organization by user ID from ancestor " +
-                    "organizations");
-        }
-        return null;
-    }
-
-    /**
      * Internal method to get the user id of a local user with the parameters available in the authenticated user
      * object.
      */
@@ -219,9 +181,6 @@ public class AuthenticatedUser extends User {
                 int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
                 userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
                         this.getUserStoreDomain(), this.getUserName());
-                if (userId == null && FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnabled()) {
-                    userId = resolveUserIdFromAncestorOrganizations();
-                }
             } catch (UserSessionException e) {
                 log.error("Error while resolving the user id from username for local user.");
             }
