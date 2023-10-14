@@ -2804,6 +2804,38 @@ public class IdPManagementDAO {
     }
 
     /**
+     * Get the enabled IDP of the given realm id.
+     *
+     * @param realmId       Realm ID of the required identity provider.
+     * @param tenantId      Tenant ID of the required identity provider.
+     * @param tenantDomain  Tenant domain of the required identity provider.
+     * @return              Enabled identity provider of the given realm id.
+     * @throws IdentityProviderManagementException Error when getting the identity provider.
+     * @throws SQLException                        Error when executing SQL query.
+     */
+    public IdentityProvider getEnabledIdPByRealmId(String realmId, int tenantId, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+            String idPName = null;
+            String sqlStmt = IdPManagementConstants.SQLQueries.GET_ENABLED_IDP_NAME_BY_REALM_ID_SQL;
+            PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
+            prepStmt.setString(3, realmId);
+            prepStmt.setString(4, IdPManagementConstants.IS_TRUE_VALUE);
+            ResultSet rs = prepStmt.executeQuery();
+            if (rs.next()) {
+                idPName = rs.getString(IdPManagementConstants.NAME);
+            }
+            return getIdPByName(dbConnection, idPName, tenantId, tenantDomain);
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error while retrieving Identity Provider by realm " +
+                    realmId, e);
+        }
+    }
+
+    /**
      * @param identityProvider
      * @param tenantId
      * @throws IdentityProviderManagementException

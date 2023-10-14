@@ -90,6 +90,8 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
     private static final String DB_NAME = "test";
     private static final Integer SAMPLE_TENANT_ID = -1234;
     private static final Integer SAMPLE_TENANT_ID2 = 1;
+    private static final Integer SAMPLE_TENANT_ID3 = 2;
+
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String IDP_GROUP1 = "idpGroup1";
     private static final String IDP_GROUP2 = "idpGroup2";
@@ -917,7 +919,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         return new Object[][]{
                 {"testIdP1", "1", SAMPLE_TENANT_ID, true},
                 {"testIdP2", "2", SAMPLE_TENANT_ID, true},
-                {"notExist", "4", SAMPLE_TENANT_ID2, false},
+                {"notExist", "99", SAMPLE_TENANT_ID2, false},
         };
     }
 
@@ -937,6 +939,36 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
                 assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIDPbyRealmId' method fails");
             } else {
                 assertNull(idpResult, "'getIDPbyRealmId' method fails");
+            }
+        }
+    }
+
+    @DataProvider
+    public Object[][] getEnabledIdPByRealmIdData() {
+
+        return new Object[][]{
+                {"testIdP4", "4", SAMPLE_TENANT_ID3, true, true},
+                {"testIdP5", "5", SAMPLE_TENANT_ID3, true, false},
+                {"notExist", "99", SAMPLE_TENANT_ID3, false, false},
+        };
+    }
+
+    @Test(dataProvider = "getEnabledIdPByRealmIdData")
+    public void testGetEnabledIdPRealmId(String idpName, String realmId, int tenantId, boolean isExist, boolean isEnabled) throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps(connection);
+
+            IdentityProvider idpResult = idPManagementDAO.getEnabledIdPByRealmId(realmId, tenantId, TENANT_DOMAIN);
+            if (isExist && isEnabled) {
+                assertEquals(idpResult.getIdentityProviderName(), idpName, "'getEnabledIdPByRealmId' method fails");
+            } else {
+                assertNull(idpResult, "'getEnabledIdPByRealmId' method fails");
             }
         }
     }
@@ -1816,6 +1848,26 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID);
         // IDP with Only name.
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
+    }
+
+    private void addTestIdps(Connection connection) throws IdentityProviderManagementException {
+        // Initialize Test Identity Provider 4.
+        IdentityProvider idp4 = new IdentityProvider();
+        idp4.setIdentityProviderName("testIdP4");
+        idp4.setHomeRealmId("4");
+
+        // Initialize Test Identity Provider 5.
+        IdentityProvider idp5 = new IdentityProvider();
+        idp5.setIdentityProviderName("testIdP5");
+        idp5.setHomeRealmId("5");
+
+        // IDP with Only name.
+        idPManagementDAO.addIdP(idp4, SAMPLE_TENANT_ID3);
+        // Disabled IDP.
+        idPManagementDAO.addIdP(idp5, SAMPLE_TENANT_ID3);
+        IdentityProvider tempIdP = idPManagementDAO.getIdPByName(connection, "testIdP5", SAMPLE_TENANT_ID3, TENANT_DOMAIN);
+        tempIdP.setEnable(false);
+        idPManagementDAO.updateIdP(tempIdP, idp5, SAMPLE_TENANT_ID3);
     }
 
     private void addTestTrustedTokenIssuers() throws IdentityProviderManagementException {

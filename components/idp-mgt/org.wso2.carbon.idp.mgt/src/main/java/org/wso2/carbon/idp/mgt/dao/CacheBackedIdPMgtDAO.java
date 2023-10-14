@@ -518,6 +518,58 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
+     * Get the enabled IDP of the given realm id.
+     *
+     * @param realmId       Realm ID of the required identity provider.
+     * @param tenantId      Tenant ID of the required identity provider.
+     * @param tenantDomain  Tenant domain of the required identity provider.
+     * @return              Enabled identity provider of the given realm id.
+     * @throws IdentityProviderManagementException Error when getting the identity provider.
+     */
+    public IdentityProvider getEnabledIdPByRealmId(String realmId, int tenantId,
+                                            String tenantDomain) throws IdentityProviderManagementException {
+
+        IdPHomeRealmIdCacheKey cacheKey = new IdPHomeRealmIdCacheKey(realmId);
+        IdPCacheEntry entry = idPCacheByHRI.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache entry found for Identity Provider with Home Realm ID " + realmId);
+            }
+            // Check whether the idp in the cache is enabled.
+            if (entry.getIdentityProvider().isEnable()) {
+                return entry.getIdentityProvider();
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Identity Provider with Home Realm ID " + realmId + "available in the cache is disabled. " +
+                        "Fetching entry from DB.");
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache entry not found for Identity Provider with Home Realm ID " + realmId
+                        + ". Fetching entry from DB.");
+            }
+        }
+
+        IdentityProvider identityProvider = idPMgtDAO.getEnabledIdPByRealmId(realmId, tenantId, tenantDomain);
+
+        if (identityProvider != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Entry fetched from DB for Identity Provider with Home Realm ID " + realmId
+                        + ". Updating cache.");
+            }
+            idPCacheByHRI.addToCache(cacheKey, new IdPCacheEntry(identityProvider), tenantDomain);
+            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(identityProvider.getIdentityProviderName());
+            idPCacheByName.addToCache(idPNameCacheKey, new IdPCacheEntry(identityProvider), tenantDomain);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Entry for Identity Provider with Home Realm ID " + realmId
+                        + " not found in cache or DB.");
+            }
+        }
+        return identityProvider;
+    }
+
+    /**
      * Adds a new Identity Provider and cache it.
      *
      * @param identityProvider  new Identity Provider information.

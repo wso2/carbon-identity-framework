@@ -1673,11 +1673,15 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getEnabledIdPByRealmId(String realmId, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        IdentityProvider idp = getIdPByRealmId(realmId, tenantDomain);
-        if (idp != null && idp.isEnable()) {
-            return idp;
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (StringUtils.isEmpty(realmId)) {
+            throw new IdentityProviderManagementException("Invalid argument: Identity Provider Home Realm Identifier value is empty.");
         }
-        return null;
+        IdentityProvider identityProvider = dao.getEnabledIdPByRealmId(realmId, tenantId, tenantDomain);
+        if (identityProvider == null) {
+            identityProvider = new FileBasedIdPMgtDAO().getIdPByRealmId(realmId, tenantDomain);
+        }
+        return identityProvider;
     }
 
     /**
