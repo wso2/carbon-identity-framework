@@ -464,7 +464,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                     .getApplicationByResourceId(applicationId, tenantDomain);
             if (app == null) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
-                        "No application found with application id: " + applicationId);
+                        "Invalid audience. No application found with application id: " + applicationId);
             }
             boolean valid = false;
             for (ServiceProviderProperty property : app.getSpProperties()) {
@@ -498,7 +498,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                     .isOrganizationExistById(organizationId);
             if(!isExists) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
-                        "No organization found with organization id: " + organizationId);
+                        "Invalid audience. No organization found with organization id: " + organizationId);
             }
 
         } catch (OrganizationManagementException e) {
