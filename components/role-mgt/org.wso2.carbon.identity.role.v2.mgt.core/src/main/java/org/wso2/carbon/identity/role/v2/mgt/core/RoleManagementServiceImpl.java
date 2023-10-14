@@ -496,7 +496,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         try {
             boolean isExists  = RoleManagementServiceComponentHolder.getInstance().getOrganizationManager()
                     .isOrganizationExistById(organizationId);
-            if(!isExists) {
+            if (!isExists) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Invalid audience. No organization found with organization id: " + organizationId);
             }

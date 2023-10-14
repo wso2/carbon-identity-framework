@@ -55,7 +55,6 @@ import org.wso2.carbon.identity.role.v2.mgt.core.RoleDTO;
 import org.wso2.carbon.identity.role.v2.mgt.core.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.GroupIDResolver;
-import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.UserIDResolver;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.api.RealmConfiguration;
