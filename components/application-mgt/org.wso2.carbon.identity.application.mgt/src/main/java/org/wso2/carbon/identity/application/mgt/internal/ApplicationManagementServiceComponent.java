@@ -505,4 +505,9 @@ public class ApplicationManagementServiceComponent {
                     .setAPIResourceManager(null);
             log.debug("APIResourceManager unset in to bundle");
     }
+
+    private void authorizeSystemAPIConsole() {
+
+
+    }
 }

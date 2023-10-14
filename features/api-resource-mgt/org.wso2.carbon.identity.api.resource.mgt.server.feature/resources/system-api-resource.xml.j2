@@ -455,4 +455,10 @@
             <Scope displayName="Delete Identity Register" name="internal_register_delete" />
         </Scopes>
     </APIResource>
+    <APIResource name="Organization Self Service API" identifier="/identity/register" requiresAuthorization="true" description="API representation of the Organization Self Service API">
+            <Scopes>
+                <Scope displayName="View Self Service" name="internal_self_service_view" />
+                <Scope displayName="Update Self Service" name="internal_self_service_update" />
+            </Scopes>
+        </APIResource>
 </APIResources>
