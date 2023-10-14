@@ -2401,7 +2401,8 @@ public class RoleDAOImpl implements RoleDAO {
         for (Permission permission : permissions) {
             if (!authorizedScopes.contains(permission.getName())) {
                 throw new IdentityRoleManagementClientException(INVALID_PERMISSION.getCode(),
-                        "Permission: " + permission.getName() + " not found");
+                        "Permission : " + permission.getName() + " is not authorized for application " +
+                                "with ID: " + applicationId);
             }
         }
     }

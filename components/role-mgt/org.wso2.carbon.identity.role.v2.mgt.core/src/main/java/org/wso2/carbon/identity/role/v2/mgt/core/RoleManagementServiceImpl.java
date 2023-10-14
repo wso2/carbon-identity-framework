@@ -86,6 +86,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(), "Invalid role audience");
             }
             if (ORGANIZATION.equalsIgnoreCase(audience)) {
+                validateOrganizationRoleAudience(audienceId);
                 audience = ORGANIZATION;
             }
             if (APPLICATION.equalsIgnoreCase(audience)) {
@@ -463,7 +464,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                     .getApplicationByResourceId(applicationId, tenantDomain);
             if (app == null) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
-                        "Audience Id: " + applicationId + " is not found");
+                        "Audience Id: " + applicationId + " is not found for audience : application");
             }
             boolean valid = false;
             for (ServiceProviderProperty property : app.getSpProperties()) {
@@ -479,6 +480,29 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             }
         } catch (IdentityApplicationManagementException e) {
             String errorMessage = "Error while retrieving the application for the given id: " + applicationId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+    }
+
+    /**
+     * Validate organization role audience.
+     *
+     * @param organizationId Organization ID.
+     * @throws IdentityRoleManagementException Error occurred while validating organization role audience.
+     */
+    private void validateOrganizationRoleAudience(String organizationId)
+            throws IdentityRoleManagementException {
+
+        try {
+            boolean isExists  = RoleManagementServiceComponentHolder.getInstance().getOrganizationManager()
+                    .isOrganizationExistById(organizationId);
+            if(!isExists) {
+                throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
+                        "Audience Id: " + organizationId + " is not found for audience : organization");
+            }
+
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while checking the organization exist by id : " + organizationId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
     }
