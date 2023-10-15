@@ -437,7 +437,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
-    private void persistAssociatedRolesOfApplication(Connection connection, int applicationId, String applicationName,
+    private void persistAssociatedRolesOfApplication(Connection connection, String applicationId,
+                                                     String applicationName,
                                                      AssociatedRolesConfig associatedRolesConfig, String tenantDomain)
             throws IdentityApplicationManagementException {
 
@@ -459,7 +460,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, queryBuilder.toString())) {
             for (int i = 0; i < roles.size(); i++) {
-                statement.setInt(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + i,
+                statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + i,
                         applicationId);
                 statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + i,
                         roles.get(i).getId());
@@ -538,8 +539,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         // Update associated roles.
-        persistAssociatedRolesOfApplication(connection, applicationId, serviceProvider.getApplicationName(),
-                serviceProvider.getAssociatedRolesConfig(), tenantDomain);
+        persistAssociatedRolesOfApplication(connection, serviceProvider.getApplicationResourceId(),
+                serviceProvider.getApplicationName(), serviceProvider.getAssociatedRolesConfig(), tenantDomain);
 
         updateConfigurationsAsServiceProperties(serviceProvider);
         if (ArrayUtils.isNotEmpty(serviceProvider.getSpProperties())) {
@@ -2104,7 +2105,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
             // Set role associations.
-            serviceProvider.setAssociatedRolesConfig(getAssociatedRoles(applicationId, connection, tenantID));
+            serviceProvider.setAssociatedRolesConfig(
+                    getAssociatedRoles(serviceProvider.getApplicationResourceId(), connection, tenantID));
             // Will be supported with 'Advance Consent Management Feature'.
             /*
             ConsentConfig consentConfig = serviceProvider.getConsentConfig();
@@ -2124,14 +2126,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
-    private AssociatedRolesConfig getAssociatedRoles(int applicationId, Connection connection, int tenantID)
+    private AssociatedRolesConfig getAssociatedRoles(String applicationId, Connection connection, int tenantID)
             throws IdentityApplicationManagementException {
 
         AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
         List<RoleV2> associatedRoles = new ArrayList<>();
         try (NamedPreparedStatement preparedStatement = new NamedPreparedStatement(connection,
                 ApplicationMgtDBQueries.LOAD_ASSOCIATED_ROLES)) {
-            preparedStatement.setInt(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID,
+            preparedStatement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID,
                     applicationId);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
@@ -2148,9 +2150,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     "Error while retrieving associated roles for application ID: " + applicationId, e);
         }
         // TODO: use constant
-        String allowedAudience = getSPPropertyValueByPropertyKey(applicationId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME);
-        associatedRolesConfig.setAllowedAudience(StringUtils.isNotBlank(allowedAudience) ? allowedAudience :
-                "organization");
+        String allowedAudience = getSPPropertyValueByPropertyKey(applicationId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME,
+                IdentityTenantUtil.getTenantDomain(tenantID));
+        associatedRolesConfig.setAllowedAudience(
+                StringUtils.isNotBlank(allowedAudience) ? allowedAudience : "organization");
         return associatedRolesConfig;
     }
 
