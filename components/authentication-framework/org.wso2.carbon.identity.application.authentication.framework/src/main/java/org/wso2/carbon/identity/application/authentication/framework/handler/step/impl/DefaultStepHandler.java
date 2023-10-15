@@ -753,10 +753,10 @@ public class DefaultStepHandler implements StepHandler {
 
             // Set authorized organization and user resident organization for B2B user logins.
             if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
-                String userResidentOrganization =
-                        resolveUserResidentOrganization(context.getSubject(), authenticatorConfig);
-                context.getSubject().setAccessingOrganization(userResidentOrganization);
+                String userResidentOrganization = resolveUserResidentOrganization(context.getSubject());
                 context.getSubject().setUserResidentOrganization(userResidentOrganization);
+                // Set the accessing org as the user resident org. The accessing org will be changed when org switching.
+                context.getSubject().setAccessingOrganization(userResidentOrganization);
             }
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
@@ -1434,14 +1434,12 @@ public class DefaultStepHandler implements StepHandler {
      * Resolve user resident organization for the users authenticated via the B2B organization login authenticator.
      *
      * @param authenticatedUser   The authenticated user.
-     * @param authenticatorConfig The authenticator configurations.
      * @return The organization where the user's identity is managed.
      */
-    private String resolveUserResidentOrganization(AuthenticatedUser authenticatedUser,
-                                                   AuthenticatorConfig authenticatorConfig) throws FrameworkException {
+    private String resolveUserResidentOrganization(AuthenticatedUser authenticatedUser) throws FrameworkException {
 
         // Check for user organization claim for the authenticated user via the organization login authenticator.
-        if (authenticatedUser.getUserAttributes() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
+        if (authenticatedUser.getUserAttributes() != null) {
             for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
                 if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
                         userAttributes.getKey().getLocalClaim().getClaimUri())) {
