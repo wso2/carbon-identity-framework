@@ -294,4 +294,68 @@ public interface RoleDAO {
     void addMainRoleToSharedRoleRelationship(String mainRoleUUID, String sharedRoleUUID, String mainRoleTenantDomain,
                                              String sharedRoleTenantDomain)
             throws IdentityRoleManagementException;
+
+    /**
+     * Get role list of user.
+     *
+     * @param userId          User ID.
+     * @param tenantDomain    Tenant domain.
+     * @return The list of basic role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<RoleBasicInfo> getRoleListOfUser(String userId, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get role list of groups.
+     *
+     * @param groupIds        Group IDs.
+     * @param tenantDomain    Tenant domain.
+     * @return The list of basic role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<RoleBasicInfo> getRoleListOfGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
+     * Get role list of idp groups.
+     *
+     * @param groupIds        Idp Group IDs.
+     * @param tenantDomain    Tenant domain.
+     * @return The list of basic role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<RoleBasicInfo> getRoleListOfIdpGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
+     * Get role id list of user.
+     *
+     * @param userId          User ID.
+     * @param tenantDomain    Tenant domain.
+     * @return The list of role id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<String> getRoleIdListOfUser(String userId, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get role id list of groups.
+     *
+     * @param groupIds        Group IDs.
+     * @param tenantDomain    Tenant domain.
+     * @return The list of role id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<String> getRoleIdListOfGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
+     * Get role id list of idp groups.
+     *
+     * @param groupIds        Idp Group IDs.
+     * @param tenantDomain    Tenant domain.
+     * @return The list of role id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<String> getRoleIdListOfIdpGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException;
 }

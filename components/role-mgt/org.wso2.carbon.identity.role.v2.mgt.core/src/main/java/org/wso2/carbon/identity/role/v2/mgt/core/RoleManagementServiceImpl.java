@@ -420,6 +420,47 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 sharedRoleTenantDomain);
     }
 
+    @Override
+    public List<RoleBasicInfo> getRoleListOfUser(String userId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleListOfUser(userId, tenantDomain);
+    }
+
+    @Override
+    public List<RoleBasicInfo> getRoleListOfGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleListOfGroups(groupIds, tenantDomain);
+    }
+
+    @Override
+    public List<RoleBasicInfo> getRoleListOfIdpGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleListOfIdpGroups(groupIds, tenantDomain);
+    }
+
+    @Override
+    public List<String> getRoleIdListOfUser(String userId, String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleIdListOfUser(userId, tenantDomain);
+    }
+
+    @Override
+    public List<String> getRoleIdListOfGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleIdListOfGroups(groupIds, tenantDomain);
+    }
+
+    @Override
+    public List<String> getRoleIdListOfIdpGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleIdListOfIdpGroups(groupIds, tenantDomain);
+    }
+
     private String getUser(String tenantDomain) {
 
         String user = CarbonContext.getThreadLocalCarbonContext().getUsername();

@@ -82,6 +82,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -154,6 +155,12 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_POSTGRESQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_GROUP_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_IDP_GROUPS_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_USER_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_GROUP_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_IDP_GROUPS_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_USER_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
@@ -699,6 +706,258 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
                     String.format(message, sharedRoleName), e);
         }
+    }
+
+    @Override
+    public List<RoleBasicInfo> getRoleListOfUser(String userId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        String userName = getUsernameByUserID(userId, tenantDomain);
+        String primaryDomainName = IdentityUtil.getPrimaryDomainName();
+        if (primaryDomainName != null) {
+            primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
+        }
+        userName = UserCoreUtil.addDomainToName(userName, primaryDomainName);
+        // Get domain from name.
+        String domainName = UserCoreUtil.extractDomainFromName(userName);
+        if (domainName != null) {
+            domainName = domainName.toUpperCase(Locale.ENGLISH);
+        }
+        String nameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<RoleBasicInfo> roles = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_LIST_OF_USER_SQL)) {
+                statement.setString(RoleConstants.RoleTableColumns.UM_USER_NAME, nameWithoutDomain);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        String roleName = resultSet.getString(1);
+                        String roleId = resultSet.getString(2);
+                        String audience = resultSet.getString(3);
+                        String audienceId = resultSet.getString(4);
+                        RoleBasicInfo  roleBasicInfo = new RoleBasicInfo(roleId, roleName);
+                        roleBasicInfo.setAudience(audience);
+                        roleBasicInfo.setAudienceId(audienceId);
+                        roleBasicInfo.setAudienceName(getAudienceName(audience, audienceId, tenantDomain));
+                        roles.add(roleBasicInfo);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while retrieving role list of user by id: " + userId + " and tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return roles;
+    }
+
+    private String getUsernameByUserID(String userId, String tenantDomain) throws IdentityRoleManagementException {
+
+        return userIDResolver.getNameByID(userId, tenantDomain);
+    }
+
+    @Override
+    public List<RoleBasicInfo> getRoleListOfGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, String> groupIdsToNames = getGroupNamesByIDs(groupIds, tenantDomain);
+        List<String> groupNamesList = new ArrayList<>(groupIdsToNames.values());
+        String primaryDomainName = IdentityUtil.getPrimaryDomainName();
+        if (primaryDomainName != null) {
+            primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<RoleBasicInfo> roles = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_ROLE_LIST_OF_GROUP_SQL)) {
+                for (String groupName : groupNamesList) {
+                    // Add domain if not set.
+                    groupName = UserCoreUtil.addDomainToName(groupName, primaryDomainName);
+                    // Get domain from name.
+                    String domainName = UserCoreUtil.extractDomainFromName(groupName);
+                    if (domainName != null) {
+                        domainName = domainName.toUpperCase(Locale.ENGLISH);
+                    }
+                    String nameWithoutDomain = UserCoreUtil.removeDomainFromName(groupName);
+                    statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_NAME, nameWithoutDomain);
+                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                    statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        while (resultSet.next()) {
+                            String roleName = resultSet.getString(1);
+                            String roleId = resultSet.getString(2);
+                            String audience = resultSet.getString(3);
+                            String audienceId = resultSet.getString(4);
+                            RoleBasicInfo  roleBasicInfo = new RoleBasicInfo(roleId, roleName);
+                            roleBasicInfo.setAudience(audience);
+                            roleBasicInfo.setAudienceId(audienceId);
+                            roleBasicInfo.setAudienceName(getAudienceName(audience, audienceId, tenantDomain));
+                            roles.add(roleBasicInfo);
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while retrieving role list of groups by ids: " + String.join(", ", groupIds)
+                            + " and tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return new ArrayList<>(roles.stream()
+                .collect(Collectors.toMap(RoleBasicInfo::getId, role -> role, (existing, replacement) -> existing))
+                .values());
+    }
+
+    @Override
+    public List<RoleBasicInfo> getRoleListOfIdpGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<RoleBasicInfo> roles = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_ROLE_LIST_OF_IDP_GROUPS_SQL)) {
+                for (String groupId : groupIds) {
+                    statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_ID, groupId);
+                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        while (resultSet.next()) {
+                            String roleName = resultSet.getString(1);
+                            String roleId = resultSet.getString(2);
+                            String audience = resultSet.getString(3);
+                            String audienceId = resultSet.getString(4);
+                            RoleBasicInfo  roleBasicInfo = new RoleBasicInfo(roleId, roleName);
+                            roleBasicInfo.setAudience(audience);
+                            roleBasicInfo.setAudienceId(audienceId);
+                            roleBasicInfo.setAudienceName(getAudienceName(audience, audienceId, tenantDomain));
+                            roles.add(roleBasicInfo);
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while retrieving role list of idp groups by ids: " + String.join(", ", groupIds)
+                            + " and tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return new ArrayList<>(roles.stream()
+                .collect(Collectors.toMap(RoleBasicInfo::getId, role -> role, (existing, replacement) -> existing))
+                .values());
+    }
+
+    @Override
+    public List<String> getRoleIdListOfUser(String userId, String tenantDomain) throws IdentityRoleManagementException {
+
+        String userName = getUsernameByUserID(userId, tenantDomain);
+        String primaryDomainName = IdentityUtil.getPrimaryDomainName();
+        if (primaryDomainName != null) {
+            primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
+        }
+        userName = UserCoreUtil.addDomainToName(userName, primaryDomainName);
+        // Get domain from name.
+        String domainName = UserCoreUtil.extractDomainFromName(userName);
+        if (domainName != null) {
+            domainName = domainName.toUpperCase(Locale.ENGLISH);
+        }
+        String nameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<String> roleIds = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_ROLE_ID_LIST_OF_USER_SQL)) {
+                statement.setString(RoleConstants.RoleTableColumns.UM_USER_NAME, nameWithoutDomain);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        String roleId = resultSet.getString(1);
+                        roleIds.add(roleId);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while retrieving role id list of user by id: " + userId + " and " +
+                    "tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return roleIds;
+    }
+
+    @Override
+    public List<String> getRoleIdListOfGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, String> groupIdsToNames = getGroupNamesByIDs(groupIds, tenantDomain);
+        List<String> groupNamesList = new ArrayList<>(groupIdsToNames.values());
+        String primaryDomainName = IdentityUtil.getPrimaryDomainName();
+        if (primaryDomainName != null) {
+            primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<String> roleIds = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_ROLE_ID_LIST_OF_GROUP_SQL)) {
+                for (String groupName : groupNamesList) {
+                    // Add domain if not set.
+                    groupName = UserCoreUtil.addDomainToName(groupName, primaryDomainName);
+                    // Get domain from name.
+                    String domainName = UserCoreUtil.extractDomainFromName(groupName);
+                    if (domainName != null) {
+                        domainName = domainName.toUpperCase(Locale.ENGLISH);
+                    }
+                    String nameWithoutDomain = UserCoreUtil.removeDomainFromName(groupName);
+                    statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_NAME, nameWithoutDomain);
+                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                    statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        while (resultSet.next()) {
+                            String roleId = resultSet.getString(1);
+                            roleIds.add(roleId);
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while retrieving role list of groups by ids: " + String.join(", ", groupIds)
+                            + " and tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return roleIds.stream().distinct().collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getRoleIdListOfIdpGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<String> roleIds = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_ROLE_ID_LIST_OF_IDP_GROUPS_SQL)) {
+                for (String groupId : groupIds) {
+                    statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_ID, groupId);
+                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        while (resultSet.next()) {
+                            String roleId = resultSet.getString(1);
+                            roleIds.add(roleId);
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while retrieving role list of idp groups by ids: " + String.join(", ", groupIds)
+                            + " and tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return roleIds.stream().distinct().collect(Collectors.toList());
     }
 
     /**

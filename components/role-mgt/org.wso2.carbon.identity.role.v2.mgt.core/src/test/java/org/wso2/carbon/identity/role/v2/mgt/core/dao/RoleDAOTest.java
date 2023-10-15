@@ -421,24 +421,6 @@ public class RoleDAOTest extends PowerMockTestCase {
     }
 
     @Test
-    public void testGetIdpGroupListOfRole() throws Exception {
-
-        try (Connection connection1 = getConnection();
-             Connection connection2 = getConnection();
-             Connection connection3 = getConnection();
-             Connection connection4 = getConnection()) {
-
-            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
-            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
-            RoleBasicInfo role = addRole("role1", APPLICATION_AUD, "test-app-id");
-            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
-            List<IdpGroup> rolePermissions = roleDAO.getIdpGroupListOfRole(role.getId(), SAMPLE_TENANT_DOMAIN);
-        }
-    }
-
-    @Test
     public void testUpdateIdpGroupListOfRole() throws Exception {
 
         try (Connection connection1 = getConnection();
@@ -595,14 +577,173 @@ public class RoleDAOTest extends PowerMockTestCase {
         }
     }
 
+    @Test
+    public void testGetRoleListOfUser() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            addRole("role1", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            addRole("role2", APPLICATION_AUD, "test-app-id");
+
+            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
+            doReturn("user1").when(roleDAO, "getUsernameByUserID", anyString(), anyString());
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection5);
+            List<RoleBasicInfo> roles  = roleDAO.getRoleListOfUser("userID1", SAMPLE_TENANT_DOMAIN);
+            assertEquals(roles.size(), 2);
+        }
+    }
+
+    @Test
+    public void testGetRoleListOfGroups() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            addRole("role1", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            addRole("role2", APPLICATION_AUD, "test-app-id");
+
+            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection5);
+            List<RoleBasicInfo> roles  = roleDAO.getRoleListOfGroups(groupIDsList, SAMPLE_TENANT_DOMAIN);
+            assertEquals(roles.size(), 2);
+        }
+    }
+
+    @Test
+    public void testGetRoleListOfIdpGroups() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            RoleBasicInfo role = addRole("role1", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            List<IdpGroup> newGroups = new ArrayList<>();
+            List<String> groupIds = new ArrayList<>();
+            newGroups.add(new IdpGroup("test-group1-id", "test-idp-id"));
+            groupIds.add("test-group1-id");
+            newGroups.add(new IdpGroup("test-group2-id", "test-idp-id"));
+            groupIds.add("test-group2-id");
+            doNothing().when(roleDAO, "validateGroupIds", anyCollection(), anyString());
+            doNothing().when(roleDAO, "resolveIdpGroups", anyCollection(), anyString());
+            roleDAO.updateIdpGroupListOfRole(role.getId(), newGroups, new ArrayList<>(), SAMPLE_TENANT_DOMAIN);
+
+            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection5);
+            List<RoleBasicInfo> roles  = roleDAO.getRoleListOfIdpGroups(groupIds, SAMPLE_TENANT_DOMAIN);
+            assertEquals(roles.size(), 1);
+        }
+    }
+
+    @Test
+    public void testGetRoleIdListOfUser() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            addRole("role1", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            addRole("role2", APPLICATION_AUD, "test-app-id");
+
+            doReturn("user1").when(roleDAO, "getUsernameByUserID", anyString(), anyString());
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection5);
+            List<String> roles  = roleDAO.getRoleIdListOfUser("userID1", SAMPLE_TENANT_DOMAIN);
+            assertEquals(roles.size(), 2);
+        }
+    }
+
+    @Test
+    public void testGetRoleIdListOfGroups() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            addRole("role1", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            addRole("role2", APPLICATION_AUD, "test-app-id");
+
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection5);
+            List<String> roles  = roleDAO.getRoleIdListOfGroups(groupIDsList, SAMPLE_TENANT_DOMAIN);
+            assertEquals(roles.size(), 2);
+        }
+    }
+
+    @Test
+    public void testGetRoleIdListOfIdpGroups() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            RoleBasicInfo role = addRole("role1", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
+            List<IdpGroup> newGroups = new ArrayList<>();
+            List<String> groupIds = new ArrayList<>();
+            newGroups.add(new IdpGroup("test-group1-id", "test-idp-id"));
+            groupIds.add("test-group1-id");
+            newGroups.add(new IdpGroup("test-group2-id", "test-idp-id"));
+            groupIds.add("test-group2-id");
+            doNothing().when(roleDAO, "validateGroupIds", anyCollection(), anyString());
+            doNothing().when(roleDAO, "resolveIdpGroups", anyCollection(), anyString());
+            roleDAO.updateIdpGroupListOfRole(role.getId(), newGroups, new ArrayList<>(), SAMPLE_TENANT_DOMAIN);
+
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection5);
+            List<String> roles  = roleDAO.getRoleIdListOfIdpGroups(groupIds, SAMPLE_TENANT_DOMAIN);
+            assertEquals(roles.size(), 1);
+        }
+    }
+
     private RoleBasicInfo addRole(String roleName, String audience, String audienceId) throws Exception {
 
         mockCacheClearing();
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getPrimaryDomainName()).thenReturn("PRIMARY");
         doCallRealMethod().when(IdentityUtil.class, "extractDomainFromName", anyString());
-        doReturn(new ArrayList<>()).when(roleDAO, "getUserNamesByIDs", anyCollection(), anyString());
-        doReturn(new HashMap<>()).when(roleDAO, "getGroupNamesByIDs", anyCollection(), anyString());
+        doReturn(userNamesList).when(roleDAO, "getUserNamesByIDs", anyCollection(), anyString());
+        doReturn(groupNamesMap).when(roleDAO, "getGroupNamesByIDs", anyCollection(), anyString());
         doReturn(false).when(roleDAO, "isExistingRoleName", anyString(), anyString(),
                 anyString(), anyString());
         doReturn(groupIdsMap).when(roleDAO, "getGroupIDsByNames", anyCollection(), anyString());
