@@ -361,4 +361,19 @@ public interface ApplicationDAO {
 
         throw new NotImplementedException();
     }
+
+    /**
+     * Method that returns the SP property value by property key.
+     *
+     * @param applicationId Application UUID.
+     * @param propertyName Property key.
+     * @param tenantDomain Tenant domain.
+     * @return Property value.
+     * @throws IdentityApplicationManagementException Error when retrieving SP property value.
+     */
+    default String getSPPropertyValueByPropertyKey(String applicationId, String propertyName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
 }

@@ -2662,6 +2662,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getTenantIdByApp(appId);
     }
 
+    @Override
+    public String getAllowedAudienceForRoleAssociation(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                .getSPPropertyValueByPropertyKey(applicationUUID,
+                        IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, tenantDomain);
+    }
+
     private void doPreUpdateChecks(String storedAppName, ServiceProvider updatedApp, String tenantDomain,
                                    String username) throws IdentityApplicationManagementException {
 

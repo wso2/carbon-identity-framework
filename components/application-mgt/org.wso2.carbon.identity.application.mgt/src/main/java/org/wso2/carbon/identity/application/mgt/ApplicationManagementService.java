@@ -516,5 +516,19 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
 
         throw new NotImplementedException();
     }
+
+    /**
+     * Get allowed role audience for role association of the application.
+     *
+     * @param applicationUUID Application UUID.
+     * @param tenantDomain Tenant domain.
+     * @return Allowed audience for role association.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving allowed audience.
+     */
+    public String getAllowedAudienceForRoleAssociation(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
 }
 

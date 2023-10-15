@@ -53,6 +53,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+    private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
 
     @XmlTransient
     @JsonIgnore
@@ -100,6 +101,8 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = "PermissionAndRoleConfig")
     private PermissionsAndRoleConfig permissionAndRoleConfig;
 
+    @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
+    private AssociatedRolesConfig associatedRolesConfig;
     @XmlElement(name = "IsSaaSApp")
     private boolean saasApp;
 
@@ -247,6 +250,10 @@ public class ServiceProvider implements Serializable {
             } else if ("PermissionAndRoleConfig".equals(elementName)) {
                 // build permission and role configuration.
                 serviceProvider.setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
+            } else if (ASSOCIATED_ROLES_CONFIG.equals(elementName)) {
+                // Build associated role config.
+                // TODO: XML support
+                // serviceProvider.setAssociatedRolesConfig(AssociatedRolesConfig.build(element));
             }
         }
 
@@ -366,6 +373,26 @@ public class ServiceProvider implements Serializable {
      */
     public void setPermissionAndRoleConfig(PermissionsAndRoleConfig permissionAndRoleConfig) {
         this.permissionAndRoleConfig = permissionAndRoleConfig;
+    }
+
+    /**
+     * Get associated roles config.
+     *
+     * @return AssociatedRolesConfig.
+     */
+    public AssociatedRolesConfig getAssociatedRolesConfig() {
+
+        return associatedRolesConfig;
+    }
+
+    /**
+     * Set associated roles config.
+     *
+     * @param associatedRolesConfig AssociatedRolesConfig.
+     */
+    public void setAssociatedRolesConfig(AssociatedRolesConfig associatedRolesConfig) {
+
+        this.associatedRolesConfig = associatedRolesConfig;
     }
 
     /**

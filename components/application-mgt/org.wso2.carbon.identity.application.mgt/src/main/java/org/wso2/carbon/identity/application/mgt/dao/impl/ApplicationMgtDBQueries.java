@@ -283,6 +283,10 @@ public class ApplicationMgtDBQueries {
     public static final String GET_SP_METADATA_BY_SP_ID = "SELECT ID, NAME, VALUE, DISPLAY_NAME FROM SP_METADATA " +
             "WHERE SP_ID = ?";
 
+    public static final String GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY = "SELECT `VALUE` FROM SP_METADATA WHERE " +
+            "SP_ID=:" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SP_ID + "; AND " +
+            "NAME=:" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NAME +";";
+
     public static final String GET_SP_METADATA_BY_SP_ID_H2 = "SELECT ID, NAME, `VALUE`, DISPLAY_NAME FROM " +
             "SP_METADATA WHERE SP_ID = ?";
 
@@ -480,4 +484,32 @@ public class ApplicationMgtDBQueries {
 
     public static final String DELETE_AUTHORIZED_SCOPE = "DELETE FROM AUTHORIZED_SCOPE WHERE " +
             "APP_ID = ? AND API_ID = ? AND SCOPE_NAME = ? AND TENANT_ID = ?";
+
+    public static final String ADD_APPLICATION_ASSOC_ROLES_HEAD = "INSERT INTO APP_ROLE_ASSOCIATION " +
+            "(APP_ID, ROLE_ID) VALUES ";
+
+    public static final String ADD_APPLICATION_ASSOC_ROLES_TAIL = "(:" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + "%1$d;, :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "%1$d;)";
+
+    public static final String DELETE_APPLICATION_ROLE_ASSOCIATIONS = "DELETE FROM APP_ROLE_ASSOCIATION WHERE " +
+            "APP_ID=:" +  SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + ";";
+
+    public static final String LOAD_ASSOCIATED_ROLES = "SELECT ROLE_ID FROM APP_ROLE_ASSOCIATION WHERE " +
+            "APP_ID=:" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + ";";
+
+    /**
+     * SQL placeholders related to application management tables.
+     */
+    public static final class SQLPlaceholders {
+
+        // Related to SP_METADATA table.
+        public static final String DB_SCHEMA_COLUMN_NAME_SP_ID = "SP_ID";
+        public static final String DB_SCHEMA_COLUMN_NAME_NAME = "NAME";
+        public static final String DB_SCHEMA_COLUMN_NAME_VALUE = "VALUE";
+
+        // Related to APP_ROLE_ASSOCIATION table.
+        public static final String DB_SCHEMA_COLUMN_NAME_APP_ID = "APP_ID";
+        public static final String DB_SCHEMA_COLUMN_NAME_ROLE_ID = "ROLE_ID";
+    }
 }
