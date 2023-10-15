@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +42,7 @@ import java.util.List;
 @WithAxisConfiguration
 @WithCarbonHome
 @WithRegistry
-@WithRealmService
+@WithRealmService(injectToSingletons = {OrganizationManagementDataHolder.class})
 @WithH2Database(files = {"dbscripts/h2.sql"})
 public class APIResourceManagerTest extends PowerMockTestCase {
 
