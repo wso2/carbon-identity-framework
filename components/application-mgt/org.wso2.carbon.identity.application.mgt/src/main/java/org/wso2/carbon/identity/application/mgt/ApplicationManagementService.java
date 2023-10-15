@@ -498,6 +498,7 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      *
      * @param sharedAppId ID of the shared application.
      * @return ID of the main application.
+     * @throws IdentityApplicationManagementServerException If an error occurs while retrieving the main application ID.
      */
     public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
 
@@ -509,6 +510,7 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      *
      * @param appId ID of the application.
      * @return Tenant ID.
+     * @throws IdentityApplicationManagementServerException If an error occurs while retrieving the tenant ID.
      */
     public int getTenantIdByApp(String appId) throws IdentityApplicationManagementServerException {
 
