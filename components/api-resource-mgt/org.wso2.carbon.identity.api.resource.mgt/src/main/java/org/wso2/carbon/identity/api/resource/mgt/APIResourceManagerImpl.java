@@ -148,6 +148,13 @@ public class APIResourceManagerImpl implements APIResourceManager {
         return CACHE_BACKED_DAO.getScopeByNameAndTenantId(scopeName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    @Override
+    public List<APIResource> getScopeMetadata(List<String> scopeNames, String tenantDomain)
+            throws APIResourceMgtException {
+
+        return CACHE_BACKED_DAO.getScopeMetadata(scopeNames, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
     /**
      * Get the filter node as a list.
      *
