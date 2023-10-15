@@ -569,16 +569,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         deleteOutboundProvisioningConfiguration(applicationId, connection);
         deletePermissionAndRoleConfiguration(applicationId, connection);
         // deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
-        deleteAssociatedRolesConfigurations(connection, applicationId);
+        deleteAssociatedRolesConfigurations(connection, serviceProvider.getApplicationResourceId());
     }
 
-    private void deleteAssociatedRolesConfigurations(Connection connection, int applicationId)
-            throws SQLException {
+    private void deleteAssociatedRolesConfigurations(Connection connection, String applicationId) throws SQLException {
 
         // Delete associations.
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ApplicationMgtDBQueries
                 .DELETE_APPLICATION_ROLE_ASSOCIATIONS)) {
-            statement.setInt(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID, applicationId);
+            statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID, applicationId);
             statement.executeUpdate();
         }
     }
