@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v2;
+package org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Property;

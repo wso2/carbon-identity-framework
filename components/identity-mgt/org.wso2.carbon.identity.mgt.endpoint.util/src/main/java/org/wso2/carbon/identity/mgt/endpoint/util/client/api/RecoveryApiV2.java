@@ -28,10 +28,10 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.Configuration;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.Pair;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v2.AccountRecoveryType;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v2.RecoveryInitRequest;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v2.RecoveryRequest;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v2.RecoveryResponse;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.AccountRecoveryType;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.RecoveryInitRequest;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.RecoveryRequest;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.RecoveryResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,20 +39,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * API related to password recovery with user preferred channel.
+ * API related to recovery with user preferred channel.
  */
-public class PasswordRecoveryApiV2 {
+public class RecoveryApiV2 {
 
     String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(IdentityManagementEndpointConstants
             .UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
     private ApiClient apiClient;
 
-    public PasswordRecoveryApiV2() {
+    public RecoveryApiV2() {
 
         this(Configuration.getDefaultApiClient());
     }
 
-    public PasswordRecoveryApiV2(ApiClient apiClient) {
+    public RecoveryApiV2(ApiClient apiClient) {
 
         this.apiClient = apiClient;
     }
@@ -68,10 +68,10 @@ public class PasswordRecoveryApiV2 {
     }
 
     /**
-     * This API can be used to initiate recovering forgotten password.
+     * Initiate recovering the forgotten password.
      *
      * @param recoveryInitRequest Password recovery initiating request. (required)
-     * @param tenantDomain        Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
+     * @param tenantDomain        Tenant Domain which user belongs. Default "carbon.super" (optional)
      * @param headers             If reCaptcha respond is found, embedded in request header. (optional)
      * @return Account recovery options response object.
      * @throws ApiException If fails to make API call.
@@ -81,14 +81,14 @@ public class PasswordRecoveryApiV2 {
             throws ApiException {
 
         String localVarPath = "/password/init".replaceAll("\\{format\\}", "json");
-        return initiateRecovery(recoveryInitRequest, tenantDomain, null, localVarPath);
+        return initiateRecovery(recoveryInitRequest, tenantDomain, headers, localVarPath);
     }
 
     /**
-     * This API is used to recover password via selected recovery option.
+     * Recover password via selected recovery option.
      *
      * @param recoveryRequest   Recovery request. (required)
-     * @param tenantDomain      Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
+     * @param tenantDomain      Tenant Domain which user belongs. Default "carbon.super" (optional)
      * @param headers           Any additional headers to be embedded. (optional)
      * @return Recovery response.
      * @throws ApiException If fails to make API call.
@@ -104,7 +104,7 @@ public class PasswordRecoveryApiV2 {
      * This API can be used to initiate recovering forgotten password/username.
      *
      * @param recoveryInitRequest Recovery initiating request. (required)
-     * @param tenantDomain        Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
+     * @param tenantDomain        Tenant Domain which user belongs. Default "carbon.super" (optional)
      * @param headers             If reCaptcha respond is found, embedded in request header. (optional)
      * @param localVarPath        Endpoint path.
      * @return Account recovery options response object.
@@ -152,7 +152,7 @@ public class PasswordRecoveryApiV2 {
      * This API is used to recover username/password via selected recovery option.
      *
      * @param recoveryRequest   Recovery request. (required)
-     * @param tenantDomain      Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
+     * @param tenantDomain      Tenant Domain which user belongs. Default "carbon.super" (optional)
      * @param headers           Any additional headers to be embedded. (optional)
      * @param localVarPath      Endpoint path.
      * @return Recovery response.

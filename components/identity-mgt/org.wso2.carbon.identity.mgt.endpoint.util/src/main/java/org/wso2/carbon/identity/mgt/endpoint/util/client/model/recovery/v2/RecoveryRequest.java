@@ -16,53 +16,68 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v2;
+package org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Property;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.model.UserClaim;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Request to initiate an account recovery.
+ * Request to recover username/password through given channel.
  **/
-public class RecoveryInitRequest {
+public class RecoveryRequest {
 
-    private List<UserClaim> claims = null;
+    private String recoveryCode;
+    private String channelId;
     private List<Property> properties = null;
 
     /**
-    * User claims to identify the user as UserClaim objects.
-    **/
-    public RecoveryInitRequest claims(List<UserClaim> claims) {
+     * Recovery code for the user.
+     **/
+    public RecoveryRequest recoveryCode(String recoveryCode) {
 
-        this.claims = claims;
+        this.recoveryCode = recoveryCode;
         return this;
     }
 
-    @JsonProperty("claims")
-    public List<UserClaim> getClaims() {
+    @JsonProperty("recoveryCode")
+    public String getRecoveryCode() {
 
-        return claims;
-    }
-    public void setClaims(List<UserClaim> claims) {
-
-        this.claims = claims;
+        return recoveryCode;
     }
 
-    public RecoveryInitRequest addClaimsItem(UserClaim claimsItem) {
+    public void setRecoveryCode(String recoveryCode) {
 
-        this.claims.add(claimsItem);
-        return this;
+        this.recoveryCode = recoveryCode;
     }
 
     /**
-    * (OPTIONAL) Additional META properties.
-    **/
-    public RecoveryInitRequest properties(List<Property> properties) {
+     * Id of the notification channel that user prefers to get recovery notifications.
+     **/
+    public RecoveryRequest channelId(String channelId) {
+
+        this.channelId = channelId;
+        return this;
+    }
+
+    @JsonProperty("channelId")
+    public String getChannelId() {
+
+        return channelId;
+    }
+
+    public void setChannelId(String channelId) {
+
+        this.channelId = channelId;
+    }
+
+    /**
+     * (OPTIONAL) Additional META properties.
+     **/
+    public RecoveryRequest properties(List<Property> properties) {
 
         this.properties = properties;
         return this;
@@ -73,12 +88,13 @@ public class RecoveryInitRequest {
 
         return properties;
     }
+
     public void setProperties(List<Property> properties) {
 
         this.properties = properties;
     }
 
-    public RecoveryInitRequest addPropertiesItem(Property propertiesItem) {
+    public RecoveryRequest addPropertiesItem(Property propertiesItem) {
 
         if (this.properties == null) {
             this.properties = new ArrayList<>();
@@ -96,33 +112,35 @@ public class RecoveryInitRequest {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RecoveryInitRequest initRequest = (RecoveryInitRequest) o;
-        return Objects.equals(this.claims, initRequest.claims) &&
-            Objects.equals(this.properties, initRequest.properties);
+        RecoveryRequest recoveryRequest = (RecoveryRequest) o;
+        return Objects.equals(this.recoveryCode, recoveryRequest.recoveryCode) &&
+                Objects.equals(this.channelId, recoveryRequest.channelId) &&
+                Objects.equals(this.properties, recoveryRequest.properties);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(claims, properties);
+        return Objects.hash(recoveryCode, channelId, properties);
     }
 
     @Override
     public String toString() {
 
         StringBuilder sb = new StringBuilder();
-        sb.append("class InitRequest {\n");
+        sb.append("class RecoveryRequest {\n");
 
-        sb.append("    claims: ").append(toIndentedString(claims)).append("\n");
+        sb.append("    recoveryCode: ").append(toIndentedString(recoveryCode)).append("\n");
+        sb.append("    channelId: ").append(toIndentedString(channelId)).append("\n");
         sb.append("    properties: ").append(toIndentedString(properties)).append("\n");
         sb.append("}");
         return sb.toString();
     }
 
     /**
-    * Convert the given object to string with each line indented by 4 spaces
-    * (except the first line).
-    */
+     * Convert the given object to string with each line indented by 4 spaces
+     * (except the first line).
+     */
     private String toIndentedString(Object o) {
 
         if (o == null) {
