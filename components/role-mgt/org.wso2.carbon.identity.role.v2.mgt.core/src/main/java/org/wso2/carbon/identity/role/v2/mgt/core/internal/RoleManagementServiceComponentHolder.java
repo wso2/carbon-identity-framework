@@ -36,7 +36,6 @@ public class RoleManagementServiceComponentHolder {
             RoleManagementServiceComponentHolder();
 
     private RealmService realmService;
-
     private IdentityEventService identityEventService;
     private OrganizationManager organizationManager;
     private IdpManager identityProviderManager;
@@ -106,7 +105,7 @@ public class RoleManagementServiceComponentHolder {
     /**
      * Get IdentityProviderManager osgi service.
      *
-     * @return IdentityProviderManager
+     * @return IdentityProviderManager.
      */
     public IdpManager getIdentityProviderManager() {
 
@@ -126,7 +125,7 @@ public class RoleManagementServiceComponentHolder {
     /**
      * Get ApplicationManagementService osgi service.
      *
-     * @return ApplicationManagementService
+     * @return ApplicationManagementService.
      */
     public ApplicationManagementService getApplicationManagementService() {
 
@@ -146,7 +145,7 @@ public class RoleManagementServiceComponentHolder {
     /**
      * Get APIResourceManager osgi service.
      *
-     * @return APIResourceManager
+     * @return APIResourceManager.
      */
     public APIResourceManager getApiResourceManager() {
 
@@ -166,7 +165,7 @@ public class RoleManagementServiceComponentHolder {
     /**
      * Get AuthorizedAPIManagementService osgi service.
      *
-     * @return AuthorizedAPIManagementService
+     * @return AuthorizedAPIManagementService.
      */
     public AuthorizedAPIManagementService getAuthorizedAPIManagementService() {
 
