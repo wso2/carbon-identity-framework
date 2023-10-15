@@ -580,7 +580,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statement.setInt(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID, applicationId);
             statement.executeUpdate();
         }
-        // Delete "allowedAudienceForAssociatedRoles" from SP_METADATA.
     }
 
     /**
