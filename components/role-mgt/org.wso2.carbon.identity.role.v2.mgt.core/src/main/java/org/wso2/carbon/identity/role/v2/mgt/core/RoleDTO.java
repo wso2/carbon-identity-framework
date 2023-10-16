@@ -35,6 +35,14 @@ public class RoleDTO {
         this.audienceRefId = audienceRefId;
     }
 
+    public RoleDTO(String name, String id, int audienceRefId, int tenantId) {
+
+        this.name = name;
+        this.id = id;
+        this.audienceRefId = audienceRefId;
+        this.tenantId = tenantId;
+    }
+
     public RoleDTO(String name, int audienceRefId, int tenantId) {
 
         this.name = name;

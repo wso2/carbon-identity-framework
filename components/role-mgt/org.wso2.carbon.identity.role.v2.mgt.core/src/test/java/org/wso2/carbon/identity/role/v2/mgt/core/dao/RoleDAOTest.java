@@ -736,6 +736,37 @@ public class RoleDAOTest extends PowerMockTestCase {
         }
     }
 
+    @Test
+    public void testDeleteRolesByApplication() throws Exception {
+
+        try (Connection connection1 = getConnection();
+             Connection connection2 = getConnection();
+             Connection connection3 = getConnection();
+             Connection connection4 = getConnection();
+             Connection connection5 = getConnection();
+             Connection connection6 = getConnection();
+             Connection connection7 = getConnection();
+             Connection connection8 = getConnection()) {
+
+            roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            mockCacheClearing();
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
+            addRole("role1", APPLICATION_AUD, "test-app-id");
+            when(IdentityDatabaseUtil.getUserDBConnection(true)).thenReturn(connection3);
+            when(IdentityDatabaseUtil.getDBConnection(true)).thenReturn(connection4);
+            when(IdentityDatabaseUtil.getUserDBConnection(false)).thenReturn(connection5);
+            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection6);
+            roleDAO.deleteRolesByApplication("test-app-id", SAMPLE_TENANT_DOMAIN);
+            when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection7);
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection8);
+            doCallRealMethod().when(roleDAO, "isExistingRoleName", anyString(), anyString(), anyString(),
+                    anyString());
+            assertFalse(roleDAO.isExistingRoleName("role1", APPLICATION_AUD, "test-app-id",
+                    SAMPLE_TENANT_DOMAIN));
+        }
+    }
+
     private RoleBasicInfo addRole(String roleName, String audience, String audienceId) throws Exception {
 
         mockCacheClearing();

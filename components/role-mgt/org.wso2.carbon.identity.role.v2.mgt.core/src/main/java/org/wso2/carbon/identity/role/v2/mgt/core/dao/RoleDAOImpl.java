@@ -124,6 +124,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROL
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_POSTGRESQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_APP_ROLE_ASSOCIATION_BY_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_IDP_GROUPS_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLES_BY_APP_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLE_SCOPE_BY_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLE_SCOPE_BY_SCOPE_NAME_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLE_SQL;
@@ -135,6 +136,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIE
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIENCE_REF_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_IDP_GROUPS_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_APP_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_INFORMIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_MSSQL;
@@ -968,6 +970,73 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
         return roleIds.stream().distinct().collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteRolesByApplication(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<RoleDTO> hybridRoles = getHybridRolesByApplication(applicationId, tenantDomain);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
+            try {
+                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                        DELETE_ROLES_BY_APP_ID_SQL)) {
+                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID,
+                            IdentityTenantUtil.getTenantId(tenantDomain));
+                    statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, APPLICATION);
+                    statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, applicationId);
+                    statement.executeUpdate();
+                }
+                for (RoleDTO role : hybridRoles) {
+                    // Delete the role from IDN_SCIM_GROUP table.
+                    deleteSCIMRole(role.getId(), role.getName(), role.getAudienceRefId(), null,
+                            tenantDomain);
+                }
+                IdentityDatabaseUtil.commitUserDBTransaction(connection);
+            } catch (SQLException | IdentityRoleManagementException e) {
+                IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
+                String message = "Error while deleting roles by app id : " +  applicationId;
+                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                        message, e);
+            }
+        } catch (SQLException e) {
+            String message = "Error while deleting roles by app id : " +  applicationId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    message, e);
+        }
+    }
+
+    private List<RoleDTO> getHybridRolesByApplication(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<RoleDTO> hybridRoles = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_ROLES_BY_APP_ID_SQL)) {
+                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID,
+                        IdentityTenantUtil.getTenantId(tenantDomain));
+                statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, APPLICATION);
+                statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, applicationId);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        String id = resultSet.getString(1);
+                        String name = resultSet.getString(2);
+                        int tenantId = resultSet.getInt(3);
+                        int audienceRefId = resultSet.getInt(4);
+                        hybridRoles.add(new RoleDTO(id, name, audienceRefId, tenantId));
+                    }
+                }
+            } catch (SQLException e) {
+                String errorMessage = "Error while retrieving roles by app id : " + applicationId;
+                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                        errorMessage, e);
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while retrieving roles by app id : " + applicationId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    errorMessage, e);
+        }
+        return hybridRoles;
     }
 
     /**
@@ -2778,8 +2847,9 @@ public class RoleDAOImpl implements RoleDAO {
                 statement.setString(ROLE_NAME, roleName);
                 statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
                 statement.executeUpdate();
-
-                deleteSharedSCIMRoles(hybridSharedRoles, connection);
+                if (hybridSharedRoles != null && !hybridSharedRoles.isEmpty()) {
+                    deleteSharedSCIMRoles(hybridSharedRoles, connection);
+                }
                 deleteRoleAssociations(roleId, connection);
 
                 IdentityDatabaseUtil.commitTransaction(connection);

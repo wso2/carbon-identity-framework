@@ -349,4 +349,13 @@ public interface RoleManagementService {
      */
     List<String> getRoleIdListOfIdpGroups(List<String> groupIds, String tenantDomain)
             throws IdentityRoleManagementException;
+
+    /**
+     * Delete all roles associated app by id.
+     *
+     * @param applicationId        Idp Group IDs.
+     * @param tenantDomain    Tenant domain.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    void deleteRolesByApplication(String applicationId, String tenantDomain) throws IdentityRoleManagementException;
 }

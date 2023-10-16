@@ -461,6 +461,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         return roleDAO.getRoleIdListOfIdpGroups(groupIds, tenantDomain);
     }
 
+    @Override
+    public void deleteRolesByApplication(String applicationId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        roleDAO.deleteRolesByApplication(applicationId, tenantDomain);
+    }
+
     private String getUser(String tenantDomain) {
 
         String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
