@@ -29,6 +29,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.FederatedAssociationConfig;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -2369,6 +2370,7 @@ public class IdPManagementDAO {
                                                                             identityProviderProperties) {
 
         JustInTimeProvisioningConfig justInTimeProvisioningConfig = federatedIdp.getJustInTimeProvisioningConfig();
+        FederatedAssociationConfig federatedAssociationConfig = new FederatedAssociationConfig();
 
         if (justInTimeProvisioningConfig != null) {
             identityProviderProperties.forEach(identityProviderProperty -> {
@@ -2391,6 +2393,34 @@ public class IdPManagementDAO {
                 }
             });
         }
+
+        identityProviderProperties.forEach(identityProviderProperty -> {
+            switch (identityProviderProperty.getName()) {
+                case IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED:
+                    federatedAssociationConfig
+                            .setEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
+                    break;
+                case IdPManagementConstants.FEDERATED_ATTRIBUTE:
+                    federatedAssociationConfig.setFederatedAttribute(identityProviderProperty.getValue());
+                    break;
+                case IdPManagementConstants.MAPPED_LOCAL_ATTRIBUTE:
+                    federatedAssociationConfig.setMappedLocalAttribute(identityProviderProperty.getValue());
+                    break;
+            }
+        });
+
+        // For newly created idps default values will be added. However, these will be null for previously
+        // created idps and hence we need to set the default values.
+        if (StringUtils.isBlank(federatedAssociationConfig.getFederatedAttribute())) {
+            federatedAssociationConfig.setFederatedAttribute(IdPManagementConstants.DEFAULT_FEDERATED_ATTRIBUTE);
+        }
+
+        if (StringUtils.isBlank(federatedAssociationConfig.getMappedLocalAttribute())) {
+            federatedAssociationConfig.setMappedLocalAttribute(IdPManagementConstants.DEFAULT_MAPPED_LOCAL_ATTRIBUTE);
+        }
+
+        federatedIdp.setFederatedAssociationConfig(federatedAssociationConfig);
+
         String templateId = getTemplateId(identityProviderProperties);
         if (StringUtils.isNotEmpty(templateId)) {
             federatedIdp.setTemplateId(templateId);
@@ -2403,6 +2433,12 @@ public class IdPManagementDAO {
                         IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.SYNC_ATTRIBUTE_METHOD
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.FEDERATED_ATTRIBUTE
+                                .equals(identityProviderProperty.getName()) ||
+                        IdPManagementConstants.MAPPED_LOCAL_ATTRIBUTE
                                 .equals(identityProviderProperty.getName())));
         return identityProviderProperties;
     }
@@ -3019,7 +3055,8 @@ public class IdPManagementDAO {
                         .toArray(new IdentityProviderProperty[0]);
             }
             List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties(identityProvider
-                    .getJustInTimeProvisioningConfig(), idpProperties);
+                    .getJustInTimeProvisioningConfig(), identityProvider.getFederatedAssociationConfig(),
+                    idpProperties);
 
             if (!identityProviderProperties.stream().anyMatch(identityProviderProperty ->
                     IS_TRUSTED_TOKEN_ISSUER.equals(identityProviderProperty.getName()))) {
@@ -3058,6 +3095,7 @@ public class IdPManagementDAO {
      */
     private List<IdentityProviderProperty> getCombinedProperties(JustInTimeProvisioningConfig
                                                                          justInTimeProvisioningConfig,
+                                                                 FederatedAssociationConfig federatedAssociationConfig,
                                                                  IdentityProviderProperty[] idpProperties) {
 
         List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>();
@@ -3080,6 +3118,18 @@ public class IdPManagementDAO {
         associateLocalUser.setName(IdPManagementConstants.ASSOCIATE_LOCAL_USER_ENABLED);
         associateLocalUser.setValue("false");
 
+        IdentityProviderProperty federatedAssociationProperty = new IdentityProviderProperty();
+        federatedAssociationProperty.setName(IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED);
+        federatedAssociationProperty.setValue("false");
+
+        IdentityProviderProperty federatedAttribute = new IdentityProviderProperty();
+        federatedAttribute.setName(IdPManagementConstants.FEDERATED_ATTRIBUTE);
+        federatedAttribute.setValue(IdPManagementConstants.DEFAULT_FEDERATED_ATTRIBUTE);
+
+        IdentityProviderProperty mappedLocalAttribute = new IdentityProviderProperty();
+        mappedLocalAttribute.setName(IdPManagementConstants.MAPPED_LOCAL_ATTRIBUTE);
+        mappedLocalAttribute.setValue(IdPManagementConstants.DEFAULT_MAPPED_LOCAL_ATTRIBUTE);
+
         IdentityProviderProperty attributeSyncMethod = new IdentityProviderProperty();
         attributeSyncMethod.setName(IdPManagementConstants.SYNC_ATTRIBUTE_METHOD);
         attributeSyncMethod.setValue(IdPManagementConstants.DEFAULT_SYNC_ATTRIBUTE);
@@ -3095,11 +3145,21 @@ public class IdPManagementDAO {
             associateLocalUser.setValue(String.valueOf(justInTimeProvisioningConfig.isAssociateLocalUserEnabled()));
             attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
         }
+
+        if (federatedAssociationConfig != null && federatedAssociationConfig.isEnabled()) {
+            federatedAssociationProperty.setValue(String.valueOf(federatedAssociationConfig.isEnabled()));
+            federatedAttribute.setValue(federatedAssociationConfig.getFederatedAttribute());
+            mappedLocalAttribute.setValue(federatedAssociationConfig.getMappedLocalAttribute());
+        }
+
         identityProviderProperties.add(passwordProvisioningProperty);
         identityProviderProperties.add(modifyUserNameProperty);
         identityProviderProperties.add(promptConsentProperty);
         identityProviderProperties.add(associateLocalUser);
         identityProviderProperties.add(attributeSyncMethod);
+        identityProviderProperties.add(federatedAssociationProperty);
+        identityProviderProperties.add(federatedAttribute);
+        identityProviderProperties.add(mappedLocalAttribute);
         return identityProviderProperties;
     }
 
@@ -3319,7 +3379,8 @@ public class IdPManagementDAO {
                                     .toArray(new IdentityProviderProperty[0]);
                 }
                 List<IdentityProviderProperty> identityProviderProperties = getCombinedProperties
-                        (newIdentityProvider.getJustInTimeProvisioningConfig(), idpProperties);
+                        (newIdentityProvider.getJustInTimeProvisioningConfig(),
+                                newIdentityProvider.getFederatedAssociationConfig(), idpProperties);
 
                 boolean hasTrustedTokenIssuerProperty = false;
                 for (IdentityProviderProperty property : identityProviderProperties) {
