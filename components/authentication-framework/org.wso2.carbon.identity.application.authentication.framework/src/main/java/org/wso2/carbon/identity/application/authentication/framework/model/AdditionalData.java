@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,17 +29,17 @@ import java.util.Map;
  */
 public class AdditionalData {
 
-    private String requiredParams;
+    private List<String> requiredParams = new ArrayList<>();
     private String redirectUrl;
     private String promptType;
     private Map<String, String> additionalAuthenticationParams = new HashMap<>();
 
-    public String getRequiredParams() {
+    public List<String> getRequiredParams() {
 
         return requiredParams;
     }
 
-    public void setRequiredParams(String requiredParams) {
+    public void setRequiredParams(List<String> requiredParams) {
 
         this.requiredParams = requiredParams;
     }
