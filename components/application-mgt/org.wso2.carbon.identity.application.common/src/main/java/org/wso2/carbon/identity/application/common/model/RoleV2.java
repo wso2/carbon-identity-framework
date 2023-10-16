@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
-// TODO: XML support
-
 import java.io.Serializable;
 
 /**

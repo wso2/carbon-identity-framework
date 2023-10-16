@@ -22,8 +22,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO : support xml based SP import/export
-
 /**
  * Associated v2 roles for the application.
  */
@@ -31,7 +29,6 @@ public class AssociatedRolesConfig implements Serializable {
 
     private static final long serialVersionUID = 497647508006862448L;
 
-    // TODO: use the enum defined in roles component
     private String allowedAudience;
     private List<RoleV2> roles;
 
