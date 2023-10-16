@@ -54,10 +54,6 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.api.resource.mgt</artifactId>
         </dependency>
     </dependencies>
@@ -92,7 +88,6 @@
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.api.resource.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.*;version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.application.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.model.*; version="${carbon.identity.package.import.version.range}",

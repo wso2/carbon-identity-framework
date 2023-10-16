@@ -19,8 +19,6 @@
 package org.wso2.carbon.identity.role.v2.mgt.core.internal;
 
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
-import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -39,9 +37,9 @@ public class RoleManagementServiceComponentHolder {
     private IdentityEventService identityEventService;
     private OrganizationManager organizationManager;
     private IdpManager identityProviderManager;
-    private ApplicationManagementService applicationManagementService;
+//    private ApplicationManagementService applicationManagementService;
     private APIResourceManager apiResourceManager;
-    private AuthorizedAPIManagementService authorizedAPIManagementService;
+//    private AuthorizedAPIManagementService authorizedAPIManagementService;
 
     private RoleManagementServiceComponentHolder() {
 
@@ -122,25 +120,26 @@ public class RoleManagementServiceComponentHolder {
         this.identityProviderManager = idpManager;
     }
 
-    /**
-     * Get ApplicationManagementService osgi service.
-     *
-     * @return ApplicationManagementService.
-     */
-    public ApplicationManagementService getApplicationManagementService() {
-
-        return applicationManagementService;
-    }
-
-    /**
-     * Set ApplicationManagementService osgi service.
-     *
-     * @param applicationManagementService ApplicationManagementService.
-     */
-    public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
-
-        this.applicationManagementService = applicationManagementService;
-    }
+    //TODO : move this application mgt service to another component to avoid cyclic dependencies!
+//    /**
+//     * Get ApplicationManagementService osgi service.
+//     *
+//     * @return ApplicationManagementService.
+//     */
+//    public ApplicationManagementService getApplicationManagementService() {
+//
+//        return applicationManagementService;
+//    }
+//
+//    /**
+//     * Set ApplicationManagementService osgi service.
+//     *
+//     * @param applicationManagementService ApplicationManagementService.
+//     */
+//    public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+//
+//        this.applicationManagementService = applicationManagementService;
+//    }
 
     /**
      * Get APIResourceManager osgi service.
@@ -162,23 +161,24 @@ public class RoleManagementServiceComponentHolder {
         this.apiResourceManager = apiResourceManager;
     }
 
-    /**
-     * Get AuthorizedAPIManagementService osgi service.
-     *
-     * @return AuthorizedAPIManagementService.
-     */
-    public AuthorizedAPIManagementService getAuthorizedAPIManagementService() {
-
-        return authorizedAPIManagementService;
-    }
-
-    /**
-     * Set setAuthorizedAPIManagementService osgi service.
-     *
-     * @param authorizedAPIManagementService setAuthorizedAPIManagementService.
-     */
-    public void setAuthorizedAPIManagementService(AuthorizedAPIManagementService authorizedAPIManagementService) {
-
-        this.authorizedAPIManagementService = authorizedAPIManagementService;
-    }
+    //TODO : move this application mgt service to another component to avoid cyclic dependencies!
+//    /**
+//     * Get AuthorizedAPIManagementService osgi service.
+//     *
+//     * @return AuthorizedAPIManagementService.
+//     */
+//    public AuthorizedAPIManagementService getAuthorizedAPIManagementService() {
+//
+//        return authorizedAPIManagementService;
+//    }
+//
+//    /**
+//     * Set setAuthorizedAPIManagementService osgi service.
+//     *
+//     * @param authorizedAPIManagementService setAuthorizedAPIManagementService.
+//     */
+//    public void setAuthorizedAPIManagementService(AuthorizedAPIManagementService authorizedAPIManagementService) {
+//
+//        this.authorizedAPIManagementService = authorizedAPIManagementService;
+//    }
 }

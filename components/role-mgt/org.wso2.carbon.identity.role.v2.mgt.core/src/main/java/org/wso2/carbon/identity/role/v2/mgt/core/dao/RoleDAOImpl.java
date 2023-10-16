@@ -26,8 +26,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Scope;
@@ -1765,13 +1763,15 @@ public class RoleDAOImpl implements RoleDAO {
     private String getApplicationName(String applicationID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        try {
-            return RoleManagementServiceComponentHolder.getInstance().getApplicationManagementService()
-                    .getApplicationBasicInfoByResourceId(applicationID, tenantDomain).getApplicationName();
-        } catch (IdentityApplicationManagementException e) {
-            String errorMessage = "Error while retrieving the application name for the given id: " + applicationID;
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
-        }
+        //TODO : move this application mgt service to another component to avoid cyclic dependencies!
+//        try {
+//            return RoleManagementServiceComponentHolder.getInstance().getApplicationManagementService()
+//                    .getApplicationBasicInfoByResourceId(applicationID, tenantDomain).getApplicationName();
+//        } catch (IdentityApplicationManagementException e) {
+//            String errorMessage = "Error while retrieving the application name for the given id: " + applicationID;
+//            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+//        }
+        return "test-app";
     }
 
     /**
@@ -2754,23 +2754,24 @@ public class RoleDAOImpl implements RoleDAO {
     private List<String> getAuthorizedScopes(String appId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        List<AuthorizedScopes> authorizedScopesList;
-        try {
-            authorizedScopesList = RoleManagementServiceComponentHolder.getInstance()
-                    .getAuthorizedAPIManagementService().getAuthorizedScopes(appId, tenantDomain);
-        } catch (IdentityApplicationManagementException e) {
-            throw new IdentityRoleManagementException("Error while retrieving authorized scopes.",
-                    "Error while retrieving authorized scopes for app id : " + appId);
-        }
-        if (authorizedScopesList == null) {
-            return new ArrayList<>();
-        }
-        List<String> allScopes = new ArrayList<>();
-        for (AuthorizedScopes authorizedScopes : authorizedScopesList) {
-            List<String> scopes = authorizedScopes.getScopes();
-            allScopes.addAll(scopes);
-        }
-        return allScopes;
+//        List<AuthorizedScopes> authorizedScopesList;
+//        try {
+//            authorizedScopesList = RoleManagementServiceComponentHolder.getInstance()
+//                    .getAuthorizedAPIManagementService().getAuthorizedScopes(appId, tenantDomain);
+//        } catch (IdentityApplicationManagementException e) {
+//            throw new IdentityRoleManagementException("Error while retrieving authorized scopes.",
+//                    "Error while retrieving authorized scopes for app id : " + appId);
+//        }
+//        if (authorizedScopesList == null) {
+//            return new ArrayList<>();
+//        }
+//        List<String> allScopes = new ArrayList<>();
+//        for (AuthorizedScopes authorizedScopes : authorizedScopesList) {
+//            List<String> scopes = authorizedScopes.getScopes();
+//            allScopes.addAll(scopes);
+//        }
+//        return allScopes;
+        return new ArrayList<>();
     }
 
     /**
