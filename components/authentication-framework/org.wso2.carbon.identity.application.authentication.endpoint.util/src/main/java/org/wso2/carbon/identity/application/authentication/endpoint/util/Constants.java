@@ -279,6 +279,10 @@ public class Constants {
                 "authentication.flow.timeout_authentication.flow.timeout.description";
         public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY =
                 "authentication.flow.timeout";
+        public static final String INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION =
+                "invalid_request_invalid_response_type_for_query_jwt";
+        public static final String INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION_I18N_KEY =
+                "invalid.response.type.for.query.jwt";
 
         public static final Map<String, String> ERROR_TO_I18N_MAP = new HashMap<>();
 
@@ -377,6 +381,8 @@ public class Constants {
                     Constants.ErrorToi18nMappingConstants.AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION_I18N_KEY);
             ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION,
                     Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION,
+                    Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION_I18N_KEY);
         }
 
         private ErrorToi18nMappingConstants() {
