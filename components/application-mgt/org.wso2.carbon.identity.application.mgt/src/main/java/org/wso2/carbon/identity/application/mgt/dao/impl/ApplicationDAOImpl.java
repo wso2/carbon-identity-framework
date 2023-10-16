@@ -85,6 +85,9 @@ import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -2128,32 +2131,41 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private AssociatedRolesConfig getAssociatedRoles(String applicationId, Connection connection, int tenantID)
             throws IdentityApplicationManagementException {
 
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
         AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
-        List<RoleV2> associatedRoles = new ArrayList<>();
+        List<String> associatedRoleIds = new ArrayList<>();
         try (NamedPreparedStatement preparedStatement = new NamedPreparedStatement(connection,
                 ApplicationMgtDBQueries.LOAD_ASSOCIATED_ROLES)) {
             preparedStatement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID,
                     applicationId);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    RoleV2 associatedRole = new RoleV2();
-                    associatedRole.setId(resultSet.getString(1));
-                    // TODO: Resolve and set the role name.
-                    // associatedRole.setName();
-                    associatedRoles.add(associatedRole);
+                    associatedRoleIds.add(resultSet.getString(1));
                 }
             }
-            associatedRolesConfig.setRoles(associatedRoles);
-        } catch (SQLException e) {
+            associatedRolesConfig.setRoles(buildAssociatedRolesWithRoleName(associatedRoleIds, tenantDomain));
+        } catch (SQLException | IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException(
                     "Error while retrieving associated roles for application ID: " + applicationId, e);
         }
-        // TODO: use constant
-        String allowedAudience = getSPPropertyValueByPropertyKey(applicationId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME,
-                IdentityTenantUtil.getTenantDomain(tenantID));
+        String allowedAudience =
+                getSPPropertyValueByPropertyKey(applicationId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, tenantDomain);
         associatedRolesConfig.setAllowedAudience(
-                StringUtils.isNotBlank(allowedAudience) ? allowedAudience : "organization");
+                StringUtils.isNotBlank(allowedAudience) ? allowedAudience : RoleConstants.ORGANIZATION);
         return associatedRolesConfig;
+    }
+
+    private List<RoleV2> buildAssociatedRolesWithRoleName(List<String> roleIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<RoleV2> rolesList = new ArrayList<>();
+        RoleManagementService roleManagementServiceV2 =
+                ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2();
+        for (String roleId : roleIds) {
+            String roleName = roleManagementServiceV2.getRoleNameByRoleId(roleId, tenantDomain);
+            rolesList.add(new RoleV2(roleId, roleName));
+        }
+        return rolesList;
     }
 
     @Override
@@ -4855,12 +4867,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         allowedRoleAudienceProperty.setName(ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME);
         AssociatedRolesConfig associatedRolesConfig = serviceProvider.getAssociatedRolesConfig();
         if (associatedRolesConfig == null) {
-            allowedRoleAudienceProperty.setValue("organization");
+            allowedRoleAudienceProperty.setValue(RoleConstants.ORGANIZATION);
             return allowedRoleAudienceProperty;
         }
-        // TODO: use constant.
         String allowedAudience = StringUtils.isNotBlank(associatedRolesConfig.getAllowedAudience()) ?
-                associatedRolesConfig.getAllowedAudience() : "organization";
+                associatedRolesConfig.getAllowedAudience() : RoleConstants.ORGANIZATION;
         allowedRoleAudienceProperty.setValue(allowedAudience);
         return allowedRoleAudienceProperty;
     }

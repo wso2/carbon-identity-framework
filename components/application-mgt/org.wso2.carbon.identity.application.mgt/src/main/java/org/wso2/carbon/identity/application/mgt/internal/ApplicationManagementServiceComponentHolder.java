@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -60,6 +61,7 @@ public class ApplicationManagementServiceComponentHolder {
 
     private ApplicationPermissionProvider applicationPermissionProvider;
     private APIResourceManager apiResourceManager;
+    private RoleManagementService roleManagementServiceV2;
 
     private boolean isOrganizationManagementEnable = false;
 
@@ -293,5 +295,25 @@ public class ApplicationManagementServiceComponentHolder {
     public APIResourceManager getAPIResourceManager() {
 
         return apiResourceManager;
+    }
+
+    /**
+     * Get {@link RoleManagementService}.
+     *
+     * @return Instance of {@link RoleManagementService}.
+     */
+    public RoleManagementService getRoleManagementServiceV2() {
+
+        return roleManagementServiceV2;
+    }
+
+    /**
+     * Set {@link RoleManagementService}.
+     *
+     * @param roleManagementServiceV2 Instance of {@link RoleManagementService}.
+     */
+    public void setRoleManagementServiceV2(RoleManagementService roleManagementServiceV2) {
+
+        this.roleManagementServiceV2 = roleManagementServiceV2;
     }
 }
