@@ -24,6 +24,7 @@ import org.apache.axiom.om.util.Base64;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -454,14 +455,19 @@ public class IdentityManagementEndpointUtil {
      */
     public static String i18nBase64(ResourceBundle resourceBundle, String key) {
 
-        String base64Key = Base64.encode(key.getBytes(StandardCharsets.UTF_8)).replaceAll(PADDING_CHAR, UNDERSCORE);
+        /*
+        If the key is encoded already, before encoding (avoid double encoding) it within this method,
+        Unescapes an HTML string to a string containing the actual Unicode characters corresponding to the escapes.
+         */
+        String unescapedKey = StringEscapeUtils.unescapeHtml(key);
+        String base64Key = Base64.encode(unescapedKey.getBytes(StandardCharsets.UTF_8)).replaceAll(PADDING_CHAR, UNDERSCORE);
         try {
             return Encode.forHtml((StringUtils.isNotBlank(resourceBundle.getString(base64Key)) ?
-                    resourceBundle.getString(base64Key) : key));
+                    resourceBundle.getString(base64Key) : unescapedKey));
         } catch (Exception e) {
             // Intentionally catching Exception and if something goes wrong while finding the value for key, return
             // default, not to break the UI
-            return Encode.forHtml(key);
+            return Encode.forHtml(unescapedKey);
         }
     }
 

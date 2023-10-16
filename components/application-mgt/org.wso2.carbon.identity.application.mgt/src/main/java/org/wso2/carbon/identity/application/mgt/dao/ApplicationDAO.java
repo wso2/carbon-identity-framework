@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt.dao;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -335,5 +336,29 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException {
 
         return new ServiceProvider();
+    }
+
+    /**
+     * Method that return the application id of the main application for a given shared application id.
+     *
+     * @param sharedAppId Shared application id.
+     * @return Application id of the main application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining main application id.
+     */
+    default String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Method that returns the tenant id of the application.
+     *
+     * @param applicationId Application id.
+     * @return Tenant id of the application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining tenant id.
+     */
+    default int getTenantIdByApp(String applicationId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
     }
 }

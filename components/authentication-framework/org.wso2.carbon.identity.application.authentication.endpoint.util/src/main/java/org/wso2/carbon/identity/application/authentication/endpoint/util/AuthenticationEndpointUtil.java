@@ -251,8 +251,8 @@ public class AuthenticationEndpointUtil {
                 return Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_PAR_REQUEST_URI_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED:
                 return Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_PAR_CLIENT_ID_NOT_MATCH:
-                return Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_PAR_CLIENT_ID_NOT_MATCH_I18N_KEY;
+            case Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_PAR_CLIENT_ID_NOT_MATCH:
+                return Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_PAR_CLIENT_ID_NOT_MATCH_I18N_KEY;
             case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED:
             case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_REQUEST_MISSING:
             case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_JIT_PROVISIONING_VERIFY_USERNAME_FAILED:

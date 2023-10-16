@@ -205,7 +205,7 @@ public class AuthenticationService {
                 authenticatorData.setName(name);
                 authenticatorData.setIdp(idp);
                 authenticatorData.setDisplayName(authenticator.getFriendlyName());
-
+                authenticatorData.setI18nKey(authenticator.getI18nKey());
                 authenticatorDataList.add(authenticatorData);
             }
         }

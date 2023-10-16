@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.core.util;
 
 import org.apache.axis2.context.MessageContext;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -359,6 +360,46 @@ public class IdentityTenantUtil {
     public static String getTenantDomainFromContext() {
 
         return (String) IdentityUtil.threadLocalProperties.get().get(IdentityCoreConstants.TENANT_NAME_FROM_CONTEXT);
+    }
+
+    /**
+     * Get the tenant name from the thread local properties if available, otherwise get from the
+     * privileged carbon context.
+     *
+     * @return Tenant domain name.
+     */
+    public static String resolveTenantDomain() {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        if (StringUtils.isBlank(tenantDomain)) {
+            if (log.isDebugEnabled()) {
+                log.debug("The tenant domain is not set to the thread local. Hence using the tenant domain from the " +
+                        "privileged carbon context.");
+            }
+            return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        }
+
+        return tenantDomain;
+    }
+
+    /**
+     * Get the login tenant id.
+     * First it gets the tenant domain from the thread local properties. If empty, retrieve it from thread local
+     * carbon context. If carbon context is also empty, returns super tenant id.
+     *
+     * @return Login tenant domain.
+     */
+    public static int getLoginTenantId() {
+
+        String tenantDomain = getTenantDomainFromContext();
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        }
+
+        if (StringUtils.isNotBlank(tenantDomain)) {
+            return getTenantId(tenantDomain);
+        }
+        return MultitenantConstants.SUPER_TENANT_ID;
     }
 
     /**

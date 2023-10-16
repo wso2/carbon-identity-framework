@@ -32,8 +32,30 @@ public class AuthenticatorData {
     private String name;
     private String displayName;
     private String idp;
+    private String i18nKey;
     private List<AuthenticatorParamMetadata> authParams = new ArrayList<>();
     private Map<String, String> additionalData = new HashMap<>();
+    private AdditionalData additionalDataObj;
+
+    public AdditionalData getAdditionalDataObj() {
+
+        return additionalDataObj;
+    }
+
+    public void setAdditionalData(AdditionalData additionalDataObj) {
+
+        this.additionalDataObj = additionalDataObj;
+    }
+
+    public String getI18nKey() {
+
+        return i18nKey;
+    }
+
+    public void setI18nKey(String i18nKey) {
+
+        this.i18nKey = i18nKey;
+    }
 
     public String getName() {
 
