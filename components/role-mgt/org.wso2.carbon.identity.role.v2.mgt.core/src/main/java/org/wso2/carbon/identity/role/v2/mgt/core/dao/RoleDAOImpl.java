@@ -344,8 +344,13 @@ public class RoleDAOImpl implements RoleDAO {
         role.setAudienceId(roleAudience.getAudienceId());
         role.setAudienceName(roleAudience.getAudienceName());
 
-        if (ORGANIZATION.equalsIgnoreCase(roleAudience.getAudience())) {
+        if (ORGANIZATION.equals(roleAudience.getAudience())) {
             role.setAssociatedApplications(getAssociatedAppsById(roleID));
+        } else if (APPLICATION.equals(roleAudience.getAudience())) {
+            List<AssociatedApplication> associatedApplications = new ArrayList<>();
+            associatedApplications.add(new AssociatedApplication(roleAudience.getAudienceId(),
+                    roleAudience.getAudienceName()));
+            role.setAssociatedApplications(associatedApplications);
         }
         role.setId(roleID);
         role.setName(roleName);
@@ -631,8 +636,13 @@ public class RoleDAOImpl implements RoleDAO {
         role.setAudienceId(roleAudience.getAudienceId());
         role.setAudienceName(roleAudience.getAudienceName());
 
-        if (ORGANIZATION.equalsIgnoreCase(roleAudience.getAudience())) {
+        if (ORGANIZATION.equals(roleAudience.getAudience())) {
             role.setAssociatedApplications(getAssociatedAppsById(roleID));
+        } else if (APPLICATION.equals(roleAudience.getAudience())) {
+            List<AssociatedApplication> associatedApplications = new ArrayList<>();
+            associatedApplications.add(new AssociatedApplication(roleAudience.getAudienceId(),
+                    roleAudience.getAudienceName()));
+            role.setAssociatedApplications(associatedApplications);
         }
         role.setId(roleID);
         role.setName(roleName);
