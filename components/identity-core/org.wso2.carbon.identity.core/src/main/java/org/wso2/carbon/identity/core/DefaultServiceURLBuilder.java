@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.PROXY_CONTEXT_PATH;
-import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isSuperTenantMandatoryInUrl;
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isSuperTenantRequiredInUrl;
 
 /**
  * Implementation for {@link ServiceURLBuilder}.
@@ -125,7 +125,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
-            if (mandateTenantedPath || isSuperTenantMandatoryInUrl() || isNotSuperTenant(tenantDomain)) {
+            if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
                 String organizationId = StringUtils.isNotBlank(orgId) ? orgId :
                         PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
                 if (organizationId != null) {

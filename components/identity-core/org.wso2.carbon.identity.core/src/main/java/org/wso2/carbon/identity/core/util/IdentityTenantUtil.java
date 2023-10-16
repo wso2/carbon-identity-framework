@@ -429,7 +429,7 @@ public class IdentityTenantUtil {
      */
     public static boolean isSuperTenantRequiredInUrl() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.APPEND_SUPER_TENANT_IN_URL));
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.REQUIRED_SUPER_TENANT_IN_URLS));
     }
 
     /**
