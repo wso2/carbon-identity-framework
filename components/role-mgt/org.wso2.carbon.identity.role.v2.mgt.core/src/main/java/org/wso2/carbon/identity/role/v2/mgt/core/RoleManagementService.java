@@ -365,10 +365,10 @@ public interface RoleManagementService {
      * Get main role to shared role mappings by subOrg.
      *
      * @param roleIds        Main role IDs.
-     * @param subOrgTenantId Sub Organization tenant domain.
+     * @param subOrgTenantDomain Sub Organization tenant domain.
      * @return The map of main role id to shared roles.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    Map<String, List<String>> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds, int subOrgTenantId)
+    Map<String, String> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
             throws IdentityRoleManagementException;
 }

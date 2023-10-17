@@ -24,12 +24,10 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
@@ -456,11 +454,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
-    public Map<String, List<String>> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds,
-                                                                             int subOrgTenantId)
+    public Map<String, String> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds,
+                                                                             String subOrgTenantDomain)
             throws IdentityRoleManagementException {
 
-        return roleDAO.getMainRoleToSharedRoleMappingsBySubOrg(roleIds, subOrgTenantId);
+        return roleDAO.getMainRoleToSharedRoleMappingsBySubOrg(roleIds, subOrgTenantDomain);
     }
 
     private String getUser(String tenantDomain) {

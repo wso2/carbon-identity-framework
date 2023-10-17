@@ -1006,15 +1006,17 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     @Override
-    public Map<String, List<String>> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds, int subOrgTenantId)
+    public Map<String, String> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds,
+                                                                             String subOrgTenantDomain)
             throws IdentityRoleManagementException {
 
-        Map<String, List<String>> rolesMap = new HashMap<>();
+
+        Map<String, String> rolesMap = new HashMap<>();
         String query = GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL +
                 String.join(", ", Collections.nCopies(roleIds.size(), "?")) + ")";
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
-                statement.setInt(1, subOrgTenantId);
+                statement.setInt(1, IdentityTenantUtil.getTenantId(subOrgTenantDomain));
                 for (int i = 0; i < roleIds.size(); i++) {
                     statement.setString(i + 2, roleIds.get(i));
                 }
@@ -1022,18 +1024,18 @@ public class RoleDAOImpl implements RoleDAO {
                     while (resultSet.next()) {
                         String mainRoleId = resultSet.getString(1);
                         String sharedRoleId = resultSet.getString(2);
-                        rolesMap.computeIfAbsent(mainRoleId, k -> new ArrayList<>()).add(sharedRoleId);
+                        rolesMap.put(mainRoleId, sharedRoleId);
                     }
                 }
             } catch (SQLException e) {
                 String errorMessage = "Error while retrieving main role to shared role mappings by sub org tenant : "
-                        + subOrgTenantId;
+                        + subOrgTenantDomain;
                 throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                         errorMessage, e);
             }
         } catch (SQLException e) {
             String errorMessage = "Error while retrieving main role to shared role mappings by sub org tenant : "
-                    + subOrgTenantId;
+                    + subOrgTenantDomain;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     errorMessage, e);
         }
