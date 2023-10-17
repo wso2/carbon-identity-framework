@@ -784,6 +784,7 @@
   "console.route_paths.login": "",
   "console.route_paths.logout": "/logout",
   "console.extensions": {
+    "defaultBrandedLoginScreenCopyright": "${copyright} ${year} WSO2 LLC.",
     "emailTemplates": [
       {
           "id": "cmVzZW5kUGFzc3dvcmRSZXNldA",
