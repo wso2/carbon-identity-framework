@@ -167,6 +167,18 @@ public interface ConfigurationManager {
     Resource getResource(String resourceTypeName, String resourceName) throws ConfigurationManagementException;
 
     /**
+     * This API is used to retrieve the given resource by the tenant ID.
+     *
+     * @param tenantId         The ID of the tenant.
+     * @param resourceTypeName The name of the {@link ResourceType}.
+     * @param resourceName     The name of the {@link ResourceType}.
+     * @return {@link Resource}
+     * @throws ConfigurationManagementException Configuration management exception.
+     */
+    Resource getResourceByTenantId(int tenantId, String resourceTypeName, String resourceName) throws
+            ConfigurationManagementException;
+
+    /**
      * This API is used to delete the given resource.
      *
      * @param resourceTypeName Name of the {@link ResourceType}.
