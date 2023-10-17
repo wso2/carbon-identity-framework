@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementServiceImpl;
+import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -146,25 +147,6 @@ public class RoleManagementServiceComponent {
         RoleManagementServiceComponentHolder.getInstance().setIdentityProviderManager(null);
     }
 
-    //TODO : move this application mgt service to another component to avoid cyclic dependencies!
-//    @Reference(
-//            name = "identity.application.management.component",
-//            service = ApplicationManagementService.class,
-//            cardinality = ReferenceCardinality.MANDATORY,
-//            policy = ReferencePolicy.DYNAMIC,
-//            unbind = "unsetApplicationManagementService"
-//    )
-//    protected void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
-//
-//        RoleManagementServiceComponentHolder.getInstance()
-//                .setApplicationManagementService(applicationManagementService);
-//    }
-//
-//    protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
-//
-//        RoleManagementServiceComponentHolder.getInstance().setApplicationManagementService(null);
-//    }
-
     @Reference(
             name = "api.resource.mgt.service.component",
             service = APIResourceManager.class,
@@ -182,25 +164,21 @@ public class RoleManagementServiceComponent {
         RoleManagementServiceComponentHolder.getInstance().setApiResourceManager(null);
     }
 
-    //TODO : move this application mgt service to another component to avoid cyclic dependencies!
-//    @Reference(
-//            name = "identity.authorized.api.management.component",
-//            service = AuthorizedAPIManagementService.class,
-//            cardinality = ReferenceCardinality.MANDATORY,
-//            policy = ReferencePolicy.DYNAMIC,
-//            unbind = "unsetAuthorizedAPIManagementService"
-//    )
-//    protected void setAuthorizedAPIManagementService(AuthorizedAPIManagementService
-//    authorizedAPIManagementService) {
-//
-//        RoleManagementServiceComponentHolder.getInstance()
-//                .setAuthorizedAPIManagementService(authorizedAPIManagementService);
-//    }
-//
-//    protected void unsetAuthorizedAPIManagementService(AuthorizedAPIManagementService
-//    authorizedAPIManagementService) {
-//
-//        RoleManagementServiceComponentHolder.getInstance().setAuthorizedAPIManagementService(null);
-//    }
+    @Reference(
+            name = "role.management.listener",
+            service = RoleManagementListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementListener"
+    )
+    protected void setRoleManagementListener(RoleManagementListener roleManagementListener) {
+
+        RoleManagementServiceComponentHolder.getInstance().addRoleManagementListener(roleManagementListener);
+    }
+
+    protected void unsetRoleManagementListener(RoleManagementListener roleManagementListener) {
+
+        RoleManagementServiceComponentHolder.getInstance().setRoleManagementListenerList(null);
+    }
 
 }

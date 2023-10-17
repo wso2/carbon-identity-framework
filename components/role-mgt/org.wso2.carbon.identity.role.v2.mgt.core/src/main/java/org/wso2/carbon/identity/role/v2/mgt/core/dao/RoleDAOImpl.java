@@ -25,10 +25,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
-import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -88,7 +86,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATIO
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_OFFSET;
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_ALREADY_EXISTS;
@@ -205,7 +202,6 @@ public class RoleDAOImpl implements RoleDAO {
         // Remove internal domain before persisting in order to maintain the backward compatibility.
         roleName = removeInternalDomain(roleName);
 
-        validatePermissions(permissions, audience, audienceId, tenantDomain);
         List<String> userNamesList = getUserNamesByIDs(userList, tenantDomain);
         Map<String, String> groupIdsToNames = getGroupNamesByIDs(groupList, tenantDomain);
         String roleId = UUID.randomUUID().toString();
@@ -391,8 +387,6 @@ public class RoleDAOImpl implements RoleDAO {
                                                     List<Permission> deletedPermissions, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        RoleAudience roleAudience =  getAudienceByRoleID(roleId, tenantDomain);
-        validatePermissions(addedPermissions, roleAudience.getAudience(), roleAudience.getAudienceId(), tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             addPermissions(roleId, addedPermissions, tenantDomain, connection);
             for (Permission permission : deletedPermissions) {
@@ -1782,34 +1776,10 @@ public class RoleDAOImpl implements RoleDAO {
     private String getAudienceName(String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (APPLICATION.equalsIgnoreCase(audience)) {
-            return getApplicationName(audienceId, tenantDomain);
-        } else if (ORGANIZATION.equalsIgnoreCase(audience)) {
+        if (ORGANIZATION.equalsIgnoreCase(audience)) {
             return getOrganizationName(audienceId);
         }
         return null;
-    }
-
-    /**
-     * Get application name.
-     *
-     * @param applicationID Application ID.
-     * @param tenantDomain Tenant Domain.
-     * @return application name.
-     * @throws IdentityRoleManagementException IdentityRoleManagementException.
-     */
-    private String getApplicationName(String applicationID, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        //TODO : move this application mgt service to another component to avoid cyclic dependencies!
-//        try {
-//            return RoleManagementServiceComponentHolder.getInstance().getApplicationManagementService()
-//                    .getApplicationBasicInfoByResourceId(applicationID, tenantDomain).getApplicationName();
-//        } catch (IdentityApplicationManagementException e) {
-//            String errorMessage = "Error while retrieving the application name for the given id: " + applicationID;
-//            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
-//        }
-        return "test-app";
     }
 
     /**
@@ -2705,111 +2675,6 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
                     String.format(errorMessage, roleName, tenantDomain), e);
         }
-    }
-
-    /**
-     * Validate permissions.
-     *
-     * @param permissions Permissions.
-     * @param audience  Audience.
-     * @param audienceId  Audience ID.
-     * @param tenantDomain Tenant domain.
-     * @throws IdentityRoleManagementException Error occurred while validating permissions.
-     */
-    private void validatePermissions(List<Permission> permissions, String audience, String audienceId,
-                                    String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        switch (audience) {
-            case ORGANIZATION:
-                validatePermissionsForOrganization(permissions, tenantDomain);
-                break;
-            case APPLICATION:
-                validatePermissionsForApplication(permissions, audienceId, tenantDomain);
-                break;
-            default:
-                break;
-        }
-    }
-
-    /**
-     * Validate permissions for organization audience.
-     *
-     * @param permissions Permissions.
-     * @throws IdentityRoleManagementException Error occurred while validating permissions.
-     */
-    private void validatePermissionsForOrganization(List<Permission> permissions, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        try {
-            List<Scope> scopes = RoleManagementServiceComponentHolder.getInstance()
-                    .getApiResourceManager().getScopesByTenantDomain(tenantDomain, "");
-            List<String> scopeNameList = new ArrayList<>();
-            for (Scope scope : scopes) {
-                scopeNameList.add(scope.getName());
-            }
-            for (Permission permission : permissions) {
-
-                if (!scopeNameList.contains(permission.getName())) {
-                    throw new IdentityRoleManagementClientException(INVALID_PERMISSION.getCode(),
-                            "Permission: " + permission.getName() + " not found");
-                }
-            }
-        } catch (APIResourceMgtException e) {
-            throw new IdentityRoleManagementException("Error while retrieving scopes", "Error while retrieving scopes "
-                    + "for tenantDomain: " + tenantDomain, e);
-        }
-    }
-
-    /**
-     * Validate permissions for application audience.
-     *
-     * @param permissions Permissions.
-     * @param applicationId Application ID.
-     * @throws IdentityRoleManagementException Error occurred while validating permissions.
-     */
-    private void validatePermissionsForApplication(List<Permission> permissions, String applicationId,
-                                                   String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        List<String> authorizedScopes = getAuthorizedScopes(applicationId, tenantDomain);
-        for (Permission permission : permissions) {
-            if (!authorizedScopes.contains(permission.getName())) {
-                throw new IdentityRoleManagementClientException(INVALID_PERMISSION.getCode(),
-                        "Permission : " + permission.getName() + " is not authorized for application " +
-                                "with ID: " + applicationId);
-            }
-        }
-    }
-
-    /**
-     * Get authorized scopes by app ID.
-     *
-     * @param appId App ID.
-     * @param tenantDomain Tenant domain.
-     * @throws IdentityRoleManagementException Error occurred while retrieving authorized scopes by app ID.
-     */
-    private List<String> getAuthorizedScopes(String appId, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-//        List<AuthorizedScopes> authorizedScopesList;
-//        try {
-//            authorizedScopesList = RoleManagementServiceComponentHolder.getInstance()
-//                    .getAuthorizedAPIManagementService().getAuthorizedScopes(appId, tenantDomain);
-//        } catch (IdentityApplicationManagementException e) {
-//            throw new IdentityRoleManagementException("Error while retrieving authorized scopes.",
-//                    "Error while retrieving authorized scopes for app id : " + appId);
-//        }
-//        if (authorizedScopesList == null) {
-//            return new ArrayList<>();
-//        }
-//        List<String> allScopes = new ArrayList<>();
-//        for (AuthorizedScopes authorizedScopes : authorizedScopesList) {
-//            List<String> scopes = authorizedScopes.getScopes();
-//            allScopes.addAll(scopes);
-//        }
-//        return allScopes;
-        return new ArrayList<>();
     }
 
     /**

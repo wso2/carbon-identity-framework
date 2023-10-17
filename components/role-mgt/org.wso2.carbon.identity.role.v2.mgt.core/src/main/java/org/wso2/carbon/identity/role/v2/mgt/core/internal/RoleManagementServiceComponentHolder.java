@@ -21,8 +21,12 @@ package org.wso2.carbon.identity.role.v2.mgt.core.internal;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Static class to hold services discovered via OSGI on this component,
@@ -37,9 +41,8 @@ public class RoleManagementServiceComponentHolder {
     private IdentityEventService identityEventService;
     private OrganizationManager organizationManager;
     private IdpManager identityProviderManager;
-//    private ApplicationManagementService applicationManagementService;
     private APIResourceManager apiResourceManager;
-//    private AuthorizedAPIManagementService authorizedAPIManagementService;
+    private List<RoleManagementListener> roleManagementListenerList = new ArrayList<>();
 
     private RoleManagementServiceComponentHolder() {
 
@@ -120,27 +123,6 @@ public class RoleManagementServiceComponentHolder {
         this.identityProviderManager = idpManager;
     }
 
-    //TODO : move this application mgt service to another component to avoid cyclic dependencies!
-//    /**
-//     * Get ApplicationManagementService osgi service.
-//     *
-//     * @return ApplicationManagementService.
-//     */
-//    public ApplicationManagementService getApplicationManagementService() {
-//
-//        return applicationManagementService;
-//    }
-//
-//    /**
-//     * Set ApplicationManagementService osgi service.
-//     *
-//     * @param applicationManagementService ApplicationManagementService.
-//     */
-//    public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
-//
-//        this.applicationManagementService = applicationManagementService;
-//    }
-
     /**
      * Get APIResourceManager osgi service.
      *
@@ -161,24 +143,18 @@ public class RoleManagementServiceComponentHolder {
         this.apiResourceManager = apiResourceManager;
     }
 
-    //TODO : move this application mgt service to another component to avoid cyclic dependencies!
-//    /**
-//     * Get AuthorizedAPIManagementService osgi service.
-//     *
-//     * @return AuthorizedAPIManagementService.
-//     */
-//    public AuthorizedAPIManagementService getAuthorizedAPIManagementService() {
-//
-//        return authorizedAPIManagementService;
-//    }
-//
-//    /**
-//     * Set setAuthorizedAPIManagementService osgi service.
-//     *
-//     * @param authorizedAPIManagementService setAuthorizedAPIManagementService.
-//     */
-//    public void setAuthorizedAPIManagementService(AuthorizedAPIManagementService authorizedAPIManagementService) {
-//
-//        this.authorizedAPIManagementService = authorizedAPIManagementService;
-//    }
+    public List<RoleManagementListener> getRoleManagementListenerList() {
+
+        return roleManagementListenerList;
+    }
+
+    public void setRoleManagementListenerList(List<RoleManagementListener> roleManagementListenerList) {
+
+        this.roleManagementListenerList = roleManagementListenerList;
+    }
+
+    public void addRoleManagementListener(RoleManagementListener roleManagementListener) {
+
+        this.roleManagementListenerList.add(roleManagementListener);
+    }
 }
