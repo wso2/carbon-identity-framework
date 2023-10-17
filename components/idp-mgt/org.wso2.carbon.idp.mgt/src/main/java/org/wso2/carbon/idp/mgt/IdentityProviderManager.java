@@ -1679,7 +1679,7 @@ public class IdentityProviderManager implements IdpManager {
         }
         IdentityProvider identityProvider = dao.getEnabledIdPByRealmId(realmId, tenantId, tenantDomain);
         if (identityProvider == null) {
-            identityProvider = new FileBasedIdPMgtDAO().getIdPByRealmId(realmId, tenantDomain);
+            identityProvider = new FileBasedIdPMgtDAO().getEnabledIdPByRealmId(realmId);
         }
         return identityProvider;
     }

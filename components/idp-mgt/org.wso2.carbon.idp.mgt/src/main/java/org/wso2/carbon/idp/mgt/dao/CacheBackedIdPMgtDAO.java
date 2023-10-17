@@ -540,7 +540,7 @@ public class CacheBackedIdPMgtDAO {
                 return entry.getIdentityProvider();
             }
             if (log.isDebugEnabled()) {
-                log.debug("Identity Provider with Home Realm ID " + realmId + "available in the cache is disabled. " +
+                log.debug("Identity Provider with Home Realm ID " + realmId + " available in the cache is disabled. " +
                         "Fetching entry from DB.");
             }
         } else {
