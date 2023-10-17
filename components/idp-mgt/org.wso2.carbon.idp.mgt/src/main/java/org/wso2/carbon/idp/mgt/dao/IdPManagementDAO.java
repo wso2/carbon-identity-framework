@@ -3146,7 +3146,7 @@ public class IdPManagementDAO {
             attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
         }
 
-        if (federatedAssociationConfig != null && federatedAssociationConfig.isEnabled()) {
+        if (federatedAssociationConfig != null) {
             federatedAssociationProperty.setValue(String.valueOf(federatedAssociationConfig.isEnabled()));
             federatedAttribute.setValue(federatedAssociationConfig.getFederatedAttribute());
             mappedLocalAttribute.setValue(federatedAssociationConfig.getMappedLocalAttribute());
