@@ -32,12 +32,15 @@ import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ALPHA_NUMERIC;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VALIDATION_DEFAULT_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX_PATTERN;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
@@ -71,11 +74,7 @@ public class PasswordValidationConfigurationHandler extends AbstractFieldValidat
             if (!javaRegex.isEmpty() && !jsRegex.isEmpty() && !JAVA_REGEX_PATTERN.equals(javaRegex)) {
 
                 if (isRuleBasedValidationByDefault()) {
-                    rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MIN_LENGTH, "8"));
-                    rules.add(getRuleConfig(NumeralValidator.class.getSimpleName(), MIN_LENGTH, "1"));
-                    rules.add(getRuleConfig(UpperCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
-                    rules.add(getRuleConfig(LowerCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
-                    rules.add(getRuleConfig(SpecialCharacterValidator.class.getSimpleName(), MIN_LENGTH, "1"));
+                    rules.add(getDefaultLengthValidatorRuleConfig());
                     configuration.setRules(rules);
                 } else {
                     rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, jsRegex));
@@ -99,5 +98,21 @@ public class PasswordValidationConfigurationHandler extends AbstractFieldValidat
 
         String defaultValidator = IdentityUtil.getProperty(INPUT_VALIDATION_DEFAULT_VALIDATOR);
         return defaultValidator != null && StringUtils.equalsIgnoreCase(ALPHA_NUMERIC, defaultValidator);
+    }
+
+    /**
+     * Method to retrieve to default length validation for password.
+     *
+     * @return RulesConfiguration.
+     */
+    private RulesConfiguration getDefaultLengthValidatorRuleConfig() {
+
+        RulesConfiguration rule = new RulesConfiguration();
+        rule.setValidatorName(LengthValidator.class.getSimpleName());
+        Map<String, String> properties = new HashMap<>();
+        properties.put(MIN_LENGTH, "5");
+        properties.put(MAX_LENGTH, "30");
+        rule.setProperties(properties);
+        return rule;
     }
 }

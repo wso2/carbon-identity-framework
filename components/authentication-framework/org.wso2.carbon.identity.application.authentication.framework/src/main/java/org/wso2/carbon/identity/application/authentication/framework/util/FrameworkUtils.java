@@ -193,7 +193,9 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ENABLED;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_RESOURCE_TYPE;
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isAppendTenantDomainWithUserName;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isTenantQualifiedUrlsEnabled;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 /**
@@ -3068,6 +3070,9 @@ public class FrameworkUtils {
                 return username;
             }
             return username + "@" + context.getUserTenantDomain();
+        } else if (isTenantQualifiedUrlsEnabled() && isAppendTenantDomainWithUserName()) {
+            // This will be a user with tenant domain as email domain.
+            return username + "@" + context.getUserTenantDomain();
         }
         return username;
     }
@@ -3099,6 +3104,9 @@ public class FrameworkUtils {
             if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
                 return username;
             }
+            return username + "@" + appTenantDomain;
+        } else if (isTenantQualifiedUrlsEnabled() && isAppendTenantDomainWithUserName()) {
+            // This will be a user with tenant domain as email domain.
             return username + "@" + appTenantDomain;
         }
         return username;

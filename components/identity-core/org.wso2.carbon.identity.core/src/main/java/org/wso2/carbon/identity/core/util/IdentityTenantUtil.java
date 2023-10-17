@@ -412,6 +412,17 @@ public class IdentityTenantUtil {
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS));
     }
 
+    /**
+     * Checks whether to add tenant domain when preprocessing UserNames.
+     *
+     * @return true if the config is set to true, false otherwise.
+     */
+    public static boolean isAppendTenantDomainWithUserName() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty
+                (IdentityCoreConstants.APPEND_TENANT_DOMAIN_IN_USERNAME_PREPROCESSING));
+    }
+
 
     /**
      * Checks if the tenanted session support is enabled.

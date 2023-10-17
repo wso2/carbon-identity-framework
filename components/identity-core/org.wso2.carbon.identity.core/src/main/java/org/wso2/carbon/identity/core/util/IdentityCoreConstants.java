@@ -36,6 +36,9 @@ public class IdentityCoreConstants {
 
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
     public static final String ENABLE_TENANT_QUALIFIED_URLS = "EnableTenantQualifiedUrls";
+    public static final String APPEND_TENANT_DOMAIN_IN_USERNAME_PREPROCESSING
+            = "AppendTenantDomainInUserNamePreprocessing";
+
     public static final String ENABLE_TENANTED_SESSIONS = "EnableTenantedSessions";
     public static final String PROXY_CONTEXT_PATH = "ProxyContextPath";
     public static final int DEFAULT_HTTPS_PORT = 443;

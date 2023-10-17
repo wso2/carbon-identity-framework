@@ -62,13 +62,8 @@ public class UserInfoHandlerImpl implements UserInfoHandler {
 
         // Check if the tenant domain matches the email domain
         if (tenantDomain.equalsIgnoreCase(emailDomain)) {
-            boolean isEmailTypeUserName = isEmailAsUserName(tenantDomain);
             int lastAtSymbolIndex = username.lastIndexOf('@');
-
-            // If it's not an email type username or there are multiple '@' symbols, return the modified username
-            if (!isEmailTypeUserName || username.indexOf('@') != lastAtSymbolIndex) {
-                return username.substring(0, lastAtSymbolIndex);
-            }
+            return username.substring(0, lastAtSymbolIndex);
         }
         // Return the username as is
         return username;

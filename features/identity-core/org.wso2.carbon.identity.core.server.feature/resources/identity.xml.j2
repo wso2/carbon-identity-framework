@@ -3234,6 +3234,12 @@
     -->
     <EnableLegacySaaSAuthentication>{{authentication.enable_legacy_saas_mode | default(false)}}</EnableLegacySaaSAuthentication>
 
+    <!--
+        When this property is set to 'true', in user name preprocessing method tenant domain will be added for the email
+        type user names which have tenant domain as email domain.
+    -->
+    <AppendTenantDomainInUserNamePreprocessing>{{authentication.append_tenant_domain_with_user_name | default(false)}}</AppendTenantDomainInUserNamePreprocessing>
+
     <EnablePerUserFunctionalityLocking>{{user.enable_per_user_functionality_locking}}</EnablePerUserFunctionalityLocking>
 
     <TenantContextsToRewrite>
