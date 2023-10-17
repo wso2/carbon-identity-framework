@@ -53,6 +53,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+    private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
 
     @XmlTransient
     @JsonIgnore
@@ -134,6 +135,11 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_B2B_SELF_SERVICE_APP)
     private boolean isB2BSelfServiceApp;
+
+    @IgnoreNullElement
+    @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
+    private AssociatedRolesConfig associatedRolesConfig;
+
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>

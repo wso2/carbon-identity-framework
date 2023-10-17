@@ -499,15 +499,13 @@ public class ApplicationManagementServiceComponent {
             unbind = "unsetAPIResourceManager")
     protected void setAPIResourceManager(APIResourceManager apiResourceManager) {
 
-            ApplicationManagementServiceComponentHolder.getInstance()
-                    .setAPIResourceManager(apiResourceManager);
+            ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
             log.debug("APIResourceManager set in to bundle");
     }
 
     protected void unsetAPIResourceManager(APIResourceManager apiResourceManager) {
 
-            ApplicationManagementServiceComponentHolder.getInstance()
-                    .setAPIResourceManager(null);
+            ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(null);
             log.debug("APIResourceManager unset in to bundle");
     }
 }
