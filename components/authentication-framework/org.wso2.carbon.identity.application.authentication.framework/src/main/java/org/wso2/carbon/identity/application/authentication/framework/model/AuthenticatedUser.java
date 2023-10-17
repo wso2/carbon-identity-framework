@@ -181,6 +181,8 @@ public class AuthenticatedUser extends User {
         if (userName != null && userStoreDomain != null && tenantDomain != null) {
             try {
                 String tenantDomain = this.getTenantDomain();
+                /* When the user resident organization is set in the authenticated user, use that to resolve the user's
+                tenant domain. The below check should be removed once console app is registered per each tenant. */
                 if (StringUtils.isNotEmpty(this.userResidentOrganization)) {
                     tenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
                             .resolveTenantDomain(this.userResidentOrganization);
