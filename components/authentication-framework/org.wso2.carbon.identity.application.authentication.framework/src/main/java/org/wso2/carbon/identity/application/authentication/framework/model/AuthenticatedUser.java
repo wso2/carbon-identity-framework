@@ -180,7 +180,7 @@ public class AuthenticatedUser extends User {
         String userId = null;
         if (userName != null && userStoreDomain != null && tenantDomain != null) {
             try {
-                String tenantDomain= this.getTenantDomain();
+                String tenantDomain = this.getTenantDomain();
                 if (StringUtils.isNotEmpty(this.userResidentOrganization)) {
                     tenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
                             .resolveTenantDomain(this.userResidentOrganization);
