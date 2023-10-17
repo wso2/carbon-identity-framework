@@ -95,15 +95,6 @@ public interface RoleManagementService {
     RoleBasicInfo getRoleBasicInfoById(String roleID, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
-     * Get permission list of the given role.
-     *
-     * @param roleID       Role ID.
-     * @param tenantDomain Tenant domain.
-     * @return List of permissions.
-     * @throws IdentityRoleManagementException IdentityRoleManagementException.
-     */
-
-    /**
      * Update Role ID.
      *
      * @param roleID       Role ID.

@@ -55,11 +55,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATI
 public class RoleManagementServiceImpl implements RoleManagementService {
 
     private static final Log log = LogFactory.getLog(RoleManagementServiceImpl.class);
-    private static final Log audit = CarbonConstants.AUDIT_LOG;
     private final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getRoleDAO();
-    private static final String auditMessage
-            = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
-    private final String success = "Success";
 
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
@@ -107,8 +103,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         if (log.isDebugEnabled()) {
             log.debug(String.format("%s add role of name : %s successfully.", getUser(tenantDomain), roleName));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Add Role", roleName,
-                getAuditData(tenantDomain), success));
         return roleDAO.getRoleBasicInfoById(roleBasicInfo.getId(), tenantDomain);
     }
 
@@ -186,8 +180,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s updated role name of role id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Update role name by ID", roleID,
-                getAuditData(tenantDomain, newRoleName), success));
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -203,8 +195,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s deleted role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Delete role by id", roleID,
-                getAuditData(tenantDomain), success));
     }
 
     @Override
@@ -239,8 +229,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s updated list of users of role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain),
-                "Update users list of role by id", roleID, getAuditData(tenantDomain), success));
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -276,8 +264,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s updated list of groups of role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain),
-                "Update group list of role by id", roleID, getAuditData(tenantDomain), success));
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -314,8 +300,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s updated list of idp groups of role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain),
-                "Update group list of role by id", roleID, getAuditData(tenantDomain), success));
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
@@ -353,8 +337,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s set list of permissions of role of id : %s successfully.",
                     getUser(tenantDomain), roleID));
         }
-        audit.info(String.format(auditMessage, getInitiator(tenantDomain), "Set permission for role by id",
-                roleID, getAuditData(tenantDomain), success));
         return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
