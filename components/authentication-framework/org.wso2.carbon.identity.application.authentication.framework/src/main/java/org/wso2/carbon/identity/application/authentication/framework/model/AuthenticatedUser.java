@@ -25,6 +25,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -178,11 +180,19 @@ public class AuthenticatedUser extends User {
         String userId = null;
         if (userName != null && userStoreDomain != null && tenantDomain != null) {
             try {
-                int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
+                String tenantDomain= this.getTenantDomain();
+                if (StringUtils.isNotEmpty(this.userResidentOrganization)) {
+                    tenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                            .resolveTenantDomain(this.userResidentOrganization);
+                }
+                int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                 userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
                         this.getUserStoreDomain(), this.getUserName());
             } catch (UserSessionException e) {
                 log.error("Error while resolving the user id from username for local user.");
+            } catch (OrganizationManagementException e) {
+                log.error("Error while resolving the tenant domain by organization id: " +
+                        this.userResidentOrganization);
             }
         } else {
             if (log.isDebugEnabled()) {
