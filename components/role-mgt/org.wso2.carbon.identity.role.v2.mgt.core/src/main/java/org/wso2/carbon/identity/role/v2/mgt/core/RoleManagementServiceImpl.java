@@ -561,42 +561,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         return roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR);
     }
 
-    private String getAuditData(String tenantDomain) {
-
-        return (String.format("Tenant Domain : %s", tenantDomain));
-    }
-
-    private String getAuditData(String tenantDomain, String newRoleName) {
-
-        return (String.format("Tenant Domain : %s, New Role Name : %s", tenantDomain, newRoleName));
-    }
-
-    /**
-     * Get the initiator for audit logs.
-     *
-     * @param tenantDomain Tenant Domain.
-     * @return Initiator based on whether log masking is enabled or not.
-     */
-    private String getInitiator(String tenantDomain) {
-
-        String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (LoggerUtils.isLogMaskingEnable) {
-            if (StringUtils.isNotBlank(user) && StringUtils.isNotBlank(tenantDomain)) {
-                String initiator = IdentityUtil.getInitiatorId(user, tenantDomain);
-                if (StringUtils.isNotBlank(initiator)) {
-                    return initiator;
-                }
-            }
-            if (StringUtils.isNotBlank(user)) {
-                return LoggerUtils.getMaskedContent(user + "@" + tenantDomain);
-            }
-            return LoggerUtils.getMaskedContent(CarbonConstants.REGISTRY_SYSTEM_USERNAME);
-        } else if (StringUtils.isNotBlank(user)) {
-            return user + "@" + tenantDomain;
-        }
-        return CarbonConstants.REGISTRY_SYSTEM_USERNAME;
-    }
-
     private void removeSimilarPermissions(List<Permission> arr1, List<Permission> arr2) {
         List<Permission> toRemove = new ArrayList<>();
 
