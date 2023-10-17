@@ -280,7 +280,7 @@ public class Constants {
         public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY =
                 "authentication.flow.timeout";
         public static final String INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION =
-                "invalid_request_invalid_response_type_for_query_jwt";
+                "invalid_request_invalid.response.type.for.query.jwt";
         public static final String INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION_I18N_KEY =
                 "invalid.response.type.for.query.jwt";
 
