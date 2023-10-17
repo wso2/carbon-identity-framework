@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
@@ -526,6 +527,20 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws IdentityApplicationManagementException If an error occurred while retrieving allowed audience.
      */
     public String getAllowedAudienceForRoleAssociation(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get associated roles of the application.
+     *
+     * @param applicationUUID Application UUID.
+     * @param tenantDomain    Tenant domain.
+     * @return List of associated roles.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving associated roles.
+     */
+    public List<RoleV2> getAssociatedRolesOfApplication(String applicationUUID, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         throw new NotImplementedException();

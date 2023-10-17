@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.sql.Connection;
@@ -372,6 +373,20 @@ public interface ApplicationDAO {
      * @throws IdentityApplicationManagementException Error when retrieving SP property value.
      */
     default String getSPPropertyValueByPropertyKey(String applicationId, String propertyName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Method that returns the associated roles of the application.
+     *
+     * @param applicationId Application UUID.
+     * @param tenantDomain  Tenant domain.
+     * @return List of associated roles.
+     * @throws IdentityApplicationManagementException Error when retrieving associated roles.
+     */
+    default List<RoleV2> getAssociatedRolesOfApplication(String applicationId, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         throw new NotImplementedException();

@@ -5420,6 +5420,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return getSPPropertyValueByPropertyKey(appId, propertyName);
     }
 
+    @Override
+    public List<RoleV2> getAssociatedRolesOfApplication(String applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            AssociatedRolesConfig associatedRolesConfig = getAssociatedRoles(applicationId, connection, tenantID);
+            return associatedRolesConfig.getRoles();
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error while retrieving associated roles for application ID: " + applicationId, e);
+        }
+    }
+
     private String getSPPropertyValueByPropertyKey(int applicationId, String propertyName)
             throws IdentityApplicationManagementException {
 

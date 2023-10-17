@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
@@ -2669,6 +2670,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
                 .getSPPropertyValueByPropertyKey(applicationUUID,
                         IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, tenantDomain);
+    }
+
+    @Override
+    public List<RoleV2> getAssociatedRolesOfApplication(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                .getAssociatedRolesOfApplication(applicationUUID, tenantDomain);
     }
 
     private void doPreUpdateChecks(String storedAppName, ServiceProvider updatedApp, String tenantDomain,
