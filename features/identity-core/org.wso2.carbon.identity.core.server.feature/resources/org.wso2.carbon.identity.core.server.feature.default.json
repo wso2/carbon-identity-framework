@@ -939,6 +939,7 @@
   "console.attribute_dialects.scopes.update": ["internal_claim_meta_update"],
   "console.attribute_dialects.scopes.delete": ["internal_claim_meta_delete"],
   "console.branding.enabled": true,
+  "console.bulk_user_import.enabled": true,
   "console.branding.scopes.feature": [],
   "console.branding.scopes.create": ["internal_application_mgt_create"],
   "console.branding.scopes.read": ["internal_application_mgt_view"],
