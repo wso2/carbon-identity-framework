@@ -175,8 +175,11 @@ public interface ConfigurationManager {
      * @return {@link Resource}
      * @throws ConfigurationManagementException Configuration management exception.
      */
-    Resource getResourceByTenantId(int tenantId, String resourceTypeName, String resourceName) throws
-            ConfigurationManagementException;
+    default Resource getResourceByTenantId(int tenantId, String resourceTypeName, String resourceName) throws
+            ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * This API is used to delete the given resource.
