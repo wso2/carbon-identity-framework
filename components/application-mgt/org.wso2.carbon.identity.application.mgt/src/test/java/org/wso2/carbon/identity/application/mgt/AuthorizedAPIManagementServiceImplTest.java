@@ -49,6 +49,7 @@ import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.internal.RegistryDataHolder;
@@ -75,7 +76,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @WithAxisConfiguration
 @WithCarbonHome
 @WithRegistry
-@WithRealmService
+@WithRealmService(injectToSingletons = {OrganizationManagementDataHolder.class})
 @WithH2Database(files = {"dbscripts/identity.sql"})
 public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
 
