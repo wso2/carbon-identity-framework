@@ -1014,7 +1014,7 @@ public class RoleDAOImpl implements RoleDAO {
         Map<String, String> rolesMap = new HashMap<>();
         String query = GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL +
                 String.join(", ", Collections.nCopies(roleIds.size(), "?")) + ")";
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
                 statement.setInt(1, IdentityTenantUtil.getTenantId(subOrgTenantDomain));
                 for (int i = 0; i < roleIds.size(); i++) {
