@@ -29,6 +29,7 @@ public class APIResourceManagementConstants {
 
     public static final String NAME = "name";
     public static final String IDENTIFIER = "identifier";
+    public static final String TYPE = "type";
     public static final String BEFORE = "before";
     public static final String AFTER = "after";
     public static final String EQ = "eq";
@@ -52,6 +53,7 @@ public class APIResourceManagementConstants {
         attributeColumnMap.put(IDENTIFIER, SQLConstants.IDENTIFIER_COLUMN_NAME);
         attributeColumnMap.put(BEFORE, SQLConstants.CURSOR_KEY_COLUMN_NAME);
         attributeColumnMap.put(AFTER, SQLConstants.CURSOR_KEY_COLUMN_NAME);
+        attributeColumnMap.put(TYPE, SQLConstants.TYPE_COLUMN_NAME);
 
         scopeAttributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
     }
@@ -72,6 +74,8 @@ public class APIResourceManagementConstants {
                 "Scope already exists for the tenant: %s."),
         ERROR_CODE_INVALID_FILTER_VALUE("60005", "Unable to retrieve API resources.",
                 "Invalid filter value used for filtering."),
+        ERROR_CODE_CREATION_RESTRICTED("60006", "API resource creation is restricted.",
+                "API resource creation is restricted in organizations."),
 
         // Server errors.
         ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES("65001", "Error while retrieving API resources.",

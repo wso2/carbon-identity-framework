@@ -25,22 +25,19 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -64,6 +61,8 @@ public class AuthenticatedUser extends User {
     private String authenticatedSubjectIdentifier;
     private String federatedIdPName;
     private boolean isFederatedUser;
+    private String accessingOrganization;
+    private String userResidentOrganization;
     private Map<ClaimMapping, String> userAttributes = new HashMap<>();
 
     /**
@@ -100,6 +99,8 @@ public class AuthenticatedUser extends User {
         if (!isFederatedUser && StringUtils.isNotEmpty(userStoreDomain) && StringUtils.isNotEmpty(tenantDomain)) {
             updateCaseSensitivity();
         }
+        this.accessingOrganization = authenticatedUser.getAccessingOrganization();
+        this.userResidentOrganization = authenticatedUser.getUserResidentOrganization();
     }
 
     public AuthenticatedUser(org.wso2.carbon.user.core.common.User user) {
@@ -169,40 +170,6 @@ public class AuthenticatedUser extends User {
     }
 
     /**
-     * Resolve userId from ancestor organizations when user is not found in the current organization.
-     *
-     * @return return user Id.
-     */
-    private String resolveUserIdFromAncestorOrganizations() {
-
-        try {
-            if (authenticatedSubjectIdentifier != null) {
-                String organizationId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
-                        .resolveOrganizationId(tenantDomain);
-                /*
-                    Extract user id from the authenticated subject identifier assuming user ID set as a part of the
-                    subject identifier.
-                */
-                String potentialUserId =
-                        authenticatedSubjectIdentifier.split(UserCoreConstants.TENANT_DOMAIN_COMBINER)[0];
-                if (potentialUserId.contains(CarbonConstants.DOMAIN_SEPARATOR)) {
-                    potentialUserId = potentialUserId.split(CarbonConstants.DOMAIN_SEPARATOR)[1];
-                }
-                Optional<String> userResideOrgId = FrameworkServiceDataHolder.getInstance()
-                        .getOrganizationUserResidentResolverService()
-                        .resolveResidentOrganization(potentialUserId, organizationId);
-                if (userResideOrgId.isPresent()) {
-                    return potentialUserId;
-                }
-            }
-        } catch (OrganizationManagementException e) {
-            log.error("Error occurred while resolving the user's resident organization by user ID from ancestor " +
-                    "organizations");
-        }
-        return null;
-    }
-
-    /**
      * Internal method to get the user id of a local user with the parameters available in the authenticated user
      * object.
      */
@@ -214,9 +181,6 @@ public class AuthenticatedUser extends User {
                 int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
                 userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
                         this.getUserStoreDomain(), this.getUserName());
-                if (userId == null && FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnabled()) {
-                    userId = resolveUserIdFromAncestorOrganizations();
-                }
             } catch (UserSessionException e) {
                 log.error("Error while resolving the user id from username for local user.");
             }
@@ -374,17 +338,52 @@ public class AuthenticatedUser extends User {
         return userId;
     }
 
+    /**
+     * Returns the user id of the authenticated user.
+     * If the user id is not available, it will return the fully qualified username.
+     *
+     * @return the user id of the authenticated user.
+     * @deprecated use {@link #getLoggableMaskedUserId()}
+     */
+    @Deprecated
+    @Override
     public String getLoggableUserId() {
 
         if (userId != null) {
             return userId;
         }
 
-        // User id can be null sometimes in some flows. Hence trying to resolve it here.
+        // User id can be null sometimes in some flows. Hence, trying to resolve it here.
         String loggableUserId = resolveUserIdInternal();
         if (loggableUserId == null) {
             // If the user id is still null, lets get the fully qualified username as the user id for logging purposes.
             loggableUserId = toFullQualifiedUsername();
+        }
+        return loggableUserId;
+    }
+
+    /**
+     * Returns the user id of the authenticated user.
+     * If the user id is not available, it will return the fully qualified username. Masked username is returned if
+     * masking is enabled.
+     *
+     * @return the user id of the authenticated user.
+     */
+    @Override
+    public String getLoggableMaskedUserId() {
+
+        if (userId != null) {
+            return userId;
+        }
+
+        // User id can be null sometimes in some flows. Hence, trying to resolve it here.
+        String loggableUserId = resolveUserIdInternal();
+        if (loggableUserId == null) {
+            // If the user id is still null, lets get the fully qualified username as the user id for logging purposes.
+            loggableUserId = toFullQualifiedUsername();
+            if (LoggerUtils.isLogMaskingEnable) {
+                loggableUserId = LoggerUtils.getMaskedContent(loggableUserId);
+            }
         }
         return loggableUserId;
     }
@@ -466,6 +465,27 @@ public class AuthenticatedUser extends User {
      */
     public void setFederatedIdPName(String federatedIdPName) {
         this.federatedIdPName = federatedIdPName;
+    }
+
+
+    public String getAccessingOrganization() {
+
+        return accessingOrganization;
+    }
+
+    public void setAccessingOrganization(String accessingOrganization) {
+
+        this.accessingOrganization = accessingOrganization;
+    }
+
+    public String getUserResidentOrganization() {
+
+        return userResidentOrganization;
+    }
+
+    public void setUserResidentOrganization(String userResidentOrganization) {
+
+        this.userResidentOrganization = userResidentOrganization;
     }
 
     @Override

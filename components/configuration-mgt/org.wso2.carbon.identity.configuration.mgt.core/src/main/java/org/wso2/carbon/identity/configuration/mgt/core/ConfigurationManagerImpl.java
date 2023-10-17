@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationCon
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
-import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
@@ -39,7 +38,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -185,16 +183,28 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     public Resource getResource(String resourceTypeName, String resourceName)
             throws ConfigurationManagementException {
 
+        return getResource(getTenantId(), resourceTypeName, resourceName);
+    }
+
+    @Override
+    public Resource getResourceByTenantId(int tenantId, String resourceTypeName, String resourceName)
+            throws ConfigurationManagementException {
+
+        return getResource(tenantId, resourceTypeName, resourceName);
+    }
+
+    private Resource getResource(int tenantId, String resourceTypeName, String resourceName)
+            throws ConfigurationManagementException {
+
         validateResourceRetrieveRequest(resourceTypeName, resourceName);
         ResourceType resourceType = getResourceType(resourceTypeName);
-        Resource resource = this.getConfigurationDAO()
-                .getResourceByName(getTenantId(), resourceType.getId(), resourceName);
+        Resource resource = this.getConfigurationDAO().getResourceByName(tenantId, resourceType.getId(), resourceName);
         if (resource == null) {
             if (log.isDebugEnabled()) {
-                log.debug("No resource found for the resourceName: " + resourceName);
+                log.debug(String.format("No resource found for the resource with name: %s in tenant with ID: %s",
+                        resourceName, tenantId));
             }
-            throw handleClientException(
-                    ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS, resourceName, null);
+            throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS, resourceName, null);
         }
         return resource;
     }

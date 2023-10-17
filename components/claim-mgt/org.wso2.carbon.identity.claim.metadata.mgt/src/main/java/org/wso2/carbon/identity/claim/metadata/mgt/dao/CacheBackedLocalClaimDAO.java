@@ -19,8 +19,10 @@ package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.cache.AssociatedClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.LocalClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -38,6 +40,8 @@ public class CacheBackedLocalClaimDAO {
     LocalClaimDAO localClaimDAO;
 
     LocalClaimCache localClaimInvalidationCache = LocalClaimCache.getInstance();
+    AssociatedClaimCache associatedClaimCache = AssociatedClaimCache.getInstance();
+
 
     public CacheBackedLocalClaimDAO(LocalClaimDAO localClaimDAO) {
         this.localClaimDAO = localClaimDAO;
@@ -73,6 +77,7 @@ public class CacheBackedLocalClaimDAO {
 
         localClaimDAO.updateLocalClaim(localClaim, tenantId);
         localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+        associatedClaimCache.clearCacheEntry(localClaim.getClaimURI(), tenantId);
     }
 
     /**
@@ -94,6 +99,7 @@ public class CacheBackedLocalClaimDAO {
 
         localClaimDAO.removeLocalClaim(localClaimURI, tenantId);
         localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+        associatedClaimCache.clearCacheEntry(localClaimURI, tenantId);
     }
 
     /**
@@ -114,5 +120,32 @@ public class CacheBackedLocalClaimDAO {
         }
         localClaimDAO.deleteClaimMappingAttributes(tenantId, userstoreDomain);
         localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+    }
+
+    /**
+     * Fetch mapped external claims of a local claim.
+     *
+     * @param tenantId      Tenant Id.
+     * @param localClaimURI URI of local claim.
+     * @throws ClaimMetadataException If an error occurred while getting mapped external claim for local claim.
+     */
+    public List<Claim> fetchMappedExternalClaims(String localClaimURI, int tenantId)
+            throws ClaimMetadataException {
+
+        List<Claim> associatedLocalClaims = associatedClaimCache.getValueFromCache(localClaimURI, tenantId);
+        if (associatedLocalClaims == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Cache miss for associated claims of local claim:%s in tenant:%s ",
+                        localClaimURI, tenantId));
+            }
+            associatedLocalClaims = localClaimDAO.fetchMappedExternalClaims(localClaimURI, tenantId);
+            associatedClaimCache.addToCache(localClaimURI, new ArrayList<>(associatedLocalClaims), tenantId);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Cache hit for associated claims of local claim:%s in tenant:%s ",
+                        localClaimURI, tenantId));
+            }
+        }
+        return associatedLocalClaims;
     }
 }

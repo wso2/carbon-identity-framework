@@ -102,6 +102,9 @@ public class RoleConstants {
         OPERATION_FORBIDDEN("60009"),
         OPERATION_NOT_SUPPORTED("60010"),
 
+        // Error thrown by custom event handler.
+        ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR("55001"),
+
         UNEXPECTED_SERVER_ERROR("65001"),
         SORTING_NOT_IMPLEMENTED("65002");
 

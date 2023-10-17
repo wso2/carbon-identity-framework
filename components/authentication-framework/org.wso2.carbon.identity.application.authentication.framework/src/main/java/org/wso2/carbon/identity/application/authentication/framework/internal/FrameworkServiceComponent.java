@@ -89,6 +89,7 @@ import org.wso2.carbon.identity.application.authentication.framework.session.ext
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.store.JavaSessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
+import org.wso2.carbon.identity.application.authentication.framework.store.PushedAuthDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -108,8 +109,6 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
-import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
-import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
@@ -303,8 +302,9 @@ public class FrameworkServiceComponent {
                 jitProvisioningIDPMgtListener, null);
         bundleContext.registerService(ClaimFilter.class.getName(), new DefaultClaimFilter(), null);
 
-        //this is done to load SessionDataStore class and start the cleanup tasks.
+        // This is done to load SessionDataStore and PushedAuthDataStore classes and start the cleanup tasks.
         SessionDataStore.getInstance();
+        PushedAuthDataStore.getInstance();
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
         asyncSequenceExecutor.init();
@@ -1031,42 +1031,5 @@ public class FrameworkServiceComponent {
             log.debug("Unsetting the configuration manager in Application Authentication Framework bundle.");
         }
         FrameworkServiceDataHolder.getInstance().setConfigurationManager(null);
-    }
-
-    @Reference(name = "identity.organization.management.component",
-            service = OrganizationManager.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetOrganizationManager")
-    protected void setOrganizationManager(OrganizationManager organizationManager) {
-
-        FrameworkServiceDataHolder.getInstance().setOrganizationManager(organizationManager);
-    }
-
-    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
-
-        FrameworkServiceDataHolder.getInstance().setOrganizationManager(null);
-    }
-
-    @Reference(
-            name = "organization.user.resident.resolver.service",
-            service = OrganizationUserResidentResolverService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetOrganizationUserResidentResolverService"
-    )
-    protected void setOrganizationUserResidentResolverService(
-            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
-
-        log.debug("Setting the organization user resident resolver service.");
-        FrameworkServiceDataHolder.getInstance().setOrganizationUserResidentResolverService(
-                organizationUserResidentResolverService);
-    }
-
-    protected void unsetOrganizationUserResidentResolverService(
-            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
-
-        log.debug("Unset organization user resident resolver service.");
-        FrameworkServiceDataHolder.getInstance().setOrganizationUserResidentResolverService(null);
     }
 }
