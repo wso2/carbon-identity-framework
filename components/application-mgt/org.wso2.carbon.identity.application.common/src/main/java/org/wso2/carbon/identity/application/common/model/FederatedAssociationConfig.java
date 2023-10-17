@@ -38,17 +38,13 @@ public class FederatedAssociationConfig implements Serializable {
 
     private static final long serialVersionUID = 3689722862659524700L;
     private static final String IS_ENABLED = "IsEnabled";
-    private static final String FEDERATED_ATTRIBUTE = "FederatedAttribute";
-    private static final String MAPPED_LOCAL_ATTRIBUTE = "MappedLocalAttribute";
+    private static final String LOOKUP_ATTRIBUTES = "LookupAttributes";
 
     @XmlElement(name = "IsEnabled")
     private boolean isEnabled = false;
 
-    @XmlElement(name = "FederatedAttribute")
-    private String federatedAttribute;
-
-    @XmlElement(name = "MappedLocalAttribute")
-    private String mappedLocalAttribute;
+    @XmlElement(name = "LookupAttributes")
+    private String[] lookupAttributes;
 
     public static FederatedAssociationConfig build(OMElement federatedAssociationConfigOM) {
 
@@ -68,10 +64,9 @@ public class FederatedAssociationConfig implements Serializable {
                 if (StringUtils.isNotBlank(element.getText())) {
                     federatedAssociationConfig.setEnabled(Boolean.parseBoolean(element.getText()));
                 }
-            } else if (FEDERATED_ATTRIBUTE.equals(elementName)) {
-                federatedAssociationConfig.setFederatedAttribute(element.getText());
-            } else if (MAPPED_LOCAL_ATTRIBUTE.equals(elementName)) {
-                federatedAssociationConfig.setMappedLocalAttribute(element.getText());
+            } else if (LOOKUP_ATTRIBUTES.equals(elementName)) {
+                String[] attributeList = StringUtils.split(element.getText(), ",");
+                federatedAssociationConfig.setLookupAttributes(attributeList);
             }
         }
 
@@ -83,9 +78,9 @@ public class FederatedAssociationConfig implements Serializable {
         isEnabled = enabled;
     }
 
-    public String getFederatedAttribute() {
+    public String[] getLookupAttributes() {
 
-        return federatedAttribute;
+        return lookupAttributes;
     }
 
     public boolean isEnabled() {
@@ -93,19 +88,9 @@ public class FederatedAssociationConfig implements Serializable {
         return isEnabled;
     }
 
-    public void setFederatedAttribute(String federatedAttribute) {
+    public void setLookupAttributes(String[] lookupAttributes) {
 
-        this.federatedAttribute = federatedAttribute;
-    }
-
-    public String getMappedLocalAttribute() {
-
-        return mappedLocalAttribute;
-    }
-
-    public void setMappedLocalAttribute(String mappedLocalAttribute) {
-
-        this.mappedLocalAttribute = mappedLocalAttribute;
+        this.lookupAttributes = lookupAttributes;
     }
 
 }

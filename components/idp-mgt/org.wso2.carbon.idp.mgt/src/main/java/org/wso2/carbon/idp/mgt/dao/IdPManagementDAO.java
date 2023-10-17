@@ -2400,23 +2400,18 @@ public class IdPManagementDAO {
                     federatedAssociationConfig
                             .setEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
                     break;
-                case IdPManagementConstants.FEDERATED_ATTRIBUTE:
-                    federatedAssociationConfig.setFederatedAttribute(identityProviderProperty.getValue());
-                    break;
-                case IdPManagementConstants.MAPPED_LOCAL_ATTRIBUTE:
-                    federatedAssociationConfig.setMappedLocalAttribute(identityProviderProperty.getValue());
+                case IdPManagementConstants.LOOKUP_ATTRIBUTES:
+                    String[] attributes = identityProviderProperty.getValue().split(",");
+                    federatedAssociationConfig.setLookupAttributes(attributes);
                     break;
             }
         });
 
         // For newly created idps default values will be added. However, these will be null for previously
         // created idps and hence we need to set the default values.
-        if (StringUtils.isBlank(federatedAssociationConfig.getFederatedAttribute())) {
-            federatedAssociationConfig.setFederatedAttribute(IdPManagementConstants.DEFAULT_FEDERATED_ATTRIBUTE);
-        }
-
-        if (StringUtils.isBlank(federatedAssociationConfig.getMappedLocalAttribute())) {
-            federatedAssociationConfig.setMappedLocalAttribute(IdPManagementConstants.DEFAULT_MAPPED_LOCAL_ATTRIBUTE);
+        if (federatedAssociationConfig.getLookupAttributes() == null) {
+            federatedAssociationConfig.setLookupAttributes(
+                    new String[]{IdPManagementConstants.DEFAULT_LOOKUP_ATTRIBUTE});
         }
 
         federatedIdp.setFederatedAssociationConfig(federatedAssociationConfig);
@@ -2436,9 +2431,7 @@ public class IdPManagementDAO {
                                 .equals(identityProviderProperty.getName()) ||
                         IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED
                                 .equals(identityProviderProperty.getName()) ||
-                        IdPManagementConstants.FEDERATED_ATTRIBUTE
-                                .equals(identityProviderProperty.getName()) ||
-                        IdPManagementConstants.MAPPED_LOCAL_ATTRIBUTE
+                        IdPManagementConstants.LOOKUP_ATTRIBUTES
                                 .equals(identityProviderProperty.getName())));
         return identityProviderProperties;
     }
@@ -3122,13 +3115,9 @@ public class IdPManagementDAO {
         federatedAssociationProperty.setName(IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED);
         federatedAssociationProperty.setValue("false");
 
-        IdentityProviderProperty federatedAttribute = new IdentityProviderProperty();
-        federatedAttribute.setName(IdPManagementConstants.FEDERATED_ATTRIBUTE);
-        federatedAttribute.setValue(IdPManagementConstants.DEFAULT_FEDERATED_ATTRIBUTE);
-
-        IdentityProviderProperty mappedLocalAttribute = new IdentityProviderProperty();
-        mappedLocalAttribute.setName(IdPManagementConstants.MAPPED_LOCAL_ATTRIBUTE);
-        mappedLocalAttribute.setValue(IdPManagementConstants.DEFAULT_MAPPED_LOCAL_ATTRIBUTE);
+        IdentityProviderProperty lookupAttribute = new IdentityProviderProperty();
+        lookupAttribute.setName(IdPManagementConstants.LOOKUP_ATTRIBUTES);
+        lookupAttribute.setValue(IdPManagementConstants.DEFAULT_LOOKUP_ATTRIBUTE);
 
         IdentityProviderProperty attributeSyncMethod = new IdentityProviderProperty();
         attributeSyncMethod.setName(IdPManagementConstants.SYNC_ATTRIBUTE_METHOD);
@@ -3148,8 +3137,7 @@ public class IdPManagementDAO {
 
         if (federatedAssociationConfig != null) {
             federatedAssociationProperty.setValue(String.valueOf(federatedAssociationConfig.isEnabled()));
-            federatedAttribute.setValue(federatedAssociationConfig.getFederatedAttribute());
-            mappedLocalAttribute.setValue(federatedAssociationConfig.getMappedLocalAttribute());
+            lookupAttribute.setValue(StringUtils.join(federatedAssociationConfig.getLookupAttributes(), ","));
         }
 
         identityProviderProperties.add(passwordProvisioningProperty);
@@ -3158,8 +3146,7 @@ public class IdPManagementDAO {
         identityProviderProperties.add(associateLocalUser);
         identityProviderProperties.add(attributeSyncMethod);
         identityProviderProperties.add(federatedAssociationProperty);
-        identityProviderProperties.add(federatedAttribute);
-        identityProviderProperties.add(mappedLocalAttribute);
+        identityProviderProperties.add(lookupAttribute);
         return identityProviderProperties;
     }
 

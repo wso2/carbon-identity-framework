@@ -102,10 +102,8 @@ public class IdPManagementConstants {
     public static final String PRESERVE_LOCAL_ATTRIBUTE_SYNC = "PRESERVE_LOCAL";
     public static final String PRESERVE_LOCALLY_ADDED_CLAIMS = "JITProvisioning.PreserveLocallyAddedClaims";
     public static final String FEDERATED_ASSOCIATION_ENABLED = "FEDERATED_ASSOCIATION_ENABLED";
-    public static final String FEDERATED_ATTRIBUTE = "FEDERATED_ATTRIBUTE";
-    public static final String DEFAULT_FEDERATED_ATTRIBUTE = "sub";
-    public static final String MAPPED_LOCAL_ATTRIBUTE = "MAPPED_LOCAL_ATTRIBUTE";
-    public static final String DEFAULT_MAPPED_LOCAL_ATTRIBUTE = "http://wso2.org/claims/username";
+    public static final String LOOKUP_ATTRIBUTES = "LOOKUP_ATTRIBUTES";
+    public static final String DEFAULT_LOOKUP_ATTRIBUTE = "email";
 
     // Outbound Provisioning Connectors
     public static final String GOOGLE = "googleapps";
