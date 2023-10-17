@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.UserBasicInfo;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -367,4 +368,15 @@ public interface RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     void deleteRolesByApplication(String applicationId, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get main role to shared role mappings by subOrg.
+     *
+     * @param roleIds        Main role IDs.
+     * @param subOrgTenantId Sub Organization tenant domain.
+     * @return The map of main role id to shared roles.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    Map<String, List<String>> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds, int subOrgTenantId)
+            throws IdentityRoleManagementException;
 }

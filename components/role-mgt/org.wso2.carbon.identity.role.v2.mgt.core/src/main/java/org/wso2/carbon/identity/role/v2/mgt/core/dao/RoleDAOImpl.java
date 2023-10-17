@@ -134,6 +134,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIE
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIENCE_REF_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_IDP_GROUPS_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_APP_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_INFORMIX;
@@ -1002,6 +1003,41 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     message, e);
         }
+    }
+
+    @Override
+    public Map<String, List<String>> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds, int subOrgTenantId)
+            throws IdentityRoleManagementException {
+
+        Map<String, List<String>> rolesMap = new HashMap<>();
+        String query = GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL +
+                String.join(", ", Collections.nCopies(roleIds.size(), "?")) + ")";
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
+                statement.setInt(1, subOrgTenantId);
+                for (int i = 0; i < roleIds.size(); i++) {
+                    statement.setString(i + 2, roleIds.get(i));
+                }
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        String mainRoleId = resultSet.getString(1);
+                        String sharedRoleId = resultSet.getString(2);
+                        rolesMap.computeIfAbsent(mainRoleId, k -> new ArrayList<>()).add(sharedRoleId);
+                    }
+                }
+            } catch (SQLException e) {
+                String errorMessage = "Error while retrieving main role to shared role mappings by sub org tenant : "
+                        + subOrgTenantId;
+                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                        errorMessage, e);
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while retrieving main role to shared role mappings by sub org tenant : "
+                    + subOrgTenantId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    errorMessage, e);
+        }
+        return rolesMap;
     }
 
     private List<RoleDTO> getHybridRolesByApplication(String applicationId, String tenantDomain)

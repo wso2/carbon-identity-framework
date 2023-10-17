@@ -62,6 +62,12 @@ public class SQLQueries {
             "sr.UM_SHARED_ROLE_TENANT_ID = hr2.UM_TENANT_ID WHERE hr2.UM_UUID =:UM_UUID; AND " +
             "hr2.UM_TENANT_ID =:UM_TENANT_ID;";
 
+    public static final String GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL = "SELECT m_main.UM_ROLE_NAME AS " +
+            "main_role_name, m_shared.UM_ROLE_NAME AS shared_role_name FROM UM_SHARED_ROLE AS s JOIN UM_HYBRID_ROLE " +
+            "AS m_main ON s.UM_MAIN_ROLE_ID = m_main.UM_ID AND s.UM_MAIN_ROLE_TENANT_ID = m_main.UM_TENANT_ID " +
+            "JOIN UM_HYBRID_ROLE AS m_shared ON s.UM_SHARED_ROLE_ID = m_shared.UM_ID AND s.UM_SHARED_ROLE_TENANT_ID " +
+            "= m_shared.UM_TENANT_ID WHERE s.UM_SHARED_ROLE_TENANT_ID = ? AND m_main.UM_UUId IN (";
+
     public static final String DELETE_SHARED_HYBRID_ROLES_WITH_MAIN_ROLE_SQL = "DELETE FROM UM_HYBRID_ROLE WHERE " +
             "(UM_ID, UM_TENANT_ID) IN (SELECT UM_SHARED_ROLE_ID, UM_SHARED_ROLE_TENANT_ID FROM UM_SHARED_ROLE " +
             "WHERE (UM_MAIN_ROLE_ID, UM_MAIN_ROLE_TENANT_ID) = (SELECT UM_ID, UM_TENANT_ID FROM UM_HYBRID_ROLE " +

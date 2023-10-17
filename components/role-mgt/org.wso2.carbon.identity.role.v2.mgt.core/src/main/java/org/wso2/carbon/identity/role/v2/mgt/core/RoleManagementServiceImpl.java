@@ -40,6 +40,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
@@ -158,6 +159,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             log.debug(String.format("%s get role of id : %s successfully.", getUser(tenantDomain), roleID));
         }
         return role;
+    }
+
+    @Override
+    public RoleBasicInfo getRoleBasicInfoById(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleBasicInfoById(roleID, tenantDomain);
     }
 
     @Override
@@ -463,6 +471,14 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             throws IdentityRoleManagementException {
 
         roleDAO.deleteRolesByApplication(applicationId, tenantDomain);
+    }
+
+    @Override
+    public Map<String, List<String>> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds,
+                                                                             int subOrgTenantId)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getMainRoleToSharedRoleMappingsBySubOrg(roleIds, subOrgTenantId);
     }
 
     private String getUser(String tenantDomain) {

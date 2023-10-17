@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.role.v2.mgt.core;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -82,6 +83,16 @@ public interface RoleManagementService {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     Role getRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get role basic info by id.
+     *
+     * @param roleID       Role ID.
+     * @param tenantDomain Tenant domain.
+     * @return RoleBasicInfo.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    RoleBasicInfo getRoleBasicInfoById(String roleID, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Get permission list of the given role.
@@ -358,4 +369,15 @@ public interface RoleManagementService {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     void deleteRolesByApplication(String applicationId, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Get main role to shared role mappings by subOrg.
+     *
+     * @param roleIds        Main role IDs.
+     * @param subOrgTenantId Sub Organization tenant domain.
+     * @return The map of main role id to shared roles.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    Map<String, List<String>> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds, int subOrgTenantId)
+            throws IdentityRoleManagementException;
 }
