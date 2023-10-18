@@ -3108,7 +3108,7 @@ public class IdPManagementDAO {
 
         IdentityProviderProperty federatedAssociationProperty = new IdentityProviderProperty();
         federatedAssociationProperty.setName(IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED);
-        federatedAssociationProperty.setValue(IdPManagementConstants.FALSE);
+        federatedAssociationProperty.setValue(IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED_DEFAULT_VALUE);
 
         IdentityProviderProperty lookupAttribute = null;
 
