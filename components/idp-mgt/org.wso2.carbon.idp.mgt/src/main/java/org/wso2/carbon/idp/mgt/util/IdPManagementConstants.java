@@ -105,7 +105,7 @@ public class IdPManagementConstants {
     public static final String LOOKUP_ATTRIBUTES = "LOOKUP_ATTRIBUTES";
     public static final String DEFAULT_LOOKUP_ATTRIBUTE = "email";
 
-    public static final String FALSE = "false";
+    public static final String FEDERATED_ASSOCIATION_ENABLED_DEFAULT_VALUE = "false";
 
     // Outbound Provisioning Connectors
     public static final String GOOGLE = "googleapps";
