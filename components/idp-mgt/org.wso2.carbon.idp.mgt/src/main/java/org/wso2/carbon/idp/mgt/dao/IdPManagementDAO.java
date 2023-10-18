@@ -2401,18 +2401,20 @@ public class IdPManagementDAO {
                             .setEnabled(Boolean.parseBoolean(identityProviderProperty.getValue()));
                     break;
                 case IdPManagementConstants.LOOKUP_ATTRIBUTES:
-                    String[] attributes = identityProviderProperty.getValue().split(",");
-                    federatedAssociationConfig.setLookupAttributes(attributes);
+                    if (identityProviderProperty.getValue() != null) {
+                        String[] attributes = identityProviderProperty.getValue().split(",");
+                        federatedAssociationConfig.setLookupAttributes(attributes);
+                    }
                     break;
             }
         });
 
         // For newly created idps default values will be added. However, these will be null for previously
         // created idps and hence we need to set the default values.
-        if (federatedAssociationConfig.getLookupAttributes() == null) {
-            federatedAssociationConfig.setLookupAttributes(
-                    new String[]{IdPManagementConstants.DEFAULT_LOOKUP_ATTRIBUTE});
-        }
+//        if (federatedAssociationConfig.getLookupAttributes() == null) {
+//            federatedAssociationConfig.setLookupAttributes(
+//                    new String[]{IdPManagementConstants.DEFAULT_LOOKUP_ATTRIBUTE});
+//        }
 
         federatedIdp.setFederatedAssociationConfig(federatedAssociationConfig);
 
@@ -3113,11 +3115,9 @@ public class IdPManagementDAO {
 
         IdentityProviderProperty federatedAssociationProperty = new IdentityProviderProperty();
         federatedAssociationProperty.setName(IdPManagementConstants.FEDERATED_ASSOCIATION_ENABLED);
-        federatedAssociationProperty.setValue("false");
+        federatedAssociationProperty.setValue(IdPManagementConstants.FALSE);
 
-        IdentityProviderProperty lookupAttribute = new IdentityProviderProperty();
-        lookupAttribute.setName(IdPManagementConstants.LOOKUP_ATTRIBUTES);
-        lookupAttribute.setValue(IdPManagementConstants.DEFAULT_LOOKUP_ATTRIBUTE);
+        IdentityProviderProperty lookupAttribute = null;
 
         IdentityProviderProperty attributeSyncMethod = new IdentityProviderProperty();
         attributeSyncMethod.setName(IdPManagementConstants.SYNC_ATTRIBUTE_METHOD);
@@ -3135,8 +3135,10 @@ public class IdPManagementDAO {
             attributeSyncMethod.setValue(justInTimeProvisioningConfig.getAttributeSyncMethod());
         }
 
-        if (federatedAssociationConfig != null) {
+        if (federatedAssociationConfig != null && federatedAssociationConfig.isEnabled()) {
             federatedAssociationProperty.setValue(String.valueOf(federatedAssociationConfig.isEnabled()));
+            lookupAttribute = new IdentityProviderProperty();
+            lookupAttribute.setName(IdPManagementConstants.LOOKUP_ATTRIBUTES);
             lookupAttribute.setValue(StringUtils.join(federatedAssociationConfig.getLookupAttributes(), ","));
         }
 
@@ -3146,7 +3148,10 @@ public class IdPManagementDAO {
         identityProviderProperties.add(associateLocalUser);
         identityProviderProperties.add(attributeSyncMethod);
         identityProviderProperties.add(federatedAssociationProperty);
-        identityProviderProperties.add(lookupAttribute);
+        if (lookupAttribute != null) {
+            identityProviderProperties.add(lookupAttribute);
+        }
+
         return identityProviderProperties;
     }
 

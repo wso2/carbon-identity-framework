@@ -44,7 +44,7 @@ public class FederatedAssociationConfig implements Serializable {
     private boolean isEnabled = false;
 
     @XmlElement(name = "LookupAttributes")
-    private String[] lookupAttributes;
+    private String[] lookupAttributes = new String[]{};
 
     public static FederatedAssociationConfig build(OMElement federatedAssociationConfigOM) {
 
