@@ -127,6 +127,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SC
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SHARED_HYBRID_ROLES_WITH_MAIN_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SHARED_SCIM_ROLES_WITH_MAIN_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ASSOCIATED_APPS_BY_ROLE_ID_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ASSOCIATED_APP_IDS_BY_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIENCE_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIENCE_REF_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL;
@@ -342,7 +343,7 @@ public class RoleDAOImpl implements RoleDAO {
         role.setAudienceName(roleAudience.getAudienceName());
 
         if (ORGANIZATION.equals(roleAudience.getAudience())) {
-            role.setAssociatedApplications(getAssociatedAppsById(roleID));
+            role.setAssociatedApplications(getAssociatedAppsById(roleID, tenantDomain));
         } else if (APPLICATION.equals(roleAudience.getAudience())) {
             List<AssociatedApplication> associatedApplications = new ArrayList<>();
             associatedApplications.add(new AssociatedApplication(roleAudience.getAudienceId(),
@@ -354,6 +355,7 @@ public class RoleDAOImpl implements RoleDAO {
         role.setTenantDomain(tenantDomain);
         role.setUsers(getUserListOfRole(roleID, tenantDomain));
         role.setGroups(getGroupListOfRole(roleID, tenantDomain));
+        role.setIdpGroups(getIdpGroupListOfRole(roleID, tenantDomain));
         if (isSharedRole(roleID, tenantDomain)) {
             role.setPermissions(getPermissionsOfSharedRole(roleID, tenantDomain));
         } else {
@@ -632,7 +634,7 @@ public class RoleDAOImpl implements RoleDAO {
         role.setAudienceName(roleAudience.getAudienceName());
 
         if (ORGANIZATION.equals(roleAudience.getAudience())) {
-            role.setAssociatedApplications(getAssociatedAppsById(roleID));
+            role.setAssociatedApplications(getAssociatedAppsById(roleID, tenantDomain));
         } else if (APPLICATION.equals(roleAudience.getAudience())) {
             List<AssociatedApplication> associatedApplications = new ArrayList<>();
             associatedApplications.add(new AssociatedApplication(roleAudience.getAudienceId(),
@@ -643,6 +645,7 @@ public class RoleDAOImpl implements RoleDAO {
         role.setName(roleName);
         role.setTenantDomain(tenantDomain);
         role.setGroups(getGroupListOfRole(roleID, tenantDomain));
+        role.setIdpGroups(getIdpGroupListOfRole(roleID, tenantDomain));
         if (isSharedRole(roleID, tenantDomain)) {
             role.setPermissions(getPermissionsOfSharedRole(roleID, tenantDomain));
         } else {
@@ -1036,6 +1039,31 @@ public class RoleDAOImpl implements RoleDAO {
         return rolesMap;
     }
 
+    @Override
+    public List<String> getAssociatedApplicationIdsByRoleId(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<String> associatedApplicationIds = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    GET_ASSOCIATED_APP_IDS_BY_ROLE_ID_SQL)) {
+                statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleID);
+                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID,
+                        IdentityTenantUtil.getTenantId(tenantDomain));
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        associatedApplicationIds.add(resultSet.getString(1));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while retrieving associated app for role id: " + roleID;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return associatedApplicationIds;
+    }
+
     private List<RoleDTO> getHybridRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -1319,7 +1347,7 @@ public class RoleDAOImpl implements RoleDAO {
      * @return List of associated application.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private List<AssociatedApplication> getAssociatedAppsById(String roleId)
+    private List<AssociatedApplication> getAssociatedAppsById(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
         List<AssociatedApplication> associatedApplications = new ArrayList<>();
@@ -1327,6 +1355,8 @@ public class RoleDAOImpl implements RoleDAO {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                     GET_ASSOCIATED_APPS_BY_ROLE_ID_SQL)) {
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
+                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID,
+                        IdentityTenantUtil.getTenantId(tenantDomain));
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         associatedApplications.add(new AssociatedApplication(resultSet.getString(1),

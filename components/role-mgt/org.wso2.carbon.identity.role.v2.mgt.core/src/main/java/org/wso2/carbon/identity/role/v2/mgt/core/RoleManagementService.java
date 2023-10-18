@@ -371,4 +371,15 @@ public interface RoleManagementService {
      */
     Map<String, String> getMainRoleToSharedRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
             throws IdentityRoleManagementException;
+
+    /**
+     * Get associated applications by role id.
+     *
+     * @param roleID       Role Id.
+     * @param tenantDomain Tenant Domain.
+     * @return List of application ids.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    List<String> getAssociatedApplicationByRoleId(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException;
 }

@@ -545,6 +545,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         return roleDAO.getMainRoleToSharedRoleMappingsBySubOrg(roleIds, subOrgTenantDomain);
     }
 
+    @Override
+    public List<String> getAssociatedApplicationByRoleId(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getAssociatedApplicationIdsByRoleId(roleID, tenantDomain);
+    }
+
     private String getUser(String tenantDomain) {
 
         String user = CarbonContext.getThreadLocalCarbonContext().getUsername();

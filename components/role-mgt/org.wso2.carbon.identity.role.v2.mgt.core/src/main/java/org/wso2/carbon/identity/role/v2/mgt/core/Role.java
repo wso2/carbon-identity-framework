@@ -31,6 +31,7 @@ public class Role {
     private String tenantDomain;
     private List<UserBasicInfo> users;
     private List<GroupBasicInfo> groups;
+    private List<IdpGroup> idpGroups;
     private List<Permission> permissions;
     private String audience;
     private String audienceId;
@@ -99,6 +100,16 @@ public class Role {
     public void setGroups(List<GroupBasicInfo> groups) {
 
         this.groups = groups;
+    }
+
+    public List<IdpGroup> getIdpGroups() {
+
+        return idpGroups;
+    }
+
+    public void setIdpGroups(List<IdpGroup> idpGroups) {
+
+        this.idpGroups = idpGroups;
     }
 
     public List<Permission> getPermissions() {

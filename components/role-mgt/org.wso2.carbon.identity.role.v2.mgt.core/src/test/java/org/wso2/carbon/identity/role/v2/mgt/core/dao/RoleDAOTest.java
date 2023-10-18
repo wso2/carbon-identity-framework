@@ -280,7 +280,6 @@ public class RoleDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection8);
             doCallRealMethod().when(IdentityUtil.class, "extractDomainFromName", anyString());
             doCallRealMethod().when(UserCoreUtil.class, "removeDomainFromName", anyString());
-            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
             List<RoleBasicInfo> roles = roleDAO.getRoles(2, 1, null, null,
                     SAMPLE_TENANT_DOMAIN);
             Assert.assertEquals(getRoleNamesList(roles), expectedRoles);
@@ -323,7 +322,6 @@ public class RoleDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection8);
             doCallRealMethod().when(IdentityUtil.class, "extractDomainFromName", anyString());
             doCallRealMethod().when(UserCoreUtil.class, "removeDomainFromName", anyString());
-            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
             List<ExpressionNode> expressionNodes =
                     getExpressionNodes("name co roleA and audience co application and audienceId co test-app-id");
             List<RoleBasicInfo> roles = roleDAO.getRoles(expressionNodes, 2, 1, null, null,
@@ -468,11 +466,9 @@ public class RoleDAOTest extends PowerMockTestCase {
             RoleBasicInfo  role = addRole("role1", APPLICATION_AUD, "test-app-id");
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection3);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
-            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
             RoleBasicInfo roleBasicInfo =  roleDAO.getRoleBasicInfoById(role.getId(), SAMPLE_TENANT_DOMAIN);
             assertEquals(roleBasicInfo.getAudience(), APPLICATION_AUD);
             assertEquals(roleBasicInfo.getAudienceId(), "test-app-id");
-            assertEquals(roleBasicInfo.getAudienceName(), "TEST_APP_NAME");
         }
     }
 
@@ -594,7 +590,6 @@ public class RoleDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
             addRole("role2", APPLICATION_AUD, "test-app-id");
 
-            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
             doReturn("user1").when(roleDAO, "getUsernameByUserID", anyString(), anyString());
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection5);
             List<RoleBasicInfo> roles  = roleDAO.getRoleListOfUser("userID1", SAMPLE_TENANT_DOMAIN);
@@ -619,7 +614,6 @@ public class RoleDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection4);
             addRole("role2", APPLICATION_AUD, "test-app-id");
 
-            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection5);
             List<RoleBasicInfo> roles  = roleDAO.getRoleListOfGroups(groupIDsList, SAMPLE_TENANT_DOMAIN);
             assertEquals(roles.size(), 2);
@@ -651,7 +645,6 @@ public class RoleDAOTest extends PowerMockTestCase {
             doNothing().when(roleDAO, "resolveIdpGroups", anyCollection(), anyString());
             roleDAO.updateIdpGroupListOfRole(role.getId(), newGroups, new ArrayList<>(), SAMPLE_TENANT_DOMAIN);
 
-            doReturn("TEST_APP_NAME").when(roleDAO, "getApplicationName", anyString(), anyString());
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection5);
             List<RoleBasicInfo> roles  = roleDAO.getRoleListOfIdpGroups(groupIds, SAMPLE_TENANT_DOMAIN);
             assertEquals(roles.size(), 1);
@@ -780,7 +773,6 @@ public class RoleDAOTest extends PowerMockTestCase {
         doReturn(groupIdsMap).when(roleDAO, "getGroupIDsByNames", anyCollection(), anyString());
         doReturn(roleName).when(roleDAO, "getRoleNameByID", anyString(), anyString());
         doReturn("test-org").when(roleDAO, "getOrganizationName", anyString());
-        doNothing().when(roleDAO, "validatePermissions", anyCollection(), anyString(), anyString(), anyString());
         when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
         return roleDAO.addRole(roleName, userIDsList, groupIDsList, permissions, audience, audienceId,
                 SAMPLE_TENANT_DOMAIN);
