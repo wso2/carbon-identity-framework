@@ -125,10 +125,14 @@ public class AssociatedRoleConfigValidationListener extends AbstractApplicationM
         } catch (IdentityRoleManagementException e) {
             // TODO: use constant for error code prefix.
             if (("RMA-" + ROLE_NOT_FOUND).equals(e.getErrorCode())) {
-                LOG.error(String.format("Role: %s does not exist.", role.getId()));
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("Role: %s does not exist.", role.getId()));
+                }
                 return false;
             }
-            LOG.error(String.format("Error while retrieving the role: %s", role.getId()), e);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Error while retrieving the role: %s", role.getId()));
+            }
             return false;
         }
         return false;
