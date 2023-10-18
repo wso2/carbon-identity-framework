@@ -440,9 +440,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
-    private void persistAssociatedRolesOfApplication(Connection connection, String applicationId,
-                                                     String applicationName,
-                                                     AssociatedRolesConfig associatedRolesConfig, String tenantDomain)
+    private void updateAssociatedRolesOfApplication(Connection connection, String applicationId, String applicationName,
+                                                    AssociatedRolesConfig associatedRolesConfig, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         if (associatedRolesConfig == null) {
@@ -542,7 +541,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         // Update associated roles.
-        persistAssociatedRolesOfApplication(connection, serviceProvider.getApplicationResourceId(),
+        updateAssociatedRolesOfApplication(connection, serviceProvider.getApplicationResourceId(),
                 serviceProvider.getApplicationName(), serviceProvider.getAssociatedRolesConfig(), tenantDomain);
 
         updateConfigurationsAsServiceProperties(serviceProvider);

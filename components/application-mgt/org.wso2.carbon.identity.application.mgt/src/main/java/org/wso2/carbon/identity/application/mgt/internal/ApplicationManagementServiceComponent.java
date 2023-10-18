@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProv
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.application.mgt.listener.AssociatedRoleConfigValidationListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
@@ -65,6 +66,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtList
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
@@ -120,7 +122,8 @@ public class ApplicationManagementServiceComponent {
                     null);
             bundleContext.registerService(DefaultAuthSeqMgtService.class.getName(),
                     DefaultAuthSeqMgtServiceImpl.getInstance(), null);
-
+            bundleContext.registerService(ApplicationMgtListener.class.getName(),
+                    new AssociatedRoleConfigValidationListener(), null);
             // Register the DefaultApplicationResourceMgtListener.
             context.getBundleContext().registerService(ApplicationResourceManagementListener.class,
                     new DefaultApplicationResourceMgtListener(), null);
@@ -507,5 +510,41 @@ public class ApplicationManagementServiceComponent {
 
             ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(null);
             log.debug("APIResourceManager unset in to bundle");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService",
+            service = org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementServiceV2")
+    protected void setRoleManagementServiceV2(RoleManagementService roleManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV2(roleManagementService);
+        log.debug("RoleManagementServiceV2 set in ApplicationManagementServiceComponent bundle.");
+    }
+
+    protected void unsetRoleManagementServiceV2(RoleManagementService roleManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV2(null);
+        log.debug("RoleManagementServiceV2 unset in ApplicationManagementServiceComponent bundle.");
+    }
+
+    @Reference(name = "org.wso2.carbon.identity.organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        log.debug("OrganizationManager set in ApplicationManagementServiceComponent bundle.");
+
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(null);
+        log.debug("OrganizationManager unset in ApplicationManagementServiceComponent bundle.");
     }
 }
