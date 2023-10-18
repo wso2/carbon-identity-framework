@@ -1165,5 +1165,16 @@
   "extension_mgt.extension_types": "applications,identity-providers,connections,identity-verification-providers",
 
   "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
-  "input_validation.default_validator": "alphaNumeric"
+  "input_validation.default_validator": "alphaNumeric",
+
+  "email_templates.branding.fallbacks.copyright_text": "WSO2 Identity Server",
+  "email_templates.branding.fallbacks.primary_color": "#FF7300",
+  "email_templates.branding.fallbacks.background_color": "#F8F9FA",
+  "email_templates.branding.fallbacks.light_background_color": "#FFFFFF",
+  "email_templates.branding.fallbacks.dark_background_color": "#111111",
+  "email_templates.branding.fallbacks.font_style": "Gilmer",
+  "email_templates.branding.fallbacks.font_color": "#231F20",
+  "email_templates.branding.fallbacks.button_font_color": "#FFFFFF",
+  "email_templates.branding.fallbacks.light_border_color": "transparent",
+  "email_templates.branding.fallbacks.dark_border_color": "#333333"
 }
