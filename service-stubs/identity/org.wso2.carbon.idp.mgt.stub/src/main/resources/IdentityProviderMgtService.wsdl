@@ -22,6 +22,7 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2437:IdentityProviderProperty"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="justInTimeProvisioningConfig" nillable="true" type="ax2437:JustInTimeProvisioningConfig"/>
+                    <xs:element minOccurs="0" name="federatedAssociationConfig" nillable="true" type="ax2437:FederatedAssociationConfig"/>
                     <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2437:PermissionsAndRoleConfig"/>
                     <xs:element minOccurs="0" name="primary" type="xs:boolean"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningConnectorConfigs" nillable="true" type="ax2437:ProvisioningConnectorConfig"/>
@@ -135,6 +136,12 @@
                     <xs:element minOccurs="0" name="dumbMode" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="provisioningEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="provisioningUserStore" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="FederatedAssociationConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="enabled" nillable="true" type="xs:boolean"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="lookupAttributes" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="JustInTimeProvisioningConfig">
