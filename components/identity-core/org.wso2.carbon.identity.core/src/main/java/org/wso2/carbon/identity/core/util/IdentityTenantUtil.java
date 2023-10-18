@@ -376,10 +376,13 @@ public class IdentityTenantUtil {
                 log.debug("The tenant domain is not set to the thread local. Hence using the tenant domain from the " +
                         "privileged carbon context.");
             }
-            return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         }
 
-        return tenantDomain;
+        if (StringUtils.isNotBlank(tenantDomain)) {
+            return tenantDomain;
+        }
+        return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
     }
 
     /**
