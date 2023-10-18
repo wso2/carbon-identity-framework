@@ -21,6 +21,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
@@ -429,7 +430,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
             boolean valid = false;
             for (ServiceProviderProperty property : app.getSpProperties()) {
                 // TODO :  use osgi service to get this
-                if ("ROLE_AUDIENCE_TYPE".equals(property.getName())) {
+                if (ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME.equals(property.getName())) {
                     if (APPLICATION_AUDIENCE.equalsIgnoreCase(property.getValue())) {
                         valid = true;
                     }
