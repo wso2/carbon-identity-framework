@@ -567,7 +567,7 @@ public class RoleDAOImpl implements RoleDAO {
         }
         int audienceRefId = getAudienceRefByID(roleID, tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
-
+            List<RoleDTO> sharedRoles = getSharedHybridRoles(roleID, tenantId, connection);
             try {
                 try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_ROLE_NAME_SQL,
                         RoleConstants.RoleTableColumns.UM_ID)) {
@@ -576,9 +576,10 @@ public class RoleDAOImpl implements RoleDAO {
                     statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
                     statement.executeUpdate();
                 }
-
+                // Update shared hybrid role names
+                updateSharedHybridRolesName(sharedRoles, newRoleName, connection);
                 // Update the role name in IDN_SCIM_GROUP table.
-                updateSCIMRoleName(roleName, newRoleName, audienceRefId, tenantDomain);
+                updateSCIMRoleName(roleName, newRoleName, audienceRefId, sharedRoles, tenantDomain);
 
                 IdentityDatabaseUtil.commitUserDBTransaction(connection);
             } catch (SQLException | IdentityRoleManagementException e) {
@@ -594,6 +595,25 @@ public class RoleDAOImpl implements RoleDAO {
         }
 
         clearUserRolesCacheByTenant(tenantId);
+    }
+
+    private void updateSharedHybridRolesName(List<RoleDTO> sharedRoles, String newRoleName, Connection connection)
+            throws IdentityRoleManagementException {
+
+        for (RoleDTO roleDTO : sharedRoles) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_ROLE_NAME_SQL,
+                    RoleConstants.RoleTableColumns.UM_ID)) {
+                statement.setString(RoleConstants.RoleTableColumns.NEW_UM_ROLE_NAME, newRoleName);
+                statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleDTO.getId());
+                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, roleDTO.getTenantId());
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
+                String message = "Error while updating the role name of shared role: %s";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        String.format(message, roleDTO.getId()), e);
+            }
+        }
     }
 
     @Override
@@ -1106,7 +1126,8 @@ public class RoleDAOImpl implements RoleDAO {
      * @param tenantDomain Tenant domain.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private void updateSCIMRoleName(String roleName, String newRoleName, int audienceRefId, String tenantDomain)
+    private void updateSCIMRoleName(String roleName, String newRoleName, int audienceRefId, List<RoleDTO> sharedRoles,
+                                    String tenantDomain)
             throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -1114,6 +1135,8 @@ public class RoleDAOImpl implements RoleDAO {
         roleName = appendInternalDomain(roleName);
         newRoleName = appendInternalDomain(newRoleName);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            // Update shared scim role names
+            updateSharedSCIMRolesName(sharedRoles, newRoleName, connection);
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_SCIM_ROLE_NAME_SQL)) {
                 statement.setString(RoleConstants.RoleTableColumns.NEW_ROLE_NAME, newRoleName);
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
@@ -1134,6 +1157,28 @@ public class RoleDAOImpl implements RoleDAO {
                     String.format(errorMessage, roleName, tenantDomain), e);
         }
     }
+
+    private void updateSharedSCIMRolesName(List<RoleDTO> sharedRoles, String newRoleName, Connection connection)
+            throws IdentityRoleManagementException {
+
+        for (RoleDTO roleDTO : sharedRoles) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_SCIM_ROLE_NAME_SQL,
+                    RoleConstants.RoleTableColumns.UM_ID)) {
+                statement.setString(RoleConstants.RoleTableColumns.NEW_ROLE_NAME, newRoleName);
+                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, roleDTO.getTenantId());
+                statement.setString(ROLE_NAME, roleDTO.getName());
+                statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, roleDTO.getAudienceRefId());
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
+                String message = "Error while updating the scim role names of shared role: %s";
+                throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                        String.format(message, roleDTO.getId()), e);
+            }
+        }
+    }
+
+
 
     /**
      * Add idp groups.
