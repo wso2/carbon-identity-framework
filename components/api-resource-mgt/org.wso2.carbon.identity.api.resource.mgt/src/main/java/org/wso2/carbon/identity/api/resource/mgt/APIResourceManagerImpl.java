@@ -32,6 +32,8 @@ import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -82,7 +84,20 @@ public class APIResourceManagerImpl implements APIResourceManager {
     public APIResource addAPIResource(APIResource apiResource, String tenantDomain)
             throws APIResourceMgtException {
 
-        return CACHE_BACKED_DAO.addAPIResource(apiResource, IdentityTenantUtil.getTenantId(tenantDomain));
+        try {
+            /*
+            Restrict API resource creation for organizations.
+            Check whether the tenant is an organization and return a client error if it is.
+            */
+            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                throw APIResourceManagementUtil.handleClientException(
+                        APIResourceManagementConstants.ErrorMessages.ERROR_CODE_CREATION_RESTRICTED);
+            }
+            return CACHE_BACKED_DAO.addAPIResource(apiResource, IdentityTenantUtil.getTenantId(tenantDomain));
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_API_RESOURCE, e);
+        }
     }
 
     @Override
@@ -140,6 +155,12 @@ public class APIResourceManagerImpl implements APIResourceManager {
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter, null, null);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return CACHE_BACKED_DAO.getScopesByTenantId(tenantId, expressionNodes);
+    }
+
+    @Override
+    public Scope getScopeByName(String scopeName, String tenantDomain) throws APIResourceMgtException {
+
+        return CACHE_BACKED_DAO.getScopeByNameAndTenantId(scopeName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     /**

@@ -47,6 +47,7 @@ public class AuthServiceRequestWrapper extends HttpServletRequestWrapper {
         this.parameters = parameters;
         setSessionDataKey(parameters);
         skipNonceCookieValidation();
+        this.setAttribute(FrameworkConstants.IS_API_BASED_AUTH_FLOW, true);
     }
 
     @Override

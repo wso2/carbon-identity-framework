@@ -725,18 +725,8 @@ public class DefaultStepHandler implements StepHandler {
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
             /* If this is an authentication initiation and the authenticator supports API based authentication
              we need to send the auth initiation data in order to support performing API based authentication.*/
-            if (status == AuthenticatorFlowStatus.INCOMPLETE && authenticator.isAPIBasedAuthenticationSupported()) {
-                authenticator.getAuthInitiationData(context).ifPresent(authInitiationData -> {
-                    List<AuthenticatorData> authInitiationDataList =
-                            (List<AuthenticatorData>) request
-                                    .getAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA);
-                    if (authInitiationDataList == null) {
-                        authInitiationDataList = new ArrayList<>();
-                        request.setAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA,
-                                authInitiationDataList);
-                    }
-                    authInitiationDataList.add(authInitiationData);
-                });
+            if (status == AuthenticatorFlowStatus.INCOMPLETE) {
+                handleAPIBasedAuthenticationData(request, authenticator, context);
             }
 
             if (LOG.isDebugEnabled()) {
@@ -749,6 +739,14 @@ public class DefaultStepHandler implements StepHandler {
                     LOG.debug(authenticator.getName() + " is redirecting");
                 }
                 return;
+            }
+
+            // Set authorized organization and user resident organization for B2B user logins.
+            if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
+                String userResidentOrganization = resolveUserResidentOrganization(context.getSubject());
+                context.getSubject().setUserResidentOrganization(userResidentOrganization);
+                // Set the accessing org as the user resident org. The accessing org will be changed when org switching.
+                context.getSubject().setAccessingOrganization(userResidentOrganization);
             }
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
@@ -1390,7 +1388,7 @@ public class DefaultStepHandler implements StepHandler {
      * Check whether the user is logged in with organization login.
      *
      * @param authenticatorConfig Authenticator config.
-     * @return Whether the authenticator is organization authenticator or not.
+     * @return Whether the authenticator is organization login or not.
      */
     private boolean isLoggedInWithOrganizationLogin(AuthenticatorConfig authenticatorConfig) {
 
@@ -1420,5 +1418,48 @@ public class DefaultStepHandler implements StepHandler {
                 return;
             }
         }
+    }
+
+    /**
+     * Resolve user resident organization for the users authenticated via the B2B organization login authenticator.
+     *
+     * @param authenticatedUser   The authenticated user.
+     * @return The organization where the user's identity is managed.
+     */
+    private String resolveUserResidentOrganization(AuthenticatedUser authenticatedUser) throws FrameworkException {
+
+        // Check for user organization claim for the authenticated user via the organization login authenticator.
+        if (authenticatedUser.getUserAttributes() != null) {
+            for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
+                if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
+                        userAttributes.getKey().getLocalClaim().getClaimUri())) {
+                    return userAttributes.getValue();
+                }
+            }
+        }
+        throw new FrameworkException("User resident organization could not found");
+    }
+
+    private void handleAPIBasedAuthenticationData(HttpServletRequest request, ApplicationAuthenticator authenticator,
+                                                  AuthenticationContext context) {
+
+        if (isAPIBasedAuthenticationFlow(request) && authenticator.isAPIBasedAuthenticationSupported()) {
+            authenticator.getAuthInitiationData(context).ifPresent(authInitiationData -> {
+                List<AuthenticatorData> authInitiationDataList =
+                        (List<AuthenticatorData>) request
+                                .getAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA);
+                if (authInitiationDataList == null) {
+                    authInitiationDataList = new ArrayList<>();
+                    request.setAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA,
+                            authInitiationDataList);
+                }
+                authInitiationDataList.add(authInitiationData);
+            });
+        }
+    }
+
+    private boolean isAPIBasedAuthenticationFlow(HttpServletRequest request) {
+
+        return Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.IS_API_BASED_AUTH_FLOW));
     }
 }

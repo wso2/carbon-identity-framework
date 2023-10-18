@@ -48,6 +48,7 @@ public class MockApiBasedAuthenticator extends AbstractApplicationAuthenticator 
         this.authenticatorData.setName(name);
         this.authenticatorData.setDisplayName(getFriendlyName());
         this.authenticatorData.setIdp(idp);
+        this.authenticatorData.setI18nKey(getI18nKey());
     }
 
     @Override
@@ -78,6 +79,12 @@ public class MockApiBasedAuthenticator extends AbstractApplicationAuthenticator 
     public String getFriendlyName() {
 
         return this.name + "-friendlyName";
+    }
+
+    @Override
+    public String getI18nKey() {
+
+        return this.name + ".authenticator";
     }
 
     @Override

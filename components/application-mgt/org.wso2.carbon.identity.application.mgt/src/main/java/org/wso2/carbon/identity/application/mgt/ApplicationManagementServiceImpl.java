@@ -2650,6 +2650,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return systemApplications;
     }
 
+    @Override
+    public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getMainAppId(sharedAppId);
+    }
+
+    @Override
+    public int getTenantIdByApp(String appId) throws IdentityApplicationManagementServerException {
+
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getTenantIdByApp(appId);
+    }
+
     private void doPreUpdateChecks(String storedAppName, ServiceProvider updatedApp, String tenantDomain,
                                    String username) throws IdentityApplicationManagementException {
 

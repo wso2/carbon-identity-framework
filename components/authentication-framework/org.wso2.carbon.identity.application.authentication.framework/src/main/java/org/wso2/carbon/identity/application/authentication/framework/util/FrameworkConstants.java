@@ -78,6 +78,7 @@ public abstract class FrameworkConstants {
     public static final String SKIP_NONCE_COOKIE_VALIDATION = "SkipNonceCookieValidation";
     public static final String IS_MULTI_OPS_RESPONSE = "isMultiOptionsResponse";
     public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
+    public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
