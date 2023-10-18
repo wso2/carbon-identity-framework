@@ -725,18 +725,8 @@ public class DefaultStepHandler implements StepHandler {
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
             /* If this is an authentication initiation and the authenticator supports API based authentication
              we need to send the auth initiation data in order to support performing API based authentication.*/
-            if (status == AuthenticatorFlowStatus.INCOMPLETE && authenticator.isAPIBasedAuthenticationSupported()) {
-                authenticator.getAuthInitiationData(context).ifPresent(authInitiationData -> {
-                    List<AuthenticatorData> authInitiationDataList =
-                            (List<AuthenticatorData>) request
-                                    .getAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA);
-                    if (authInitiationDataList == null) {
-                        authInitiationDataList = new ArrayList<>();
-                        request.setAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA,
-                                authInitiationDataList);
-                    }
-                    authInitiationDataList.add(authInitiationData);
-                });
+            if (status == AuthenticatorFlowStatus.INCOMPLETE) {
+                handleAPIBasedAuthenticationData(request, authenticator, context);
             }
 
             if (LOG.isDebugEnabled()) {
@@ -1448,5 +1438,28 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
         throw new FrameworkException("User resident organization could not found");
+    }
+
+    private void handleAPIBasedAuthenticationData(HttpServletRequest request, ApplicationAuthenticator authenticator,
+                                                  AuthenticationContext context) {
+
+        if (isAPIBasedAuthenticationFlow(request) && authenticator.isAPIBasedAuthenticationSupported()) {
+            authenticator.getAuthInitiationData(context).ifPresent(authInitiationData -> {
+                List<AuthenticatorData> authInitiationDataList =
+                        (List<AuthenticatorData>) request
+                                .getAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA);
+                if (authInitiationDataList == null) {
+                    authInitiationDataList = new ArrayList<>();
+                    request.setAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA,
+                            authInitiationDataList);
+                }
+                authInitiationDataList.add(authInitiationData);
+            });
+        }
+    }
+
+    private boolean isAPIBasedAuthenticationFlow(HttpServletRequest request) {
+
+        return Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.IS_API_BASED_AUTH_FLOW));
     }
 }
