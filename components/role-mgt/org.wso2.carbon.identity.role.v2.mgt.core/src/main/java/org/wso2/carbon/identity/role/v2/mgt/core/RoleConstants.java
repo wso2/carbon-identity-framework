@@ -135,7 +135,7 @@ public class RoleConstants {
         SORTING_NOT_IMPLEMENTED("65002");
 
         private final String code;
-        private static final String ROLE_MANAGEMENT_ERROR_CODE_PREFIX = "RMA-";
+        public static final String ROLE_MANAGEMENT_ERROR_CODE_PREFIX = "RMA-";
 
         Error(String code) {
 
