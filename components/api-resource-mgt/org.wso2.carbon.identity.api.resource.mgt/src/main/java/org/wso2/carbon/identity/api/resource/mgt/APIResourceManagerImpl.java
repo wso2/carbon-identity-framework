@@ -72,6 +72,22 @@ public class APIResourceManagerImpl implements APIResourceManager {
     }
 
     @Override
+    public APIResourceSearchResult getAPIResourcesWithRequiredAttributes(String after, String before, Integer limit,
+                                                                         String filter, String sortOrder,
+                                                                         String tenantDomain,
+                                                                         List<String> requiredAttributes)
+            throws APIResourceMgtException {
+
+        APIResourceSearchResult result = new APIResourceSearchResult();
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter, after, before);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        result.setTotalCount(CACHE_BACKED_DAO.getAPIResourcesCount(tenantId, expressionNodes));
+        result.setAPIResources(CACHE_BACKED_DAO.getAPIResourcesWithRequiredAttributes(limit, tenantId, sortOrder,
+                expressionNodes, requiredAttributes));
+        return result;
+    }
+
+    @Override
     public APIResource getAPIResourceById(String apiResourceId, String tenantDomain)
             throws APIResourceMgtException {
 

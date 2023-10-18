@@ -26,6 +26,7 @@ public class SQLConstants {
     // DB types.
     public static final String MICROSOFT = "Microsoft";
     public static final String DB2 = "DB2";
+    public static final String H2 = "H2";
 
     // Column names.
     public static final String ID_COLUMN_NAME = "ID";
@@ -37,6 +38,7 @@ public class SQLConstants {
     public static final String TYPE_COLUMN_NAME = "TYPE";
     public static final String REQUIRES_AUTHORIZATION_COLUMN_NAME = "REQUIRES_AUTHORIZATION";
     public static final String DISPLAY_NAME_COLUMN_NAME = "DISPLAY_NAME";
+    public static final String VALUE_COLUMN_NAME = "VALUE";
     public static final String API_RESOURCE_ID_COLUMN_NAME = "API_RESOURCE_ID";
     public static final String API_RESOURCE_NAME_COLUMN_NAME = "API_RESOURCE_NAME";
     public static final String API_RESOURCE_IDENTIFIER_COLUMN_NAME = "API_RESOURCE_IDENTIFIER";
@@ -47,6 +49,9 @@ public class SQLConstants {
     public static final String SCOPE_QUALIFIED_NAME_COLUMN_NAME = "SCOPE_QUALIFIED_NAME";
     public static final String SCOPE_DISPLAY_NAME_COLUMN_NAME = "SCOPE_DISPLAY_NAME";
     public static final String SCOPE_DESCRIPTION_COLUMN_NAME = "SCOPE_DESCRIPTION";
+    public static final String API_RESOURCE_PROPERTY_ID_COLUMN_NAME = "PROPERTY_ID";
+    public static final String API_RESOURCE_PROPERTY_NAME_COLUMN_NAME = "PROPERTY_NAME";
+    public static final String API_RESOURCE_PROPERTY_VALUE_COLUMN_NAME = "PROPERTY_VALUE";
 
     // Database constraint names.
     public static final String API_RESOURCE_UNIQUE_CONSTRAINT = "identifier_unique";
@@ -62,6 +67,34 @@ public class SQLConstants {
             " TENANT_ID = %d ORDER BY CURSOR_KEY %s LIMIT %d";
     public static final String GET_API_RESOURCES_TAIL_MSSQL =
             " TENANT_ID = %d ORDER BY CURSOR_KEY %s";
+    public static final String GET_API_RESOURCES_WITH_PROPERTIES_SELECTION = "SELECT" +
+            " AR.ID AS API_RESOURCE_ID," +
+            " AR.CURSOR_KEY AS CURSOR_KEY," +
+            " AR.NAME AS API_RESOURCE_NAME," +
+            " AR.IDENTIFIER AS API_RESOURCE_IDENTIFIER," +
+            " AR.DESCRIPTION AS API_RESOURCE_DESCRIPTION," +
+            " AR.TENANT_ID AS API_RESOURCE_TENANT_ID," +
+            " AR.TYPE AS API_RESOURCE_TYPE," +
+            " AR.REQUIRES_AUTHORIZATION AS REQUIRES_AUTHORIZATION," +
+            " ARP.ID AS PROPERTY_ID," +
+            " ARP.NAME AS PROPERTY_NAME," +
+            " ARP.VALUE AS PROPERTY_VALUE" +
+            " FROM (";
+    public static final String GET_API_RESOURCES_WITH_PROPERTIES_SELECTION_H2 = "SELECT" +
+            " AR.ID AS API_RESOURCE_ID," +
+            " AR.CURSOR_KEY AS CURSOR_KEY," +
+            " AR.NAME AS API_RESOURCE_NAME," +
+            " AR.IDENTIFIER AS API_RESOURCE_IDENTIFIER," +
+            " AR.DESCRIPTION AS API_RESOURCE_DESCRIPTION," +
+            " AR.TENANT_ID AS API_RESOURCE_TENANT_ID," +
+            " AR.TYPE AS API_RESOURCE_TYPE," +
+            " AR.REQUIRES_AUTHORIZATION AS REQUIRES_AUTHORIZATION," +
+            " ARP.ID AS PROPERTY_ID," +
+            " ARP.NAME AS PROPERTY_NAME," +
+            " ARP.`VALUE` AS PROPERTY_VALUE" +
+            " FROM (";
+    public static final String GET_API_RESOURCES_WITH_PROPERTIES_JOIN = ") AR" +
+            " LEFT JOIN API_RESOURCE_PROPERTY ARP ON AR.ID = ARP.API_ID ORDER BY CURSOR_KEY %s";
     public static final String GET_API_RESOURCES_COUNT = "SELECT COUNT(DISTINCT(ID)) FROM API_RESOURCE WHERE ";
     public static final String GET_API_RESOURCES_COUNT_TAIL = " TENANT_ID = ?";
     public static final String GET_API_RESOURCE_BY_ID = "SELECT" +
@@ -111,4 +144,18 @@ public class SQLConstants {
             "TENANT_ID FROM SCOPE WHERE ";
     public static final String GET_SCOPES_BY_TENANT_ID_TAIL = " TENANT_ID = ?";
     public static final String DELETE_SCOPE_BY_NAME = "DELETE FROM SCOPE WHERE NAME = ? AND TENANT_ID = ?";
+    public static final String GET_API_RESOURCE_PROPERTIES_BY_API_ID = "SELECT ID, NAME, VALUE FROM " +
+            "API_RESOURCE_PROPERTY WHERE API_ID = ?";
+    public static final String GET_API_RESOURCE_PROPERTIES_BY_API_ID_H2 = "SELECT ID, NAME, `VALUE` FROM " +
+            "API_RESOURCE_PROPERTY WHERE API_ID = ?";
+    public static final String GET_API_RESOURCE_PROPERTIES_BY_API_IDENTIFIER = "SELECT ARP.ID, ARP.NAME, ARP.VALUE " +
+            "FROM API_RESOURCE AR JOIN API_RESOURCE_PROPERTY ARP ON AR.ID = ARP.API_ID WHERE AR.IDENTIFIER = ? " +
+            "AND AR.TENANT_ID = ?";
+    public static final String GET_API_RESOURCE_PROPERTIES_BY_API_IDENTIFIER_H2 = "SELECT ARP.ID, ARP.NAME, " +
+            "ARP.`VALUE` FROM API_RESOURCE AR JOIN API_RESOURCE_PROPERTY ARP ON AR.ID = ARP.API_ID WHERE " +
+            "AR.IDENTIFIER = ? AND AR.TENANT_ID = ?";
+    public static final String ADD_API_RESOURCE_PROPERTY = "INSERT INTO API_RESOURCE_PROPERTY (API_ID, NAME, VALUE) " +
+            "VALUES (?, ?, ?)";
+    public static final String ADD_API_RESOURCE_PROPERTY_H2 = "INSERT INTO API_RESOURCE_PROPERTY (API_ID, NAME, " +
+            "`VALUE`) VALUES (?, ?, ?)";
 }

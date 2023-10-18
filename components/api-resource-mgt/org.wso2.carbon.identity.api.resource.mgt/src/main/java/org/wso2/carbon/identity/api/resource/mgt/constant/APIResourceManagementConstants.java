@@ -32,6 +32,7 @@ public class APIResourceManagementConstants {
     public static final String TYPE = "type";
     public static final String BEFORE = "before";
     public static final String AFTER = "after";
+    public static final String PROPERTIES = "properties";
     public static final String EQ = "eq";
     public static final String CO = "co";
     public static final String SW = "sw";
@@ -98,6 +99,10 @@ public class APIResourceManagementConstants {
                 " scope.", "Error while checking existence of scope in the database."),
         ERROR_CODE_ERROR_WHILE_CHECKING_API_RESOURCE_EXISTENCE("65011", "Error while checking existence " +
                 "of API resource.", "Error while checking existence of API resource in the database."),
+        ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCE_PROPERTIES("65013", "Error while retrieving API " +
+                "resource properties.", "Error while retrieving API resource properties from the database."),
+        ERROR_CODE_ERROR_WHILE_ADDING_API_RESOURCE_PROPERTIES("65014", "Error while adding API resource " +
+                "properties.", "Error while adding API resource properties to the database."),
         ;
 
         private final String code;
