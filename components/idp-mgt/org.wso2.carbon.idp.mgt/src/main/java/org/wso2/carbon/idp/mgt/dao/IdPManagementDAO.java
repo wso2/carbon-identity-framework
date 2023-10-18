@@ -2409,13 +2409,6 @@ public class IdPManagementDAO {
             }
         });
 
-        // For newly created idps default values will be added. However, these will be null for previously
-        // created idps and hence we need to set the default values.
-//        if (federatedAssociationConfig.getLookupAttributes() == null) {
-//            federatedAssociationConfig.setLookupAttributes(
-//                    new String[]{IdPManagementConstants.DEFAULT_LOOKUP_ATTRIBUTE});
-//        }
-
         federatedIdp.setFederatedAssociationConfig(federatedAssociationConfig);
 
         String templateId = getTemplateId(identityProviderProperties);
