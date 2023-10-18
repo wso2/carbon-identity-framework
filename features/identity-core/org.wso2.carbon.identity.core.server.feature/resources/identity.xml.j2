@@ -887,12 +887,8 @@
                     {% endfor %}
                 </AllowedSignatureAlgorithms>
             </FAPI>
-            {% if oauth.oidc.subject_type.default_subject_type is defined %}
-                <DefaultSubjectType>{{oauth.oidc.subject_type.default_subject_type}}</DefaultSubjectType>
-            {% endif %}
-            {% if oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection is defined %}
-                <EnablePairwiseSubForAccessToken>{{oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection}}</EnablePairwiseSubForAccessToken>
-            {% endif %}
+            <DefaultSubjectType>{{oauth.oidc.subject_type.default_subject_type}}</DefaultSubjectType>
+            <EnablePairwiseSubForAccessToken>{{oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection}}</EnablePairwiseSubForAccessToken>
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
