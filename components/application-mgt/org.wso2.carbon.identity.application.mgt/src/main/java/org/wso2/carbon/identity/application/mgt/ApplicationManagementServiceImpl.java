@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -83,6 +84,12 @@ import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
@@ -157,6 +164,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.valida
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getInitiatorId;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 /**
@@ -2145,6 +2153,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw buildClientException(INVALID_REQUEST, message);
         }
 
+        boolean isValid = isAssociatedRolesConfigValid(serviceProvider, tenantDomain);
+        if (!isValid) {
+            throw new IdentityApplicationManagementClientException(
+                    "One or more associating roles does not exist or not in the allowed " +
+                            "audience for the application.");
+        }
+
         addUserIdAsDefaultSubject(serviceProvider);
 
         validateApplicationConfigurations(serviceProvider, tenantDomain, username);
@@ -2688,6 +2703,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         validateAuthorization(updatedAppName, storedAppName, username, tenantDomain);
         validateAppName(storedAppName, updatedApp, tenantDomain);
         validateApplicationCertificate(updatedApp, tenantDomain);
+        boolean isValid = isAssociatedRolesConfigValid(updatedApp, tenantDomain);
+        if (!isValid) {
+            throw new IdentityApplicationManagementClientException(
+                    "One or more associating roles does not exist or not in the allowed " +
+                            "audience for the application.");
+        }
         // Will be supported with 'Advance Consent Management Feature'.
         // validateConsentPurposes(serviceProvider);
     }
@@ -3001,5 +3022,78 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } catch (IdentityEventException e) {
             log.error("Error while publishing the event: " + event.getEventName() + ".", e);
         }
+    }
+
+    private boolean isAssociatedRolesConfigValid(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        AssociatedRolesConfig associatedRolesConfig = serviceProvider.getAssociatedRolesConfig();
+        if (associatedRolesConfig == null) {
+            return true;
+        }
+        List<RoleV2> roles = associatedRolesConfig.getRoles();
+        if (CollectionUtils.isEmpty(roles)) {
+            return true;
+        }
+        String allowedAudienceType =
+                StringUtils.isNotBlank(associatedRolesConfig.getAllowedAudience()) ? RoleConstants.ORGANIZATION :
+                        associatedRolesConfig.getAllowedAudience();
+        String allowedAudienceId;
+        switch (allowedAudienceType) {
+            case RoleConstants.APPLICATION:
+                allowedAudienceId = serviceProvider.getApplicationResourceId();
+                break;
+            default:
+                try {
+                    allowedAudienceId = getOrganizationManager().resolveOrganizationId(tenantDomain);
+                } catch (OrganizationManagementException e) {
+                    throw new IdentityApplicationManagementException(
+                            String.format("Error while resolving the organization id for the tenant domain: %s",
+                                    tenantDomain), e);
+                }
+                break;
+        }
+        // Stream the roles and check whether the role exits in the correct audience.
+        boolean allRolesInCorrectAudience = roles.stream()
+                .allMatch(role -> isRoleInCorrectAudience(role, tenantDomain, allowedAudienceType, allowedAudienceId));
+        if (!allRolesInCorrectAudience) {
+            log.debug("One or more role does not exist or not in correct audience.");
+        }
+        return allRolesInCorrectAudience;
+    }
+
+    private boolean isRoleInCorrectAudience(RoleV2 role, String tenantDomain, String allowedAudienceType,
+                                            String allowedAudienceId) {
+
+        try {
+            RoleBasicInfo retrievedRole = getRoleManagementServiceV2().getRoleBasicInfoById(role.getId(), tenantDomain);
+            if (retrievedRole != null) {
+                return allowedAudienceType.equals(retrievedRole.getAudience()) &&
+                        allowedAudienceId.equals(retrievedRole.getAudienceId());
+            }
+        } catch (IdentityRoleManagementException e) {
+            // TODO: use constant for error code prefix.
+            if (("RMA-" + ROLE_NOT_FOUND).equals(e.getErrorCode())) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Role: %s does not exist.", role.getId()));
+                }
+                return false;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Error while retrieving the role: %s", role.getId()));
+            }
+            return false;
+        }
+        return false;
+    }
+
+    private static RoleManagementService getRoleManagementServiceV2() {
+
+        return ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2();
+    }
+
+    private static OrganizationManager getOrganizationManager() {
+
+        return ApplicationManagementServiceComponentHolder.getInstance().getOrganizationManager();
     }
 }

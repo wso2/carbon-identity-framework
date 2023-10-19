@@ -54,7 +54,6 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProv
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
-import org.wso2.carbon.identity.application.mgt.listener.AssociatedRoleConfigValidationListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
@@ -122,8 +121,6 @@ public class ApplicationManagementServiceComponent {
                     null);
             bundleContext.registerService(DefaultAuthSeqMgtService.class.getName(),
                     DefaultAuthSeqMgtServiceImpl.getInstance(), null);
-            bundleContext.registerService(ApplicationMgtListener.class.getName(),
-                    new AssociatedRoleConfigValidationListener(), null);
             // Register the DefaultApplicationResourceMgtListener.
             context.getBundleContext().registerService(ApplicationResourceManagementListener.class,
                     new DefaultApplicationResourceMgtListener(), null);
