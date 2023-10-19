@@ -70,6 +70,7 @@ public class IdentityManagementEndpointConstants {
         public static final String REST_API_URL_DOMAIN = "account-recovery";
         public static final String RECOVERY_API_RELATIVE_PATH = "/api/identity/recovery/v0.9";
         public static final String RECOVERY_API_V1_RELATIVE_PATH = "/api/users/v1/recovery";
+        public static final String RECOVERY_API_V2_RELATIVE_PATH = "/api/users/v2/recovery";
         public static final String USER_API_RELATIVE_PATH = "/api/identity/user/v1.0";
         public static final String RECOVERY_CALLBACK_REGEX = "Recovery.CallbackRegex";
     }

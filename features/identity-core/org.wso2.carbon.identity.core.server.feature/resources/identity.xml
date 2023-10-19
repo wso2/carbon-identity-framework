@@ -2252,6 +2252,14 @@
     -->
     <EnableFederatedUserAssociation>false</EnableFederatedUserAssociation>
 
+    <TenantContext>
+        <TenantQualifiedUrls>
+            <Enable>false</Enable>
+            <RequireSuperTenantInUrls>false</RequireSuperTenantInUrls>
+            <EnableTenantedSessions>false</EnableTenantedSessions>
+        </TenantQualifiedUrls>
+    </TenantContext>
+
     <TenantContextsToRewrite>
         <WebApp>
             <Context>/api/identity/user/v1.0/</Context>

@@ -235,6 +235,8 @@
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
   "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
+  
+  "oauth.oidc.token_endpoint.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
@@ -643,6 +645,7 @@
   "user.association.enable_for_federated_users": false,
   "user.enable_per_user_functionality_locking": false,
   "tenant_context.enable_tenant_qualified_urls": false,
+  "tenant_context.require_super_tenant_in_urls": false,
   "tenant_context.rewrite.webapps": [
     "/oauth2/",
     "/scim2/",
@@ -941,6 +944,7 @@
   "console.attribute_dialects.scopes.update": ["internal_claim_meta_update"],
   "console.attribute_dialects.scopes.delete": ["internal_claim_meta_delete"],
   "console.branding.enabled": true,
+  "console.bulk_user_import.enabled": true,
   "console.branding.scopes.feature": [],
   "console.branding.scopes.create": ["internal_application_mgt_create"],
   "console.branding.scopes.read": ["internal_application_mgt_view"],
@@ -1165,5 +1169,16 @@
   "extension_mgt.extension_types": "applications,identity-providers,connections,identity-verification-providers",
 
   "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
-  "input_validation.default_validator": "alphaNumeric"
+  "input_validation.default_validator": "alphaNumeric",
+
+  "email_templates.branding.fallbacks.copyright_text": "WSO2 Identity Server",
+  "email_templates.branding.fallbacks.primary_color": "#FF7300",
+  "email_templates.branding.fallbacks.background_color": "#F8F9FA",
+  "email_templates.branding.fallbacks.light_background_color": "#FFFFFF",
+  "email_templates.branding.fallbacks.dark_background_color": "#111111",
+  "email_templates.branding.fallbacks.font_style": "Gilmer",
+  "email_templates.branding.fallbacks.font_color": "#231F20",
+  "email_templates.branding.fallbacks.button_font_color": "#FFFFFF",
+  "email_templates.branding.fallbacks.light_border_color": "transparent",
+  "email_templates.branding.fallbacks.dark_border_color": "#333333"
 }
