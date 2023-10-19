@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (https://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,21 +20,27 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
 import org.apache.axiom.om.util.Base64;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.BufferedReader;
@@ -46,7 +52,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+
+import static org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.ErrorToi18nMappingConstants.ERROR_TO_I18N_MAP;
 
 /**
  * AuthenticationEndpointUtil defines utility methods used across the authenticationendpoint web application.
@@ -63,6 +74,8 @@ public class AuthenticationEndpointUtil {
     private static final String QUERY_STRING_INITIATOR = "?";
     private static final String PADDING_CHAR = "=";
     private static final String UNDERSCORE = "_";
+    private static final String TENANT_DOMAIN_PLACEHOLDER = "${tenantDomain}";
+    private static final String SUPER_TENANT = "carbon.super";
 
     private AuthenticationEndpointUtil() {
     }
@@ -229,92 +242,8 @@ public class AuthenticationEndpointUtil {
     public static String getErrorCodeToi18nMapping(String errorCode, String subErrorCode) {
 
         String errorKey = errorCode + "_" + subErrorCode;
-        switch (errorKey) {
-            case Constants.ErrorToi18nMappingConstants.INVALID_CALLBACK_CALLBACK_NOT_MATCH:
-                return Constants.ErrorToi18nMappingConstants.INVALID_CALLBACK_CALLBACK_NOT_MATCH_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_APP_NOT_FOUND:
-                return Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_APP_NOT_FOUND_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_REDIRECT_URI:
-                return Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_REDIRECT_URI_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED:
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_REQUEST_MISSING:
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_JIT_PROVISIONING_VERIFY_USERNAME_FAILED:
-                return Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.MISCONFIGURATION_ERROR_SOMETHING_WENT_WRONG_CONTACT_ADMIN:
-                return Constants.ErrorToi18nMappingConstants.MISCONFIGURATION_ERROR_SOMETHING_WENT_WRONG_CONTACT_ADMIN_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USERNAME_EXISTS:
-                return Constants.ErrorToi18nMappingConstants.USERNAME_EXISTS_ERROR_I19N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_STORE_DOMAIN_ERROR:
-                return Constants.ErrorToi18nMappingConstants.USER_STORE_DOMAIN_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_ERROR_INVALID_USER_STORE_DOMAIN:
-                return Constants.ErrorToi18nMappingConstants.ERROR_INVALID_USER_STORE_DOMAIN_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_STORE_MAN_ERROR:
-                return Constants.ErrorToi18nMappingConstants.USER_STORE_MAN_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_INVALID_USER_STORE:
-                return Constants.ErrorToi18nMappingConstants.INVALID_USER_STORE_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USERNAME_EXISTENCE_ERROR:
-                return Constants.ErrorToi18nMappingConstants.USERNAME_EXISTENCE_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_MAP_HANDLING_ERROR:
-                return Constants.ErrorToi18nMappingConstants.CLAIM_MAP_HANDLING_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_RESIDENT_IDP_NULL_ERROR:
-                return Constants.ErrorToi18nMappingConstants.RESIDENT_IDP_NULL_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_MAP_GET_ERROR:
-                return Constants.ErrorToi18nMappingConstants.CLAIM_MAP_GET_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_ASSOCIATED_LOCAL_USER_ID_ERROR:
-                return Constants.ErrorToi18nMappingConstants.ASSOCIATED_LOCAL_USER_ID_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_IDP_ERROR_FOR_TENANT:
-                return Constants.ErrorToi18nMappingConstants.IDP_ERROR_FOR_TENANT_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_REALM_ERROR_FOR_TENANT:
-                return Constants.ErrorToi18nMappingConstants.REALM_ERROR_FOR_TENANT_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_ERROR_PASSWORD_PROVISION:
-                return Constants.ErrorToi18nMappingConstants.CLAIM_ERROR_PASSWORD_PROVISION_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USERNAME_FOR_ASSOCIATED_IDP_ERROR:
-                return Constants.ErrorToi18nMappingConstants.USERNAME_FOR_ASSOCIATED_IDP_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_SIGNUP_EP_ERROR_FOR_PROVISION:
-                return Constants.ErrorToi18nMappingConstants.SIGNUP_EP_ERROR_FOR_PROVISION_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CONSENT_ADD_FOR_TENANT_ERROR:
-                return Constants.ErrorToi18nMappingConstants.CONSENT_ADD_FOR_TENANT_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_SET_IDP_FOR_TENANT_ERROR:
-                return Constants.ErrorToi18nMappingConstants.SET_IDP_FOR_TENANT_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_GET_CONSENT_FOR_USER_ERROR:
-                return Constants.ErrorToi18nMappingConstants.GET_CONSENT_FOR_USER_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CONSENT_DISABLED_FOR_SSO_ERROR:
-                return Constants.ErrorToi18nMappingConstants.CONSENT_DISABLED_FOR_SSO_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_INPUT_CONSENT_FOR_USER_ERROR:
-                return Constants.ErrorToi18nMappingConstants.INPUT_CONSENT_FOR_USER_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_DENIED_CONSENT_ERROR:
-                return Constants.ErrorToi18nMappingConstants.USER_DENIED_CONSENT_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_DENIED_MANDATORY_CONSENT_ERROR:
-                return Constants.ErrorToi18nMappingConstants.USER_DENIED_MANDATORY_CONSENT_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CONSENT_PAGE_ERROR:
-                return Constants.ErrorToi18nMappingConstants.CONSENT_PAGE_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_APPLICATION_CONFIG_NULL_ERROR:
-                return Constants.ErrorToi18nMappingConstants.APPLICATION_CONFIG_NULL_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_REQUEST_CLAIMS_PAGE_ERROR:
-                return Constants.ErrorToi18nMappingConstants.REQUEST_CLAIMS_PAGE_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_REQUEST_CLAIMS_PAGE_URI_ERROR:
-                return Constants.ErrorToi18nMappingConstants.REQUEST_CLAIMS_PAGE_URI_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_RETRIEVE_CLAIM_ERROR:
-                return Constants.ErrorToi18nMappingConstants.RETRIEVE_CLAIM_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_GET_USER_ASSOCIATION_ERROR:
-                return Constants.ErrorToi18nMappingConstants.GET_USER_ASSOCIATION_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_UPDATE_LOCAL_USER_CLAIMS_ERROR:
-                return Constants.ErrorToi18nMappingConstants.UPDATE_LOCAL_USER_CLAIMS_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_RETRIEVING_REALM_TO_HANDLE_CLAIMS_ERROR:
-                return Constants.ErrorToi18nMappingConstants.RETRIEVING_REALM_TO_HANDLE_CLAIMS_ERROR_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_POST_AUTH_COOKIE_NOT_FOUND:
-                return Constants.ErrorToi18nMappingConstants.POST_AUTH_COOKIE_NOT_FOUND_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION:
-                return Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FAILED_NO_REGISTERED_DEVICE_FOUND:
-                return Constants.ErrorToi18nMappingConstants.NO_REGISTERED_DEVICE_FOUND_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT:
-                return Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT_I18N_KEY;
-            case Constants.ErrorToi18nMappingConstants.CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE:
-                return Constants.ErrorToi18nMappingConstants.CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE_I18N_KEY;
-            default:
-                return Constants.ErrorToi18nMappingConstants.INCORRECT_ERROR_MAPPING_KEY;
-        }
+        return ERROR_TO_I18N_MAP.getOrDefault(errorKey,
+                Constants.ErrorToi18nMappingConstants.INCORRECT_ERROR_MAPPING_KEY);
     }
 
     /**
@@ -371,7 +300,7 @@ public class AuthenticationEndpointUtil {
     public static String sendGetRequest(String backendURL) {
 
         StringBuilder responseString = new StringBuilder();
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
 
             HttpGet httpGet = new HttpGet(backendURL);
             setAuthorizationHeader(httpGet);
@@ -405,11 +334,17 @@ public class AuthenticationEndpointUtil {
         StringBuilder responseString = new StringBuilder();
 
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    response.getEntity().getContent()));
-            String inputLine;
-            while ((inputLine = reader.readLine()) != null) {
-                responseString.append(inputLine);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    response.getEntity().getContent()))) {
+                String inputLine;
+                while ((inputLine = reader.readLine()) != null) {
+                    responseString.append(inputLine);
+                }
+            }
+        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+            if (log.isDebugEnabled()) {
+                log.debug("Response received from the backendURL " + backendURL + " with status " +
+                        response.getStatusLine() + ".");
             }
         } else {
             log.error("Response received from the backendURL " + backendURL +" failed with status " +
@@ -434,5 +369,49 @@ public class AuthenticationEndpointUtil {
         String authHeader = new String(encoding, Charset.defaultCharset());
 
         httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
+    }
+
+    /**
+     * Resolve "${tenantDomain}" in the URL.
+     *
+     * @param   url URL to be tenant resolved.
+     * @return  Tenant resolved URL.
+     */
+    public static String resolveTenantDomain(String url) {
+
+        if (url.contains(TENANT_DOMAIN_PLACEHOLDER)) {
+            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            if (StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+            if (SUPER_TENANT.equals(tenantDomain)) {
+                url = url.replace("t/" + TENANT_DOMAIN_PLACEHOLDER + "/", "");
+            } else {
+                url = url.replace(TENANT_DOMAIN_PLACEHOLDER, tenantDomain);
+            }
+        }
+        return url;
+    }
+
+    /**
+     * Resolve the query string of the request using the request parameter map.
+     *
+     * @param queryParamMap - Parameter map of the request.
+     * @return - StringBuilder with query parameters appended.
+     */
+    public static String resolveQueryString(Map<String, String[]> queryParamMap) {
+
+        StringBuilder queryParamString = new StringBuilder();
+        if (queryParamMap != null && !queryParamMap.isEmpty()) {
+            queryParamString.append("?");
+            List<NameValuePair> paramNameValuePairs = new ArrayList<>();
+            for (Map.Entry<String, String[]> entry : queryParamMap.entrySet()) {
+                if (ArrayUtils.isNotEmpty(entry.getValue())) {
+                    paramNameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()[0]));
+                }
+            }
+            queryParamString.append(URLEncodedUtils.format(paramNameValuePairs, StandardCharsets.UTF_8));
+        }
+        return queryParamString.toString();
     }
 }

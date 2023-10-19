@@ -18,13 +18,16 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.common.model.Property;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -109,4 +112,48 @@ public interface ApplicationAuthenticator extends Serializable {
 
         return new String[0];
     }
+
+    /**
+     * Check whether user satisfies all the pre-requisites of the authenticator to be authenticated with.
+     *
+     * @param request       Request which comes to the framework for authentication.
+     * @param context       Authentication context.
+     * @return boolean if satisfies all the pre-requisites of the authenticator.
+     */
+    default boolean isSatisfyAuthenticatorPrerequisites(HttpServletRequest request, AuthenticationContext context)
+            throws AuthenticationFailedException {
+        return true;
+    }
+
+    /**
+     * Check whether the authenticator supports API based authentication.
+     *
+     * @return true if the authenticator supports API based authentication.
+     */
+    default boolean isAPIBasedAuthenticationSupported() {
+
+        return false;
+    }
+
+    /**
+     * Get the authentication initiation data.
+     *
+     * @param context Authentication context.
+     * @return AuthenticatorData containing authentication initiation data.
+     */
+    default Optional<AuthenticatorData> getAuthInitiationData(AuthenticationContext context) {
+
+        return Optional.empty();
+    }
+
+    /**
+     * Get the i18Key supported from the authenticator level.
+     *
+     * @return i18key
+     */
+    default String getI18nKey() {
+
+        return StringUtils.EMPTY;
+    }
+
 }

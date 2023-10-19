@@ -180,17 +180,14 @@
     <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
     <script type="text/javascript" src="../admin/js/cookies.js"></script>
     <script type="text/javascript" src="../admin/js/main.js"></script>
+
     <!--Yahoo includes for dom event handling-->
     <script src="../yui/build/yahoo-dom-event/yahoo-dom-event.js" type="text/javascript"></script>
+    <!--Yahoo includes for animations-->
+    <script src="../entitlement/js/animation-min/animation-min.js" type="text/javascript"></script>
+
     <script src="../entitlement/js/create-basic-policy.js" type="text/javascript"></script>
     <link href="../entitlement/css/entitlement.css" rel="stylesheet" type="text/css" media="all"/>
-
-    
-     <!--Yahoo includes for dom event handling-->
-    <script src="http://yui.yahooapis.com/2.8.1/build/yahoo-dom-event/yahoo-dom-event.js" type="text/javascript"></script>
-
-    <!--Yahoo includes for animations-->
-    <script src="http://yui.yahooapis.com/2.8.1/build/animation/animation-min.js" type="text/javascript"></script>
 
     <!--Local js includes-->
     <script type="text/javascript" src="js/treecontrol.js"></script>

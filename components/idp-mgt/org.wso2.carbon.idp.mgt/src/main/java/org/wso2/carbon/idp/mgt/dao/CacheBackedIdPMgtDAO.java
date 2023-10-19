@@ -147,6 +147,30 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
+     * Get all identity provider's Basic information along with additionally requested information depends on the
+     * requiredAttributes for a given matching filter.
+     *
+     * @param tenantId             Tenant Id of the identity provider.
+     * @param expressionConditions Filter value list for IdP search.
+     * @param limit                Limit per page.
+     * @param offset               Offset value.
+     * @param sortOrder            Order of IdP ASC/DESC.
+     * @param sortBy               The attribute need to sort.
+     * @param requiredAttributes   Required attributes which needs to be return.
+     * @return Identity Provider's Basic Information array along with requested attribute information.
+     * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
+     */
+    public List<IdentityProvider> getPaginatedTrustedTokenIssuersSearch(int tenantId, List<ExpressionNode> expressionConditions,
+                                                                        int limit, int offset, String sortOrder, String sortBy,
+                                                                        List<String> requiredAttributes)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        return idPMgtDAO.getTrustedTokenIssuerSearch(tenantId, expressionConditions, limit, offset, sortOrder,
+                sortBy, requiredAttributes);
+    }
+
+    /**
      * Get number of IdP count for a matching filter.
      *
      * @param tenantId             Tenant Id of the identity provider.
@@ -159,6 +183,21 @@ public class CacheBackedIdPMgtDAO {
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         return idPMgtDAO.getCountOfFilteredIdPs(tenantId, expressionConditions);
+    }
+
+    /**
+     * Get number of trusted token issuer count for a matching filter.
+     *
+     * @param tenantId             Tenant Id of the trusted token issuer.
+     * @param expressionConditions filter value list for IdP search.
+     * @return number of trusted token issuer count for a given filter.
+     * @throws IdentityProviderManagementServerException Error when getting count of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
+     */
+    public int getTotalTrustedTokenIssuerCount(int tenantId, List<ExpressionNode> expressionConditions)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        return idPMgtDAO.getCountOfFilteredTokenIssuers(tenantId, expressionConditions);
     }
 
     /**
@@ -479,6 +518,58 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
+     * Get the enabled IDP of the given realm id.
+     *
+     * @param realmId       Realm ID of the required identity provider.
+     * @param tenantId      Tenant ID of the required identity provider.
+     * @param tenantDomain  Tenant domain of the required identity provider.
+     * @return              Enabled identity provider of the given realm id.
+     * @throws IdentityProviderManagementException Error when getting the identity provider.
+     */
+    public IdentityProvider getEnabledIdPByRealmId(String realmId, int tenantId,
+                                            String tenantDomain) throws IdentityProviderManagementException {
+
+        IdPHomeRealmIdCacheKey cacheKey = new IdPHomeRealmIdCacheKey(realmId);
+        IdPCacheEntry entry = idPCacheByHRI.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache entry found for Identity Provider with Home Realm ID " + realmId);
+            }
+            // Check whether the idp in the cache is enabled.
+            if (entry.getIdentityProvider().isEnable()) {
+                return entry.getIdentityProvider();
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Identity Provider with Home Realm ID " + realmId + " available in the cache is disabled. " +
+                        "Fetching entry from DB.");
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache entry not found for Identity Provider with Home Realm ID " + realmId
+                        + ". Fetching entry from DB.");
+            }
+        }
+
+        IdentityProvider identityProvider = idPMgtDAO.getEnabledIdPByRealmId(realmId, tenantId, tenantDomain);
+
+        if (identityProvider != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Entry fetched from DB for Identity Provider with Home Realm ID " + realmId
+                        + ". Updating cache.");
+            }
+            idPCacheByHRI.addToCache(cacheKey, new IdPCacheEntry(identityProvider), tenantDomain);
+            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(identityProvider.getIdentityProviderName());
+            idPCacheByName.addToCache(idPNameCacheKey, new IdPCacheEntry(identityProvider), tenantDomain);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Entry for Identity Provider with Home Realm ID " + realmId
+                        + " not found in cache or DB.");
+            }
+        }
+        return identityProvider;
+    }
+
+    /**
      * Adds a new Identity Provider and cache it.
      *
      * @param identityProvider  new Identity Provider information.
@@ -722,7 +813,18 @@ public class CacheBackedIdPMgtDAO {
                 tenantDomain);
         for (IdentityProvider identityProvider : identityProviders) {
             String identityProviderName = identityProvider.getIdentityProviderName();
-            identityProvider = this.getIdPByName(null, identityProviderName, tenantId, tenantDomain);
+            try {
+                identityProvider = this.getIdPByName(null, identityProviderName, tenantId, tenantDomain);
+            } catch (IdentityProviderManagementClientException e) {
+                /* The IDP data might get deleted from another process. In cases like that `getIdPByName` will throw
+                 the IdentityProviderManagementClientException. Hence, we need to handle that exception and continue the
+                 iteration. */
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Continue the iteration since identity provider %s is not available " +
+                            "in cache or database of tenant domain %s", identityProviderName, tenantDomain), e);
+                }
+                identityProvider = null;
+            }
             // An IDP might get deleted from another process. Hence, identityProvider is nullable.
             if (identityProvider == null) {
                 if (log.isDebugEnabled()) {
@@ -878,6 +980,13 @@ public class CacheBackedIdPMgtDAO {
             IdentityProviderManagementException {
 
         return idPMgtDAO.getConnectedApplications(resourceId, limit, offset);
+    }
+
+    public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId,
+                                                                    Integer limit, Integer offset)
+            throws IdentityProviderManagementException {
+
+        return idPMgtDAO.getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId, limit, offset);
     }
 
     /**

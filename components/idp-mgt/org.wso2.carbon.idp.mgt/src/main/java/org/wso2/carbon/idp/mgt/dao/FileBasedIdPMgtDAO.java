@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -100,6 +100,27 @@ public class FileBasedIdPMgtDAO {
     }
 
     /**
+     * Get the enabled IDP of the given realm id.
+     *
+     * @param realmId       Realm ID of the required identity provider.
+     * @return              Enabled identity provider of the given realm id.
+     */
+    public IdentityProvider getEnabledIdPByRealmId(String realmId) {
+
+        Map<String, IdentityProvider> map = IdPManagementServiceComponent.getFileBasedIdPs();
+        for (Iterator<Entry<String, IdentityProvider>> iterator = map.entrySet().iterator(); iterator
+                .hasNext(); ) {
+            Entry<String, IdentityProvider> entry = iterator.next();
+            if (entry.getValue().getHomeRealmId() != null
+                    && entry.getValue().getHomeRealmId().equals(realmId)
+                    && entry.getValue().isEnable()) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    /**
      * Retrieves the first matching IDP for the given metadata property.
      * Intended to ony be used to retrieve IDP name based on a unique metadata property.
      *
@@ -121,5 +142,18 @@ public class FileBasedIdPMgtDAO {
             }
         }
         return null;
+    }
+
+    /**
+     * This method is used get the IDP for file based applications where the resource id is the IDP name.
+     *
+     * @param resourceId Resource ID which will be the IDP name for file based.
+     * @param tenantDomain Tenant domain of IDP.
+     * @return Identity Provider.
+     */
+    public IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain) {
+
+        // For the File based applications, application name is set as resource id.
+        return getIdPByName(resourceId, tenantDomain);
     }
 }

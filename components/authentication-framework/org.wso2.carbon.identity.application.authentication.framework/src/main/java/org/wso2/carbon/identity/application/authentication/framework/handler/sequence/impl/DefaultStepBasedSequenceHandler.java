@@ -44,8 +44,11 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -119,6 +122,31 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             if (currentStep == 0) {
                 currentStep++;
                 context.setCurrentStep(currentStep);
+
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    Map<String, Object> stepMap = new HashMap<>();
+                    context.getSequenceConfig().getStepMap().forEach((key, value) -> {
+                        List<Map<String, Object>> stepConfigParams = new ArrayList<>();
+                        value.getAuthenticatorList().forEach(authenticatorConfig -> {
+                            Map<String, Object> authenticatorParams = new HashMap<>();
+                            authenticatorParams.put(FrameworkConstants.LogConstants.AUTHENTICATOR_NAME,
+                                    authenticatorConfig.getName());
+                            authenticatorParams.put(FrameworkConstants.LogConstants.IDP_NAMES,
+                                    authenticatorConfig.getIdpNames());
+                            stepConfigParams.add(authenticatorParams);
+                        });
+                        stepMap.put(FrameworkConstants.LogConstants.STEP + " " + key.toString(), stepConfigParams);
+                    });
+                    LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                            FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                            FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST)
+                            .inputParam(LogConstants.InputKeys.AUTHENTICATOR_NAME, context.getServiceProviderName())
+                            .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
+                            .inputParam(FrameworkConstants.LogConstants.STEPS, stepMap)
+                            .resultMessage("Executing step-based authentication.")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+                }
             }
 
             StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(currentStep);
@@ -588,6 +616,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
             IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING,
                     idpToLocalRoleMapping);
+            IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD,
+                    context.getExternalIdP().getAttributeSyncMethod());
             FrameworkUtils.getProvisioningHandler()
                     .handle(mappedRoles, subjectIdentifier, extAttributesValueMap, userStoreDomain,
                             context.getTenantDomain());

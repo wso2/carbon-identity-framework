@@ -267,20 +267,51 @@ public interface WorkflowListener {
             WorkflowException;
 
     /**
+     * Trigger before listing workflows of a tenant.
+     *
+     * @param tenantId Tenant ID
+     * @param limit    Limit
+     * @param offset   Offset
+     * @param filter   Filter
+     * @throws WorkflowException
+     */
+    default void doPreListPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException {
+
+    }
+
+    /**
+     * Trigger after listing workflows of a tenant.
+     *
+     * @param tenantId Tenant ID
+     * @param limit    Limit
+     * @param offset   Offset
+     * @param filter   Filter
+     * @param result   List of workflows returned by original method.
+     * @throws WorkflowException
+     */
+    default void doPostListPaginatedWorkflows(int tenantId, int limit, int offset, String filter, List<Workflow> result) throws WorkflowException {
+
+    }
+
+    /**
      * Trigger before listing workflows of a tenant
      *
+     * @deprecated Use {@link #doPreListPaginatedWorkflows(int, int, int, String)} instead.
      * @param tenantId Tenant ID
      * @throws WorkflowException
      */
+    @Deprecated
     void doPreListWorkflows(int tenantId) throws WorkflowException;
 
     /**
      * Trigger after listing workflows of a tenant
      *
+     * @deprecated Use {@link #doPostListPaginatedWorkflows(int, int, int, String, List)} instead.
      * @param tenantId Tenant ID
      * @param result   List of workflows returned by original method.
      * @throws WorkflowException
      */
+    @Deprecated
     void doPostListWorkflows(int tenantId, List<Workflow> result) throws WorkflowException;
 
     /**
@@ -311,26 +342,55 @@ public interface WorkflowListener {
      * Trigger before getting associations of a workflow
      *
      * @param workflowId Workflow ID
-     * @param result     Result of the original operation
+     * @param result Result of the original operation
      * @throws WorkflowException
      */
     void doPostGetAssociationsForWorkflow(String workflowId, List<Association> result) throws WorkflowException;
 
     /**
+     * Trigger before listing all associations.
+     * @param tenantId Tenant ID
+     * @param limit    Limit
+     * @param offset   Offset
+     * @param filter   Filter
+     * @throws WorkflowException
+     */
+    default void doPreListPaginatedAssociations(int tenantId, int limit, int offset, String filter) {
+
+    }
+
+    /**
+     * Trigger after listing all associations.
+     * @param tenantId Tenant ID
+     * @param limit    Limit
+     * @param offset   Offset
+     * @param filter   Filter
+     * @param result   Result of the original operation
+     * @throws WorkflowException
+     */
+    default void doPostListPaginatedAssociations(int tenantId, int limit, int offset, String filter, List<Association> result) {
+
+    }
+
+    /**
      * Trigger before listing all associations
      *
+     * @deprecated Use {@link #doPreListPaginatedAssociations(int, int, int, String)} instead.
      * @param tenantId Tenant ID
      * @throws WorkflowException
      */
+    @Deprecated
     void doPreListAllAssociations(int tenantId) throws WorkflowException;
 
     /**
      * Trigger after listing all associations
      *
+     * @deprecated Use {@link #doPostListPaginatedAssociations(int, int, int, String, List)} instead.
      * @param tenantId Tenant ID
      * @param result   Result of the original operation
      * @throws WorkflowException
      */
+    @Deprecated
     void doPostListAllAssociations(int tenantId, List<Association> result) throws WorkflowException;
 
     /**

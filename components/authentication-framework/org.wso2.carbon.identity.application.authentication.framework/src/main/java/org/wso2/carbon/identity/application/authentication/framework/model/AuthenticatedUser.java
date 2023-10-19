@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,13 +25,16 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -60,6 +63,8 @@ public class AuthenticatedUser extends User {
     private String authenticatedSubjectIdentifier;
     private String federatedIdPName;
     private boolean isFederatedUser;
+    private String accessingOrganization;
+    private String userResidentOrganization;
     private Map<ClaimMapping, String> userAttributes = new HashMap<>();
 
     /**
@@ -96,6 +101,8 @@ public class AuthenticatedUser extends User {
         if (!isFederatedUser && StringUtils.isNotEmpty(userStoreDomain) && StringUtils.isNotEmpty(tenantDomain)) {
             updateCaseSensitivity();
         }
+        this.accessingOrganization = authenticatedUser.getAccessingOrganization();
+        this.userResidentOrganization = authenticatedUser.getUserResidentOrganization();
     }
 
     public AuthenticatedUser(org.wso2.carbon.user.core.common.User user) {
@@ -173,11 +180,21 @@ public class AuthenticatedUser extends User {
         String userId = null;
         if (userName != null && userStoreDomain != null && tenantDomain != null) {
             try {
-                int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
+                String tenantDomain = this.getTenantDomain();
+                /* When the user resident organization is set in the authenticated user, use that to resolve the user's
+                tenant domain. The below check should be removed once console app is registered per each tenant. */
+                if (StringUtils.isNotEmpty(this.userResidentOrganization)) {
+                    tenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                            .resolveTenantDomain(this.userResidentOrganization);
+                }
+                int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                 userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
                         this.getUserStoreDomain(), this.getUserName());
             } catch (UserSessionException e) {
                 log.error("Error while resolving the user id from username for local user.");
+            } catch (OrganizationManagementException e) {
+                log.error("Error while resolving the tenant domain by organization id: " +
+                        this.userResidentOrganization);
             }
         } else {
             if (log.isDebugEnabled()) {
@@ -333,17 +350,52 @@ public class AuthenticatedUser extends User {
         return userId;
     }
 
+    /**
+     * Returns the user id of the authenticated user.
+     * If the user id is not available, it will return the fully qualified username.
+     *
+     * @return the user id of the authenticated user.
+     * @deprecated use {@link #getLoggableMaskedUserId()}
+     */
+    @Deprecated
+    @Override
     public String getLoggableUserId() {
 
         if (userId != null) {
             return userId;
         }
 
-        // User id can be null sometimes in some flows. Hence trying to resolve it here.
+        // User id can be null sometimes in some flows. Hence, trying to resolve it here.
         String loggableUserId = resolveUserIdInternal();
         if (loggableUserId == null) {
             // If the user id is still null, lets get the fully qualified username as the user id for logging purposes.
             loggableUserId = toFullQualifiedUsername();
+        }
+        return loggableUserId;
+    }
+
+    /**
+     * Returns the user id of the authenticated user.
+     * If the user id is not available, it will return the fully qualified username. Masked username is returned if
+     * masking is enabled.
+     *
+     * @return the user id of the authenticated user.
+     */
+    @Override
+    public String getLoggableMaskedUserId() {
+
+        if (userId != null) {
+            return userId;
+        }
+
+        // User id can be null sometimes in some flows. Hence, trying to resolve it here.
+        String loggableUserId = resolveUserIdInternal();
+        if (loggableUserId == null) {
+            // If the user id is still null, lets get the fully qualified username as the user id for logging purposes.
+            loggableUserId = toFullQualifiedUsername();
+            if (LoggerUtils.isLogMaskingEnable) {
+                loggableUserId = LoggerUtils.getMaskedContent(loggableUserId);
+            }
         }
         return loggableUserId;
     }
@@ -359,23 +411,7 @@ public class AuthenticatedUser extends User {
     public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier,
                                                   ServiceProvider serviceProvider) {
 
-        if (!isFederatedUser() && serviceProvider != null) {
-            boolean useUserstoreDomainInLocalSubjectIdentifier
-                    = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                    .isUseUserstoreDomainInLocalSubjectIdentifier();
-            boolean useTenantDomainInLocalSubjectIdentifier
-                    = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                    .isUseTenantDomainInLocalSubjectIdentifier();
-            if (useUserstoreDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(userStoreDomain)) {
-                authenticatedSubjectIdentifier = IdentityUtil.addDomainToName(userName, userStoreDomain);
-            }
-            if (useTenantDomainInLocalSubjectIdentifier && StringUtils.isNotEmpty(tenantDomain) &&
-                    StringUtils.isNotEmpty(authenticatedSubjectIdentifier)) {
-                authenticatedSubjectIdentifier = UserCoreUtil.addTenantDomainToEntry(authenticatedSubjectIdentifier,
-                        tenantDomain);
-            }
-        }
-        this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
+        setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
     }
 
     /**
@@ -441,6 +477,27 @@ public class AuthenticatedUser extends User {
      */
     public void setFederatedIdPName(String federatedIdPName) {
         this.federatedIdPName = federatedIdPName;
+    }
+
+
+    public String getAccessingOrganization() {
+
+        return accessingOrganization;
+    }
+
+    public void setAccessingOrganization(String accessingOrganization) {
+
+        this.accessingOrganization = accessingOrganization;
+    }
+
+    public String getUserResidentOrganization() {
+
+        return userResidentOrganization;
+    }
+
+    public void setUserResidentOrganization(String userResidentOrganization) {
+
+        this.userResidentOrganization = userResidentOrganization;
     }
 
     @Override

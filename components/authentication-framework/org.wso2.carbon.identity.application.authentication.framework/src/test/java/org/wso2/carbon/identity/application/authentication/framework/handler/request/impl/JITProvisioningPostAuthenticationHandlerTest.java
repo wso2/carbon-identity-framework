@@ -46,9 +46,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.handler.event.account.lock.constants.AccountConstants;
-import org.wso2.carbon.identity.handler.event.account.lock.exception.AccountLockServiceException;
-import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -80,8 +77,8 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 /**
  * This is a test class for {@link JITProvisioningPostAuthenticationHandler}.
  */
-@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, AccountLockService.class,
-        FrameworkServiceDataHolder.class, IdentityTenantUtil.class})
+@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, FrameworkServiceDataHolder.class,
+        IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.xml.*", "org.mockito.*"})
 public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFrameworkTest {
 
@@ -93,9 +90,6 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
 
     @Mock
     private FrameworkServiceDataHolder frameworkServiceDataHolder;
-
-    @Mock
-    private AccountLockService accountLockService;
 
     @BeforeClass
     protected void setupSuite() throws XMLStreamException, IdentityProviderManagementException {
@@ -146,7 +140,7 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
 
     @Test(description = "This test case tests the Post JIT provisioning handling flow with an authenticated user")
     public void testHandleWithAuthenticatedUserWithFederatedIdp() throws FrameworkException,
-            FederatedAssociationManagerException, AccountLockServiceException, UserStoreException, XMLStreamException,
+            FederatedAssociationManagerException, UserStoreException, XMLStreamException,
             IdentityProviderManagementException {
 
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
@@ -160,10 +154,6 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         mockStatic(FrameworkServiceDataHolder.class);
         PowerMockito.when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
 
-        mockStatic(AccountLockService.class);
-        when(frameworkServiceDataHolder.getAccountLockService()).thenReturn(accountLockService);
-        when(accountLockService.isAccountLocked(anyString(), anyString())).thenReturn(false);
-
         RealmService mockRealmService = mock(RealmService.class);
         PowerMockito.when(FrameworkServiceDataHolder.getInstance().getRealmService()).thenReturn(mockRealmService);
         UserRealm mockUserRealm = mock(UserRealm.class);
@@ -174,9 +164,13 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
         when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
         when(mockUserStoreManager.getUserClaimValues(anyString(),
-                        eq(new String[]{AccountConstants.ACCOUNT_DISABLED_CLAIM}),
+                        eq(new String[]{FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI}),
                         eq(UserCoreConstants.DEFAULT_PROFILE))).thenReturn(mockClaimValues);
-        when(mockClaimValues.get(AccountConstants.ACCOUNT_DISABLED_CLAIM)).thenReturn("false");
+        when(mockClaimValues.get(FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI)).thenReturn("false");
+        when(mockUserStoreManager.getUserClaimValues(anyString(),
+                eq(new String[]{FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI}),
+                eq(UserCoreConstants.DEFAULT_PROFILE))).thenReturn(mockClaimValues);
+        when(mockClaimValues.get(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI)).thenReturn("false");
 
         // Need to mock getIdPConfigByName with a null parameter.
         ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);

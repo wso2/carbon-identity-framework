@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.Collection;
@@ -104,6 +105,8 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     private Collection mockAppCollection;
     private Collection childCollection;
 
+    private RegistryBasedApplicationPermissionProvider registryBasedApplicationPermissionProvider;
+
     private static final String USERNAME = "user";
     private static final String APPLICATION_NAME = "applicationName";
     private static final String NEW_APPLICATION_NAME = "newApplicationName";
@@ -129,6 +132,7 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
         applicationPermission = new ApplicationPermission();
         applicationPermission.setValue(USERNAME);
         applicationPermissions = new ApplicationPermission[]{applicationPermission};
+        registryBasedApplicationPermissionProvider = new RegistryBasedApplicationPermissionProvider();
     }
 
     @DataProvider(name = "getAppNamesForDefaultRegex")
@@ -323,13 +327,19 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     public void testRenameAppPermissionPathNode() throws IdentityApplicationManagementException, UserStoreException,
             RegistryException {
 
+        mockStatic(ApplicationManagementServiceComponentHolder.class);
+        when(ApplicationManagementServiceComponentHolder.getInstance()).thenReturn(
+                mockApplicationManagementServiceComponentHolder);
+        when(mockApplicationManagementServiceComponentHolder.getApplicationPermissionProvider()).thenReturn(
+                registryBasedApplicationPermissionProvider);
+
         loadPermissions();
         Collection permissionNode = mock(Collection.class);
         when(mockTenantRegistry.newCollection()).thenReturn(permissionNode);
 
-        String newApplicationNode = PERMISSION_PATH + PATH_CONSTANT  + NEW_APPLICATION_NAME;
-        String newApplicationPermissionPath = PERMISSION_PATH + PATH_CONSTANT + NEW_APPLICATION_NAME +
-                PATH_CONSTANT + PERMISSION + PATH_CONSTANT;
+        String newApplicationNode = PERMISSION_PATH + PATH_CONSTANT + NEW_APPLICATION_NAME;
+        String newApplicationPermissionPath =
+                PERMISSION_PATH + PATH_CONSTANT + NEW_APPLICATION_NAME + PATH_CONSTANT + PERMISSION + PATH_CONSTANT;
 
         ApplicationMgtUtil.renameAppPermissionPathNode(APPLICATION_NAME, NEW_APPLICATION_NAME);
         verify(mockTenantRegistry, times(1)).delete(applicationPermissionPath);
@@ -340,6 +350,12 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
     @Test
     public void testStorePermissions() throws  Exception {
+
+        mockStatic(ApplicationManagementServiceComponentHolder.class);
+        when(ApplicationManagementServiceComponentHolder.getInstance()).thenReturn(
+                mockApplicationManagementServiceComponentHolder);
+        when(mockApplicationManagementServiceComponentHolder.getApplicationPermissionProvider()).thenReturn(
+                registryBasedApplicationPermissionProvider);
 
         mockTenantRegistry();
         mockStatic(IdentityTenantUtil.class);
@@ -376,6 +392,12 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     @Test(dataProvider = "updatePermissionDataProvider")
     public void testUpdatePermission(String[] childPermissions, int childCount) throws
             IdentityApplicationManagementException, UserStoreException, RegistryException {
+
+        mockStatic(ApplicationManagementServiceComponentHolder.class);
+        when(ApplicationManagementServiceComponentHolder.getInstance()).thenReturn(
+                mockApplicationManagementServiceComponentHolder);
+        when(mockApplicationManagementServiceComponentHolder.getApplicationPermissionProvider()).thenReturn(
+                registryBasedApplicationPermissionProvider);
 
         loadPermissions();
         when(mockTenantRegistry.resourceExists(anyString())).thenReturn(FALSE);
@@ -420,6 +442,11 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     public void testDeletePermissions() throws RegistryException, IdentityApplicationManagementException {
 
         mockTenantRegistry();
+        mockStatic(ApplicationManagementServiceComponentHolder.class);
+        when(ApplicationManagementServiceComponentHolder.getInstance()).thenReturn(
+                mockApplicationManagementServiceComponentHolder);
+        when(mockApplicationManagementServiceComponentHolder.getApplicationPermissionProvider()).thenReturn(
+                registryBasedApplicationPermissionProvider);
         when(mockTenantRegistry.resourceExists(anyString())).thenReturn(TRUE);
         ApplicationMgtUtil.deletePermissions(APPLICATION_NAME);
         verify(mockTenantRegistry).delete(anyString());
@@ -427,6 +454,12 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
 
     @Test
     public void testDeletePermissionsRegistryException() throws RegistryException {
+
+        mockStatic(ApplicationManagementServiceComponentHolder.class);
+        when(ApplicationManagementServiceComponentHolder.getInstance()).thenReturn(
+                mockApplicationManagementServiceComponentHolder);
+        when(mockApplicationManagementServiceComponentHolder.getApplicationPermissionProvider()).thenReturn(
+                registryBasedApplicationPermissionProvider);
 
         mockTenantRegistry();
         doThrow(new RegistryException("")).when(mockTenantRegistry).resourceExists(anyString());

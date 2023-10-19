@@ -89,6 +89,7 @@
     String oauth1AuthorizeUrl = null;
     String oauth1AccessTokenUrl = null;
     String authzUrl = null;
+    String parUrl = null;
     String tokenUrl = null;
     String revokeUrl = null;
     String introspectUrl = null;
@@ -160,6 +161,8 @@
             oidcIdpEntityId = IdPManagementUIUtil.getProperty(properties, "IdPEntityId").getValue();
             authzUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL).getValue();
+            parUrl = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_PAR_URL).getValue();
             tokenUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL).getValue();
             revokeUrl = IdPManagementUIUtil.getProperty(properties,
@@ -678,6 +681,10 @@ function removeDefaultAuthSeq() {
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='authz.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(authzUrl)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='par.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(parUrl)%></td>
                         </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='token.endpoint'/>:</td>

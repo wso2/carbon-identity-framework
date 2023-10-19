@@ -106,6 +106,12 @@ public class IdentityServlet extends HttpServlet {
                 throw FrameworkRuntimeException.error(message);
             }
             return responseBuilder.build();
+        } catch (FrameworkResourceNotFoundException e) {
+            responseBuilder = factory.handleException(e, request, response);
+            if (responseBuilder == null) {
+                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!", e);
+            }
+            return responseBuilder.build();
         } catch (FrameworkException e) {
             if (e instanceof FrameworkClientException) {
                 if (log.isDebugEnabled()) {

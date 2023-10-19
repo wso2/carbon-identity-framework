@@ -39,6 +39,8 @@ public class ClaimConstants {
 
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";
+    public static final String MIN_LENGTH = "minLength";
+    public static final String MAX_LENGTH = "maxLength";
 
     /**
      * Enum for error messages.
@@ -84,6 +86,7 @@ public class ClaimConstants {
                 "exceeded maximum character limit of: %s"),
         ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING("CMT-60004", "Local claim URI : %s is already mapped in claim " +
                 "dialect: %s"),
+        ERROR_CODE_CLAIM_LENGTH_LIMIT("CMT-60005", "Claim property: %s should be between %s and %s"),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +

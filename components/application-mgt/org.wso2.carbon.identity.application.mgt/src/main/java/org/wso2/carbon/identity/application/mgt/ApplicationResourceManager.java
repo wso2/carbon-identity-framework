@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,4 +81,20 @@ public interface ApplicationResourceManager {
      */
     void deleteApplicationByResourceId(String resourceId, String tenantDomain, String username)
             throws IdentityApplicationManagementException;
+
+    /**
+     * Retrieve application resource id using the inboundKey and inboundType.
+     *
+     * @param inboundKey   inboundKey
+     * @param inboundType  inboundType
+     * @param tenantDomain tenantDomain
+     * @return application resourceId
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException
+     */
+    default String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType,
+                                                                String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return null;
+    }
 }

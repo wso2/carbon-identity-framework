@@ -288,6 +288,32 @@ public class WorkflowManagementAdminService {
     }
 
     /**
+     * List paginated workflows of a tenant.
+     *
+     * @param limit  Limit
+     * @param offset Offset
+     * @param filter filter
+     * @return WorkflowWizard[]
+     * @throws WorkflowException
+     */
+    public WorkflowWizard[] listPaginatedWorkflows(int limit, int offset, String filter) throws WorkflowException{
+
+        List<WorkflowWizard> workflowWizards = new ArrayList<>();
+        List<Workflow> workflowBeans = null;
+        try {
+            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+            workflowBeans = WorkflowServiceDataHolder.getInstance().getWorkflowService().listPaginatedWorkflows(tenantId, limit, offset, filter);
+            for (Workflow workflow : workflowBeans) {
+                WorkflowWizard workflowTmp = getWorkflow(workflow);
+                workflowWizards.add(workflowTmp);
+            }
+        } catch (InternalWorkflowException e) {
+            throw new WorkflowException(WFConstant.Exceptions.ERROR_LISTING_WORKFLOWS, e);
+        }
+        return workflowWizards.toArray(new WorkflowWizard[workflowWizards.size()]);
+    }
+
+    /**
      * List workflows
      *
      * @return
@@ -305,10 +331,28 @@ public class WorkflowManagementAdminService {
                 workflowWizards.add(workflowTmp);
             }
         } catch (InternalWorkflowException e) {
-            log.error("Server error when listing workflows", e);
-            throw new WorkflowException("Server error occurred when listing workflows");
+            throw new WorkflowException(WFConstant.Exceptions.ERROR_LISTING_WORKFLOWS, e);
         }
         return workflowWizards.toArray(new WorkflowWizard[workflowWizards.size()]);
+    }
+
+    /**
+     * Get workflows count.
+     *
+     * @param filter  filter
+     * @return Return count of workflows
+     * @throws WorkflowException
+     */
+    public int getWorkflowsCount(String filter) throws WorkflowException{
+
+        int count;
+        try {
+            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+            count = WorkflowServiceDataHolder.getInstance().getWorkflowService().getWorkflowsCount(tenantId, filter);
+        } catch (InternalWorkflowException e) {
+            throw new WorkflowException(WFConstant.Exceptions.ERROR_GETTING_WORKFLOW_COUNT, e);
+        }
+        return count;
     }
 
     /**
@@ -361,10 +405,35 @@ public class WorkflowManagementAdminService {
     }
 
     /**
+     * List paginated associations of a tenant.
+     *
+     * @param limit  Limit
+     * @param offset Offset
+     * @param filter Filter
+     * @return Association[]
+     * @throws WorkflowException
+     */
+    public Association[] listPaginatedAssociations(int limit, int offset, String filter) throws WorkflowException {
+
+        List<Association> associations;
+        try {
+            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+            associations =
+                    WorkflowServiceDataHolder.getInstance().getWorkflowService().listPaginatedAssociations(tenantId, limit, offset, filter);
+        } catch (InternalWorkflowException e) {
+            throw new WorkflowException(WFConstant.Exceptions.ERROR_LISTING_ASSOCIATIONS, e);
+        }
+        if (CollectionUtils.isEmpty(associations)) {
+            return new Association[0];
+        }
+        return associations.toArray(new Association[associations.size()]);
+    }
+
+    /**
      * List associations of a specific workflow
      *
      * @param workflowId  Workflow ID
-     * @return
+     * @return Association[]
      * @throws WorkflowException
      */
     public Association[] listAssociations(String workflowId) throws WorkflowException {
@@ -374,8 +443,7 @@ public class WorkflowManagementAdminService {
             associations =
                     WorkflowServiceDataHolder.getInstance().getWorkflowService().getAssociationsForWorkflow(workflowId);
         } catch (InternalWorkflowException e) {
-            log.error("Server error when listing associations for workflow id:" + workflowId, e);
-            throw new WorkflowException("Server error when listing associations");
+            throw new WorkflowException("Server error when listing associations for workflow id:" + workflowId, e);
         }
         if (CollectionUtils.isEmpty(associations)) {
             return new Association[0];
@@ -396,13 +464,31 @@ public class WorkflowManagementAdminService {
             int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
             associations = WorkflowServiceDataHolder.getInstance().getWorkflowService().listAllAssociations(tenantId);
         } catch (InternalWorkflowException e) {
-            log.error("Server error when listing all associations", e);
-            throw new WorkflowException("Server error when listing associations");
+            throw new WorkflowException(WFConstant.Exceptions.ERROR_LISTING_ASSOCIATIONS, e);
         }
         if (CollectionUtils.isEmpty(associations)) {
             return new Association[0];
         }
         return associations.toArray(new Association[associations.size()]);
+    }
+
+    /**
+     * Get associations count.
+     *
+     * @param filter  filter
+     * @return Return count of associations
+     * @throws WorkflowException
+     */
+    public int getAssociationsCount(String filter) throws WorkflowException{
+
+        int count;
+        try {
+            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+            count = WorkflowServiceDataHolder.getInstance().getWorkflowService().getAssociationsCount(tenantId, filter);
+        } catch (InternalWorkflowException e) {
+            throw new WorkflowException(WFConstant.Exceptions.ERROR_GETTING_ASSOC_COUNT, e);
+        }
+        return count;
     }
 
     /**

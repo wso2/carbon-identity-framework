@@ -82,7 +82,17 @@ public class SQLQueries {
     public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_H2 =
             "MERGE INTO IDN_AUTH_SESSION_APP_INFO KEY(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) VALUES(?, ?, ?, ?)";
 
-    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL_OR_DB2 =
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_DB2 =
+            "MERGE INTO IDN_AUTH_SESSION_APP_INFO T USING " +
+                    "(VALUES(?, ?, ?, ?)) S (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
+                    "ON (T.SESSION_ID = S.SESSION_ID AND " +
+                    "T.SUBJECT = S.SUBJECT AND " +
+                    "T.APP_ID = S.APP_ID AND " +
+                    "T.INBOUND_AUTH_TYPE = S.INBOUND_AUTH_TYPE ) " +
+                    "WHEN NOT MATCHED THEN INSERT (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
+                    "VALUES (S.SESSION_ID,S.SUBJECT,S.APP_ID,S.INBOUND_AUTH_TYPE)";
+
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO_MSSQL =
             "MERGE INTO IDN_AUTH_SESSION_APP_INFO T USING " +
                     "(VALUES(?, ?, ?, ?)) S (SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE) " +
                     "ON (T.SESSION_ID = S.SESSION_ID AND " +
@@ -175,12 +185,22 @@ public class SQLQueries {
 
     // Store federated authentication session details to map the session context key with the idp session index.
     public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO = "INSERT INTO IDN_FED_AUTH_SESSION_MAPPING "
-            + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
+            + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME, AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
 
     // Store federated authentication session details to map the session context key with the idp session index.
     public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO_WITH_TENANT = "INSERT INTO " +
-            "IDN_FED_AUTH_SESSION_MAPPING (IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, " +
+            "IDN_FED_AUTH_SESSION_MAPPING (IDP_SESSION_ID, SESSION_ID, IDP_NAME, AUTHENTICATOR_ID, " +
             "PROTOCOL_TYPE, TENANT_ID) VALUES (?, ?, ?, ?, ?, ?)";
+
+    // Store federated authentication session details to map the session context key with the idp session index.
+    public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO_WITH_IDP_ID = "INSERT INTO " +
+            "IDN_FED_AUTH_SESSION_MAPPING (IDP_SESSION_ID, SESSION_ID, IDP_NAME, AUTHENTICATOR_ID, " +
+            "PROTOCOL_TYPE, IDP_ID) VALUES (?, ?, ?, ?, ?, ?)";
+
+    // Store federated authentication session details to map the session context key with the idp session index.
+    public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO_WITH_TENANT_AND_IDP_ID = "INSERT INTO " +
+            "IDN_FED_AUTH_SESSION_MAPPING (IDP_SESSION_ID, SESSION_ID, IDP_NAME, AUTHENTICATOR_ID, PROTOCOL_TYPE, " +
+            "TENANT_ID, IDP_ID) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
     // Get federated authentication session id using the idp session id.
     public static final String SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID = "SELECT SESSION_ID FROM " +
@@ -190,13 +210,29 @@ public class SQLQueries {
     public static final String SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID_WITH_TENANT = "SELECT SESSION_ID " +
             "FROM IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ? AND TENANT_ID = ?";
 
+    // Get federated authentication session id using the idp session id and the idp id.
+    public static final String SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID_WITH_IDP_ID = "SELECT SESSION_ID " +
+            "FROM IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ? AND IDP_ID = ?";
+
+    // Get federated authentication session id using the idp session id, tenant id and idp id.
+    public static final String SQL_GET_FEDERATED_AUTH_SESSION_ID_BY_SESSION_ID_WITH_TENANT_AND_IDP_ID = "SELECT " +
+            "SESSION_ID FROM IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ? AND TENANT_ID = ? AND IDP_ID = ?";
+
     // Update federated authentication session id using the idp session id.
     public static final String SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO = "UPDATE IDN_FED_AUTH_SESSION_MAPPING SET " +
-            "SESSION_ID=? WHERE IDP_SESSION_ID=?";
+            "SESSION_ID=? WHERE IDP_SESSION_ID = ?";
 
     // Update federated authentication session id using the idp session id and the tenant id.
     public static final String SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO_WITH_TENANT = "UPDATE " +
-            "IDN_FED_AUTH_SESSION_MAPPING SET SESSION_ID=? WHERE IDP_SESSION_ID=? AND TENANT_ID = ?";
+            "IDN_FED_AUTH_SESSION_MAPPING SET SESSION_ID = ? WHERE IDP_SESSION_ID= ? AND TENANT_ID = ?";
+
+    // Update federated authentication session id using the idp session id and the idp id.
+    public static final String SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO_WITH_IDP_ID = "UPDATE " +
+            "IDN_FED_AUTH_SESSION_MAPPING SET SESSION_ID = ? WHERE IDP_SESSION_ID = ? AND IDP_ID = ?";
+
+    // Update federated authentication session id using the idp session id, the tenant id, and the idp id.
+    public static final String SQL_UPDATE_FEDERATED_AUTH_SESSION_INFO_WITH_TENANT_AND_IDP_ID = "UPDATE " +
+            "IDN_FED_AUTH_SESSION_MAPPING SET SESSION_ID = ? WHERE IDP_SESSION_ID = ? AND TENANT_ID = ? AND IDP_ID = ?";
 
     // Get federated authentication session details if there is an already existing session.
     public static final String SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID =
@@ -205,7 +241,11 @@ public class SQLQueries {
 
     // Remove federated authentication session details of a given session context key.
     public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO = "DELETE FROM IDN_FED_AUTH_SESSION_MAPPING"
-            + " WHERE SESSION_ID=?";
+            + " WHERE SESSION_ID = ?";
+
+    // Remove federated authentication session details of a given session context key and idp id.
+    public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO_WITH_IDP_ID = "DELETE FROM " +
+            "IDN_FED_AUTH_SESSION_MAPPING WHERE SESSION_ID = ? AND IDP_ID = ?";
 
     public static final String SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT =
             "SELECT COUNT( DISTINCT IDN_AUTH_SESSION_META_DATA.SESSION_ID) " +

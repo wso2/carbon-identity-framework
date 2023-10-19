@@ -54,6 +54,10 @@ public class RoleConstants {
     // Administrator role name.
     public static final String ADMINISTRATOR = "Administrator";
 
+    // Domain names
+    public static final String APPLICATION_DOMAIN = "Application";
+    public static final String INTERNAL_DOMAIN = "Internal";
+
     /**
      * Grouping of constants related to database table names.
      */
@@ -72,6 +76,8 @@ public class RoleConstants {
         public static final String ATTR_VALUE = "ATTR_VALUE";
         public static final String ROLE_NAME = "ROLE_NAME";
         public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
+        public static final String USER_NOT_FOUND_ERROR_MESSAGE = "A user doesn't exist with name: %s " +
+                "in the tenantDomain: %s";
 
         private RoleTableColumns() {
 
@@ -95,6 +101,9 @@ public class RoleConstants {
         ROLE_ALREADY_EXISTS("60008"),
         OPERATION_FORBIDDEN("60009"),
         OPERATION_NOT_SUPPORTED("60010"),
+
+        // Error thrown by custom event handler.
+        ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR("55001"),
 
         UNEXPECTED_SERVER_ERROR("65001"),
         SORTING_NOT_IMPLEMENTED("65002");

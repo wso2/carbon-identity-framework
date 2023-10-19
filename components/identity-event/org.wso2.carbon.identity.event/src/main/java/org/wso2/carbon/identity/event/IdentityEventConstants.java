@@ -225,6 +225,8 @@ public class IdentityEventConstants {
         // Loggers related events.
         public static final String PUBLISH_AUDIT_LOG = "PUBLISH_AUDIT_LOG";
         public static final String PUBLISH_DIAGNOSTIC_LOG = "PUBLISH_DIAGNOSTIC_LOG";
+
+        public static final String POST_APP_USER_ATTRIBUTE_UPDATE = "POST_APP_USER_ATTRIBUTE_UPDATE";
     }
 
     /**
@@ -343,6 +345,7 @@ public class IdentityEventConstants {
         public static final String AUTHENTICATOR_NAME = "authenticatorName";
         public static final String MAPPED_ATTRIBUTES = "mappedAttributes";
         public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
+        public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
     }
 
     public class ErrorMessage {

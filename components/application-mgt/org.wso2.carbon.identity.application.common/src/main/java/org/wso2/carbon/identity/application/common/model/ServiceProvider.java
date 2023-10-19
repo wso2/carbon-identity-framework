@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.collections.CollectionUtils;
@@ -51,7 +52,10 @@ public class ServiceProvider implements Serializable {
     private static final String TEMPLATE_ID = "TemplateId";
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
+    private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+
     @XmlTransient
+    @JsonIgnore
     private int applicationID = 0;
 
     @XmlElement(name = "ApplicationName")
@@ -67,9 +71,11 @@ public class ServiceProvider implements Serializable {
     private String jwksUri;
 
     @XmlTransient
+    @JsonIgnore
     private User owner;
 
     @XmlTransient
+    @JsonIgnore
     private String tenantDomain;
 
     @XmlElement(name = "InboundAuthenticationConfig")
@@ -98,10 +104,12 @@ public class ServiceProvider implements Serializable {
     private boolean saasApp;
 
     @XmlTransient
+    @JsonIgnore
     private ServiceProviderProperty[] spProperties = new ServiceProviderProperty[0];
 
     @IgnoreNullElement
     @XmlTransient
+    @JsonIgnore
     private String applicationResourceId;
 
     @IgnoreNullElement
@@ -122,6 +130,10 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_MANAGEMENT_APP)
     private boolean isManagementApp;
+
+    @IgnoreNullElement
+    @XmlElement(name = IS_B2B_SELF_SERVICE_APP)
+    private boolean isB2BSelfServiceApp;
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -154,6 +166,7 @@ public class ServiceProvider implements Serializable {
             } else if ("ApplicationName".equals(elementName)) {
                 if (element.getText() != null) {
                     serviceProvider.setApplicationName(element.getText());
+                    serviceProvider.setApplicationResourceId(serviceProvider.getApplicationName());
                 } else {
                     log.error("Service provider not loaded from the file. Application Name is null.");
                     return null;
@@ -513,6 +526,16 @@ public class ServiceProvider implements Serializable {
     public void setManagementApp(boolean managementApp) {
 
         isManagementApp = managementApp;
+    }
+
+    public boolean isB2BSelfServiceApp() {
+
+        return isB2BSelfServiceApp;
+    }
+
+    public void setB2BSelfServiceApp(boolean isB2BSelfServiceApp) {
+
+        this.isB2BSelfServiceApp = isB2BSelfServiceApp;
     }
 }
 

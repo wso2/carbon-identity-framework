@@ -22,6 +22,8 @@ package org.wso2.carbon.identity.application.mgt.listener;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
+import org.json.JSONObject;
+import org.json.XML;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -34,10 +36,12 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUsernameWithUserTenantDomain;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt;
 
 /**
  * Audit log implementation for Application (Service Provider) changes.
@@ -53,7 +57,8 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     public boolean isEnable() {
 
         if (super.isEnable()) {
-            return !isLegacyAuditLogsDisabled();
+            // Either legacy audit logs enabled in app mgt component or system wide, then enable audit logs.
+            return !isLegacyAuditLogsDisabledInAppMgt();
         }
         return false;
     }
@@ -68,10 +73,8 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             throws IdentityApplicationManagementException {
 
         String appId = getAppId(serviceProvider);
-        // Append tenant domain to username.
-        String initiator = buildInitiatorUsername(tenantDomain, userName);
+        String initiator = getInitiatorForLog(userName, tenantDomain);
         String data = buildData(serviceProvider);
-
         audit.info(String.format(AUDIT_MESSAGE, initiator, "Add-Application", appId, data, SUCCESS));
         return true;
     }
@@ -81,7 +84,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             throws IdentityApplicationManagementException {
 
         String appId = getAppId(serviceProvider);
-        String initiator = buildInitiatorUsername(tenantDomain, userName);
+        String initiator = getInitiatorForLog(userName, tenantDomain);
         String data = buildData(serviceProvider);
 
         audit.info(String.format(AUDIT_MESSAGE, initiator, "Update-Application", appId, data, SUCCESS));
@@ -94,8 +97,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
 
         String applicationName = getApplicationName(serviceProvider);
         String appId = getAppId(serviceProvider);
-        String initiator = buildInitiatorUsername(tenantDomain, userName);
-
+        String initiator = getInitiatorForLog(userName, tenantDomain);
         audit.info(String.format(AUDIT_MESSAGE, initiator, "Delete-Application", appId, applicationName, SUCCESS));
         return true;
     }
@@ -146,10 +148,12 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             data.append("Inbound Authentication Configs:").append("[");
             for (InboundAuthenticationRequestConfig requestConfig : requestConfigs) {
                 data.append("{");
-                data.append("Auth Key:").append(requestConfig.getInboundAuthKey()).append(", ");
+                data.append("Auth Key:").append(LoggerUtils.getMaskedContent(requestConfig.getInboundAuthKey())).
+                        append(", ");
                 data.append("Auth Type:").append(requestConfig.getInboundAuthType()).append(", ");
                 data.append("Config Type:").append(requestConfig.getInboundConfigType()).append(", ");
-                data.append("Inbound configuration:").append(requestConfig.getInboundConfiguration());
+                data.append("Inbound configuration:").
+                        append(maskInboundConfigurations(requestConfig.getInboundConfiguration()));
                 Property[] properties = requestConfig.getProperties();
                 if (ArrayUtils.isNotEmpty(properties)) {
                     data.append("Properties:").append("[");
@@ -159,7 +163,11 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
                         joiner = ", ";
                         data.append("{");
                         data.append(property.getName()).append(":");
-                        data.append(property.getValue());
+                        if (property.getName().equals("oauthConsumerSecret")) {
+                            data.append(LoggerUtils.getMaskedContent(property.getValue()));
+                        } else {
+                            data.append(property.getValue());
+                        }
                         data.append("}");
                     }
                     data.append("]");
@@ -306,5 +314,56 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
             data.append("]");
         }
         return data.toString();
+    }
+
+
+    /**
+     * Mask inbound configurations with secrets,keys.
+     *
+     * @param inboundConfigurations Inbound configurations.
+     *
+     * @return masked inbound configurations.
+     */
+    private String maskInboundConfigurations(String inboundConfigurations) {
+
+        if (!LoggerUtils.isLogMaskingEnable) {
+            return inboundConfigurations;
+        }
+        if (StringUtils.isNotBlank(inboundConfigurations)) {
+            if (inboundConfigurations.contains("<oauthConsumerSecret>")) {
+                JSONObject oauthAppDO = XML.toJSONObject(inboundConfigurations);
+                JSONObject configs = oauthAppDO.getJSONObject("oAuthAppDO");
+                configs.put("oauthConsumerSecret",
+                        LoggerUtils.getMaskedContent(configs.getString("oauthConsumerSecret")));
+                oauthAppDO.put("oAuthAppDO", configs);
+                inboundConfigurations = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                        XML.toString(oauthAppDO);
+            }
+        }
+        return inboundConfigurations;
+    }
+
+    /**
+     * Get the initiator for audit logs.
+     *
+     * @param username      Username of the initiator.
+     * @param tenantDomain  Tenant domain of the initiator.
+     *
+     * @return initiator for the log.
+     */
+    private String getInitiatorForLog(String username, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        if (!LoggerUtils.isLogMaskingEnable) {
+            // Append tenant domain to username.
+            return buildInitiatorUsername(tenantDomain, username);
+        }
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
+            String initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
+            if (StringUtils.isNotBlank(initiator)) {
+                return initiator;
+            }
+        }
+        return LoggerUtils.getMaskedContent(username);
     }
 }

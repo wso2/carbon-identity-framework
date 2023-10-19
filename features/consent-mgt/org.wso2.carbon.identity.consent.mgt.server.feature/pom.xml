@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-consent-mgt-aggregator</artifactId>
-        <version>5.23.42-SNAPSHOT</version>
+        <version>5.25.407-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -90,7 +90,7 @@
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.core:compatible:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.core.server:compatible:${identity.framework.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.consent.mgt.server:compatible:${carbon.consent.mgt.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.identity.application.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>

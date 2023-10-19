@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
@@ -49,20 +50,22 @@ public class EndpointConfigManager {
     private static String appName = null;
     private static char[] appPassword = null;
     private static String serverOrigin;
+    private static boolean isHostnameVerificationEnabled = true;
     private static boolean initialized = false;
+    private static String googleOneTapRestrictedBrowsers = StringUtils.EMPTY;
 
     /**
      * Initialize Tenant data manager
      */
     public static void init() {
 
+        InputStream inputStream = null;
         try {
             if (!initialized) {
                 prop = new Properties();
                 String configFilePath = buildFilePath(Constants.TenantConstants.CONFIG_RELATIVE_PATH);
                 File configFile = new File(configFilePath);
 
-                InputStream inputStream;
                 if (configFile.exists()) {
                     log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " +
                             Constants.TenantConstants.CONFIG_RELATIVE_PATH);
@@ -91,13 +94,30 @@ public class EndpointConfigManager {
                 appName = getPropertyValue(Constants.CONFIG_APP_NAME);
                 appPassword = getPropertyValue(Constants.CONFIG_APP_PASSWORD).toCharArray();
                 serverOrigin = getPropertyValue(Constants.CONFIG_SERVER_ORIGIN);
+                isHostnameVerificationEnabled = Boolean.parseBoolean(getPropertyValue(
+                        Constants.CONFIG_HOSTNAME_VERIFICATION_ENABLED));
                 if (StringUtils.isNotBlank(serverOrigin)) {
                     serverOrigin = IdentityUtil.fillURLPlaceholders(serverOrigin);
                 }
                 initialized = true;
+                String browserString = prop.getProperty(Constants.CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS);
+                if (StringUtils.isNotBlank(browserString)) {
+                    JSONArray restrictedBrowserJArray = new JSONArray(browserString);
+                    if (restrictedBrowserJArray != null && restrictedBrowserJArray.length() > 0) {
+                        googleOneTapRestrictedBrowsers = browserString;
+                    }
+                }
             }
         } catch (IOException e) {
             log.error("Initialization failed : ", e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    log.error("Error occurred while closing file input stream.", e);
+                }
+            }
         }
     }
 
@@ -129,6 +149,26 @@ public class EndpointConfigManager {
     public static String getServerOrigin() {
 
         return serverOrigin;
+    }
+
+    /**
+     * Get restricted browser list for Google One Tap.
+     *
+     * @return The list of comma separated browsers names on which
+     * Google  One Tap should be restricted.
+     */
+    public static String getGoogleOneTapRestrictedBrowsers() {
+
+        return googleOneTapRestrictedBrowsers;
+    }
+
+    /**
+     * Returns whether the hostname verification is enabled or not.
+     *
+     * @return true if hostname verification is enabled, false otherwise.
+     */
+    public static boolean isHostnameVerificationEnabled() {
+        return isHostnameVerificationEnabled;
     }
 
     /**

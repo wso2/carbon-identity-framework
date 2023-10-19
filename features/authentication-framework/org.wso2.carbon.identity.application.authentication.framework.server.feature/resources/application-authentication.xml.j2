@@ -153,6 +153,7 @@
         via the REST API for authentication framework. "removeOnConsumeFromAPI" defines whether to make the filtered
         parameters unavailable from the API on the first consumption.
     -->
+    {% if authentication.endpoint.redirect_params.filter_policy is defined %}
     <AuthenticationEndpointRedirectParams
             action="{{authentication.endpoint.redirect_params.filter_policy}}"
             removeOnConsumeFromAPI="{{authentication.endpoint.redirect_params.remove_on_consume_from_api}}">
@@ -160,9 +161,18 @@
         <AuthenticationEndpointRedirectParam name="{{parameter}}"/>
         {% endfor %}
     </AuthenticationEndpointRedirectParams>
+    {% endif %}
+
+    {% if authentication.endpoint.consent_page_redirect_params.allow is defined %}
+    <AllowConsentPageRedirectParams>{{authentication.endpoint.consent_page_redirect_params.allow}}</AllowConsentPageRedirectParams>
+    {% endif %}
 
     {% if authentication.endpoint.enable_custom_claim_mappings is defined %}
     <AllowCustomClaimMappingsForAuthenticators>{{authentication.endpoint.enable_custom_claim_mappings}}</AllowCustomClaimMappingsForAuthenticators>
+    {% endif %}
+
+    {% if authentication.endpoint.enable_merging_custom_claim_mappings_with_default is defined %}
+    <AllowMergingCustomClaimMappingsWithDefaultClaimMappings>{{authentication.endpoint.enable_merging_custom_claim_mappings_with_default}}</AllowMergingCustomClaimMappingsWithDefaultClaimMappings>
     {% endif %}
 
     {% if tenant.domain_drop_down.enable is defined %}

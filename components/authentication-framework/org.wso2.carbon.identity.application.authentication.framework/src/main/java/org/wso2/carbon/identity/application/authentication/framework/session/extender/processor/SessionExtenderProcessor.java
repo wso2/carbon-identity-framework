@@ -50,6 +50,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.sess
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderConstants.SUCCESS;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderConstants.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderConstants.TRACE_ID;
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Processes the Session Extender requests and extends session if the request is valid.
@@ -84,6 +85,17 @@ public class SessionExtenderProcessor extends IdentityProcessor {
                     "No session available for requested session identifier.");
         }
         SessionContext sessionContext = sessionContextCacheEntry.getContext();
+        boolean isSessionExpired = SessionContextCache.getInstance().
+                isSessionExpired(sessionContextCacheKey, sessionContextCacheEntry);
+        if (isSessionExpired) {
+            if (log.isDebugEnabled()) {
+                log.debug("Session already expired for provided session cache entry");
+            }
+            throw new SessionExtenderClientException(
+                    SessionExtenderConstants.Error.SESSION_NOT_AVAILABLE.getCode(),
+                    SessionExtenderConstants.Error.SESSION_NOT_AVAILABLE.getMessage(),
+                    "No session available for requested session identifier.");
+        }
 
         long currentTime = System.currentTimeMillis();
         FrameworkUtils.updateSessionLastAccessTimeMetadata(sessionKey, currentTime);
@@ -188,6 +200,9 @@ public class SessionExtenderProcessor extends IdentityProcessor {
 
     private void addAuditLogs(String sessionKey, String tenantDomain, String traceId) {
 
+        if (isLegacyAuditLogsDisabled()) {
+            return;
+        }
         JSONObject auditData = new JSONObject();
         auditData.put(SESSION_CONTEXT_ID, sessionKey);
         auditData.put(TENANT_DOMAIN, tenantDomain);

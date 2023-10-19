@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 /**
  * Logger For javascript engine.
@@ -32,16 +35,29 @@ public class JsLogger {
     private static JsLogger jsLogger = new JsLogger();
 
     /**
+     * Returns an instance to log the javascript errors.
+     *
+     * @return JsLogger instance.
+     */
+    public static JsLogger getInstance() {
+
+        return jsLogger;
+    }
+
+    /**
      * Logs with list of objects.
+     *
      * @param values
      */
     public void log(Object... values) {
 
         if (values != null) {
+            String resultMessage = "";
             if (values.length <= 0) {
                 logger.debug("");
             } else if (values.length == 1) {
                 logger.debug(String.valueOf(values[0]));
+                resultMessage = String.valueOf(values[0]);
             } else {
                 StringBuilder stringBuilder = new StringBuilder();
                 for (Object value : values) {
@@ -49,6 +65,15 @@ public class JsLogger {
                     stringBuilder.append(" ");
                 }
                 logger.debug(stringBuilder.toString());
+                resultMessage = stringBuilder.toString();
+            }
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
+                        .resultMessage("Debug: " + resultMessage)
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
             }
         }
     }
@@ -56,29 +81,43 @@ public class JsLogger {
     public void debug(String value) {
 
         logger.debug(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
+                    .resultMessage("Debug: " + value)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+        }
     }
 
     public void info(String value) {
 
         logger.info(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
+                    .resultMessage("Info: " + value)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+        }
     }
 
     public void error(String value) {
 
         logger.error(value);
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
+                    .resultMessage("Error: " + value)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+        }
     }
 
     public void log(String message, Object... values) {
 
-    }
-
-    /**
-     * Returns an instance to log the javascript errors.
-     *
-     * @return
-     */
-    public static JsLogger getInstance() {
-
-        return jsLogger;
     }
 }

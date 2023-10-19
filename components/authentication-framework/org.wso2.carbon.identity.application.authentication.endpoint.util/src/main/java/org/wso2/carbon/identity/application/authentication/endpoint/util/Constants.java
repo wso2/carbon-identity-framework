@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (https://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Constants {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
@@ -31,11 +34,19 @@ public class Constants {
     public static final String IDP_AUTHENTICATOR_MAP = "idpAuthenticatorMap";
     public static final String RESIDENT_IDP_RESERVED_NAME = "LOCAL";
     public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String DISPLAY_NAMES = "displayNames";
     public static final String REQUESTED_CLAIMS = "requestedClaims";
     public static final String MANDATORY_CLAIMS = "mandatoryClaims";
     public static final String USER_CLAIMS_CONSENT_ONLY = "userClaimsConsentOnly";
     public static final String CLAIM_SEPARATOR = ",";
     public static final String REQUEST_PARAM_SP = "sp";
+    public static final String USERNAME = "username";
+    public static final String LOGIN_HINT = "login_hint";
+    public static final String PROMPT_FOR_ACCOUNT_LINKING = "prompt_for_account_linking";
+    public static final String ATTEMPTED_USER = "attempted_user";
+    public static final String ATTEMPTED_USER_EMAIL = "attempted_user_email";
+    public static final String ATTEMPTED_IDP = "attempted_idp";
+
     // Response Messages
     public static final String ACCOUNT_RESEND_SUCCESS_RESOURCE = "account.resend.email.success";
     public static final String ACCOUNT_RESEND_FAIL_RESOURCE = "account.resend.email.fail";
@@ -58,6 +69,9 @@ public class Constants {
     public static final String CONFIG_APP_NAME = "app.name";
     public static final String CONFIG_APP_PASSWORD = "app.password";
     public static final String CONFIG_SERVER_ORIGIN = "identity.server.origin";
+    public static final String CONFIG_GOOGLE_ONETAP_RESTRICTED_BROWSERS = "google.social.onetap.restricted_browsers";
+    public static final String CONFIG_HOSTNAME_VERIFICATION_ENABLED = "hostname.verification.enabled";
+    public static final String SERVICE_CONTEXT_PATH = "/services";
 
     private Constants() {
 
@@ -132,6 +146,14 @@ public class Constants {
         public static final String INVALID_CLIENT_APP_NOT_FOUND_I18N_KEY = "application.not.found";
         public static final String INVALID_REQUEST_INVALID_REDIRECT_URI = "invalid_request_invalid.redirect.uri";
         public static final String INVALID_REQUEST_INVALID_REDIRECT_URI_I18N_KEY = "invalid.redirect.uri";
+        public static final String INVALID_REQUEST_INVALID_PAR_REQUEST_URI = "invalid_request_par.invalid.request.uri";
+        public static final String INVALID_REQUEST_INVALID_PAR_REQUEST_URI_I18N_KEY = "par.invalid.request.uri";
+        public static final String INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED =
+                "invalid_request_par.request.uri.expired";
+        public static final String INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED_I18N_KEY =
+                "par.request.uri.expired";
+        public static final String INVALID_REQUEST_PAR_CLIENT_ID_NOT_MATCH = "invalid_request_par.client.id.not.match";
+        public static final String INVALID_REQUEST_PAR_CLIENT_ID_NOT_MATCH_I18N_KEY = "par.client.id.not.match";
         public static final String AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED =
                 "authentication.attempt.failed_authorization.failed";
         public static final String AUTHENTICATION_ATTEMPT_FAILED_CLAIM_REQUEST_MISSING =
@@ -249,6 +271,119 @@ public class Constants {
         public static final String INVALID_CLIENT_IN_TENANT_I18N_KEY = "no.valid.client.in.tenant";
         public static final String CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE = "unauthorized_client_not.authorized.to.use.requested.grant.type";
         public static final String CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE_I18N_KEY = "not.authorized.to.use.requested.grant.type";
+        public static final String AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION =
+                "authentication.context.null_authentication.context.null.description";
+        public static final String AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION_I18N_KEY =
+                "authentication.context.null";
+        public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION =
+                "authentication.flow.timeout_authentication.flow.timeout.description";
+        public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY =
+                "authentication.flow.timeout";
+        public static final String INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION =
+                "invalid_request_invalid.response.type.for.query.jwt";
+        public static final String INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION_I18N_KEY =
+                "invalid.response.type.for.query.jwt";
+
+        public static final Map<String, String> ERROR_TO_I18N_MAP = new HashMap<>();
+
+        static {
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_CALLBACK_CALLBACK_NOT_MATCH,
+                    Constants.ErrorToi18nMappingConstants.INVALID_CALLBACK_CALLBACK_NOT_MATCH_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_APP_NOT_FOUND,
+                    Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_APP_NOT_FOUND_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_REDIRECT_URI,
+                    Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_REDIRECT_URI_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_PAR_REQUEST_URI,
+                    Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_INVALID_PAR_REQUEST_URI_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED,
+                    Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_PAR_CLIENT_ID_NOT_MATCH,
+                    Constants.ErrorToi18nMappingConstants.INVALID_REQUEST_PAR_CLIENT_ID_NOT_MATCH_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED,
+                    Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_REQUEST_MISSING,
+                    Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_JIT_PROVISIONING_VERIFY_USERNAME_FAILED,
+                    Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_AUTHORIZATION_FAILED_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.MISCONFIGURATION_ERROR_SOMETHING_WENT_WRONG_CONTACT_ADMIN,
+                    Constants.ErrorToi18nMappingConstants.MISCONFIGURATION_ERROR_SOMETHING_WENT_WRONG_CONTACT_ADMIN_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USERNAME_EXISTS,
+                    Constants.ErrorToi18nMappingConstants.USERNAME_EXISTS_ERROR_I19N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_STORE_DOMAIN_ERROR,
+                    Constants.ErrorToi18nMappingConstants.USER_STORE_DOMAIN_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_ERROR_INVALID_USER_STORE_DOMAIN,
+                    Constants.ErrorToi18nMappingConstants.ERROR_INVALID_USER_STORE_DOMAIN_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_STORE_MAN_ERROR,
+                    Constants.ErrorToi18nMappingConstants.USER_STORE_MAN_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_INVALID_USER_STORE,
+                    Constants.ErrorToi18nMappingConstants.INVALID_USER_STORE_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USERNAME_EXISTENCE_ERROR,
+                    Constants.ErrorToi18nMappingConstants.USERNAME_EXISTENCE_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_MAP_HANDLING_ERROR,
+                    Constants.ErrorToi18nMappingConstants.CLAIM_MAP_HANDLING_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_RESIDENT_IDP_NULL_ERROR,
+                    Constants.ErrorToi18nMappingConstants.RESIDENT_IDP_NULL_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_MAP_GET_ERROR,
+                    Constants.ErrorToi18nMappingConstants.CLAIM_MAP_GET_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_ASSOCIATED_LOCAL_USER_ID_ERROR,
+                    Constants.ErrorToi18nMappingConstants.ASSOCIATED_LOCAL_USER_ID_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_IDP_ERROR_FOR_TENANT,
+                    Constants.ErrorToi18nMappingConstants.IDP_ERROR_FOR_TENANT_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_REALM_ERROR_FOR_TENANT,
+                    Constants.ErrorToi18nMappingConstants.REALM_ERROR_FOR_TENANT_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CLAIM_ERROR_PASSWORD_PROVISION,
+                    Constants.ErrorToi18nMappingConstants.CLAIM_ERROR_PASSWORD_PROVISION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USERNAME_FOR_ASSOCIATED_IDP_ERROR,
+                    Constants.ErrorToi18nMappingConstants.USERNAME_FOR_ASSOCIATED_IDP_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_SIGNUP_EP_ERROR_FOR_PROVISION,
+                    Constants.ErrorToi18nMappingConstants.SIGNUP_EP_ERROR_FOR_PROVISION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CONSENT_ADD_FOR_TENANT_ERROR,
+                    Constants.ErrorToi18nMappingConstants.CONSENT_ADD_FOR_TENANT_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_SET_IDP_FOR_TENANT_ERROR,
+                    Constants.ErrorToi18nMappingConstants.SET_IDP_FOR_TENANT_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_GET_CONSENT_FOR_USER_ERROR,
+                    Constants.ErrorToi18nMappingConstants.GET_CONSENT_FOR_USER_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CONSENT_DISABLED_FOR_SSO_ERROR,
+                    Constants.ErrorToi18nMappingConstants.CONSENT_DISABLED_FOR_SSO_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_INPUT_CONSENT_FOR_USER_ERROR,
+                    Constants.ErrorToi18nMappingConstants.INPUT_CONSENT_FOR_USER_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_DENIED_CONSENT_ERROR,
+                    Constants.ErrorToi18nMappingConstants.USER_DENIED_CONSENT_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_USER_DENIED_MANDATORY_CONSENT_ERROR,
+                    Constants.ErrorToi18nMappingConstants.USER_DENIED_MANDATORY_CONSENT_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_CONSENT_PAGE_ERROR,
+                    Constants.ErrorToi18nMappingConstants.CONSENT_PAGE_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_APPLICATION_CONFIG_NULL_ERROR,
+                    Constants.ErrorToi18nMappingConstants.APPLICATION_CONFIG_NULL_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_REQUEST_CLAIMS_PAGE_ERROR,
+                    Constants.ErrorToi18nMappingConstants.REQUEST_CLAIMS_PAGE_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_REQUEST_CLAIMS_PAGE_URI_ERROR,
+                    Constants.ErrorToi18nMappingConstants.REQUEST_CLAIMS_PAGE_URI_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_RETRIEVE_CLAIM_ERROR,
+                    Constants.ErrorToi18nMappingConstants.RETRIEVE_CLAIM_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_GET_USER_ASSOCIATION_ERROR,
+                    Constants.ErrorToi18nMappingConstants.GET_USER_ASSOCIATION_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_UPDATE_LOCAL_USER_CLAIMS_ERROR,
+                    Constants.ErrorToi18nMappingConstants.UPDATE_LOCAL_USER_CLAIMS_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_RETRIEVING_REALM_TO_HANDLE_CLAIMS_ERROR,
+                    Constants.ErrorToi18nMappingConstants.RETRIEVING_REALM_TO_HANDLE_CLAIMS_ERROR_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_ATTEMPT_FAILED_POST_AUTH_COOKIE_NOT_FOUND,
+                    Constants.ErrorToi18nMappingConstants.POST_AUTH_COOKIE_NOT_FOUND_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION,
+                    Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FAILED_NO_REGISTERED_DEVICE_FOUND,
+                    Constants.ErrorToi18nMappingConstants.NO_REGISTERED_DEVICE_FOUND_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT,
+                    Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE,
+                    Constants.ErrorToi18nMappingConstants.CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION,
+                    Constants.ErrorToi18nMappingConstants.AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION,
+                    Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION,
+                    Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION_I18N_KEY);
+        }
 
         private ErrorToi18nMappingConstants() {
 

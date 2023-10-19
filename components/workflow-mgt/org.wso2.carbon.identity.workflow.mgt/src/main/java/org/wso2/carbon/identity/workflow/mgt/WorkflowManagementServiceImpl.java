@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.workflow.mgt.dto.Template;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowEvent;
 import org.wso2.carbon.identity.workflow.mgt.dto.WorkflowImpl;
 import org.wso2.carbon.identity.workflow.mgt.exception.InternalWorkflowException;
+import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowClientException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowRuntimeException;
 import org.wso2.carbon.identity.workflow.mgt.extension.WorkflowRequestHandler;
@@ -426,7 +427,60 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
     }
 
+    /**
+     * List paginated Workflows of a tenant.
+     *
+     * @param tenantId Tenant Id
+     * @param limit    Limit
+     * @param offset   Offset
+     * @param filter   Filter
+     * @return List<Workflow>
+     * @throws WorkflowException
+     */
     @Override
+    public List<Workflow> listPaginatedWorkflows(int tenantId, int limit, int offset, String filter) throws WorkflowException{
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting workflow of tenant " + tenantId);
+        }
+
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreListPaginatedWorkflows(tenantId, limit, offset, filter);
+            }
+        }
+        // Validate whether the limit is not zero or a negative number.
+        if (limit < 0) {
+            throw new WorkflowClientException(WFConstant.Exceptions.ERROR_INVALID_LIMIT);
+        }
+        // Validate whether the offset is not zero or a negative number.
+        if (offset < 0) {
+            throw new WorkflowClientException(WFConstant.Exceptions.ERROR_INVALID_OFFSET);
+        }
+        if (StringUtils.isBlank(filter)) {
+            filter = WFConstant.DEFAULT_FILTER;
+        }
+        List<Workflow> workflowList = workflowDAO.listPaginatedWorkflows(tenantId, filter, offset, limit);
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostListPaginatedWorkflows(tenantId, limit, offset, filter, workflowList);
+            }
+        }
+        return workflowList;
+    }
+
+    /**
+     * List workflows
+     *
+     * @deprecated Use {@link #listPaginatedWorkflows(int, int, int, String)} instead.
+     * @param tenantId  Tenant ID
+     * @return List<Workflow>
+     * @throws WorkflowException
+     */
+    @Override
+    @Deprecated
     public List<Workflow> listWorkflows(int tenantId) throws WorkflowException {
 
         List<WorkflowListener> workflowListenerList =
@@ -442,8 +496,28 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 workflowListener.doPostListWorkflows(tenantId, workflowList);
             }
         }
-
         return workflowList;
+    }
+
+    /**
+     * Get workflows count.
+     *
+     * @param tenantId  Tenant ID
+     * @param filter  filter
+     * @return Return workflows count
+     * @throws WorkflowException
+     */
+    @Override
+    public int getWorkflowsCount(int tenantId, String filter) throws WorkflowException{
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting workflows count of tenant " + tenantId);
+        }
+
+        if (StringUtils.isBlank(filter)) {
+            filter = WFConstant.DEFAULT_FILTER;
+        }
+        return workflowDAO.getWorkflowsCount(tenantId, filter);
     }
 
     @Override
@@ -558,7 +632,71 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return associations;
     }
 
+    /**
+     * List paginated associations of a tenant.
+     *
+     * @param tenantId Tenant ID
+     * @param limit    Limit
+     * @param offset   Offset
+     * @return List<Association>
+     * @throws WorkflowException
+     */
     @Override
+    public List<Association> listPaginatedAssociations(int tenantId, int limit, int offset, String filter) throws WorkflowException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting associations of tenant " + tenantId);
+        }
+
+        List<WorkflowListener> workflowListenerList =
+                WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreListPaginatedAssociations(tenantId, limit, offset, filter);
+            }
+        }
+        // Validate whether the limit is not zero or a negative number.
+        if (limit < 0) {
+            throw new WorkflowClientException(WFConstant.Exceptions.ERROR_INVALID_LIMIT);
+        }
+        // Validate whether the offset is not zero or a negative number.
+        if (offset < 0) {
+            throw new WorkflowClientException(WFConstant.Exceptions.ERROR_INVALID_OFFSET);
+        }
+        // Validate whether the filter is empty.
+        if (StringUtils.isBlank(filter)) {
+            filter = WFConstant.DEFAULT_FILTER;
+        }
+        List<Association> associations = associationDAO.listPaginatedAssociations(tenantId, filter, offset, limit);
+        for (Iterator<Association> iterator = associations.iterator(); iterator.hasNext(); ) {
+            Association association = iterator.next();
+            WorkflowRequestHandler requestHandler =
+                    WorkflowServiceDataHolder.getInstance().getRequestHandler(association.getEventId());
+            if (requestHandler != null) {
+                association.setEventName(requestHandler.getFriendlyName());
+            } else {
+                //invalid reference, probably event id is renamed or removed
+                iterator.remove();
+            }
+        }
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostListPaginatedAssociations(tenantId ,limit ,offset, filter, associations);
+            }
+        }
+        return associations;
+    }
+
+    /**
+     * List All Associations
+     *
+     * @Deprecated Use {@link #listPaginatedAssociations(int, int, int, String)} instead.
+     * @param tenantId  Tenant ID
+     * @return List<Association>
+     * @throws WorkflowException
+     */
+    @Override
+    @Deprecated
     public List<Association> listAllAssociations(int tenantId) throws WorkflowException {
 
         List<WorkflowListener> workflowListenerList =
@@ -588,6 +726,28 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         return associations;
     }
 
+
+    /**
+     * Get associations count.
+     *
+     * @param tenantId  Tenant ID
+     * @param filter  filter
+     * @return Return associations count
+     * @throws WorkflowException
+     */
+    @Override
+    public int getAssociationsCount(int tenantId, String filter) throws WorkflowException{
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting associations count of tenant " + tenantId);
+        }
+
+        if (StringUtils.isBlank(filter)) {
+            filter = WFConstant.DEFAULT_FILTER;
+        }
+        return associationDAO.getAssociationsCount(tenantId, filter);
+    }
+
     @Override
     public void changeAssociationState(String associationId, boolean isEnable) throws WorkflowException {
 
@@ -609,7 +769,6 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
 
     }
-
 
     /**
      * Add a new relationship between a workflow request and an entity.

@@ -51,10 +51,14 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -66,6 +70,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LogConstants.SESSION_CONTEXT_KEY;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 
 /**
@@ -105,6 +110,14 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         if (log.isTraceEnabled()) {
             log.trace("Inside handle()");
         }
+        // This will be initialized only if diagnostic logs are enabled.
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = null;
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                    FrameworkConstants.LogConstants.ActionIDs.PROCESS_LOGOUT_REQUEST)
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+        }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         // Retrieve session information from cache.
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier(),
@@ -121,7 +134,15 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             AuthenticatedUser authenticatedUser = new AuthenticatedUser();
             if (authenticatedUserObj instanceof AuthenticatedUser) {
                 authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+                if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                    diagnosticLogBuilder.inputParam(LogConstants.InputKeys.USER, LoggerUtils.isLogMaskingEnable ?
+                            LoggerUtils.getMaskedContent(authenticatedUser.getUserName()) :
+                            authenticatedUser.getUserName())
+                            .inputParam(LogConstants.InputKeys.USER_ID, authenticatedUser.getLoggableUserId());
+                }
             }
+            // Setting the authenticated user's object to the request to get the relevant details to log out the user.
+            context.setProperty(FrameworkConstants.AUTHENTICATED_USER, authenticatedUser);
             FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
                     sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
                             .SESSION_TERMINATE);
@@ -131,16 +152,82 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         if (sessionContext != null && StringUtils.isNotBlank(context.getSessionIdentifier()) &&
                 sessionContext.getSessionAuthHistory() != null &&
                         sessionContext.getSessionAuthHistory().getHistory() != null) {
-            for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
-                if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName())) {
-                    try {
-                        UserSessionStore.getInstance().removeFederatedAuthSessionInfo(context.getSessionIdentifier());
-                        break;
-                    } catch (UserSessionException e) {
-                        throw new FrameworkException("Error while deleting federated authentication session details for"
-                                + " the session context key :" + context.getSessionIdentifier(), e);
+            if (FrameworkUtils.isIdpIdColumnAvailableInFedAuthTable()) {
+                String fedIdpName = StringUtils.EMPTY;
+                if (context.getSubject() != null) {
+                    fedIdpName = context.getSubject().getFederatedIdPName();
+                }
+                if (StringUtils.isNotBlank(fedIdpName)) {
+                    for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
+                        if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName()) && fedIdpName.equals(authHistory
+                                .getIdpName())) {
+                            try {
+                                int fedIdpId = Integer.parseInt(IdentityProviderManager.getInstance()
+                                        .getIdPByName(fedIdpName, context.getTenantDomain()).getId());
+                                UserSessionStore.getInstance().removeFederatedAuthSessionInfo(
+                                        context.getSessionIdentifier(), fedIdpId);
+                                break;
+                            } catch (UserSessionException | IdentityProviderManagementException
+                                     | NumberFormatException e) {
+                                if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                                    diagnosticLogBuilder.resultMessage("Error while deleting federated " +
+                                                    "authentication session details.")
+                                            .inputParam(SESSION_CONTEXT_KEY, context.getSessionIdentifier())
+                                            .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                                            .inputParam(LogConstants.InputKeys.IDP, fedIdpName)
+                                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                                }
+                                throw new FrameworkException("Error while deleting federated authentication session " +
+                                        "details for the session context key : " + context.getSessionIdentifier(), e);
+                            }
+                        }
                     }
                 }
+            } else {
+                for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
+                    if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName())) {
+                        try {
+                            UserSessionStore.getInstance()
+                                    .removeFederatedAuthSessionInfo(context.getSessionIdentifier());
+                            break;
+                        } catch (UserSessionException e) {
+                            if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                                diagnosticLogBuilder.resultMessage("Error while deleting federated authentication " +
+                                                "session details. ")
+                                        .inputParam(SESSION_CONTEXT_KEY, context.getSessionIdentifier())
+                                        .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                                        .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                            }
+                            throw new FrameworkException("Error while deleting federated authentication session" +
+                                    " details for the session context key : " + context.getSessionIdentifier(), e);
+                        }
+                    }
+                }
+            }
+        } else if (context.getProperty(FrameworkConstants.FED_IDP_ID) != null) {
+
+            /*
+             * There exists a fed idp id which is set by outbound auth saml logout processor.
+             * Not explicitly checking for existence of IDP_ID column in FED_AUTH_SESSION_MAPPING table here because
+             * FED_IDP_ID will only be set if IDP_ID column exists.
+             */
+
+            try {
+                UserSessionStore.getInstance().removeFederatedAuthSessionInfo(context.getSessionIdentifier(),
+                        Integer.parseInt(context.getProperty(FrameworkConstants.FED_IDP_ID).toString()));
+            } catch (UserSessionException | NumberFormatException e) {
+                if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                    diagnosticLogBuilder.resultMessage("Error while deleting federated authentication " +
+                                    "session details.")
+                            .inputParam(SESSION_CONTEXT_KEY, context.getSessionIdentifier())
+                            .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                    LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                }
+                throw new FrameworkException("Error while deleting federated authentication session" +
+                        " details for the session context key : " + context.getSessionIdentifier(), e);
             }
         }
 
@@ -206,8 +293,28 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     // sends the logout request to the external IdP
                     return;
                 } catch (AuthenticationFailedException | LogoutFailedException e) {
+                    if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                        diagnosticLogBuilder.resultMessage("Exception while handling logout request.")
+                                .inputParam(LogConstants.InputKeys.IDP, idpName)
+                                .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+
+                        // Sanitize the error message before adding to diagnostic log.
+                        String errorMessage = e.getMessage();
+                        if (context.getLastAuthenticatedUser() != null) {
+                            String userName = context.getLastAuthenticatedUser().getUserName();
+                            errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
+                        }
+                        diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
+                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                    }
                     throw new FrameworkException("Exception while handling logout request", e);
                 } catch (IdentityProviderManagementException e) {
+                    if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                        diagnosticLogBuilder.resultMessage("Exception while getting IdP by name")
+                                .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                                .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                    }
                     log.error("Exception while getting IdP by name", e);
                 }
             }
@@ -245,8 +352,26 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                         }
                         context.addLoggedOutAuthenticator(authenticatedIdPName, authenticatorName);
                     } catch (AuthenticationFailedException | LogoutFailedException e) {
+                        if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                            diagnosticLogBuilder.resultMessage("Exception while handling logout request")
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                            // Sanitize the error message before adding to diagnostic log.
+                            String errorMessage = e.getMessage();
+                            if (context.getLastAuthenticatedUser() != null) {
+                                String userName = context.getLastAuthenticatedUser().getUserName();
+                                errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
+                            }
+                            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                        }
                         throw new FrameworkException("Exception while handling logout request", e);
                     } catch (IdentityProviderManagementException e) {
+                        if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                            diagnosticLogBuilder.resultMessage("Exception while getting IdP by name")
+                                    .inputParam(LogConstants.InputKeys.ERROR_MESSAGE, e.getMessage())
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+                        }
                         log.error("Exception while getting IdP by name", e);
                     }
                 }
@@ -256,6 +381,11 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         try {
             context.clearLoggedOutAuthenticators();
             sendResponse(request, response, context, true);
+            if (LoggerUtils.isDiagnosticLogsEnabled() && diagnosticLogBuilder != null) {
+                diagnosticLogBuilder.resultMessage("Successfully completed the logout flow.")
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS);
+                LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
+            }
         } catch (ServletException | IOException e) {
             throw new FrameworkException(e.getMessage(), e);
         }
@@ -314,8 +444,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
                     URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
             redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(redirectURL, sessionDataKeyParam);
-        } else {
-            redirectURL = context.getCallerPath();
         }
 
         /*

@@ -33,19 +33,14 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -161,7 +156,7 @@ public class SelfRegistrationMgtClient {
     private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
 
         boolean isDebugEnabled = log.isDebugEnabled();
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
 
             HttpGet httpGet = new HttpGet(url);
             setAuthorizationHeader(httpGet);
@@ -259,7 +254,7 @@ public class SelfRegistrationMgtClient {
                     + ". SkipSignUpCheck flag is set to " + skipSignUpCheck);
         }
 
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             JSONObject userObject = new JSONObject();
             userObject.put(USERNAME, user.getUsername());
 
@@ -333,7 +328,7 @@ public class SelfRegistrationMgtClient {
                             content = (String) jsonResponse.get("description");
                         }
                         if (StringUtils.isNotBlank(content) && content.contains("invalid tenant domain")) {
-                            jsonResponse.put(CODE, SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT);
+                            jsonResponse.put(CODE, IdentityManagementEndpointConstants.ERROR_CODE_INVALID_TENANT);
                             return jsonResponse;
                         }
                     }

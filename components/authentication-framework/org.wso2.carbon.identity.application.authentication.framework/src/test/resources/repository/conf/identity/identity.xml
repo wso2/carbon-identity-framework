@@ -54,6 +54,10 @@
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>40</CleanUpTimeout>
             </TempDataCleanup>
+            <SessionDataStorageOptimization>
+                <!-- Enabling session data storage optimization-->
+                <Enable>true</Enable>
+            </SessionDataStorageOptimization>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
@@ -889,9 +893,6 @@
         <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt</Permissions>
         </Resource>
-
-        <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/identity/auth/v1.2/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>

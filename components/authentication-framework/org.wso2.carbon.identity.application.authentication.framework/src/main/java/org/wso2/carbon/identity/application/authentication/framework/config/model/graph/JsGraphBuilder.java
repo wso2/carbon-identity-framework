@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -188,8 +189,28 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
         }
     }
 
+    /**
+     * Handle options within executeStep function. This method will update step configs through stepNamedMap.
+     *
+     * @param options    Map of authenticator options.
+     * @param stepConfig Current stepConfig.
+     */
     @SuppressWarnings("unchecked")
     protected void handleOptions(Map<String, Object> options, StepConfig stepConfig) {
+
+        handleOptionsAsyncEvent(options, stepConfig, stepNamedMap);
+    }
+
+    /**
+     * Handle options within executeStepInAsyncEvent function. This method will update step configs through context.
+     *
+     * @param options       Map of authenticator options.
+     * @param stepConfig    Current stepConfig.
+     * @param stepConfigMap Map of stepConfigs get from the context object.
+     */
+    @SuppressWarnings("unchecked")
+    protected void handleOptionsAsyncEvent(Map<String, Object> options, StepConfig stepConfig,
+                                           Map<Integer, StepConfig> stepConfigMap) {
 
         Object authenticationOptionsObj = options.get(FrameworkConstants.JSAttributes.AUTHENTICATION_OPTIONS);
         if (authenticationOptionsObj instanceof Map) {
@@ -211,7 +232,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
 
         Object stepOptions = options.get(FrameworkConstants.JSAttributes.STEP_OPTIONS);
         if (stepOptions instanceof Map) {
-            handleStepOptions(stepConfig, (Map<String, String>) stepOptions);
+            handleStepOptions(stepConfig, (Map<String, String>) stepOptions, stepConfigMap);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Step options not provided or invalid, hence proceeding without handling");
@@ -222,17 +243,19 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     /**
      * Handle step options provided for the step from the authentication script.
      *
-     * @param stepConfig config of the step
-     * @param stepOptions options provided from the script for the step
+     * @param stepConfig    Config of the step.
+     * @param stepOptions   Options provided from the script for the step.
+     * @param stepConfigMap StepConfigs of each step as a map.
      */
-    private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions) {
+    private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions,
+                                   Map<Integer, StepConfig> stepConfigMap) {
 
         stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
         if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_IDENTIFIER_PARAM))) {
-            setCurrentStepAsSubjectIdentifier(stepConfig);
+            setCurrentStepAsSubjectIdentifier(stepConfig, stepConfigMap);
         }
         if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_ATTRIBUTE_PARAM))) {
-            setCurrentStepAsSubjectAttribute(stepConfig);
+            setCurrentStepAsSubjectAttribute(stepConfig, stepConfigMap);
         }
     }
 
@@ -255,7 +278,11 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
             if (StringUtils.isNotBlank(idp)) {
                 filteredOptions.putIfAbsent(idp, new HashSet<>());
                 if (StringUtils.isNotBlank(authenticator)) {
-                    filteredOptions.get(idp).add(authenticator.toLowerCase());
+                    if (FrameworkUtils.isAuthenticatorNameInAuthConfigEnabled()) {
+                        filteredOptions.get(idp).add(authenticator);
+                    } else {
+                        filteredOptions.get(idp).add(authenticator.toLowerCase());
+                    }
                 }
             }
         });
@@ -289,10 +316,19 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
                         List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
                             .getInstance().getLocalAuthenticators();
                         for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
-                            if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
-                                authenticators.contains(localAuthenticatorConfig.getDisplayName().toLowerCase())) {
-                                removeOption = false;
-                                break;
+                            if (FrameworkUtils.isAuthenticatorNameInAuthConfigEnabled()) {
+                                if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
+                                        authenticators.contains(localAuthenticatorConfig.getName())) {
+                                    removeOption = false;
+                                    break;
+                                }
+                            } else {
+                                if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
+                                        authenticators.contains(localAuthenticatorConfig.getDisplayName()
+                                                .toLowerCase())) {
+                                    removeOption = false;
+                                    break;
+                                }
                             }
                         }
                         if (log.isDebugEnabled()) {
@@ -307,10 +343,18 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
                     } else {
                         for (FederatedAuthenticatorConfig federatedAuthConfig
                                 : idp.getFederatedAuthenticatorConfigs()) {
-                            if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
-                                authenticators.contains(federatedAuthConfig.getDisplayName().toLowerCase())) {
-                                removeOption = false;
-                                break;
+                            if (FrameworkUtils.isAuthenticatorNameInAuthConfigEnabled()) {
+                                if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
+                                        authenticators.contains(federatedAuthConfig.getName())) {
+                                    removeOption = false;
+                                    break;
+                                }
+                            } else {
+                                if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
+                                        authenticators.contains(federatedAuthConfig.getDisplayName().toLowerCase())) {
+                                    removeOption = false;
+                                    break;
+                                }
                             }
                         }
                         if (log.isDebugEnabled()) {
@@ -667,9 +711,9 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
         return getJSExecutionSupervisor().completed(identifier);
     }
 
-    private void setCurrentStepAsSubjectIdentifier(StepConfig stepConfig) {
+    private void setCurrentStepAsSubjectIdentifier(StepConfig stepConfig, Map<Integer, StepConfig> stepConfigMap) {
 
-        stepNamedMap.forEach((integer, config) -> { // Remove existing subject identifier step.
+        stepConfigMap.forEach((integer, config) -> { // Remove existing subject identifier step.
             if (config.isSubjectIdentifierStep()) {
                 config.setSubjectIdentifierStep(false);
             }
@@ -677,10 +721,10 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
         stepConfig.setSubjectIdentifierStep(true);
     }
 
-    private void setCurrentStepAsSubjectAttribute(StepConfig stepConfig) {
+    private void setCurrentStepAsSubjectAttribute(StepConfig stepConfig, Map<Integer, StepConfig> stepConfigMap) {
 
-        stepNamedMap.forEach((integer, config) -> { // Remove existing subject attribute step.
-            if (config.isSubjectIdentifierStep()) {
+        stepConfigMap.forEach((integer, config) -> { // Remove existing subject attribute step.
+            if (config.isSubjectAttributeStep()) {
                 config.setSubjectAttributeStep(false);
             }
         });

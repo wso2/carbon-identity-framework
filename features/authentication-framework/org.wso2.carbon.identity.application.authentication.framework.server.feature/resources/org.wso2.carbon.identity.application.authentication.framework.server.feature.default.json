@@ -57,11 +57,7 @@
     "password",
     "SAMLRequest"
   ],
-  "authentication.endpoint.redirect_params.filter_policy": "exclude",
-  "authentication.endpoint.redirect_params.remove_on_consume_from_api": true,
-  "authentication.endpoint.redirect_params.parameters": [
-    "loggedInUser"
-  ],
+  "authentication.endpoint.consent_page_redirect_params.allow": false,
 
   "authentication.authenticator.basic.name": "BasicAuthenticator",
   "authentication.authenticator.basic.enable": true,
@@ -102,6 +98,8 @@
   "authentication.authenticator.google.parameters.GoogleAuthzEndpoint": "https://accounts.google.com/o/oauth2/auth",
   "authentication.authenticator.google.parameters.GoogleUserInfoEndpoint": "https://www.googleapis.com/oauth2/v3/userinfo",
   "authentication.authenticator.google.parameters.Tags": "Social-Login",
+  "authentication.authenticator.google.parameters.EnableCSRFValidationForGOT": true,
+  "authentication.authenticator.google.parameters.RestrictedBrowsersForGOT": ["safari"],
 
   "authentication.authenticator.microsoft_live.name": "MicrosoftWindowsLive",
   "authentication.authenticator.microsoft_live.enable": true,
@@ -117,11 +115,17 @@
   "authentication.authenticator.facebook.parameters.UserInfoEndpoint": "https://graph.facebook.com/me",
   "authentication.authenticator.facebook.parameters.Tags": "Social-Login",
 
+  "authentication.authenticator.apple.name": "AppleOIDCAuthenticator",
+  "authentication.authenticator.apple.enable": true,
+  "authentication.authenticator.apple.parameters.AppleTokenEndpoint": "https://appleid.apple.com/auth/token",
+  "authentication.authenticator.apple.parameters.AppleAuthzEndpoint": "https://appleid.apple.com/auth/authorize",
+  "authentication.authenticator.apple.parameters.Tags": "Social-Login",
+
   "authentication.authenticator.fido.name": "FIDOAuthenticator",
   "authentication.authenticator.fido.enable": true,
   "authentication.authenticator.fido.parameters.FidoAuth": "/authenticationendpoint/fido-auth.jsp",
   "authentication.authenticator.fido.parameters.Fido2Auth": "/authenticationendpoint/fido2-auth.jsp",
-  "authentication.authenticator.fido.parameters.Tags": "MFA,Passwordless",
+  "authentication.authenticator.fido.parameters.Tags": "MFA,Passwordless,Passkey",
 
   "authentication.authenticator.magiclink.name": "MagicLinkAuthenticator",
   "authentication.authenticator.magiclink.enable": true,
@@ -215,8 +219,15 @@
   "authentication.authenticator.iwa_kerberos.name": "IWAKerberosAuthenticator",
   "authentication.authenticator.iwa_kerberos.parameters.Tags": "Enterprise",
 
+  "authentication.authenticator.email_otp_local.name": "email-otp-authenticator",
+  "authentication.authenticator.email_otp_local.enable": true,
+  "authentication.authenticator.email_otp_local.parameters.Tags": "Passwordless,MFA",
+
   "account_recovery.endpoint.auth.name":"dashboard",
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
+
+  "authorization_control.skip_authorization.client_authentication.name":"ClientAuthentication",
+  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*)",
 
   "jit_provisioning.indelible_claims.claim_uris": [
     "http://wso2.org/claims/userid",
@@ -226,5 +237,10 @@
     "http://wso2.org/claims/created",
     "http://wso2.org/claims/modified",
     "http://wso2.org/claims/groups"
+  ],
+  "oauth.restricted_scopes": [
+    "internal",
+    "console",
+    "SYSTEM"
   ]
 }

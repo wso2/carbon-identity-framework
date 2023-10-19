@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This is a wrapper class for ApplicationAuthenticator
+ * This is a wrapper class for ApplicationAuthenticator.
  */
 public class AuthenticatorConfig implements Serializable {
 
@@ -42,6 +42,8 @@ public class AuthenticatorConfig implements Serializable {
     private Map<String, String> parameterMap;
     private Map<String, IdentityProvider> idps = new HashMap<>();
     private List<String> idpNames = new ArrayList<>();
+    private List<String> idPResourceIds = new ArrayList<>();
+    private String tenantDomain;
 
     public AuthenticatorConfig() {
     }
@@ -69,6 +71,8 @@ public class AuthenticatorConfig implements Serializable {
         this.idps = authenticatorConfig.getIdps() != null ? new HashMap<>(authenticatorConfig.getIdps()) : null;
         this.parameterMap = authenticatorConfig.getParameterMap() != null ?
                 new HashMap<>(authenticatorConfig.getParameterMap()) : null;
+        this.idPResourceIds = authenticatorConfig.getIdPResourceIds() != null ?
+                new ArrayList<>(authenticatorConfig.getIdPResourceIds()) : null;
     }
 
     public String getName() {
@@ -119,5 +123,35 @@ public class AuthenticatorConfig implements Serializable {
 
     public Map<String, IdentityProvider> getIdps() {
         return idps;
+    }
+
+    public void setIdPs(Map<String, IdentityProvider> idPs) {
+
+        this.idps = idPs;
+    }
+
+    public void setIdPNames(List<String> idpNames) {
+
+        this.idpNames = idpNames;
+    }
+
+    public void setIdPResourceIds(List<String> resourceIds) {
+
+        this.idPResourceIds = resourceIds;
+    }
+
+    public List<String> getIdPResourceIds() {
+
+        return this.idPResourceIds;
+    }
+
+    public String getTenantDomain() {
+
+        return tenantDomain;
+    }
+
+    public void setTenantDomain(String tenantDomain) {
+
+        this.tenantDomain = tenantDomain;
     }
 }

@@ -220,6 +220,22 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="listPaginatedWorkflows">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="limit" type="xs:int"/>
+                        <xs:element minOccurs="0" name="offset" type="xs:int"/>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listPaginatedWorkflowsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2481:WorkflowWizard"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="listWorkflows">
                 <xs:complexType>
                     <xs:sequence/>
@@ -232,10 +248,40 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="getWorkflowsCount">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getWorkflowsCountResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="removeWorkflow">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listPaginatedAssociations">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="limit" type="xs:int"/>
+                        <xs:element minOccurs="0" name="offset" type="xs:int"/>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listPaginatedAssociationsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2481:Association"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -262,6 +308,20 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2481:Association"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAssociationsCount">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAssociationsCountResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -428,11 +488,23 @@
     <wsdl:message name="getWorkflowImplResponse">
         <wsdl:part name="parameters" element="ns:getWorkflowImplResponse"/>
     </wsdl:message>
+    <wsdl:message name="listPaginatedAssociationsRequest">
+        <wsdl:part name="parameters" element="ns:listPaginatedAssociations"/>
+    </wsdl:message>
+    <wsdl:message name="listPaginatedAssociationsResponse">
+        <wsdl:part name="parameters" element="ns:listPaginatedAssociationsResponse"/>
+    </wsdl:message>
     <wsdl:message name="listAllAssociationsRequest">
         <wsdl:part name="parameters" element="ns:listAllAssociations"/>
     </wsdl:message>
     <wsdl:message name="listAllAssociationsResponse">
         <wsdl:part name="parameters" element="ns:listAllAssociationsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getAssociationsCountRequest">
+        <wsdl:part name="parameters" element="ns:getAssociationsCount"/>
+    </wsdl:message>
+    <wsdl:message name="getAssociationsCountResponse">
+        <wsdl:part name="parameters" element="ns:getAssociationsCountResponse"/>
     </wsdl:message>
     <wsdl:message name="getWorkflowsOfRequestRequest">
         <wsdl:part name="parameters" element="ns:getWorkflowsOfRequest"/>
@@ -450,11 +522,23 @@
     <wsdl:message name="listTemplatesResponse">
         <wsdl:part name="parameters" element="ns:listTemplatesResponse"/>
     </wsdl:message>
+    <wsdl:message name="listPaginatedWorkflowsRequest">
+        <wsdl:part name="parameters" element="ns:listPaginatedWorkflows"/>
+    </wsdl:message>
+    <wsdl:message name="listPaginatedWorkflowsResponse">
+        <wsdl:part name="parameters" element="ns:listPaginatedWorkflowsResponse"/>
+    </wsdl:message>
     <wsdl:message name="listWorkflowsRequest">
         <wsdl:part name="parameters" element="ns:listWorkflows"/>
     </wsdl:message>
     <wsdl:message name="listWorkflowsResponse">
         <wsdl:part name="parameters" element="ns:listWorkflowsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getWorkflowsCountRequest">
+        <wsdl:part name="parameters" element="ns:getWorkflowsCount"/>
+    </wsdl:message>
+    <wsdl:message name="getWorkflowsCountResponse">
+        <wsdl:part name="parameters" element="ns:getWorkflowsCountResponse"/>
     </wsdl:message>
     <wsdl:message name="addWorkflowRequest">
         <wsdl:part name="parameters" element="ns:addWorkflow"/>
@@ -533,10 +617,20 @@
             <wsdl:output message="tns:getWorkflowImplResponse" wsaw:Action="urn:getWorkflowImplResponse"/>
             <wsdl:fault message="tns:WorkflowAdminServiceWorkflowException" name="WorkflowAdminServiceWorkflowException" wsaw:Action="urn:getWorkflowImplWorkflowAdminServiceWorkflowException"/>
         </wsdl:operation>
+        <wsdl:operation name="listPaginatedAssociations">
+            <wsdl:input message="tns:listPaginatedAssociationsRequest" wsaw:Action="urn:listPaginatedAssociations"/>
+            <wsdl:output message="tns:listPaginatedAssociationsResponse" wsaw:Action="urn:listPaginatedAssociationsResponse"/>
+            <wsdl:fault message="tns:WorkflowAdminServiceWorkflowException" name="WorkflowAdminServiceWorkflowException" wsaw:Action="urn:listPaginatedAssociationsWorkflowAdminServiceWorkflowException"/>
+        </wsdl:operation>
         <wsdl:operation name="listAllAssociations">
             <wsdl:input message="tns:listAllAssociationsRequest" wsaw:Action="urn:listAllAssociations"/>
             <wsdl:output message="tns:listAllAssociationsResponse" wsaw:Action="urn:listAllAssociationsResponse"/>
             <wsdl:fault message="tns:WorkflowAdminServiceWorkflowException" name="WorkflowAdminServiceWorkflowException" wsaw:Action="urn:listAllAssociationsWorkflowAdminServiceWorkflowException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getAssociationsCount">
+            <wsdl:input message="tns:getAssociationsCountRequest" wsaw:Action="urn:getAssociationsCount"/>
+            <wsdl:output message="tns:getAssociationsCountResponse" wsaw:Action="urn:getAssociationsCountResponse"/>
+            <wsdl:fault message="tns:WorkflowAdminServiceWorkflowException" name="WorkflowAdminServiceWorkflowException" wsaw:Action="urn:getAssociationsCountWorkflowAdminServiceWorkflowException"/>
         </wsdl:operation>
         <wsdl:operation name="getWorkflowsOfRequest">
             <wsdl:input message="tns:getWorkflowsOfRequestRequest" wsaw:Action="urn:getWorkflowsOfRequest"/>
@@ -553,10 +647,20 @@
             <wsdl:output message="tns:listTemplatesResponse" wsaw:Action="urn:listTemplatesResponse"/>
             <wsdl:fault message="tns:WorkflowAdminServiceWorkflowException" name="WorkflowAdminServiceWorkflowException" wsaw:Action="urn:listTemplatesWorkflowAdminServiceWorkflowException"/>
         </wsdl:operation>
+        <wsdl:operation name="listPaginatedWorkflows">
+            <wsdl:input message="tns:listPaginatedWorkflowsRequest" wsaw:Action="urn:listPaginatedWorkflows"/>
+            <wsdl:output message="tns:listPaginatedWorkflowsResponse" wsaw:Action="urn:listPaginatedWorkflowsResponse"/>
+            <wsdl:fault message="tns:WorkflowAdminServiceWorkflowException" name="WorkflowAdminServiceWorkflowException" wsaw:Action="urn:listPaginatedWorkflowsWorkflowAdminServiceWorkflowException"/>
+        </wsdl:operation>
         <wsdl:operation name="listWorkflows">
             <wsdl:input message="tns:listWorkflowsRequest" wsaw:Action="urn:listWorkflows"/>
             <wsdl:output message="tns:listWorkflowsResponse" wsaw:Action="urn:listWorkflowsResponse"/>
             <wsdl:fault message="tns:WorkflowAdminServiceWorkflowException" name="WorkflowAdminServiceWorkflowException" wsaw:Action="urn:listWorkflowsWorkflowAdminServiceWorkflowException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getWorkflowsCount">
+            <wsdl:input message="tns:getWorkflowsCountRequest" wsaw:Action="urn:getWorkflowsCount"/>
+            <wsdl:output message="tns:getWorkflowsCountResponse" wsaw:Action="urn:getWorkflowsCountResponse"/>
+            <wsdl:fault message="tns:WorkflowAdminServiceWorkflowException" name="WorkflowAdminServiceWorkflowException" wsaw:Action="urn:getWorkflowsCountWorkflowAdminServiceWorkflowException"/>
         </wsdl:operation>
         <wsdl:operation name="addWorkflow">
             <wsdl:input message="tns:addWorkflowRequest" wsaw:Action="urn:addWorkflow"/>
@@ -676,8 +780,32 @@
                 <soap:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="listPaginatedAssociations">
+            <soap:operation soapAction="urn:listPaginatedAssociations" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="WorkflowAdminServiceWorkflowException">
+                <soap:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="listAllAssociations">
             <soap:operation soapAction="urn:listAllAssociations" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="WorkflowAdminServiceWorkflowException">
+                <soap:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAssociationsCount">
+            <soap:operation soapAction="urn:getAssociationsCount" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -724,8 +852,32 @@
                 <soap:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="listPaginatedWorkflows">
+            <soap:operation soapAction="urn:listPaginatedWorkflows" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="WorkflowAdminServiceWorkflowException">
+                <soap:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="listWorkflows">
             <soap:operation soapAction="urn:listWorkflows" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="WorkflowAdminServiceWorkflowException">
+                <soap:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getWorkflowsCount">
+            <soap:operation soapAction="urn:getWorkflowsCount" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -913,8 +1065,32 @@
                 <soap12:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="listPaginatedAssociations">
+            <soap12:operation soapAction="urn:listPaginatedAssociations" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="WorkflowAdminServiceWorkflowException">
+                <soap12:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="listAllAssociations">
             <soap12:operation soapAction="urn:listAllAssociations" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="WorkflowAdminServiceWorkflowException">
+                <soap12:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAssociationsCount">
+            <soap12:operation soapAction="urn:getAssociationsCount" style="document"/>
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
@@ -961,8 +1137,32 @@
                 <soap12:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="listPaginatedWorkflows">
+            <soap12:operation soapAction="urn:listPaginatedWorkflows" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="WorkflowAdminServiceWorkflowException">
+                <soap12:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="listWorkflows">
             <soap12:operation soapAction="urn:listWorkflows" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="WorkflowAdminServiceWorkflowException">
+                <soap12:fault use="literal" name="WorkflowAdminServiceWorkflowException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getWorkflowsCount">
+            <soap12:operation soapAction="urn:getWorkflowsCount" style="document"/>
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
@@ -1132,8 +1332,26 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
+        <wsdl:operation name="listPaginatedAssociations">
+            <http:operation location="listPaginatedAssociations"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="listAllAssociations">
             <http:operation location="listAllAssociations"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAssociationsCount">
+            <http:operation location="getAssociationsCount"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
@@ -1168,8 +1386,26 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
+        <wsdl:operation name="listPaginatedWorkflows">
+            <http:operation location="listPaginatedWorkflows"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="listWorkflows">
             <http:operation location="listWorkflows"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getWorkflowsCount">
+            <http:operation location="getWorkflowsCount"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>

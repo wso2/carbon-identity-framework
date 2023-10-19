@@ -82,7 +82,7 @@ public class PolicyEditorConstants {
     public static final String DYNAMIC_SELECTOR_CATEGORY = "Category";
     public static final String DYNAMIC_SELECTOR_FUNCTION = "Function";
     public static final String SUBJECT_ID_DEFAULT = "urn:oasis:names:tc:xacml:1.0:subject:subject-id";
-    public static final String SUBJECT_ID_ROLE = "http://wso2.org/claims/role";
+    public static final String SUBJECT_ID_ROLE = "http://wso2.org/claims/roles";
     public static final String RESOURCE_ID_DEFAULT = "urn:oasis:names:tc:xacml:1.0:resource:resource-id";
     public static final String ACTION_ID_DEFAULT = "urn:oasis:names:tc:xacml:1.0:action:action-id";
     public static final String ENVIRONMENT_ID_DEFAULT = "urn:oasis:names:tc:xacml:1.0:environment:environment-id";

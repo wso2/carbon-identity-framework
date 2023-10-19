@@ -147,6 +147,7 @@ public class SessionDataStore {
     private boolean sessionDataCleanupEnabled = true;
     private boolean operationDataCleanupEnabled = false;
     private static boolean tempDataCleanupEnabled = false;
+    private static boolean sessionAndTempDataSeparationEnabled = false;
 
     static {
         try {
@@ -163,6 +164,9 @@ public class SessionDataStore {
             if (StringUtils.isNotBlank(isTempDataCleanupEnabledVal)) {
                 tempDataCleanupEnabled = Boolean.parseBoolean(isTempDataCleanupEnabledVal);
             }
+
+            sessionAndTempDataSeparationEnabled = Boolean.parseBoolean(IdentityUtil
+                    .getProperty("JDBCPersistenceManager.SessionDataPersist.SessionAndTempDataSeparation.Enable"));
 
             String maxTempDataPoolSizeValue
                     = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.PoolSize");
@@ -300,6 +304,11 @@ public class SessionDataStore {
 
     public SessionContextDO getSessionContextData(String key, String type) {
 
+        return getSessionContextDataByOperation(key, type, OPERATION_STORE);
+    }
+
+    private SessionContextDO getSessionContextDataByOperation(String key, String type, String requiredOperation) {
+
         if (log.isDebugEnabled()) {
             log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type);
         }
@@ -342,7 +351,7 @@ public class SessionDataStore {
             if (resultSet.next()) {
                 String operation = resultSet.getString(1);
                 long nanoTime = resultSet.getLong(3);
-                if ((OPERATION_STORE.equals(operation))) {
+                if (StringUtils.equalsIgnoreCase(requiredOperation, operation)) {
                     return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
                 }
             }
@@ -555,6 +564,9 @@ public class SessionDataStore {
             tempAuthnContextDataDeleteQueue.push(new SessionContextDO(key, type, null, nanoTime));
             return;
         }
+        if (getSessionContextDataByOperation(key, type, OPERATION_DELETE) != null) {
+            return;
+        }
 
         Connection connection = null;
         try {
@@ -699,7 +711,7 @@ public class SessionDataStore {
 
     private String getSessionStoreDBQuery(String query, String type) {
 
-        if (tempDataCleanupEnabled && isTempCache(type)) {
+        if ((sessionAndTempDataSeparationEnabled || tempDataCleanupEnabled) && isTempCache(type)) {
             query = replaceTableName(query);
         }
         return query;

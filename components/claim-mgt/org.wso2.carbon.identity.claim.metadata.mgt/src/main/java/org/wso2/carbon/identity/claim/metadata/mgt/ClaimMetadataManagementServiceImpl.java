@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedClaimDialectDAO;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataServer
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceComponent;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -50,6 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_LENGTH_LIMIT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_CLAIM_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_EXTERNAL_CLAIM_URI;
@@ -80,6 +83,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     private CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());
     private CacheBackedExternalClaimDAO externalClaimDAO = new CacheBackedExternalClaimDAO(new ExternalClaimDAO());
     private static final int MAX_CLAIM_PROPERTY_LENGTH = 255;
+    private static final int MAX_CLAIM_PROPERTY_LENGTH_LIMIT = 1024;
+    private static final int MIN_CLAIM_PROPERTY_LENGTH_LIMIT = 0;
 
     @Override
     public List<ClaimDialect> getClaimDialects(String tenantDomain) throws ClaimMetadataException {
@@ -522,6 +527,20 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                         String.format(ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED.getMessage(), property.getKey(),
                                 MAX_CLAIM_PROPERTY_LENGTH));
             }
+            if (StringUtils.equalsIgnoreCase(ClaimConstants.MIN_LENGTH, property.getKey()) ||
+                    StringUtils.equalsIgnoreCase(ClaimConstants.MAX_LENGTH, property.getKey())) {
+                checkMinMaxLimit(property.getKey(), property.getValue());
+            }
+        }
+    }
+
+    private void checkMinMaxLimit(String property, String value) throws ClaimMetadataClientException {
+
+        if (!NumberUtils.isNumber(value) || Integer.parseInt(value) < MIN_CLAIM_PROPERTY_LENGTH_LIMIT ||
+                Integer.parseInt(value) > MAX_CLAIM_PROPERTY_LENGTH_LIMIT) {
+            throw new ClaimMetadataClientException(ERROR_CODE_CLAIM_LENGTH_LIMIT.getCode(),
+                    String.format(ERROR_CODE_CLAIM_LENGTH_LIMIT.getMessage(), property,
+                            MIN_CLAIM_PROPERTY_LENGTH_LIMIT, MAX_CLAIM_PROPERTY_LENGTH_LIMIT));
         }
     }
 
@@ -537,4 +556,13 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         return this.localClaimDAO.getLocalClaims(tenantId).stream().filter(
                 claim -> claim.getClaimURI().equalsIgnoreCase(localClaimURI)).findFirst().isPresent();
     }
+
+    @Override
+    public List<Claim> getMappedExternalClaimsForLocalClaim(String localClaimURI, String tenantDomain) throws
+            ClaimMetadataException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return this.localClaimDAO.fetchMappedExternalClaims(localClaimURI, tenantId);
+    }
+
 }

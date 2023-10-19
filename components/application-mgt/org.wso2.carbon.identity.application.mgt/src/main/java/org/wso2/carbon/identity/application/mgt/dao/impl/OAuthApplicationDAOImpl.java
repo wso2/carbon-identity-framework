@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.application.mgt.dao.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -42,13 +42,15 @@ public class OAuthApplicationDAOImpl implements OAuthApplicationDAO {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
         try {
-            prepStmt = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_OAUTH_APPLICATION);
+            prepStmt = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_OAUTH_APPLICATION_WITH_TENANT);
             prepStmt.setString(1, clientIdentifier);
+            prepStmt.setInt(2, IdentityTenantUtil.getLoginTenantId());
             prepStmt.execute();
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
-            log.error("Error when executing the SQL : " + ApplicationMgtDBQueries.REMOVE_OAUTH_APPLICATION);
+            log.error("Error when executing the SQL : " +
+                    ApplicationMgtDBQueries.REMOVE_OAUTH_APPLICATION_WITH_TENANT);
             log.error(e.getMessage(), e);
             throw new IdentityApplicationManagementException("Error removing the consumer application.");
         } finally {

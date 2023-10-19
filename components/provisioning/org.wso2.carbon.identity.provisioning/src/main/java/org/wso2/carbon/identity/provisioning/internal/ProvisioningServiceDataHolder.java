@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.provisioning.internal;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.RolePermissionManagementService;
 
@@ -32,7 +31,6 @@ public class ProvisioningServiceDataHolder {
 
     private static ProvisioningServiceDataHolder instance = new ProvisioningServiceDataHolder();
     private RealmService realmService;
-    private RegistryService registryService;
     private BundleContext bundleContext;
     private EntitlementService entitlementService;
     private RolePermissionManagementService rolePermissionManagementService;
@@ -43,14 +41,6 @@ public class ProvisioningServiceDataHolder {
 
     public static ProvisioningServiceDataHolder getInstance() {
         return instance;
-    }
-
-    public RegistryService getRegistryService() {
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-        this.registryService = registryService;
     }
 
     public RealmService getRealmService() {

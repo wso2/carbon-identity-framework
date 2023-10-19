@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core;
 
-import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.NotImplementedException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
@@ -166,6 +165,21 @@ public interface ConfigurationManager {
      * @throws ConfigurationManagementException Resource management exception.
      */
     Resource getResource(String resourceTypeName, String resourceName) throws ConfigurationManagementException;
+
+    /**
+     * This API is used to retrieve the given resource by the tenant ID.
+     *
+     * @param tenantId         The ID of the tenant.
+     * @param resourceTypeName The name of the {@link ResourceType}.
+     * @param resourceName     The name of the {@link ResourceType}.
+     * @return {@link Resource}
+     * @throws ConfigurationManagementException Configuration management exception.
+     */
+    default Resource getResourceByTenantId(int tenantId, String resourceTypeName, String resourceName) throws
+            ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * This API is used to delete the given resource.

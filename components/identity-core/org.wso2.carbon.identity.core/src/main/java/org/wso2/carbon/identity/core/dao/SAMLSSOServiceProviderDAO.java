@@ -474,6 +474,89 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         return issuerWithQualifier;
     }
 
+    /**
+     * Update the service provider if it exists.
+     *
+     * @param serviceProviderDO     Service provider to be updated.
+     * @param currentIssuer         Issuer of the service provider before the update.
+     * @return True if the update is successful.
+     * @throws IdentityException If an error occurs while updating the service provider.
+     */
+    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer)
+            throws IdentityException {
+
+        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
+                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
+            throw new IdentityException("Issuer cannot be found in the provided arguments.");
+        }
+
+        // If an issuer qualifier value is specified, it is appended to the end of the issuer value.
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
+                    serviceProviderDO.getIssuerQualifier()));
+        }
+
+        String currentPath = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(currentIssuer);
+        String newPath = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
+
+        boolean isIssuerUpdated = !StringUtils.equals(currentPath, newPath);
+        boolean isTransactionStarted = Transaction.isStarted();
+        boolean isErrorOccurred = false;
+        try {
+            // Check if the updated issuer value already exists.
+            if (isIssuerUpdated && registry.resourceExists(newPath)) {
+                if (log.isDebugEnabled()) {
+                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
+                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
+                                + serviceProviderDO.getIssuerQualifier());
+                    } else {
+                        log.debug("SAML2 Service Provider already exists with the same issuer name "
+                                + serviceProviderDO.getIssuer());
+                    }
+                }
+                return false;
+            }
+
+            Resource resource = createResource(serviceProviderDO);
+            if (!isTransactionStarted) {
+                registry.beginTransaction();
+            }
+            // Delete the current resource if the issuer value is updated.
+            if (isIssuerUpdated) {
+                registry.delete(currentPath);
+            }
+            // Update the resource.
+            // If the issuer is updated, new resource will be created.
+            // If the issuer is not updated, existing resource will be updated.
+            registry.put(newPath, resource);
+            if (log.isDebugEnabled()) {
+                if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
+                            + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
+                            serviceProviderDO.getIssuerQualifier() + " is updated successfully.");
+                } else {
+                    log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " is updated successfully.");
+                }
+            }
+            return true;
+        } catch (RegistryException e) {
+            isErrorOccurred = true;
+            String msg;
+            if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+                msg = "Error while updating SAML2 Service Provider for issuer: " + getIssuerWithoutQualifier
+                        (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
+                        .getIssuerQualifier();
+            } else {
+                msg = "Error while updating SAML2 Service Provider for issuer: " + serviceProviderDO.getIssuer();
+            }
+            log.error(msg, e);
+            throw new IdentityException(msg, e);
+        } finally {
+            commitOrRollbackTransaction(isErrorOccurred);
+        }
+    }
+
     public SAMLSSOServiceProviderDO[] getServiceProviders() throws IdentityException {
         List<SAMLSSOServiceProviderDO> serviceProvidersList = new ArrayList<>();
         try {

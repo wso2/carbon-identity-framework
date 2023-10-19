@@ -21,7 +21,7 @@
     <parent>
         <artifactId>central-logger</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.23.42-SNAPSHOT</version>
+        <version>5.25.407-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -45,6 +45,7 @@
                         <Import-Package>
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+                            com.google.gson;version="${com.google.code.gson.osgi.version.range}",
                             org.wso2.carbon.identity.event.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
@@ -53,6 +54,7 @@
                             org.wso2.carbon.identity.core.bean.context;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.slf4j; version="${org.slf4j.imp.pkg.version.range}",
                         </Import-Package>
                     </instructions>
@@ -80,6 +82,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.event</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
         </dependency>
     </dependencies>
 

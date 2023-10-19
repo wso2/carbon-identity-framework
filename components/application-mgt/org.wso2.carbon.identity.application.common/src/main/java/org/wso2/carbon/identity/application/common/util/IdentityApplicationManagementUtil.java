@@ -415,7 +415,7 @@ public class IdentityApplicationManagementUtil {
 
         if (encodedCert != null) {
             MessageDigest digestValue = null;
-            digestValue = MessageDigest.getInstance("SHA-1");
+            digestValue = MessageDigest.getInstance("SHA-256");
             byte[] der = Base64.decode(encodedCert);
             digestValue.update(der);
             byte[] digestInBytes = digestValue.digest();
@@ -873,7 +873,7 @@ public class IdentityApplicationManagementUtil {
                 .SSO_DEFAULT_SIGNING_ALGORITHM))) {
             return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_SIGNING_ALGORITHM).trim();
         } else {
-            return IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA1;
+            return IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA256;
         }
     }
 
@@ -885,7 +885,7 @@ public class IdentityApplicationManagementUtil {
                 .SSO_DEFAULT_DIGEST_ALGORITHM))) {
             return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_DIGEST_ALGORITHM).trim();
         } else {
-            return IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA1;
+            return IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA256;
         }
     }
 
@@ -936,6 +936,25 @@ public class IdentityApplicationManagementUtil {
 
             }
         }
+        return propValueSet;
+    }
+
+    /**
+     * Get a list of property values for a given property name prefix.
+     *
+     * @param properties            Authenticator config properties to iterate with.
+     * @param propNameStartsWith    the prefix of the property name.
+     * @return the list of values which starts with the propNameStartsWith.
+     */
+    public static List<String> getPropertyValuesForNameStartsWith(Property[] properties, String propNameStartsWith) {
+
+        List<String> propValueSet = new ArrayList<>();
+        for (Property property : properties) {
+            if (property.getName().startsWith(propNameStartsWith)) {
+                propValueSet.add(property.getValue());
+            }
+        }
+
         return propValueSet;
     }
 

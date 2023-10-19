@@ -213,4 +213,34 @@ public interface RoleManagementService {
 
         throw new NotImplementedException("getNumberOfRoles method is not implemented");
     }
+
+    /**
+     * Get role without users.
+     *
+     * @param roleID          Role ID.
+     * @param tenantDomain    Tenant domain.
+     * @return The role object without users.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     * @throws NotImplementedException         If the method is not implemented.
+     */
+    default Role getRoleWithoutUsers(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException, NotImplementedException {
+
+        throw new NotImplementedException("getRoleWithoutUsers method is not implemented");
+    }
+
+    /**
+     * Get Role name by role id.
+     *
+     * @param roleID       Role Id.
+     * @param tenantDomain Tenant Domain.
+     * @return Role name for the given role id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     * @throws NotImplementedException         If the method is not implemented.
+     */
+    default String getRoleNameByRoleId(String roleID, String tenantDomain) throws IdentityRoleManagementException,
+            NotImplementedException {
+
+        throw new NotImplementedException("getRoleNameByRoleId method is not implemented");
+    }
 }

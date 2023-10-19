@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -33,19 +34,27 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
@@ -54,10 +63,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BLOCKED_USERSTORE_DOMAINS_LIST;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BLOCKED_USERSTORE_DOMAINS_SEPARATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE;
 
@@ -122,6 +136,38 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         // The Authenticator will re-initiate the authentication and retry.
                         context.setCurrentAuthenticator(getName());
                         initiateAuthenticationRequest(request, response, context);
+                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.STEP, context.getCurrentStep())
+                                    .resultMessage("Authentication failed.")
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                            // Adding user related details to diagnostic log.
+                            Optional.ofNullable(e.getUser()).ifPresent(user -> {
+                                Optional.ofNullable(user.toFullQualifiedUsername()).ifPresent(username ->
+                                        diagLogBuilder.inputParam(FrameworkConstants.LogConstants.USER,
+                                        LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username)
+                                                : username));
+                                diagLogBuilder.inputParam(FrameworkConstants.LogConstants.USER_STORE_DOMAIN,
+                                        user.getUserStoreDomain());
+                            });
+                            // Adding application related details to diagnostic log.
+                            FrameworkUtils.getApplicationResourceId(context).ifPresent(applicationId ->
+                                    diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_ID, applicationId));
+                            FrameworkUtils.getApplicationName(context).ifPresent(applicationName ->
+                                    diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME,
+                                            applicationName));
+                            // Sanitize the error message before adding to diagnostic log.
+                            String errorMessage = e.getMessage();
+                            if (context.getLastAuthenticatedUser() != null) {
+                                String userName = context.getLastAuthenticatedUser().getUserName();
+                                errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
+                            }
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+                        }
                         return AuthenticatorFlowStatus.INCOMPLETE;
                     } else {
                         context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, getName());
@@ -227,11 +273,11 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
+            paramMap.put(FrameworkConstants.AUTHENTICATOR, getName());
             if (isFederated) {
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_FEDERATED_STEP, true);
                 paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, true);
-                paramMap.put(FrameworkConstants.AUTHENTICATOR, getName());
                 if (user != null) {
                     user.setTenantDomain(context.getTenantDomain());
                 }
@@ -350,6 +396,84 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             userName = UserCoreUtil.getDomainFromThreadLocal() + CarbonConstants.DOMAIN_SEPARATOR + userName;
         }
         return userName;
+    }
+
+    protected org.wso2.carbon.user.core.common.User getUser(AuthenticatedUser authenticatedUser)
+            throws AuthenticationFailedException {
+
+        org.wso2.carbon.user.core.common.User user = null;
+        String tenantDomain = authenticatedUser.getTenantDomain();
+        if (tenantDomain == null) {
+            return null;
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
+                ResolvedUserResult resolvedUserResult = FrameworkServiceDataHolder.getInstance()
+                        .getMultiAttributeLoginService().resolveUser(MultitenantUtils.getTenantAwareUsername(
+                                authenticatedUser.getUserName()), tenantDomain);
+                if (resolvedUserResult != null && ResolvedUserResult.UserResolvedStatus.SUCCESS.
+                        equals(resolvedUserResult.getResolvedStatus())) {
+                    user = resolvedUserResult.getUser();
+                }
+                return user;
+            }
+            UserRealm userRealm = FrameworkServiceDataHolder.getInstance().getRealmService()
+                    .getTenantUserRealm(tenantId);
+            if (userRealm != null) {
+                UserStoreManager userStoreManager = userRealm.getUserStoreManager();
+                List<org.wso2.carbon.user.core.common.User> userList
+                        = ((AbstractUserStoreManager) userStoreManager).getUserListWithID(
+                        USERNAME_CLAIM, authenticatedUser.getUserName(), null);
+                if (userList.isEmpty()) {
+                    userList = ((AbstractUserStoreManager) userStoreManager).getUserListWithID(
+                            EMAIL_ADDRESS_CLAIM, authenticatedUser.getUserName(), null);
+                }
+                userList = getValidUsers(userList);
+                if (CollectionUtils.isEmpty(userList)) {
+                    return null;
+                }
+                if (userList.size() > 1) {
+                    throw new AuthenticationFailedException("There are more than one user with the provided username "
+                            + "claim value: " + authenticatedUser.getUserName());
+                }
+                user = userList.get(0);
+            } else {
+                throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: "
+                        + tenantDomain);
+            }
+        } catch (UserStoreException e) {
+            String msg = "Failed to retrieve the user from the user store.";
+            throw new AuthenticationFailedException(msg, e);
+        }
+        return user;
+    }
+
+    private List<org.wso2.carbon.user.core.common.User> getValidUsers(
+            List<org.wso2.carbon.user.core.common.User> userList) {
+
+        List<String> blockedUserStoreDomainsList = getBlockedUserStoreDomainsList();
+        if (CollectionUtils.isEmpty(blockedUserStoreDomainsList)) {
+            return userList;
+        }
+        List<org.wso2.carbon.user.core.common.User> validUserList = new ArrayList<>();
+        for (org.wso2.carbon.user.core.common.User user : userList) {
+            if (!blockedUserStoreDomainsList.contains(user.getUserStoreDomain())) {
+                validUserList.add(user);
+            }
+        }
+        return validUserList;
+    }
+
+    private List<String> getBlockedUserStoreDomainsList() {
+
+        List<String> blockedUserStoreDomainsList = new ArrayList<>();
+        if (StringUtils.isNotBlank(getAuthenticatorConfig().getParameterMap().get(BLOCKED_USERSTORE_DOMAINS_LIST))) {
+            CollectionUtils.addAll(blockedUserStoreDomainsList,
+                    StringUtils.split(getAuthenticatorConfig().getParameterMap().get(BLOCKED_USERSTORE_DOMAINS_LIST),
+                            BLOCKED_USERSTORE_DOMAINS_SEPARATOR));
+        }
+        return blockedUserStoreDomainsList;
     }
 
     /**

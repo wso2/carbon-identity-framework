@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.RealmConfiguration;
@@ -92,7 +93,7 @@ import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 @PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class,
-        IdentityTenantUtil.class, IdentityUtil.class})
+        IdentityTenantUtil.class, IdentityUtil.class, LoggerUtils.class})
 @PowerMockIgnore("org.mockito.*")
 public class DefaultStepBasedSequenceHandlerTest {
 
@@ -655,6 +656,9 @@ public class DefaultStepBasedSequenceHandlerTest {
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getStepHandler()).thenReturn(stepHandler);
 
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(false);
+
         StepConfig stepConfig = new StepConfig();
         SequenceConfig sequenceConfig = new SequenceConfig();
         sequenceConfig.getStepMap().put(1, stepConfig);
@@ -672,6 +676,9 @@ public class DefaultStepBasedSequenceHandlerTest {
         StepHandler stepHandler = getMockedStepHandlerForSuccessfulRequestAuthentication();
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getStepHandler()).thenReturn(stepHandler);
+
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(false);
 
         StepConfig stepConfig = new StepConfig();
         SequenceConfig sequenceConfig = new SequenceConfig();

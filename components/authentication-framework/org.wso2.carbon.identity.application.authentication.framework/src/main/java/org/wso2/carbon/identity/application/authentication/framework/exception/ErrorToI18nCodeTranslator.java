@@ -33,6 +33,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.exce
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_USER_DENIED_CONSENT_FOR_MANDATORY;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_ADDING_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_BUILDING_REDIRECT_URI;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL;
+import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_CONSENT_INPUT_FOR_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_GETTING_CLAIM_MAPPINGS;
 import static org.wso2.carbon.identity.application.authentication.framework.exception.ErrorToI18nCodeTranslator.I18NErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
@@ -133,6 +135,10 @@ public class ErrorToI18nCodeTranslator {
                 "authentication.attempt.failed", "retrieving.realm.to.handle.claims.error"),
         ERROR_POST_AUTH_COOKIE_NOT_FOUND("Invalid Request: Your authentication flow is ended or invalid. " +
                 "Please initiate again.", "authentication.attempt.failed", "post.auth.cookie.not.found"),
+        ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL("80028", "authentication.error",
+                "authenticated.subject.identifier.null"),
+        ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL("80029", "authentication.error",
+                "authenticated.user.id.null"),
         ERROR_CODE_DEFAULT("Default", "authentication.attempt.failed", "authorization.failed");
 
         private final String errorCode;
@@ -270,6 +276,12 @@ public class ErrorToI18nCodeTranslator {
         } else if (ERROR_POST_AUTH_COOKIE_NOT_FOUND.getErrorCode().equals(errorCode)) {
             return new I18nErrorCodeWrapper(ERROR_POST_AUTH_COOKIE_NOT_FOUND.getStatus(),
                     ERROR_POST_AUTH_COOKIE_NOT_FOUND.getStatusMsg());
+        } else if (ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL.getErrorCode().equals(errorCode)) {
+            return new I18nErrorCodeWrapper(ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL.getStatus(),
+                    ERROR_WHILE_CONCLUDING_AUTHENTICATION_SUBJECT_ID_NULL.getStatusMsg());
+        } else if (ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getErrorCode().equals(errorCode)) {
+            return new I18nErrorCodeWrapper(ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getStatus(),
+                    ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL.getStatusMsg());
         } else {
             return new I18nErrorCodeWrapper(ERROR_CODE_DEFAULT.getStatus(), ERROR_CODE_DEFAULT.getStatusMsg());
         }

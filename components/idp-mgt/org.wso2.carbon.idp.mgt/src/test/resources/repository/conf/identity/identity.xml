@@ -662,9 +662,6 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt</Permissions>
         </Resource>
 
-        <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
-
         <Resource context="(.*)/api/identity/auth/v1.2/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>
 
@@ -738,6 +735,11 @@
             <Context>/identity/(.*)</Context>
         </Servlet>
     </TenantContextsToRewrite>
+
+    <!-- Extension management service configurations -->
+    <ExtensionManagementService>
+        <ExtensionTypes>applications,connections,identity-providers</ExtensionTypes>
+    </ExtensionManagementService>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>

@@ -145,4 +145,12 @@ public interface SecretManager {
      */
     Secret updateSecretDescription(String secretTypeName, String name, String description) throws SecretManagementException;
 
+    /**
+     * Checks for the existence of a given secret.
+     *
+     * @param secretTypeName Name of the {@link SecretType}.
+     * @param secretName  Name of the {@link Secret}.
+     * @throws SecretManagementException Configuration Management Exception.
+     */
+    boolean isSecretExist(String secretTypeName, String secretName) throws SecretManagementException;
 }

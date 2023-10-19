@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.servlet;
 
+import org.wso2.carbon.identity.application.authentication.framework.CommonAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
 
@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class CommonAuthenticationServlet extends HttpServlet {
 
+    private final CommonAuthenticationHandler commonAuthenticationHandler = new CommonAuthenticationHandler();
     private static final long serialVersionUID = -7182121722709941646L;
 
     @Override
@@ -44,16 +45,18 @@ public class CommonAuthenticationServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        doPost(request, response);
+        commonAuthenticationHandler.doGet(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        commonAuthenticationHandler.doGet(request, response);
+    }
 
-        if (FrameworkUtils.getMaxInactiveInterval() == 0) {
-            FrameworkUtils.setMaxInactiveInterval(request.getSession().getMaxInactiveInterval());
-        }
-        FrameworkUtils.getRequestCoordinator().handle(request, response);
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setHeader("Allow", "GET, POST, HEAD, OPTIONS");
     }
 }

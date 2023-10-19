@@ -28,10 +28,12 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManagerImpl;
+import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.CachedBackedSecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
@@ -69,6 +71,8 @@ public class SecretManagerComponent {
                 new SecretManagerImpl(), null);
         bundleContext.registerService(SecretResolveManager.class.getName(),
                 new SecretResolveManagerImpl(), null);
+        bundleContext.registerService(SecretsProcessor.class.getName(),
+                new IdPSecretsProcessor(), null);
         SecretManagerComponentDataHolder.getInstance().setSecretManagementEnabled
                 (isSecretManagementEnabled());
     }

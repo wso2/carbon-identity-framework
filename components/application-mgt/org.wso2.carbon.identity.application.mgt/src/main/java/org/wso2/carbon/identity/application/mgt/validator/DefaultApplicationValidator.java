@@ -134,6 +134,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             validateAdaptiveAuthScript(validationErrors,
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig());
         }
+
         return validationErrors;
     }
 

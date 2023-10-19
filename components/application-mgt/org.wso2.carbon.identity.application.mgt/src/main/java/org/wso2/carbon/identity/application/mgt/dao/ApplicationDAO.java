@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.application.mgt.dao;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.sql.Connection;
@@ -102,6 +104,44 @@ public interface ApplicationDAO {
      * @throws IdentityApplicationManagementException
      */
     String getServiceProviderNameByClientId(String clientId, String clientType, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Retrieve application resource id using the inboundKey and inboundType.
+     *
+     * @param inboundKey   inboundKey
+     * @param inboundType  inboundType
+     * @param tenantDomain tenantDomain
+     * @return application resourceId
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException
+     */
+    default String getApplicationResourceIDByInboundKey(String inboundKey, String inboundType, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+            return null;
+    }
+
+    /**
+     * Get authenticators configured for an application.
+     *
+     * @param applicationId ID of an application.
+     * @return Authentication configurations.
+     * @throws IdentityApplicationManagementException
+     * @deprecated use {@link #getConfiguredAuthenticators(String, String)} instead.
+     */
+    @Deprecated
+    LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get authenticators configured for an application.
+     *
+     * @param applicationId ID of an application.
+     * @param tenantDomain  Tenant Domain.
+     * @return Authentication configurations.
+     * @throws IdentityApplicationManagementException
+     */
+    LocalAndOutboundAuthenticationConfig getConfiguredAuthenticators(String applicationId, String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**
@@ -296,5 +336,29 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException {
 
         return new ServiceProvider();
+    }
+
+    /**
+     * Method that return the application id of the main application for a given shared application id.
+     *
+     * @param sharedAppId Shared application id.
+     * @return Application id of the main application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining main application id.
+     */
+    default String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Method that returns the tenant id of the application.
+     *
+     * @param applicationId Application id.
+     * @return Tenant id of the application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining tenant id.
+     */
+    default int getTenantIdByApp(String applicationId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
     }
 }

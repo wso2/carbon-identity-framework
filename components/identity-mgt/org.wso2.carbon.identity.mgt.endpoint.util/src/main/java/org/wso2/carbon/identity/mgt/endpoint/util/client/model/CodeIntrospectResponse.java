@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.constraints.NotNull;
-
 public class CodeIntrospectResponse {
 
     private User user = null;

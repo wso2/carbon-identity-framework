@@ -100,6 +100,21 @@ public class ApplicationConstants {
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
 
     /**
+     * Group the constants related to logs.
+     */
+    public static class LogConstants {
+
+        public static final String TARGET_APPLICATION = "APPLICATION";
+        public static final String USER = "USER";
+        public static final String INBOUND_AUTHENTICATION_CONFIG = "inboundAuthenticationConfig";
+        public static final String APP_OWNER = "owner";
+        public static final String DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG = "disableLegacyAuditLogsInAppMgt";
+        public static final String CREATE_APPLICATION = "CREATE APPLICATION";
+        public static final String UPDATE_APPLICATION = "UPDATE APPLICATION";
+        public static final String DELETE_APPLICATION = "DELETE APPLICATION";
+    }
+
+    /**
      * Grouping of constants related to database SP_APP table.
      */
     public static class ApplicationTableColumns {
@@ -131,6 +146,11 @@ public class ApplicationConstants {
         public static final String UUID = "UUID";
         public static final String IMAGE_URL = "IMAGE_URL";
         public static final String ACCESS_URL = "ACCESS_URL";
+        public static final String APP_ID = "APP_ID";
+        public static final String API_ID = "API_ID";
+        public static final String POLICY_ID = "POLICY_ID";
+        public static final String SCOPE_NAME = "SCOPE_NAME";
+        public static final String MAIN_APP_ID = "MAIN_APP_ID";
 
         private ApplicationTableColumns() {
 
