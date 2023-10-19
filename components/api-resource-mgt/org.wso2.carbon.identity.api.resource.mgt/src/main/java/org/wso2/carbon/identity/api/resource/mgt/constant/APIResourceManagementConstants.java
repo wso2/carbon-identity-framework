@@ -30,6 +30,7 @@ public class APIResourceManagementConstants {
     public static final String NAME = "name";
     public static final String IDENTIFIER = "identifier";
     public static final String TYPE = "type";
+    public static final String RBAC_AUTHORIZATION = "RBAC";
     public static final String ASC = "asc";
     public static final String SYSTEM_API_FILTER = "type eq SYSTEM";
     public static final String BEFORE = "before";

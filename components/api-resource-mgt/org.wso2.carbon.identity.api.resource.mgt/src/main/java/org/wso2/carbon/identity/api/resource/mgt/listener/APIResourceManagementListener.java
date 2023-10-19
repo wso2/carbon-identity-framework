@@ -23,14 +23,12 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
-import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementConfigBuilder;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.core.AbstractIdentityTenantMgtListener;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
-import org.wso2.carbon.user.api.Tenant;
-import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.Map;
 
@@ -58,35 +56,21 @@ public class APIResourceManagementListener extends AbstractIdentityTenantMgtList
         }
 
         try {
-            Tenant tenant = APIResourceManagementServiceComponentHolder.getInstance()
-                    .getRealmService().getTenantManager().getTenant(tenantId);
-            // TODO: Remove this line once org creation on tenant creation gets merged.
-            if (tenant.getAssociatedOrganizationUUID() != null) {
-                String organizationId = APIResourceManagementServiceComponentHolder.getInstance()
-                        .getOrganizationManager().resolveOrganizationId(tenantInfo.getTenantDomain());
-                // If the tenant is not a primary organization, skip registering the system API resources.
-                if (organizationId != null) {
-                    if (!APIResourceManagementServiceComponentHolder.getInstance().getOrganizationManager()
-                            .isPrimaryOrganization(organizationId)) {
-                        return;
-                    }
-                }
+            if (OrganizationManagementUtil.isOrganization(tenantId)) {
+                return;
             }
             addSystemAPIs(tenantInfo.getTenantDomain());
         } catch (OrganizationManagementException e) {
             LOG.error("Error while registering system API resources in tenant: " + tenantInfo.getTenantDomain());
-        } catch (UserStoreException e) {
-            throw new RuntimeException(e);
         }
     }
 
     /**
-     * TODO: Make this private.
      * Fetch the configuration from the XML file and register the system API in the given tenant.
      *
      * @param tenantDomain tenant domain.
      */
-    public void addSystemAPIs(String tenantDomain) {
+    private void addSystemAPIs(String tenantDomain) {
 
         Map<String, APIResource> configs = APIResourceManagementConfigBuilder.getInstance()
                 .getAPIResourceMgtConfigurations();

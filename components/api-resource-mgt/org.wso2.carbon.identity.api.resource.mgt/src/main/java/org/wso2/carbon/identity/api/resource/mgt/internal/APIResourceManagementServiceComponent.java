@@ -28,7 +28,6 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
@@ -37,9 +36,10 @@ import org.wso2.carbon.identity.api.resource.mgt.listener.APIResourceManagementL
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementConfigBuilder;
 import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
-import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Map;
 
@@ -82,6 +82,23 @@ public class APIResourceManagementServiceComponent {
     }
 
     @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    @Reference(
             name = "organization.service",
             service = OrganizationManager.class,
             cardinality = ReferenceCardinality.MANDATORY,
@@ -89,39 +106,18 @@ public class APIResourceManagementServiceComponent {
             unbind = "unsetOrganizationManager"
     )
     protected void setOrganizationManager(OrganizationManager organizationManager) {
-
-        APIResourceManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
-        LOG.debug("Set the organization management service.");
+        /* reference Organization Management service to guarantee that this component will wait until organization
+        management service is started */
     }
 
     protected void unsetOrganizationManager(OrganizationManager organizationManager) {
-
-        APIResourceManagementServiceComponentHolder.getInstance().setOrganizationManager(null);
-        LOG.debug("Unset organization management service.");
-    }
-
-    @Reference(
-            name = "realm.service",
-            service = RealmService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRealmService"
-    )
-    protected void setRealmService(RealmService realmService) {
-
-        APIResourceManagementServiceComponentHolder.getInstance().setRealmService(realmService);
-        LOG.debug("Set the Realm Service");
-    }
-
-    protected void unsetRealmService(RealmService realmService) {
-
-        APIResourceManagementServiceComponentHolder.getInstance().setRealmService(null);
-        LOG.debug("Unset the Realm Service");
+        /* reference Organization Management service to guarantee that this component will wait until organization
+        management service is started */
     }
 
     private void registerSystemAPIsInSuperTenant() {
 
-        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         try {
             APIResourceSearchResult systemAPIResources = APIResourceManagerImpl.getInstance()
                     .getAPIResources(null, null, 1, APIResourceManagementConstants.SYSTEM_API_FILTER,

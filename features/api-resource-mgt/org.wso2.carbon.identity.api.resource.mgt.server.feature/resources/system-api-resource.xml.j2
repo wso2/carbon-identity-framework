@@ -397,7 +397,7 @@
     <APIResource name="Recovery API" identifier="/api/identity/recovery" requiresAuthorization="true" description="API representation of the Recovery API">
         <Scopes>
             <Scope displayName="View Recovery" name="internal_recovery_view" />
-            <Scope displayName="Create Recovery" name="internal_recvoery_create" />
+            <Scope displayName="Create Recovery" name="internal_recovery_create" />
             <Scope displayName="Update Recovery" name="internal_recovery_update" />
             <Scope displayName="Delete Recovery" name="internal_recovery_delete" />
         </Scopes>
@@ -456,9 +456,9 @@
         </Scopes>
     </APIResource>
     <APIResource name="Organization Self Service API" identifier="/identity/register" requiresAuthorization="true" description="API representation of the Organization Self Service API">
-            <Scopes>
-                <Scope displayName="View Self Service" name="internal_self_service_view" />
-                <Scope displayName="Update Self Service" name="internal_self_service_update" />
-            </Scopes>
-        </APIResource>
+        <Scopes>
+            <Scope displayName="View Self Service" name="internal_self_service_view" />
+            <Scope displayName="Update Self Service" name="internal_self_service_update" />
+        </Scopes>
+    </APIResource>
 </APIResources>

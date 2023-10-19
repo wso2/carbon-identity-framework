@@ -37,6 +37,11 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
+import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
+import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
+import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
@@ -69,12 +74,14 @@ import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -138,6 +145,8 @@ public class ApplicationManagementServiceComponent {
                 ApplicationManagementServiceComponentHolder.getInstance()
                         .setApplicationPermissionProvider(new RegistryBasedApplicationPermissionProvider());
             }
+            // Authorize the system APIs to the console application in super tenant.
+            authorizeSystemAPIConsole();
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }
@@ -508,6 +517,50 @@ public class ApplicationManagementServiceComponent {
 
     private void authorizeSystemAPIConsole() {
 
-
+        try {
+            String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+            ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
+            ApplicationBasicInfo applicationBasicInfo = applicationManagementService.getApplicationBasicInfoByName(
+                    ApplicationConstants.CONSOLE_APPLICATION_NAME, tenantDomain);
+            if (applicationBasicInfo == null) {
+                log.error("Error while authorizing system API console. Console application not found.");
+                return;
+            }
+            AuthorizedAPIManagementService authorizedAPIManagementService = new AuthorizedAPIManagementServiceImpl();
+            List<AuthorizedAPI> authorizedAPIs = authorizedAPIManagementService.getAuthorizedAPIs(
+                    applicationBasicInfo.getApplicationResourceId(), tenantDomain);
+            // Return if the system APIs are already authorized for the console application.
+            if (!authorizedAPIs.isEmpty()) {
+                log.debug("System APIs are already authorized for the console application.");
+                return;
+            }
+            // Fetch the system API resources count.
+            int systemAPICount = ApplicationManagementServiceComponentHolder.getInstance()
+                    .getAPIResourceManager().getAPIResources(null, null, 1, "type eq SYSTEM",
+                            "ASC", tenantDomain).getTotalCount();
+            // Fetch all system APIs.
+            List<APIResource> apiResources = ApplicationManagementServiceComponentHolder.getInstance()
+                    .getAPIResourceManager().getAPIResources(null, null, systemAPICount, "type eq SYSTEM",
+                            "ASC", tenantDomain).getAPIResources();
+            if (apiResources.isEmpty()) {
+                log.error("Error while authorizing system API console. System APIs not found.");
+                return;
+            }
+            for (APIResource apiResource : apiResources) {
+                List<Scope> scopes = ApplicationManagementServiceComponentHolder.getInstance()
+                        .getAPIResourceManager().getAPIScopesById(apiResource.getId(), tenantDomain);
+                AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
+                        .apiId(apiResource.getId())
+                        .appId(applicationBasicInfo.getApplicationResourceId())
+                        .scopes(scopes)
+                        .policyId(APIResourceManagementConstants.RBAC_AUTHORIZATION)
+                        .build();
+                authorizedAPIManagementService.addAuthorizedAPI(applicationBasicInfo.getApplicationResourceId(),
+                        authorizedAPI, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            }
+            log.debug("System APIs are authorized for the console application in " + tenantDomain);
+        } catch (Throwable e) {
+            log.error("Error while authorizing system API to the console application.", e);
+        }
     }
 }
