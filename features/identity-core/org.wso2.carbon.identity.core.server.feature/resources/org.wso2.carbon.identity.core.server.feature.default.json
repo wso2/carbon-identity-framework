@@ -184,7 +184,8 @@
   "oauth.grant_type.token_exchange.allow_refresh_tokens": true,
   "oauth.grant_type.token_exchange.allow_public_client": true,
   "oauth.dcrm.application_role_permission_required_to_view": true,
-
+  "oauth.dcr.enable_fapi_enforcement": false,
+  "oauth.dcr.enable_sector_identifier_validation": false,
   "oauth.enable_jwt_token_validation_during_introspection": true,
   "oauth.use_client_id_as_sub_claim_for_app_tokens": true,
   "oauth.remove_username_from_introspection_response_for_app_tokens": true,
@@ -240,6 +241,7 @@
   "oauth.oidc.fapi.allowed_client_authentication_methods": ["private_key_jwt", "tls_client_auth"],
   "oauth.oidc.fapi.allowed_signature_algorithms": ["PS256", "ES256"],
 
+  "oauth.oidc.fapi.enable_validation": true,
   "oauth.global_rbac_scope_issuer.enable": false,
 
   "oauth.jarm.enable": true,
@@ -639,6 +641,7 @@
   "user.association.enable_for_federated_users": false,
   "user.enable_per_user_functionality_locking": false,
   "tenant_context.enable_tenant_qualified_urls": false,
+  "tenant_context.require_super_tenant_in_urls": false,
   "tenant_context.rewrite.webapps": [
     "/oauth2/",
     "/scim2/",
@@ -782,6 +785,7 @@
   "console.route_paths.login": "",
   "console.route_paths.logout": "/logout",
   "console.extensions": {
+    "defaultBrandedLoginScreenCopyright": "${copyright} ${year} WSO2 LLC.",
     "emailTemplates": [
       {
           "id": "cmVzZW5kUGFzc3dvcmRSZXNldA",
@@ -873,9 +877,12 @@
   "console.ui.app_title": "WSO2 Identity Server Console",
   "console.ui.app_name": "Console",
   "console.ui.app_logo_path": "/assets/images/branding/logo.svg",
+  "console.ui.app_white_logo_path": "/assets/images/branding/logo-white.svg",
+  "console.ui.app_favicon_path": "/assets/images/branding/favicon.ico",
   "console.ui.idp_templates.github.enabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
   "console.ui.hiddenAuthenticators": [],
+  "console.ui.hiddenConnectionTemplates": [],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
@@ -933,6 +940,7 @@
   "console.attribute_dialects.scopes.update": ["internal_claim_meta_update"],
   "console.attribute_dialects.scopes.delete": ["internal_claim_meta_delete"],
   "console.branding.enabled": true,
+  "console.bulk_user_import.enabled": true,
   "console.branding.scopes.feature": [],
   "console.branding.scopes.create": ["internal_application_mgt_create"],
   "console.branding.scopes.read": ["internal_application_mgt_view"],
@@ -1069,7 +1077,7 @@
   "console.self_app_identifier": "Console",
   "console.system_apps_identifiers": ["Console", "My Account"],
   "console.gravatar.configs.fallback": "404",
-  "console.list_all_attribute_dialects": false,
+  "console.list_all_attribute_dialects": true,
   "console.organizations.enabled": true,
   "console.organizations.scopes.feature": ["console:organizations"],
   "console.organizations.scopes.create": ["internal_organization_create"],
@@ -1091,6 +1099,7 @@
   "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
   "myaccount.ui.app_name": "My Account",
   "myaccount.ui.app_logo_path": "/assets/images/branding/logo.svg",
+  "myaccount.ui.app_white_logo_path": "/assets/images/branding/logo-white.svg",
   "myaccount.ui.is_header_avatar_label_allowed": true,
   "myaccount.ui.product_name": "WSO2 Identity Server",
   "myaccount.theme": "default",
@@ -1156,5 +1165,16 @@
   "extension_mgt.extension_types": "applications,identity-providers,connections,identity-verification-providers",
 
   "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
-  "input_validation.default_validator": "alphaNumeric"
+  "input_validation.default_validator": "alphaNumeric",
+
+  "email_templates.branding.fallbacks.copyright_text": "WSO2 Identity Server",
+  "email_templates.branding.fallbacks.primary_color": "#FF7300",
+  "email_templates.branding.fallbacks.background_color": "#F8F9FA",
+  "email_templates.branding.fallbacks.light_background_color": "#FFFFFF",
+  "email_templates.branding.fallbacks.dark_background_color": "#111111",
+  "email_templates.branding.fallbacks.font_style": "Gilmer",
+  "email_templates.branding.fallbacks.font_color": "#231F20",
+  "email_templates.branding.fallbacks.button_font_color": "#FFFFFF",
+  "email_templates.branding.fallbacks.light_border_color": "transparent",
+  "email_templates.branding.fallbacks.dark_border_color": "#333333"
 }

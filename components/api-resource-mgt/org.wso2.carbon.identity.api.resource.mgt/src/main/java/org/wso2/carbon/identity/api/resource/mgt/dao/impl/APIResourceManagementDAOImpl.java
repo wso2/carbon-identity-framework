@@ -116,7 +116,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 prepStmt.setString(4, apiResource.getIdentifier());
                 prepStmt.setString(5, apiResource.getDescription());
                 prepStmt.setInt(6, tenantId);
-                prepStmt.setBoolean(7, apiResource.isRequiresAuthorization());
+                prepStmt.setBoolean(7, apiResource.isAuthorizationRequired());
                 prepStmt.executeUpdate();
                 prepStmt.clearParameters();
 

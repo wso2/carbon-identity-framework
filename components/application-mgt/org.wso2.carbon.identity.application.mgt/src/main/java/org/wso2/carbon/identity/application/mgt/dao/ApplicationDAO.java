@@ -343,6 +343,7 @@ public interface ApplicationDAO {
      *
      * @param sharedAppId Shared application id.
      * @return Application id of the main application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining main application id.
      */
     default String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
 
@@ -354,6 +355,7 @@ public interface ApplicationDAO {
      *
      * @param applicationId Application id.
      * @return Tenant id of the application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining tenant id.
      */
     default int getTenantIdByApp(String applicationId) throws IdentityApplicationManagementServerException {
 

@@ -869,6 +869,7 @@
                 FAPI Profile Support.
             -->
             <FAPI>
+                <EnableFAPIValidation>{{oauth.oidc.fapi.enable_validation}}</EnableFAPIValidation>
                 {% if oauth.oidc.fapi.enable_ciba_profile is defined %}
                 <EnableCibaProfile>{{oauth.oidc.fapi.enable_ciba_profile}}</EnableCibaProfile>
                 {% endif %}
@@ -974,6 +975,11 @@
         -->
         <DCRM>
             <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
+            {% if oauth.dcr.ssa_jkws is defined %}
+            <SoftwareStatementJWKS>{{oauth.dcr.ssa_jkws}}</SoftwareStatementJWKS>
+            {% endif %}
+            <EnableFAPIEnforcement>{{oauth.dcr.enable_fapi_enforcement}}</EnableFAPIEnforcement>
+            <EnableSectorIdentifierURIValidation>{{oauth.dcr.enable_sector_identifier_validation}}</EnableSectorIdentifierURIValidation>
         </DCRM>
 
         <!--
@@ -3214,8 +3220,14 @@
     -->
     <EnableFederatedUserAssociation>{{user.association.enable_for_federated_users}}</EnableFederatedUserAssociation>
 
-    <EnableTenantQualifiedUrls>{{tenant_context.enable_tenant_qualified_urls}}</EnableTenantQualifiedUrls>
-    <EnableTenantedSessions>{{tenant_context.enable_tenanted_sessions | default(false)}}</EnableTenantedSessions>
+    <TenantContext>
+        <TenantQualifiedUrls>
+            <Enable>{{tenant_context.enable_tenant_qualified_urls}}</Enable>
+            <RequireSuperTenantInUrls>{{tenant_context.enable_tenant_qualified_urls && tenant_context.require_super_tenant_in_urls}}</RequireSuperTenantInUrls>
+            <EnableTenantedSessions>{{tenant_context.enable_tenant_qualified_urls && tenant_context.enable_tenanted_sessions}}</EnableTenantedSessions>
+       </TenantQualifiedUrls>
+    </TenantContext>
+
 
     <!--
         When this property is set to 'true', if the username provided during the SaaS application authentication does

@@ -5266,8 +5266,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             return null;
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementServerException("Error while getting main application id for " +
-                    "the shared application with id: %s", sharedAppId, e);
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while getting main application id for the shared application with id: %s",
+                            sharedAppId), e);
         }
     }
 
@@ -5283,8 +5284,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             return -1;
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementServerException("Error while getting tenant id of the application " +
-                    "with id: %s", applicationId, e);
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while getting tenant id of the application with id: %s", applicationId), e);
         }
     }
 

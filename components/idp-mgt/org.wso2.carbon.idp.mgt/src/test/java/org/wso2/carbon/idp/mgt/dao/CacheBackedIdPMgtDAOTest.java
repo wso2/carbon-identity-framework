@@ -97,6 +97,8 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
 
     private static final Integer SAMPLE_TENANT_ID2 = 1;
 
+    private static final Integer SAMPLE_TENANT_ID3 = 2;
+
     private static final Integer NOT_EXISTING_TENANT_ID = 4;
 
     private static final String TENANT_DOMAIN = "carbon.super";
@@ -620,7 +622,7 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         return new Object[][]{
                 {"testIdP1", "1", SAMPLE_TENANT_ID1, true},
                 {"testIdP2", "2", SAMPLE_TENANT_ID1, true},
-                {"notExist", "4", SAMPLE_TENANT_ID2, false},
+                {"notExist", "99", SAMPLE_TENANT_ID2, false},
         };
     }
 
@@ -650,6 +652,47 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             } else {
                 assertNull(idpResult, "'getIdPByRealmId' method fails");
                 assertNull(idpFromCache, "'getIdPByRealmId' method fails");
+            }
+        }
+    }
+
+    @DataProvider
+    public Object[][] getEnabledIdPByRealmIdData() {
+
+        return new Object[][]{
+                {"testIdP4", "4", SAMPLE_TENANT_ID3, true, true},
+                {"testIdP5", "5", SAMPLE_TENANT_ID3, true, false},
+                {"notExist", "99", SAMPLE_TENANT_ID3, false, false},
+        };
+    }
+
+    @Test(dataProvider = "getEnabledIdPByRealmIdData")
+    public void testGetEnabledIdPRealmId(String idpName, String realmId, int tenantId, boolean isExist, boolean isEnabled) throws Exception {
+
+        mockStatic(IdentityDatabaseUtil.class);
+        try (Connection connection = getConnection(DB_NAME)) {
+            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps(connection);
+            // Retrieving IDP from DB.
+            IdentityProvider idpResult = cacheBackedIdPMgtDAO.getEnabledIdPByRealmId(realmId, tenantId, TENANT_DOMAIN);
+
+            IdentityProvider idpFromCache = null;
+            if (isExist && isEnabled) {
+                // Retrieving IDP from cache using realmID as cache key.
+                IdPCacheByHRI idPCacheByHRI = IdPCacheByHRI.getInstance();
+                IdPHomeRealmIdCacheKey cacheKey = new IdPHomeRealmIdCacheKey(realmId);
+                IdPCacheEntry entry = idPCacheByHRI.getValueFromCache(cacheKey, TENANT_DOMAIN);
+                idpFromCache = entry.getIdentityProvider();
+            }
+            if (isExist && isEnabled) {
+                assertEquals(idpFromCache.getIdentityProviderName(), idpName,
+                        "'getEnabledIdPByRealmId' method fails");
+                assertEquals(idpResult, idpFromCache, "'getEnabledIdPByRealmId' method fails");
+            } else {
+                assertNull(idpResult, "'getEnabledIdPByRealmId' method fails");
+                assertNull(idpFromCache, "'getEnabledIdPByRealmId' method fails");
             }
         }
     }
@@ -1450,6 +1493,26 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID1);
         // IDP with Only name.
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
+    }
+
+    private void addTestIdps(Connection connection) throws IdentityProviderManagementException {
+        // Initialize Test Identity Provider 4.
+        IdentityProvider idp4 = new IdentityProvider();
+        idp4.setIdentityProviderName("testIdP4");
+        idp4.setHomeRealmId("4");
+
+        // Initialize Test Identity Provider 5.
+        IdentityProvider idp5 = new IdentityProvider();
+        idp5.setIdentityProviderName("testIdP5");
+        idp5.setHomeRealmId("5");
+
+        // IDP with Only name.
+        idPManagementDAO.addIdP(idp4, SAMPLE_TENANT_ID3);
+        // Disabled IDP.
+        idPManagementDAO.addIdP(idp5, SAMPLE_TENANT_ID3);
+        IdentityProvider tempIdP = idPManagementDAO.getIdPByName(connection, "testIdP5", SAMPLE_TENANT_ID3, TENANT_DOMAIN);
+        tempIdP.setEnable(false);
+        idPManagementDAO.updateIdP(tempIdP, idp5, SAMPLE_TENANT_ID3);
     }
 
     private int getIdPCount(Connection connection, String idpName, int tenantId) throws SQLException {

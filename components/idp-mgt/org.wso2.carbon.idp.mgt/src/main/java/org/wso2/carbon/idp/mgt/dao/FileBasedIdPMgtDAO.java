@@ -100,6 +100,27 @@ public class FileBasedIdPMgtDAO {
     }
 
     /**
+     * Get the enabled IDP of the given realm id.
+     *
+     * @param realmId       Realm ID of the required identity provider.
+     * @return              Enabled identity provider of the given realm id.
+     */
+    public IdentityProvider getEnabledIdPByRealmId(String realmId) {
+
+        Map<String, IdentityProvider> map = IdPManagementServiceComponent.getFileBasedIdPs();
+        for (Iterator<Entry<String, IdentityProvider>> iterator = map.entrySet().iterator(); iterator
+                .hasNext(); ) {
+            Entry<String, IdentityProvider> entry = iterator.next();
+            if (entry.getValue().getHomeRealmId() != null
+                    && entry.getValue().getHomeRealmId().equals(realmId)
+                    && entry.getValue().isEnable()) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    /**
      * Retrieves the first matching IDP for the given metadata property.
      * Intended to ony be used to retrieve IDP name based on a unique metadata property.
      *
