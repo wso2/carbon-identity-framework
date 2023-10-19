@@ -163,6 +163,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SCOPE_BY_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
@@ -382,6 +383,35 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         return getPermissions(roleID, tenantDomain);
+    }
+
+    @Override
+    public List<String> getPermissionListOfRoles(List<String> roleIDs, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<String> permissions = new ArrayList<>();
+        String query = GET_SCOPE_BY_ROLES_SQL + String.join(", ",
+                Collections.nCopies(roleIDs.size(), "?")) + ")";
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
+                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
+                for (int i = 0; i < roleIDs.size(); i++) {
+                    statement.setString(i + 2, roleIDs.get(i));
+                }
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        permissions.add(resultSet.getString(1));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while retrieving permissions for role ids: " + StringUtils.join(roleIDs, ", ")
+                            + " and tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return permissions;
     }
 
     @Override

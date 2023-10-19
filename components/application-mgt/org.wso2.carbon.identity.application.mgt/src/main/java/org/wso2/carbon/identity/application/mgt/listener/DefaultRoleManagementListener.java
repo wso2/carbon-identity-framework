@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -22,13 +40,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_AUDIENCE;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
 
 /**
- * Default Role Management Listener implementation of Role Management Listener.
+ * Default Role Management Listener implementation of Role Management V2 Listener.
  */
 public class DefaultRoleManagementListener implements RoleManagementListener {
 
@@ -55,7 +73,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
                               List<Permission> permissions, String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (APPLICATION_AUDIENCE.equalsIgnoreCase(audience)) {
+        if (APPLICATION.equalsIgnoreCase(audience)) {
             validateApplicationRoleAudience(audienceId, tenantDomain);
             validatePermissionsForApplication(permissions, audienceId, tenantDomain);
         }
@@ -67,7 +85,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
                                List<String> groupList, List<Permission> permissions, String audience,
                                String audienceId, String tenantDomain) throws IdentityRoleManagementException {
 
-        if (APPLICATION_AUDIENCE.equalsIgnoreCase(audience)) {
+        if (APPLICATION.equalsIgnoreCase(audience)) {
             roleBasicInfo.setAudienceName(getApplicationName(audienceId, tenantDomain));
         }
         return true;
@@ -86,7 +104,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
             throws IdentityRoleManagementException {
 
         for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
-            if (APPLICATION_AUDIENCE.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+            if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
                 roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
             }
         }
@@ -106,7 +124,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
             throws IdentityRoleManagementException {
 
         for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
-            if (APPLICATION_AUDIENCE.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+            if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
                 roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
             }
         }
@@ -122,7 +140,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
     @Override
     public boolean postGetRole(Role role, String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
-        if (APPLICATION_AUDIENCE.equalsIgnoreCase(role.getAudience())) {
+        if (APPLICATION.equalsIgnoreCase(role.getAudience())) {
             role.setAudienceName(getApplicationName(role.getAudienceId(), tenantDomain));
         }
         return true;
@@ -138,7 +156,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
     public boolean postGetRoleBasicInfo(RoleBasicInfo roleBasicInfo, String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (APPLICATION_AUDIENCE.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+        if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
             roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
         }
         return true;
@@ -311,7 +329,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
             throws IdentityRoleManagementException {
 
         for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
-            if (APPLICATION_AUDIENCE.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+            if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
                 roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
             }
         }
@@ -330,7 +348,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
                                            String tenantDomain) throws IdentityRoleManagementException {
 
         for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
-            if (APPLICATION_AUDIENCE.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+            if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
                 roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
             }
         }
@@ -349,7 +367,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
                                               String tenantDomain) throws IdentityRoleManagementException {
 
         for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
-            if (APPLICATION_AUDIENCE.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+            if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
                 roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
             }
         }
@@ -430,10 +448,9 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
             boolean valid = false;
             for (ServiceProviderProperty property : app.getSpProperties()) {
                 // TODO :  use osgi service to get this
-                if (ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME.equals(property.getName())) {
-                    if (APPLICATION_AUDIENCE.equalsIgnoreCase(property.getValue())) {
-                        valid = true;
-                    }
+                if (ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME.equals(property.getName()) &&
+                        APPLICATION.equalsIgnoreCase(property.getValue())) {
+                    valid = true;
                 }
             }
             if (!valid) {

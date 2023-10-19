@@ -369,6 +369,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public List<String> getPermissionListOfRoles(List<String> roleIDs, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getPermissionListOfRoles(roleIDs, tenantDomain);
+    }
+
+    @Override
     public RoleBasicInfo updatePermissionListOfRole(String roleID, List<Permission> addedPermissions,
                                                        List<Permission> deletedPermissions, String tenantDomain)
             throws IdentityRoleManagementException {
