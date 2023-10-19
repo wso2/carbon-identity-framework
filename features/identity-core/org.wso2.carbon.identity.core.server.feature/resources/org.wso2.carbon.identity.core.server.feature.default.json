@@ -245,7 +245,7 @@
 
   "oauth.oidc.fapi.enable_validation": true,
   "oauth.oidc.subject_type.default_subject_type": "public",
-  "oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection": true
+  "oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection": true,
   "oauth.global_rbac_scope_issuer.enable": false,
 
   "oauth.jarm.enable": true,
