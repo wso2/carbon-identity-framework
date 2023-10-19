@@ -640,7 +640,8 @@
 
   "user.association.enable_for_federated_users": false,
   "user.enable_per_user_functionality_locking": false,
-  "tenant_context.enable_tenant_qualified_urls": false,
+  "tenant_context.enable_tenant_qualified_urls": true,
+  "tenant_context.enable_tenanted_sessions": true,
   "tenant_context.require_super_tenant_in_urls": false,
   "tenant_context.rewrite.webapps": [
     "/oauth2/",
