@@ -887,6 +887,13 @@
                     {% endfor %}
                 </AllowedSignatureAlgorithms>
             </FAPI>
+
+            <SupportedTokenEndpointSigningAlgorithms>
+                {% for algorithm in oauth.oidc.token_endpoint.signing_algorithms %}
+                    <SupportedTokenEndpointSigningAlgorithm>{{algorithm}}</SupportedTokenEndpointSigningAlgorithm>
+                {% endfor %}
+            </SupportedTokenEndpointSigningAlgorithms>
+
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
