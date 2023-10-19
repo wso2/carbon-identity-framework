@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.role.v2.mgt.core;
+package org.wso2.carbon.identity.role.v2.mgt.core.model;
 
 /**
  * Represents the basic attributes of group.

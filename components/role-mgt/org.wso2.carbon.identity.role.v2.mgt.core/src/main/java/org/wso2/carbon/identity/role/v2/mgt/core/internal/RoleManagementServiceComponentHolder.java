@@ -143,16 +143,31 @@ public class RoleManagementServiceComponentHolder {
         this.apiResourceManager = apiResourceManager;
     }
 
+    /**
+     * Get the RoleManagementListener.
+     *
+     * @return RoleManagementListener.
+     */
     public List<RoleManagementListener> getRoleManagementListenerList() {
 
         return roleManagementListenerList;
     }
 
+    /**
+     * Set the RoleManagementListener.
+     *
+     * @param roleManagementListenerList RoleManagementListener.
+     */
     public void setRoleManagementListenerList(List<RoleManagementListener> roleManagementListenerList) {
 
         this.roleManagementListenerList = roleManagementListenerList;
     }
 
+    /**
+     * Add a RoleManagementListener.
+     *
+     * @param roleManagementListener RoleManagementListener.
+     */
     public void addRoleManagementListener(RoleManagementListener roleManagementListener) {
 
         this.roleManagementListenerList.add(roleManagementListener);

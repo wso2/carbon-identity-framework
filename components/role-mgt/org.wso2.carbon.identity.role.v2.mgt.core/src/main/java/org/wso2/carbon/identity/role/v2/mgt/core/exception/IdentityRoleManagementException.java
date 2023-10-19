@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.role.v2.mgt.core;
+package org.wso2.carbon.identity.role.v2.mgt.core.exception;
 
 /**
  * IdentityRoleManagementException.
@@ -75,6 +75,11 @@ public class IdentityRoleManagementException extends Exception {
         this.errorCode = errorCode;
     }
 
+    /**
+     * Gets the error message.
+     *
+     * @return Error message.
+     */
     @Override
     public String getMessage() {
 

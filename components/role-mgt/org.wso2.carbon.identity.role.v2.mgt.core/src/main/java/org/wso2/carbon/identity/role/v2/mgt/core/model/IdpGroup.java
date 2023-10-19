@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.role.v2.mgt.core;
+package org.wso2.carbon.identity.role.v2.mgt.core.model;
 
 /**
  * Represents the Idp Group.
@@ -28,52 +28,103 @@ public class IdpGroup {
     private String idpId;
     private String idpName;
 
+    /**
+     * Constructs an IdP Group with the specified group ID.
+     *
+     * @param groupId the ID of the IdP Group.
+     */
     public IdpGroup(String groupId) {
 
         this.groupId = groupId;
     }
 
+    /**
+     * Constructs an IdP Group with the specified group ID and IdP ID.
+     *
+     * @param groupId the ID of the IdP Group.
+     * @param idpId the ID of the Identity Provider.
+     */
     public IdpGroup(String groupId, String idpId) {
 
         this.groupId = groupId;
         this.idpId = idpId;
     }
 
+    /**
+     * Gets the ID of the IdP Group.
+     *
+     * @return the ID of the IdP Group.
+     */
     public String getGroupId() {
 
         return groupId;
     }
 
+    /**
+     * Sets the ID for the IdP Group.
+     *
+     * @param groupId the ID to set for the IdP Group.
+     */
     public void setGroupId(String groupId) {
 
         this.groupId = groupId;
     }
 
+    /**
+     * Gets the name of the IdP Group.
+     *
+     * @return the name of the IdP Group.
+     */
     public String getGroupName() {
 
         return groupName;
     }
 
+    /**
+     * Sets the name for the IdP Group.
+     *
+     * @param groupName the name to set for the IdP Group.
+     */
     public void setGroupName(String groupName) {
 
         this.groupName = groupName;
     }
 
+    /**
+     * Gets the ID of the Identity Provider associated with the IdP Group.
+     *
+     * @return the ID of the Identity Provider.
+     */
     public String getIdpId() {
 
         return idpId;
     }
 
+    /**
+     * Sets the ID for the Identity Provider associated with the IdP Group.
+     *
+     * @param idpId the ID to set for the Identity Provider.
+     */
     public void setIdpId(String idpId) {
 
         this.idpId = idpId;
     }
 
+    /**
+     * Gets the name of the Identity Provider associated with the IdP Group.
+     *
+     * @return the name of the Identity Provider.
+     */
     public String getIdpName() {
 
         return idpName;
     }
 
+    /**
+     * Sets the name for the Identity Provider associated with the IdP Group.
+     *
+     * @param idpName the name to set for the Identity Provider.
+     */
     public void setIdpName(String idpName) {
 
         this.idpName = idpName;

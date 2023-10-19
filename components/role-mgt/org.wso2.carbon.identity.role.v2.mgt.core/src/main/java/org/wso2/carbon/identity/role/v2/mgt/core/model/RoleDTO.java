@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.role.v2.mgt.core;
+package org.wso2.carbon.identity.role.v2.mgt.core.model;
 
 /**
  * Represents the role dto.
@@ -50,51 +50,101 @@ public class RoleDTO {
         this.tenantId = tenantId;
     }
 
+    /**
+     * Get the role name.
+     *
+     * @return Role name.
+     */
     public String getName() {
 
         return name;
     }
 
+    /**
+     * Set the role name.
+     *
+     * @param name Role name.
+     */
     public void setName(String name) {
 
         this.name = name;
     }
 
+    /**
+     * Get the audience reference id.
+     *
+     * @return Audience reference id.
+     */
     public int getAudienceRefId() {
 
         return audienceRefId;
     }
 
+    /**
+     * Set the audience reference id.
+     *
+     * @param audienceRefId Audience reference id.
+     */
     public void setAudienceRefId(int audienceRefId) {
 
         this.audienceRefId = audienceRefId;
     }
 
+    /**
+     * Get the role audience.
+     *
+     * @return Role audience.
+     */
     public RoleAudience getRoleAudience() {
 
         return roleAudience;
     }
 
+    /**
+     * Set the role audience.
+     *
+     * @param roleAudience Role audience.
+     */
     public void setRoleAudience(RoleAudience roleAudience) {
 
         this.roleAudience = roleAudience;
     }
 
+    /**
+     * Get the ID.
+     *
+     * @return ID.
+     */
     public String getId() {
 
         return id;
     }
 
+    /**
+     * Set the ID.
+     *
+     * @param id ID.
+     */
     public void setId(String id) {
 
         this.id = id;
     }
 
+    /**
+     * Get the tenant id.
+     *
+     * @return Tenant id.
+     */
     public int getTenantId() {
 
         return tenantId;
     }
 
+    /**
+     * Set the tenant id.
+     *
+     * @param tenantId Tenant id.
+     */
     public void setTenantId(int tenantId) {
 
         this.tenantId = tenantId;

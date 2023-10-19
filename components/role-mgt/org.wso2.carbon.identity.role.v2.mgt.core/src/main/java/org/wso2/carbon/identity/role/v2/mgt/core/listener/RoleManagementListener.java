@@ -18,13 +18,13 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.listener;
 
-import org.wso2.carbon.identity.role.v2.mgt.core.GroupBasicInfo;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdpGroup;
-import org.wso2.carbon.identity.role.v2.mgt.core.Permission;
-import org.wso2.carbon.identity.role.v2.mgt.core.Role;
-import org.wso2.carbon.identity.role.v2.mgt.core.RoleBasicInfo;
-import org.wso2.carbon.identity.role.v2.mgt.core.UserBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.GroupBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 
 import java.util.List;
 
@@ -59,31 +59,31 @@ public interface RoleManagementListener {
     /**
      * Invoked before a new role is added.
      *
-     * @param roleName The name of the role being added.
-     * @param userList A list of user IDs associated with this role.
-     * @param groupList A list of group IDs associated with this role.
-     * @param permissions A list of permissions associated with this role.
-     * @param audience The audience type for which the role is being created.
-     * @param audienceId The ID of the audience type.
+     * @param roleName     The name of the role being added.
+     * @param userList     A list of user IDs associated with this role.
+     * @param groupList    A list of group IDs associated with this role.
+     * @param permissions  A list of permissions associated with this role.
+     * @param audience     The audience type for which the role is being created.
+     * @param audienceId   The ID of the audience type.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the addition should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs.
      */
     boolean preAddRole(String roleName, List<String> userList, List<String> groupList,
-                                    List<Permission> permissions, String audience, String audienceId,
-                                    String tenantDomain) throws IdentityRoleManagementException;
+                       List<Permission> permissions, String audience, String audienceId,
+                       String tenantDomain) throws IdentityRoleManagementException;
 
     /**
-     * Invoked before a new role is added.
+     * Invoked after a new role is added.
      *
      * @param roleBasicInfo The basic info of role being added.
-     * @param roleName The name of the role being added.
-     * @param userList A list of user IDs associated with this role.
-     * @param groupList A list of group IDs associated with this role.
-     * @param permissions A list of permissions associated with this role.
-     * @param audience The audience type for which the role is being created.
-     * @param audienceId The ID of the audience type.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param roleName      The name of the role being added.
+     * @param userList      A list of user IDs associated with this role.
+     * @param groupList     A list of group IDs associated with this role.
+     * @param permissions   A list of permissions associated with this role.
+     * @param audience      The audience type for which the role is being created.
+     * @param audienceId    The ID of the audience type.
+     * @param tenantDomain  The domain in which the operation is being performed.
      * @return true if the addition should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs.
      */
@@ -94,26 +94,26 @@ public interface RoleManagementListener {
     /**
      * Invoked before retrieving a list of roles based on specified criteria.
      *
-     * @param limit The maximum number of roles to retrieve.
-     * @param offset The starting index from which to retrieve roles.
-     * @param sortBy The attribute by which the roles should be sorted (e.g., "name", "creationDate").
-     * @param sortOrder The order in which to sort the roles.
+     * @param limit        The maximum number of roles to retrieve.
+     * @param offset       The starting index from which to retrieve roles.
+     * @param sortBy       The attribute by which the roles should be sorted (e.g., "name", "creationDate").
+     * @param sortOrder    The order in which to sort the roles.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
     boolean preGetRoles(Integer limit, Integer offset, String sortBy, String sortOrder,
-                                            String tenantDomain) throws IdentityRoleManagementException;
+                        String tenantDomain) throws IdentityRoleManagementException;
 
     /**
-     * Invoked before retrieving a list of roles based on specified criteria.
+     * Invoked after retrieving a list of roles based on specified criteria.
      *
      * @param roleBasicInfoList The list of role basic info.
-     * @param limit The maximum number of roles to retrieve.
-     * @param offset The starting index from which to retrieve roles.
-     * @param sortBy The attribute by which the roles should be sorted (e.g., "name", "creationDate").
-     * @param sortOrder The order in which to sort the roles.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param limit             The maximum number of roles to retrieve.
+     * @param offset            The starting index from which to retrieve roles.
+     * @param sortBy            The attribute by which the roles should be sorted (e.g., "name", "creationDate").
+     * @param sortOrder         The order in which to sort the roles.
+     * @param tenantDomain      The domain in which the operation is being performed.
      * @return true if the retrieval should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
@@ -123,11 +123,11 @@ public interface RoleManagementListener {
     /**
      * Invoked before retrieving a list of roles based on specified criteria.
      *
-     * @param filter The filter value.
-     * @param limit The maximum number of roles to retrieve.
-     * @param offset The starting index from which to retrieve roles.
-     * @param sortBy The attribute by which the roles should be sorted (e.g., "name", "creationDate").
-     * @param sortOrder The order in which to sort the roles.
+     * @param filter       The filter value.
+     * @param limit        The maximum number of roles to retrieve.
+     * @param offset       The starting index from which to retrieve roles.
+     * @param sortBy       The attribute by which the roles should be sorted (e.g., "name", "creationDate").
+     * @param sortOrder    The order in which to sort the roles.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
@@ -136,15 +136,15 @@ public interface RoleManagementListener {
                         String tenantDomain) throws IdentityRoleManagementException;
 
     /**
-     * Invoked before retrieving a list of roles based on specified criteria.
+     * Invoked after retrieving a list of roles based on specified criteria.
      *
      * @param roleBasicInfoList The list of role basic info.
-     * @param filter The filter value.
-     * @param limit The maximum number of roles to retrieve.
-     * @param offset The starting index from which to retrieve roles.
-     * @param sortBy The attribute by which the roles should be sorted (e.g., "name", "creationDate").
-     * @param sortOrder The order in which to sort the roles.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param filter            The filter value.
+     * @param limit             The maximum number of roles to retrieve.
+     * @param offset            The starting index from which to retrieve roles.
+     * @param sortBy            The attribute by which the roles should be sorted (e.g., "name", "creationDate").
+     * @param sortOrder         The order in which to sort the roles.
+     * @param tenantDomain      The domain in which the operation is being performed.
      * @return true if the retrieval should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
@@ -154,284 +154,284 @@ public interface RoleManagementListener {
     /**
      * Invoked before retrieving details of a specific role.
      *
-     * @param roleID The unique identifier of the role to be retrieved.
+     * @param roleId       The unique identifier of the role to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean preGetRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+    boolean preGetRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked after retrieving details of a specific role.
      *
-     * @param role The role object.
-     * @param roleID The unique identifier of the role to be retrieved.
+     * @param role         The role object.
+     * @param roleId       The unique identifier of the role to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean postGetRole(Role role, String roleID, String tenantDomain) throws IdentityRoleManagementException;
+    boolean postGetRole(Role role, String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
-     * Invoked before retrieving details of a specific role.
+     * Invoked before retrieving basic details of a specific role.
      *
-     * @param roleID The unique identifier of the role to be retrieved.
+     * @param roleId       The unique identifier of the role to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean preGetRoleBasicInfo(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+    boolean preGetRoleBasicInfo(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
-     * Invoked after retrieving details of a specific role.
+     * Invoked after retrieving basic details of a specific role.
      *
      * @param roleBasicInfo The role basic info object.
-     * @param roleID The unique identifier of the role to be retrieved.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param roleId        The unique identifier of the role to be retrieved.
+     * @param tenantDomain  The domain in which the operation is being performed.
      * @return true if the retrieval should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean postGetRoleBasicInfo(RoleBasicInfo roleBasicInfo, String roleID, String tenantDomain)
+    boolean postGetRoleBasicInfo(RoleBasicInfo roleBasicInfo, String roleId, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
      * Invoked before updating the name of a specific role.
      *
-     * @param roleID The unique identifier of the role whose name is to be updated.
-     * @param newRoleName The new name intended for the role.
+     * @param roleId       The unique identifier of the role whose name is to be updated.
+     * @param newRoleName  The new name intended for the role.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the name update should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
-    boolean preUpdateRoleName(String roleID, String newRoleName, String tenantDomain)
+    boolean preUpdateRoleName(String roleId, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
      * Invoked after updating the name of a specific role.
      *
-     * @param roleID The unique identifier of the role whose name is to be updated.
-     * @param newRoleName The new name intended for the role.
+     * @param roleId       The unique identifier of the role whose name is to be updated.
+     * @param newRoleName  The new name intended for the role.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the name update should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
-    boolean postUpdateRoleName(String roleID, String newRoleName, String tenantDomain)
+    boolean postUpdateRoleName(String roleId, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
      * Invoked before deleting a specific role.
      *
-     * @param roleID The unique identifier of the role to be deleted.
+     * @param roleId       The unique identifier of the role to be deleted.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the role deletion should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-deletion phase.
      */
-    boolean preDeleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+    boolean preDeleteRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked after deleting a specific role.
      *
-     * @param roleID The unique identifier of the role to be deleted.
+     * @param roleId       The unique identifier of the role to be deleted.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the role deletion should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-deletion phase.
      */
-    boolean postDeleteRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+    boolean postDeleteRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked before retrieving the list of users associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the user list is to be retrieved.
+     * @param roleId       The unique identifier of the role for which the user list is to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of the user list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean preGetUserListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+    boolean preGetUserListOfRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked after retrieving the list of users associated with a specific role.
      *
      * @param userBasicInfoList User basic info list.
-     * @param roleID The unique identifier of the role for which the user list is to be retrieved.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param roleId            The unique identifier of the role for which the user list is to be retrieved.
+     * @param tenantDomain      The domain in which the operation is being performed.
      * @return true if the retrieval of the user list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean postGetUserListOfRole(List<UserBasicInfo> userBasicInfoList, String roleID, String tenantDomain)
+    boolean postGetUserListOfRole(List<UserBasicInfo> userBasicInfoList, String roleId, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
      * Invoked before updating the list of users associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the user list is to be updated.
-     * @param newUserIDList A list of user IDs to be newly associated with the role.
+     * @param roleId            The unique identifier of the role for which the user list is to be updated.
+     * @param newUserIDList     A list of user IDs to be newly associated with the role.
      * @param deletedUserIDList A list of user IDs to be disassociated from the role.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param tenantDomain      The domain in which the operation is being performed.
      * @return true if the update of the user list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
-    boolean preUpdateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
+    boolean preUpdateUserListOfRole(String roleId, List<String> newUserIDList, List<String> deletedUserIDList,
                                     String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked after updating the list of users associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the user list is to be updated.
-     * @param newUserIDList A list of user IDs to be newly associated with the role.
+     * @param roleId            The unique identifier of the role for which the user list is to be updated.
+     * @param newUserIDList     A list of user IDs to be newly associated with the role.
      * @param deletedUserIDList A list of user IDs to be disassociated from the role.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param tenantDomain      The domain in which the operation is being performed.
      * @return true if the update of the user list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
-    boolean postUpdateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
-                                    String tenantDomain) throws IdentityRoleManagementException;
+    boolean postUpdateUserListOfRole(String roleId, List<String> newUserIDList, List<String> deletedUserIDList,
+                                     String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked before retrieving the list of groups associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the group list is to be retrieved.
+     * @param roleId       The unique identifier of the role for which the group list is to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of the group list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean preGetGroupListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+    boolean preGetGroupListOfRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked after retrieving the list of groups associated with a specific role.
      *
      * @param groupBasicInfoList Group basic info list.
-     * @param roleID The unique identifier of the role for which the group list is to be retrieved.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param roleId             The unique identifier of the role for which the group list is to be retrieved.
+     * @param tenantDomain       The domain in which the operation is being performed.
      * @return true if the retrieval of the group list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean postGetGroupListOfRole(List<GroupBasicInfo> groupBasicInfoList, String roleID, String tenantDomain)
+    boolean postGetGroupListOfRole(List<GroupBasicInfo> groupBasicInfoList, String roleId, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
      * Invoked before updating the list of groups associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the group list is to be updated.
-     * @param newGroupIDList A list of group IDs to be newly associated with the role.
+     * @param roleId             The unique identifier of the role for which the group list is to be updated.
+     * @param newGroupIDList     A list of group IDs to be newly associated with the role.
      * @param deletedGroupIDList A list of group IDs to be disassociated from the role.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param tenantDomain       The domain in which the operation is being performed.
      * @return true if the update of the group list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
-    boolean preUpdateGroupListOfRole(String roleID, List<String> newGroupIDList, List<String> deletedGroupIDList,
+    boolean preUpdateGroupListOfRole(String roleId, List<String> newGroupIDList, List<String> deletedGroupIDList,
                                      String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked after updating the list of groups associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the group list is to be updated.
-     * @param newGroupIDList A list of group IDs to be newly associated with the role.
+     * @param roleId             The unique identifier of the role for which the group list is to be updated.
+     * @param newGroupIDList     A list of group IDs to be newly associated with the role.
      * @param deletedGroupIDList A list of group IDs to be disassociated from the role.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param tenantDomain       The domain in which the operation is being performed.
      * @return true if the update of the group list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
-    boolean postUpdateGroupListOfRole(String roleID, List<String> newGroupIDList, List<String> deletedGroupIDList,
-                                     String tenantDomain) throws IdentityRoleManagementException;
+    boolean postUpdateGroupListOfRole(String roleId, List<String> newGroupIDList, List<String> deletedGroupIDList,
+                                      String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked before retrieving the list of Identity Provider (IdP) groups associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the IdP group list is to be retrieved.
+     * @param roleId       The unique identifier of the role for which the IdP group list is to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of the IdP group list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean preGetIdpGroupListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+    boolean preGetIdpGroupListOfRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked after retrieving the list of Identity Provider (IdP) groups associated with a specific role.
      *
-     * @param idpGroups Idp groups.
-     * @param roleID The unique identifier of the role for which the IdP group list is to be retrieved.
+     * @param idpGroups    Idp groups.
+     * @param roleId       The unique identifier of the role for which the IdP group list is to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of the IdP group list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean postGetIdpGroupListOfRole(List<IdpGroup> idpGroups, String roleID, String tenantDomain)
+    boolean postGetIdpGroupListOfRole(List<IdpGroup> idpGroups, String roleId, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
      * Invoked before updating the list of Identity Provider (IdP) groups associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the IdP group list is to be updated.
-     * @param newGroupIDList A list of IdP groups to be newly associated with the role.
+     * @param roleId             The unique identifier of the role for which the IdP group list is to be updated.
+     * @param newGroupIDList     A list of IdP groups to be newly associated with the role.
      * @param deletedGroupIDList A list of IdP groups to be disassociated from the role.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param tenantDomain       The domain in which the operation is being performed.
      * @return true if the update of the IdP group list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
-    boolean preUpdateIdpGroupListOfRole(String roleID, List<IdpGroup> newGroupIDList,
+    boolean preUpdateIdpGroupListOfRole(String roleId, List<IdpGroup> newGroupIDList,
                                         List<IdpGroup> deletedGroupIDList, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
      * Invoked after updating the list of Identity Provider (IdP) groups associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the IdP group list is to be updated.
-     * @param newGroupIDList A list of IdP groups to be newly associated with the role.
+     * @param roleId             The unique identifier of the role for which the IdP group list is to be updated.
+     * @param newGroupIDList     A list of IdP groups to be newly associated with the role.
      * @param deletedGroupIDList A list of IdP groups to be disassociated from the role.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param tenantDomain       The domain in which the operation is being performed.
      * @return true if the update of the IdP group list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
-    boolean postUpdateIdpGroupListOfRole(String roleID, List<IdpGroup> newGroupIDList,
-                                        List<IdpGroup> deletedGroupIDList, String tenantDomain)
+    boolean postUpdateIdpGroupListOfRole(String roleId, List<IdpGroup> newGroupIDList,
+                                         List<IdpGroup> deletedGroupIDList, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
      * Invoked before retrieving the list of permissions associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the permissions list is to be retrieved.
+     * @param roleId       The unique identifier of the role for which the permissions list is to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of the permissions list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean preGetPermissionListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+    boolean preGetPermissionListOfRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked after retrieving the list of permissions associated with a specific role.
      *
      * @param permissionListOfRole Permission list of role.
-     * @param roleID The unique identifier of the role for which the permissions list is to be retrieved.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param roleId               The unique identifier of the role for which the permissions list is to be retrieved.
+     * @param tenantDomain         The domain in which the operation is being performed.
      * @return true if the retrieval of the permissions list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    boolean postGetPermissionListOfRole(List<Permission> permissionListOfRole, String roleID, String tenantDomain)
+    boolean postGetPermissionListOfRole(List<Permission> permissionListOfRole, String roleId, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
      * Invoked before updating the list of permissions associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the permissions are to be updated.
-     * @param addedPermissions A list of permissions to be newly associated with the role.
+     * @param roleId             The unique identifier of the role for which the permissions are to be updated.
+     * @param addedPermissions   A list of permissions to be newly associated with the role.
      * @param deletedPermissions A list of permissions to be disassociated from the role.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param tenantDomain       The domain in which the operation is being performed.
      * @return true if the update of the permissions list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
-    boolean preUpdatePermissionsForRole(String roleID, List<Permission> addedPermissions,
+    boolean preUpdatePermissionsForRole(String roleId, List<Permission> addedPermissions,
                                         List<Permission> deletedPermissions, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
      * Invoked after updating the list of permissions associated with a specific role.
      *
-     * @param roleID The unique identifier of the role for which the permissions are to be updated.
-     * @param addedPermissions A list of permissions to be newly associated with the role.
+     * @param roleId             The unique identifier of the role for which the permissions are to be updated.
+     * @param addedPermissions   A list of permissions to be newly associated with the role.
      * @param deletedPermissions A list of permissions to be disassociated from the role.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param tenantDomain       The domain in which the operation is being performed.
      * @return true if the update of the permissions list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
-    boolean postUpdatePermissionsForRole(String roleID, List<Permission> addedPermissions,
-                                        List<Permission> deletedPermissions, String tenantDomain)
+    boolean postUpdatePermissionsForRole(String roleId, List<Permission> addedPermissions,
+                                         List<Permission> deletedPermissions, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
@@ -446,18 +446,17 @@ public interface RoleManagementListener {
     /**
      * Invoked after retrieving the count of roles within a specified tenant domain.
      *
-     * @param count The number of roles retrieved from the specified tenant domain.
+     * @param count        The number of roles retrieved from the specified tenant domain.
      * @param tenantDomain The domain in which the operation was performed.
      * @return true if the post-retrieval operation should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
      */
     boolean postGetRolesCount(int count, String tenantDomain) throws IdentityRoleManagementException;
 
-
     /**
      * Invoked before retrieving the list of roles associated with a specific user in the given tenant domain.
      *
-     * @param userId The unique identifier of the user for whom the roles list is to be retrieved.
+     * @param userId       The unique identifier of the user for whom the roles list is to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of the user's roles list should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
@@ -468,19 +467,18 @@ public interface RoleManagementListener {
      * Invoked after retrieving the list of roles associated with a specific user in the given tenant domain.
      *
      * @param roleBasicInfoList A list of basic role information retrieved for the specified user.
-     * @param userId The unique identifier of the user for whom the roles list was retrieved.
-     * @param tenantDomain The domain in which the operation was performed.
+     * @param userId            The unique identifier of the user for whom the roles list was retrieved.
+     * @param tenantDomain      The domain in which the operation was performed.
      * @return true if the post-retrieval operation should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
      */
     boolean postGetRoleListOfUser(List<RoleBasicInfo> roleBasicInfoList, String userId, String tenantDomain)
             throws IdentityRoleManagementException;
 
-
     /**
      * Invoked before retrieving the list of roles associated with specific groups in the given tenant domain.
      *
-     * @param groupIds A list of unique identifiers for the groups for which the roles list is to be retrieved.
+     * @param groupIds     A list of unique identifiers for the groups for which the roles list is to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of roles list for the specified groups should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
@@ -492,20 +490,19 @@ public interface RoleManagementListener {
      * Invoked after retrieving the list of roles associated with specific groups in the given tenant domain.
      *
      * @param roleBasicInfoList A list of basic role information retrieved for the specified groups.
-     * @param groupIds A list of unique identifiers for the groups for which the roles list was retrieved.
-     * @param tenantDomain The domain in which the operation was performed.
+     * @param groupIds          A list of unique identifiers for the groups for which the roles list was retrieved.
+     * @param tenantDomain      The domain in which the operation was performed.
      * @return true if the post-retrieval operation should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
      */
     boolean postGetRoleListOfGroups(List<RoleBasicInfo> roleBasicInfoList, List<String> groupIds, String tenantDomain)
             throws IdentityRoleManagementException;
 
-
     /**
      * Invoked before retrieving the list of roles associated with specific Identity Provider (IdP) groups in
      * the given tenant domain.
      *
-     * @param groupIds A list of unique identifiers for the IdP groups for which the roles list is to be retrieved.
+     * @param groupIds     A list of unique identifiers for the IdP groups for which the roles list is to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of roles list for the specified IdP groups should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
@@ -518,19 +515,18 @@ public interface RoleManagementListener {
      * the given tenant domain.
      *
      * @param roleBasicInfoList A list of basic role information retrieved for the specified IdP groups.
-     * @param groupIds A list of unique identifiers for the IdP groups for which the roles list was retrieved.
-     * @param tenantDomain The domain in which the operation was performed.
+     * @param groupIds          A list of unique identifiers for the IdP groups for which the roles list was retrieved.
+     * @param tenantDomain      The domain in which the operation was performed.
      * @return true if the post-retrieval operation should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
      */
     boolean postGetRoleListOfIdpGroups(List<RoleBasicInfo> roleBasicInfoList, List<String> groupIds,
                                        String tenantDomain) throws IdentityRoleManagementException;
 
-
     /**
      * Invoked before retrieving the list of role IDs associated with a specific user in the given tenant domain.
      *
-     * @param userId The unique identifier for the user for which the role IDs list is to be retrieved.
+     * @param userId       The unique identifier for the user for which the role IDs list is to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of role IDs for the specified user should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
@@ -540,8 +536,8 @@ public interface RoleManagementListener {
     /**
      * Invoked after retrieving the list of role IDs associated with a specific user in the given tenant domain.
      *
-     * @param roleIds A list of role IDs retrieved for the specified user.
-     * @param userId The unique identifier for the user for which the role IDs list was retrieved.
+     * @param roleIds      A list of role IDs retrieved for the specified user.
+     * @param userId       The unique identifier for the user for which the role IDs list was retrieved.
      * @param tenantDomain The domain in which the operation was performed.
      * @return true if the post-retrieval operation should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
@@ -549,11 +545,10 @@ public interface RoleManagementListener {
     boolean postGetRoleIdListOfUser(List<String> roleIds, String userId, String tenantDomain)
             throws IdentityRoleManagementException;
 
-
     /**
      * Invoked before retrieving the list of role IDs associated with specific groups in the given tenant domain.
      *
-     * @param groupIds A list of unique identifiers for the groups for which the role IDs list is to be retrieved.
+     * @param groupIds     A list of unique identifiers for the groups for which the role IDs list is to be retrieved.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of role IDs for the specified groups should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
@@ -563,7 +558,7 @@ public interface RoleManagementListener {
     /**
      * Invoked after retrieving the list of role IDs associated with specific groups in the given tenant domain.
      *
-     * @param roleIds A list of role IDs retrieved for the specified groups.
+     * @param roleIds      A list of role IDs retrieved for the specified groups.
      * @param tenantDomain The domain in which the operation was performed.
      * @return true if the post-retrieval operation should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
@@ -574,7 +569,7 @@ public interface RoleManagementListener {
      * Invoked before retrieving the list of role IDs associated with specific Identity Provider (IdP) groups
      * in the given tenant domain.
      *
-     * @param groupIds A list of unique identifiers for the IdP groups for which the role IDs list is to be retrieved.
+     * @param groupIds     A list of unique identifiers for the IdP groups.
      * @param tenantDomain The domain in which the operation is being performed.
      * @return true if the retrieval of role IDs for the specified IdP groups should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
@@ -586,8 +581,8 @@ public interface RoleManagementListener {
      * Invoked after retrieving the list of role IDs associated with specific Identity Provider (IdP) groups
      * in the given tenant domain.
      *
-     * @param roleIds A list of role IDs retrieved for the specified IdP groups.
-     * @param groupIds A list of unique identifiers for the IdP groups for which the role IDs list was retrieved.
+     * @param roleIds      A list of role IDs retrieved for the specified IdP groups.
+     * @param groupIds     A list of unique identifiers for the IdP groups for which the role IDs list was retrieved.
      * @param tenantDomain The domain in which the operation was performed.
      * @return true if the post-retrieval operation should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
@@ -595,12 +590,11 @@ public interface RoleManagementListener {
     boolean postGetRoleIdListOfIdpGroups(List<String> roleIds, List<String> groupIds, String tenantDomain)
             throws IdentityRoleManagementException;
 
-
     /**
      * Invoked before deleting roles associated with a specific application in the given tenant domain.
      *
      * @param applicationId The unique identifier of the application for which roles are to be deleted.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param tenantDomain  The domain in which the operation is being performed.
      * @return true if the deletion of roles for the specified application should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the pre-deletion phase.
      */
@@ -611,7 +605,7 @@ public interface RoleManagementListener {
      * Invoked after deleting roles associated with a specific application in the given tenant domain.
      *
      * @param applicationId The unique identifier of the application for which roles were deleted.
-     * @param tenantDomain The domain in which the operation was performed.
+     * @param tenantDomain  The domain in which the operation was performed.
      * @return true if the post-deletion operation should proceed, false otherwise.
      * @throws IdentityRoleManagementException If an error occurs during the post-deletion phase.
      */

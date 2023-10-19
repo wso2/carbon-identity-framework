@@ -19,10 +19,10 @@ package org.wso2.carbon.identity.role.v2.mgt.core.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementClientException;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.GroupDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID
  */
 public class GroupIDResolver implements IDResolver {
 
-    private Log log = LogFactory.getLog(GroupIDResolver.class);
+    private static final Log log = LogFactory.getLog(GroupIDResolver.class);
 
     @Override
     public String getNameByID(String id, String tenantDomain) throws IdentityRoleManagementException {

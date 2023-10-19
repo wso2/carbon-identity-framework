@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.dao;
 
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 
 import java.util.List;
 import java.util.Map;

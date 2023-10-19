@@ -30,7 +30,7 @@ import java.util.Locale;
  */
 public class RoleManagementUtils {
 
-    private Log log = LogFactory.getLog(RoleManagementUtils.class);
+    private static final Log log = LogFactory.getLog(RoleManagementUtils.class);
 
     /**
      * Checks whether the given role is an internal or application role.

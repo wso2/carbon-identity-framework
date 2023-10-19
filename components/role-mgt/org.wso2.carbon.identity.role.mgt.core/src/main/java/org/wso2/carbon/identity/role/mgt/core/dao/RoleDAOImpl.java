@@ -94,45 +94,45 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MY_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.ORACLE;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.POSTGRE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_WITH_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_WITH_AUDIENCE_SQL_MSSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_ROLE_WITH_UUID_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_SCIM_ROLE_ID_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_WITH_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_WITH_AUDIENCE_SQL_MSSQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_DB2;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_INFORMIX;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_MSSQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_MYSQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_ORACLE;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_POSTGRESQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL_MSSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_DB2;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_INFORMIX;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_MSSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_MYSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_ORACLE;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_POSTGRESQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_GROUP_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_ROLE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_SCIM_ROLE_WITH_AUDIENCE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_SCIM_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_USER_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_WITH_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_DB2;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_INFORMIX;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_MSSQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_MYSQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_ORACLE;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_POSTGRESQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_AUDIENCE_DB2;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_AUDIENCE_INFORMIX;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_AUDIENCE_MSSQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_AUDIENCE_MYSQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_AUDIENCE_ORACLE;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_AUDIENCE_POSTGRESQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_WITH_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_WITH_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_WITH_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_WITH_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_WITH_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_GROUP_FROM_ROLE_WITH_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_USER_FROM_ROLE_WITH_AUDIENCE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_DB2;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_INFORMIX;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_MSSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_MYSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_ORACLE;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_POSTGRESQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_UUID_DB2;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_UUID_INFORMIX;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_UUID_MSSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_UUID_MYSQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_UUID_ORACLE;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_UUID_POSTGRESQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_GROUP_FROM_ROLE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_USER_FROM_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_HYBRID_ROLE_UUID_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_ROLE_NAME_WITH_AUDIENCE_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_SCIM_ROLE_NAME_WITH_AUDIENCE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_ROLE_NAME_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_SCIM_ROLE_NAME_SQL;
 
 /**
  * Implementation of the {@link RoleDAO} interface.
@@ -177,9 +177,9 @@ public class RoleDAOImpl implements RoleDAO {
                     // Add users to the created role.
                     if (CollectionUtils.isNotEmpty(userList)) {
                         List<String> userNamesList = getUserNamesByIDs(userList, tenantDomain);
-                        String addUsersSQL = ADD_USER_TO_ROLE_WITH_AUDIENCE_SQL;
+                        String addUsersSQL = ADD_USER_TO_ROLE_SQL;
                         if (MICROSOFT.equals(databaseProductName)) {
-                            addUsersSQL = ADD_USER_TO_ROLE_WITH_AUDIENCE_SQL_MSSQL;
+                            addUsersSQL = ADD_USER_TO_ROLE_SQL_MSSQL;
                         }
                         processBatchUpdateForUsers(roleName, userNamesList, tenantId, primaryDomainName, connection,
                                 addUsersSQL);
@@ -193,9 +193,9 @@ public class RoleDAOImpl implements RoleDAO {
                     if (CollectionUtils.isNotEmpty(groupList)) {
                         Map<String, String> groupIdsToNames = getGroupNamesByIDs(groupList, tenantDomain);
                         List<String> groupNamesList = new ArrayList<>(groupIdsToNames.values());
-                        String addGroupsSQL = ADD_GROUP_TO_ROLE_WITH_AUDIENCE_SQL;
+                        String addGroupsSQL = ADD_GROUP_TO_ROLE_SQL;
                         if (MICROSOFT.equals(databaseProductName)) {
-                            addGroupsSQL = ADD_GROUP_TO_ROLE_WITH_AUDIENCE_SQL_MSSQL;
+                            addGroupsSQL = ADD_GROUP_TO_ROLE_SQL_MSSQL;
                         }
                         processBatchUpdateForGroups(roleName, groupNamesList, tenantId, primaryDomainName, connection,
                                 addGroupsSQL);
@@ -450,17 +450,17 @@ public class RoleDAOImpl implements RoleDAO {
         if (MY_SQL.equals(databaseProductName)
                 || MARIADB.equals(databaseProductName)
                 || H2.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_MYSQL;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_MYSQL;
         } else if (ORACLE.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_ORACLE;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_ORACLE;
         } else if (MICROSOFT.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_MSSQL;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_MSSQL;
         } else if (POSTGRE_SQL.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_POSTGRESQL;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_POSTGRESQL;
         } else if (databaseProductName != null && databaseProductName.contains(DB2)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_DB2;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_DB2;
         } else if (INFORMIX.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_AUDIENCE_INFORMIX;
+            return GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_INFORMIX;
         }
 
         throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
@@ -474,17 +474,17 @@ public class RoleDAOImpl implements RoleDAO {
         if (MY_SQL.equals(databaseProductName)
                 || MARIADB.equals(databaseProductName)
                 || H2.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_WITH_AUDIENCE_MYSQL;
+            return GET_ROLES_BY_TENANT_WITH_UUID_MYSQL;
         } else if (ORACLE.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_WITH_AUDIENCE_ORACLE;
+            return GET_ROLES_BY_TENANT_WITH_UUID_ORACLE;
         } else if (MICROSOFT.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_WITH_AUDIENCE_MSSQL;
+            return GET_ROLES_BY_TENANT_WITH_UUID_MSSQL;
         } else if (POSTGRE_SQL.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_WITH_AUDIENCE_POSTGRESQL;
+            return GET_ROLES_BY_TENANT_WITH_UUID_POSTGRESQL;
         } else if (databaseProductName != null && databaseProductName.contains(DB2)) {
-            return GET_ROLES_BY_TENANT_WITH_AUDIENCE_DB2;
+            return GET_ROLES_BY_TENANT_WITH_UUID_DB2;
         } else if (INFORMIX.equals(databaseProductName)) {
-            return GET_ROLES_BY_TENANT_WITH_AUDIENCE_INFORMIX;
+            return GET_ROLES_BY_TENANT_WITH_UUID_INFORMIX;
         }
 
         throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
@@ -498,17 +498,17 @@ public class RoleDAOImpl implements RoleDAO {
         if (MY_SQL.equals(databaseProductName)
                 || MARIADB.equals(databaseProductName)
                 || H2.equals(databaseProductName)) {
-            return COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_MYSQL;
+            return COUNT_ROLES_BY_TENANT_MYSQL;
         } else if (ORACLE.equals(databaseProductName)) {
-            return COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_ORACLE;
+            return COUNT_ROLES_BY_TENANT_ORACLE;
         } else if (MICROSOFT.equals(databaseProductName)) {
-            return COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_MSSQL;
+            return COUNT_ROLES_BY_TENANT_MSSQL;
         } else if (POSTGRE_SQL.equals(databaseProductName)) {
-            return COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_POSTGRESQL;
+            return COUNT_ROLES_BY_TENANT_POSTGRESQL;
         } else if (databaseProductName != null && databaseProductName.contains(DB2)) {
-            return COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_DB2;
+            return COUNT_ROLES_BY_TENANT_DB2;
         } else if (INFORMIX.equals(databaseProductName)) {
-            return COUNT_ROLES_BY_TENANT_WITH_AUDIENCE_INFORMIX;
+            return COUNT_ROLES_BY_TENANT_INFORMIX;
         }
 
         throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
@@ -617,17 +617,17 @@ public class RoleDAOImpl implements RoleDAO {
 
             try {
                 // Add new users to the role.
-                String addUsersSQL = ADD_USER_TO_ROLE_WITH_AUDIENCE_SQL;
+                String addUsersSQL = ADD_USER_TO_ROLE_SQL;
                 String databaseProductName = connection.getMetaData().getDatabaseProductName();
                 if (MICROSOFT.equals(databaseProductName)) {
-                    addUsersSQL = ADD_USER_TO_ROLE_WITH_AUDIENCE_SQL_MSSQL;
+                    addUsersSQL = ADD_USER_TO_ROLE_SQL_MSSQL;
                 }
                 processBatchUpdateForUsers(roleName, newUserNamesList, tenantId, primaryDomainName, connection,
                         addUsersSQL);
 
                 // Delete existing users from the role.
                 processBatchUpdateForUsers(roleName, deletedUserNamesList, tenantId, primaryDomainName, connection,
-                        REMOVE_USER_FROM_ROLE_WITH_AUDIENCE_SQL);
+                        REMOVE_USER_FROM_ROLE_SQL);
 
                 IdentityDatabaseUtil.commitUserDBTransaction(connection);
             } catch (SQLException e) {
@@ -752,17 +752,17 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             try {
                 // Add new groups to the role.
-                String addGroupsSQL = ADD_GROUP_TO_ROLE_WITH_AUDIENCE_SQL;
+                String addGroupsSQL = ADD_GROUP_TO_ROLE_SQL;
                 String databaseProductName = connection.getMetaData().getDatabaseProductName();
                 if (MICROSOFT.equals(databaseProductName)) {
-                    addGroupsSQL = ADD_GROUP_TO_ROLE_WITH_AUDIENCE_SQL_MSSQL;
+                    addGroupsSQL = ADD_GROUP_TO_ROLE_SQL_MSSQL;
                 }
                 processBatchUpdateForGroups(roleName, newGroupNamesList, tenantId, primaryDomainName, connection,
                         addGroupsSQL);
 
                 // Delete existing groups from the role.
                 processBatchUpdateForGroups(roleName, deletedGroupNamesList, tenantId, primaryDomainName, connection,
-                        REMOVE_GROUP_FROM_ROLE_WITH_AUDIENCE_SQL);
+                        REMOVE_GROUP_FROM_ROLE_SQL);
 
                 IdentityDatabaseUtil.commitUserDBTransaction(connection);
             } catch (SQLException e) {
@@ -865,7 +865,7 @@ public class RoleDAOImpl implements RoleDAO {
 
             try {
                 try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                        UPDATE_ROLE_NAME_WITH_AUDIENCE_SQL, RoleTableColumns.UM_ID)) {
+                        UPDATE_ROLE_NAME_SQL, RoleTableColumns.UM_ID)) {
                     statement.setString(RoleTableColumns.NEW_UM_ROLE_NAME, newRoleName);
                     statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                     statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
@@ -920,7 +920,7 @@ public class RoleDAOImpl implements RoleDAO {
         newRoleName = appendInternalDomain(newRoleName);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    UPDATE_SCIM_ROLE_NAME_WITH_AUDIENCE_SQL)) {
+                    UPDATE_SCIM_ROLE_NAME_SQL)) {
                 statement.setString(RoleTableColumns.NEW_ROLE_NAME, newRoleName);
                 statement.setInt(RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleTableColumns.ROLE_NAME, roleName);
@@ -1015,7 +1015,7 @@ public class RoleDAOImpl implements RoleDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    DELETE_SCIM_ROLE_WITH_AUDIENCE_SQL)) {
+                    DELETE_SCIM_ROLE_SQL)) {
                 statement.setInt(RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleTableColumns.ROLE_NAME, roleName);
                 statement.executeUpdate();
@@ -1041,7 +1041,7 @@ public class RoleDAOImpl implements RoleDAO {
         boolean isExist = false;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    IS_ROLE_EXIST_WITH_AUDIENCE_SQL, RoleTableColumns.UM_ID)) {
+                    IS_ROLE_EXIST_SQL, RoleTableColumns.UM_ID)) {
                 statement.setString(RoleTableColumns.UM_ROLE_NAME, removeInternalDomain(roleName));
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -1068,7 +1068,7 @@ public class RoleDAOImpl implements RoleDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    IS_ROLE_ID_EXIST_WITH_AUDIENCE_SQL)) {
+                    IS_ROLE_ID_EXIST_SQL)) {
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_VALUE, roleID);
@@ -1118,7 +1118,7 @@ public class RoleDAOImpl implements RoleDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    GET_USER_LIST_OF_ROLE_WITH_AUDIENCE_SQL, RoleTableColumns.UM_ID)) {
+                    GET_USER_LIST_OF_ROLE_SQL, RoleTableColumns.UM_ID)) {
                 statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -1183,7 +1183,7 @@ public class RoleDAOImpl implements RoleDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    GET_GROUP_LIST_OF_ROLE_WITH_AUDIENCE_SQL, RoleTableColumns.UM_ID)) {
+                    GET_GROUP_LIST_OF_ROLE_SQL, RoleTableColumns.UM_ID)) {
                 statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -1418,7 +1418,7 @@ public class RoleDAOImpl implements RoleDAO {
         String roleID = null;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    GET_ROLE_ID_BY_NAME_WITH_AUDIENCE_SQL)) {
+                    GET_ROLE_ID_BY_NAME_SQL)) {
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
@@ -1474,7 +1474,7 @@ public class RoleDAOImpl implements RoleDAO {
         String roleID;
         for (String roleName : roleNames) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    GET_ROLE_ID_BY_NAME_WITH_AUDIENCE_SQL)) {
+                    GET_ROLE_ID_BY_NAME_SQL)) {
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleName);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
@@ -1505,7 +1505,7 @@ public class RoleDAOImpl implements RoleDAO {
         String roleName = null;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    GET_ROLE_NAME_BY_ID_WITH_AUDIENCE_SQL)) {
+                    GET_ROLE_NAME_BY_ID_SQL)) {
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_VALUE, roleID);

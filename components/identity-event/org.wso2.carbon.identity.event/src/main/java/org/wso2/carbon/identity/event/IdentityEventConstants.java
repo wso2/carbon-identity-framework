@@ -373,7 +373,6 @@ public class IdentityEventConstants {
         public static final String AUTHENTICATOR_NAME = "authenticatorName";
         public static final String MAPPED_ATTRIBUTES = "mappedAttributes";
         public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
-
         public static final String AUDIENCE = "audience";
         public static final String AUDIENCE_ID = "audienceId";
 

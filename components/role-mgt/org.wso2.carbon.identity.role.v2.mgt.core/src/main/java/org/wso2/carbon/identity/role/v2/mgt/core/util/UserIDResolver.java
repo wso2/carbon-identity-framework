@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.role.v2.mgt.core.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementClientException;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementServerException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
@@ -41,7 +41,7 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColu
  */
 public class UserIDResolver implements IDResolver {
 
-    private Log log = LogFactory.getLog(UserIDResolver.class);
+    private static final Log log = LogFactory.getLog(UserIDResolver.class);
 
     @Override
     public String getNameByID(String id, String tenantDomain) throws IdentityRoleManagementException {

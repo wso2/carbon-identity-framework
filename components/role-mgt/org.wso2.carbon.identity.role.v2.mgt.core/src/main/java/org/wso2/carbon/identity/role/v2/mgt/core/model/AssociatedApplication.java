@@ -16,30 +16,26 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.role.v2.mgt.core;
+package org.wso2.carbon.identity.role.v2.mgt.core.model;
 
 /**
- * Represents the basic attributes of an entity.
+ * Represents the Associated Application.
  */
-public class Entity {
+public class AssociatedApplication {
 
     private String id;
     private String name;
 
-    public Entity() {
-
-    }
-
-    public Entity(String id, String name) {
+    public AssociatedApplication(String id, String name) {
 
         this.id = id;
         this.name = name;
     }
 
     /**
-     * Get the entity Id.
+     * Get associated application id.
      *
-     * @return entity Id.
+     * @return Application id.
      */
     public String getId() {
 
@@ -47,9 +43,9 @@ public class Entity {
     }
 
     /**
-     * Set the entity Id.
+     * Set associated application id.
      *
-     * @param id entity Id.
+     * @param id Application id
      */
     public void setId(String id) {
 
@@ -57,9 +53,9 @@ public class Entity {
     }
 
     /**
-     * Get the entity name.
+     * Get associated application name.
      *
-     * @return entity name.
+     * @return Application name.
      */
     public String getName() {
 
@@ -67,13 +63,12 @@ public class Entity {
     }
 
     /**
-     * Set the entity name.
+     * Set associated application name.
      *
-     * @param name entity name.
+     * @param name Application name
      */
     public void setName(String name) {
 
         this.name = name;
-
     }
 }

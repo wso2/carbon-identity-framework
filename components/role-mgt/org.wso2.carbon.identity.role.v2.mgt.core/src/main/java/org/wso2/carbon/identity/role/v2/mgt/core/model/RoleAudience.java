@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.role.v2.mgt.core;
+package org.wso2.carbon.identity.role.v2.mgt.core.model;
 
 /**
  * Represents the Role Audience.
@@ -34,31 +34,61 @@ public class RoleAudience {
         this.audienceId = audienceId;
     }
 
+    /**
+     * Get the audience.
+     *
+     * @return the audience.
+     */
     public String getAudience() {
 
         return audience;
     }
 
+    /**
+     * Set the audience.
+     *
+     * @param audience the audience.
+     */
     public void setAudience(String audience) {
 
         this.audience = audience;
     }
 
+    /**
+     * Get the audience id.
+     *
+     * @return the audience id.
+     */
     public String getAudienceId() {
 
         return audienceId;
     }
 
+    /**
+     * Set the audience id.
+     *
+     * @param audienceId the audience id.
+     */
     public void setAudienceId(String audienceId) {
 
         this.audienceId = audienceId;
     }
 
+    /**
+     * Get the audience name.
+     *
+     * @return the audience name.
+     */
     public String getAudienceName() {
 
         return audienceName;
     }
 
+    /**
+     * Set the audience name.
+     *
+     * @param audienceName the audience name.
+     */
     public void setAudienceName(String audienceName) {
 
         this.audienceName = audienceName;

@@ -16,44 +16,19 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.role.v2.mgt.core;
+package org.wso2.carbon.identity.role.v2.mgt.core.model;
 
 /**
- * Represents the permission.
+ * Represents the basic attributes of user.
  */
-public class Permission {
+public class UserBasicInfo extends Entity {
 
-    private String name;
-    private String displayName;
+    public UserBasicInfo() {
 
-    public Permission(String name) {
-
-        this.name = name;
     }
 
-    public Permission(String name, String displayName) {
+    public UserBasicInfo(String id, String name) {
 
-        this.name = name;
-        this.displayName = displayName;
-    }
-
-    public String getName() {
-
-        return name;
-    }
-
-    public void setName(String name) {
-
-        this.name = name;
-    }
-
-    public String getDisplayName() {
-
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-
-        this.displayName = displayName;
+        super(id, name);
     }
 }

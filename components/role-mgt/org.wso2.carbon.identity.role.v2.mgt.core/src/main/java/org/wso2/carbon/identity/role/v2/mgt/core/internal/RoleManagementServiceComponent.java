@@ -38,7 +38,7 @@ import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
- * Role management service component.
+ * Role management V2 service component.
  */
 @Component(name = "org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponent",
            immediate = true)
@@ -53,9 +53,7 @@ public class RoleManagementServiceComponent {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(RoleManagementService.class, new RoleManagementServiceImpl(), null);
 
-            if (log.isDebugEnabled()) {
-                log.debug("Role V2 management service is activated.");
-            }
+            log.debug("Role V2 management service is activated.");
         } catch (Throwable e) {
             log.error("Error while activating Role V2 management service.", e);
         }
@@ -64,9 +62,7 @@ public class RoleManagementServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Role V2 management service is deactivated.");
-        }
+        log.debug("Role V2 management service is deactivated.");
     }
 
     @Reference(
@@ -78,17 +74,13 @@ public class RoleManagementServiceComponent {
     )
     protected void setRealmService(RealmService realmService) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Setting the Realm Service.");
-        }
+        log.debug("Setting the Realm Service.");
         RoleManagementServiceComponentHolder.getInstance().setRealmService(realmService);
     }
 
     protected void unsetRealmService(RealmService realmService) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Unsetting the Realm Service.");
-        }
+        log.debug("Unsetting the Realm Service.");
         RoleManagementServiceComponentHolder.getInstance().setRealmService(null);
     }
 
@@ -102,17 +94,13 @@ public class RoleManagementServiceComponent {
     protected void setIdentityEventService(IdentityEventService identityEventService) {
 
         RoleManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
-        if (log.isDebugEnabled()) {
-            log.debug("IdentityEventService set in Role Management bundle");
-        }
+        log.debug("IdentityEventService set in Role Management bundle");
     }
 
     protected void unsetIdentityEventService(IdentityEventService identityEventService) {
 
         RoleManagementServiceComponentHolder.getInstance().setIdentityEventService(null);
-        if (log.isDebugEnabled()) {
-            log.debug("IdentityEventService set in Role Management bundle");
-        }
+        log.debug("IdentityEventService set in Role Management bundle");
     }
 
     @Reference(name = "identity.organization.management.component",

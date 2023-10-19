@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.util;
 
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 
 /**
  * ID resolver interface.
