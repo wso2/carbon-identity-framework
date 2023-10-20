@@ -88,7 +88,7 @@ public class APIResource {
         return tenantId;
     }
 
-    public boolean isRequiresAuthorization() {
+    public boolean isAuthorizationRequired() {
 
         return requiresAuthorization;
     }

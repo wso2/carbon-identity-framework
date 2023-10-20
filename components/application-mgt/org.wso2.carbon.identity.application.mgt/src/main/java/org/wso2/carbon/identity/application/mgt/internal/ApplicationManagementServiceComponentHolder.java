@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.application.mgt.internal;
 
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -58,6 +59,7 @@ public class ApplicationManagementServiceComponentHolder {
     private OrganizationUserResidentResolverService organizationUserResidentResolverService;
 
     private ApplicationPermissionProvider applicationPermissionProvider;
+    private APIResourceManager apiResourceManager;
 
     private boolean isOrganizationManagementEnable = false;
 
@@ -271,5 +273,25 @@ public class ApplicationManagementServiceComponentHolder {
     public void setIdentityEventService(IdentityEventService identityEventService) {
 
         this.identityEventService = identityEventService;
+    }
+
+    /**
+     * Set API resource manager.
+     *
+     * @param apiResourceManager API resource manager.
+     */
+    public void setAPIResourceManager(APIResourceManager apiResourceManager) {
+
+        this.apiResourceManager = apiResourceManager;
+    }
+
+    /**
+     * Get API resource manager.
+     *
+     * @return API resource manager.
+     */
+    public APIResourceManager getAPIResourceManager() {
+
+        return apiResourceManager;
     }
 }

@@ -939,6 +939,25 @@ public class IdentityApplicationManagementUtil {
         return propValueSet;
     }
 
+    /**
+     * Get a list of property values for a given property name prefix.
+     *
+     * @param properties            Authenticator config properties to iterate with.
+     * @param propNameStartsWith    the prefix of the property name.
+     * @return the list of values which starts with the propNameStartsWith.
+     */
+    public static List<String> getPropertyValuesForNameStartsWith(Property[] properties, String propNameStartsWith) {
+
+        List<String> propValueSet = new ArrayList<>();
+        for (Property property : properties) {
+            if (property.getName().startsWith(propNameStartsWith)) {
+                propValueSet.add(property.getValue());
+            }
+        }
+
+        return propValueSet;
+    }
+
     public static String getPropertyValue(Property[] properties, String propertyName) {
 
         Property property = getProperty(properties, propertyName);

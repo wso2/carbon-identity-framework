@@ -285,6 +285,13 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
         return apiResourceManagementDAO.getSubscribedApplications(apiId);
     }
 
+    @Override
+    public List<APIResource> getScopeMetadata(List<String> scopeNames, Integer tenantId)
+            throws APIResourceMgtException {
+
+            return apiResourceManagementDAO.getScopeMetadata(scopeNames, tenantId);
+    }
+
     private void clearAPIResourceCache(String identifier, String resourceId, int tenantId) throws
             APIResourceMgtException {
 
