@@ -1,0 +1,1299 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  ~ Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<ResourceAccessControl xmlns="http://wso2.org/projects/carbon/carbon.xml" default-access="deny">
+
+    <Resource context="(.*)/lsp/(.*)" secured="true" http-method="all"/>
+    <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
+    <Resource context="/" secured="false" http-method="GET"/>
+
+    <!-- Code Management API -->
+    <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="GET">
+        <Scopes>internal_code_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
+        <Scopes>internal_code_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="PATCH, PUT">
+        <Scopes>internal_code_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_code_mgt_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/user/v1.0/introspect-code(.*)" secured="true" http-method="POST">
+        <Scopes>internal_code_mgt_view</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="GET">
+        <Scopes>internal_code_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="POST">
+        <Scopes>internal_code_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="PATCH, PUT">
+        <Scopes>internal_code_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all">
+        <Scopes>internal_code_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- User Personal Identification API -->
+    <Resource context="(.*)/api/identity/user/v1.0/pi-info" secured="true" http-method="GET">
+        <Scopes>internal_pi_info_view</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/user/v1.0/pi-info/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_pi_info_view</Scopes>
+    </Resource>
+
+    <!-- Organization User Management API -->
+    <Resource context="(.*)/o/api/identity/user/v1.0/validate-username(.*)" secured="true" http-method="all"/>
+
+    <!-- User Management API -->
+    <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_user_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/user/v1.0/validate-username(.*)" secured="true" http-method="all"/>
+    <Resource context="(.*)/api/identity/user/v1.0/lite(.*)" secured="true" http-method="POST"/>
+
+
+
+    <!-- Configuration Management API -->
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET">
+        <Scopes>internal_config_mgt_list</Scopes>
+    </Resource>
+
+    <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST">
+        <Scopes>internal_config_mgt_add</Scopes>
+    </Resource>
+    <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT">
+        <Scopes>internal_config_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_config_mgt_view</Scopes>
+    </Resource>
+    <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_config_mgt_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_config_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_config_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_config_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_config_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Notification Sender Management API -->
+    <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_notification_senders_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_notification_senders_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_notification_senders_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_notification_senders_delete</Scopes>
+    </Resource>
+
+    <!-- Secret Type Management API -->
+    <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_secret_type_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_secret_type_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_secret_type_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_secret_type_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Secret Management API -->
+    <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_secret_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_secret_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_secret_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_secret_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Organization Branding Preference Management API -->
+    <Resource context="(.*)/o/api/server/v1/branding-preference(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/o/api/server/v1/branding-preference(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_branding_preference_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/branding-preference(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_branding_preference_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/branding-preference(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_branding_preference_update</Scopes>
+    </Resource>
+
+    <!-- Branding Preference Management API -->
+    <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="POST">
+        <Scopes>internal_branding_preference_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_branding_preference_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_branding_preference_update</Scopes>
+    </Resource>
+
+    <!-- Organization Validation Rules API -->
+    <Resource context="(.*)/o/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/o/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_validation_rule_mgt_update</Scopes>
+    </Resource>
+
+    <!-- Validation Rules API -->
+    <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_validation_rule_mgt_update</Scopes>
+    </Resource>
+
+    <!-- Identity Verifier Management API -->
+    <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="POST">
+        <Scopes>internal_idvp_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_idvp_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_idvp_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="GET">
+        <Scopes>internal_idvp_view</Scopes>
+    </Resource>
+
+    <!-- Organization Consent Management API -->
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/receipts/(.*)" secured="true" http-method="all"/>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_consent_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purposes(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_consent_mgt_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_consent_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/pii-categories(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_consent_mgt_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="POST">
+        <Scopes>internalv_consent_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purpose-categories(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_consent_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Consent Management API -->
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/receipts/(.*)" secured="true" http-method="all"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="POST">
+        <Scopes>internal_consent_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_consent_mgt_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="POST">
+        <Scopes>internal_consent_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_consent_mgt_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="POST">
+        <Scopes>internal_consent_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.+)" secured="true" http-method="DELETE">
+        <Scopes>internal_consent_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Recovery API -->
+    <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_recovery_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_recvoery_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="PATCH, PUT">
+        <Scopes>internal_recovery_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_recovery_delete</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
+    <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
+
+    <!-- OAuth DCR API -->
+    <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_dcr_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_dcr_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_dcr_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_dcr_view</Scopes>
+    </Resource>
+
+    <!-- Identity Regsiter API -->
+    <Resource context="(.*)/identity/register(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_register_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="POST">
+        <Scopes>internal_register_create</Scopes>
+    </Resource>
+
+    <!-- OAuth2 Introspection API -->
+    <Resource context="(.*)/oauth2/introspect(.*)" secured="{{resource_access_control.introspect.secured}}" http-method="all">
+        <Scopes>internal_oauth2_introspect</Scopes>
+    </Resource>
+
+    <!-- Entitlement Management API -->
+    <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
+        <Scopes>internal_manage_pep</Scopes>
+    </Resource>
+
+    <!-- Organization SCIM2 Users API -->
+    <Resource context="(.*)/o/scim2/Users/.search" secured="true" http-method="POST">
+        <Scopes>internal_org_user_mgt_list</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Users(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_user_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Users(/?)" secured="true" http-method="GET">
+        <Scopes>internal_org_user_mgt_list</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Users/(.+)" secured="true" http-method="GET">
+        <Scopes>internal_org_user_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Users/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_user_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Users/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_org_user_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Users/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_user_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Organizational SCIM2 Groups API -->
+    <Resource context="(.*)/o/scim2/Groups/.search" secured="true" http-method="POST">
+        <Scopes>internal_org_group_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Groups(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_group_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Groups" secured="true" http-method="GET">
+        <Scopes>internal_org_group_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Groups/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_group_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Groups/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_group_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Groups/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_org_group_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/Groups/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_group_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Organizational SCIM2 Roles API -->
+    <Resource context="(.*)/o/scim2/v2/Roles/.search" secured="true" http-method="POST">
+        <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        <Scopes>internal_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v2/Roles(.*)" secured="true" http-method="POST">
+        <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+        <Scopes>internal_role_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v2/Roles(.*)" secured="true" http-method="GET">
+        <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        <Scopes>internal_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="PUT">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_role_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="PATCH">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_role_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="DELETE">
+        <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+        <Scopes>internal_role_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- SCIM2 Users API -->
+    <Resource context="(.*)/scim2/Users/.search" secured="true" http-method="POST">
+        <Scopes>internal_user_mgt_list</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
+        <Scopes>internal_user_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Users(/?)" secured="true" http-method="GET">
+        <Scopes>internal_user_mgt_list</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Users/(.+)" secured="true" http-method="GET">
+        <Scopes>internal_user_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_user_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_user_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_user_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- SCIM2 Groups API -->
+    <Resource context="(.*)/scim2/Groups/.search" secured="true" http-method="POST">
+        <Scopes>internal_group_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Groups(.*)" secured="true" http-method="POST">
+        <Scopes>internal_group_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Groups" secured="true" http-method="GET">
+        <Scopes>internal_group_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_group_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_group_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_group_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_group_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- SCIM2 Roles API -->
+    <Resource context="(.*)/scim2/v2/Roles/.search" secured="true" http-method="POST">
+        <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        <Scopes>internal_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Roles/.search" secured="true" http-method="POST">
+        <Scopes>internal_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Roles(.*)" secured="true" http-method="POST">
+        <Scopes>internal_role_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Roles(.*)" secured="true" http-method="GET">
+        <Scopes>internal_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_role_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_role_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_role_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v2/Roles(.*)" secured="true" http-method="POST">
+        <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+        <Scopes>internal_role_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v2/Roles(.*)" secured="true" http-method="GET">
+        <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        <Scopes>internal_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v2/Roles/(.*)" secured="true" http-method="PUT">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_role_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v2/Roles/(.*)" secured="true" http-method="PATCH">
+        <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        <Scopes>internal_role_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/v2/Roles/(.*)" secured="true" http-method="DELETE">
+        <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+        <Scopes>internal_role_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Other SCIM APIs -->
+    <Resource context="(.*)/scim2/ServiceProviderConfig" secured="false" http-method="all"/>
+    <Resource context="(.*)/scim2/ResourceTypes" secured="false" http-method="all"/>
+    <Resource context="(.*)/scim2/Schemas(.*)" secured="true" http-method="all"/>
+
+    <!-- SCIM2 Bulk API -->
+    <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="GET">
+        <Scopes>internal_bulk_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="POST">
+        <Scopes>internal_bulk_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="PATCH, PUT">
+        <Scopes>internal_bulk_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="DELETE">
+        <Scopes>internal_bulk_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Organization Authentication Data APIs -->
+    <Resource context="(.*)/o/api/identity/auth/v1.1/data(.*)" secured="true" http-method="all"/>
+    <Resource context="(.*)/o/api/identity/auth/v1.1/context(.*)" secured="true" http-method="all"/>
+    <Resource context="(.*)/o/api/identity/auth/v1.1/authenticate(.*)" secured="false" http-method="all"/>
+
+    <!-- Authentication Data APIs -->
+    <Resource context="(.*)/api/identity/auth/v1.1/data(.*)" secured="true" http-method="all"/>
+    <Resource context="(.*)/api/identity/auth/v1.1/context(.*)" secured="true" http-method="all"/>
+    <Resource context="(.*)/api/identity/auth/v1.1/authenticate(.*)" secured="false" http-method="all"/>
+
+    <!-- OAuth2.0 Scope API -->
+    <Resource context="(.*)/api/identity/oauth2/v1.0/scopes(.*)" secured="true" http-method="POST">
+        <Scopes>internal_oauth_scope_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/oauth2/v1.0/scopes(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_oauth_scope_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/oauth2/v1.0/scopes(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_oauth_scope_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/oauth2/v1.0/scopes(.*)" secured="true" http-method="GET, HEAD">
+        <Scopes>internal_oauth_scope_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
+
+    <!-- SCIM2 Me API (To create or Delete need to subscribe to SCIM2 Users API) -->
+    <Resource context="(.*)/scim2/Me" secured="true" http-method="GET">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Me" secured="true" http-method="DELETE">
+        <Scopes>internal_user_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Me" secured="true" http-method="PUT">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Me" secured="true" http-method="PATCH">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/scim2/Me" secured="true" http-method="POST">
+        <Scopes>internal_user_mgt_create</Scopes>
+    </Resource>
+
+    <!-- Organization User Me APIs -->
+    <Resource context="(.*)/o/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/o/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
+
+    <!-- User Me APIs -->
+    <Resource context="(.*)/api/users/v1/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v2/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <!-- do we need this humantask scopes here ??? -->
+    <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
+        <Scopes>internal_humantask_view</Scopes>
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/associations(.*)" secured="true" http-method="GET, POST, DELETE">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/federated-associations(.*)" secured="true" http-method="GET, DELETE">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/challenges" secured="true" http-method="GET">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/challenge-answers(.*)" secured="true" http-method="GET, PUT, POST, DELETE">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/user-functionality(.*)" secured="true" http-method="GET, PUT">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/sessions(.*)" secured="true" http-method="all">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/applications(.*)" secured="true" http-method="GET">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/idv(.*)" secured="true" http-method="GET, POST, PUT">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/webauthn(.*)" secured="true" http-method="GET">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v2/me/webauthn(.*)" secured="true" http-method="all">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="POST"/>
+    <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
+    <Resource context="(.*)/api/users/v1/me/organizations/root" secured="true" http-method="GET">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/backup-codes(.*)" secured="true" http-method="GET">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/mfa/authenticators(.*)" secured="true" http-method="GET">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/totp(.*)" secured="true" http-method="GET">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/typingdna/v1.0/(.*)" secured="true" http-method="GET, DELETE">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
+
+    <!-- Association Management API -->
+    <Resource context="(.*)/api/users/v1/(.*)/associations" secured="true" http-method="GET">
+        <Scopes>internal_user_association_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/associations" secured="true" http-method="DELETE">
+        <Scopes>internal_user_association_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/federated-associations" secured="true" http-method="GET">
+        <Scopes>internal_user_association_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/federated-associations(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_user_association_delete</Scopes>
+    </Resource>
+
+    <!-- Challenge Management API -->
+    <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="GET">
+        <Scopes>internal_challenge_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_challenge_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="POST">
+        <Scopes>internal_challenge_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_challenge_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="GET">
+        <Scopes>internal_challenge_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_challenge_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="POST">
+        <Scopes>internal_challenge_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_challenge_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Functionality Management API -->
+    <Resource context="(.*)/api/users/v1/(.*)/user-functionality(.*)" secured="true" http-method="GET">
+        <Scopes>internal_user_fucntionality_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/user-functionality(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_user_fucntionality_create</Scopes>
+    </Resource>
+
+    <!-- Account Recovery V1/V2 API -->
+    <Resource context="(.*)/api/users/v(.*)/recovery(.*)" secured="true" http-method="POST">
+        <Scopes>internal_user_recovery_create</Scopes>
+    </Resource>
+
+    <!-- Organization Claim Management API -->
+    <Resource context="(.*)/o/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_claim_meta_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/claim-dialects(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_claim_meta_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/claim-dialects/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_claim_meta_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/claim-dialects/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_claim_meta_delete</Scopes>
+    </Resource>
+
+    <!-- Claim Management API -->
+    <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
+        <Scopes>internal_claim_meta_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="GET">
+        <Scopes>internal_claim_meta_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/claim-dialects/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_claim_meta_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/claim-dialects/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_claim_meta_delete</Scopes>
+    </Resource>
+
+    <!-- Organization Email Template Management API -->
+    <Resource context="(.*)/o/api/server/v1/email/template-types(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_email_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/email/template-types(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_email_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/email/template-types/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_email_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/email/template-types/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_email_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Email Template Management API -->
+    <Resource context="(.*)/api/server/v1/email/template-types(.*)" secured="true" http-method="GET">
+        <Scopes>internal_email_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/email/template-types(.*)" secured="true" http-method="POST">
+        <Scopes>internal_email_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/email/template-types/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_email_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/email/template-types/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_email_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Keystore Management API -->
+    <Resource context="(.*)/api/server/v1/keystores/certs/public(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/api/server/v1/keystores/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_keystore_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/keystores/certs(.*)" secured="true" http-method="POST, DELETE">
+        <Scopes>internal_keystore_update</Scopes>
+    </Resource>
+
+    <!-- Organization Application Management API -->
+    <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_application_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_application_mgt_view</Scopes>
+    </Resource>
+
+    <!-- Application Management API -->
+    <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
+        <Scopes>internal_application_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_application_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_application_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="GET">
+        <Scopes>internal_application_mgt_view</Scopes>
+    </Resource>
+    <!-- Organizational Admin Application Management API ?? -->
+    <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_organization_admin</Scopes>
+    </Resource>
+    <!-- Should this go to applications mgt API -->
+    <Resource context="(.*)/api/server/v1/organizations/(.*)/share" secured="true" http-method="POST">
+        <Scopes>internal_application_mgt_update</Scopes>
+    </Resource>
+
+    <!-- Organization Identity Governance Management API -->
+    <Resource context="(.*)/o/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
+        <Scopes>internal_org_identity_governance_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_identity_governance_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/identity-governance/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_org_identity_governance_update</Scopes>
+    </Resource>
+
+    <!-- Identity Governance Management API -->
+    <Resource context="(.*)/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
+        <Scopes>internal_identity_governance_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
+        <Scopes>internal_identity_governance_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/identity-governance/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_identity_governance_update</Scopes>
+    </Resource>
+
+    <!-- Organization Admin Advisory Management API -->
+    <Resource context="(.*)/o/api/server/v1/admin-advisory-management/banner" secured="false" http-method="GET"/>
+    <Resource context="(.*)/o/api/server/v1/admin-advisory-management/banner" secured="true" http-method="PATCH">
+        <Scopes>internal_org_admin_advisory_mgt_update</Scopes>
+    </Resource>
+
+    <!-- Admin Advisory Management API -->
+    <Resource context="(.*)/api/server/v1/admin-advisory-management/banner" secured="false" http-method="GET"/>
+    <Resource context="(.*)/api/server/v1/admin-advisory-management/banner" secured="true" http-method="PATCH">
+        <Scopes>internal_admin_advisory_mgt_update</Scopes>
+    </Resource>
+
+    <!-- Permission Management API -->
+    <Resource context="(.*)/api/server/v1/permission-management/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_permission_mgt_view</Scopes>
+    </Resource>
+
+    <!-- Organization Userstore Management API -->
+    <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_userstore_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_userstore_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_org_userstore_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/userstores/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_userstore_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/userstores/test-connection" secured="true" http-method="POST">
+        <Scopes>internal_org_userstore_view</Scopes>
+    </Resource>
+
+    <!-- Userstore Management API -->
+    <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="POST">
+        <Scopes>internal_userstore_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="GET">
+        <Scopes>internal_userstore_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_userstore_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/userstores/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_userstore_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/userstores/test-connection" secured="true" http-method="POST">
+        <Scopes>internal_userstore_view</Scopes>
+    </Resource>
+
+    <!-- Organization Session Management API -->
+    <Resource context="(.*)/api/users/v1/(.*)/sessions(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_session_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/sessions(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_session_delete</Scopes>
+    </Resource>
+
+    <!-- Session Management API -->
+    <Resource context="(.*)/api/users/v1/sessions(.*)" secured="true" http-method="GET">
+        <Scopes>internal_session_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/sessions(.*)" secured="true" http-method="GET">
+        <Scopes>internal_session_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/sessions(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_session_delete</Scopes>
+    </Resource>
+
+    <!-- IDV Claim Management API -->
+    <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="GET">
+        <Scopes>internal_idv_claim_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="POST">
+        <Scopes>internal_idv_claim_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_idv_claim_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/idv/verify" secured="true" http-method="POST">
+        <Scopes>internal_idv_claim_verify</Scopes>
+    </Resource>
+
+    <!-- Organization Identity Provider Management API -->
+    <Resource context="(.*)/o/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_idp_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/identity-providers(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_org_idp_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/identity-providers(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_idp_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/identity-providers(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_idp_view</Scopes>
+    </Resource>
+
+    <!-- Identity Provider Management API -->
+    <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
+        <Scopes>internal_idp_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_idp_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_idp_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="GET">
+        <Scopes>internal_idp_view</Scopes>
+    </Resource>
+
+    <!-- Organization Authenticators Management API -->
+    <Resource context="(.*)/o/api/server/v1/authenticators(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_authenticator_view</Scopes>
+    </Resource>
+
+    <!-- Authenticators Management API -->
+    <Resource context="(.*)/api/server/v1/authenticators(.*)" secured="true" http-method="GET">
+        <Scopes>internal_authenticator_view</Scopes>
+    </Resource>
+
+    <!-- Script Library Management API -->
+    <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="POST">
+        <Scopes>internal_functional_lib_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="GET">
+        <Scopes>internal_functional_lib_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_functional_lib_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_functional_lib_delete</Scopes>
+    </Resource>
+
+    <!-- OIDC Scope Management API -->
+    <Resource context="(.*)/api/server/v1/oidc/scopes(.*)" secured="true" http-method="POST">
+        <Scopes>internal_oidc_scope_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/oidc/scopes(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_oidc_scope_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/oidc/scopes(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_oidc_scope_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/oidc/scopes(.*)" secured="true" http-method="GET">
+        <Scopes>internal_oidc_scope_view</Scopes>
+    </Resource>
+
+    <!-- Tenant Management API -->
+    <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST, HEAD">
+        <Scopes>internal_list_tenants</Scopes>
+    </Resource>
+    <Resource context="/api/server/v1/channel-verified-tenants(.*)" secured="true" http-method="POST">
+        <Scopes>internal_list_tenants</Scopes>
+    </Resource>
+    <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_modify_tenants</Scopes>
+    </Resource>
+    <Resource context="/api/server/v1/tenants(.*)/metadata" secured="true" http-method="DELETE">
+        <Scopes>internal_modify_tenants</Scopes>
+    </Resource>
+
+    <!-- Media Management API -->
+    <Resource context="(.*)/api/identity/media/v1.0/content/(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_media_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_media_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_media_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- CORS Management API -->
+    <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET">
+        <Scopes>internal_cors_origins_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET">
+        <Scopes>internal_cors_origins_view</Scopes>
+    </Resource>
+
+    <!-- Organization Config Management API -->
+    <Resource context="(.*)/o/api/server/v1/configs/authenticators(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_config_view</Scopes>
+    </Resource>
+
+    <!-- Config Management API -->
+    <Resource context="(.*)/api/server/v1/configs/home-realm-identifiers" secured="true" http-method="GET">
+        <Scopes>internal_config_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="GET">
+        <Scopes>internal_config_view</Scopes>
+    </Resource>
+
+    <!-- Organization Role Management API -->
+    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="GET">
+        <Scopes>internal_org_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_role_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_role_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_org_role_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_role_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_role_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Organization Discovery API -->
+    <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="POST">
+        <Scopes>internal_org_discovery_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="GET">
+        <Scopes>internal_org_discovery_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="GET">
+        <Scopes>internal_org_discovery_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="PUT">
+        <Scopes>internal_org_discovery_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="DELETE">
+        <Scopes>internal_org_discovery_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/check-discovery" secured="true" http-method="POST">
+        <Scopes>internal_org_discovery_view</Scopes>
+    </Resource>
+
+    <!-- Organization Management API -->
+    <Resource context="(.*)/o/api/server/v1/organizations" secured="true" http-method="GET">
+        <Scopes>internal_org_organization_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_organization_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/organizations" secured="true" http-method="POST">
+        <Scopes>internal_org_organization_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/organizations/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_org_organization_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/organizations/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_organization_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/organizations/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_organization_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/organizations/check-name" secured="true" http-method="POST">
+        <Scopes>internal_org_organization_view</Scopes>
+    </Resource>
+
+    <!-- Organization Management API -->
+    <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="GET">
+        <Scopes>internal_organization_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_organization_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations" secured="true" http-method="POST">
+        <Scopes>internal_organization_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_organization_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_organization_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_organization_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organizations/check-name" secured="true" http-method="POST">
+        <Scopes>internal_organization_view</Scopes>
+    </Resource>
+
+    <!-- Organization Org Config Management API -->
+    <Resource context="(.*)/o/api/server/v1/organization-configs/discovery" secured="true" http-method="GET">
+        <Scopes>internal_org_org_config_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/organization-configs/discovery" secured="true" http-method="POST">
+        <Scopes>internal_org_org_config_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
+        <Scopes>internal_org_org_config_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Org Config Management API -->
+    <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="GET">
+        <Scopes>internal_org_config_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="POST">
+        <Scopes>internal_org_config_mgt_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
+        <Scopes>internal_org_config_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Organization Self Service API -->
+    <Resource context="(.*)/api/server/v1/self-service/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_self_service_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/self-service/(.*)" secured="true" http-method="PATCH">
+        <Scopes>internal_self_service_update</Scopes>
+    </Resource>
+
+    <!-- Organization Guest Invitation Management API -->
+    <Resource context="(.*)/o/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
+    <Resource context="(.*)/o/api/server/v1/guests/invite" secured="true" http-method="POST">
+        <Scopes>internal_org_guest_mgt_invite_add</Scopes>
+    </Resource>
+    <!-- Is this a Me POV ep?? -->
+    <Resource context="(.*)/o/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
+        <Scopes>internal_org_guest_mgt_invite_list</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/guests/invitations(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_guest_mgt_invite_list</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/guests/invitations/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_guest_mgt_invite_delete</Scopes>
+    </Resource>
+
+    <!-- Guest Invitation Management API -->
+    <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
+    <Resource context="(.*)/api/server/v1/guests/invite" secured="true" http-method="POST">
+        <Scopes>internal_guest_mgt_invite_add</Scopes>
+    </Resource>
+    <!-- Is this a Me POV ep?? -->
+    <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
+        <Scopes>internal_guest_mgt_invite_list</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/guests/invitations(.*)" secured="true" http-method="GET">
+        <Scopes>internal_guest_mgt_invite_list</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/guests/invitations/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_guest_mgt_invite_delete</Scopes>
+    </Resource>
+
+    <!-- API Resource Management API -->
+    <Resource context="(.*)/api/server/v1/api-resources(.*)" secured="true" http-method="POST">
+        <Scopes>internal_api_resource_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/api-resources(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_api_resource_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/api-resources(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_api_resource_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/api-resources(.*)" secured="true" http-method="GET">
+        <Scopes>internal_api_resource_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/scopes(.*)" secured="true" http-method="GET">
+        <Scopes>internal_api_resource_view</Scopes>
+    </Resource>
+
+    <!-- Organization Extension Management API -->
+    <Resource context="(.*)/o/api/server/v1/extensions(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_extensions_view</Scopes>
+    </Resource>
+
+    <!-- Extension Management API -->
+    <Resource context="(.*)/api/server/v1/extensions(.*)" secured="true" http-method="GET">
+        <Scopes>internal_extensions_view</Scopes>
+    </Resource>
+
+    <!-- Remote Fetch Management API -->
+    <Resource context="(.*)/api/server/v1/remote-fetch(.*)" secured="true" http-method="POST">
+        <Scopes>internal_remote_fetch_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/remote-fetch(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_remote_fetch_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/remote-fetch(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_remote_fetch_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/remote-fetch(.*)" secured="true" http-method="GET">
+        <Scopes>internal_remote_fetch_view</Scopes>
+    </Resource>
+
+    <!-- Workflow Management API -->
+    <Resource context="(.*)/api/server/v1/workflow-engines(.*)" secured="true" http-method="GET">
+        <Scopes>internal_workflow_view</Scopes>
+    </Resource>
+
+    <!-- Authorized Application Management V1/V2 API -->
+    <Resource context="(.*)/api/users/v(.*)/(.*)/authorized-apps(.*)" secured="true" http-method="GET">
+        <Scopes>internal_user_authorizedapp_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v(.*)/(.*)/authorized-apps(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_user_authorizedapp_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v2/authorized-apps/(.*)/tokens" secured="true" http-method="DELETE">
+        <Scopes>internal_user_authorizedapp_delete</Scopes>
+    </Resource>
+
+
+
+    <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
+    <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
+        <Scopes>internal_identity_mgt_view</Scopes>
+        <Scopes>internal_identity_mgt_update</Scopes>
+        <Scopes>internal_identity_mgt_create</Scopes>
+        <Scopes>internal_identity_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
+        <Scopes>internal_identity_mgt_view</Scopes>
+        <Scopes>internal_identity_mgt_update</Scopes>
+        <Scopes>internal_identity_mgt_create</Scopes>
+        <Scopes>internal_identity_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v2/(.*)" secured="true" http-method="all">
+        <Scopes>internal_identity_mgt_view</Scopes>
+        <Scopes>internal_identity_mgt_update</Scopes>
+        <Scopes>internal_identity_mgt_create</Scopes>
+        <Scopes>internal_identity_mgt_delete</Scopes>
+    </Resource>
+
+    <Resource context="/carbon(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/commonauth(.*)" secured="false" http-method="all"/>
+    <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
+    <Resource context="/services(.*)" secured="false" http-method="all"/>
+    <Resource context="/t/(.*)/services(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/samlsso(.*)" secured="false" http-method="all"/>
+    <Resource context="/acs(.*)" secured="false" http-method="all"/>
+    <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
+    <Resource context="/openid(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/passivests(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/samlartresolve(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth/request-token(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth/authorize-url(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth/access-token(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth2/token(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth2/authorize(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth2/revoke(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth2/userinfo(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth2/jwks(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth2/par(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oidc/checksession(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oidc/logout(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/wso2/scim/Users(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/wso2/scim/Bulk(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/authenticationendpoint(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/accountrecoveryendpoint/confirmregistration.do(.*)" secured="false" http-method="GET, POST, HEAD"/>
+    <Resource context="(.*)/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/api/health-check/v1(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+    <Resource context="/mex(.*)" secured="false" http-method="all"/>
+    <Resource context="/mexut(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+    <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
+    <Resource context="/userandrolemgtservice(.*)" secured="false" http-method="all"/>
+    <Resource context="/x509-certificate-servlet(.*)" secured="false" http-method="all"/>
+    <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/identity/cas(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/identity/saml/slo(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/identity/extend-session(.*)" secured="false" http-method="all"/>
+    <Resource context="/mobileconnectauthenticationendpoint(.*)" secured="false" http-method="all"/>
+    <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
+    <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
+    <Resource context="/duoauthenticationendpoint(.*)" secured="false" http-method="all"/>
+
+    <!-- File Upload API ??? **** -->
+    <Resource context="(.*)/fileupload/service(.*)" secured="true" http-method="all">
+        <Scope>internal_application_mgt_create</Scope>
+    </Resource>
+    <Resource context="(.*)/fileupload/entitlement-policy(.*)" secured="true" http-method="all">
+        <Scope>internal_manage_pap</Scope>
+    </Resource>
+    <Resource context="(.*)/fileupload/resource(.*)" secured="true" http-method="all">
+        <Scope>/permission/admin/manage</Scope>
+    </Resource>
+
+    <!-- Organization Idle Account Identification Management API -->
+    <Resource context="(.*)/o/api/idle-account-identification/v1/inactive-users(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_idle_account_list</Scopes>
+    </Resource>
+
+    <!-- Idle Account Identification Management API -->
+    <Resource context="(.*)/api/idle-account-identification/v1/inactive-users(.*)" secured="true" http-method="GET">
+        <Scopes>internal_idle_account_list</Scopes>
+    </Resource>
+
+    <!-- Organization Expired Password Identification Management API -->
+    <Resource context="(.*)/o/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_expired_password_view</Scopes>
+    </Resource>
+
+    <!-- Expired Password Identification Management API -->
+    <Resource context="(.*)/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true" http-method="GET">
+        <Scopes>internal_expired_password_view</Scopes>
+    </Resource>
+
+    <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/longwaitstatus(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/registry/resourceContent(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/registry/resource(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/registry/tags(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/registry/atom(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+    <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET"/>
+    <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST"/>
+    <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT"/>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
+    <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE"/>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST"/>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT"/>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="DELETE"/>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="POST"/>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="PUT"/>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET"/>
+    <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE"/>
+    <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
+    <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
+</ResourceAccessControl>
