@@ -376,10 +376,13 @@ public class IdentityTenantUtil {
                 log.debug("The tenant domain is not set to the thread local. Hence using the tenant domain from the " +
                         "privileged carbon context.");
             }
-            return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         }
 
-        return tenantDomain;
+        if (StringUtils.isNotBlank(tenantDomain)) {
+            return tenantDomain;
+        }
+        return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
     }
 
     /**
@@ -420,6 +423,16 @@ public class IdentityTenantUtil {
     public static boolean isTenantedSessionsEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANTED_SESSIONS));
+    }
+
+    /**
+     * Checks if it is required to specify carbon.super in tenant qualified URLs.
+     *
+     * @return true if it is mandatory, false otherwise.
+     */
+    public static boolean isSuperTenantRequiredInUrl() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.REQUIRED_SUPER_TENANT_IN_URLS));
     }
 
     /**

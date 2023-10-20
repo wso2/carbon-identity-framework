@@ -1015,7 +1015,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             if (FrameworkUtils.isOrganizationQualifiedRequest()) {
                 path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
             } else {
-                path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+                if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
+                        MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(context.getLoginTenantDomain())) {
+                    path = "/";
+                } else {
+                    path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+                }
             }
         }
         FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge, path);

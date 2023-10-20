@@ -35,13 +35,11 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -65,6 +63,8 @@ public class AuthenticatedUser extends User {
     private String authenticatedSubjectIdentifier;
     private String federatedIdPName;
     private boolean isFederatedUser;
+    private String accessingOrganization;
+    private String userResidentOrganization;
     private Map<ClaimMapping, String> userAttributes = new HashMap<>();
 
     /**
@@ -101,6 +101,8 @@ public class AuthenticatedUser extends User {
         if (!isFederatedUser && StringUtils.isNotEmpty(userStoreDomain) && StringUtils.isNotEmpty(tenantDomain)) {
             updateCaseSensitivity();
         }
+        this.accessingOrganization = authenticatedUser.getAccessingOrganization();
+        this.userResidentOrganization = authenticatedUser.getUserResidentOrganization();
     }
 
     public AuthenticatedUser(org.wso2.carbon.user.core.common.User user) {
@@ -170,40 +172,6 @@ public class AuthenticatedUser extends User {
     }
 
     /**
-     * Resolve userId from ancestor organizations when user is not found in the current organization.
-     *
-     * @return return user Id.
-     */
-    private String resolveUserIdFromAncestorOrganizations() {
-
-        try {
-            if (authenticatedSubjectIdentifier != null) {
-                String organizationId = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
-                        .resolveOrganizationId(tenantDomain);
-                /*
-                    Extract user id from the authenticated subject identifier assuming user ID set as a part of the
-                    subject identifier.
-                */
-                String potentialUserId =
-                        authenticatedSubjectIdentifier.split(UserCoreConstants.TENANT_DOMAIN_COMBINER)[0];
-                if (potentialUserId.contains(CarbonConstants.DOMAIN_SEPARATOR)) {
-                    potentialUserId = potentialUserId.split(CarbonConstants.DOMAIN_SEPARATOR)[1];
-                }
-                Optional<String> userResideOrgId = FrameworkServiceDataHolder.getInstance()
-                        .getOrganizationUserResidentResolverService()
-                        .resolveResidentOrganization(potentialUserId, organizationId);
-                if (userResideOrgId.isPresent()) {
-                    return potentialUserId;
-                }
-            }
-        } catch (OrganizationManagementException e) {
-            log.error("Error occurred while resolving the user's resident organization by user ID from ancestor " +
-                    "organizations");
-        }
-        return null;
-    }
-
-    /**
      * Internal method to get the user id of a local user with the parameters available in the authenticated user
      * object.
      */
@@ -212,14 +180,21 @@ public class AuthenticatedUser extends User {
         String userId = null;
         if (userName != null && userStoreDomain != null && tenantDomain != null) {
             try {
-                int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
+                String tenantDomain = this.getTenantDomain();
+                /* When the user resident organization is set in the authenticated user, use that to resolve the user's
+                tenant domain. The below check should be removed once console app is registered per each tenant. */
+                if (StringUtils.isNotEmpty(this.userResidentOrganization)) {
+                    tenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
+                            .resolveTenantDomain(this.userResidentOrganization);
+                }
+                int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                 userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
                         this.getUserStoreDomain(), this.getUserName());
-                if (userId == null && FrameworkServiceDataHolder.getInstance().isOrganizationManagementEnabled()) {
-                    userId = resolveUserIdFromAncestorOrganizations();
-                }
             } catch (UserSessionException e) {
                 log.error("Error while resolving the user id from username for local user.");
+            } catch (OrganizationManagementException e) {
+                log.error("Error while resolving the tenant domain by organization id: " +
+                        this.userResidentOrganization);
             }
         } else {
             if (log.isDebugEnabled()) {
@@ -502,6 +477,27 @@ public class AuthenticatedUser extends User {
      */
     public void setFederatedIdPName(String federatedIdPName) {
         this.federatedIdPName = federatedIdPName;
+    }
+
+
+    public String getAccessingOrganization() {
+
+        return accessingOrganization;
+    }
+
+    public void setAccessingOrganization(String accessingOrganization) {
+
+        this.accessingOrganization = accessingOrganization;
+    }
+
+    public String getUserResidentOrganization() {
+
+        return userResidentOrganization;
+    }
+
+    public void setUserResidentOrganization(String userResidentOrganization) {
+
+        this.userResidentOrganization = userResidentOrganization;
     }
 
     @Override

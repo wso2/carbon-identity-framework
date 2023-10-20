@@ -40,7 +40,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -508,6 +510,49 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     @Override
     public List<ApplicationBasicInfo> getSubscribedApplications(String apiId) {
         return null;
+    }
+
+    @Override
+    public List<APIResource> getScopeMetadata(List<String> scopeNames, Integer tenantId)
+            throws APIResourceMgtException {
+
+        String query = SQLConstants.GET_SCOPE_METADATA;
+        String placeholders = String.join(",", Collections.nCopies(scopeNames.size(), "?"));
+        query = query.replace(SQLConstants.SCOPE_LIST_PLACEHOLDER, placeholders);
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = dbConnection.prepareStatement(query)) {
+            prepStmt.setInt(1, tenantId);
+            int scopeIndex = 2;
+            for (String scopeName : scopeNames) {
+                prepStmt.setString(scopeIndex, scopeName);
+                scopeIndex++;
+            }
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                Map<String, APIResource> apiResources = new HashMap<>();
+                while (resultSet.next()) {
+                    String apiId = resultSet.getString(SQLConstants.API_RESOURCE_ID_COLUMN_NAME);
+                    Scope scope = new Scope.ScopeBuilder()
+                            .name(resultSet.getString(SQLConstants.SCOPE_QUALIFIED_NAME_COLUMN_NAME))
+                            .displayName(resultSet.getString(SQLConstants.SCOPE_DISPLAY_NAME_COLUMN_NAME))
+                            .description(resultSet.getString(SQLConstants.SCOPE_DESCRIPTION_COLUMN_NAME))
+                            .build();
+                    if (apiResources.containsKey(apiId)) {
+                        apiResources.get(apiId).getScopes().add(scope);
+                    } else {
+                        APIResource apiResource = new APIResource.APIResourceBuilder()
+                                .id(apiId)
+                                .name(resultSet.getString(SQLConstants.API_RESOURCE_NAME_COLUMN_NAME))
+                                .scopes(Collections.singletonList(scope))
+                                .build();
+                        apiResources.put(apiId, apiResource);
+                    }
+                }
+                return new ArrayList<>(apiResources.values());
+            }
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPE_METADATA, e);
+        }
     }
 
     /**

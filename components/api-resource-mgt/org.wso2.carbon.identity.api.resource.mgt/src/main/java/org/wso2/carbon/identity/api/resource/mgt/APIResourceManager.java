@@ -174,4 +174,15 @@ public interface APIResourceManager {
      * @throws APIResourceMgtException If an error occurs while retrieving scope.
      */
     Scope getScopeByName(String scopeName, String tenantDomain) throws APIResourceMgtException;
+
+    /**
+     * Get scope metadata by scope names and tenant domain.
+     *
+     * @param scopeNames   List of scope names.
+     * @param tenantDomain Tenant domain.
+     * @return Scope metadata grouped by API Resource.
+     * @throws APIResourceMgtException If an error occurs while retrieving scope metadata.
+     */
+    List<APIResource> getScopeMetadata(List<String> scopeNames, String tenantDomain)
+            throws APIResourceMgtException;
 }

@@ -887,6 +887,15 @@
                     {% endfor %}
                 </AllowedSignatureAlgorithms>
             </FAPI>
+
+            <SupportedTokenEndpointSigningAlgorithms>
+                {% for algorithm in oauth.oidc.token_endpoint.signing_algorithms %}
+                    <SupportedTokenEndpointSigningAlgorithm>{{algorithm}}</SupportedTokenEndpointSigningAlgorithm>
+                {% endfor %}
+            </SupportedTokenEndpointSigningAlgorithms>
+
+            <DefaultSubjectType>{{oauth.oidc.subject_type.default_subject_type}}</DefaultSubjectType>
+            <EnablePairwiseSubForAccessToken>{{oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection}}</EnablePairwiseSubForAccessToken>
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
@@ -3220,8 +3229,14 @@
     -->
     <EnableFederatedUserAssociation>{{user.association.enable_for_federated_users}}</EnableFederatedUserAssociation>
 
-    <EnableTenantQualifiedUrls>{{tenant_context.enable_tenant_qualified_urls}}</EnableTenantQualifiedUrls>
-    <EnableTenantedSessions>{{tenant_context.enable_tenanted_sessions | default(false)}}</EnableTenantedSessions>
+    <TenantContext>
+        <TenantQualifiedUrls>
+            <Enable>{{tenant_context.enable_tenant_qualified_urls}}</Enable>
+            <RequireSuperTenantInUrls>{{tenant_context.enable_tenant_qualified_urls && tenant_context.require_super_tenant_in_urls}}</RequireSuperTenantInUrls>
+            <EnableTenantedSessions>{{tenant_context.enable_tenant_qualified_urls && tenant_context.enable_tenanted_sessions}}</EnableTenantedSessions>
+       </TenantQualifiedUrls>
+    </TenantContext>
+
 
     <!--
         When this property is set to 'true', if the username provided during the SaaS application authentication does
@@ -3286,6 +3301,8 @@
                     <Path>/scim2/Groups</Path>
                     <Path>/scim2/Users</Path>
                     <Path>/scim2/Schemas</Path>
+                    <Path>/scim2/Bulk</Path>
+                    <Path>/scim2/ResourceTypes</Path>
                 </SubPaths>
             </Context>
             <Context>

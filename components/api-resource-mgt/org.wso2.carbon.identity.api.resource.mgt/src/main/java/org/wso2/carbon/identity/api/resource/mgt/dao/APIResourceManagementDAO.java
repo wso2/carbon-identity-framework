@@ -247,4 +247,14 @@ public interface APIResourceManagementDAO {
      * @throws APIResourceMgtException If an error occurs while retrieving the subscribed applications.
      */
     List<ApplicationBasicInfo> getSubscribedApplications(String apiId) throws APIResourceMgtException;
+
+    /**
+     * Retrieve scope metadata for given scopes.
+     *
+     * @param scopeNames List of scopes.
+     * @param tenantId   Tenant Id.
+     * @return List of API Resources with scope metadata.
+     * @throws APIResourceMgtException If an error occurs while retrieving the scope metadata.
+     */
+    List<APIResource> getScopeMetadata(List<String> scopeNames, Integer tenantId) throws APIResourceMgtException;
 }

@@ -38,6 +38,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Conf
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.INPUT_VALIDATION_DEFAULT_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JAVA_REGEX_PATTERN;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.JS_REGEX;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
@@ -72,6 +73,7 @@ public class PasswordValidationConfigurationHandler extends AbstractFieldValidat
 
                 if (isRuleBasedValidationByDefault()) {
                     rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MIN_LENGTH, "8"));
+                    rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MAX_LENGTH, "30"));
                     rules.add(getRuleConfig(NumeralValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                     rules.add(getRuleConfig(UpperCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                     rules.add(getRuleConfig(LowerCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
@@ -83,6 +85,7 @@ public class PasswordValidationConfigurationHandler extends AbstractFieldValidat
                 }
             } else {
                 rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MIN_LENGTH, "8"));
+                rules.add(getRuleConfig(LengthValidator.class.getSimpleName(), MAX_LENGTH, "30"));
                 rules.add(getRuleConfig(NumeralValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                 rules.add(getRuleConfig(UpperCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                 rules.add(getRuleConfig(LowerCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));

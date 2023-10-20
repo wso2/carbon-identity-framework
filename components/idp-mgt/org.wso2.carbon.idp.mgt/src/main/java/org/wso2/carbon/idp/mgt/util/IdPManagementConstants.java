@@ -101,6 +101,11 @@ public class IdPManagementConstants {
     public static final String DEFAULT_SYNC_ATTRIBUTE = "OVERRIDE_ALL";
     public static final String PRESERVE_LOCAL_ATTRIBUTE_SYNC = "PRESERVE_LOCAL";
     public static final String PRESERVE_LOCALLY_ADDED_CLAIMS = "JITProvisioning.PreserveLocallyAddedClaims";
+    public static final String FEDERATED_ASSOCIATION_ENABLED = "FEDERATED_ASSOCIATION_ENABLED";
+    public static final String LOOKUP_ATTRIBUTES = "LOOKUP_ATTRIBUTES";
+    public static final String DEFAULT_LOOKUP_ATTRIBUTE = "email";
+
+    public static final String FEDERATED_ASSOCIATION_ENABLED_DEFAULT_VALUE = "false";
 
     // Outbound Provisioning Connectors
     public static final String GOOGLE = "googleapps";
@@ -233,6 +238,9 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_NAME_BY_REALM_ID_SQL = "SELECT NAME FROM IDP WHERE (TENANT_ID = ? OR " +
                 "(TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND HOME_REALM_ID=?";
+
+        public static final String GET_ENABLED_IDP_NAME_BY_REALM_ID_SQL = "SELECT NAME FROM IDP WHERE (TENANT_ID = ? OR " +
+                "(TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND HOME_REALM_ID = ? AND IS_ENABLED = ?";
 
         public static final String GET_IDP_CLAIM_MAPPINGS_SQL = "SELECT IDP_CLAIM.CLAIM," +
                 " IDP_CLAIM_MAPPING.LOCAL_CLAIM, IDP_CLAIM_MAPPING.DEFAULT_VALUE, IDP_CLAIM_MAPPING.IS_REQUESTED "

@@ -78,6 +78,7 @@ public abstract class FrameworkConstants {
     public static final String SKIP_NONCE_COOKIE_VALIDATION = "SkipNonceCookieValidation";
     public static final String IS_MULTI_OPS_RESPONSE = "isMultiOptionsResponse";
     public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
+    public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
@@ -748,5 +749,18 @@ public abstract class FrameworkConstants {
 
         STRING,
         INTEGER,
+    }
+
+    /**
+     * Enum for authenticator prompt type.
+     * USER_PROMPT - Obtain data from user input.
+     * INTERNAL_PROMPT - Generate required data internally.
+     * REDIRECTION_PROMPT - Requires redirection.
+     */
+    public enum AuthenticatorPromptType {
+
+        USER_PROMPT,
+        INTERNAL_PROMPT,
+        REDIRECTION_PROMPT
     }
 }

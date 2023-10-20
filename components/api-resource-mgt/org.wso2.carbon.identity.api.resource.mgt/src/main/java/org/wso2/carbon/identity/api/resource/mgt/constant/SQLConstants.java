@@ -58,6 +58,9 @@ public class SQLConstants {
     public static final String SCOPE_UNIQUE_CONSTRAINT = "scope_unique";
     public static final String DB2_SQL_ERROR_CODE_UNIQUE_CONSTRAINT = "-803";
 
+    // Placeholders.
+    public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
+
     // SQL queries.
     public static final String GET_API_RESOURCES = "SELECT ID, CURSOR_KEY, NAME, IDENTIFIER, DESCRIPTION, TENANT_ID," +
             " TYPE, REQUIRES_AUTHORIZATION FROM API_RESOURCE WHERE ";
@@ -158,4 +161,12 @@ public class SQLConstants {
             "VALUES (?, ?, ?)";
     public static final String ADD_API_RESOURCE_PROPERTY_H2 = "INSERT INTO API_RESOURCE_PROPERTY (API_ID, NAME, " +
             "`VALUE`) VALUES (?, ?, ?)";
+    public static final String GET_SCOPE_METADATA = "SELECT" +
+            " AR.ID AS API_RESOURCE_ID," +
+            " AR.NAME AS API_RESOURCE_NAME," +
+            " S.NAME AS SCOPE_QUALIFIED_NAME," +
+            " S.DISPLAY_NAME AS SCOPE_DISPLAY_NAME," +
+            " S.DESCRIPTION AS SCOPE_DESCRIPTION" +
+            " FROM API_RESOURCE AR LEFT JOIN SCOPE S ON AR.ID = S.API_ID WHERE S.TENANT_ID = ?" +
+            " AND S.NAME IN (" + SCOPE_LIST_PLACEHOLDER + ")";
 }
