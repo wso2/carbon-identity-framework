@@ -1441,7 +1441,7 @@ public class DefaultStepHandler implements StepHandler {
     }
 
     private void handleAPIBasedAuthenticationData(HttpServletRequest request, ApplicationAuthenticator authenticator,
-                                                  AuthenticationContext context) {
+                                                  AuthenticationContext context) throws AuthenticationFailedException {
 
         if (isAPIBasedAuthenticationFlow(request) && authenticator.isAPIBasedAuthenticationSupported()) {
             authenticator.getAuthInitiationData(context).ifPresent(authInitiationData -> {

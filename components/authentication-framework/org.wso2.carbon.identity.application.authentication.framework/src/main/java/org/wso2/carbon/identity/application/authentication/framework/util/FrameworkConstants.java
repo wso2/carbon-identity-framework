@@ -750,4 +750,17 @@ public abstract class FrameworkConstants {
         STRING,
         INTEGER,
     }
+
+    /**
+     * Enum for authenticator prompt type.
+     * USER_PROMPT - Obtain data from user input.
+     * INTERNAL_PROMPT - Generate required data internally.
+     * REDIRECTION_PROMPT - Requires redirection.
+     */
+    public enum AuthenticatorPromptType {
+
+        USER_PROMPT,
+        INTERNAL_PROMPT,
+        REDIRECTION_PROMPT
+    }
 }

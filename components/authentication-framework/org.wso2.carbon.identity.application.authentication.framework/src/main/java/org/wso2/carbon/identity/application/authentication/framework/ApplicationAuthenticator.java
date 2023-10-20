@@ -140,8 +140,10 @@ public interface ApplicationAuthenticator extends Serializable {
      *
      * @param context Authentication context.
      * @return AuthenticatorData containing authentication initiation data.
+     * @throws AuthenticationFailedException Authentication failed exception.
      */
-    default Optional<AuthenticatorData> getAuthInitiationData(AuthenticationContext context) {
+    default Optional<AuthenticatorData> getAuthInitiationData(AuthenticationContext context) throws
+            AuthenticationFailedException {
 
         return Optional.empty();
     }

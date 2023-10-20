@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Holds the data related to an authenticator during an authentication flow.
@@ -34,18 +34,9 @@ public class AuthenticatorData {
     private String idp;
     private String i18nKey;
     private List<AuthenticatorParamMetadata> authParams = new ArrayList<>();
-    private Map<String, String> additionalData = new HashMap<>();
-    private AdditionalData additionalDataObj;
-
-    public AdditionalData getAdditionalDataObj() {
-
-        return additionalDataObj;
-    }
-
-    public void setAdditionalData(AdditionalData additionalDataObj) {
-
-        this.additionalDataObj = additionalDataObj;
-    }
+    private List<String> requiredParams = new ArrayList<>();
+    private FrameworkConstants.AuthenticatorPromptType promptType;
+    private AdditionalData additionalData;
 
     public String getI18nKey() {
 
@@ -97,12 +88,32 @@ public class AuthenticatorData {
         this.authParams = authParams;
     }
 
-    public Map<String, String> getAdditionalData() {
+    public List<String> getRequiredParams() {
+
+        return requiredParams;
+    }
+
+    public void setRequiredParams(List<String> requiredParams) {
+
+        this.requiredParams = requiredParams;
+    }
+
+    public FrameworkConstants.AuthenticatorPromptType getPromptType() {
+
+        return promptType;
+    }
+
+    public void setPromptType(FrameworkConstants.AuthenticatorPromptType promptType) {
+
+        this.promptType = promptType;
+    }
+
+    public AdditionalData getAdditionalData() {
 
         return additionalData;
     }
 
-    public void setAdditionalData(Map<String, String> additionalData) {
+    public void setAdditionalData(AdditionalData additionalData) {
 
         this.additionalData = additionalData;
     }
