@@ -100,6 +100,8 @@ public class APIResourceManagementConstants {
                 " scope.", "Error while checking existence of scope in the database."),
         ERROR_CODE_ERROR_WHILE_CHECKING_API_RESOURCE_EXISTENCE("65011", "Error while checking existence " +
                 "of API resource.", "Error while checking existence of API resource in the database."),
+        ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPE_METADATA("65012", "Error while retrieving scope metadata.",
+                "Error while retrieving scope metadata from the database."),
         ;
 
         private final String code;
