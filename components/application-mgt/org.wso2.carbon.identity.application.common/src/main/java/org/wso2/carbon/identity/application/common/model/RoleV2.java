@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Role V2 object.
@@ -63,5 +64,26 @@ public class RoleV2  implements Serializable {
     public void setName(String name) {
 
         this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        RoleV2 roleV2 = (RoleV2) o;
+        return Objects.equals(id, roleV2.id) && Objects.equals(name, roleV2.name);
+    }
+
+    @Override
+    public int hashCode() {
+
+        int result = super.hashCode();
+        result = 31 * result + id.hashCode();
+        return result;
     }
 }
