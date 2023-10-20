@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogg
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
+import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
@@ -65,6 +66,7 @@ import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
+import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
@@ -130,6 +132,8 @@ public class ApplicationManagementServiceComponent {
 
             bundleContext.registerService(AuthorizedAPIManagementService.class,
                     new AuthorizedAPIManagementServiceImpl(), null);
+
+            bundleContext.registerService(RoleManagementListener.class, new DefaultRoleManagementListener(), null);
 
             // Register the ApplicationValidator.
             context.getBundleContext().registerService(ApplicationValidator.class,
