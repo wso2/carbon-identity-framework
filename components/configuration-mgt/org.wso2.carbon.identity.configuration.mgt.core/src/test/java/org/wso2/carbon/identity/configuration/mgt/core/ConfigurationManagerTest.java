@@ -579,6 +579,27 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         assertTrue(isTenantSearchConditionMatch(resources));
     }
 
+    @Test(priority = 33)
+    public void testDeleteResourcesByType() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getSampleResourceType2Add());
+        Resource resource1 = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        Resource resource2 = configurationManager.addResource(resourceType.getName(), getSampleResource2Add());
+
+        Resources resourcesByType = configurationManager.getResourcesByType(resourceType.getName());
+        Assert.assertTrue("Retrieved resource count should be equal to the added value",
+                resourcesByType.getResources().size() == 2);
+        Assert.assertEquals("Created resource name should be equal to the retrieved resource name",
+                resource1.getResourceName(), resourcesByType.getResources().get(0).getResourceName());
+        Assert.assertEquals("Created resource name should be equal to the retrieved resource name",
+                resource2.getResourceName(), resourcesByType.getResources().get(1).getResourceName());
+
+        configurationManager.deleteResourcesByType(resourceType.getName());
+        resourcesByType = configurationManager.getResourcesByType(resourceType.getName());
+        Assert.assertTrue("Retrieved resource count should be equal to the 0",
+                resourcesByType.getResources().size() == 0);
+    }
+
     private void removeCreatedTimeColumn() throws DataAccessException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
