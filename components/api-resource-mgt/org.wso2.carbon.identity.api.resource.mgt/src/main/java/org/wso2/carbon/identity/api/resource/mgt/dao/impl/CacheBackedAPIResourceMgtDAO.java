@@ -62,6 +62,16 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     }
 
     @Override
+    public List<APIResource> getAPIResourcesWithRequiredAttributes(Integer limit, Integer tenantId, String sortOrder,
+                                                                   List<ExpressionNode> expressionNodes,
+                                                                   List<String> requiredAttributes)
+            throws APIResourceMgtException {
+
+        return apiResourceManagementDAO.getAPIResourcesWithRequiredAttributes(limit, tenantId, sortOrder,
+                expressionNodes, requiredAttributes);
+    }
+
+    @Override
     public Integer getAPIResourcesCount(Integer tenantId, List<ExpressionNode> expressionNodes)
             throws APIResourceMgtException {
 

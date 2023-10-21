@@ -46,6 +46,22 @@ public interface APIResourceManagementDAO {
                                       List<ExpressionNode> expressionNodes) throws APIResourceMgtException;
 
     /**
+     * Retrieve the API resources under a given tenantId.
+     *
+     * @param limit              Maximum number of records to return.
+     * @param tenantId           Tenant Id.
+     * @param sortOrder          Sort order for the cursor based pagination.
+     * @param expressionNodes    Expression nodes.
+     * @param requiredAttributes List of required attributes
+     * @return List of <code>APIResource</code>.
+     * @throws APIResourceMgtException If an error occurs while retrieving the API resources.
+     */
+    List<APIResource> getAPIResourcesWithRequiredAttributes(Integer limit, Integer tenantId, String sortOrder,
+                                                            List<ExpressionNode> expressionNodes,
+                                                            List<String> requiredAttributes)
+            throws APIResourceMgtException;
+
+    /**
      * Retrieve the count of API resources under a given tenantId.
      *
      * @param tenantId        Tenant Id.

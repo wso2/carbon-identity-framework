@@ -46,6 +46,24 @@ public interface APIResourceManager {
             throws APIResourceMgtException;
 
     /**
+     * Get API resources with required attributes.
+     *
+     * @param after              Get API resources after this value.
+     * @param before             Get API resources before this value.
+     * @param limit              Number of API resources to retrieve.
+     * @param filter             Filter expression.
+     * @param sortOrder          Sort order.
+     * @param tenantDomain       Tenant domain.
+     * @param requiredAttributes Required attributes.
+     * @return API resource search result with required attributes.
+     * @throws APIResourceMgtException If an error occurs while retrieving API resources with required attributes.
+     */
+    APIResourceSearchResult getAPIResourcesWithRequiredAttributes(String after, String before, Integer limit,
+                                                                  String filter, String sortOrder,
+                                                                  String tenantDomain, List<String> requiredAttributes)
+            throws APIResourceMgtException;
+    
+    /**
      * Get API resource by id.
      *
      * @param apiResourceId API resource id.
