@@ -535,6 +535,8 @@
   "event.default_listener.fragment_app_mgt_listener.enable": true,
   "event.default_listener.organization_user_operation_listener.priority": "115",
   "event.default_listener.organization_user_operation_listener.enable": true,
+  "event.default_listener.organization_discovery_user_operation_listener.priority": "114",
+  "event.default_listener.organization_discovery_user_operation_listener.enable": true,
 
   "event.default_listener.unique_claim_user_operation_event_listener.priority": "101",
   "event.default_listener.unique_claim_user_operation_event_listener.enable": false,
