@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * Role V2 object.
  */
-public class RoleV2  implements Serializable {
+public class RoleV2 implements Serializable {
 
     private static final long serialVersionUID = 497647508006862448L;
 
