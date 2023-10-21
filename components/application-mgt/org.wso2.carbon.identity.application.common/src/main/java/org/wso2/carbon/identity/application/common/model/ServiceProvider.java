@@ -136,7 +136,6 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = IS_B2B_SELF_SERVICE_APP)
     private boolean isB2BSelfServiceApp;
 
-    @IgnoreNullElement
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
 
@@ -253,6 +252,9 @@ public class ServiceProvider implements Serializable {
             } else if ("PermissionAndRoleConfig".equals(elementName)) {
                 // build permission and role configuration.
                 serviceProvider.setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
+            } else if (ASSOCIATED_ROLES_CONFIG.equals(elementName)) {
+                // build role association.
+                serviceProvider.setAssociatedRolesConfig(AssociatedRolesConfig.build(element));
             }
         }
 

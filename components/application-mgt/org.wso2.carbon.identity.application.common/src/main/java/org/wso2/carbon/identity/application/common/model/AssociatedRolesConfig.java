@@ -18,19 +18,73 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import org.apache.axiom.om.OMElement;
+import org.apache.commons.collections.CollectionUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Associated v2 roles for the application.
  */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "AssociatedRolesConfig")
 public class AssociatedRolesConfig implements Serializable {
 
     private static final long serialVersionUID = 497647508006862448L;
-
+    private static final String ALLOWED_AUDIENCE = "AllowedAudience";
+    private static final String ASSOCIATED_ROLES = "AssociatedRoles";
+    @XmlElement(name = "AllowedAudience")
     private String allowedAudience;
-    private List<RoleV2> roles;
+
+    @XmlElementWrapper(name = "AssociatedRoles")
+    @XmlElement(name = "AssociatedRole")
+    private List<RoleV2> roles = new ArrayList<>();
+
+    /*
+     * <AssociatedRolesConfig> <AllowedAudience></AllowedAudience>
+     * <AssociatedRoles></AssociatedRoles> </AssociatedRolesConfig>
+     */
+    public static AssociatedRolesConfig build(OMElement associatedRolesConfigOM) {
+
+        AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+
+        Iterator<?> iter = associatedRolesConfigOM.getChildElements();
+
+        while (iter.hasNext()) {
+
+            OMElement element = (OMElement) (iter.next());
+            String elementName = element.getLocalName();
+
+            if (ALLOWED_AUDIENCE.equals(elementName)) {
+                associatedRolesConfig.setAllowedAudience(element.getText());
+            } else if (ASSOCIATED_ROLES.equals(elementName)) {
+                Iterator<?> roleIter = element.getChildElements();
+                List<RoleV2> rolesArrList = new ArrayList<>();
+                if (roleIter != null) {
+                    while (roleIter.hasNext()) {
+                        OMElement roleElement = (OMElement) (roleIter.next());
+                        RoleV2 roleV2 = RoleV2.build(roleElement);
+                        if (roleV2 != null) {
+                            rolesArrList.add(roleV2);
+                        }
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(rolesArrList)) {
+                    associatedRolesConfig.setRoles(rolesArrList);
+                }
+            }
+        }
+        return associatedRolesConfig;
+    }
 
     public String getAllowedAudience() {
 
@@ -44,9 +98,6 @@ public class AssociatedRolesConfig implements Serializable {
 
     public List<RoleV2> getRoles() {
 
-        if (roles == null) {
-            return new ArrayList<>();
-        }
         return roles;
     }
 

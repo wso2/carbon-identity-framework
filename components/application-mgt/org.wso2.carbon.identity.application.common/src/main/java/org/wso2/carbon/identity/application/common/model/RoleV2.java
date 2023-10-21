@@ -18,17 +18,32 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import org.apache.axiom.om.OMElement;
+
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.Objects;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Role V2 object.
  */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "AssociatedRole")
 public class RoleV2 implements Serializable {
 
     private static final long serialVersionUID = 497647508006862448L;
+    private static final String ID = "Id";
+    private static final String NAME = "Name";
 
+    @XmlElement(name = "Id")
     private String id;
+
+    @XmlElement(name = "Name")
     private String name;
 
     public RoleV2() {
@@ -38,6 +53,27 @@ public class RoleV2 implements Serializable {
     public RoleV2(String id) {
 
         this.id = id;
+    }
+
+    public static RoleV2 build(OMElement roleOM) {
+
+        if (roleOM == null) {
+            return null;
+        }
+        RoleV2 roleV2 = new RoleV2();
+        Iterator<?> iter = roleOM.getChildElements();
+
+        while (iter.hasNext()) {
+            OMElement element = (OMElement) (iter.next());
+            String elementName = element.getLocalName();
+
+            if (ID.equals(elementName)) {
+                roleV2.setId(element.getText());
+            } else if (NAME.equals(elementName)) {
+                roleV2.setName(element.getText());
+            }
+        }
+        return roleV2;
     }
 
     public RoleV2(String id, String name) {
