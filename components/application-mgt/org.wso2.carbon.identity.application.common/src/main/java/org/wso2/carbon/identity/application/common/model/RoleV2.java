@@ -40,10 +40,10 @@ public class RoleV2 implements Serializable {
     private static final String ID = "Id";
     private static final String NAME = "Name";
 
-    @XmlElement(name = "Id")
+    @XmlElement(name = ID)
     private String id;
 
-    @XmlElement(name = "Name")
+    @XmlElement(name = NAME)
     private String name;
 
     public RoleV2() {

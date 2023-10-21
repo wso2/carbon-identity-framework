@@ -42,16 +42,24 @@ public class AssociatedRolesConfig implements Serializable {
     private static final long serialVersionUID = 497647508006862448L;
     private static final String ALLOWED_AUDIENCE = "AllowedAudience";
     private static final String ASSOCIATED_ROLES = "AssociatedRoles";
-    @XmlElement(name = "AllowedAudience")
+    private static final String ASSOCIATED_ROLE = "AssociatedRole";
+
+    @XmlElement(name = ALLOWED_AUDIENCE)
     private String allowedAudience;
 
-    @XmlElementWrapper(name = "AssociatedRoles")
-    @XmlElement(name = "AssociatedRole")
+    @XmlElementWrapper(name = ASSOCIATED_ROLES)
+    @XmlElement(name = ASSOCIATED_ROLE)
     private List<RoleV2> roles = new ArrayList<>();
 
     /*
-     * <AssociatedRolesConfig> <AllowedAudience></AllowedAudience>
-     * <AssociatedRoles></AssociatedRoles> </AssociatedRolesConfig>
+    <AssociatedRolesConfig>
+        <AllowedAudience>...</AllowedAudience>
+        <AssociatedRoles>
+            <AssociatedRole>...</AssociatedRole>
+            <AssociatedRole>...</AssociatedRole>
+            <!-- More AssociatedRole elements for each item in the list -->
+        </AssociatedRoles>
+    </AssociatedRolesConfig>
      */
     public static AssociatedRolesConfig build(OMElement associatedRolesConfigOM) {
 
