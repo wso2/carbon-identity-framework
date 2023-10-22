@@ -226,6 +226,32 @@ public class IdentityEventConstants {
         public static final String PUBLISH_AUDIT_LOG = "PUBLISH_AUDIT_LOG";
         public static final String PUBLISH_DIAGNOSTIC_LOG = "PUBLISH_DIAGNOSTIC_LOG";
 
+        // Role-Mgt V2 events
+        public static final String PRE_ADD_ROLE_V2_EVENT = "PRE_ADD_ROLE_V2_EVENT";
+        public static final String POST_ADD_ROLE_V2_EVENT = "POST_ADD_ROLE_V2_EVENT";
+        public static final String PRE_GET_ROLES_V2_EVENT = "PRE_GET_ROLES_V2_EVENT";
+        public static final String POST_GET_ROLES_V2_EVENT = "POST_GET_ROLES_V2_EVENT";
+        public static final String PRE_GET_ROLES_V2_COUNT_EVENT = "PRE_GET_ROLES_V2_COUNT_EVENT";
+        public static final String POST_GET_ROLES_V2_COUNT_EVENT = "POST_GET_ROLES_V2_COUNT_EVENT";
+        public static final String PRE_GET_ROLE_V2_EVENT = "PRE_GET_ROLE_V2_EVENT";
+        public static final String POST_GET_ROLE_V2_EVENT = "POST_GET_ROLE_V2_EVENT";
+        public static final String PRE_UPDATE_ROLE_V2_NAME_EVENT = "PRE_UPDATE_ROLE_V2_NAME_EVENT";
+        public static final String POST_UPDATE_ROLE_V2_NAME_EVENT = "POST_UPDATE_ROLE_V2_NAME_EVENT";
+        public static final String PRE_DELETE_ROLE_V2_EVENT = "PRE_DELETE_ROLE_V2_EVENT";
+        public static final String POST_DELETE_ROLE_V2_EVENT = "POST_DELETE_ROLE_V2_EVENT";
+        public static final String PRE_GET_USER_LIST_OF_ROLE_V2_EVENT = "PRE_GET_USER_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_GET_USER_LIST_OF_ROLE_V2_EVENT = "POST_GET_USER_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_UPDATE_USER_LIST_OF_ROLE_V2_EVENT = "PRE_UPDATE_USER_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_UPDATE_USER_LIST_OF_ROLE_V2_EVENT = "POST_UPDATE_USER_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_GET_GROUP_LIST_OF_ROLES_V2_EVENT = "PRE_GET_GROUP_LIST_OF_ROLES_V2_EVENT";
+        public static final String POST_GET_GROUP_LIST_OF_ROLES_V2_EVENT = "POST_GET_GROUP_LIST_OF_ROLES_V2_EVENT";
+        public static final String PRE_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT = "PRE_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT = "POST_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT = "PRE_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT = "POST_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT = "PRE_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
+        public static final String POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT = "POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
+
         public static final String POST_APP_USER_ATTRIBUTE_UPDATE = "POST_APP_USER_ATTRIBUTE_UPDATE";
     }
 
@@ -276,6 +302,8 @@ public class IdentityEventConstants {
         public static final String CLAIM_VALUE = "CLAIM_VALUE";
         public static final String USER_LIST = "USER_LIST";
         public static final String PERMISSIONS = "PERMISSIONS";
+        public static final String ADDED_PERMISSIONS = "ADDED_PERMISSIONS";
+        public static final String DELETED_PERMISSIONS = "DELETED_PERMISSIONS";
         public static final String OLD_CREDENTIAL = "OLD_CREDENTIAL";
         public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
         public static final String DELETED_USERS = "DELETED_USERS";
@@ -345,6 +373,9 @@ public class IdentityEventConstants {
         public static final String AUTHENTICATOR_NAME = "authenticatorName";
         public static final String MAPPED_ATTRIBUTES = "mappedAttributes";
         public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
+        public static final String AUDIENCE = "audience";
+        public static final String AUDIENCE_ID = "audienceId";
+
         public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
     }
 
