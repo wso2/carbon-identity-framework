@@ -640,12 +640,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                                      String tenantDomain)
             throws IdentityRoleManagementException {
 
-        switch (audience) {
-            case ORGANIZATION:
-                validatePermissionsForOrganization(permissions, tenantDomain);
-                break;
-            default:
-                break;
+        if (audience.equals(ORGANIZATION)) {
+            validatePermissionsForOrganization(permissions, tenantDomain);
         }
     }
 
@@ -695,18 +691,12 @@ public class RoleManagementServiceImpl implements RoleManagementService {
      * @param arr2 Array of permissions.
      */
     private void removeSimilarPermissions(List<Permission> arr1, List<Permission> arr2) {
-        List<Permission> toRemove = new ArrayList<>();
 
-        for (Permission p1 : arr1) {
-            for (Permission p2 : arr2) {
-                if (p1.getName().equals(p2.getName())) {
-                    toRemove.add(p1);
-                    break;
-                }
-            }
-        }
-        arr1.removeAll(toRemove);
-        arr2.removeAll(toRemove);
+        List<Permission> common = new ArrayList<>(arr1);
+        common.retainAll(arr2);
+
+        arr1.removeAll(common);
+        arr2.removeAll(common);
     }
 
     /**
@@ -716,18 +706,12 @@ public class RoleManagementServiceImpl implements RoleManagementService {
      * @param arr2 Array of idp groups.
      */
     private void removeSimilarIdpGroups(List<IdpGroup> arr1, List<IdpGroup> arr2) {
-        List<IdpGroup> toRemove = new ArrayList<>();
 
-        for (IdpGroup p1 : arr1) {
-            for (IdpGroup p2 : arr2) {
-                if (p1.getGroupId().equals(p2.getGroupId())) {
-                    toRemove.add(p1);
-                    break;
-                }
-            }
-        }
-        arr1.removeAll(toRemove);
-        arr2.removeAll(toRemove);
+        List<IdpGroup> common = new ArrayList<>(arr1);
+        common.retainAll(arr2);
+
+        arr1.removeAll(common);
+        arr2.removeAll(common);
     }
 
     /**

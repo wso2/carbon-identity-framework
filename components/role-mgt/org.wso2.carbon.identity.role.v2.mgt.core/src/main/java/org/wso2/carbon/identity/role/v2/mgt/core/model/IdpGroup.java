@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.model;
 
+import java.util.Objects;
+
 /**
  * Represents the Idp Group.
  */
@@ -128,5 +130,24 @@ public class IdpGroup {
     public void setIdpName(String idpName) {
 
         this.idpName = idpName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        IdpGroup that = (IdpGroup) o;
+        return Objects.equals(groupId, that.groupId);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(groupId);
     }
 }

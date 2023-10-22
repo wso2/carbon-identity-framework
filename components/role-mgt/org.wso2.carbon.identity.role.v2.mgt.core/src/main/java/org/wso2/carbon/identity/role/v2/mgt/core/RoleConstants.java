@@ -127,7 +127,6 @@ public class RoleConstants {
         OPERATION_NOT_SUPPORTED("60010"),
         INVALID_AUDIENCE("60011"),
         INVALID_PERMISSION("60012"),
-
         PERMISSION_ALREADY_ADDED("60013"),
 
         // Error thrown by custom event handler.

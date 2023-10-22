@@ -205,12 +205,12 @@ public interface RoleManagementService {
     /**
      * Get permission list of the given role ids.
      *
-     * @param roleIDs       Role IDs.
+     * @param roleIds       Role IDs.
      * @param tenantDomain Tenant domain.
      * @return List of permissions.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    List<String> getPermissionListOfRoles(List<String> roleIDs, String tenantDomain)
+    List<String> getPermissionListOfRoles(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException;
 
 
