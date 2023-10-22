@@ -28,124 +28,38 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="createApplicationWithTemplate">
+            <xs:element name="getApplication">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2173:ServiceProvider"/>
-                        <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="createApplicationWithTemplateResponse">
+            <xs:element name="getApplicationResponse">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="return" nillable="true" type="ax2173:ServiceProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllPaginatedApplicationBasicInfo">
+            <xs:element name="getIdentityProvider">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
+                        <xs:element minOccurs="0" name="federatedIdPName" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllPaginatedApplicationBasicInfoResponse">
+            <xs:element name="getIdentityProviderResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:ApplicationBasicInfo"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2173:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getPaginatedApplicationBasicInfo">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
-                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getPaginatedApplicationBasicInfoResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:ApplicationBasicInfo"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllRequestPathAuthenticators">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllRequestPathAuthenticatorsResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:RequestPathAuthenticatorConfig"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAuthenticationTemplatesJSON">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAuthenticationTemplatesJSONResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="IdentityApplicationManagementServiceIdentityApplicationManagementClientException">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="IdentityApplicationManagementClientException" nillable="true" type="ax2171:IdentityApplicationManagementClientException"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="createApplicationTemplateFromSP">
+            <xs:element name="createApplication">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2173:ServiceProvider"/>
-                        <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2173:SpTemplate"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="isExistingApplicationTemplate">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="isExistingApplicationTemplateResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllApplicationTemplateInfo">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllApplicationTemplateInfoResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:SpTemplate"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getCustomInboundAuthenticatorConfigs">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getCustomInboundAuthenticatorConfigsResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:InboundAuthenticationRequestConfig"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -158,13 +72,6 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:ApplicationBasicInfo"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="createApplication">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2173:ServiceProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -287,6 +194,13 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="IdentityApplicationManagementServiceIdentityApplicationManagementClientException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="IdentityApplicationManagementClientException" nillable="true" type="ax2171:IdentityApplicationManagementClientException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="createApplicationTemplate">
                 <xs:complexType>
                     <xs:sequence>
@@ -323,31 +237,117 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getApplication">
+            <xs:element name="createApplicationWithTemplate">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2173:ServiceProvider"/>
+                        <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getApplicationResponse">
+            <xs:element name="createApplicationWithTemplateResponse">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="return" nillable="true" type="ax2173:ServiceProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getIdentityProvider">
+            <xs:element name="getAllPaginatedApplicationBasicInfo">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="federatedIdPName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getIdentityProviderResponse">
+            <xs:element name="getAllPaginatedApplicationBasicInfoResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2173:IdentityProvider"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:ApplicationBasicInfo"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPaginatedApplicationBasicInfo">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPaginatedApplicationBasicInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:ApplicationBasicInfo"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllRequestPathAuthenticators">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllRequestPathAuthenticatorsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:RequestPathAuthenticatorConfig"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAuthenticationTemplatesJSON">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAuthenticationTemplatesJSONResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="createApplicationTemplateFromSP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2173:ServiceProvider"/>
+                        <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2173:SpTemplate"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isExistingApplicationTemplate">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isExistingApplicationTemplateResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllApplicationTemplateInfo">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllApplicationTemplateInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:SpTemplate"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCustomInboundAuthenticatorConfigs">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCustomInboundAuthenticatorConfigsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:InboundAuthenticationRequestConfig"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -385,7 +385,13 @@
             <xs:complexType name="AssociatedRolesConfig">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="allowedAudience" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="roles" nillable="true" type="xs:anyType"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="roles" nillable="true" type="ax2173:RoleV2"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="RoleV2">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="ClaimConfig">
@@ -667,13 +673,6 @@
                     <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
-            <xs:complexType name="SpTemplate">
-                <xs:sequence>
-                    <xs:element minOccurs="0" name="content" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
-                </xs:sequence>
-            </xs:complexType>
             <xs:complexType name="SpFileContent">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="content" nillable="true" type="xs:string"/>
@@ -687,6 +686,13 @@
                     <xs:element minOccurs="0" name="errorCode" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="errors" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="responseCode" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="SpTemplate">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="content" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>

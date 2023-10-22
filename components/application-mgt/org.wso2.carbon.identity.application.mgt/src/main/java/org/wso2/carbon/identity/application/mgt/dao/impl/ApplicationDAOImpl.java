@@ -447,7 +447,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (associatedRolesConfig == null) {
             return;
         }
-        List<RoleV2> roles = associatedRolesConfig.getRoles();
+        List<RoleV2> roles = new ArrayList<>(Arrays.asList(associatedRolesConfig.getRoles()));
         if (CollectionUtils.isEmpty(roles)) {
             return;
         }
@@ -2154,7 +2154,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return associatedRolesConfig;
     }
 
-    private List<RoleV2> buildAssociatedRolesWithRoleName(List<String> roleIds, String tenantDomain)
+    private RoleV2[] buildAssociatedRolesWithRoleName(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
         List<RoleV2> rolesList = new ArrayList<>();
@@ -2164,7 +2164,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             String roleName = roleManagementServiceV2.getRoleNameByRoleId(roleId, tenantDomain);
             rolesList.add(new RoleV2(roleId, roleName));
         }
-        return rolesList;
+        return rolesList.toArray(new RoleV2[0]);
     }
 
     @Override
@@ -5426,7 +5426,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             AssociatedRolesConfig associatedRolesConfig = getAssociatedRoles(applicationId, connection, tenantID);
-            return associatedRolesConfig.getRoles();
+            return new ArrayList<>(Arrays.asList(associatedRolesConfig.getRoles()));
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException(
                     "Error while retrieving associated roles for application ID: " + applicationId, e);

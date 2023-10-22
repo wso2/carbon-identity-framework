@@ -49,7 +49,7 @@ public class AssociatedRolesConfig implements Serializable {
 
     @XmlElementWrapper(name = ASSOCIATED_ROLES)
     @XmlElement(name = ASSOCIATED_ROLE)
-    private List<RoleV2> roles = new ArrayList<>();
+    private RoleV2[] roles;
 
     /*
     <AssociatedRolesConfig>
@@ -87,7 +87,7 @@ public class AssociatedRolesConfig implements Serializable {
                     }
                 }
                 if (CollectionUtils.isNotEmpty(rolesArrList)) {
-                    associatedRolesConfig.setRoles(rolesArrList);
+                    associatedRolesConfig.setRoles(rolesArrList.toArray(new RoleV2[0]));
                 }
             }
         }
@@ -104,12 +104,12 @@ public class AssociatedRolesConfig implements Serializable {
         this.allowedAudience = allowedAudience;
     }
 
-    public List<RoleV2> getRoles() {
+    public RoleV2[] getRoles() {
 
         return roles;
     }
 
-    public void setRoles(List<RoleV2> roles) {
+    public void setRoles(RoleV2[] roles) {
 
         this.roles = roles;
     }
