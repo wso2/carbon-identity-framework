@@ -52,9 +52,15 @@ public class JSONObjectToExtensionInfo implements Function<JSONObject, Extension
                 JSONObject customAttribute = customAttributes.getJSONObject(i);
                 Map<String, Object> customAttributeMap = new HashMap<>();
                 Object value = customAttribute.get(ExtensionMgtConstants.VALUE);
+
+                if (value == null || value == JSONObject.NULL) {
+                    value = "";
+                } else if (value instanceof JSONArray || value instanceof JSONObject) {
+                    value = value.toString();
+                }
+
                 customAttributeMap.put(ExtensionMgtConstants.KEY, customAttribute.getString(ExtensionMgtConstants.KEY));
-                customAttributeMap.put(ExtensionMgtConstants.VALUE, (value instanceof JSONArray || value instanceof JSONObject) ?
-                        value : value.toString());
+                customAttributeMap.put(ExtensionMgtConstants.VALUE, value);
                 customAttributesList.add(customAttributeMap);
             }
             extensionInfo.setCustomAttributes(customAttributesList);
