@@ -490,7 +490,6 @@ public class ApplicationManagementServiceComponent {
         log.debug("IdentityEventService unset in Identity Application Management bundle");
     }
 
-
     @Reference(
             name = "api.resource.mgt.service.component",
             service = APIResourceManager.class,
@@ -499,14 +498,14 @@ public class ApplicationManagementServiceComponent {
             unbind = "unsetAPIResourceManager")
     protected void setAPIResourceManager(APIResourceManager apiResourceManager) {
 
-            ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
-            log.debug("APIResourceManager set in to bundle");
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
+        log.debug("APIResourceManager set in to bundle");
     }
 
     protected void unsetAPIResourceManager(APIResourceManager apiResourceManager) {
 
-            ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(null);
-            log.debug("APIResourceManager unset in to bundle");
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(null);
+        log.debug("APIResourceManager unset in to bundle");
     }
 
     @Reference(
@@ -536,7 +535,6 @@ public class ApplicationManagementServiceComponent {
 
         ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
         log.debug("OrganizationManager set in ApplicationManagementServiceComponent bundle.");
-
     }
 
     protected void unsetOrganizationManager(OrganizationManager organizationManager) {
