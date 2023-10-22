@@ -232,6 +232,10 @@ public abstract class FrameworkConstants {
     public static final String BLOCKED_USERSTORE_DOMAINS_SEPARATOR = ",";
 
     public static final String IS_USER_RESOLVED = "isUserResolved";
+    public static final String ERROR_STATUS_AUTH_CONTEXT_NULL = "authentication.context.null";
+    public static final String ERROR_DESCRIPTION_AUTH_CONTEXT_NULL = "authentication.context.null.description";
+    public static final String IS_SENT_TO_RETRY = "isSentToRetry";
+    public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
 
     private FrameworkConstants() {
 

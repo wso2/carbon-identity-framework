@@ -240,6 +240,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             if (context != null) {
+                // Adding the context identifier(sessionDataKey) to the request to be used when the context
+                // is not available.
+                request.setAttribute(FrameworkConstants.CONTEXT_IDENTIFIER, context.getContextIdentifier());
                 if (StringUtils.isNotBlank(context.getServiceProviderName())) {
                     MDC.put(SERVICE_PROVIDER_QUERY_KEY, context.getServiceProviderName());
                 }
@@ -372,7 +375,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 log.error("Context does not exist. Probably due to invalidated cache. " + message);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
-                        "authentication.context.null", "authentication.context.null.description");
+                        FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL,
+                        FrameworkConstants.ERROR_DESCRIPTION_AUTH_CONTEXT_NULL);
             }
         } catch (JsFailureException e) {
             if (log.isDebugEnabled()) {

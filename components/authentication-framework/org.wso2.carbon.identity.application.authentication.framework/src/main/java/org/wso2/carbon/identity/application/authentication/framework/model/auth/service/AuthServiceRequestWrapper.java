@@ -147,4 +147,26 @@ public class AuthServiceRequestWrapper extends HttpServletRequestWrapper {
 
         this.setAttribute(FrameworkConstants.SKIP_NONCE_COOKIE_VALIDATION, true);
     }
+
+    /**
+     * Get the session data key.
+     *
+     * @return String of session data key.
+     */
+    public String getSessionDataKey() {
+
+        if (this.parameters.containsKey(FrameworkConstants.SESSION_DATA_KEY)) {
+            String[] sessionDataKeyParam = this.parameters.get(FrameworkConstants.SESSION_DATA_KEY);
+            if (sessionDataKeyParam != null && sessionDataKeyParam.length > 0) {
+                return sessionDataKeyParam[0];
+            }
+        }
+
+        Object contextIdentifierAttr = getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER);
+        if (contextIdentifierAttr != null) {
+            return contextIdentifierAttr.toString();
+        }
+
+        return null;
+    }
 }
