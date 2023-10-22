@@ -114,7 +114,6 @@ public class IdentityApplicationConstants {
     public static final String LOCAL_SP = "wso2carbon-local-sp";
 
     public static final String SP_NAME = "spName";
-    public static final String ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME = "allowedAudienceForAssociatedRoles";
 
     public static final String ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME = "allowedAudienceForAssociatedRoles";
 

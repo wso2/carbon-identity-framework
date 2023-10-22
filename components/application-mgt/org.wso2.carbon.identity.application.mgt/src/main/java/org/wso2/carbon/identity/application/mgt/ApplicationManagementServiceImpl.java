@@ -86,10 +86,10 @@ import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.v2.mgt.core.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
@@ -164,6 +164,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.valida
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getInitiatorId;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_MANAGEMENT_ERROR_CODE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -3072,8 +3073,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         allowedAudienceId.equals(retrievedRole.getAudienceId());
             }
         } catch (IdentityRoleManagementException e) {
-            // TODO: use constant for error code prefix.
-            if (("RMA-" + ROLE_NOT_FOUND).equals(e.getErrorCode())) {
+            if ((ROLE_MANAGEMENT_ERROR_CODE_PREFIX + ROLE_NOT_FOUND).equals(e.getErrorCode())) {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Role: %s does not exist.", role.getId()));
                 }
