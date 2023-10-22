@@ -1295,6 +1295,10 @@
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.organization.management.role.management.service.listener.OrganizationUserOperationEventListener"
                        orderId="115" enable="true"/>
+        <EventListener id="organization_discovery_user_operation_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.discovery.service.listener.OrganizationDiscoveryUserOperationListener"
+                       orderId="114" enable="true"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
