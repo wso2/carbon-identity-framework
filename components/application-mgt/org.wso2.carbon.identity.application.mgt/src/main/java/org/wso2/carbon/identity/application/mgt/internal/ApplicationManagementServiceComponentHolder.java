@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.mgt.internal;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
-import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
@@ -65,8 +64,6 @@ public class ApplicationManagementServiceComponentHolder {
     private boolean isOrganizationManagementEnable = false;
 
     private IdentityEventService identityEventService;
-
-    private AuthorizedAPIManagementService authorizedAPIManagementService;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -286,26 +283,6 @@ public class ApplicationManagementServiceComponentHolder {
     public void setAPIResourceManager(APIResourceManager apiResourceManager) {
 
         this.apiResourceManager = apiResourceManager;
-    }
-
-    /**
-     * Get Authorized API management service.
-     *
-     * @return AuthorizedAPIManagementService.
-     */
-    public AuthorizedAPIManagementService getAuthorizedAPIManagementService() {
-
-        return authorizedAPIManagementService;
-    }
-
-    /**
-     * Set authorized API management service.
-     *
-     * @param authorizedAPIManagementService AuthorizedAPIManagementService.
-     */
-    public void setAuthorizedAPIManagementService(AuthorizedAPIManagementService authorizedAPIManagementService) {
-
-        this.authorizedAPIManagementService = authorizedAPIManagementService;
     }
 
     /**
