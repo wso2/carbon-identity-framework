@@ -24,17 +24,17 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
-import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
-import org.wso2.carbon.identity.role.v2.mgt.core.GroupBasicInfo;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementClientException;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementException;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdentityRoleManagementServerException;
-import org.wso2.carbon.identity.role.v2.mgt.core.IdpGroup;
-import org.wso2.carbon.identity.role.v2.mgt.core.Permission;
-import org.wso2.carbon.identity.role.v2.mgt.core.Role;
-import org.wso2.carbon.identity.role.v2.mgt.core.RoleBasicInfo;
-import org.wso2.carbon.identity.role.v2.mgt.core.UserBasicInfo;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.GroupBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -432,7 +432,8 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
     /**
      * Validate application role audience.
      *
-     * @param applicationId Application Id.
+     * @param applicationId Application ID.
+     * @param tenantDomain Tenant domain.
      * @throws IdentityRoleManagementException Error occurred while validating application role audience.
      */
     private void validateApplicationRoleAudience(String applicationId, String tenantDomain)
@@ -468,6 +469,7 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
      *
      * @param permissions Permissions.
      * @param applicationId Application ID.
+     * @param tenantDomain Tenant domain.
      * @throws IdentityRoleManagementException Error occurred while validating permissions.
      */
     private void validatePermissionsForApplication(List<Permission> permissions, String applicationId,
@@ -494,13 +496,14 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
     private List<String> getAuthorizedScopes(String appId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        AuthorizedAPIManagementService authorizedAPIManagementService = new AuthorizedAPIManagementServiceImpl();
+        AuthorizedAPIManagementService authorizedAPIManagementService =
+                ApplicationManagementServiceComponentHolder.getInstance().getAuthorizedAPIManagementService();
         List<AuthorizedScopes> authorizedScopesList;
         try {
             authorizedScopesList = authorizedAPIManagementService.getAuthorizedScopes(appId, tenantDomain);
         } catch (IdentityApplicationManagementException e) {
             throw new IdentityRoleManagementException("Error while retrieving authorized scopes.",
-                    "Error while retrieving authorized scopes for app id : " + appId);
+                    "Error while retrieving authorized scopes for app id : " + appId, e);
         }
         if (authorizedScopesList == null) {
             return new ArrayList<>();
@@ -513,6 +516,14 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
         return allScopes;
     }
 
+    /**
+     * Get application name.
+     *
+     * @param applicationID Application ID.
+     * @param tenantDomain Tenant domain.
+     * @return Application name.
+     * @throws IdentityRoleManagementException Error occurred while retrieving application name.
+     */
     private String getApplicationName(String applicationID, String tenantDomain)
             throws IdentityRoleManagementException {
 

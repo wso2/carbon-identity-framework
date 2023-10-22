@@ -509,4 +509,24 @@ public class ApplicationManagementServiceComponent {
                     .setAPIResourceManager(null);
             log.debug("APIResourceManager unset in to bundle");
     }
+
+    @Reference(
+            name = "authorized.api.mgt.service.component",
+            service = AuthorizedAPIManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAPIResourceManager")
+    protected void setAPIResourceManager(AuthorizedAPIManagementService authorizedAPIManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setAuthorizedAPIManagementService(authorizedAPIManagementService);
+        log.debug("AuthorizedAPIManagementService set in to bundle");
+    }
+
+    protected void unsetAPIResourceManager(AuthorizedAPIManagementService authorizedAPIManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setAuthorizedAPIManagementService(null);
+        log.debug("AuthorizedAPIManagementService unset in to bundle");
+    }
 }
