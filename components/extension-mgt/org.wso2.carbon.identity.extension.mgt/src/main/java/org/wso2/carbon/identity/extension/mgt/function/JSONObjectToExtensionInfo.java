@@ -24,7 +24,9 @@ import org.wso2.carbon.identity.extension.mgt.model.ExtensionInfo;
 import org.wso2.carbon.identity.extension.mgt.utils.ExtensionMgtConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -43,6 +45,26 @@ public class JSONObjectToExtensionInfo implements Function<JSONObject, Extension
         extensionInfo.setDisplayOrder(jsonObject.getInt(ExtensionMgtConstants.DISPLAY_ORDER));
         extensionInfo.setTags(getTags(jsonObject.getJSONArray(ExtensionMgtConstants.TAGS)));
         extensionInfo.setCategory(jsonObject.getString(ExtensionMgtConstants.CATEGORY));
+        if (jsonObject.has(ExtensionMgtConstants.CUSTOM_ATTRIBUTES)) {
+            JSONArray customAttributes = jsonObject.getJSONArray(ExtensionMgtConstants.CUSTOM_ATTRIBUTES);
+            List<Map<String, Object>> customAttributesList = new ArrayList<>();
+            for (int i = 0; i < customAttributes.length(); i++) {
+                JSONObject customAttribute = customAttributes.getJSONObject(i);
+                Map<String, Object> customAttributeMap = new HashMap<>();
+                Object value = customAttribute.get(ExtensionMgtConstants.VALUE);
+
+                if (value == null || value == JSONObject.NULL) {
+                    value = "";
+                } else if (value instanceof JSONArray || value instanceof JSONObject) {
+                    value = value.toString();
+                }
+
+                customAttributeMap.put(ExtensionMgtConstants.KEY, customAttribute.getString(ExtensionMgtConstants.KEY));
+                customAttributeMap.put(ExtensionMgtConstants.VALUE, value);
+                customAttributesList.add(customAttributeMap);
+            }
+            extensionInfo.setCustomAttributes(customAttributesList);
+        }
         return extensionInfo;
     }
 
