@@ -122,7 +122,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
         when(request.getAttribute(FrameworkConstants.IS_MULTI_OPS_RESPONSE)).thenReturn(isMultiOpsResponse);
         when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS)).thenReturn(authenticatorFlowStatus);
-        when(request.getAttribute(FrameworkConstants.SESSION_DATA_KEY)).thenReturn(sessionDataKey);
+        when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(sessionDataKey);
         if (isMultiOpsResponse) {
             List<AuthenticatorData> authenticatorDataMap = getMultiOpsAuthenticatorData(authenticatorList);
             for (AuthenticatorData authenticatorData : authenticatorDataMap) {
@@ -180,7 +180,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
         when(request.getAttribute(FrameworkConstants.IS_MULTI_OPS_RESPONSE)).thenReturn(false);
         when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS)).thenReturn(authenticatorFlowStatus);
-        when(request.getAttribute(FrameworkConstants.SESSION_DATA_KEY)).thenReturn(sessionDataKey);
+        when(request.getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER)).thenReturn(sessionDataKey);
         List<AuthenticatorData> expected = getAuthenticatorData(authenticatorList);
         if (AuthenticatorFlowStatus.INCOMPLETE == authenticatorFlowStatus) {
             when(request.getAttribute(AuthServiceConstants.AUTH_SERVICE_AUTH_INITIATION_DATA)).thenReturn(expected);
