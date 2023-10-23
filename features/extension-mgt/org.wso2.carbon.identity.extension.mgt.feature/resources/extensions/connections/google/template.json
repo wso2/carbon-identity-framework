@@ -32,13 +32,6 @@
             "mappings": [],
             "outboundProvisioningRoles": []
         },
-        "provisioning": {
-            "jit": {
-                "isEnabled": true,
-                "scheme": "PROVISION_SILENTLY",
-                "userstore": "DEFAULT"
-            }
-        },
         "federatedAuthenticators": {
             "defaultAuthenticatorId": "R29vZ2xlT0lEQ0F1dGhlbnRpY2F0b3I",
             "authenticators": [

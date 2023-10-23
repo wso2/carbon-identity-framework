@@ -62,7 +62,7 @@
             "jit": {
                 "isEnabled": true,
                 "scheme": "PROVISION_SILENTLY",
-                "userstore": "DEFAULT",
+                "userstore": "PRIMARY",
                 "attributeSyncMethod": "NONE"
             }
         },

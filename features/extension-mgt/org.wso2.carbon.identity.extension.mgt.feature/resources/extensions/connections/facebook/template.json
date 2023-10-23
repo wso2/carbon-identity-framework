@@ -89,13 +89,6 @@
         "roles": {
             "mappings": []
         },
-        "provisioning": {
-            "jit": {
-                "isEnabled": true,
-                "scheme": "PROVISION_SILENTLY",
-                "userstore": "DEFAULT"
-            }
-        },
         "federatedAuthenticators": {
             "defaultAuthenticatorId": "RmFjZWJvb2tBdXRoZW50aWNhdG9y",
             "authenticators": [
