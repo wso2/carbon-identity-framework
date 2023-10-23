@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.api.resource.mgt.dao.APIResourceManagementDAO;
 import org.wso2.carbon.identity.api.resource.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.APIResourceProperty;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
@@ -39,6 +40,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -57,6 +61,19 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             throws APIResourceMgtException {
 
         return getAPIResourcesList(limit, tenantId, sortOrder, expressionNodes);
+    }
+
+    @Override
+    public List<APIResource> getAPIResourcesWithRequiredAttributes(Integer limit, Integer tenantId, String sortOrder,
+                                                                   List<ExpressionNode> expressionNodes,
+                                                                   List<String> requiredAttributes)
+            throws APIResourceMgtException {
+
+        if (CollectionUtils.isEmpty(requiredAttributes) ||
+                !requiredAttributes.contains(APIResourceManagementConstants.PROPERTIES)) {
+            return getAPIResourcesList(limit, tenantId, sortOrder, expressionNodes);
+        }
+        return getAPIResourcesListWithProperties(limit, tenantId, sortOrder, expressionNodes);
     }
 
     @Override
@@ -116,13 +133,17 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 prepStmt.setString(4, apiResource.getIdentifier());
                 prepStmt.setString(5, apiResource.getDescription());
                 prepStmt.setInt(6, tenantId);
-                prepStmt.setBoolean(7, apiResource.isRequiresAuthorization());
+                prepStmt.setBoolean(7, apiResource.isAuthorizationRequired());
                 prepStmt.executeUpdate();
                 prepStmt.clearParameters();
 
                 if (CollectionUtils.isNotEmpty(apiResource.getScopes())) {
                     // Add scopes.
                     addScopes(dbConnection, generatedAPIId, apiResource.getScopes(), tenantId);
+                }
+                if (CollectionUtils.isNotEmpty(apiResource.getProperties())) {
+                    // Add properties.
+                    addAPIResourceProperties(dbConnection, generatedAPIId, apiResource.getProperties());
                 }
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
 
@@ -224,7 +245,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             preparedStatement.setString(1, apiId);
             preparedStatement.setInt(2, tenantId);
             ResultSet resultSet = preparedStatement.executeQuery();
-            return getApiResource(resultSet);
+            List<APIResourceProperty> apiResourceProperties = getAPIResourcePropertiesByAPIId(dbConnection, apiId);
+            return getApiResource(resultSet, apiResourceProperties);
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
@@ -241,7 +263,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             preparedStatement.setString(1, identifier);
             preparedStatement.setInt(2, tenantId);
             ResultSet resultSet = preparedStatement.executeQuery();
-            return getApiResource(resultSet);
+            List<APIResourceProperty> apiResourceProperties =
+                    getAPIResourcePropertiesByAPIIdentifier(dbConnection, identifier, tenantId);
+            return getApiResource(resultSet, apiResourceProperties);
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
@@ -488,6 +512,49 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         return null;
     }
 
+    @Override
+    public List<APIResource> getScopeMetadata(List<String> scopeNames, Integer tenantId)
+            throws APIResourceMgtException {
+
+        String query = SQLConstants.GET_SCOPE_METADATA;
+        String placeholders = String.join(",", Collections.nCopies(scopeNames.size(), "?"));
+        query = query.replace(SQLConstants.SCOPE_LIST_PLACEHOLDER, placeholders);
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = dbConnection.prepareStatement(query)) {
+            prepStmt.setInt(1, tenantId);
+            int scopeIndex = 2;
+            for (String scopeName : scopeNames) {
+                prepStmt.setString(scopeIndex, scopeName);
+                scopeIndex++;
+            }
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                Map<String, APIResource> apiResources = new HashMap<>();
+                while (resultSet.next()) {
+                    String apiId = resultSet.getString(SQLConstants.API_RESOURCE_ID_COLUMN_NAME);
+                    Scope scope = new Scope.ScopeBuilder()
+                            .name(resultSet.getString(SQLConstants.SCOPE_QUALIFIED_NAME_COLUMN_NAME))
+                            .displayName(resultSet.getString(SQLConstants.SCOPE_DISPLAY_NAME_COLUMN_NAME))
+                            .description(resultSet.getString(SQLConstants.SCOPE_DESCRIPTION_COLUMN_NAME))
+                            .build();
+                    if (apiResources.containsKey(apiId)) {
+                        apiResources.get(apiId).getScopes().add(scope);
+                    } else {
+                        APIResource apiResource = new APIResource.APIResourceBuilder()
+                                .id(apiId)
+                                .name(resultSet.getString(SQLConstants.API_RESOURCE_NAME_COLUMN_NAME))
+                                .scopes(Collections.singletonList(scope))
+                                .build();
+                        apiResources.put(apiId, apiResource);
+                    }
+                }
+                return new ArrayList<>(apiResources.values());
+            }
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPE_METADATA, e);
+        }
+    }
+
     /**
      * Get API resources list.
      *
@@ -511,8 +578,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
 
             String databaseName = dbConnection.getMetaData().getDatabaseProductName();
-            String sqlStmt = buildAPIResourcesSqlStatement(databaseName, tenantId, filterQueryBuilder.getFilterQuery(),
-                    sortOrder, limit);
+            String sqlStmt = buildGetAPIResourcesSqlStatement(databaseName, tenantId,
+                    filterQueryBuilder.getFilterQuery(), sortOrder, limit);
             PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt);
 
             if (filterAttributeValue != null) {
@@ -542,13 +609,79 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     }
 
     /**
+     * Get API resources list.
+     *
+     * @param limit           API resources limit.
+     * @param tenantId        Tenant ID.
+     * @param sortOrder       Order to sort the results.
+     * @param expressionNodes Expression nodes.
+     * @return API resources list.
+     * @throws APIResourceMgtException If an error occurs while retrieving API resources.
+     */
+    private List<APIResource> getAPIResourcesListWithProperties(Integer limit, Integer tenantId, String sortOrder,
+                                                                List<ExpressionNode> expressionNodes)
+            throws APIResourceMgtException {
+
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        appendFilterQuery(expressionNodes, filterQueryBuilder, false);
+        Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
+
+        Map<String, APIResource> apiResourceMap = new LinkedHashMap<>();
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            String databaseName = dbConnection.getMetaData().getDatabaseProductName();
+            String sqlStmt = buildGetAPIResourcesWithPropertiesSqlStatement(databaseName, tenantId,
+                    filterQueryBuilder.getFilterQuery(), sortOrder, limit);
+            PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt);
+
+            if (filterAttributeValue != null) {
+                for (Map.Entry<Integer, String> entry : filterAttributeValue.entrySet()) {
+                    prepStmt.setString(entry.getKey(), entry.getValue());
+                }
+            }
+
+            ResultSet rs = prepStmt.executeQuery();
+            while (rs.next()) {
+                String apiResourceId = rs.getString(SQLConstants.API_RESOURCE_ID_COLUMN_NAME);
+                if (!apiResourceMap.containsKey(apiResourceId)) {
+                    List<APIResourceProperty> apiResourceProperties = new ArrayList<>();
+                    APIResource.APIResourceBuilder apiResourceBuilder = new APIResource.APIResourceBuilder()
+                            .id(rs.getString(SQLConstants.API_RESOURCE_ID_COLUMN_NAME))
+                            .cursorKey(rs.getInt(SQLConstants.CURSOR_KEY_COLUMN_NAME))
+                            .name(rs.getString(SQLConstants.API_RESOURCE_NAME_COLUMN_NAME))
+                            .identifier(rs.getString(SQLConstants.API_RESOURCE_IDENTIFIER_COLUMN_NAME))
+                            .description(rs.getString(SQLConstants.API_RESOURCE_DESCRIPTION_COLUMN_NAME))
+                            .type(rs.getString(SQLConstants.API_RESOURCE_TYPE_COLUMN_NAME))
+                            .requiresAuthorization(rs.getBoolean(SQLConstants.REQUIRES_AUTHORIZATION_COLUMN_NAME))
+                            .tenantId(rs.getInt(SQLConstants.API_RESOURCE_TENANT_ID_COLUMN_NAME))
+                            .properties(apiResourceProperties);
+                    apiResourceMap.put(apiResourceId, apiResourceBuilder.build());
+                }
+                String propertyId = rs.getString(SQLConstants.API_RESOURCE_PROPERTY_ID_COLUMN_NAME);
+                if (StringUtils.isNotBlank(propertyId)) {
+                    APIResourceProperty apiResourceProperty = new APIResourceProperty();
+                    apiResourceProperty.setName(rs.getString(SQLConstants.API_RESOURCE_PROPERTY_NAME_COLUMN_NAME));
+                    apiResourceProperty.setValue(
+                            rs.getString(SQLConstants.API_RESOURCE_PROPERTY_VALUE_COLUMN_NAME));
+                    apiResourceMap.get(apiResourceId).getProperties().add(apiResourceProperty);
+                }
+            }
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
+        }
+        return new ArrayList<>(apiResourceMap.values());
+    }
+
+    /**
      * Get API resource from the result set.
      *
      * @param resultSet Result set.
      * @return API resource.
      * @throws SQLException If an error occurs while retrieving API resource.
      */
-    private static APIResource getApiResource(ResultSet resultSet) throws SQLException {
+    private static APIResource getApiResource(ResultSet resultSet, List<APIResourceProperty> apiResourceProperties)
+            throws SQLException {
 
         List<Scope> scopes = new ArrayList<>();
         APIResource apiResource = null;
@@ -562,15 +695,18 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                         .type(resultSet.getString(SQLConstants.API_RESOURCE_TYPE_COLUMN_NAME))
                         .requiresAuthorization(resultSet.getBoolean(
                                 SQLConstants.REQUIRES_AUTHORIZATION_COLUMN_NAME))
-                        .tenantId(resultSet.getInt(SQLConstants.API_RESOURCE_TENANT_ID_COLUMN_NAME));
+                        .tenantId(resultSet.getInt(SQLConstants.API_RESOURCE_TENANT_ID_COLUMN_NAME))
+                        .properties(apiResourceProperties);
                 apiResource = apiResourceBuilder.build();
             }
-            Scope.ScopeBuilder scopeBuilder = new Scope.ScopeBuilder()
-                    .id(resultSet.getString(SQLConstants.SCOPE_ID_COLUMN_NAME))
-                    .name(resultSet.getString(SQLConstants.SCOPE_QUALIFIED_NAME_COLUMN_NAME))
-                    .displayName(resultSet.getString(SQLConstants.SCOPE_DISPLAY_NAME_COLUMN_NAME))
-                    .description(resultSet.getString(SQLConstants.SCOPE_DESCRIPTION_COLUMN_NAME));
-            scopes.add(scopeBuilder.build());
+            if (resultSet.getString(SQLConstants.SCOPE_ID_COLUMN_NAME) != null) {
+                Scope.ScopeBuilder scopeBuilder = new Scope.ScopeBuilder()
+                        .id(resultSet.getString(SQLConstants.SCOPE_ID_COLUMN_NAME))
+                        .name(resultSet.getString(SQLConstants.SCOPE_QUALIFIED_NAME_COLUMN_NAME))
+                        .displayName(resultSet.getString(SQLConstants.SCOPE_DISPLAY_NAME_COLUMN_NAME))
+                        .description(resultSet.getString(SQLConstants.SCOPE_DESCRIPTION_COLUMN_NAME));
+                scopes.add(scopeBuilder.build());
+            }
         }
         if (apiResource != null) {
             apiResource.setScopes(scopes);
@@ -588,7 +724,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
      * @param limit        Limit.
      * @return SQL statement to retrieve API resources.
      */
-    private String buildAPIResourcesSqlStatement(String databaseName, Integer tenantId, String filterQuery,
+    private String buildGetAPIResourcesSqlStatement(String databaseName, Integer tenantId, String filterQuery,
                                                  String sortOrder, Integer limit) {
 
         String sqlStmtHead = SQLConstants.GET_API_RESOURCES;
@@ -602,6 +738,19 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         }
 
         return sqlStmtHead + filterQuery + String.format(sqlStmtTail, tenantId, sortOrder, limit);
+    }
+
+    private String buildGetAPIResourcesWithPropertiesSqlStatement(String databaseName, Integer tenantId,
+                                                                  String filterQuery, String sortOrder, Integer limit) {
+
+        String selectionQuery = databaseName.contains(SQLConstants.H2)
+                ? SQLConstants.GET_API_RESOURCES_WITH_PROPERTIES_SELECTION_H2
+                : SQLConstants.GET_API_RESOURCES_WITH_PROPERTIES_SELECTION;
+        String getAPIResourcesSqlStmt = buildGetAPIResourcesSqlStatement(databaseName, tenantId, filterQuery, sortOrder,
+                limit);
+        String joinQuery = SQLConstants.GET_API_RESOURCES_WITH_PROPERTIES_JOIN;
+
+        return selectionQuery + getAPIResourcesSqlStmt + String.format(joinQuery, sortOrder);
     }
 
     /**
@@ -696,6 +845,109 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_SCOPES, e);
+        }
+    }
+
+    /**
+     * Get API resource properties by API ID.
+     *
+     * @param dbConnection Database connection.
+     * @param apiId        API resource id.
+     * @return List of API resource properties.
+     * @throws APIResourceMgtException If an error occurs while retrieving API resource properties.
+     */
+    private List<APIResourceProperty> getAPIResourcePropertiesByAPIId(Connection dbConnection, String apiId)
+                throws APIResourceMgtException {
+
+        List<APIResourceProperty> properties = new ArrayList<>();
+        try {
+            String databaseName = dbConnection.getMetaData().getDatabaseProductName();
+            PreparedStatement prepStmt = databaseName.contains(SQLConstants.H2) ?
+                    dbConnection.prepareStatement(SQLConstants.GET_API_RESOURCE_PROPERTIES_BY_API_ID_H2) :
+                    dbConnection.prepareStatement(SQLConstants.GET_API_RESOURCE_PROPERTIES_BY_API_ID);
+            prepStmt.setString(1, apiId);
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                while (rs.next()) {
+                    APIResourceProperty property = new APIResourceProperty();
+                    property.setName(rs.getString(SQLConstants.NAME_COLUMN_NAME));
+                    property.setValue(rs.getString(SQLConstants.VALUE_COLUMN_NAME));
+                    properties.add(property);
+                }
+            }
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCE_PROPERTIES, e);
+        }
+        return properties;
+    }
+
+    /**
+     * Get API resource properties by API Identifier.
+     *
+     * @param dbConnection  Database connection.
+     * @param apiIdentifier API resource id.
+     * @return List of API resource properties.
+     * @throws APIResourceMgtException If an error occurs while retrieving API resource properties.
+     */
+    private List<APIResourceProperty> getAPIResourcePropertiesByAPIIdentifier(
+            Connection dbConnection, String apiIdentifier, Integer tenantId) throws APIResourceMgtException {
+
+        List<APIResourceProperty> properties = new ArrayList<>();
+        try {
+            String databaseName = dbConnection.getMetaData().getDatabaseProductName();
+            PreparedStatement prepStmt = databaseName.contains(SQLConstants.H2) ?
+                    dbConnection.prepareStatement(SQLConstants.GET_API_RESOURCE_PROPERTIES_BY_API_IDENTIFIER_H2) :
+                    dbConnection.prepareStatement(SQLConstants.GET_API_RESOURCE_PROPERTIES_BY_API_IDENTIFIER);
+            prepStmt.setString(1, apiIdentifier);
+            prepStmt.setInt(2, tenantId);
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                while (rs.next()) {
+                    APIResourceProperty property = new APIResourceProperty();
+                    property.setName(rs.getString(SQLConstants.NAME_COLUMN_NAME));
+                    property.setValue(rs.getString(SQLConstants.VALUE_COLUMN_NAME));
+                    properties.add(property);
+                }
+            }
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCE_PROPERTIES, e);
+        }
+        return properties;
+    }
+
+    /**
+     * Add API resource properties.
+     *
+     * @param dbConnection Database connection.
+     * @param apiId        API resource id.
+     * @param properties   List of API resource properties.
+     * @throws APIResourceMgtException If an error occurs while adding API resource properties.
+     */
+    private void addAPIResourceProperties(Connection dbConnection, String apiId, List<APIResourceProperty> properties)
+            throws APIResourceMgtException {
+
+        if (CollectionUtils.isEmpty(properties)) {
+            return;
+        }
+
+        try {
+            String databaseName = dbConnection.getMetaData().getDatabaseProductName();
+            String query = databaseName.contains(SQLConstants.H2) ? SQLConstants.ADD_API_RESOURCE_PROPERTY_H2 :
+                    SQLConstants.ADD_API_RESOURCE_PROPERTY;
+            PreparedStatement prepStmt = dbConnection.prepareStatement(query);
+            for (APIResourceProperty property : properties) {
+                prepStmt.setString(1, apiId);
+                prepStmt.setString(2, property.getName());
+                prepStmt.setString(3, property.getValue());
+                prepStmt.addBatch();
+            }
+            prepStmt.executeBatch();
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_API_RESOURCE_PROPERTIES,
+                    e);
         }
     }
 

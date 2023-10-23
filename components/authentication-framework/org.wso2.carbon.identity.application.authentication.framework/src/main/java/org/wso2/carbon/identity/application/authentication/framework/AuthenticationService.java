@@ -115,7 +115,8 @@ public class AuthenticationService {
         List<AuthenticatorData> authenticatorDataList;
         if (isMultiOptionsResponse) {
             responseData.setAuthenticatorSelectionRequired(true);
-            authenticatorDataList = getAuthenticatorBasicData(response.getAuthenticators());
+            authenticatorDataList = getAuthenticatorBasicData(response.getAuthenticators(),
+                    request.getAuthInitiationData());
         } else {
             authenticatorDataList = request.getAuthInitiationData();
         }
@@ -133,7 +134,6 @@ public class AuthenticationService {
     private void handleFailedAuthResponse(AuthServiceRequestWrapper request, AuthServiceResponseWrapper response,
                                           AuthServiceResponse authServiceResponse) throws AuthServiceException {
 
-        // TODO: Improve error handling. Different authenticator seems to pass errors in slightly different ways.
         String errorCode = null;
         String errorMessage = null;
         if (request.isAuthFlowConcluded()) {
@@ -178,7 +178,9 @@ public class AuthenticationService {
         return queryParams.get(AuthServiceConstants.AUTH_FAILURE_MSG_PARAM);
     }
 
-    private List<AuthenticatorData> getAuthenticatorBasicData(String authenticatorList) throws AuthServiceException {
+    private List<AuthenticatorData> getAuthenticatorBasicData(String authenticatorList,
+                                                              List<AuthenticatorData> authInitiationData)
+            throws AuthServiceException {
 
         List<AuthenticatorData> authenticatorDataList = new ArrayList<>();
         String[] authenticatorAndIdpsArr = StringUtils.split(authenticatorList,
@@ -187,6 +189,14 @@ public class AuthenticationService {
             String[] authenticatorIdpSeperatedArr = StringUtils.split(authenticatorAndIdps,
                     AuthServiceConstants.AUTHENTICATOR_IDP_SEPARATOR);
             String name = authenticatorIdpSeperatedArr[0];
+
+            // Some authentication options would directly send the complete data. ex: basic authenticator.
+            AuthenticatorData authenticatorData = getAuthenticatorData(name, authInitiationData);
+            if (authenticatorData != null) {
+                authenticatorDataList.add(authenticatorData);
+                continue;
+            }
+
             ApplicationAuthenticator authenticator = FrameworkUtils.getAppAuthenticatorByName(name);
             if (authenticator == null) {
                 throw new AuthServiceException("Authenticator not found for name: " + name);
@@ -198,18 +208,30 @@ public class AuthenticationService {
                 }
                 continue;
             }
+
             // The first element is the authenticator name hence its skipped to get the idp.
             for (int i = 1; i < authenticatorIdpSeperatedArr.length; i++) {
                 String idp = authenticatorIdpSeperatedArr[i];
-                AuthenticatorData authenticatorData = new AuthenticatorData();
+                authenticatorData = new AuthenticatorData();
                 authenticatorData.setName(name);
                 authenticatorData.setIdp(idp);
                 authenticatorData.setDisplayName(authenticator.getFriendlyName());
-
+                authenticatorData.setI18nKey(authenticator.getI18nKey());
                 authenticatorDataList.add(authenticatorData);
             }
         }
         return authenticatorDataList;
+    }
+
+    private AuthenticatorData getAuthenticatorData(String authenticator,
+                                                   List<AuthenticatorData> authenticatorDataList) {
+
+        for (AuthenticatorData authenticatorData : authenticatorDataList) {
+            if (StringUtils.equals(authenticatorData.getName(), authenticator)) {
+                return authenticatorData;
+            }
+        }
+        return null;
     }
 
     private boolean isAuthFlowSuccessful(AuthServiceRequestWrapper request) {

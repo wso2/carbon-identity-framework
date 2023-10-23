@@ -282,11 +282,14 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             }
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
+            paramMap.put(FrameworkConstants.AUTHENTICATOR, getName());
             if (isFederated) {
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_FEDERATED_STEP, true);
                 paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, true);
-                paramMap.put(FrameworkConstants.AUTHENTICATOR, getName());
+                if (user != null) {
+                    user.setTenantDomain(context.getTenantDomain());
+                }
             } else {
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_LOCAL_STEP, true);

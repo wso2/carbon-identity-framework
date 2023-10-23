@@ -35,6 +35,7 @@ public class APIResource {
     private boolean requiresAuthorization;
     private List<Scope> scopes;
     private List<ApplicationBasicInfo> subscribedApplications;
+    private List<APIResourceProperty> properties;
 
     public APIResource() {
     }
@@ -51,6 +52,7 @@ public class APIResource {
         this.requiresAuthorization = apiResourceBuilder.requiresAuthorization;
         this.scopes = apiResourceBuilder.scopes;
         this.subscribedApplications = apiResourceBuilder.subscribedApplications;
+        this.properties = apiResourceBuilder.properties;
     }
 
     public String getId() {
@@ -88,7 +90,7 @@ public class APIResource {
         return tenantId;
     }
 
-    public boolean isRequiresAuthorization() {
+    public boolean isAuthorizationRequired() {
 
         return requiresAuthorization;
     }
@@ -113,6 +115,16 @@ public class APIResource {
         this.subscribedApplications = subscribedApplications;
     }
 
+    public List<APIResourceProperty> getProperties() {
+
+        return properties;
+    }
+
+    public void setProperties(List<APIResourceProperty> properties) {
+
+        this.properties = properties;
+    }
+
     /**
      * API resource builder.
      */
@@ -128,6 +140,7 @@ public class APIResource {
         private boolean requiresAuthorization;
         private List<Scope> scopes;
         private List<ApplicationBasicInfo> subscribedApplications;
+        private List<APIResourceProperty> properties;
 
         public APIResourceBuilder() {
         }
@@ -189,6 +202,12 @@ public class APIResource {
         public APIResourceBuilder subscribedApplications(List<ApplicationBasicInfo> subscribedApplications) {
 
             this.subscribedApplications = subscribedApplications;
+            return this;
+        }
+
+        public APIResourceBuilder properties(List<APIResourceProperty> properties) {
+
+            this.properties = properties;
             return this;
         }
 

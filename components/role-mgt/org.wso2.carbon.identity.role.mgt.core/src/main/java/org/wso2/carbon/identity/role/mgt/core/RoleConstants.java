@@ -65,6 +65,7 @@ public class RoleConstants {
 
         public static final String UM_ID = "UM_ID";
         public static final String UM_ROLE_NAME = "UM_ROLE_NAME";
+        public static final String UM_UUID = "UM_UUID";
         public static final String UM_TENANT_ID = "UM_TENANT_ID";
         public static final String NEW_UM_ROLE_NAME = "NEW_UM_ROLE_NAME";
         public static final String UM_USER_NAME = "UM_USER_NAME";

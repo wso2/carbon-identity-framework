@@ -31,4 +31,12 @@
         <Class name="org.wso2.carbon.identity.role.mgt.core.dao.RoleDAOImpl" />
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
+    <Match>
+        <Class name="org.wso2.carbon.identity.role.v2.mgt.core.dao.GroupDAOImpl" />
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
+    <Match>
+        <Class name="org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAOImpl" />
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
 </FindBugsFilter>

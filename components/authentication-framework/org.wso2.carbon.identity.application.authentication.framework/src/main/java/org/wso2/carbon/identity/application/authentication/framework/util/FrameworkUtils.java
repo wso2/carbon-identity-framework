@@ -841,7 +841,12 @@ public class FrameworkUtils {
         if (isOrganizationQualifiedRequest()) {
             path = FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + tenantDomain + "/";
         } else {
-            path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+            if (!IdentityTenantUtil.isSuperTenantRequiredInUrl() &&
+                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                path = "/";
+            } else {
+                path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+            }
         }
         removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE, path);
     }

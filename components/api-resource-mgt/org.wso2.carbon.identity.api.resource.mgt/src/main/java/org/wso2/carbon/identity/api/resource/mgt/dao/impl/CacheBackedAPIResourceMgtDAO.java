@@ -62,6 +62,16 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     }
 
     @Override
+    public List<APIResource> getAPIResourcesWithRequiredAttributes(Integer limit, Integer tenantId, String sortOrder,
+                                                                   List<ExpressionNode> expressionNodes,
+                                                                   List<String> requiredAttributes)
+            throws APIResourceMgtException {
+
+        return apiResourceManagementDAO.getAPIResourcesWithRequiredAttributes(limit, tenantId, sortOrder,
+                expressionNodes, requiredAttributes);
+    }
+
+    @Override
     public Integer getAPIResourcesCount(Integer tenantId, List<ExpressionNode> expressionNodes)
             throws APIResourceMgtException {
 
@@ -283,6 +293,13 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     public List<ApplicationBasicInfo> getSubscribedApplications(String apiId) throws APIResourceMgtException {
 
         return apiResourceManagementDAO.getSubscribedApplications(apiId);
+    }
+
+    @Override
+    public List<APIResource> getScopeMetadata(List<String> scopeNames, Integer tenantId)
+            throws APIResourceMgtException {
+
+            return apiResourceManagementDAO.getScopeMetadata(scopeNames, tenantId);
     }
 
     private void clearAPIResourceCache(String identifier, String resourceId, int tenantId) throws
