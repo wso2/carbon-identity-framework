@@ -92,7 +92,7 @@ public class AuthenticationService {
         AuthServiceResponse authServiceResponse = new AuthServiceResponse();
 
         if (isAuthFlowSuccessful(request)) {
-            handleSuccessAuthResponse(request, response, authServiceResponse);
+            handleSuccessAuthResponse(request, authServiceResponse);
         } else if (isAuthFlowFailed(request, response)) {
             handleFailedAuthResponse(request, response, authServiceResponse);
         } else if (isAuthFlowIncomplete(request)) {
@@ -107,7 +107,7 @@ public class AuthenticationService {
     private void handleIntermediateAuthResponse(AuthServiceRequestWrapper request, AuthServiceResponseWrapper response,
                                                 AuthServiceResponse authServiceResponse) throws AuthServiceException {
 
-        authServiceResponse.setSessionDataKey(response.getSessionDataKey());
+        authServiceResponse.setSessionDataKey(request.getSessionDataKey());
         authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.INCOMPLETE);
         AuthServiceResponseData responseData = new AuthServiceResponseData();
         boolean isMultiOptionsResponse = request.isMultiOptionsResponse();
@@ -124,10 +124,9 @@ public class AuthenticationService {
         authServiceResponse.setData(responseData);
     }
 
-    private void handleSuccessAuthResponse(AuthServiceRequestWrapper request, AuthServiceResponseWrapper response,
-                                           AuthServiceResponse authServiceResponse) throws AuthServiceException {
+    private void handleSuccessAuthResponse(AuthServiceRequestWrapper request, AuthServiceResponse authServiceResponse) {
 
-        authServiceResponse.setSessionDataKey(getFlowCompletionSessionDataKey(request, response));
+        authServiceResponse.setSessionDataKey(request.getSessionDataKey());
         authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.SUCCESS_COMPLETED);
     }
 
@@ -137,15 +136,15 @@ public class AuthenticationService {
         String errorCode = null;
         String errorMessage = null;
         if (request.isAuthFlowConcluded()) {
-            authServiceResponse.setSessionDataKey(getFlowCompletionSessionDataKey(request, response));
+            authServiceResponse.setSessionDataKey(request.getSessionDataKey());
             authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.FAIL_COMPLETED);
-            AuthenticationResult authenticationResult = getAuthenticationResult(request, response);
+            AuthenticationResult authenticationResult = getAuthenticationResult(request);
             if (authenticationResult != null) {
                 errorCode = (String) authenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE);
                 errorMessage = (String) authenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG);
             }
         } else {
-            authServiceResponse.setSessionDataKey(response.getSessionDataKey());
+            authServiceResponse.setSessionDataKey(request.getSessionDataKey());
             authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
             List<AuthenticatorData> authenticatorDataList = request.getAuthInitiationData();
             AuthServiceResponseData responseData = new AuthServiceResponseData(authenticatorDataList);
@@ -242,7 +241,8 @@ public class AuthenticationService {
     private boolean isAuthFlowFailed(AuthServiceRequestWrapper request, AuthServiceResponseWrapper response)
             throws AuthServiceException {
 
-        return AuthenticatorFlowStatus.FAIL_COMPLETED == request.getAuthFlowStatus() || response.isErrorResponse();
+        return AuthenticatorFlowStatus.FAIL_COMPLETED == request.getAuthFlowStatus() || response.isErrorResponse() ||
+                isSentToRetryPageOnMissingContext(request, response);
     }
 
     private boolean isAuthFlowIncomplete(AuthServiceRequestWrapper request) {
@@ -250,30 +250,30 @@ public class AuthenticationService {
         return AuthenticatorFlowStatus.INCOMPLETE == request.getAuthFlowStatus();
     }
 
-    private String getFlowCompletionSessionDataKey(AuthServiceRequestWrapper request,
-                                                   AuthServiceResponseWrapper response) throws AuthServiceException {
-
-        String completionSessionDataKey = (String) request.getAttribute(FrameworkConstants.SESSION_DATA_KEY);
-        if (StringUtils.isBlank(completionSessionDataKey)) {
-            completionSessionDataKey = response.getSessionDataKey();
-        }
-
-        return completionSessionDataKey;
-    }
-
-    private AuthenticationResult getAuthenticationResult(AuthServiceRequestWrapper request,
-                                                         AuthServiceResponseWrapper response)
-            throws AuthServiceException {
+    private AuthenticationResult getAuthenticationResult(AuthServiceRequestWrapper request) {
 
         AuthenticationResult authenticationResult =
                 (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
         if (authenticationResult == null) {
             AuthenticationResultCacheEntry authenticationResultCacheEntry =
-                    FrameworkUtils.getAuthenticationResultFromCache(getFlowCompletionSessionDataKey(request, response));
+                    FrameworkUtils.getAuthenticationResultFromCache(request.getSessionDataKey());
             if (authenticationResultCacheEntry != null) {
                 authenticationResult = authenticationResultCacheEntry.getResult();
             }
         }
         return authenticationResult;
+    }
+
+    private boolean isSentToRetryPageOnMissingContext(AuthServiceRequestWrapper request,
+                                                      AuthServiceResponseWrapper response) throws AuthServiceException {
+
+        // If it's a retry due to context being null there is nothing to retry again the flow should be restarted.
+        if (AuthenticatorFlowStatus.INCOMPLETE == request.getAuthFlowStatus() &&
+                Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.IS_SENT_TO_RETRY))) {
+            Map<String, String> queryParams = AuthServiceUtils.extractQueryParams(response.getRedirectURL());
+            return StringUtils.equals(queryParams.get(FrameworkConstants.STATUS_PARAM),
+                                      FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL);
+        }
+        return false;
     }
 }

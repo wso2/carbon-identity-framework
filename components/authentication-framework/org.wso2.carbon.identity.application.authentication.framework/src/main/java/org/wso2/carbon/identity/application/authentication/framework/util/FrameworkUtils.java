@@ -650,6 +650,7 @@ public class FrameworkUtils {
                 }
             }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+            request.setAttribute(FrameworkConstants.IS_SENT_TO_RETRY, true);
             if (context != null) {
                 if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
                     uriBuilder.addParameter(USER_TENANT_DOMAIN_HINT, context.getUserTenantDomain());

@@ -26,27 +26,29 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 public class AuthenticatorParamMetadata {
 
     private String name;
+    private String displayName;
     private FrameworkConstants.AuthenticatorParamType type;
     private boolean isConfidential = false;
-    private boolean isRequired = false;
     private int paramOrder;
     private String i18nKey;
 
-    public AuthenticatorParamMetadata(String name, FrameworkConstants.AuthenticatorParamType type, int paramOrder) {
+    public AuthenticatorParamMetadata(String name, String displayName, FrameworkConstants.AuthenticatorParamType type,
+                                      int paramOrder, String i18nKey) {
 
         this.name = name;
+        this.displayName = displayName;
         this.type = type;
         this.paramOrder = paramOrder;
+        this.i18nKey = i18nKey;
     }
 
     public AuthenticatorParamMetadata(String name, FrameworkConstants.AuthenticatorParamType type, int paramOrder,
-                                      boolean isConfidential, boolean isRequired, String i18nKey) {
+                                      boolean isConfidential, String i18nKey) {
 
         this.name = name;
         this.type = type;
         this.paramOrder = paramOrder;
         this.isConfidential = isConfidential;
-        this.isRequired = isRequired;
         this.i18nKey = i18nKey;
     }
 
@@ -58,6 +60,16 @@ public class AuthenticatorParamMetadata {
     public void setName(String name) {
 
         this.name = name;
+    }
+
+    public String getDisplayName() {
+
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+
+        this.displayName = displayName;
     }
 
     public FrameworkConstants.AuthenticatorParamType getType() {
