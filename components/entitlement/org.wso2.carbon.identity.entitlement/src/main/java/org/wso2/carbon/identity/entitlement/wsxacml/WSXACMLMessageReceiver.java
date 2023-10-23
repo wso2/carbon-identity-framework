@@ -81,6 +81,7 @@ import java.io.ByteArrayOutputStream;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Iterator;
@@ -471,7 +472,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
         xacmlAuthzDecisionStatement.setResponse(responseType);
         AssertionBuilder assertionBuilder = (AssertionBuilder) XMLObjectProviderRegistrySupport.getBuilderFactory()
                 .getBuilder(Assertion.DEFAULT_ELEMENT_NAME);
-        DateTime currentTime = new DateTime();
+        Instant currentTime = Instant.now();
         Assertion assertion = assertionBuilder.buildObject();
         assertion.setVersion(org.opensaml.saml.common.SAMLVersion.VERSION_20);
         assertion.setIssuer(createIssuer());
@@ -482,7 +483,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
         Response response = builder.buildObject();
         response.getAssertions().add(assertion);
         response.setIssuer(createIssuer());
-        DateTime issueInstant = new DateTime();
+        Instant issueInstant = Instant.now();
         response.setIssueInstant(issueInstant);
         response = setSignature(response, XMLSignature.ALGO_ID_SIGNATURE_RSA, createBasicCredentials());
         try {
