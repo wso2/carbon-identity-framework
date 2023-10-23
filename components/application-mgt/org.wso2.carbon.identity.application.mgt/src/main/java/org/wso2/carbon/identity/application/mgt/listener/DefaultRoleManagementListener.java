@@ -447,7 +447,8 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
                     .getApplicationByResourceId(applicationId, tenantDomain);
             if (app == null) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
-                        "Invalid audience. No application found with application id: " + applicationId);
+                        "Invalid audience. No application found with application id: " + applicationId +
+                                " and tenant domain : " + tenantDomain);
             }
             boolean valid = false;
             for (ServiceProviderProperty property : app.getSpProperties()) {

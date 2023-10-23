@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
@@ -104,7 +105,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(), "Invalid role audience");
             }
             if (ORGANIZATION.equalsIgnoreCase(audience)) {
-                validateOrganizationRoleAudience(audienceId);
+                validateOrganizationRoleAudience(audienceId, tenantDomain);
                 audience = ORGANIZATION;
             }
             if (APPLICATION.equalsIgnoreCase(audience)) {
@@ -610,17 +611,21 @@ public class RoleManagementServiceImpl implements RoleManagementService {
      * @param organizationId Organization ID.
      * @throws IdentityRoleManagementException Error occurred while validating organization role audience.
      */
-    private void validateOrganizationRoleAudience(String organizationId)
+    private void validateOrganizationRoleAudience(String organizationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
         try {
-            boolean isExists  = RoleManagementServiceComponentHolder.getInstance().getOrganizationManager()
-                    .isOrganizationExistById(organizationId);
-            if (!isExists) {
+            OrganizationManager organizationManager = RoleManagementServiceComponentHolder.getInstance()
+                    .getOrganizationManager();
+            String orgIdOfTenantDomain = organizationManager.resolveOrganizationId(tenantDomain);
+            if (orgIdOfTenantDomain == null || orgIdOfTenantDomain.equalsIgnoreCase(organizationId)) {
+                throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
+                        "Invalid audience. Given Organization id: " + organizationId + " is invalid");
+            }
+            if (!organizationManager.isOrganizationExistById(organizationId)) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Invalid audience. No organization found with organization id: " + organizationId);
             }
-
         } catch (OrganizationManagementException e) {
             String errorMessage = "Error while checking the organization exist by id : " + organizationId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
