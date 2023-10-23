@@ -49,7 +49,7 @@ public class AssociatedRolesConfig implements Serializable {
 
     @XmlElementWrapper(name = ASSOCIATED_ROLES)
     @XmlElement(name = ASSOCIATED_ROLE)
-    private RoleV2[] roles;
+    private RoleV2[] roles = new RoleV2[0];
 
     /*
     <AssociatedRolesConfig>

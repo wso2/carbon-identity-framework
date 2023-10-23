@@ -3032,7 +3032,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         if (associatedRolesConfig == null) {
             return true;
         }
-        List<RoleV2> roles = new ArrayList<>(Arrays.asList(associatedRolesConfig.getRoles()));
+        List<RoleV2> roles = new ArrayList<>();
+        if (associatedRolesConfig.getRoles() != null) {
+            roles = Arrays.asList(associatedRolesConfig.getRoles());
+        }
         if (CollectionUtils.isEmpty(roles)) {
             return true;
         }

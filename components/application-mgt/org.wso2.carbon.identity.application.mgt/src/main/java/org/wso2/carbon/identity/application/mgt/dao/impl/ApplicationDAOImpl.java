@@ -444,7 +444,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                                     AssociatedRolesConfig associatedRolesConfig, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        if (associatedRolesConfig == null) {
+        if (associatedRolesConfig == null || associatedRolesConfig.getRoles() == null) {
             return;
         }
         List<RoleV2> roles = new ArrayList<>(Arrays.asList(associatedRolesConfig.getRoles()));
@@ -5426,6 +5426,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             AssociatedRolesConfig associatedRolesConfig = getAssociatedRoles(applicationId, connection, tenantID);
+            if (associatedRolesConfig.getRoles() == null) {
+                return new ArrayList<>();
+            }
             return new ArrayList<>(Arrays.asList(associatedRolesConfig.getRoles()));
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException(
