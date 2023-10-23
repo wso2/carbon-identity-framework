@@ -27,7 +27,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSContextMemberObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -51,6 +53,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Represent the user's claim. Can be either remote or local.
@@ -170,6 +173,38 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
     }
 
     @Override
+    public Set<String> keySet() {
+
+        if (authenticatedUser != null) {
+            if (isRemoteClaimRequest) {
+                // Remote claim set of federated user
+                return FrameworkUtils.getClaimMappings(authenticatedUser.getUserAttributes(),
+                        false).keySet();
+            } else {
+                if (isFederatedIdP()) {
+                    // Local mapped claim set of federated user
+                    return FrameworkUtils.getClaimMappings(authenticatedUser.getUserAttributes(),
+                            true).keySet();
+                } else {
+                    // Local SP mapped claim set of local user
+                    return getSpRequestedClaimMappings().keySet();
+                }
+            }
+        }
+        return Collections.emptySet();
+    }
+
+    protected Map<String, String> getSpRequestedClaimMappings() {
+        try {
+            return DefaultClaimHandler.getInstance().getSpRequestedClaimMappings(getContext());
+        } catch (FrameworkException e) {
+            LOG.error(String.format("Error when fetching SP requested claims of user: %s",
+                    authenticatedUser), e);
+        }
+        return null;
+    }
+
+    @Override
     public boolean hasMember(String claimUri) {
 
         if (authenticatedUser != null) {
@@ -283,9 +318,7 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
                         (authenticatorDialect, remoteClaimsMap.keySet(), tenantDomain, true);
             } else {
                 localToIdpClaimMapping = IdentityProviderManager.getInstance().getMappedIdPClaimsMap
-                        (idp, tenantDomain, Collections
-                                .singletonList(localClaim));
-
+                        (idp, tenantDomain, Collections.singletonList(localClaim));
             }
             if (localToIdpClaimMapping != null) {
                 return localToIdpClaimMapping.get(localClaim);
@@ -417,10 +450,10 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
         Map<String, String> remoteMapping = FrameworkUtils.getClaimMappings(idpAttributesMap, false);
 
         String remoteMappedClaim = getRemoteClaimMappedToLocalClaim(claimUri, remoteMapping);
-        if (remoteMappedClaim != null) {
-            return remoteMapping.get(remoteMappedClaim);
+        if (remoteMappedClaim == null) {
+            remoteMappedClaim = claimUri;
         }
-        return null;
+        return remoteMapping.get(remoteMappedClaim);
     }
 
     /**
