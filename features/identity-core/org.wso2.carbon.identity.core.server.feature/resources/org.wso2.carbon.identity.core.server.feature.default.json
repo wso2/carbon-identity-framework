@@ -225,6 +225,8 @@
     "A128CBC-HS256",
     "A128CBC+HS256"
   ],
+  "oauth.oidc.request_object.supported_encryption_algorithms": ["RSA-OAEP", "RSA1_5"],
+  "oauth.oidc.request_object.supported_encryption_methods": "$ref{oauth.oidc.id_token.supported_encryption_methods}",
   "oauth.oidc.token_validation.logout_token_validity": "2m",
   "oauth.oidc.extensions.request_object_validator": "org.wso2.carbon.identity.openidconnect.RequestObjectValidatorImpl",
   "oauth.oidc.user_info.jwt_signature_algorithm": "$ref{oauth.oidc.id_token.signature_algorithm}",

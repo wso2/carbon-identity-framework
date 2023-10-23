@@ -767,6 +767,16 @@
                 <SupportedIDTokenEncryptionMethod>{{method}}</SupportedIDTokenEncryptionMethod>
                 {% endfor %}
             </SupportedIDTokenEncryptionMethods>
+            <SupportedRequestObjectEncryptionAlgorithms>
+                {% for algorithm in oauth.oidc.request_object.supported_encryption_algorithms %}
+                <SupportedRequestObjectEncryptionAlgorithm>{{algorithm}}</SupportedRequestObjectEncryptionAlgorithm>
+                {% endfor %}
+            </SupportedRequestObjectEncryptionAlgorithms>
+            <SupportedRequestObjectEncryptionMethods>
+                % for method in oauth.oidc.request_object.supported_encryption_methods %}
+                <SupportedRequestObjectEncryptionMethod>{{method}}</SupportedRequestObjectEncryptionMethod>
+                {% endfor %}
+            </SupportedRequestObjectEncryptionMethods>
 
             <EnableAudiences>true</EnableAudiences>
             {% if oauth.oidc.id_token.audiences|length %}
