@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
@@ -89,7 +91,11 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
                                String audienceId, String tenantDomain) throws IdentityRoleManagementException {
 
         if (APPLICATION.equalsIgnoreCase(audience)) {
+            // Set audience name by application name.
             roleBasicInfo.setAudienceName(getApplicationName(audienceId, tenantDomain));
+            // Clear cache of the application.
+            ServiceProviderResourceIdCacheKey resourceIdKey = new ServiceProviderResourceIdCacheKey(audienceId);
+            ServiceProviderByResourceIdCache.getInstance().clearCacheEntry(resourceIdKey, tenantDomain);
         }
         return true;
     }
