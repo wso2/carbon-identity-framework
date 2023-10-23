@@ -109,7 +109,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             String userDomain = context.getSubject().getTenantDomain();
                             String tenantDomain = context.getTenantDomain();
                             if (!StringUtils.equals(userDomain, tenantDomain)) {
-                                context.setProperty("UserTenantDomainMismatch", true);
+                                context.setProperty(FrameworkConstants.USER_TENANT_DOMAIN_MISMATCH, true);
                                 throw new AuthenticationFailedException(
                                         ErrorMessages.MISMATCHING_TENANT_DOMAIN.getCode(),
                                         ErrorMessages.MISMATCHING_TENANT_DOMAIN.getMessage(),
@@ -271,6 +271,15 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         System.currentTimeMillis() - (long) currentAuthenticatorStartTime);
             }
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
+            if (user != null) {
+                if (user.getTenantDomain() == null) {
+                    user.setTenantDomain(context.getTenantDomain());
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("User object is null when publishing authentication step result.");
+                }
+            }
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             paramMap.put(FrameworkConstants.AUTHENTICATOR, getName());
@@ -278,9 +287,6 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_FEDERATED_STEP, true);
                 paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, true);
-                if (user != null) {
-                    user.setTenantDomain(context.getTenantDomain());
-                }
             } else {
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_LOCAL_STEP, true);
