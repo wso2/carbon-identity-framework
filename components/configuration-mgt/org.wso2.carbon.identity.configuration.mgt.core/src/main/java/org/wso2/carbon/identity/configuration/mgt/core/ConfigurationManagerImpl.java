@@ -452,7 +452,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     }
 
     @Override
-    public void deleteResourcesByType (String resourceTypeName) throws ConfigurationManagementException {
+    public void deleteResourcesByType(String resourceTypeName) throws ConfigurationManagementException {
 
         ResourceType resourceType = getResourceType(resourceTypeName);
         this.getConfigurationDAO().deleteResourcesByType(getTenantId(), resourceType.getId());

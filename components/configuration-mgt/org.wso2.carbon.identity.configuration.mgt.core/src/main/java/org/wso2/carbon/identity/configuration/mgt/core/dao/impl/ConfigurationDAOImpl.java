@@ -1621,11 +1621,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                  * of the BLOB or TEXT types. Issue: (https://github.com/wso2/product-is/issues/12167).
                  */
                 List<Resource> resourceList = getResourcesByType(tenantId, resourceTypeId);
-                if (resourceList.isEmpty()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("No resource found for the resourceTypeId: " + resourceTypeId);
-                    }
-                } else {
+                if (!resourceList.isEmpty()) {
                     for (Resource resource : resourceList) {
                         deleteFiles(resource.getResourceId());
                     }

@@ -281,9 +281,9 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
         List<Resource> resourceList = configurationDAO.getResourcesByType(tenantId, resourceTypeId);
         if (resourceList.isEmpty()) {
             if (log.isDebugEnabled()) {
-                log.debug("No resource found for the resourceTypeId: " + resourceTypeId);
+                log.debug("No resource found for the resourceTypeId: " + resourceTypeId + " in tenant: " + tenantId);
             }
-            throw handleClientException(ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, null);
+            throw handleClientException(ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS);
         }
         configurationDAO.deleteResourcesByType(tenantId, resourceTypeId);
         for (Resource resource : resourceList) {

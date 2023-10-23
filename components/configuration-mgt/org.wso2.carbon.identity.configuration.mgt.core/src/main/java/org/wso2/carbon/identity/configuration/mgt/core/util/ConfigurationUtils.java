@@ -53,6 +53,19 @@ public class ConfigurationUtils {
      * ConfigurationConstants.ErrorMessages object when no exception is thrown.
      *
      * @param error ConfigurationConstants.ErrorMessages.
+     * @return ConfigurationManagementClientException.
+     */
+    public static ConfigurationManagementClientException handleClientException(
+            ConfigurationConstants.ErrorMessages error) {
+
+        return new ConfigurationManagementClientException(error.getMessage(), error.getCode());
+    }
+
+    /**
+     * This method can be used to generate a ConfigurationManagementClientException from
+     * ConfigurationConstants.ErrorMessages object when no exception is thrown.
+     *
+     * @param error ConfigurationConstants.ErrorMessages.
      * @param data  data to replace if message needs to be replaced.
      * @return ConfigurationManagementClientException.
      */
