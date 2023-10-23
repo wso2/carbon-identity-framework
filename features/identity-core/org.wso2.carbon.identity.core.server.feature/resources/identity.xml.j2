@@ -895,6 +895,16 @@
                     <SupportedTokenEndpointSigningAlgorithm>{{algorithm}}</SupportedTokenEndpointSigningAlgorithm>
                 {% endfor %}
             </SupportedTokenEndpointSigningAlgorithms>
+            <SupportedIDTokenSigningAlgorithms>
+                {% for algorithm in oauth.oidc.id_token.signing_algorithms %}
+                    <SupportedIDTokenSigningAlgorithm>{{algorithm}}</SupportedIDTokenSigningAlgorithm>
+                {% endfor %}
+            </SupportedIDTokenSigningAlgorithms>
+            <SupportedRequestObjectSigningAlgorithms>
+                {% for algorithm in oauth.oidc.request_object.signing_algorithms %}
+                    <SupportedRequestObjectSigningAlgorithm>{{algorithm}}</SupportedRequestObjectSigningAlgorithm>
+                {% endfor %}
+            </SupportedRequestObjectSigningAlgorithms>
 
             <DefaultSubjectType>{{oauth.oidc.subject_type.default_subject_type}}</DefaultSubjectType>
             <EnablePairwiseSubForAccessToken>{{oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection}}</EnablePairwiseSubForAccessToken>
