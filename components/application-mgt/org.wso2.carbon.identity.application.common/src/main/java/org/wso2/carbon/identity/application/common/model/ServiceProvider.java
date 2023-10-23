@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,6 +53,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+    private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
 
     @XmlTransient
     @JsonIgnore
@@ -134,6 +135,10 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_B2B_SELF_SERVICE_APP)
     private boolean isB2BSelfServiceApp;
+
+    @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
+    private AssociatedRolesConfig associatedRolesConfig;
+
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -247,6 +252,9 @@ public class ServiceProvider implements Serializable {
             } else if ("PermissionAndRoleConfig".equals(elementName)) {
                 // build permission and role configuration.
                 serviceProvider.setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
+            } else if (ASSOCIATED_ROLES_CONFIG.equals(elementName)) {
+                // build role association.
+                serviceProvider.setAssociatedRolesConfig(AssociatedRolesConfig.build(element));
             }
         }
 
@@ -366,6 +374,26 @@ public class ServiceProvider implements Serializable {
      */
     public void setPermissionAndRoleConfig(PermissionsAndRoleConfig permissionAndRoleConfig) {
         this.permissionAndRoleConfig = permissionAndRoleConfig;
+    }
+
+    /**
+     * Get associated roles config.
+     *
+     * @return AssociatedRolesConfig.
+     */
+    public AssociatedRolesConfig getAssociatedRolesConfig() {
+
+        return associatedRolesConfig;
+    }
+
+    /**
+     * Set associated roles config.
+     *
+     * @param associatedRolesConfig AssociatedRolesConfig.
+     */
+    public void setAssociatedRolesConfig(AssociatedRolesConfig associatedRolesConfig) {
+
+        this.associatedRolesConfig = associatedRolesConfig;
     }
 
     /**

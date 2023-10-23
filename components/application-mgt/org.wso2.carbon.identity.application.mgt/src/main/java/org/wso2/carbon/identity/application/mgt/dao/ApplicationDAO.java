@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.sql.Connection;
@@ -358,6 +359,35 @@ public interface ApplicationDAO {
      * @throws IdentityApplicationManagementServerException Error when obtaining tenant id.
      */
     default int getTenantIdByApp(String applicationId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Method that returns the SP property value by property key.
+     *
+     * @param applicationId Application UUID.
+     * @param propertyName Property key.
+     * @param tenantDomain Tenant domain.
+     * @return Property value.
+     * @throws IdentityApplicationManagementException Error when retrieving SP property value.
+     */
+    default String getSPPropertyValueByPropertyKey(String applicationId, String propertyName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Method that returns the associated roles of the application.
+     *
+     * @param applicationId Application UUID.
+     * @param tenantDomain  Tenant domain.
+     * @return List of associated roles.
+     * @throws IdentityApplicationManagementException Error when retrieving associated roles.
+     */
+    default List<RoleV2> getAssociatedRolesOfApplication(String applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         throw new NotImplementedException();
     }

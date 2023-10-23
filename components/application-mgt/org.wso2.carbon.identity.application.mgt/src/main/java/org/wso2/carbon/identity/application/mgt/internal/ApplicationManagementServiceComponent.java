@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -65,7 +65,9 @@ import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtList
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -119,7 +121,6 @@ public class ApplicationManagementServiceComponent {
                     null);
             bundleContext.registerService(DefaultAuthSeqMgtService.class.getName(),
                     DefaultAuthSeqMgtServiceImpl.getInstance(), null);
-
             // Register the DefaultApplicationResourceMgtListener.
             context.getBundleContext().registerService(ApplicationResourceManagementListener.class,
                     new DefaultApplicationResourceMgtListener(), null);
@@ -489,7 +490,6 @@ public class ApplicationManagementServiceComponent {
         log.debug("IdentityEventService unset in Identity Application Management bundle");
     }
 
-
     @Reference(
             name = "api.resource.mgt.service.component",
             service = APIResourceManager.class,
@@ -498,15 +498,48 @@ public class ApplicationManagementServiceComponent {
             unbind = "unsetAPIResourceManager")
     protected void setAPIResourceManager(APIResourceManager apiResourceManager) {
 
-            ApplicationManagementServiceComponentHolder.getInstance()
-                    .setAPIResourceManager(apiResourceManager);
-            log.debug("APIResourceManager set in to bundle");
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
+        log.debug("APIResourceManager set in to bundle");
     }
 
     protected void unsetAPIResourceManager(APIResourceManager apiResourceManager) {
 
-            ApplicationManagementServiceComponentHolder.getInstance()
-                    .setAPIResourceManager(null);
-            log.debug("APIResourceManager unset in to bundle");
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(null);
+        log.debug("APIResourceManager unset in to bundle");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService",
+            service = org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementServiceV2")
+    protected void setRoleManagementServiceV2(RoleManagementService roleManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV2(roleManagementService);
+        log.debug("RoleManagementServiceV2 set in ApplicationManagementServiceComponent bundle.");
+    }
+
+    protected void unsetRoleManagementServiceV2(RoleManagementService roleManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV2(null);
+        log.debug("RoleManagementServiceV2 unset in ApplicationManagementServiceComponent bundle.");
+    }
+
+    @Reference(name = "org.wso2.carbon.identity.organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        log.debug("OrganizationManager set in ApplicationManagementServiceComponent bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(null);
+        log.debug("OrganizationManager unset in ApplicationManagementServiceComponent bundle.");
     }
 }
