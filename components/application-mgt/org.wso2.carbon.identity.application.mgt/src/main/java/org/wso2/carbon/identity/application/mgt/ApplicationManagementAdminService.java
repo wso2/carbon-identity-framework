@@ -569,7 +569,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         return applicationMgtService.getAuthenticationTemplatesJSON();
     }
 
-    /**
+    /**`
      * Import application from XML file from UI.
      *
      * @param spFileContent xml string of the SP and file name
