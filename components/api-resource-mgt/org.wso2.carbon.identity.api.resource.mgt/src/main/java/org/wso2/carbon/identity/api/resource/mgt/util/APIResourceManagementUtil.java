@@ -19,14 +19,23 @@
 package org.wso2.carbon.identity.api.resource.mgt.util;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtClientException;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtServerException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
+import org.wso2.carbon.identity.application.common.model.APIResource;
+
+import java.util.Map;
 
 /**
  * Utility class for API Resource Management.
  */
 public class APIResourceManagementUtil {
+
+    private static final Log LOG = LogFactory.getLog(APIResourceManagementUtil.class);
 
     /**
      * Handle API Resource Management client exceptions.
@@ -63,5 +72,32 @@ public class APIResourceManagementUtil {
         }
 
         return new APIResourceMgtServerException(error.getMessage(), description, error.getCode(), e);
+    }
+
+    /**
+     * Fetch the configuration from the XML file and register the system API in the given tenant.
+     *
+     * @param tenantDomain tenant domain.
+     */
+    public static void addSystemAPIs(String tenantDomain) {
+
+//        if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+//            LOG.debug("Legacy authorization runtime is enabled. Hence, not registering system APIs in tenant " +
+//                    "domain: " + tenantDomain);
+//            return;
+//        }
+        LOG.debug("Registering System APIs in tenant domain: " + tenantDomain);
+        Map<String, APIResource> configs = APIResourceManagementConfigBuilder.getInstance()
+                .getAPIResourceMgtConfigurations();
+        for (APIResource apiResource : configs.values()) {
+            if (apiResource != null) {
+                try {
+                    APIResourceManagerImpl.getInstance().addAPIResource(apiResource, tenantDomain);
+                } catch (APIResourceMgtException e) {
+                    LOG.error("Error while registering system API resources in the tenant: " + tenantDomain);
+                }
+            }
+        }
+        LOG.debug("System APIs successfully registered in tenant domain: " + tenantDomain);
     }
 }

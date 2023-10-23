@@ -82,11 +82,13 @@
                                     <directory>resources</directory>
                                     <includes>
                                         <include>identity.xml</include>
+                                        <include>resource-access-control-v2.xml</include>
                                         <include>identity_log_tokens.properties</include>
                                         <include>**/*.sql</include>
                                         <include>p2.inf</include>
                                         <include>build.properties</include>
                                         <include>identity.xml.j2</include>
+                                        <include>resource-access-control-v2.xml.j2</include>
                                         <include>schemas.xml.j2</include>
                                         <include>org.wso2.carbon.identity.core.server.feature.default.json</include>
                                         <include>org.wso2.carbon.identity.core.server.feature.infer.json</include>

@@ -25,8 +25,20 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
+import org.wso2.carbon.identity.api.resource.mgt.listener.APIResourceManagementListener;
+import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
+import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 /**
  * Service component for the API resource management.
@@ -45,6 +57,10 @@ public class APIResourceManagementServiceComponent {
         try {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.registerService(APIResourceManager.class, APIResourceManagerImpl.getInstance(), null);
+            bundleCtx.registerService(TenantMgtListener.class, new APIResourceManagementListener(),
+                    null);
+            // Register system APIs in the super tenant.
+            registerSystemAPIsInSuperTenant();
             LOG.debug("API resource management bundle is activated");
         } catch (Throwable e) {
             LOG.error("Error while initializing API resource management component.", e);
@@ -60,6 +76,55 @@ public class APIResourceManagementServiceComponent {
             LOG.debug("API resource management bundle is deactivated");
         } catch (Throwable e) {
             LOG.error("Error while deactivating API resource management component.", e);
+        }
+    }
+
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    @Reference(
+            name = "organization.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+        /* reference Organization Management service to guarantee that this component will wait until organization
+        management service is started */
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+        /* reference Organization Management service to guarantee that this component will wait until organization
+        management service is started */
+    }
+
+    private void registerSystemAPIsInSuperTenant() {
+
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        try {
+            APIResourceSearchResult systemAPIResources = APIResourceManagerImpl.getInstance()
+                    .getAPIResources(null, null, 1, APIResourceManagementConstants.SYSTEM_API_FILTER,
+                            APIResourceManagementConstants.ASC, tenantDomain);
+            if (systemAPIResources.getTotalCount() == 0) {
+                APIResourceManagementUtil.addSystemAPIs(tenantDomain);
+            }
+        } catch (APIResourceMgtException e) {
+            LOG.error("Error while registering system API resources in the tenant: " + tenantDomain);
         }
     }
 }

@@ -3,6 +3,7 @@ org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../r
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/conf); \
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/conf/identity); \
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.core.server_${feature.version}/identity.xml,target:${installFolder}/../../conf/identity/identity.xml,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.core.server_${feature.version}/resource-access-control-v2.xml,target:${installFolder}/../../conf/identity/resource-access-control-v2.xml,overwrite:true);\
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.core.server_${feature.version}/identity_log_tokens.properties,target:${installFolder}/../../conf/security/identity_log_tokens.properties,overwrite:true);\
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../dbscripts); \
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../dbscripts/identity); \
@@ -15,6 +16,7 @@ org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../r
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/conf/templates/repository/conf); \
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/conf/templates/repository/conf/identity); \
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.core.server_${feature.version}/identity.xml.j2,target:${installFolder}/../../resources/conf/templates/repository/conf/identity/identity.xml.j2,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.core.server_${feature.version}/resource-access-control-v2.xml.j2,target:${installFolder}/../../resources/conf/templates/repository/conf/identity/resource-access-control-v2.xml.j2,overwrite:true);\
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.core.server_${feature.version}/schemas.xml.j2,target:${installFolder}/../../resources/conf/templates/repository/conf/identity/schemas.xml.j2,overwrite:true);\
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.core.server_${feature.version}/org.wso2.carbon.identity.core.server.feature.default.json,target:${installFolder}/../../resources/conf/org.wso2.carbon.identity.core.server.feature.default.json,overwrite:true);\
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.core.server_${feature.version}/org.wso2.carbon.identity.core.server.feature.infer.json,target:${installFolder}/../../resources/conf/org.wso2.carbon.identity.core.server.feature.infer.json,overwrite:true);\

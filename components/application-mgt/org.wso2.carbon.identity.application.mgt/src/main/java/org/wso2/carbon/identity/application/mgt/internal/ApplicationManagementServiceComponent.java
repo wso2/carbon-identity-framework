@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProv
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagementListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
@@ -142,6 +143,11 @@ public class ApplicationManagementServiceComponent {
                 ApplicationManagementServiceComponentHolder.getInstance()
                         .setApplicationPermissionProvider(new RegistryBasedApplicationPermissionProvider());
             }
+
+            // Register the Console Authorized API Management Listener.
+            bundleContext.registerService(ApplicationMgtListener.class,
+                    new AuthorizedAPIManagementListener(), null);
+
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }
