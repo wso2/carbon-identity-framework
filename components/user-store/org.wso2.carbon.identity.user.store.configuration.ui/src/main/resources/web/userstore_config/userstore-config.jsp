@@ -917,7 +917,7 @@
 
 </form>
 <div class="buttonRow">
-	<%
+	<%-- <%
 		if (selectedClassApplied.matches(".*jdbc.*")) 
 	{ %>
 	<input type="button" onclick="testConnection();" value="<fmt:message key="test.connection"/>"
@@ -964,6 +964,43 @@
 		
 	</script>
            <%} %>
+    <%
+        if (selectedClassApplied.matches(".*ldap.*"))
+    { %> --%>
+    <input type="button" onclick="testUserStoreConnection();" value="<fmt:message key="test.connection"/>"
+           class="button"/>
+
+    <script type="text/javascript">
+        function testUserStoreConnection() {
+
+            var url = 'validate-userstore-connection-ajaxprocessor.jsp';
+
+            <%if(messageID != null && !"".equals(messageID)) {%>
+            url += '&messageID=<%=Encode.forUriComponent(messageID)%>';
+            <%}%>
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: $('#dataForm').serialize(),
+                dataType: "text",
+                context: document.body
+            }).done(function (msg) {
+                var successMsg = new RegExp("true");
+                if (msg.search(successMsg) == -1) //if match failed
+                {
+                    CARBON.showErrorDialog(msg);
+                } else {
+                    CARBON.showInfoDialog("Connection is healthy");
+                }
+            }).fail(function () {
+                CARBON.showErrorDialog("Error while testing the connection");
+            });
+        }
+
+
+    </script>
+           <%-- <%} %> --%>
     <%if (isEditing) { %>
     <input type="button" onclick="doUpdate();" value="<fmt:message key="update"/>"
            class="button"/>

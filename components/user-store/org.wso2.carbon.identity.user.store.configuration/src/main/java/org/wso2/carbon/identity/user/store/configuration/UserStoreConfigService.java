@@ -106,6 +106,7 @@ public interface UserStoreConfigService {
      * @return true or false
      * @throws IdentityUserStoreMgtException
      */
+    @Deprecated
     boolean testRDBMSConnection(String domainName, String driverName, String connectionURL, String username,
                                 String connectionPassword, String messageID) throws IdentityUserStoreMgtException;
 
@@ -131,4 +132,12 @@ public interface UserStoreConfigService {
         // Implement the method.
         return null;
     }
+
+    /**
+     * Test LDAP Connection.
+     * @param userStoreDTO Userstore DTO.
+     * @return true or false.
+     * @throws IdentityUserStoreMgtException
+     */
+    boolean testUserStoreConnection(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException;
 }
