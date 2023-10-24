@@ -440,6 +440,12 @@
   "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
 
+  "event.default_listener.system_api_resource_management_listener.priority": "211",
+  "event.default_listener.system_api_resource_management_listener.enable": true,
+
+  "event.default_listener.console_authorization_management_listener.priority": "212",
+  "event.default_listener.console_authorization_management_listener.enable": true,
+
   "identity_mgt_account_suspension.use_identity_claims": true,
 
   "identity_mgt.enable_user_claim_input_regex_validation": true,

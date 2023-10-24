@@ -99,6 +99,10 @@ public class ApplicationConstants {
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
 
+    // Console and My Account application names.
+    public static final String CONSOLE_APPLICATION_NAME = "Console";
+    public static final String MY_ACCOUNT_APPLICATION_NAME = "My Account";
+
     /**
      * Group the constants related to logs.
      */
