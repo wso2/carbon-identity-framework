@@ -2734,7 +2734,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         Collection<ApplicationMgtListener> postListeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : postListeners) {
             if (listener.isEnable() &&
-                    !listener.doPostGetAssociatedRolesOfApplication(associatedRolesOfApplication, applicationUUID, tenantDomain)) {
+                    !listener.doPostGetAssociatedRolesOfApplication(associatedRolesOfApplication, applicationUUID,
+                            tenantDomain)) {
                 throw buildServerException("Error executing doPostGetAssociatedRolesOfApplication operation of " +
                         "listener: " + getName(listener) + " for application with id: " + applicationUUID);
             }
