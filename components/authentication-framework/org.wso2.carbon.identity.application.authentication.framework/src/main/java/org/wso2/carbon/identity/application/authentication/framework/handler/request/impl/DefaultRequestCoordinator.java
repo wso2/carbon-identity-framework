@@ -630,8 +630,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
-            if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/") &&
-                    !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + loginTenantDomain + "/")) {
+            if ((!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/") &&
+                    !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + loginTenantDomain + "/")) &&
+                    (!StringUtils.equals(tenantDomain, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME) ||
+                    IdentityTenantUtil.isSuperTenantRequiredInUrl())) {
                 callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
             }
         }
