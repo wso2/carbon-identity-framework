@@ -391,4 +391,17 @@ public interface ApplicationDAO {
 
         throw new NotImplementedException();
     }
+
+    /**
+     * Add role to application.
+     *
+     * @param applicationUUID Application UUID.
+     * @param roleId          Role ID.
+     * @throws IdentityApplicationManagementException if an error occurs while adding role to application.
+     */
+    default void addAssociatedRoleToApplication(String applicationUUID, String roleId)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
 }

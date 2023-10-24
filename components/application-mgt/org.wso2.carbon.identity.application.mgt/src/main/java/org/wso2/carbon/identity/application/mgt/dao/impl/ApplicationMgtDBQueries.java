@@ -498,6 +498,9 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_ASSOCIATED_ROLES = "SELECT ROLE_ID FROM APP_ROLE_ASSOCIATION WHERE " +
             "APP_ID=:" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + ";";
 
+    public static final String ADD_APPLICATION_ASSOC_ROLE = "INSERT INTO APP_ROLE_ASSOCIATION " +
+            "(APP_ID, ROLE_ID) VALUES (?, ?)";
+
     /**
      * SQL placeholders related to application management tables.
      */

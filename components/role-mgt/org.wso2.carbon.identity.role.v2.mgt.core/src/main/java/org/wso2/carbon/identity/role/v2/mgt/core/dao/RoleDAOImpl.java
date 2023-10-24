@@ -2258,58 +2258,6 @@ public class RoleDAOImpl implements RoleDAO {
         return roles;
     }
 
-    /**
-     * Get role ID by name.
-     *
-     * @param roleName      Role name.
-     * @param audienceRefId Audience ref id.
-     * @param tenantDomain  Tenant domain.
-     * @return role ID.
-     * @throws IdentityRoleManagementException IdentityRoleManagementException.
-     */
-    private String getRoleIDByName(String roleName, int audienceRefId, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        String roleId = null;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                     GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL)) {
-
-            statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
-            statement.setString(ROLE_NAME, roleName);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
-            statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
-            int count = 0;
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    // Handle multiple matching roles.
-                    count++;
-                    if (count > 1) {
-                        String errorMessage =
-                                "Invalid scenario. Multiple roles found for the given role name: " + roleName
-                                        + " and tenantDomain: " + tenantDomain;
-                        throw new IdentityRoleManagementClientException(
-                                RoleConstants.Error.INVALID_REQUEST.getCode(), errorMessage);
-                    }
-                    roleId = resultSet.getString(1);
-                }
-            }
-        } catch (SQLException e) {
-            String errorMessage =
-                    "Error while resolving the role ID for the given role name: " + roleName + " and tenantDomain: "
-                            + tenantDomain;
-            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
-                    errorMessage, e);
-        }
-        if (roleId == null) {
-            String errorMessage =
-                    "A role doesn't exist with name: " + roleName + " in the tenantDomain: " + tenantDomain;
-            throw new IdentityRoleManagementClientException(RoleConstants.Error.INVALID_REQUEST.getCode(),
-                    errorMessage);
-        }
-        return roleId;
-    }
 
     @Override
     public String getRoleNameByID(String roleId, String tenantDomain) throws IdentityRoleManagementException {
@@ -2352,16 +2300,43 @@ public class RoleDAOImpl implements RoleDAO {
     public String getRoleIdByName(String roleName, String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        int audienceRefId;
-        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
-            audienceRefId = getRoleAudienceRefId(audience, audienceId, connection);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        String roleId = null;
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                     GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL)) {
+            statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
+            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
+            int count = 0;
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    // Handle multiple matching roles.
+                    count++;
+                    if (count > 1) {
+                        String errorMessage =
+                                "Invalid scenario. Multiple roles found for the given role name: " + roleName
+                                        + " and tenantDomain: " + tenantDomain;
+                        throw new IdentityRoleManagementClientException(
+                                RoleConstants.Error.INVALID_REQUEST.getCode(), errorMessage);
+                    }
+                    roleId = resultSet.getString(1);
+                }
+            }
         } catch (SQLException e) {
             String errorMessage = "Error while retrieving the role id by name :" + roleName + " audience :" + audience
                     + " audienceId :" + audienceId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     String.format(errorMessage, roleName, tenantDomain), e);
         }
-        return getRoleIDByName(roleName, audienceRefId, tenantDomain);
+        if (roleId == null) {
+            String errorMessage =
+                    "A role doesn't exist with name: " + roleName + " in the tenantDomain: " + tenantDomain;
+            throw new IdentityRoleManagementClientException(RoleConstants.Error.INVALID_REQUEST.getCode(),
+                    errorMessage);
+        }
+        return roleId;
     }
 
     /**
