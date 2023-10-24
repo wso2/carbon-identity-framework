@@ -115,7 +115,6 @@ public class APIResourceManagementConfigBuilder {
         while (apiResources.hasNext()) {
             OMElement apiResource = apiResources.next();
             APIResource apiResourceObj = buildAPIResource(apiResource);
-
             if (apiResourceObj == null) {
                 continue;
             }

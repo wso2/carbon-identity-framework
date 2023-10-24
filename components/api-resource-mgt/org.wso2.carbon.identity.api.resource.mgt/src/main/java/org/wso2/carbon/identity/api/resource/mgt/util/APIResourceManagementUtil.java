@@ -81,11 +81,6 @@ public class APIResourceManagementUtil {
      */
     public static void addSystemAPIs(String tenantDomain) {
 
-//        if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
-//            LOG.debug("Legacy authorization runtime is enabled. Hence, not registering system APIs in tenant " +
-//                    "domain: " + tenantDomain);
-//            return;
-//        }
         LOG.debug("Registering System APIs in tenant domain: " + tenantDomain);
         Map<String, APIResource> configs = APIResourceManagementConfigBuilder.getInstance()
                 .getAPIResourceMgtConfigurations();

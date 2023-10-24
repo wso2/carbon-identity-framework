@@ -48,16 +48,9 @@ public class AuthorizedAPIManagementListener extends AbstractApplicationMgtListe
     public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
-//        // Return if the legacy authorization is enabled.
-//        if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
-//            LOG.debug("Legacy authorization is enabled. Authorized API Management related " +
-//                    "AuthorizedAPIManagementListener is not fired.");
-//            return false;
-//        }
-
         if (!isEnable()) {
             LOG.debug("Authorized API Management related AuthorizedAPIManagementListener is not enabled.");
-            return false;
+            return true;
         }
 
         if (LOG.isDebugEnabled()) {
@@ -66,18 +59,18 @@ public class AuthorizedAPIManagementListener extends AbstractApplicationMgtListe
         }
 
         if (!serviceProvider.isSaasApp()) {
-            return false;
+            return true;
         }
 
         String appName = serviceProvider.getApplicationName();
         // Return if the application is not console or my account.
         if (!isConsole(appName) && !isMyAccount(appName)) {
-            return false;
+            return true;
         }
 
         try {
             if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                return false;
+                return true;
             }
             if (isConsole(appName)) {
                 authorizeSystemAPIToConsole(tenantDomain);
@@ -96,7 +89,6 @@ public class AuthorizedAPIManagementListener extends AbstractApplicationMgtListe
      *
      * @param name Application name.
      * @return True if the application is Console.
-     * ≈
      */
     private boolean isConsole(String name) {
 
