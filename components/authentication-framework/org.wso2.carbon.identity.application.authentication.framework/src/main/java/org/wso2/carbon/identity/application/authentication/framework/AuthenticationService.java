@@ -92,7 +92,7 @@ public class AuthenticationService {
         AuthServiceResponse authServiceResponse = new AuthServiceResponse();
 
         if (isAuthFlowSuccessful(request)) {
-            handleSuccessAuthResponse(request, authServiceResponse);
+            handleSuccessAuthResponse(request, response, authServiceResponse);
         } else if (isAuthFlowFailed(request, response)) {
             handleFailedAuthResponse(request, response, authServiceResponse);
         } else if (isAuthFlowIncomplete(request)) {
@@ -124,9 +124,10 @@ public class AuthenticationService {
         authServiceResponse.setData(responseData);
     }
 
-    private void handleSuccessAuthResponse(AuthServiceRequestWrapper request, AuthServiceResponse authServiceResponse) {
+    private void handleSuccessAuthResponse(AuthServiceRequestWrapper request, AuthServiceResponseWrapper response,
+                                           AuthServiceResponse authServiceResponse) throws AuthServiceException {
 
-        authServiceResponse.setSessionDataKey(request.getSessionDataKey());
+        authServiceResponse.setSessionDataKey(getFlowCompletionSessionDataKey(request, response));
         authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.SUCCESS_COMPLETED);
     }
 
@@ -272,8 +273,19 @@ public class AuthenticationService {
                 Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.IS_SENT_TO_RETRY))) {
             Map<String, String> queryParams = AuthServiceUtils.extractQueryParams(response.getRedirectURL());
             return StringUtils.equals(queryParams.get(FrameworkConstants.STATUS_PARAM),
-                                      FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL);
+                    FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL);
         }
         return false;
+    }
+
+    private String getFlowCompletionSessionDataKey(AuthServiceRequestWrapper request,
+                                                   AuthServiceResponseWrapper response) throws AuthServiceException {
+
+        String completionSessionDataKey = (String) request.getAttribute(FrameworkConstants.SESSION_DATA_KEY);
+        if (StringUtils.isBlank(completionSessionDataKey)) {
+            completionSessionDataKey = response.getSessionDataKey();
+        }
+
+        return completionSessionDataKey;
     }
 }

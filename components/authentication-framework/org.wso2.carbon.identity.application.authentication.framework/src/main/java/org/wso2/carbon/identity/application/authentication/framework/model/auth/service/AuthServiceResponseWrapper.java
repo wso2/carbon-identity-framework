@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.model.auth
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceUtils;
 
@@ -63,6 +64,18 @@ public class AuthServiceResponseWrapper extends CommonAuthResponseWrapper {
 
         Map<String, String> queryParams = AuthServiceUtils.extractQueryParams(getRedirectURL());
         return Boolean.parseBoolean(queryParams.get(AuthServiceConstants.AUTH_FAILURE_PARAM));
+    }
+
+    /**
+     * Get the sessionDataKey related to the authentication flow.
+     *
+     * @return String of sessionDataKey.
+     * @throws AuthServiceException
+     */
+    public String getSessionDataKey() throws AuthServiceException {
+
+        Map<String, String> queryParams = AuthServiceUtils.extractQueryParams(getRedirectURL());
+        return queryParams.get(FrameworkConstants.SESSION_DATA_KEY);
     }
 
     @Override
