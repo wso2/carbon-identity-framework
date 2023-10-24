@@ -21,10 +21,10 @@ package org.wso2.carbon.identity.application.mgt.listener;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
@@ -41,16 +41,16 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
 
 /**
- * Default Role Management Listener implementation of Role Management V2 Listener.
+ * Default Role Management Listener implementation of Role Management V2 Listener,
+ * and application based role management.
  */
-public class DefaultRoleManagementListener implements RoleManagementListener {
+public class DefaultRoleManagementListener extends AbstractApplicationMgtListener implements RoleManagementListener {
 
     private static final AuthorizedAPIManagementService authorizedAPIManagementService =
             new AuthorizedAPIManagementServiceImpl();
@@ -456,15 +456,9 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
                         "Invalid audience. No application found with application id: " + applicationId +
                                 " and tenant domain : " + tenantDomain);
             }
-            boolean valid = false;
-            for (ServiceProviderProperty property : app.getSpProperties()) {
-                // TODO :  use osgi service to get this
-                if (ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME.equals(property.getName()) &&
-                        APPLICATION.equalsIgnoreCase(property.getValue())) {
-                    valid = true;
-                }
-            }
-            if (!valid) {
+            String allowedAudienceForRoleAssociation = ApplicationManagementService.getInstance()
+                    .getAllowedAudienceForRoleAssociation(app.getApplicationResourceId(), tenantDomain);
+            if (!APPLICATION.equalsIgnoreCase(allowedAudienceForRoleAssociation.toLowerCase())) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Application: " + applicationId + " does not have Application role audience type");
             }
@@ -542,5 +536,20 @@ public class DefaultRoleManagementListener implements RoleManagementListener {
             String errorMessage = "Error while retrieving the application name for the given id: " + applicationID;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
+    }
+
+    @Override
+    public boolean doPostDeleteApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        try {
+            ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2()
+                    .deleteRolesByApplication(serviceProvider.getApplicationResourceId(), tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            throw new IdentityApplicationManagementException(
+                    String.format("Error occurred while deleting roles created for the application: %s.",
+                            serviceProvider.getApplicationName()), e);
+        }
+        return true;
     }
 }

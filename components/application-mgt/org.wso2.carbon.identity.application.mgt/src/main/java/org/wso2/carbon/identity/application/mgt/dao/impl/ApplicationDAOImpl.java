@@ -2151,7 +2151,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String allowedAudience =
                 getSPPropertyValueByPropertyKey(applicationId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, tenantDomain);
         associatedRolesConfig.setAllowedAudience(
-                StringUtils.isNotBlank(allowedAudience) ? allowedAudience : RoleConstants.ORGANIZATION);
+                StringUtils.isNotBlank(allowedAudience) ? allowedAudience.toLowerCase() : RoleConstants.ORGANIZATION);
         return associatedRolesConfig;
     }
 
@@ -4881,7 +4881,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             return allowedRoleAudienceProperty;
         }
         String allowedAudience = StringUtils.isNotBlank(associatedRolesConfig.getAllowedAudience()) ?
-                associatedRolesConfig.getAllowedAudience() : RoleConstants.ORGANIZATION;
+                associatedRolesConfig.getAllowedAudience().toLowerCase() : RoleConstants.ORGANIZATION;
         allowedRoleAudienceProperty.setValue(allowedAudience);
         return allowedRoleAudienceProperty;
     }
