@@ -4,12 +4,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
-import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
@@ -19,9 +19,13 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 
+/**
+ * Admin role permissions update listener to update admin role permissions.
+ */
 public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtListener  {
 
     private static final Log LOG = LogFactory.getLog(AdminRolePermissionsUpdateListener.class);
@@ -51,51 +55,72 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
             if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                 return false;
             }
-            updateAdminRolePermission(tenantDomain);
+            String adminRoleId = getAdminRoleId(tenantDomain);
+            addAdminRoleToConsoleAppAsAssociatedRole(adminRoleId, serviceProvider, tenantDomain);
+            updateAdminRolePermissions(adminRoleId, tenantDomain);
         } catch (OrganizationManagementException e) {
             LOG.error("Error while registering system API resources in tenant: " + tenantDomain);
         }
         return true;
     }
 
-    private void updateAdminRolePermission(String tenantDomain) throws IdentityApplicationManagementException {
-
-        String adminRoleId = getAdminRoleId(tenantDomain);
+    /**
+     * Update admin role system permissions.
+     *
+     * @param adminRoleId Admin role id.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityApplicationManagementException if an error occurs while updating admin role permissions.
+     */
+    private void updateAdminRolePermissions(String adminRoleId, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         try {
-            // Fetch the system API resources count.
-            int systemAPICount = ApplicationManagementServiceComponentHolder.getInstance()
-                    .getAPIResourceManager().getAPIResources(null, null, 1,
-                            APIResourceManagementConstants.SYSTEM_API_FILTER, "ASC", tenantDomain).getTotalCount();
-            // Fetch all system APIs.
-            List<APIResource> apiResources = ApplicationManagementServiceComponentHolder.getInstance()
-                    .getAPIResourceManager().getAPIResources(null, null, systemAPICount,
-                            APIResourceManagementConstants.SYSTEM_API_FILTER, "ASC", tenantDomain).getAPIResources();
-            if (apiResources.isEmpty()) {
-                LOG.error("Error while authorizing system API console. System APIs not found in tenant: "
-                        + tenantDomain);
-            }
+            List<String> internalScopes = getInternalScopes(tenantDomain);
             List<Permission> systemPermissions =  new ArrayList<>();
-            for (APIResource apiResource : apiResources) {
-                List<Scope> scopes = ApplicationManagementServiceComponentHolder.getInstance()
-                        .getAPIResourceManager().getAPIScopesById(apiResource.getId(), tenantDomain);
-                for(Scope scope: scopes) {
-                    systemPermissions.add(new Permission(scope.getName()));
-                }
+            for (String scope : internalScopes) {
+                systemPermissions.add(new Permission(scope));
             }
             RoleManagementService roleManagementService = ApplicationManagementServiceComponentHolder.getInstance()
                     .getRoleManagementServiceV2();
-            roleManagementService.updatePermissionListOfRole(adminRoleId, systemPermissions, new ArrayList<>() ,tenantDomain);
-        } catch (APIResourceMgtException | IdentityRoleManagementException e) {
+            roleManagementService.updatePermissionListOfRole(adminRoleId, systemPermissions, new ArrayList<>(),
+                    tenantDomain);
+        } catch (IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException("Error while update admin role permissions", e);
         }
     }
 
+    /**
+     * Add admin role to console app as associated role.
+     *
+     * @param adminRoleId Admin role id.
+     * @param serviceProvider Service provider.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityApplicationManagementException if an error occurs while adding admin role to console app.
+     */
+    private void addAdminRoleToConsoleAppAsAssociatedRole(String adminRoleId, ServiceProvider serviceProvider,
+                                                          String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+        associatedRolesConfig.setAllowedAudience(ORGANIZATION);
+        serviceProvider.setAssociatedRolesConfig(associatedRolesConfig);
+        ApplicationManagementServiceImpl.getInstance().addAssociatedRoleToApplication(serviceProvider, adminRoleId,
+                tenantDomain);
+    }
+
+    /**
+     * Get Admin role id.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Admin role id.
+     * @throws IdentityApplicationManagementException if an error occurs while retrieving admin role id.
+     */
     private String getAdminRoleId(String tenantDomain) throws IdentityApplicationManagementException {
 
         String orgId;
         try {
-            orgId = ApplicationManagementServiceComponentHolder.getInstance().getOrganizationManager().resolveOrganizationId(tenantDomain);
+            orgId = ApplicationManagementServiceComponentHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(tenantDomain);
         } catch (OrganizationManagementException e) {
             throw new IdentityApplicationManagementException("Error while retrieving organization id from tenant " +
                     "domain : " + tenantDomain, e);
@@ -111,6 +136,26 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
         } catch (IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException("Error while retrieving role id for admin role in " +
                     "tenant domain : " + tenantDomain, e);
+        }
+    }
+
+    /**
+     * Get the internal scopes.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Internal scopes.
+     * @throws IdentityApplicationManagementException if an error occurs while retrieving internal scopes for
+     *                                                  tenant domain.
+     */
+    private List<String> getInternalScopes(String tenantDomain) throws IdentityApplicationManagementException {
+
+        try {
+            List<Scope> scopes = ApplicationManagementServiceComponentHolder.getInstance()
+                    .getAPIResourceManager().getScopesByTenantDomain(tenantDomain, "name sw internal_");
+            return scopes.stream().map(Scope::getName).collect(Collectors.toCollection(ArrayList::new));
+        } catch (APIResourceMgtException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving internal scopes for tenant " +
+                    "domain : " + tenantDomain, e);
         }
     }
 
