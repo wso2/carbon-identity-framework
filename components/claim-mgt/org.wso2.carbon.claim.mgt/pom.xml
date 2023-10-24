@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>claim-mgt</artifactId>
-        <version>5.25.429</version>
+        <version>5.25.430-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
