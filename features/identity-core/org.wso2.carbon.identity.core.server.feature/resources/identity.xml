@@ -2548,7 +2548,7 @@
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
-        <ExtensionTypes>applications,connections,identity-providers</ExtensionTypes>
+        <ExtensionTypes>applications,connections</ExtensionTypes>
     </ExtensionManagementService>
 
     <!-- IdentityDataStore configurations -->

@@ -132,13 +132,6 @@
         "isFederationHub": false,
         "isPrimary": false,
         "name": "SAML 2.0 Authentication Provider",
-        "provisioning": {
-            "jit": {
-                "isEnabled": true,
-                "scheme": "PROVISION_SILENTLY",
-                "userstore": "DEFAULT"
-            }
-        },
         "roles": {
             "mappings": [],
             "outboundProvisioningRoles": []

@@ -56,13 +56,6 @@
         "isFederationHub": false,
         "isPrimary": false,
         "name": "Sign In With Ethereum",
-        "provisioning": {
-            "jit": {
-                "isEnabled": false,
-                "scheme": "PROVISION_SILENTLY",
-                "userstore": "DEFAULT"
-            }
-        },
         "roles": {
             "mappings": [],
             "outboundProvisioningRoles": []

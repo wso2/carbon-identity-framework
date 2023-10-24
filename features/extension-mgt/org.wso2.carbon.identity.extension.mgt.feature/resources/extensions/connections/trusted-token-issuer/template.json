@@ -28,13 +28,6 @@
         "name": "Trusted Token Issuer",
         "idpIssuerName": "IDP issuer name",
         "alias": "Alias",
-        "provisioning": {
-            "jit": {
-                "isEnabled": true,
-                "scheme": "PROVISION_SILENTLY",
-                "userstore": "DEFAULT"
-            }
-        },
         "roles": {
             "mappings": [],
             "outboundProvisioningRoles": []
