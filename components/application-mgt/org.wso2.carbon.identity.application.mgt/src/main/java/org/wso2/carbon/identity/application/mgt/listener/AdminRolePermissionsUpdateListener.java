@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
@@ -34,6 +35,7 @@ import org.wso2.carbon.identity.organization.management.service.util.Organizatio
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +46,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATI
 /**
  * Admin role permissions update listener to update admin role permissions.
  */
-public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtListener  {
+public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtListener {
 
     private static final Log LOG = LogFactory.getLog(AdminRolePermissionsUpdateListener.class);
 
@@ -54,24 +56,21 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
 
         if (!isEnable()) {
             LOG.debug("AdminRolePermissionUpdateListener is not enabled.");
-            return false;
+            return true;
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("AdminRolePermissionUpdateListener fired for tenant " +
-                    "creation for Tenant: " + tenantDomain);
+            LOG.debug("AdminRolePermissionUpdateListener fired on tenant creation for Tenant: " + tenantDomain);
         }
-
         if (!ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(serviceProvider.getApplicationName())) {
-            return false;
+            return true;
         }
-
         try {
             if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                return false;
+                return true;
             }
             if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
-                return false;
+                return true;
             }
             String adminRoleId = getAdminRoleId(tenantDomain);
             addAdminRoleToConsoleAppAsAssociatedRole(adminRoleId, serviceProvider, tenantDomain);
@@ -147,10 +146,23 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
             throw new IdentityApplicationManagementException("Error while retrieving organization id from tenant " +
                     "domain : " + tenantDomain);
         }
-        RoleManagementService roleManagementService = ApplicationManagementServiceComponentHolder.getInstance()
-                .getRoleManagementServiceV2();
+        org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext()
+                .getUserRealm();
+        if (realm == null) {
+            throw new IdentityApplicationManagementException("Error while retrieving user realm");
+        }
+        String adminUserName;
         try {
-            return roleManagementService.getRoleIdByName("admin", ORGANIZATION, orgId, tenantDomain);
+            adminUserName = realm.getRealmConfiguration().getAdminUserName();
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving admin username");
+        }
+        if (adminUserName == null) {
+            throw new IdentityApplicationManagementException("Admin username not found");
+        }
+        try {
+            return ApplicationManagementServiceComponentHolder.getInstance()
+                    .getRoleManagementServiceV2().getRoleIdByName(adminUserName, ORGANIZATION, orgId, tenantDomain);
         } catch (IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException("Error while retrieving role id for admin role in " +
                     "tenant domain : " + tenantDomain, e);

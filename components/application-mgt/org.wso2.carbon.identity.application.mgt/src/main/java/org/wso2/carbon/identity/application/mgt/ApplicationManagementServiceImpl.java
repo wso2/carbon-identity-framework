@@ -2769,7 +2769,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
                 break;
         }
-        boolean isValid  = isRoleInCorrectAudience(new RoleV2(roleId), tenantDomain, allowedAudienceType,
+        boolean isValid = isRoleInCorrectAudience(new RoleV2(roleId), tenantDomain, allowedAudienceType,
                 allowedAudienceId);
         if (!isValid) {
             throw new IdentityApplicationManagementClientException(

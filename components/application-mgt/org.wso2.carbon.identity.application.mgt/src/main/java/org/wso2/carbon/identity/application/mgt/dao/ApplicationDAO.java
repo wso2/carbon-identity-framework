@@ -393,7 +393,7 @@ public interface ApplicationDAO {
     }
 
     /**
-     * Add role to application.
+     * Create an association between a role and an application.
      *
      * @param applicationUUID Application UUID.
      * @param roleId          Role ID.

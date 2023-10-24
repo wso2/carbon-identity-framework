@@ -5451,21 +5451,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public void addAssociatedRoleToApplication(String applicationUUID, String roleId)
             throws IdentityApplicationManagementException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-
-            try (PreparedStatement statement = connection.prepareStatement(
-                    ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLE)) {
-                statement.setString(1, applicationUUID);
-                statement.setString(2, roleId);
-                statement.execute();
-                IdentityDatabaseUtil.commitTransaction(connection);
-            } catch (SQLException ex) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                String msg = "Error occurred while adding associated role: %s to application: %s";
-                throw new IdentityApplicationManagementException(String.format(msg, roleId, applicationUUID), ex);
-            }
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement statement = connection.prepareStatement(
+                     ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLE)) {
+            statement.setString(1, applicationUUID);
+            statement.setString(2, roleId);
+            statement.execute();
         } catch (SQLException e) {
-            String msg = "Error occurred while adding associated role: %s to application: %s";
+            String msg = "Error occurred while creating the association between role: %s and application: %s";
             throw new IdentityApplicationManagementException(String.format(msg, roleId, applicationUUID), e);
         }
     }
