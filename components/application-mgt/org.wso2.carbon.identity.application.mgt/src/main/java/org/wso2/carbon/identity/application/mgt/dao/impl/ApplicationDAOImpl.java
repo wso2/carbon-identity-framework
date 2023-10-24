@@ -124,6 +124,7 @@ import java.util.stream.Stream;
 import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ADVANCED_CONFIG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_DISCOVERABLE;
@@ -2235,6 +2236,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             ISSUER_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                                 applicationId, connection, tenantID));
+                    }
+                    if (ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME.equals(requiredAttribute)) {
+                        propertyList.stream()
+                                .filter(property -> ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME.equals(property.getName()))
+                                .findFirst()
+                                .ifPresent(property -> {
+                                    AssociatedRolesConfig configExcludingRoles = new AssociatedRolesConfig();
+                                    configExcludingRoles.setAllowedAudience(property.getValue());
+                                    serviceProvider.setAssociatedRolesConfig(configExcludingRoles);
+                                });
                     }
                 }
             }

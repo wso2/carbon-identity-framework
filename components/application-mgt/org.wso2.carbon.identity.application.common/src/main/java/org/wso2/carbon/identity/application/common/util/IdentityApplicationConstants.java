@@ -116,6 +116,7 @@ public class IdentityApplicationConstants {
     public static final String SP_NAME = "spName";
 
     public static final String ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME = "allowedAudienceForAssociatedRoles";
+    public static final String ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME = "associatedRoles.allowedAudience";
 
     /**
      * Config elements.
