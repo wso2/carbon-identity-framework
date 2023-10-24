@@ -458,7 +458,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             }
             String allowedAudienceForRoleAssociation = ApplicationManagementService.getInstance()
                     .getAllowedAudienceForRoleAssociation(app.getApplicationResourceId(), tenantDomain);
-            if (!APPLICATION.equalsIgnoreCase(allowedAudienceForRoleAssociation)) {
+            if (!APPLICATION.equalsIgnoreCase(allowedAudienceForRoleAssociation.toLowerCase())) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Application: " + applicationId + " does not have Application role audience type");
             }

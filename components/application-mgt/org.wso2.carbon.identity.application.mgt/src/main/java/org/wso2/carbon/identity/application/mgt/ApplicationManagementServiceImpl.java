@@ -2683,17 +2683,63 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String getAllowedAudienceForRoleAssociation(String applicationUUID, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+        // Invoking the pre listeners.
+        Collection<ApplicationMgtListener> preListeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : preListeners) {
+            if (listener.isEnable() &&
+                    !listener.doPreGetAllowedAudienceForRoleAssociation(applicationUUID, tenantDomain)) {
+                throw buildServerException("Error executing doPreGetAllowedAudienceForRoleAssociation operation of " +
+                        "listener: " + getName(listener) + " for application with id: " + applicationUUID);
+            }
+        }
+
+        String allowedAudience = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
                 .getSPPropertyValueByPropertyKey(applicationUUID,
                         IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, tenantDomain);
+        AssociatedRolesConfig associatedRolesConfigExcludingRoles = new AssociatedRolesConfig();
+        associatedRolesConfigExcludingRoles.setAllowedAudience(allowedAudience);
+
+        // Invoking the post listeners.
+        Collection<ApplicationMgtListener> postListeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : postListeners) {
+            if (listener.isEnable() &&
+                    !listener.doPostGetAllowedAudienceForRoleAssociation(associatedRolesConfigExcludingRoles,
+                            applicationUUID, tenantDomain)) {
+                throw buildServerException(
+                        "Error executing doPostGetAllowedAudienceForRoleAssociation operation of listener: " +
+                                getName(listener) + " for application with id: " + applicationUUID);
+            }
+        }
+        return associatedRolesConfigExcludingRoles.getAllowedAudience();
     }
 
     @Override
     public List<RoleV2> getAssociatedRolesOfApplication(String applicationUUID, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+        // Invoking the pre listeners.
+        Collection<ApplicationMgtListener> preListeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : preListeners) {
+            if (listener.isEnable() &&
+                    !listener.doPreGetAssociatedRolesOfApplication(applicationUUID, tenantDomain)) {
+                throw buildServerException("Error executing doPreGetAssociatedRolesOfApplication operation of " +
+                        "listener: " + getName(listener) + " for application with id: " + applicationUUID);
+            }
+        }
+
+        List<RoleV2> associatedRolesOfApplication = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
                 .getAssociatedRolesOfApplication(applicationUUID, tenantDomain);
+
+        // Invoking the post listeners.
+        Collection<ApplicationMgtListener> postListeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : postListeners) {
+            if (listener.isEnable() &&
+                    !listener.doPostGetAssociatedRolesOfApplication(associatedRolesOfApplication, applicationUUID, tenantDomain)) {
+                throw buildServerException("Error executing doPostGetAssociatedRolesOfApplication operation of " +
+                        "listener: " + getName(listener) + " for application with id: " + applicationUUID);
+            }
+        }
+        return associatedRolesOfApplication;
     }
 
     private void doPreUpdateChecks(String storedAppName, ServiceProvider updatedApp, String tenantDomain,
