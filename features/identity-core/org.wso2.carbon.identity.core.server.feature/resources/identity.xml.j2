@@ -773,7 +773,7 @@
                 {% endfor %}
             </SupportedRequestObjectEncryptionAlgorithms>
             <SupportedRequestObjectEncryptionMethods>
-                % for method in oauth.oidc.request_object.supported_encryption_methods %}
+                {% for method in oauth.oidc.request_object.supported_encryption_methods %}
                 <SupportedRequestObjectEncryptionMethod>{{method}}</SupportedRequestObjectEncryptionMethod>
                 {% endfor %}
             </SupportedRequestObjectEncryptionMethods>
