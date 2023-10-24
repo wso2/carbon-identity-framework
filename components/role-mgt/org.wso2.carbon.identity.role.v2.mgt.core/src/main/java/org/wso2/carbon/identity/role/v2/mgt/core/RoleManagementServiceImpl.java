@@ -619,7 +619,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             OrganizationManager organizationManager = RoleManagementServiceComponentHolder.getInstance()
                     .getOrganizationManager();
             String orgIdOfTenantDomain = organizationManager.resolveOrganizationId(roleCreationTenantDomain);
-            if (orgIdOfTenantDomain == null || orgIdOfTenantDomain.equalsIgnoreCase(audienceId)) {
+            if (orgIdOfTenantDomain == null || !orgIdOfTenantDomain.equalsIgnoreCase(audienceId)) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Invalid audience. Given Organization id: " + audienceId + " is invalid");
             }

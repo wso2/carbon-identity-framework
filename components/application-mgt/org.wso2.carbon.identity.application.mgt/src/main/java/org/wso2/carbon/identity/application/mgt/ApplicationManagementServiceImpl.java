@@ -3040,8 +3040,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return true;
         }
         String allowedAudienceType =
-                StringUtils.isNotBlank(associatedRolesConfig.getAllowedAudience()) ? RoleConstants.ORGANIZATION :
-                        associatedRolesConfig.getAllowedAudience();
+                StringUtils.isBlank(associatedRolesConfig.getAllowedAudience()) ? RoleConstants.ORGANIZATION :
+                        associatedRolesConfig.getAllowedAudience().toLowerCase();
         String allowedAudienceId;
         switch (allowedAudienceType) {
             case RoleConstants.APPLICATION:

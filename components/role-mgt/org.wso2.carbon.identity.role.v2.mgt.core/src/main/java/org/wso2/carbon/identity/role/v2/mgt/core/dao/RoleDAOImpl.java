@@ -1122,7 +1122,7 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         List<RoleDTO> hybridRoles = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLES_BY_APP_ID_SQL)) {
 
             statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));

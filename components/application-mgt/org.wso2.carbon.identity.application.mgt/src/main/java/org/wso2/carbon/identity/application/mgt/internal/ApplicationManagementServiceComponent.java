@@ -135,6 +135,7 @@ public class ApplicationManagementServiceComponent {
                     new AuthorizedAPIManagementServiceImpl(), null);
 
             bundleContext.registerService(RoleManagementListener.class, new DefaultRoleManagementListener(), null);
+            bundleContext.registerService(ApplicationMgtListener.class, new DefaultRoleManagementListener(), null);
 
             // Register the ApplicationValidator.
             context.getBundleContext().registerService(ApplicationValidator.class,
