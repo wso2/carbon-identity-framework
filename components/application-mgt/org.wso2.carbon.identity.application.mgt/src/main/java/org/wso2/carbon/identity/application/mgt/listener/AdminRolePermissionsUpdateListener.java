@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.listener;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -101,6 +102,7 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
                     .getRoleManagementServiceV2();
             roleManagementService.updatePermissionListOfRole(adminRoleId, systemPermissions, new ArrayList<>(),
                     tenantDomain);
+            LOG.debug("Update admin role permissions successfully.");
         } catch (IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException("Error while update admin role permissions", e);
         }
@@ -123,6 +125,7 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
         serviceProvider.setAssociatedRolesConfig(associatedRolesConfig);
         ApplicationManagementServiceImpl.getInstance().addAssociatedRoleToApplication(serviceProvider, adminRoleId,
                 tenantDomain);
+        LOG.debug("Create an association between admin role and an console successfully.");
     }
 
     /**
@@ -142,7 +145,7 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
             throw new IdentityApplicationManagementException("Error while retrieving organization id from tenant " +
                     "domain : " + tenantDomain, e);
         }
-        if (orgId == null) {
+        if (StringUtils.isBlank(orgId)) {
             throw new IdentityApplicationManagementException("Error while retrieving organization id from tenant " +
                     "domain : " + tenantDomain);
         }
@@ -157,7 +160,7 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
         } catch (UserStoreException e) {
             throw new IdentityApplicationManagementException("Error while retrieving admin username");
         }
-        if (adminUserName == null) {
+        if (StringUtils.isBlank(adminUserName)) {
             throw new IdentityApplicationManagementException("Admin username not found");
         }
         try {
