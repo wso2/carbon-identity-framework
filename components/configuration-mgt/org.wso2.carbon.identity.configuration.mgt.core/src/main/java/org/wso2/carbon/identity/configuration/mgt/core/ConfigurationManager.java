@@ -343,4 +343,15 @@ public interface ConfigurationManager {
      * @throws ConfigurationManagementException Configuration management exception.
      */
     void replaceResource(Resource resource) throws ConfigurationManagementException;
+
+    /**
+     * This function is used to delete all the resources belongs to given resource type in the current tenant.
+     *
+     * @param resourceType Request to delete the resources for the given {@link ResourceType}.
+     * @throws ConfigurationManagementException Configuration management exception.
+     */
+    default void deleteResourcesByType(String resourceType) throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 }

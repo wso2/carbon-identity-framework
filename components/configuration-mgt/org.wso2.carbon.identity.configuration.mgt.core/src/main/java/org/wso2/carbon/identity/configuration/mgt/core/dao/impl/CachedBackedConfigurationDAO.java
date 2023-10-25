@@ -40,6 +40,8 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.InputStream;
 import java.util.List;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleClientException;
+
 /**
  * This is a wrapper data access object to the default data access object to provide caching functionalities.
  */
@@ -271,6 +273,22 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     public boolean isExistingResource(int tenantId, String resourceId) throws ConfigurationManagementException {
 
         return configurationDAO.isExistingResource(tenantId, resourceId);
+    }
+
+    @Override
+    public void deleteResourcesByType(int tenantId, String resourceTypeId) throws ConfigurationManagementException {
+
+        List<Resource> resourceList = configurationDAO.getResourcesByType(tenantId, resourceTypeId);
+        if (resourceList.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                log.debug("No resource found for the resourceTypeId: " + resourceTypeId + " in tenant: " + tenantId);
+            }
+            throw handleClientException(ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS);
+        }
+        configurationDAO.deleteResourcesByType(tenantId, resourceTypeId);
+        for (Resource resource : resourceList) {
+            deleteResourceFromCache(resource);
+        }
     }
 
     private Resource getResourceFromCacheById(String resourceId, int tenantId)
