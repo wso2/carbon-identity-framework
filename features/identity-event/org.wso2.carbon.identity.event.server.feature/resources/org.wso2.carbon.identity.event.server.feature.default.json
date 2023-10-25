@@ -250,5 +250,9 @@
     "POST_UPDATE_LOCAL_CLAIM",
     "POST_UPDATE_EXTERNAL_CLAIM",
     "POST_ADD_EXTERNAL_CLAIM"
+  ],
+  "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.module_index": "40",
+  "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION"
   ]
 }
