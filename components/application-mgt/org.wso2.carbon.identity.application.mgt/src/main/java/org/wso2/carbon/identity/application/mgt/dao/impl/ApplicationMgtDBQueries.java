@@ -283,12 +283,16 @@ public class ApplicationMgtDBQueries {
     public static final String GET_SP_METADATA_BY_SP_ID = "SELECT ID, NAME, VALUE, DISPLAY_NAME FROM SP_METADATA " +
             "WHERE SP_ID = ?";
 
-    public static final String GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY = "SELECT `VALUE` FROM SP_METADATA WHERE " +
+    public static final String GET_SP_METADATA_BY_SP_ID_H2 = "SELECT ID, NAME, `VALUE`, DISPLAY_NAME FROM " +
+            "SP_METADATA WHERE SP_ID = ?";
+
+    public static final String GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY = "SELECT VALUE FROM SP_METADATA WHERE " +
             "SP_ID=:" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SP_ID + "; AND " +
             "NAME=:" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NAME + ";";
 
-    public static final String GET_SP_METADATA_BY_SP_ID_H2 = "SELECT ID, NAME, `VALUE`, DISPLAY_NAME FROM " +
-            "SP_METADATA WHERE SP_ID = ?";
+    public static final String GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY_H2 = "SELECT `VALUE` FROM SP_METADATA WHERE " +
+            "SP_ID=:" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SP_ID + "; AND " +
+            "NAME=:" + SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NAME + ";";
 
     public static final String ADD_SP_METADATA = "INSERT INTO SP_METADATA (SP_ID, NAME, VALUE, DISPLAY_NAME, " +
             "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
