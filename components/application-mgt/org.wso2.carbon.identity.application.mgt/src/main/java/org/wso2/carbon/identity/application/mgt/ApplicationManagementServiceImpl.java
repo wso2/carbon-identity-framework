@@ -2743,6 +2743,42 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return associatedRolesOfApplication;
     }
 
+    @Override
+    public void addAssociatedRoleToApplication(ServiceProvider serviceProvider, String roleId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        AssociatedRolesConfig associatedRolesConfig = serviceProvider.getAssociatedRolesConfig();
+        if (associatedRolesConfig == null) {
+            return;
+        }
+        String allowedAudienceType =
+                StringUtils.isBlank(associatedRolesConfig.getAllowedAudience()) ? RoleConstants.ORGANIZATION :
+                        associatedRolesConfig.getAllowedAudience().toLowerCase();
+        String allowedAudienceId;
+        switch (allowedAudienceType) {
+            case RoleConstants.APPLICATION:
+                allowedAudienceId = serviceProvider.getApplicationResourceId();
+                break;
+            default:
+                try {
+                    allowedAudienceId = getOrganizationManager().resolveOrganizationId(tenantDomain);
+                } catch (OrganizationManagementException e) {
+                    throw new IdentityApplicationManagementException(
+                            String.format("Error while resolving the organization id for the tenant domain: %s",
+                                    tenantDomain), e);
+                }
+                break;
+        }
+        boolean isValid = isRoleInCorrectAudience(new RoleV2(roleId), tenantDomain, allowedAudienceType,
+                allowedAudienceId);
+        if (!isValid) {
+            throw new IdentityApplicationManagementClientException(
+                    "Invalid role audience provided.");
+        }
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        appDAO.addAssociatedRoleToApplication(serviceProvider.getApplicationResourceId(), roleId);
+    }
+
     private void doPreUpdateChecks(String storedAppName, ServiceProvider updatedApp, String tenantDomain,
                                    String username) throws IdentityApplicationManagementException {
 

@@ -545,5 +545,19 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
 
         throw new NotImplementedException();
     }
+
+    /**
+     * Add role to application.
+     *
+     * @param serviceProvider Service Provider.
+     * @param roleId         Role ID.
+     * @param tenantDomain   Tenant domain.
+     * @throws IdentityApplicationManagementException If an error occurred while adding role to application.
+     */
+    public void addAssociatedRoleToApplication(ServiceProvider serviceProvider, String roleId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
 }
 
