@@ -54,6 +54,9 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
     public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
+        if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+            return true;
+        }
         if (!isEnable()) {
             LOG.debug("AdminRolePermissionUpdateListener is not enabled.");
             return true;
@@ -67,9 +70,6 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
         }
         try {
             if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                return true;
-            }
-            if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                 return true;
             }
             String adminRoleId = getAdminRoleId(tenantDomain);
