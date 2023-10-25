@@ -655,8 +655,8 @@ public class DefaultStepHandler implements StepHandler {
             ApplicationAuthenticator authenticator = authenticatorConfig
                     .getApplicationAuthenticator();
 
-            // Call authenticate if canHandle
-            if (authenticator != null && authenticator.canHandle(request)
+            // Call authenticate if canHandleRequest is true.
+            if (authenticator != null && authenticator.canHandleMultiOptionRequest(request, context)
                 && (context.getCurrentAuthenticator() == null || authenticator.getName()
                     .equals(context.getCurrentAuthenticator()))) {
                 isNoneCanHandle = false;
