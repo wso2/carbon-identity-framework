@@ -31,6 +31,7 @@ public class APIResourceManagementConstants {
     public static final String IDENTIFIER = "identifier";
     public static final String TYPE = "type";
     public static final String RBAC_AUTHORIZATION = "RBAC";
+    public static final String NO_POLICY = "NO POLICY";
     public static final String ASC = "ASC";
     public static final String SYSTEM_API_FILTER = "type sw SYSTEM";
     public static final String ME_API_FILTER = "name eq Me API and type sw SYSTEM";
@@ -47,6 +48,7 @@ public class APIResourceManagementConstants {
     public static final String LT = "lt";
     public static final String BEFORE_GT = "before gt ";
     public static final String AFTER_LT = "after lt ";
+    public static final String ME_API = "Me API";
     private static final Map<String, String> attributeColumnMap = new HashMap<>();
     private static final Map<String, String> scopeAttributeColumnMap = new HashMap<>();
     public static final Map<String, String> ATTRIBUTE_COLUMN_MAP = Collections.unmodifiableMap(attributeColumnMap);

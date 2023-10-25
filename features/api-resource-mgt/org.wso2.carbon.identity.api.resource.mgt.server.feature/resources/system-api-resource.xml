@@ -201,9 +201,9 @@
                  identifier="/api/server/v1/identity-governance" requiresAuthorization="true"
                  description="API representation of the Identity Governance Management API">
         <Scopes>
-            <Scope displayName="View Identity Governance" name="internal_identity_governance_view" />
+            <Scope displayName="View Identity Governance" name="internal_governance_view" />
             <Scope displayName="Update Identity Governance"
-                   name="internal_identity_governance_update" />
+                   name="internal_governance_update" />
         </Scopes>
     </APIResource>
     <APIResource name="Identity Governance Management API"
@@ -212,9 +212,9 @@
                  type="SYSTEM_ORG">
         <Scopes>
             <Scope displayName="View Identity Governance"
-                   name="internal_org_identity_governance_view" />
+                   name="internal_org_governance_view" />
             <Scope displayName="Update Identity Governance"
-                   name="internal_org_identity_governance_update" />
+                   name="internal_org_governance_update" />
         </Scopes>
     </APIResource>
     <APIResource name="Idle Account Identification Management API"
@@ -308,10 +308,10 @@
                  requiresAuthorization="true"
                  description="API representation of the OIDC Scope Management API">
         <Scopes>
-            <Scope displayName="View OIDC Scopes" name="internal_oidc_scope_view" />
-            <Scope displayName="Create OIDC Scopes" name="internal_oidc_scope_create" />
-            <Scope displayName="Update OIDC Scopes" name="internal_oidc_scope_update" />
-            <Scope displayName="Delete OIDC Scopes" name="internal_oidc_scope_delete" />
+            <Scope displayName="View OIDC Scopes" name="internal_oidc_scope_mgt_view" />
+            <Scope displayName="Create OIDC Scopes" name="internal_oidc_scope_mgt_create" />
+            <Scope displayName="Update OIDC Scopes" name="internal_oidc_scope_mgt_update" />
+            <Scope displayName="Delete OIDC Scopes" name="internal_oidc_scope_mgt_delete" />
         </Scopes>
     </APIResource>
     <APIResource name="Tenant Management API" identifier="/api/server/v1/tenants"
@@ -609,23 +609,22 @@
     <APIResource name="SCIM2 Users API" identifier="/scim2/Users" requiresAuthorization="true"
                  description="API representation of the SCIM2 Users API">
         <Scopes>
-            <Scope displayName="List User Management" name="internal_user_mgt_list" />
-            <Scope displayName="Create User Management" name="internal_user_mgt_create" />
-            <Scope displayName="Update User Management" name="internal_user_mgt_update" />
-            <Scope displayName="Delete User Management" name="internal_user_mgt_delete" />
+            <Scope displayName="View User" name="internal_user_mgt_view" />
+            <Scope displayName="List Users" name="internal_user_mgt_list" />
+            <Scope displayName="Create User" name="internal_user_mgt_create" />
+            <Scope displayName="Update User" name="internal_user_mgt_update" />
+            <Scope displayName="Delete User" name="internal_user_mgt_delete" />
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Users API" identifier="/o/scim2/Users"
                  requiresAuthorization="true"
                  description="API representation of the SCIM2 Users API" type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="List Organization User Management" name="internal_org_user_mgt_list" />
-            <Scope displayName="Create User Management"
-                   name="internal_org_user_mgt_create" />
-            <Scope displayName="Update User Management"
-                   name="internal_org_user_mgt_update" />
-            <Scope displayName="Delete User Management"
-                   name="internal_org_user_mgt_delete" />
+            <Scope displayName="View User" name="internal_org_user_mgt_view" />
+            <Scope displayName="List User" name="internal_org_user_mgt_list" />
+            <Scope displayName="Create User" name="internal_org_user_mgt_create" />
+            <Scope displayName="Update User" name="internal_org_user_mgt_update" />
+            <Scope displayName="Delete User" name="internal_org_user_mgt_delete" />
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Roles API" identifier="/scim2/Roles" requiresAuthorization="true"
@@ -847,10 +846,83 @@
             <Scope displayName="Update User" name="internal_org_user_update" />
         </Scopes>
     </APIResource>
-    <APIResource name="Me API" identifier="/me/" requiresAuthorization="true"
+    <APIResource name="Event Configuration API" identifier="/api/event-configurations/v1/events"
+                 requiresAuthorization="true"
+                 description="API representation of the Event Configuration API"
+                 type="SYSTEM">
+        <Scopes>
+            <Scope displayName="View Event Configuration" name="internal_event_config_view" />
+            <Scope displayName="Update Event Configuration" name="internal_event_config_update" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Me API" identifier="/me/" requiresAuthorization="false"
                  description="API representation of the Me API">
         <Scopes>
             <Scope displayName="User Login" name="internal_login" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Application Management Feature" identifier="console:applications"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Application Management Feature"
+                 type="SYSTEM_FEATURE">
+        <Scopes>
+            <Scope displayName="Application Feature" name="console:applications" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Attribute Management Feature" identifier="console:attributes"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Attribute Management Feature"
+                 type="SYSTEM_FEATURE">
+        <Scopes>
+            <Scope displayName="Attribute Feature" name="console:attributes" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Group Management Feature" identifier="console:groups"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Group Management Feature"
+                 type="SYSTEM_FEATURE">
+        <Scopes>
+            <Scope displayName="Group Feature" name="console:groups" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Provider Management Feature" identifier="console:idps"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Identity Provider Management Feature"
+                 type="SYSTEM_FEATURE">
+        <Scopes>
+            <Scope displayName="Identity Provider Feature" name="console:idps" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="OIDC Scope Management Feature" identifier="console:scopes:oidc"
+                 requiresAuthorization="true"
+                 description="Resource representation of the OIDC Scope Management Feature"
+                 type="SYSTEM_FEATURE">
+        <Scopes>
+            <Scope displayName="OIDC Scope Feature" name="console:scopes:oidc" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Organization Management Feature" identifier="console:organizations"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Organization Management Feature"
+                 type="SYSTEM_FEATURE">
+        <Scopes>
+            <Scope displayName="Organization Feature" name="console:organizations" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Management Feature" identifier="console:roles"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Role Management Feature"
+                 type="SYSTEM_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Feature" name="console:roles" />
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Management Feature" identifier="console:users"
+                 requiresAuthorization="true"
+                 description="Resource representation of the User Management Feature"
+                 type="SYSTEM_FEATURE">
+        <Scopes>
+            <Scope displayName="User Feature" name="console:users" />
         </Scopes>
     </APIResource>
 </APIResources>
