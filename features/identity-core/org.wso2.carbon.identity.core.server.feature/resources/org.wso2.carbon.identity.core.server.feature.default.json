@@ -923,7 +923,7 @@
   "console.administrators.scopes.update": [],
   "console.administrators.scopes.delete": [],
   "console.analytics.enabled": true,
-  "console.api_resources.enabled": false,
+  "console.api_resources.enabled": true,
   "console.api_resources.scopes.feature": [],
   "console.api_resources.scopes.create": ["internal_application_mgt_create"],
   "console.api_resources.scopes.read": ["internal_application_mgt_view"],
