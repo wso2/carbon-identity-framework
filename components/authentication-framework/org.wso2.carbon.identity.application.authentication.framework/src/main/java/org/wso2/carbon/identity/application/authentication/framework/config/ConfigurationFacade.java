@@ -193,6 +193,12 @@ public class ConfigurationFacade {
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointURL);
     }
 
+    public String getAuthenticationEndpointAbsoluteURL() {
+
+        return buildAbsoluteUrl(AUTHENTICATION_ENDPOINT,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointURL);
+    }
+
     public String getAuthenticationEndpointRetryURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_RETRY,
@@ -209,6 +215,11 @@ public class ConfigurationFacade {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_WAIT,
                 FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointWaitURL);
+    }
+
+    public String getAccountRecoveryEndpointAbsolutePath() {
+
+        return buildAbsoluteUrl(ACCOUNT_RECOVERY_ENDPOINT_PATH, this::readAccountRecoveryEndpointPath);
     }
 
     public String getAccountRecoveryEndpointPath() {
@@ -325,6 +336,27 @@ public class ConfigurationFacade {
             } else {
                 return defaultContext;
             }
+        }
+    }
+
+    private String buildAbsoluteUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig) {
+
+        String urlFromFileBasedConfig = getValueFromFileBasedConfig.get();
+        String path = defaultContext;
+        if (StringUtils.isNotBlank(urlFromFileBasedConfig)) {
+            // If a value is configured in the file, then we have to use it.
+            if (urlFromFileBasedConfig.startsWith("http://") || urlFromFileBasedConfig.startsWith("https://")) {
+                // If the full URL is configured, we can use it as it is.
+                return urlFromFileBasedConfig;
+            } else {
+                path = urlFromFileBasedConfig;
+            }
+        }
+        try {
+            return ServiceURLBuilder.create().addPath(path).build().getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building tenant qualified url for context: " + defaultContext, e);
         }
     }
 }
