@@ -84,7 +84,7 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
     /**
      * Update admin role system permissions.
      *
-     * @param adminRoleId Admin role id.
+     * @param adminRoleId  Admin role id.
      * @param tenantDomain Tenant domain.
      * @throws IdentityApplicationManagementException if an error occurs while updating admin role permissions.
      */
@@ -109,9 +109,9 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
     /**
      * Add admin role to console app as associated role.
      *
-     * @param adminRoleId Admin role id.
+     * @param adminRoleId     Admin role id.
      * @param serviceProvider Service provider.
-     * @param tenantDomain Tenant domain.
+     * @param tenantDomain    Tenant domain.
      * @throws IdentityApplicationManagementException if an error occurs while adding admin role to console app.
      */
     private void addAdminRoleToConsoleAppAsAssociatedRole(String adminRoleId, ServiceProvider serviceProvider,
@@ -175,7 +175,7 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
      * @param tenantDomain Tenant domain.
      * @return Internal scopes.
      * @throws IdentityApplicationManagementException if an error occurs while retrieving internal scopes for
-     *                                                  tenant domain.
+     *                                                tenant domain.
      */
     private List<String> getInternalScopes(String tenantDomain) throws IdentityApplicationManagementException {
 
