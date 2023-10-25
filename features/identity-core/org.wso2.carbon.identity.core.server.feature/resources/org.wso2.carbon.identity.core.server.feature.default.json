@@ -942,6 +942,7 @@
   ],
   "console.applications.scopes.update": ["internal_application_mgt_update"],
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
+  "console.applications.disabled_features": ["applications.loginFlow.legacyEditor"],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
   "console.approvals.enabled": true,
