@@ -5468,7 +5468,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                     ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY)) {
+                     isH2DB() ? ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY_H2 :
+                             ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY)) {
             statement.setInt(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SP_ID, applicationId);
             statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NAME, propertyName);
             ResultSet resultSet = statement.executeQuery();
@@ -5476,7 +5477,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 return resultSet.getString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_VALUE);
             }
             return StringUtils.EMPTY;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             throw new IdentityApplicationManagementServerException(
                     String.format("Error while fetching the property: %s of application with id: %s", propertyName,
                             applicationId), e);
