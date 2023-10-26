@@ -31,10 +31,10 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID_REQUEST;
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.OPERATION_NOT_SUPPORTED;
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_NOT_SUPPORTED;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 
 /**
  * UserIDResolver Implementation of the {@link IDResolver} interface.
