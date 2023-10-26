@@ -183,11 +183,8 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
     private List<String> getInternalScopes(String tenantDomain) throws IdentityApplicationManagementException {
 
         try {
-            List<Scope> scopes = ApplicationManagementServiceComponentHolder.getInstance()
-                    .getAPIResourceManager().getScopesByTenantDomain(tenantDomain, "name sw internal_");
-            List<Scope> consoleScopes = ApplicationManagementServiceComponentHolder.getInstance()
-                    .getAPIResourceManager().getScopesByTenantDomain(tenantDomain, "name sw console:");
-            scopes.addAll(consoleScopes);
+            List<Scope> scopes = ApplicationManagementServiceComponentHolder.getInstance().getAPIResourceManager()
+                    .getSystemAPIScopes(tenantDomain);
             return scopes.stream().map(Scope::getName).collect(Collectors.toCollection(ArrayList::new));
         } catch (APIResourceMgtException e) {
             throw new IdentityApplicationManagementException("Error while retrieving internal scopes for tenant " +

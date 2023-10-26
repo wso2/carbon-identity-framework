@@ -34,6 +34,8 @@ public class APIResourceManagementConstants {
     public static final String NO_POLICY = "NO POLICY";
     public static final String ASC = "ASC";
     public static final String SYSTEM_API_FILTER = "type sw SYSTEM";
+    public static final String INTERNAL_SCOPE_FILTER = "name sw internal_";
+    public static final String CONSOLE_SCOPE_FILTER = "name sw console:";
     public static final String ME_API_FILTER = "name eq Me API and type sw SYSTEM";
     public static final String BEFORE = "before";
     public static final String AFTER = "after";
