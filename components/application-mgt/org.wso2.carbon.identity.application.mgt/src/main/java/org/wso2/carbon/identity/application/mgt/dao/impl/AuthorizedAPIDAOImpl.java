@@ -87,22 +87,27 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             ResultSet resultSet = prepStmt.executeQuery();
             Map<String, AuthorizedAPI> authorizedAPIMap = new HashMap<>();
             while (resultSet.next()) {
-                Scope scope = new Scope.ScopeBuilder()
-                        .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME)).build();
                 String apiId = resultSet.getString(ApplicationConstants.ApplicationTableColumns.API_ID);
+                String scopeName = resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME);
+                Scope scope = null;
+                if (scopeName != null) {
+                    scope = new Scope.ScopeBuilder()
+                            .name(scopeName).build();
+                }
                 if (!authorizedAPIMap.containsKey(apiId)) {
                     AuthorizedAPI.AuthorizedAPIBuilder authorizedAPIBuilder = new AuthorizedAPI.AuthorizedAPIBuilder()
                             .appId(applicationId)
                             .apiId(apiId)
                             .policyId(resultSet.getString(
                                     ApplicationConstants.ApplicationTableColumns.POLICY_ID))
-                            .scopes(Collections.singletonList(scope));
+                            .scopes(scope == null ? Collections.emptyList() : Collections.singletonList(scope));
                     authorizedAPIMap.put(apiId, authorizedAPIBuilder.build());
                 } else {
+                    if (scope == null) {
+                        continue;
+                    }
                     AuthorizedAPI authorizedAPI = authorizedAPIMap.get(apiId);
                     List<Scope> scopes = new ArrayList<>(authorizedAPI.getScopes());
-                    scope = new Scope.ScopeBuilder()
-                            .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME)).build();
                     scopes.add(scope);
                     authorizedAPI.setScopes(scopes);
                 }
