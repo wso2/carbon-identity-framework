@@ -1240,5 +1240,6 @@
   "email_templates.branding.fallbacks.font_color": "#231F20",
   "email_templates.branding.fallbacks.button_font_color": "#FFFFFF",
   "email_templates.branding.fallbacks.light_border_color": "transparent",
-  "email_templates.branding.fallbacks.dark_border_color": "#333333"
+  "email_templates.branding.fallbacks.dark_border_color": "#333333",
+  "authentication.enable_basic_auth_handler": true
 }
