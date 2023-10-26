@@ -91,8 +91,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 String scopeName = resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME);
                 Scope scope = null;
                 if (scopeName != null) {
-                    scope = new Scope.ScopeBuilder()
-                            .name(scopeName).build();
+                    scope = new Scope.ScopeBuilder().name(scopeName).build();
                 }
                 if (!authorizedAPIMap.containsKey(apiId)) {
                     AuthorizedAPI.AuthorizedAPIBuilder authorizedAPIBuilder = new AuthorizedAPI.AuthorizedAPIBuilder()
