@@ -34,7 +34,7 @@ public class RoleResolverUtils {
      * @param error The error enum.
      * @param e     The throwable.
      * @param data  The error message data.
-     * @return ApplicationRolesServerException
+     * @return ApplicationRolesServerException.
      */
     public static ApplicationRolesServerException handleServerException(
             AppRolesConstants.ErrorMessages error, Throwable e, String... data) {
@@ -51,7 +51,7 @@ public class RoleResolverUtils {
      *
      * @param error The error enum.
      * @param data The error message data.
-     * @return ApplicationRolesClientException
+     * @return ApplicationRolesClientException.
      */
     public static ApplicationRolesClientException handleClientException(
             AppRolesConstants.ErrorMessages error, String... data) {

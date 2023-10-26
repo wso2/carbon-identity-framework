@@ -254,6 +254,7 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
      *
      * @param authenticatedUser Authenticated user.
      * @return Groups of the local user.
+     * @throws ApplicationRolesException If an error occurred while getting groups of the local user.
      */
     private List<String> getUserGroups(AuthenticatedUser authenticatedUser) throws ApplicationRolesException {
 

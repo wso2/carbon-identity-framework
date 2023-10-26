@@ -1063,12 +1063,12 @@ public class FrameworkServiceComponent {
     protected void setRoleManagementServiceV2(RoleManagementService roleManagementService) {
 
         FrameworkServiceDataHolder.getInstance().setRoleManagementServiceV2(roleManagementService);
-        log.debug("RoleManagementServiceV2 set in ApplicationManagementServiceComponent bundle.");
+        log.debug("RoleManagementServiceV2 set in FrameworkServiceComponent bundle.");
     }
 
     protected void unsetRoleManagementServiceV2(RoleManagementService roleManagementService) {
 
         FrameworkServiceDataHolder.getInstance().setRoleManagementServiceV2(null);
-        log.debug("RoleManagementServiceV2 unset in ApplicationManagementServiceComponent bundle.");
+        log.debug("RoleManagementServiceV2 unset in FrameworkServiceComponent bundle.");
     }
 }

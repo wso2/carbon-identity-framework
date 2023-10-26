@@ -220,7 +220,8 @@ public class DefaultClaimHandler implements ClaimHandler {
             localUnfilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM, applicationRoles);
             if (!CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                 // Add app associated roles to roles claim in Role V2 runtime.
-                localUnfilteredClaims.put(getLocalGroupsClaimURI(), applicationRoles);
+                String rolesClaimURI = getLocalGroupsClaimURI();
+                localUnfilteredClaims.put(rolesClaimURI, applicationRoles);
             }
         }
 
@@ -1118,9 +1119,11 @@ public class DefaultClaimHandler implements ClaimHandler {
      */
     private void handleRoleAppAssoication(Map<String, String> mappedAttrs, String appAssociatedRoles) {
 
-        if (mappedAttrs.containsKey(getLocalGroupsClaimURI())) {
-            mappedAttrs.put(getLocalGroupsClaimURI(),
-                    StringUtils.isEmpty(appAssociatedRoles) ? "" : appAssociatedRoles);
+        // Getting roles claim URI by checking legacy config.
+        String rolesClaimURI = getLocalGroupsClaimURI();
+        if (mappedAttrs.containsKey(rolesClaimURI)) {
+            mappedAttrs.put(rolesClaimURI,
+                    StringUtils.isEmpty(appAssociatedRoles) ? StringUtils.EMPTY : appAssociatedRoles);
         }
     }
 
