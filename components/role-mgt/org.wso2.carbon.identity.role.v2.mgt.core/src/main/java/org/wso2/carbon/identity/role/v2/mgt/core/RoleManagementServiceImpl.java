@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -248,11 +249,26 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreDeleteRoleWithException(roleId, tenantDomain);
+        doPreValidateRoleDeletion(roleId, tenantDomain);
         roleDAO.deleteRole(roleId, tenantDomain);
         roleManagementEventPublisherProxy.publishPostDeleteRole(roleId, tenantDomain);
         if (log.isDebugEnabled()) {
             log.debug(String.format("%s deleted role of id : %s successfully.",
                     getUser(tenantDomain), roleId));
+        }
+    }
+
+    private void doPreValidateRoleDeletion(String roleId, String tenantDomain) throws IdentityRoleManagementException {
+
+        RoleBasicInfo roleBasicInfo = getRoleBasicInfoById(roleId, tenantDomain);
+        String roleAudience = roleBasicInfo.getAudience();
+        if (APPLICATION.equalsIgnoreCase(roleAudience)) {
+            return;
+        }
+        List<String> associatedApplicationByRoleId = getAssociatedApplicationByRoleId(roleId, tenantDomain);
+        if (CollectionUtils.isNotEmpty(associatedApplicationByRoleId)) {
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(),
+                    "Unable to delete the role since it is associated with applications.");
         }
     }
 
