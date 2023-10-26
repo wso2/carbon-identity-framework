@@ -185,4 +185,13 @@ public interface APIResourceManager {
      */
     List<APIResource> getScopeMetadata(List<String> scopeNames, String tenantDomain)
             throws APIResourceMgtException;
+
+    /**
+     * Get System API scopes by tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return List of <Code>Scope</Code>.
+     * @throws APIResourceMgtException If an error occurs while retrieving scopes.
+     */
+    List<Scope> getSystemAPIScopes(String tenantDomain) throws APIResourceMgtException;
 }

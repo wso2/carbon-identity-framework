@@ -3156,7 +3156,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             RoleBasicInfo retrievedRole = getRoleManagementServiceV2().getRoleBasicInfoById(role.getId(), tenantDomain);
             if (retrievedRole != null) {
                 return allowedAudienceType.equals(retrievedRole.getAudience()) &&
-                        allowedAudienceId.equals(retrievedRole.getAudienceId());
+                        StringUtils.equals(allowedAudienceId, retrievedRole.getAudienceId());
             }
         } catch (IdentityRoleManagementException e) {
             if ((ROLE_MANAGEMENT_ERROR_CODE_PREFIX + ROLE_NOT_FOUND).equals(e.getErrorCode())) {
