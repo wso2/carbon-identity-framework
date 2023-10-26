@@ -1387,6 +1387,13 @@
                 <ExpiryTime>
                     <smsOtp>{{identity_mgt.password_reset_sms.sms_otp_validity}}</smsOtp>
                 </ExpiryTime>
+                <OTP>
+                    <SendOTPInEmail>{{identity_mgt.password_reset_email.otp.send_otp_in_email}}</SendOTPInEmail>
+                    <UseUppercaseInOtp>{{identity_mgt.password_reset_email.otp.use_uppercase_in_otp}}</UseUppercaseInOtp>
+                    <UseLowercaseInOtp>{{identity_mgt.password_reset_email.otp.use_lowercase_in_otp}}</UseLowercaseInOtp>
+                    <UseNumericInOtp>{{identity_mgt.password_reset_email.otp.use_numeric_in_otp}}</UseNumericInOtp>
+                    <OTPLength>{{identity_mgt.password_reset_email.otp.otp_length}}</OTPLength>
+                </OTP>
                 <smsOtp>
                     <Regex>{{identity_mgt.password_reset_sms.sms_otp_regex}}</Regex>
                 </smsOtp>
@@ -1472,6 +1479,13 @@
 
     <EmailVerification>
         <Enable>{{identity_mgt.user_onboarding.enable_email_verification}}</Enable>
+        <OTP>
+            <SendOTPInEmail>{{identity_mgt.user_onboarding.otp.send_otp_in_email}}</SendOTPInEmail>
+            <UseUppercaseInOtp>{{identity_mgt.user_onboarding.otp.use_uppercase_in_otp}}</UseUppercaseInOtp>
+            <UseLowercaseInOtp>{{identity_mgt.user_onboarding.otp.use_lowercase_in_otp}}</UseLowercaseInOtp>
+            <UseNumericInOtp>{{identity_mgt.user_onboarding.otp.use_numeric_in_otp}}</UseNumericInOtp>
+            <OTPLength>{{identity_mgt.user_onboarding.otp.otp_length}}</OTPLength>
+        </OTP>
         <ExpiryTime>{{identity_mgt.user_onboarding.verification_email_validity}}</ExpiryTime>
         <LockOnCreation>{{identity_mgt.user_onboarding.lock_on_creation}}</LockOnCreation>
         <Notification>
@@ -1507,6 +1521,13 @@
 
     <SelfRegistration>
         <Enable>{{identity_mgt.user_self_registration.allow_self_registration}}</Enable>
+        <OTP>
+            <SendOTPInEmail>{{identity_mgt.user_self_registration.otp.send_otp_in_email}}</SendOTPInEmail>
+            <UseUppercaseInOtp>{{identity_mgt.user_self_registration.otp.use_uppercase_in_otp}}</UseUppercaseInOtp>
+            <UseLowercaseInOtp>{{identity_mgt.user_self_registration.otp.use_lowercase_in_otp}}</UseLowercaseInOtp>
+            <UseNumericInOtp>{{identity_mgt.user_self_registration.otp.use_numeric_in_otp}}</UseNumericInOtp>
+            <OTPLength>{{identity_mgt.user_self_registration.otp.otp_length}}</OTPLength>
+        </OTP>
         <EnableAccountLockForVerifiedPreferredChannel>{{identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel}}</EnableAccountLockForVerifiedPreferredChannel>
         <API>
             <EnableDetailedResponseBody>{{identity_mgt.user_self_registration.enable_detailed_api_response}}</EnableDetailedResponseBody>
@@ -1596,6 +1617,13 @@
                 </VerificationCode>
              </VerificationOnUpdate>
         </Claim>
+        <OTP>
+            <SendOTPInEmail>{{identity_mgt.user_claim_update.otp.send_otp_in_email}}</SendOTPInEmail>
+            <UseUppercaseInOtp>{{identity_mgt.user_claim_update.otp.use_uppercase_in_otp}}</UseUppercaseInOtp>
+            <UseLowercaseInOtp>{{identity_mgt.user_claim_update.otp.use_lowercase_in_otp}}</UseLowercaseInOtp>
+            <UseNumericInOtp>{{identity_mgt.user_claim_update.otp.use_numeric_in_otp}}</UseNumericInOtp>
+            <OTPLength>{{identity_mgt.user_claim_update.otp.otp_length}}</OTPLength>
+        </OTP>
         <!-- When updating the claim value, the verification notification can be controlled by sending an additional
         temporary claim ('verifyEmail'/'verifyMobile') along with the update request. To enable this option,
         'UseVerifyClaim' should be set to true. -->
