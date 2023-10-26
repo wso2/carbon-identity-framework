@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.mgt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,16 +44,18 @@ import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,7 +70,11 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.INBOUND_AUTHENTICATION_CONFIG;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Few common utility functions related to Application (aka. Service Provider) Management.
@@ -74,7 +82,7 @@ import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMe
 public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
-    public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
+    public static final String PATH_CONSTANT = "/";
     // Default regex for validating application name.
     // This regex allows alphanumeric characters, dot, underscore, hyphen and spaces in the name.
     // Does not allow leading and trailing whitespaces.
@@ -487,7 +495,7 @@ public class ApplicationMgtUtil {
 
     public static String getApplicationPermissionPath() {
 
-        return CarbonConstants.UI_PERMISSION_NAME + RegistryConstants.PATH_SEPARATOR + APPLICATION_ROOT_PERMISSION;
+        return CarbonConstants.UI_PERMISSION_NAME + PATH_CONSTANT + APPLICATION_ROOT_PERMISSION;
 
     }
 
@@ -913,7 +921,25 @@ public class ApplicationMgtUtil {
      * @param serviceProvider Service provider object.
      * @return JSON string of the service provider object.
      */
-    public static String buildSPData(ServiceProvider serviceProvider) {
+    public static Map<String, Object> buildSPData(ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            return new HashMap<>();
+        }
+
+        String sp = maskSPData(serviceProvider);
+        Gson gson = new Gson();
+        return gson.fromJson(sp, new TypeToken<Map<String, Object>>() {
+        }.getType());
+    }
+
+    /**
+     * Build the service provider string object masking the sensitive information.
+     *
+     * @param serviceProvider Service provider object.
+     * @return JSON string of the service provider object.
+     */
+    private static String maskSPData(ServiceProvider serviceProvider) {
 
         if (serviceProvider == null) {
             return StringUtils.EMPTY;
@@ -921,36 +947,83 @@ public class ApplicationMgtUtil {
         try {
             JSONObject serviceProviderJSONObject =
                     new JSONObject(new ObjectMapper().writeValueAsString(serviceProvider));
-            JSONObject inboundAuthenticationConfig =
-                    serviceProviderJSONObject.optJSONObject("inboundAuthenticationConfig");
-            if (inboundAuthenticationConfig != null) {
-                JSONArray inboundAuthenticationRequestConfigsArray =
-                        inboundAuthenticationConfig.optJSONArray("inboundAuthenticationRequestConfigs");
-                if (inboundAuthenticationRequestConfigsArray != null) {
-                    for (int i = 0; i < inboundAuthenticationRequestConfigsArray.length(); i++) {
-                        JSONObject requestConfig = inboundAuthenticationRequestConfigsArray.getJSONObject(i);
-                        JSONArray properties = requestConfig.optJSONArray("properties");
-                        if (properties != null) {
-                            for (int j = 0; j < properties.length(); j++) {
-                                JSONObject property = properties.optJSONObject(j);
-                                if (property != null && StringUtils.equalsIgnoreCase("oauthConsumerSecret",
-                                        (String) property.get("name"))) {
-                                    if (property.get("value") != null) {
-                                        String secret = property.get("value").toString();
-                                        String maskedSecret = secret.replaceAll(MASKING_REGEX, MASKING_CHARACTER);
-                                        property.put("value", maskedSecret);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            maskClientSecret(serviceProviderJSONObject.optJSONObject(INBOUND_AUTHENTICATION_CONFIG));
+            maskAppOwnerUsername(serviceProviderJSONObject.optJSONObject(APP_OWNER));
             return serviceProviderJSONObject.toString();
-        } catch (JsonProcessingException e) {
+        } catch (JsonProcessingException | IdentityException e) {
             log.error("Error while converting service provider object to json.");
         }
         return StringUtils.EMPTY;
     }
 
+    private static void maskClientSecret(JSONObject inboundAuthenticationConfig) {
+
+        if (inboundAuthenticationConfig == null) {
+            return;
+        }
+        JSONArray inboundAuthenticationRequestConfigsArray =
+                inboundAuthenticationConfig.optJSONArray("inboundAuthenticationRequestConfigs");
+        if (inboundAuthenticationRequestConfigsArray == null) {
+            return;
+        }
+
+        for (int i = 0; i < inboundAuthenticationRequestConfigsArray.length(); i++) {
+            JSONObject requestConfig = inboundAuthenticationRequestConfigsArray.getJSONObject(i);
+            JSONArray properties = requestConfig.optJSONArray("properties");
+            if (properties == null) {
+                return;
+            }
+            for (int j = 0; j < properties.length(); j++) {
+                JSONObject property = properties.optJSONObject(j);
+                if (property != null && StringUtils.equalsIgnoreCase("oauthConsumerSecret",
+                        (String) property.get("name"))) {
+                    String secret = property.get("value").toString();
+                    property.put("value", LoggerUtils.getMaskedContent(secret));
+                    break;
+                }
+            }
+        }
+    }
+
+    private static void maskAppOwnerUsername(JSONObject appOwner) throws IdentityException {
+
+        if (!LoggerUtils.isLogMaskingEnable) {
+            return;
+        }
+        if (appOwner == null) {
+            return;
+        }
+        String loggableUserId = getLoggableUserId(appOwner);
+        if (StringUtils.isNotBlank(loggableUserId)) {
+            appOwner.put("loggableUserId", loggableUserId);
+        }
+        String username = (String) appOwner.get("userName");
+        if (StringUtils.isNotBlank(username)) {
+            appOwner.put("userName", LoggerUtils.getMaskedContent(username));
+        }
+    }
+
+    private static String getLoggableUserId(JSONObject appOwner) throws IdentityException {
+
+        String loggableUserId = (String) appOwner.get("loggableUserId");
+        String tenantDomain = (String) appOwner.get("tenantDomain");
+        String userStoreDomain = (String) appOwner.get("userStoreDomain");
+        if (StringUtils.isBlank(tenantDomain) && StringUtils.isBlank(loggableUserId)) {
+            return StringUtils.EMPTY;
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        String userId = IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain,
+                MultitenantUtils.getTenantAwareUsername(loggableUserId));
+        if (StringUtils.isNotBlank(userId)) {
+            return userId;
+        }
+        // If userId is not found, return the masked value of tenant qualified username for logging purpose.
+        return LoggerUtils.getMaskedContent(loggableUserId);
+    }
+
+    public static boolean isLegacyAuditLogsDisabledInAppMgt() {
+
+        return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
+                || isLegacyAuditLogsDisabled();
+    }
 }

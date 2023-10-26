@@ -37,6 +37,7 @@ public class Constants {
 
     public static final String INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME = "input-validation-configurations";
     public static final String INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX = "input-validation-configs-";
+    public static final String SECONDARY_USER_STORE_DOMAIN_NAME = "DEFAULT";
     public static final List<String> SUPPORTED_PARAMS = Collections.unmodifiableList(
             new ArrayList<String>() {{
                 add(PASSWORD);
@@ -74,13 +75,17 @@ public class Constants {
         public static final String USERNAME = "username";
         public static final String PERIOD = ".";
         public static final String JAVA_REGEX_PATTERN = "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])).{8,100}$";
-        public static final String DEFAULT_ALPHANUMERIC_REGEX_PATTERN = "^[a-zA-Z0-9]*$";
+        public static final String DEFAULT_ALPHANUMERIC_REGEX_PATTERN = "^(?=.*[a-zA-Z])[a-zA-Z0-9]+$";
         public static final String DEFAULT_EMAIL_JAVA_REGEX_PATTERN =
             "(^[\\u00C0-\\u00FFa-zA-Z0-9](?:(?![.+\\-_]{2})[\\u00C0-\\u00FF\\w.+\\-]){0,63}(?=[\\u00C0-\\u00FFa-zA-Z0" +
             "-9]).\\@(?![+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10})";
         public static final String DEFAULT_EMAIL_JS_REGEX_PATTERN =
             "(^[\\u00C0-\\u00FFa-zA-Z0-9](?:(?![.+\\-_]{2})[\\u00C0-\\u00FF\\w.+\\-]){0,63}(?=[\\u00C0-\\u00FFa-zA-Z0" +
             "-9]).\\@(?![+.\\-_])(?:(?![.+\\-_]{2})[\\w.+\\-]){0,245}(?=[\\u00C0-\\u00FFa-zA-Z0-9]).\\.[a-zA-Z]{2,10})";
+
+        public static final String INPUT_VALIDATION_DEFAULT_VALIDATOR = "InputValidation.DefaultUserNameValidator";
+
+        public static final String ALPHA_NUMERIC = "alphaNumeric";
     }
 
     /**

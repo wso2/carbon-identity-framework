@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -132,6 +132,7 @@ public class IdentityProviderManager implements IdpManager {
         String oauth1AuthorizeUrl;
         String oauth1AccessTokenUrl;
         String oauth2AuthzEPUrl;
+        String oauth2ParEPUrl;
         String oauth2TokenEPUrl;
         String oauth2RevokeEPUrl;
         String oauth2IntrospectEpUrl;
@@ -154,6 +155,7 @@ public class IdentityProviderManager implements IdpManager {
         oauth1AuthorizeUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL);
         oauth1AccessTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL);
         oauth2AuthzEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_AUTHZ_EP_URL);
+        oauth2ParEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_PAR_EP_URL);
         oauth2TokenEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_TOKEN_EP_URL);
         oauth2UserInfoEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_USERINFO_EP_URL);
         oidcCheckSessionEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL);
@@ -188,6 +190,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl, tenantDomain);
+        oauth2ParEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.PAR, oauth2ParEPUrl, tenantDomain);
         oauth2TokenEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl, tenantDomain);
         oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl, tenantDomain);
         oauth2IntrospectEpUrl = resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl,
@@ -377,6 +380,10 @@ public class IdentityProviderManager implements IdpManager {
         Property authzUrlProp = resolveFedAuthnProperty(oauth2AuthzEPUrl, oidcFedAuthn,
                 IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL);
         propertiesList.add(authzUrlProp);
+
+        Property parUrlProp = resolveFedAuthnProperty(oauth2ParEPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.OAuth2.OAUTH2_PAR_URL);
+        propertiesList.add(parUrlProp);
 
         Property tokenUrlProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
                 IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL);
@@ -1080,11 +1087,40 @@ public class IdentityProviderManager implements IdpManager {
 
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
-        setParameters(limit, offset, sortOrder, sortBy, filter, result);
+        setParameters(limit, offset, filter, sortOrder, sortBy, result);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
         result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
                 result.getSortOrder(), result.getSortBy(), requiredAttributes));
+        return result;
+    }
+
+    /**
+     * Get all trusted token issuer's Basic information along with additionally requested information depending on the
+     * requiredAttributes.
+     *
+     * @param limit              Limit per page.
+     * @param offset             Offset value.
+     * @param filter             Filter value for IdP search.
+     * @param sortOrder          Order of IdP ASC/DESC.
+     * @param sortBy             The column value need to sort.
+     * @param tenantDomain       TenantDomain of the user.
+     * @param requiredAttributes Required attributes which needs to be return.
+     * @return Identity Provider's Basic Information array along with requested attribute
+     * information{@link IdpSearchResult}.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
+     */
+    public IdpSearchResult getTrustedTokenIssuers(Integer limit, Integer offset, String filter, String sortOrder,
+                                                  String sortBy, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityProviderManagementException {
+
+        IdpSearchResult result = new IdpSearchResult();
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        setParameters(limit, offset, sortOrder, sortBy, filter, result);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        result.setTotalIDPCount(dao.getTotalTrustedTokenIssuerCount(tenantId, expressionNodes));
+        result.setIdpList(dao.getPaginatedTrustedTokenIssuersSearch(tenantId, expressionNodes, result.getLimit(),
+                result.getOffSet(), result.getSortOrder(), result.getSortBy(), requiredAttributes));
         return result;
     }
 
@@ -1442,7 +1478,18 @@ public class IdentityProviderManager implements IdpManager {
 
         validateGetIdPInputValues(resourceId);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        return dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
+        IdentityProvider identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
+        if (identityProvider == null) {
+            identityProvider = new FileBasedIdPMgtDAO().getIdPByResourceId(resourceId, tenantDomain);
+            if (identityProvider == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Cannot find IDP with resourceId: " + resourceId + " in tenantDomain: "
+                            + tenantDomain);
+                }
+            }
+            return identityProvider;
+        }
+        return identityProvider;
     }
 
     @Override
@@ -1626,11 +1673,15 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getEnabledIdPByRealmId(String realmId, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        IdentityProvider idp = getIdPByRealmId(realmId, tenantDomain);
-        if (idp != null && idp.isEnable()) {
-            return idp;
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (StringUtils.isEmpty(realmId)) {
+            throw new IdentityProviderManagementException("Invalid argument: Identity Provider Home Realm Identifier value is empty.");
         }
-        return null;
+        IdentityProvider identityProvider = dao.getEnabledIdPByRealmId(realmId, tenantId, tenantDomain);
+        if (identityProvider == null) {
+            identityProvider = new FileBasedIdPMgtDAO().getEnabledIdPByRealmId(realmId);
+        }
+        return identityProvider;
     }
 
     /**
@@ -2075,6 +2126,11 @@ public class IdentityProviderManager implements IdpManager {
         validateIdPEntityId(extractIdpEntityIdFromMetadata(identityProvider), tenantId, tenantDomain);
         validateIdPIssuerName(identityProvider, tenantId, tenantDomain);
 
+        // Validate whether the IdP satisfies the minimum requirements to be a trusted token issuer.
+        if (isTrustedTokenIssuer(identityProvider)) {
+            identityProvider.setTrustedTokenIssuer(true);
+        }
+
         handleMetadata(tenantId, identityProvider);
         String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
         identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
@@ -2086,6 +2142,26 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
         return identityProvider;
+    }
+
+    private boolean isTrustedTokenIssuer(IdentityProvider identityProvider) {
+
+        String issuerName = null;
+        String jwksURI = null;
+        String certificate = identityProvider.getCertificate();
+        for (IdentityProviderProperty prop : identityProvider.getIdpProperties()) {
+            String propName = prop.getName();
+            String propValue = prop.getValue();
+            if (StringUtils.isNotBlank(propValue)) {
+                if (IdentityApplicationConstants.IDP_ISSUER_NAME.equals(propName)) {
+                    issuerName = propValue;
+                } else if (IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME.equalsIgnoreCase(propName)) {
+                    jwksURI = propValue;
+                }
+            }
+        }
+        return StringUtils.isNotBlank(issuerName) && (StringUtils.isNotBlank(jwksURI) ||
+                StringUtils.isNotBlank(certificate));
     }
 
     /**
@@ -2377,6 +2453,8 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         IdentityProvider currentIdentityProvider = this
                 .getIdPByResourceId(resourceId, tenantDomain, true);
+
+        newIdentityProvider.setTrustedTokenIssuer(isTrustedTokenIssuer(newIdentityProvider));
         validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider, tenantDomain);
         updateIDP(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
 
@@ -2911,9 +2989,9 @@ public class IdentityProviderManager implements IdpManager {
      * Ideally used when updating a IDP.
      * If the provided two IDP configs have the same Issuer Name validation is passed.
      *
-     * @param currentIdP Existing Identity Provider config.
-     * @param newIdP Updated Identity Provider config.
-     * @param tenantId Tenant id.
+     * @param currentIdP   Existing Identity Provider config.
+     * @param newIdP       Updated Identity Provider config.
+     * @param tenantId     Tenant id.
      * @param tenantDomain Tenant domain.
      * @return Returns true if valid.
      * @throws IdentityProviderManagementException IdentityProviderManagementException.
@@ -3127,6 +3205,7 @@ public class IdentityProviderManager implements IdpManager {
 
     /**
      * Set the confidential status of federated authenticator and provisioning connector properties using metadata.
+     *
      * @param identityProvider Identity Provider.
      */
     private void markConfidentialPropertiesUsingMetadata(IdentityProvider identityProvider)
@@ -3135,11 +3214,11 @@ public class IdentityProviderManager implements IdpManager {
         Map<String, List<String>> metaFedAuthConfigMap = createFedAuthConfidentialPropsMap();
         Arrays.asList(identityProvider.getFederatedAuthenticatorConfigs()).forEach(fedAuthConfig -> {
             List<String> secretProperties = metaFedAuthConfigMap.get(fedAuthConfig.getName());
-                Arrays.asList(fedAuthConfig.getProperties()).forEach(prop -> {
-                    if (secretProperties != null && secretProperties.contains(prop.getName())) {
-                        prop.setConfidential(true);
-                    }
-                });
+            Arrays.asList(fedAuthConfig.getProperties()).forEach(prop -> {
+                if (secretProperties != null && secretProperties.contains(prop.getName())) {
+                    prop.setConfidential(true);
+                }
+            });
         });
 
         Map<String, List<String>> metaProvisioningConfigMap = createProvisioningConfidentialPropsMap();

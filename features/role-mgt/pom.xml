@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>5.25.172-SNAPSHOT</version>
+        <version>5.25.447-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -33,6 +33,7 @@
 
     <modules>
         <module>org.wso2.carbon.identity.role.mgt.core.server.feature</module>
+        <module>org.wso2.carbon.identity.role.v2.mgt.core.server.feature</module>
     </modules>
 
 </project>

@@ -47,6 +47,7 @@ public class IdPManagementConstants {
 
     // Idp basic attributes.
     public static final String NAME = "NAME";
+    public static final String TRUSTED_TOKEN_ISSUER_NAME = "IDP.NAME";
     public static final String IDP_NAME = "name";
     public static final String DESCRIPTION = "DESCRIPTION";
     public static final String IDP_DESCRIPTION = "description";
@@ -70,12 +71,17 @@ public class IdPManagementConstants {
     public static final String IDP_CLAIMS = "claims";
     public static final String CLAIMS = "USER_CLAIM_URI, ROLE_CLAIM_URI, IS_LOCAL_CLAIM_DIALECT";
     public static final String IDP_ROLES = "roles";
+    public static final String IDP_GROUPS = "groups";
     public static final String ROLES = "PROVISIONING_ROLE";
     public static final String IDP_FEDERATED_AUTHENTICATORS = "federatedAuthenticators";
     public static final String FEDERATED_AUTHENTICATORS = "DEFAULT_AUTHENTICATOR_NAME";
     public static final String IDP_PROVISIONING = "provisioning";
     public static final String PROVISIONING =
             "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, DEFAULT_PRO_CONNECTOR_NAME";
+
+    // Flag to indicate if an IdP is a system reserved IdP.
+    public static final String IS_SYSTEM_RESERVED_IDP_FLAG = "isSystemReservedIdP";
+    public static final String IS_SYSTEM_RESERVED_IDP_DISPLAY_NAME = "Is System Reserved Identity Provider";
 
     //Default SAML endpoints.
     public static final String SSO_ARTIFACT_URL = "samlartresolve";
@@ -93,12 +99,21 @@ public class IdPManagementConstants {
     public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
             + ".ResetProvisioningEntitiesOnConfigUpdate";
     public static final String DEFAULT_SYNC_ATTRIBUTE = "OVERRIDE_ALL";
+    public static final String PRESERVE_LOCAL_ATTRIBUTE_SYNC = "PRESERVE_LOCAL";
+    public static final String PRESERVE_LOCALLY_ADDED_CLAIMS = "JITProvisioning.PreserveLocallyAddedClaims";
+    public static final String FEDERATED_ASSOCIATION_ENABLED = "FEDERATED_ASSOCIATION_ENABLED";
+    public static final String LOOKUP_ATTRIBUTES = "LOOKUP_ATTRIBUTES";
+    public static final String DEFAULT_LOOKUP_ATTRIBUTE = "email";
+
+    public static final String FEDERATED_ASSOCIATION_ENABLED_DEFAULT_VALUE = "false";
 
     // Outbound Provisioning Connectors
     public static final String GOOGLE = "googleapps";
     public static final String SALESFORCE = "salesforce";
     public static final String SCIM = "scim";
     public static final String SCIM2 = "SCIM2";
+
+    public static final String IS_TRUSTED_TOKEN_ISSUER = "isTrustedTokenIssuer";
 
     public static class SQLQueries {
 
@@ -115,6 +130,10 @@ public class IdPManagementConstants {
 
         public static final String FROM_IDP_WHERE = "FROM IDP WHERE ";
 
+        public static final String FROM_TRUSTED_TOKEN_ISSUER_WHERE =
+                "FROM IDP JOIN IDP_METADATA ON IDP.ID=IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME='" +
+                        IS_TRUSTED_TOKEN_ISSUER + "' AND ";
+
         public static final String GET_IDP_BY_TENANT_MYSQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
@@ -128,7 +147,13 @@ public class IdPManagementConstants {
         public static final String GET_IDP_BY_TENANT_MSSQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
+        public static final String GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL =
+                "SELECT IDP.ID, IDP.NAME, IDP.DESCRIPTION, IDP.IS_ENABLED, IDP.IMAGE_URL, IDP.UUID ";
+
         public static final String GET_IDP_BY_TENANT_MSSQL_TAIL = "TENANT_ID =? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
+                " ROWS ONLY";
+
+        public static final String GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL_TAIL = "IDP.TENANT_ID =? AND IDP.NAME != '" + RESIDENT_IDP + "' ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
                 " ROWS ONLY";
 
         public static final String GET_IDP_BY_TENANT_ORACLE = "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, " +
@@ -154,7 +179,11 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_COUNT_SQL = "SELECT COUNT(*) FROM IDP WHERE ";
 
+        public static final String GET_TRUSTED_TOKEN_ISSUER_COUNT_SQL = "SELECT COUNT(DISTINCT IDP.ID) FROM IDP JOIN IDP_METADATA ON IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = '" + IS_TRUSTED_TOKEN_ISSUER + "' AND ";
+
         public static final String GET_IDP_COUNT_SQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "'";
+
+        public static final String GET_TRUSTED_TOKEN_ISSUER_COUNT_SQL_TAIL = "IDP.TENANT_ID = ? AND IDP.NAME != '" + RESIDENT_IDP + "'";
 
         public static final String GET_IDP_BY_NAME_SQL = "SELECT ID, NAME, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, " +
                 "ALIAS, INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
@@ -209,6 +238,9 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_NAME_BY_REALM_ID_SQL = "SELECT NAME FROM IDP WHERE (TENANT_ID = ? OR " +
                 "(TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND HOME_REALM_ID=?";
+
+        public static final String GET_ENABLED_IDP_NAME_BY_REALM_ID_SQL = "SELECT NAME FROM IDP WHERE (TENANT_ID = ? OR " +
+                "(TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND HOME_REALM_ID = ? AND IS_ENABLED = ?";
 
         public static final String GET_IDP_CLAIM_MAPPINGS_SQL = "SELECT IDP_CLAIM.CLAIM," +
                 " IDP_CLAIM_MAPPING.LOCAL_CLAIM, IDP_CLAIM_MAPPING.DEFAULT_VALUE, IDP_CLAIM_MAPPING.IS_REQUESTED "
@@ -269,6 +301,9 @@ public class IdPManagementConstants {
         public static final String ADD_IDP_ROLES_SQL = "INSERT INTO IDP_ROLE (IDP_ID, TENANT_ID, ROLE) "
                 + "VALUES (?, ?, ?)";
 
+        public static final String ADD_IDP_GROUPS_SQL = "INSERT INTO IDP_GROUP (IDP_ID, TENANT_ID, GROUP_NAME, UUID) "
+                + "VALUES (?, ?, ?, ?)";
+
         public static final String DELETE_IDP_ROLES_SQL = "DELETE FROM IDP_ROLE "
                 + "WHERE (IDP_ID=? AND ROLE=?)";
 
@@ -278,6 +313,8 @@ public class IdPManagementConstants {
         public static final String GET_IDP_ROLES_SQL = "SELECT ID, ROLE  FROM IDP_ROLE "
                 + "WHERE IDP_ID=?";
 
+        public static final String GET_IDP_GROUPS_SQL = "SELECT ID, GROUP_NAME, UUID FROM IDP_GROUP "
+                + "WHERE IDP_ID=?";
         public static final String DELETE_IDP_ROLE_MAPPINGS_SQL = "DELETE FROM IDP_ROLE_MAPPING "
                 + "WHERE (IDP_ROLE_ID=? AND TENANT_ID=? AND USER_STORE_ID = ? AND LOCAL_ROLE=?)";
 
@@ -290,6 +327,8 @@ public class IdPManagementConstants {
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION,IS_FEDERATION_HUB,"
                 + "IS_LOCAL_CLAIM_DIALECT,PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, UUID) " +
                 "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?, ?)";
+
+        public static final String TRUSTED_TOKEN_ISSUER_FILTER_SQL = "IDP_METADATA.\"VALUE\" = 'true' AND ";
 
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME) VALUES (?,?,?,?,?)";
@@ -349,6 +388,9 @@ public class IdPManagementConstants {
                 + "WHERE (TENANT_ID=? AND NAME=? AND IS_PRIMARY=?)";
 
         public static final String DELETE_ALL_ROLES_SQL = "DELETE FROM IDP_ROLE "
+                + "WHERE IDP_ID=?";
+
+        public static final String DELETE_ALL_GROUPS_SQL = "DELETE FROM IDP_GROUP "
                 + "WHERE IDP_ID=?";
 
         public static final String DELETE_ROLE_LISTENER_SQL = "DELETE FROM IDP_ROLE "

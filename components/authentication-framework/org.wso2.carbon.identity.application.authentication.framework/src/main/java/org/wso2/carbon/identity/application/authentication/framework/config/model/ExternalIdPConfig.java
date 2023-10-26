@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.Serializable;
@@ -258,6 +259,9 @@ public class ExternalIdPConfig implements Serializable {
     public String getAttributeSyncMethod() {
 
         String method = FrameworkConstants.OVERRIDE_ALL;
+        if (IdPManagementUtil.isPreserveLocallyAddedClaims()) {
+            method = FrameworkConstants.PRESERVE_LOCAL;
+        }
         if (justInTimeProConfig != null &&
                 StringUtils.isNotEmpty(justInTimeProConfig.getAttributeSyncMethod())) {
             method = justInTimeProConfig.getAttributeSyncMethod();

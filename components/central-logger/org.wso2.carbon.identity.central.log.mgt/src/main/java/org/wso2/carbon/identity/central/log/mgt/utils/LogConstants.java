@@ -35,4 +35,27 @@ public class LogConstants {
     public static final String MASKING_CHARACTER = "*";
     public static final String ENABLE_LOG_MASKING = "MaskingLogs.Enabled";
     public static final Pattern LOG_MASKING_PATTERN = Pattern.compile("(?<=.).(?=.)");
+
+    /**
+     * Define common and reusable Input keys for diagnostic logs.
+     */
+    public static class InputKeys {
+
+        public static final String SERVICE_PROVIDER = "service provider";
+        public static final String TENANT_DOMAIN = "tenant domain";
+        public static final String USER = "user";
+        public static final String USER_ID = "user id";
+        public static final String AUTHENTICATOR_NAME = "authenticator name";
+        public static final String STEP = "step";
+        public static final String COUNT = "count";
+        public static final String IDP = "idp";
+        public static final String APPLICATION_NAME = "application name";
+        public static final String SUBJECT = "subject";
+        public static final String CLIENT_ID = "client id";
+        public static final String REDIREDCT_URI = "redirect uri";
+        public static final String SCOPE = "scope";
+        public static final String APPLICATION_ID = "app id";
+        public static final String ERROR_MESSAGE = "error message";
+        public static final String CALLER_PATH = "common auth caller path";
+    }
 }

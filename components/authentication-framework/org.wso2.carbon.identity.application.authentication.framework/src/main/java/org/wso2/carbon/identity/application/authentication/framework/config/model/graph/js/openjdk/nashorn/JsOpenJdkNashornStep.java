@@ -43,16 +43,33 @@ public class JsOpenJdkNashornStep extends AbstractJSContextMemberObject implemen
 
     private int step;
     private String authenticatedIdp;
+    private String authenticatedAuthenticator;
 
+    @Deprecated
     public JsOpenJdkNashornStep(int step, String authenticatedIdp) {
 
         this.step = step;
         this.authenticatedIdp = authenticatedIdp;
     }
 
+    public JsOpenJdkNashornStep(int step, String authenticatedIdp, String authenticatedAuthenticator) {
+
+        this.step = step;
+        this.authenticatedIdp = authenticatedIdp;
+        this.authenticatedAuthenticator = authenticatedAuthenticator;
+    }
+
+    @Deprecated
     public JsOpenJdkNashornStep(AuthenticationContext context, int step, String authenticatedIdp) {
 
-        this(step, authenticatedIdp);
+        this(step, authenticatedIdp, null);
+        initializeContext(context);
+    }
+
+    public JsOpenJdkNashornStep(AuthenticationContext context, int step, String authenticatedIdp,
+                                String authenticatedAuthenticator) {
+
+        this(step, authenticatedIdp, authenticatedAuthenticator);
         initializeContext(context);
     }
 
@@ -64,6 +81,8 @@ public class JsOpenJdkNashornStep extends AbstractJSContextMemberObject implemen
                 return new JsOpenJdkNashornAuthenticatedUser(getContext(), getSubject(), step, authenticatedIdp);
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
                 return authenticatedIdp;
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATOR:
+                return authenticatedAuthenticator;
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATION_OPTIONS:
                 return getOptions();
             default:
@@ -78,6 +97,8 @@ public class JsOpenJdkNashornStep extends AbstractJSContextMemberObject implemen
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
                 return true;
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
+                return true;
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATOR:
                 return true;
             default:
                 return AbstractOpenJdkNashornJsObject.super.hasMember(name);

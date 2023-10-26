@@ -34,7 +34,9 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.RoleMapping" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityConstants" %>
+<%@ page import="org.wso2.carbon.identity.core.ServiceURLBuilder" %>
+<%@ page import="org.wso2.carbon.identity.core.URLBuilderException" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityProviderMgtServiceClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
@@ -106,8 +108,8 @@
     boolean isEnableAssertionEncription = false;
     boolean isEnableAssertionSigning = false;
 
-    String signatureAlgorithm = IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1;
-    String digestAlgorithm = IdentityApplicationConstants.XML.DigestAlgorithm.SHA1;
+    String signatureAlgorithm = IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA256;
+    String digestAlgorithm = IdentityApplicationConstants.XML.DigestAlgorithm.SHA256;
     String authenticationContextClass = StringUtils.EMPTY;
     String customAuthnContextClass = "";
     String authenticationContextComparisonLevel = IdentityApplicationConstants.SAML2.AuthnContextComparison.EXACT;
@@ -790,7 +792,11 @@
     }
 
     if (StringUtils.isBlank(idPAlias)) {
-        idPAlias = IdentityUtil.getServerURL("/oauth2/token", true, false);
+        try {
+            idPAlias = ServiceURLBuilder.create().addPath(IdentityConstants.OAuth.TOKEN).build().getAbsolutePublicURL();
+        } catch(URLBuilderException e) {
+            throw new RuntimeException("Error occurred while building URL in tenant qualified mode.", e);
+        }
     }
     String provisionStaticDropdownDisabled = "";
     String provisionDynamicDropdownDisabled = "";

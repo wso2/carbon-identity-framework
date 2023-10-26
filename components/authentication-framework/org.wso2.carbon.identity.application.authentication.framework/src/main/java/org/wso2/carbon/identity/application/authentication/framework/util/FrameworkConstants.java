@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,6 +29,7 @@ public abstract class FrameworkConstants {
     public static final String DEFAULT_SEQUENCE = "default";
     public static final String AUTHENTICATED_AUTHENTICATORS = "authenticatedAuthenticators";
     public static final String COMMONAUTH_COOKIE = "commonAuthId";
+    public static final String ALLOW_SESSION_CREATION = "allowSessionCreation";
     public static final String CONTEXT_PROP_INVALID_EMAIL_USERNAME = "InvalidEmailUsername";
     // Cookie used for post authenticaion sequence tracking
     public static final String PASTR_COOKIE = "pastr";
@@ -38,8 +39,12 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
+    public static final String USER_ID_CLAIM = "http://wso2.org/claims/userid";
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
+    public static final String APP_ROLES_CLAIM = "http://wso2.org/claims/applicationRoles";
+    public static final String GROUPS_CLAIM = "http://wso2.org/claims/groups";
     public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";
+    public static final String IDP_TYPE_CLAIM = "http://wso2.org/claims/identity/idpType";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
@@ -70,6 +75,10 @@ public abstract class FrameworkConstants {
     public static final String FAILED_USERNAME = "failedUsername";
     public static final String LOCK_REASON = "lockedReason";
     public static final String NOT_SATISFY_PREREQUISITES_REASON = "NotSatisfyAuthenticatorPrerequisitesReason";
+    public static final String SKIP_NONCE_COOKIE_VALIDATION = "SkipNonceCookieValidation";
+    public static final String IS_MULTI_OPS_RESPONSE = "isMultiOptionsResponse";
+    public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
+    public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
@@ -117,9 +126,11 @@ public abstract class FrameworkConstants {
     public static final String REQUEST_PARAM_AUTH_FLOW_ID = "authFlowId";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
     public static final String IDP_ID = "idpId";
+    public static final String FED_IDP_ID = "fedIdpId";
     public static final String ASSOCIATED_ID = "associatedID";
 
     public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
+    public static final String ALLOW_LOGIN_TO_IDP = "JITProvisioning.AllowLoginToIDP";
     public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
     public static final String IDP_RESOURCE_ID = "IDPResourceID";
     public static final String ENABLE_JIT_PROVISION_ENHANCE_FEATURE = "JITProvisioning.EnableEnhancedFeature";
@@ -132,6 +143,9 @@ public abstract class FrameworkConstants {
 
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
     public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
+    public static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
+    public static final String ORG_ID_PARAMETER = "orgId";
+    public static final String USER_ORGANIZATION_CLAIM = "user_organization";
     public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
@@ -145,6 +159,7 @@ public abstract class FrameworkConstants {
     public static final String RUNTIME_CLAIMS = "RUNTIME_CLAIMS";
 
     public static final String INPUT_TYPE_IDENTIFIER_FIRST = "idf";
+    public static final String INPUT_TYPE_LOGIN_HINT = "login_hint";
 
     public static final String STATUS = "&status=";
     public static final String STATUS_MSG = "&statusMsg=";
@@ -210,6 +225,17 @@ public abstract class FrameworkConstants {
     public static final String INITIAL_CONTEXT = "initialContext";
     public static final String RESTART_LOGIN_FLOW_QUERY_PARAMS =
             "&authFailure=true&authFailureMsg=login.reinitiate.message";
+    public static final String NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG =
+            "SessionNonceCookie.WhitelistedAuthenticator";
+
+    public static final String BLOCKED_USERSTORE_DOMAINS_LIST = "BlockedUserStoreDomains";
+    public static final String BLOCKED_USERSTORE_DOMAINS_SEPARATOR = ",";
+
+    public static final String IS_USER_RESOLVED = "isUserResolved";
+    public static final String ERROR_STATUS_AUTH_CONTEXT_NULL = "authentication.context.null";
+    public static final String ERROR_DESCRIPTION_AUTH_CONTEXT_NULL = "authentication.context.null.description";
+    public static final String IS_SENT_TO_RETRY = "isSentToRetry";
+    public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
 
     private FrameworkConstants() {
 
@@ -284,6 +310,8 @@ public abstract class FrameworkConstants {
                 "AllowCustomClaimMappingsForAuthenticators";
         public static final String QNAME_MERGE_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS_WITH_DEFAULT =
                 "AllowMergingCustomClaimMappingsWithDefaultClaimMappings";
+        public static final String QNAME_ALLOW_CONSENT_PAGE_REDIRECT_PARAMS =
+                "AllowConsentPageRedirectParams";
 
         /**
          * Configuration name for the collection of urls for receiving tenant list
@@ -313,6 +341,12 @@ public abstract class FrameworkConstants {
          */
         public static final String USER_SESSION_MAPPING_ENABLED =
                 "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
+
+        /**
+         * Configuration used for session data storage optimization.
+         */
+        public static final String SESSION_DATA_STORAGE_OPTIMIZATION_ENABLED =
+                "JDBCPersistenceManager.SessionDataPersist.SessionDataStorageOptimization.Enable";
 
         /**
          * Configuration to enable publishing the active session count in analytics event.
@@ -518,6 +552,7 @@ public abstract class FrameworkConstants {
         public static final String JS_LOCAL_ROLES = "roles";
         public static final String JS_CLAIMS = "claims";
         public static final String JS_AUTHENTICATED_IDP = "idp";
+        public static final String JS_AUTHENTICATOR = "authenticator";
         public static final String JS_AUTHENTICATION_OPTIONS = "options";
         public static final String JS_LOCAL_IDP = "local";
         public static final String JS_FEDERATED_IDP = "federated";
@@ -671,7 +706,11 @@ public abstract class FrameworkConstants {
         public static final String TENANT_DOMAIN = "tenant domain";
         public static final String REQUESTED_CLAIMS = "requested claims";
         public static final String MANDATORY_CLAIMS = "mandatory claims";
+        public static final String USE_EXISTING_CONSENT = "using existing consent";
+        public static final String CLAIMS_WITH_CONSENT = "claims with consent";
+        public static final String DENIED_CLAIMS = "denied claims";
         public static final String MISSING_CLAIMS = "missing claims";
+        public static final String READ_ONLY_CLAIMS = "read only claims";
         public static final String THREAD_ID = "thread id";
         public static final String CONTEXT_ID = "context id";
         public static final String ORIGINATING_ADDRESS = "originating address";
@@ -686,6 +725,7 @@ public abstract class FrameworkConstants {
         public static final String COUNT = "count";
         public static final String AUTHENTICATED_IDPS = "authenticated idps";
         public static final String IDP = "idp";
+        public static final String SESSION_CONTEXT_KEY = "session context key";
 
         /**
          * Define action IDs for diagnostic logs in the framework component.
@@ -694,12 +734,37 @@ public abstract class FrameworkConstants {
 
             public static final String INIT_AUTH_FLOW = "init-authentication-flow";
             public static final String INIT_LOGOUT_FLOW = "init-logout-flow";
+            public static final String PROCESS_LOGOUT_REQUEST = "process-logout-request";
             public static final String HANDLE_CLAIM_MAPPING = "handle-claim-mappings";
             public static final String HANDLE_AUTH_REQUEST = "handle-authentication-request";
             public static final String HANDLE_AUTH_STEP = "handle-authentication-step";
             public static final String PROCESS_ACR_VALUES = "process-acr-values";
             public static final String HANDLE_MISSING_CLAIMS = "handle-missing-claims";
             public static final String PROCESS_CLAIM_CONSENT = "process-claim-consent";
+            public static final String AUTHENTICATION_STEP_EXECUTION = "authentication-step-execution";
+            public static final String EXECUTE_ADAPTIVE_SCRIPT = "execute-adaptive-script";
         }
+    }
+
+    /**
+     * Enum for authenticator param type.
+     */
+    public enum AuthenticatorParamType {
+
+        STRING,
+        INTEGER,
+    }
+
+    /**
+     * Enum for authenticator prompt type.
+     * USER_PROMPT - Obtain data from user input.
+     * INTERNAL_PROMPT - Generate required data internally.
+     * REDIRECTION_PROMPT - Requires redirection.
+     */
+    public enum AuthenticatorPromptType {
+
+        USER_PROMPT,
+        INTERNAL_PROMPT,
+        REDIRECTION_PROMPT
     }
 }

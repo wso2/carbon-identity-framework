@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.CookieValidationFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
@@ -36,7 +35,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class CommonAuthenticationHandler {
 
-    private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
+    private static final Log log = LogFactory.getLog(CommonAuthenticationHandler.class);
 
     public CommonAuthenticationHandler() {
         ConfigurationFacade.getInstance();

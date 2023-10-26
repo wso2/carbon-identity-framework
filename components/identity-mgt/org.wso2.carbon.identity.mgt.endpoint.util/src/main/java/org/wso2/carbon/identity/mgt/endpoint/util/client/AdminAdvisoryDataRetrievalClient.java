@@ -28,6 +28,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,6 +40,10 @@ public class AdminAdvisoryDataRetrievalClient {
 
     private static final Log LOG = LogFactory.getLog(AdminAdvisoryDataRetrievalClient.class);
     private static final String ADMIN_BANNER_API_RELATIVE_PATH = "/api/server/v1/admin-advisory-management/banner";
+    private static final String DEFAULT_BANNER_CONTENT = "Warning - unauthorized use of this tool is strictly " +
+            "prohibited. All activities performed using this tool are logged and monitored.";
+    private static final String ENABLE_BANNER = "enableBanner";
+    private static final String BANNER_CONTENT= "bannerContent";
 
     /**
      * Check for admin advisory banner configs in the given tenant.
@@ -49,18 +54,20 @@ public class AdminAdvisoryDataRetrievalClient {
      */
     public JSONObject getAdminAdvisoryBannerData(String tenant) throws AdminAdvisoryDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
 
             String uri = getAdminAdvisoryBannerEndpoint(tenant);
             HttpGet request = new HttpGet(uri);
-            JSONObject jsonResponse = new JSONObject();
 
             try (CloseableHttpResponse response = httpclient.execute(request)) {
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    jsonResponse = new JSONObject(new JSONTokener(new InputStreamReader(response
+                    return new JSONObject(new JSONTokener(new InputStreamReader(response
                             .getEntity().getContent())));
                 }
-                return jsonResponse;
+                JSONObject defaultBanner = new JSONObject();
+                defaultBanner.put(ENABLE_BANNER, false);
+                defaultBanner.put(BANNER_CONTENT, DEFAULT_BANNER_CONTENT);
+                return defaultBanner;
             } finally {
                 request.releaseConnection();
             }

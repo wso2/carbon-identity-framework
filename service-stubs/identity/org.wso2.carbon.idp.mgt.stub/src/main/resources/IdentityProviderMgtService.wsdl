@@ -1,4 +1,4 @@
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2433="http://mgt.idp.carbon.wso2.org/xsd" xmlns:ax2434="http://base.identity.carbon.wso2.org/xsd" xmlns:ax2437="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:ns="http://mgt.idp.carbon.wso2.org" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://mgt.idp.carbon.wso2.org">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2443="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:ns="http://mgt.idp.carbon.wso2.org" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:ax2439="http://mgt.idp.carbon.wso2.org/xsd" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2440="http://base.identity.carbon.wso2.org/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://mgt.idp.carbon.wso2.org">
     <wsdl:documentation>IdentityProviderMgtService</wsdl:documentation>
     <wsdl:types>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://model.common.application.identity.carbon.wso2.org/xsd">
@@ -6,27 +6,30 @@
                 <xs:sequence>
                     <xs:element minOccurs="0" name="alias" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="certificate" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="certificateInfoArray" nillable="true" type="ax2437:CertificateInfo"/>
-                    <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2437:ClaimConfig"/>
-                    <xs:element minOccurs="0" name="defaultAuthenticatorConfig" nillable="true" type="ax2437:FederatedAuthenticatorConfig"/>
-                    <xs:element minOccurs="0" name="defaultProvisioningConnectorConfig" nillable="true" type="ax2437:ProvisioningConnectorConfig"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="certificateInfoArray" nillable="true" type="ax2443:CertificateInfo"/>
+                    <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2443:ClaimConfig"/>
+                    <xs:element minOccurs="0" name="defaultAuthenticatorConfig" nillable="true" type="ax2443:FederatedAuthenticatorConfig"/>
+                    <xs:element minOccurs="0" name="defaultProvisioningConnectorConfig" nillable="true" type="ax2443:ProvisioningConnectorConfig"/>
                     <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="enable" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedAuthenticatorConfigs" nillable="true" type="ax2437:FederatedAuthenticatorConfig"/>
+                    <xs:element minOccurs="0" name="federatedAssociationConfig" nillable="true" type="ax2443:FederatedAssociationConfig"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedAuthenticatorConfigs" nillable="true" type="ax2443:FederatedAuthenticatorConfig"/>
                     <xs:element minOccurs="0" name="federationHub" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="homeRealmId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idPGroupConfig" nillable="true" type="ax2443:IdPGroup"/>
                     <xs:element minOccurs="0" name="identityProviderDescription" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="identityProviderName" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2437:IdentityProviderProperty"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2443:IdentityProviderProperty"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="justInTimeProvisioningConfig" nillable="true" type="ax2437:JustInTimeProvisioningConfig"/>
-                    <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2437:PermissionsAndRoleConfig"/>
+                    <xs:element minOccurs="0" name="justInTimeProvisioningConfig" nillable="true" type="ax2443:JustInTimeProvisioningConfig"/>
+                    <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2443:PermissionsAndRoleConfig"/>
                     <xs:element minOccurs="0" name="primary" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningConnectorConfigs" nillable="true" type="ax2437:ProvisioningConnectorConfig"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningConnectorConfigs" nillable="true" type="ax2443:ProvisioningConnectorConfig"/>
                     <xs:element minOccurs="0" name="provisioningRole" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="resourceId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="templateId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="trustedTokenIssuer" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="CertificateInfo">
@@ -38,8 +41,8 @@
             <xs:complexType name="ClaimConfig">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="alwaysSendMappedLocalSubjectId" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="claimMappings" nillable="true" type="ax2437:ClaimMapping"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpClaims" nillable="true" type="ax2437:Claim"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="claimMappings" nillable="true" type="ax2443:ClaimMapping"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpClaims" nillable="true" type="ax2443:Claim"/>
                     <xs:element minOccurs="0" name="localClaimDialect" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="roleClaimURI" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="spClaimDialects" nillable="true" type="xs:string"/>
@@ -49,9 +52,9 @@
             <xs:complexType name="ClaimMapping">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="defaultValue" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="localClaim" nillable="true" type="ax2437:Claim"/>
+                    <xs:element minOccurs="0" name="localClaim" nillable="true" type="ax2443:Claim"/>
                     <xs:element minOccurs="0" name="mandatory" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="remoteClaim" nillable="true" type="ax2437:Claim"/>
+                    <xs:element minOccurs="0" name="remoteClaim" nillable="true" type="ax2443:Claim"/>
                     <xs:element minOccurs="0" name="requested" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
@@ -66,7 +69,7 @@
                     <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2437:Property"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2443:Property"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="tags" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
                 </xs:sequence>
@@ -84,7 +87,7 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="options" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="regex" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="required" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="subProperties" nillable="true" type="ax2437:SubProperty"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="subProperties" nillable="true" type="ax2443:SubProperty"/>
                     <xs:element minOccurs="0" name="type" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"/>
                 </xs:sequence>
@@ -110,9 +113,21 @@
                     <xs:element minOccurs="0" name="blocking" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningProperties" nillable="true" type="ax2437:Property"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningProperties" nillable="true" type="ax2443:Property"/>
                     <xs:element minOccurs="0" name="rulesEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="FederatedAssociationConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="lookupAttributes" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="IdPGroup">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="idpGroupId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="idpGroupName" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="IdentityProviderProperty">
@@ -131,7 +146,7 @@
             </xs:complexType>
             <xs:complexType name="JustInTimeProvisioningConfig">
                 <xs:complexContent>
-                    <xs:extension base="ax2437:InboundProvisioningConfig">
+                    <xs:extension base="ax2443:InboundProvisioningConfig">
                         <xs:sequence>
                             <xs:element minOccurs="0" name="associateLocalUserEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="attributeSyncMethod" nillable="true" type="xs:string"/>
@@ -146,8 +161,8 @@
             <xs:complexType name="PermissionsAndRoleConfig">
                 <xs:sequence>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpRoles" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="permissions" nillable="true" type="ax2437:ApplicationPermission"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="roleMappings" nillable="true" type="ax2437:RoleMapping"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="permissions" nillable="true" type="ax2443:ApplicationPermission"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="roleMappings" nillable="true" type="ax2443:RoleMapping"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="ApplicationPermission">
@@ -157,7 +172,7 @@
             </xs:complexType>
             <xs:complexType name="RoleMapping">
                 <xs:sequence>
-                    <xs:element minOccurs="0" name="localRole" nillable="true" type="ax2437:LocalRole"/>
+                    <xs:element minOccurs="0" name="localRole" nillable="true" type="ax2443:LocalRole"/>
                     <xs:element minOccurs="0" name="remoteRole" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
@@ -168,13 +183,47 @@
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2436="http://mgt.idp.carbon.wso2.org/xsd" xmlns:ax2438="http://model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mgt.idp.carbon.wso2.org">
+        <xs:schema xmlns:ax2444="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:ax2442="http://mgt.idp.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mgt.idp.carbon.wso2.org">
             <xs:import namespace="http://mgt.idp.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://model.common.application.identity.carbon.wso2.org/xsd"/>
             <xs:element name="IdentityProviderMgtServiceIdentityProviderManagementException">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="IdentityProviderManagementException" nillable="true" type="ax2433:IdentityProviderManagementException"/>
+                        <xs:element minOccurs="0" name="IdentityProviderManagementException" nillable="true" type="ax2439:IdentityProviderManagementException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="oldIdPName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2443:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="deleteIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2443:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllIdPs">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllIdPsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2443:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -188,7 +237,7 @@
             <xs:element name="getIdPByNameResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2443:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -204,53 +253,22 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllFederatedAuthenticators">
+            <xs:element name="getResidentIdP">
                 <xs:complexType>
                     <xs:sequence/>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllFederatedAuthenticatorsResponse">
+            <xs:element name="getResidentIdPResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2437:FederatedAuthenticatorConfig"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2443:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllProvisioningConnectors">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllProvisioningConnectorsResponse">
+            <xs:element name="updateResidentIdP">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2437:ProvisioningConnectorConfig"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getResidentIDPMetadata">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getResidentIDPMetadataResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllPaginatedIdpInfo">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllPaginatedIdpInfoResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2443:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -266,49 +284,32 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllIdPs">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllIdPsResponse">
+            <xs:element name="getAllPaginatedIdpInfo">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="deleteIdP">
+            <xs:element name="getAllPaginatedIdpInfoResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2443:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="forceDeleteIdP">
+            <xs:element name="getPaginatedIdpInfo">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="updateIdP">
+            <xs:element name="getPaginatedIdpInfoResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="oldIdPName" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2437:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getResidentIdP">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getResidentIdPResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2443:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -336,7 +337,7 @@
             <xs:element name="getAllIdPsSearchResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2443:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -348,36 +349,50 @@
             <xs:element name="getEnabledAllIdPsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2443:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="addIdP">
+            <xs:element name="forceDeleteIdP">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getPaginatedIdpInfo">
+            <xs:element name="getResidentIDPMetadata">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getResidentIDPMetadataResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getPaginatedIdpInfoResponse">
+            <xs:element name="getAllFederatedAuthenticators">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllFederatedAuthenticatorsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2443:FederatedAuthenticatorConfig"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="updateResidentIdP">
+            <xs:element name="getAllProvisioningConnectors">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllProvisioningConnectorsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2437:IdentityProvider"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2443:ProvisioningConnectorConfig"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -389,11 +404,11 @@
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2435="http://base.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mgt.idp.carbon.wso2.org/xsd">
+        <xs:schema xmlns:ax2441="http://base.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mgt.idp.carbon.wso2.org/xsd">
             <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
             <xs:complexType name="IdentityProviderManagementException">
                 <xs:complexContent>
-                    <xs:extension base="ax2434:IdentityException">
+                    <xs:extension base="ax2440:IdentityException">
                         <xs:sequence/>
                     </xs:extension>
                 </xs:complexContent>

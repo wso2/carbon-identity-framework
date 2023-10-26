@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,32 +36,42 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
+import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
+import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
 import org.wso2.carbon.identity.application.mgt.DiscoverableApplicationManager;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
 import org.wso2.carbon.identity.application.mgt.internal.impl.DiscoverableApplicationManagerImpl;
+import org.wso2.carbon.identity.application.mgt.listener.AdminRolePermissionsUpdateListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationClaimMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagementListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
+import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -113,7 +123,6 @@ public class ApplicationManagementServiceComponent {
                     null);
             bundleContext.registerService(DefaultAuthSeqMgtService.class.getName(),
                     DefaultAuthSeqMgtServiceImpl.getInstance(), null);
-
             // Register the DefaultApplicationResourceMgtListener.
             context.getBundleContext().registerService(ApplicationResourceManagementListener.class,
                     new DefaultApplicationResourceMgtListener(), null);
@@ -124,6 +133,12 @@ public class ApplicationManagementServiceComponent {
             bundleContext.registerService(ClaimMetadataMgtListener.class.getName(), new ApplicationClaimMgtListener(),
                     null);
 
+            bundleContext.registerService(AuthorizedAPIManagementService.class,
+                    new AuthorizedAPIManagementServiceImpl(), null);
+
+            bundleContext.registerService(RoleManagementListener.class, new DefaultRoleManagementListener(), null);
+            bundleContext.registerService(ApplicationMgtListener.class, new DefaultRoleManagementListener(), null);
+
             // Register the ApplicationValidator.
             context.getBundleContext().registerService(ApplicationValidator.class,
                     new DefaultApplicationValidator(), null);
@@ -131,6 +146,14 @@ public class ApplicationManagementServiceComponent {
                 ApplicationManagementServiceComponentHolder.getInstance()
                         .setApplicationPermissionProvider(new RegistryBasedApplicationPermissionProvider());
             }
+
+            // Register the Console Authorized API Management Listener.
+            bundleContext.registerService(ApplicationMgtListener.class,
+                    new AuthorizedAPIManagementListener(), null);
+            // Register the Admin Role Permission Update Listener.
+            bundleContext.registerService(ApplicationMgtListener.class,
+                    new AdminRolePermissionsUpdateListener(), null);
+
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }
@@ -144,27 +167,6 @@ public class ApplicationManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Identity ApplicationManagementComponent bundle is deactivated");
         }
-    }
-
-    @Reference(
-            name = "registry.service",
-            service = RegistryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRegistryService"
-    )
-    protected void setRegistryService(RegistryService registryService) {
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService set in Identity ApplicationManagementComponent bundle");
-        }
-        ApplicationManagementServiceComponentHolder.getInstance().setRegistryService(registryService);
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService unset in Identity ApplicationManagementComponent bundle");
-        }
-        ApplicationManagementServiceComponentHolder.getInstance().setRegistryService(null);
     }
 
     @Reference(
@@ -454,5 +456,101 @@ public class ApplicationManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Removed application permission provider.");
         }
+    }
+
+    @Reference(
+            name = "saml.sso.service.provider.manager",
+            service = org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSAMLSSOServiceProviderManager")
+    protected void setSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setSAMLSSOServiceProviderManager(samlSSOServiceProviderManager);
+        if (log.isDebugEnabled()) {
+            log.debug("SAMLSSOServiceProviderManager set in to bundle");
+        }
+    }
+
+    protected void unsetSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setSAMLSSOServiceProviderManager(null);
+        if (log.isDebugEnabled()) {
+            log.debug("SAMLSSOServiceProviderManager unset in to bundle");
+        }
+    }
+
+    @Reference(
+            name = "identity.event.service",
+            service = IdentityEventService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityEventService"
+    )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        log.debug("IdentityEventService set in Identity Application Management bundle");
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(null);
+        log.debug("IdentityEventService unset in Identity Application Management bundle");
+    }
+
+    @Reference(
+            name = "api.resource.mgt.service.component",
+            service = APIResourceManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAPIResourceManager")
+    protected void setAPIResourceManager(APIResourceManager apiResourceManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
+        log.debug("APIResourceManager set in to bundle");
+    }
+
+    protected void unsetAPIResourceManager(APIResourceManager apiResourceManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(null);
+        log.debug("APIResourceManager unset in to bundle");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService",
+            service = org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementServiceV2")
+    protected void setRoleManagementServiceV2(RoleManagementService roleManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV2(roleManagementService);
+        log.debug("RoleManagementServiceV2 set in ApplicationManagementServiceComponent bundle.");
+    }
+
+    protected void unsetRoleManagementServiceV2(RoleManagementService roleManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV2(null);
+        log.debug("RoleManagementServiceV2 unset in ApplicationManagementServiceComponent bundle.");
+    }
+
+    @Reference(name = "org.wso2.carbon.identity.organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        log.debug("OrganizationManager set in ApplicationManagementServiceComponent bundle.");
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(null);
+        log.debug("OrganizationManager unset in ApplicationManagementServiceComponent bundle.");
     }
 }

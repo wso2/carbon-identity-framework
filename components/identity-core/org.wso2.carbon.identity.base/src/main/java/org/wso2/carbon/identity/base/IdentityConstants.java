@@ -154,16 +154,17 @@ public class IdentityConstants {
     public static final String SKIP_LOGOUT_CONSENT = "skipLogoutConsent";
     public static final String USE_EXTERNAL_CONSENT_PAGE_DISPLAY_NAME = "Use External Consent Page";
     public static final String USE_EXTERNAL_CONSENT_PAGE = "useExternalConsentPage";
-    public static final String USE_EXTERNALIZED_CONSENT_PAGE_DISPLAY_NAME = "Use Externalized Consent Page";
-    public static final String USE_EXTERNALIZED_CONSENT_PAGE = "useExternalizedConsentPage";
-    public static final String EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME= "External Consent Page URL";
-    public static final String EXTERNAL_CONSENT_PAGE_URL = "externalConsentPageUrl";
 
     // Use display name of a user when filtering users.
     public static final String SHOW_DISPLAY_NAME = "UserFiltering.ShowDisplayName";
 
     // Configuration constants of authentication authenticator in identity.xml file.
     public static final String TAGS = "Tags";
+
+    // User account association constants
+    public static final String USER_ACCOUNT_ASSOCIATION_ENABLE_SHA256_KEY = "UserAccountAssociation.EnableSHA256Key";
+
+    public static final String IDENTITY_UTIL_ENABLE_SHA256_RANDOM_NUMBERS = "EnableSHA256RandomNumberGenerator";
 
     private IdentityConstants() {
     }
@@ -265,6 +266,8 @@ public class IdentityConstants {
         public static final String SAML_METADATA_VALIDITY_PERIOD = "SSOService.SAMLMetadataValidityPeriod";
         public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD = "SSOService.SAMLSessionNotOnOrAfterPeriod";
         public static final String SAML_METADATA_SIGNING_ENABLED = "SSOService.SAMLMetadataSigningEnabled";
+        public static final String SAML_METADATA_IDP_ENABLE_SHA256_ALGO = "SSOService.SAMLIDPMetadataEnableSHA256Alg";
+        public static final String SAML_METADATA_SP_ENABLE_SHA256_ALGO = "SSOService.SAMLSPMetadataParsingEnableSHA256Alg";
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
         public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED = "SSOService" +
                 ".SAML2AuthnRequestsSigningEnabled";
@@ -360,6 +363,7 @@ public class IdentityConstants {
         public static final String OAUTH1_AUTHORIZE_URL = "OAuth.OAuth1AuthorizeUrl";
         public static final String OAUTH1_ACCESSTOKEN_URL = "OAuth.OAuth1AccessTokenUrl";
         public static final String OAUTH2_AUTHZ_EP_URL = "OAuth.OAuth2AuthzEPUrl";
+        public static final String OAUTH2_PAR_EP_URL = "OAuth.OAuth2ParEPUrl";
         public static final String OAUTH2_TOKEN_EP_URL = "OAuth.OAuth2TokenEPUrl";
         public static final String OAUTH2_USERINFO_EP_URL = "OAuth.OAuth2UserInfoEPUrl";
         public static final String OAUTH2_REVOKE_EP_URL = "OAuth.OAuth2RevokeEPUrl";
@@ -375,6 +379,7 @@ public class IdentityConstants {
         public static final String AUTHORIZE_URL = "oauth/authorize-url";
         public static final String ACCESS_TOKEN = "oauth/access-token";
         public static final String AUTHORIZE = "oauth2/authorize";
+        public static final String PAR = "oauth2/par";
         public static final String TOKEN = "oauth2/token";
         public static final String REVOKE = "oauth2/revoke";
         public static final String INTROSPECT = "oauth2/introspect";
@@ -386,6 +391,8 @@ public class IdentityConstants {
         public static final String DCR = "api/identity/oauth2/dcr/v1.1/register";
         public static final String JWKS = "oauth2/jwks";
         public static final String DISCOVERY = "oauth2/oidcdiscovery";
+        public static final String ENABLE_SHA256_JWK_THUMBPRINT = "OAuth.EnableSHA256OAuth2JWKThumbprint";
+        public static final String ENABLE_SHA256_PARAMS = "OAuth.EnableSHA256Params";
     }
 
     /**
@@ -401,6 +408,16 @@ public class IdentityConstants {
                 "PassiveSTS.SLOHostNameVerificationEnabled";
         public static final String PASSIVE_STS_DISABLE_APPLIES_TO_IN_RESPONSE =
                 "PassiveSTS.DisableAppliesToInPassiveSTSResponse";
+        public static final String PASSIVE_STS_ENABLE_DEFAULT_SIGNATURE_AND_DIGEST_ALG =
+                "PassiveSTS.EnableDefaultSignatureAndDigestAlgorithm";
+    }
+
+    /**
+     * Common constants related to Mex endpoint
+     */
+    public static class MEX {
+
+        public static final String ENABLE_SHA256_SIGNATURE_ALG = "Mex.EnableSHA256Alg";
     }
 
     /**
@@ -423,6 +440,14 @@ public class IdentityConstants {
         public static final String GROUP_EP_URL = "SCIM2.GroupEPUrl";
         public static final String USER_EP = "scim2/Users";
         public static final String GROUP_EP = "scim2/Groups";
+    }
+
+    /**
+     * Common constants related to Recovery.
+     */
+    public static class Recovery {
+
+        public static final String RECOVERY_V1_API_ENABLE = "Recovery.EnableV1API";
     }
 
     /**
@@ -471,6 +496,7 @@ public class IdentityConstants {
         public static final String SIMPLE_REGISTRATION = "sreg";
         public static final String ATTRIBUTE_EXCHANGE = "ax";
         public static final String PAPE = "pape";
+        public static final String ENABLE_SHA256_PPID_DISPLAY_VALUE = "OpenID.EnableSHA256PPIDDisplayValue";
 
         public static class PapeAttributes {
 

@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,12 +18,16 @@
 package org.wso2.carbon.identity.application.mgt.internal;
 
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
-import org.wso2.carbon.registry.api.RegistryService;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -42,9 +46,9 @@ public class ApplicationManagementServiceComponentHolder {
 
     private String authnTemplatesJson;
 
-    private RegistryService registryService;
-
     private RealmService realmService;
+
+    private SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
 
     private ConfigurationContextService configContextService;
 
@@ -57,8 +61,13 @@ public class ApplicationManagementServiceComponentHolder {
     private OrganizationUserResidentResolverService organizationUserResidentResolverService;
 
     private ApplicationPermissionProvider applicationPermissionProvider;
+    private APIResourceManager apiResourceManager;
+    private RoleManagementService roleManagementServiceV2;
+    private OrganizationManager organizationManager;
 
     private boolean isOrganizationManagementEnable = false;
+
+    private IdentityEventService identityEventService;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -111,16 +120,6 @@ public class ApplicationManagementServiceComponentHolder {
         inboundAuthenticatorConfigs.remove(type);
     }
 
-    public RegistryService getRegistryService() {
-
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-
-        this.registryService = registryService;
-    }
-
     public RealmService getRealmService() {
 
         return realmService;
@@ -129,6 +128,16 @@ public class ApplicationManagementServiceComponentHolder {
     public void setRealmService(RealmService realmService) {
 
         this.realmService = realmService;
+    }
+
+    public void setSAMLSSOServiceProviderManager(SAMLSSOServiceProviderManager samlSSOServiceProviderManager) {
+
+        this.samlSSOServiceProviderManager = samlSSOServiceProviderManager;
+    }
+
+    public SAMLSSOServiceProviderManager getSAMLSSOServiceProviderManager() {
+
+        return samlSSOServiceProviderManager;
     }
 
     public ConfigurationContextService getConfigContextService() {
@@ -248,5 +257,85 @@ public class ApplicationManagementServiceComponentHolder {
     public ApplicationPermissionProvider getApplicationPermissionProvider() {
 
         return applicationPermissionProvider;
+    }
+
+    /**
+     * Get {@link IdentityEventService}.
+     *
+     * @return IdentityEventService.
+     */
+    public IdentityEventService getIdentityEventService() {
+
+        return identityEventService;
+    }
+
+    /**
+     * Set {@link IdentityEventService}.
+     *
+     * @param identityEventService Instance of {@link IdentityEventService}.
+     */
+    public void setIdentityEventService(IdentityEventService identityEventService) {
+
+        this.identityEventService = identityEventService;
+    }
+
+    /**
+     * Set API resource manager.
+     *
+     * @param apiResourceManager API resource manager.
+     */
+    public void setAPIResourceManager(APIResourceManager apiResourceManager) {
+
+        this.apiResourceManager = apiResourceManager;
+    }
+
+    /**
+     * Get API resource manager.
+     *
+     * @return API resource manager.
+     */
+    public APIResourceManager getAPIResourceManager() {
+
+        return apiResourceManager;
+    }
+
+    /**
+     * Get {@link RoleManagementService}.
+     *
+     * @return Instance of {@link RoleManagementService}.
+     */
+    public RoleManagementService getRoleManagementServiceV2() {
+
+        return roleManagementServiceV2;
+    }
+
+    /**
+     * Set {@link RoleManagementService}.
+     *
+     * @param roleManagementServiceV2 Instance of {@link RoleManagementService}.
+     */
+    public void setRoleManagementServiceV2(RoleManagementService roleManagementServiceV2) {
+
+        this.roleManagementServiceV2 = roleManagementServiceV2;
+    }
+
+    /**
+     * Set {@link OrganizationManager}.
+     *
+     * @param organizationManager Instance of {@link OrganizationManager}.
+     */
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
+    }
+
+    /**
+     * Get {@link OrganizationManager}.
+     *
+     * @return Instance of {@link OrganizationManager}
+     */
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
     }
 }

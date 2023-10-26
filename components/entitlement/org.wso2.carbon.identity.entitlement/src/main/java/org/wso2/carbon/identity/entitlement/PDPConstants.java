@@ -122,7 +122,7 @@ public class PDPConstants {
     public static final String SUBJECT_CATEGORY_DEFAULT =
             "urn:oasis:names:tc:xacml:1.0:subject-category:access-subject";
 
-    public static final String SUBJECT_ID_ROLE = "http://wso2.org/claims/role";
+    public static final String SUBJECT_ID_ROLE = "http://wso2.org/claims/roles";
 
     public static final String RULE_EFFECT_PERMIT = "Permit";
 

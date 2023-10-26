@@ -34,7 +34,7 @@ import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.claim.ClaimManager;
+import org.wso2.carbon.user.api.ClaimManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -138,13 +138,12 @@ public enum ClaimManagerHandler {
     }
 
     public ClaimMapping[] getAllClaimMappings(String tenantDomain) throws ClaimManagementException {
-        ClaimManager claimManager;
 
         try {
-            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
-                    ClaimManagementServiceComponent.getRegistryService(),
-                    ClaimManagementServiceComponent.getRealmService(), tenantDomain);
-            claimManager = realm.getClaimManager();
+            int tenantId =
+                    ClaimManagementServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            ClaimManager claimManager =
+                    ClaimManagementServiceComponent.getRealmService().getTenantUserRealm(tenantId).getClaimManager();
             if (claimManager == null) {
                 // There can be cases - we get a request for an external user store - where we don'
                 // have a claims administrator.
@@ -153,7 +152,7 @@ public enum ClaimManagerHandler {
 
             return claimManager.getAllClaimMappings();
 
-        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException e) {
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new ClaimManagementException("Error occurred while loading claims mapping for tenant "
                                                + tenantDomain, e);
         }
@@ -163,12 +162,11 @@ public enum ClaimManagerHandler {
     public ClaimMapping[] getAllClaimMappings(String dialectURI, String tenantDomain)
             throws ClaimManagementException {
 
-        ClaimManager claimManager;
         try {
-            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
-                    ClaimManagementServiceComponent.getRegistryService(),
-                    ClaimManagementServiceComponent.getRealmService(), tenantDomain);
-            claimManager = realm.getClaimManager();
+            int tenantId =
+                    ClaimManagementServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            ClaimManager claimManager =
+                    ClaimManagementServiceComponent.getRealmService().getTenantUserRealm(tenantId).getClaimManager();
             if (claimManager == null) {
                 // There can be cases - we get a request for an external user store - where we don'
                 // have a claims administrator.
@@ -177,7 +175,7 @@ public enum ClaimManagerHandler {
 
             return claimManager.getAllClaimMappings(dialectURI);
 
-        } catch (CarbonException | org.wso2.carbon.user.api.UserStoreException e) {
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new ClaimManagementException("Error occurred while loading all claim mappings for tenant "
                                                + tenantDomain, e);
         }

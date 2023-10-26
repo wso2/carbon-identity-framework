@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -114,6 +114,9 @@ public class IdentityApplicationConstants {
     public static final String LOCAL_SP = "wso2carbon-local-sp";
 
     public static final String SP_NAME = "spName";
+
+    public static final String ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME = "allowedAudienceForAssociatedRoles";
+    public static final String ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME = "associatedRoles.allowedAudience";
 
     /**
      * Config elements.
@@ -323,6 +326,7 @@ public class IdentityApplicationConstants {
         public static final String CLIENT_ID = "ClientId";
         public static final String CLIENT_SECRET = "ClientSecret";
         public static final String OAUTH2_AUTHZ_URL = "OAuth2AuthzEPUrl";
+        public static final String OAUTH2_PAR_URL = "OAuth2ParEPUrl";
         public static final String OAUTH2_TOKEN_URL = "OAuth2TokenEPUrl";
         public static final String OAUTH2_REVOKE_URL = "OAuth2RevokeEPUrl";
         public static final String OAUTH2_INTROSPECT_URL = "OAuth2IntrospectEPUrl";
@@ -438,6 +442,17 @@ public class IdentityApplicationConstants {
         public static final String NAME = "passivests";
         public static final String PASSIVE_STS_REALM = "passiveSTSRealm";
         public static final String PASSIVE_STS_REPLY_URL = "passiveSTSWReply";
+    }
+
+    /**
+     * Mex constants.
+     */
+    public static class Mex {
+
+        public static final String RSA_SHA1 = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
+        public static final String RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
+        public static final String HMAC_SHA1 = "http://www.w3.org/2000/09/xmldsig#hmac-sha1";
+        public static final String HMAC_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256";
     }
 
     /**

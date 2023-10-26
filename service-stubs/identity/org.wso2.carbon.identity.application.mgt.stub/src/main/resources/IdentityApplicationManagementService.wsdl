@@ -1,4 +1,4 @@
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2169="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:ax2170="http://script.model.common.application.identity.carbon.wso2.org/xsd" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://mgt.application.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ax2167="http://common.application.identity.carbon.wso2.org/xsd" targetNamespace="http://mgt.application.identity.carbon.wso2.org">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2171="http://common.application.identity.carbon.wso2.org/xsd" xmlns:tns="http://mgt.application.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:ax2173="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ax2174="http://script.model.common.application.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://mgt.application.identity.carbon.wso2.org">
     <wsdl:documentation>IdentityApplicationManagementService</wsdl:documentation>
     <wsdl:types>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://common.application.identity.carbon.wso2.org/xsd">
@@ -10,7 +10,7 @@
             </xs:complexType>
             <xs:complexType name="IdentityApplicationManagementClientException">
                 <xs:complexContent>
-                    <xs:extension base="ax2167:IdentityApplicationManagementException">
+                    <xs:extension base="ax2171:IdentityApplicationManagementException">
                         <xs:sequence>
                             <xs:element maxOccurs="unbounded" minOccurs="0" name="messages" nillable="true" type="xs:string"/>
                         </xs:sequence>
@@ -18,20 +18,20 @@
                 </xs:complexContent>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2168="http://common.application.identity.carbon.wso2.org/xsd" xmlns:ax2172="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+        <xs:schema xmlns:ax2172="http://common.application.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2176="http://model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
             <xs:import namespace="http://common.application.identity.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://model.common.application.identity.carbon.wso2.org/xsd"/>
             <xs:element name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="IdentityApplicationManagementException" nillable="true" type="ax2168:IdentityApplicationManagementException"/>
+                        <xs:element minOccurs="0" name="IdentityApplicationManagementException" nillable="true" type="ax2171:IdentityApplicationManagementException"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="createApplicationWithTemplate">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2169:ServiceProvider"/>
+                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2173:ServiceProvider"/>
                         <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
@@ -39,7 +39,7 @@
             <xs:element name="createApplicationWithTemplateResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2169:ServiceProvider"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2173:ServiceProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -53,7 +53,7 @@
             <xs:element name="getAllPaginatedApplicationBasicInfoResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2169:ApplicationBasicInfo"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:ApplicationBasicInfo"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -68,7 +68,7 @@
             <xs:element name="getPaginatedApplicationBasicInfoResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2169:ApplicationBasicInfo"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:ApplicationBasicInfo"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -80,7 +80,7 @@
             <xs:element name="getAllRequestPathAuthenticatorsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2169:RequestPathAuthenticatorConfig"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:RequestPathAuthenticatorConfig"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -99,15 +99,15 @@
             <xs:element name="IdentityApplicationManagementServiceIdentityApplicationManagementClientException">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="IdentityApplicationManagementClientException" nillable="true" type="ax2168:IdentityApplicationManagementClientException"/>
+                        <xs:element minOccurs="0" name="IdentityApplicationManagementClientException" nillable="true" type="ax2171:IdentityApplicationManagementClientException"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="createApplicationTemplateFromSP">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2169:ServiceProvider"/>
-                        <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2169:SpTemplate"/>
+                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2173:ServiceProvider"/>
+                        <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2173:SpTemplate"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -133,7 +133,7 @@
             <xs:element name="getAllApplicationTemplateInfoResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2169:SpTemplate"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:SpTemplate"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -145,66 +145,52 @@
             <xs:element name="getCustomInboundAuthenticatorConfigsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2169:InboundAuthenticationRequestConfig"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:InboundAuthenticationRequestConfig"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getIdentityProvider">
+            <xs:element name="createApplication">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="federatedIdPName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2173:ServiceProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getIdentityProviderResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2169:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getApplication">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getApplicationResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2169:ServiceProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllLocalAuthenticators">
+            <xs:element name="getAllApplicationBasicInfo">
                 <xs:complexType>
                     <xs:sequence/>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllLocalAuthenticatorsResponse">
+            <xs:element name="getAllApplicationBasicInfoResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2169:LocalAuthenticatorConfig"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:ApplicationBasicInfo"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllIdentityProviders">
+            <xs:element name="getApplicationBasicInfo">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getApplicationBasicInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:ApplicationBasicInfo"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCountOfAllApplications">
                 <xs:complexType>
                     <xs:sequence/>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllIdentityProvidersResponse">
+            <xs:element name="getCountOfAllApplicationsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2169:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="deleteApplication">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -225,69 +211,38 @@
             <xs:element name="updateApplication">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2169:ServiceProvider"/>
+                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2173:ServiceProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getCountOfAllApplications">
+            <xs:element name="deleteApplication">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllIdentityProviders">
                 <xs:complexType>
                     <xs:sequence/>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getCountOfAllApplicationsResponse">
+            <xs:element name="getAllIdentityProvidersResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" type="xs:int"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="deleteApplicationTemplate">
+            <xs:element name="getAllLocalAuthenticators">
                 <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
-                    </xs:sequence>
+                    <xs:sequence/>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="updateApplicationTemplate">
+            <xs:element name="getAllLocalAuthenticatorsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2169:SpTemplate"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="createApplicationTemplate">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2169:SpTemplate"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="importApplication">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="spFileContent" nillable="true" type="ax2169:SpFileContent"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="importApplicationResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2169:ImportResponse"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getApplicationTemplate">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getApplicationTemplateResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2169:SpTemplate"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2173:LocalAuthenticatorConfig"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -300,6 +255,20 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="importApplication">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="spFileContent" nillable="true" type="ax2173:SpFileContent"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="importApplicationResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2173:ImportResponse"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -318,41 +287,72 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllApplicationBasicInfo">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllApplicationBasicInfoResponse">
+            <xs:element name="createApplicationTemplate">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2169:ApplicationBasicInfo"/>
+                        <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2173:SpTemplate"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getApplicationBasicInfo">
+            <xs:element name="getApplicationTemplate">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getApplicationBasicInfoResponse">
+            <xs:element name="getApplicationTemplateResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2169:ApplicationBasicInfo"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2173:SpTemplate"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="createApplication">
+            <xs:element name="deleteApplicationTemplate">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2169:ServiceProvider"/>
+                        <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateApplicationTemplate">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2173:SpTemplate"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getApplication">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getApplicationResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2173:ServiceProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getIdentityProvider">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="federatedIdPName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getIdentityProviderResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2173:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
         </xs:schema>
-        <xs:schema xmlns:ax2171="http://script.model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://model.common.application.identity.carbon.wso2.org/xsd">
+        <xs:schema xmlns:ax2175="http://script.model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://model.common.application.identity.carbon.wso2.org/xsd">
             <xs:import namespace="http://script.model.common.application.identity.carbon.wso2.org/xsd"/>
             <xs:complexType name="ServiceProvider">
                 <xs:sequence>
@@ -360,32 +360,45 @@
                     <xs:element minOccurs="0" name="applicationID" type="xs:int"/>
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationResourceId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="associatedRolesConfig" nillable="true" type="ax2173:AssociatedRolesConfig"/>
                     <xs:element minOccurs="0" name="b2BSelfServiceApp" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2169:ClaimConfig"/>
+                    <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2173:ClaimConfig"/>
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="discoverable" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="inboundAuthenticationConfig" nillable="true" type="ax2169:InboundAuthenticationConfig"/>
-                    <xs:element minOccurs="0" name="inboundProvisioningConfig" nillable="true" type="ax2169:InboundProvisioningConfig"/>
+                    <xs:element minOccurs="0" name="inboundAuthenticationConfig" nillable="true" type="ax2173:InboundAuthenticationConfig"/>
+                    <xs:element minOccurs="0" name="inboundProvisioningConfig" nillable="true" type="ax2173:InboundProvisioningConfig"/>
                     <xs:element minOccurs="0" name="jwksUri" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="localAndOutBoundAuthenticationConfig" nillable="true" type="ax2169:LocalAndOutboundAuthenticationConfig"/>
+                    <xs:element minOccurs="0" name="localAndOutBoundAuthenticationConfig" nillable="true" type="ax2173:LocalAndOutboundAuthenticationConfig"/>
                     <xs:element minOccurs="0" name="managementApp" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="outboundProvisioningConfig" nillable="true" type="ax2169:OutboundProvisioningConfig"/>
-                    <xs:element minOccurs="0" name="owner" nillable="true" type="ax2169:User"/>
-                    <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2169:PermissionsAndRoleConfig"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestPathAuthenticatorConfigs" nillable="true" type="ax2169:RequestPathAuthenticatorConfig"/>
+                    <xs:element minOccurs="0" name="outboundProvisioningConfig" nillable="true" type="ax2173:OutboundProvisioningConfig"/>
+                    <xs:element minOccurs="0" name="owner" nillable="true" type="ax2173:User"/>
+                    <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2173:PermissionsAndRoleConfig"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestPathAuthenticatorConfigs" nillable="true" type="ax2173:RequestPathAuthenticatorConfig"/>
                     <xs:element minOccurs="0" name="saasApp" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="spProperties" nillable="true" type="ax2169:ServiceProviderProperty"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="spProperties" nillable="true" type="ax2173:ServiceProviderProperty"/>
                     <xs:element minOccurs="0" name="templateId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="AssociatedRolesConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="allowedAudience" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="roles" nillable="true" type="ax2173:RoleV2"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="RoleV2">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="ClaimConfig">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="alwaysSendMappedLocalSubjectId" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="claimMappings" nillable="true" type="ax2169:ClaimMapping"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpClaims" nillable="true" type="ax2169:Claim"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="claimMappings" nillable="true" type="ax2173:ClaimMapping"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpClaims" nillable="true" type="ax2173:Claim"/>
                     <xs:element minOccurs="0" name="localClaimDialect" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="roleClaimURI" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="spClaimDialects" nillable="true" type="xs:string"/>
@@ -395,9 +408,9 @@
             <xs:complexType name="ClaimMapping">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="defaultValue" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="localClaim" nillable="true" type="ax2169:Claim"/>
+                    <xs:element minOccurs="0" name="localClaim" nillable="true" type="ax2173:Claim"/>
                     <xs:element minOccurs="0" name="mandatory" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="remoteClaim" nillable="true" type="ax2169:Claim"/>
+                    <xs:element minOccurs="0" name="remoteClaim" nillable="true" type="ax2173:Claim"/>
                     <xs:element minOccurs="0" name="requested" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
@@ -409,7 +422,7 @@
             </xs:complexType>
             <xs:complexType name="InboundAuthenticationConfig">
                 <xs:sequence>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="inboundAuthenticationRequestConfigs" nillable="true" type="ax2169:InboundAuthenticationRequestConfig"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="inboundAuthenticationRequestConfigs" nillable="true" type="ax2173:InboundAuthenticationRequestConfig"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="InboundAuthenticationRequestConfig">
@@ -419,8 +432,8 @@
                     <xs:element minOccurs="0" name="inboundAuthType" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="inboundConfigType" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="inboundConfiguration" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="inboundConfigurationProtocol" nillable="true" type="ax2169:InboundConfigurationProtocol"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2169:Property"/>
+                    <xs:element minOccurs="0" name="inboundConfigurationProtocol" nillable="true" type="ax2173:InboundConfigurationProtocol"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2173:Property"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType abstract="true" name="InboundConfigurationProtocol">
@@ -439,7 +452,7 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="options" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="regex" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="required" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="subProperties" nillable="true" type="ax2169:SubProperty"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="subProperties" nillable="true" type="ax2173:SubProperty"/>
                     <xs:element minOccurs="0" name="type" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"/>
                 </xs:sequence>
@@ -470,13 +483,12 @@
             <xs:complexType name="LocalAndOutboundAuthenticationConfig">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="alwaysSendBackAuthenticatedListOfIdPs" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="authenticationScriptConfig" nillable="true" type="ax2170:AuthenticationScriptConfig"/>
-                    <xs:element minOccurs="0" name="authenticationStepForAttributes" nillable="true" type="ax2169:AuthenticationStep"/>
-                    <xs:element minOccurs="0" name="authenticationStepForSubject" nillable="true" type="ax2169:AuthenticationStep"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="authenticationSteps" nillable="true" type="ax2169:AuthenticationStep"/>
+                    <xs:element minOccurs="0" name="authenticationScriptConfig" nillable="true" type="ax2174:AuthenticationScriptConfig"/>
+                    <xs:element minOccurs="0" name="authenticationStepForAttributes" nillable="true" type="ax2173:AuthenticationStep"/>
+                    <xs:element minOccurs="0" name="authenticationStepForSubject" nillable="true" type="ax2173:AuthenticationStep"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="authenticationSteps" nillable="true" type="ax2173:AuthenticationStep"/>
                     <xs:element minOccurs="0" name="authenticationType" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="enableAuthorization" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="externalizedConsentPageConfig" nillable="true" type="ax2169:ExternalizedConsentPageConfig"/>
                     <xs:element minOccurs="0" name="skipConsent" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="skipLogoutConsent" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="subjectClaimUri" nillable="true" type="xs:string"/>
@@ -489,8 +501,8 @@
             <xs:complexType name="AuthenticationStep">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="attributeStep" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedIdentityProviders" nillable="true" type="ax2169:IdentityProvider"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="localAuthenticatorConfigs" nillable="true" type="ax2169:LocalAuthenticatorConfig"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedIdentityProviders" nillable="true" type="ax2173:IdentityProvider"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="localAuthenticatorConfigs" nillable="true" type="ax2173:LocalAuthenticatorConfig"/>
                     <xs:element minOccurs="0" name="stepOrder" type="xs:int"/>
                     <xs:element minOccurs="0" name="subjectStep" type="xs:boolean"/>
                 </xs:sequence>
@@ -499,27 +511,30 @@
                 <xs:sequence>
                     <xs:element minOccurs="0" name="alias" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="certificate" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="certificateInfoArray" nillable="true" type="ax2169:CertificateInfo"/>
-                    <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2169:ClaimConfig"/>
-                    <xs:element minOccurs="0" name="defaultAuthenticatorConfig" nillable="true" type="ax2169:FederatedAuthenticatorConfig"/>
-                    <xs:element minOccurs="0" name="defaultProvisioningConnectorConfig" nillable="true" type="ax2169:ProvisioningConnectorConfig"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="certificateInfoArray" nillable="true" type="ax2173:CertificateInfo"/>
+                    <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2173:ClaimConfig"/>
+                    <xs:element minOccurs="0" name="defaultAuthenticatorConfig" nillable="true" type="ax2173:FederatedAuthenticatorConfig"/>
+                    <xs:element minOccurs="0" name="defaultProvisioningConnectorConfig" nillable="true" type="ax2173:ProvisioningConnectorConfig"/>
                     <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="enable" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedAuthenticatorConfigs" nillable="true" type="ax2169:FederatedAuthenticatorConfig"/>
+                    <xs:element minOccurs="0" name="federatedAssociationConfig" nillable="true" type="ax2173:FederatedAssociationConfig"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedAuthenticatorConfigs" nillable="true" type="ax2173:FederatedAuthenticatorConfig"/>
                     <xs:element minOccurs="0" name="federationHub" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="homeRealmId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idPGroupConfig" nillable="true" type="ax2173:IdPGroup"/>
                     <xs:element minOccurs="0" name="identityProviderDescription" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="identityProviderName" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2169:IdentityProviderProperty"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2173:IdentityProviderProperty"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="justInTimeProvisioningConfig" nillable="true" type="ax2169:JustInTimeProvisioningConfig"/>
-                    <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2169:PermissionsAndRoleConfig"/>
+                    <xs:element minOccurs="0" name="justInTimeProvisioningConfig" nillable="true" type="ax2173:JustInTimeProvisioningConfig"/>
+                    <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2173:PermissionsAndRoleConfig"/>
                     <xs:element minOccurs="0" name="primary" type="xs:boolean"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningConnectorConfigs" nillable="true" type="ax2169:ProvisioningConnectorConfig"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningConnectorConfigs" nillable="true" type="ax2173:ProvisioningConnectorConfig"/>
                     <xs:element minOccurs="0" name="provisioningRole" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="resourceId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="templateId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="trustedTokenIssuer" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="CertificateInfo">
@@ -533,7 +548,7 @@
                     <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2169:Property"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2173:Property"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="tags" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
                 </xs:sequence>
@@ -543,9 +558,21 @@
                     <xs:element minOccurs="0" name="blocking" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningProperties" nillable="true" type="ax2169:Property"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningProperties" nillable="true" type="ax2173:Property"/>
                     <xs:element minOccurs="0" name="rulesEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="FederatedAssociationConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="lookupAttributes" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="IdPGroup">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="idpGroupId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="idpGroupName" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="IdentityProviderProperty">
@@ -557,9 +584,10 @@
             </xs:complexType>
             <xs:complexType name="JustInTimeProvisioningConfig">
                 <xs:complexContent>
-                    <xs:extension base="ax2169:InboundProvisioningConfig">
+                    <xs:extension base="ax2173:InboundProvisioningConfig">
                         <xs:sequence>
                             <xs:element minOccurs="0" name="associateLocalUserEnabled" type="xs:boolean"/>
+                            <xs:element minOccurs="0" name="attributeSyncMethod" nillable="true" type="xs:string"/>
                             <xs:element minOccurs="0" name="modifyUserNameAllowed" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="passwordProvisioningEnabled" type="xs:boolean"/>
                             <xs:element minOccurs="0" name="promptConsent" type="xs:boolean"/>
@@ -571,8 +599,8 @@
             <xs:complexType name="PermissionsAndRoleConfig">
                 <xs:sequence>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="idpRoles" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="permissions" nillable="true" type="ax2169:ApplicationPermission"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="roleMappings" nillable="true" type="ax2169:RoleMapping"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="permissions" nillable="true" type="ax2173:ApplicationPermission"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="roleMappings" nillable="true" type="ax2173:RoleMapping"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="ApplicationPermission">
@@ -582,7 +610,7 @@
             </xs:complexType>
             <xs:complexType name="RoleMapping">
                 <xs:sequence>
-                    <xs:element minOccurs="0" name="localRole" nillable="true" type="ax2169:LocalRole"/>
+                    <xs:element minOccurs="0" name="localRole" nillable="true" type="ax2173:LocalRole"/>
                     <xs:element minOccurs="0" name="remoteRole" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
@@ -597,25 +625,20 @@
                     <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2169:Property"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2173:Property"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="tags" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
-                </xs:sequence>
-            </xs:complexType>
-            <xs:complexType name="ExternalizedConsentPageConfig">
-                <xs:sequence>
-                    <xs:element minOccurs="0" name="consentPageUrl" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="OutboundProvisioningConfig">
                 <xs:sequence>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="provisionByRoleList" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningIdentityProviders" nillable="true" type="ax2169:IdentityProvider"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningIdentityProviders" nillable="true" type="ax2173:IdentityProvider"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="User">
                 <xs:sequence>
+                    <xs:element minOccurs="0" name="loggableMaskedUserId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="loggableUserId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
@@ -624,7 +647,7 @@
             </xs:complexType>
             <xs:complexType name="RequestPathAuthenticatorConfig">
                 <xs:complexContent>
-                    <xs:extension base="ax2169:LocalAuthenticatorConfig">
+                    <xs:extension base="ax2173:LocalAuthenticatorConfig">
                         <xs:sequence/>
                     </xs:extension>
                 </xs:complexContent>
@@ -639,7 +662,7 @@
             <xs:complexType name="ApplicationBasicInfo">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="accessUrl" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="appOwner" nillable="true" type="ax2169:User"/>
+                    <xs:element minOccurs="0" name="appOwner" nillable="true" type="ax2173:User"/>
                     <xs:element minOccurs="0" name="applicationId" type="xs:int"/>
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationResourceId" nillable="true" type="xs:string"/>

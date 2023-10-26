@@ -61,13 +61,13 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -80,6 +80,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
@@ -96,7 +97,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
@@ -193,11 +193,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         log.debug("Session data key is null in the request and not a logout request.");
                     }
                     if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                        LoggerUtils.triggerDiagnosticLogEvent(
-                                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, null, LogConstants.FAILED,
-                                FrameworkConstants.SESSION_DATA_KEY + " is not provided in the request. Sending to " +
-                                        "retry page.", FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST,
-                                null);
+                        LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                                FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                                FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST)
+                                .resultMessage(FrameworkConstants.SESSION_DATA_KEY + " is not provided in the " +
+                                        "request. Sending to retry page.")
+                                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                .resultStatus(DiagnosticLog.ResultStatus.FAILED));
                     }
 
                     FrameworkUtils.sendToRetryPage(request, response, context);
@@ -238,6 +240,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             if (context != null) {
+                // Adding the context identifier(sessionDataKey) to the request to be used when the context
+                // is not available.
+                request.setAttribute(FrameworkConstants.CONTEXT_IDENTIFIER, context.getContextIdentifier());
                 if (StringUtils.isNotBlank(context.getServiceProviderName())) {
                     MDC.put(SERVICE_PROVIDER_QUERY_KEY, context.getServiceProviderName());
                 }
@@ -272,16 +277,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                     "Thread Id: " + Thread.currentThread().getId());
                         }
                         if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                            Map<String, Object> params = new HashMap<>();
-                            params.put(FrameworkConstants.LogConstants.CONTEXT_ID, context.getContextIdentifier());
-                            params.put(FrameworkConstants.LogConstants.ORIGINATING_ADDRESS, request.getRemoteAddr());
-                            params.put(FrameworkConstants.LogConstants.REQUEST_HEADERS, getHeaderString(request));
-                            params.put(FrameworkConstants.LogConstants.THREAD_ID, Thread.currentThread().getId());
-                            LoggerUtils.triggerDiagnosticLogEvent(
-                                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params,
-                                    LogConstants.FAILED, "Same authentication request is being processed by another " +
-                                            "thread. Could be a possible double submit or a replay request.",
-                                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST, null);
+                            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_REQUEST)
+                                    .inputParam(FrameworkConstants.LogConstants.CONTEXT_ID,
+                                            context.getContextIdentifier())
+                                    .inputParam(FrameworkConstants.LogConstants.ORIGINATING_ADDRESS,
+                                            request.getRemoteAddr())
+                                    .inputParam(FrameworkConstants.LogConstants.REQUEST_HEADERS,
+                                            getHeaderString(request))
+                                    .inputParam(FrameworkConstants.LogConstants.THREAD_ID,
+                                            Thread.currentThread().getId())
+                                    .resultMessage("Same authentication request is being processed by another " +
+                                            "thread. Could be a possible double submit or a replay request.")
+                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED));
                         }
                         FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
                         return;
@@ -307,7 +317,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 */
                 if (isBackToFirstStepRequest(request) || (isIdentifierFirstRequest(request)
                         && (!isFlowHandlerInCurrentStepCanHandleRequest(context, request)
-                        && !isIdfInitiatedFromAuthenticator(context)))) {
+                        && !FrameworkUtils.isIdfInitiatedFromAuthenticator(context)))) {
                     if (isCompletedStepsAreFlowHandlersOnly(context)) {
                         // If the incoming request is restart and all the completed steps have only flow handlers as the
                         // authenticated authenticator, then we reset the current step to 1.
@@ -365,7 +375,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 log.error("Context does not exist. Probably due to invalidated cache. " + message);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
-                        "authentication.context.null", "authentication.context.null.description");
+                        FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL,
+                        FrameworkConstants.ERROR_DESCRIPTION_AUTH_CONTEXT_NULL);
             }
         } catch (JsFailureException e) {
             if (log.isDebugEnabled()) {
@@ -480,11 +491,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
         return false;
-    }
-
-    private boolean isIdfInitiatedFromAuthenticator(AuthenticationContext context) {
-
-        return Boolean.TRUE.equals(context.getProperty(IS_IDF_INITIATED_FROM_AUTHENTICATOR));
     }
 
     private boolean isBackToFirstStepRequest(HttpServletRequest request) {
@@ -632,7 +638,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setCallerPath(callerPath);
 
         // generate a new key to hold the context data object
-        String contextId = UUIDGenerator.generateUUID();
+        String contextId = UUID.randomUUID().toString();
         context.setContextIdentifier(contextId);
 
         if (log.isDebugEnabled()) {
@@ -646,16 +652,27 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.debug("Starting a logout flow");
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                params.put(FrameworkConstants.RequestParams.CALLER_PATH, callerPath);
-                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, tenantDomain);
-                LoggerUtils.triggerDiagnosticLogEvent(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                        "Initializing logout flow", FrameworkConstants.LogConstants.ActionIDs.INIT_LOGOUT_FLOW, null);
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.ActionIDs.INIT_LOGOUT_FLOW)
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                        .inputParam(FrameworkConstants.RequestParams.CALLER_PATH, callerPath)
+                        .inputParam(FrameworkConstants.LogConstants.TENANT_DOMAIN, tenantDomain)
+                        .resultMessage("Initializing logout flow.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
             }
 
             context.setLogoutRequest(true);
+
+            /*
+             * Set special property fedIdpId used to remove the entry in fed_auth_session_mapping table
+             * in the special case of SAML SLO when same fed idp is configured twice.
+             */
+
+            if (StringUtils.isNotBlank(request.getParameter(FrameworkConstants.FED_IDP_ID))) {
+                context.setProperty(FrameworkConstants.FED_IDP_ID, request.getParameter(FrameworkConstants.FED_IDP_ID));
+            }
 
             if (context.getRelyingParty() == null || context.getRelyingParty().trim().length() == 0) {
 
@@ -679,16 +696,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.debug("Starting an authentication flow");
             }
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.SESSION_DATA_KEY, callerSessionDataKey);
-                params.put(FrameworkConstants.RequestParams.TYPE, requestType);
-                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, tenantDomain);
-                params.put(FrameworkConstants.RequestParams.CALLER_PATH, callerPath);
-                LoggerUtils.triggerDiagnosticLogEvent(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                        "Initializing authentication flow", FrameworkConstants.LogConstants.ActionIDs.INIT_AUTH_FLOW,
-                        null);
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.ActionIDs.INIT_AUTH_FLOW)
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                        .inputParam(LogConstants.InputKeys.CALLER_PATH, callerPath)
+                        .inputParam(FrameworkConstants.LogConstants.TENANT_DOMAIN, tenantDomain)
+                        .inputParam(FrameworkConstants.SESSION_DATA_KEY, callerSessionDataKey)
+                        .resultMessage("Initializing authentication flow.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
             }
         }
 
@@ -785,14 +802,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 context.addRequestedAcr(acr);
             }
             if (LoggerUtils.isDiagnosticLogsEnabled() && CollectionUtils.isNotEmpty(acrRequested)) {
-                Map<String, Object> params = new HashMap<>();
-                params.put(FrameworkConstants.LogConstants.SERVICE_PROVIDER, context.getServiceProviderName());
-                params.put(FrameworkConstants.LogConstants.TENANT_DOMAIN, context.getLoginTenantDomain());
-                params.put(ACR_VALUES_ATTRIBUTE, acrRequested);
-                LoggerUtils.triggerDiagnosticLogEvent(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK, params, LogConstants.SUCCESS,
-                        "Adding requested ACR values to the context",
-                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_ACR_VALUES, null);
+                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                        FrameworkConstants.LogConstants.ActionIDs.PROCESS_ACR_VALUES)
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                        .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getLoginTenantDomain())
+                        .inputParam(ACR_VALUES_ATTRIBUTE, acrRequested)
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.INTERNAL_SYSTEM)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
             }
         }
         // Get service provider chain

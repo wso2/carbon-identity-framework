@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
+import org.wso2.carbon.identity.application.authentication.framework.context.OptimizedSessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
@@ -31,7 +32,9 @@ public class SessionContextCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 42165605438157753L;
 
+    private String contextIdentifier;
     SessionContext context;
+    private OptimizedSessionContext optimizedSessionContext;
     String loggedInUser;
     private long accessedTime;
 
@@ -41,9 +44,21 @@ public class SessionContextCacheEntry extends CacheEntry {
 
     public SessionContextCacheEntry(SessionContextDO sessionContextDO) {
         SessionContextCacheEntry entry = (SessionContextCacheEntry) sessionContextDO.getEntry();
+        this.contextIdentifier = entry.getContextIdentifier();
         this.context = entry.getContext();
+        this.optimizedSessionContext = entry.getOptimizedSessionContext();
         this.loggedInUser = entry.getLoggedInUser();
         this.setAccessedTime(TimeUnit.NANOSECONDS.toMillis(sessionContextDO.getNanoTime()));
+    }
+
+    public SessionContextCacheEntry(SessionContextCacheEntry entry, OptimizedSessionContext optimizedSessionContext) {
+
+        this.contextIdentifier = entry.getContextIdentifier();
+        this.context = null;
+        this.optimizedSessionContext = optimizedSessionContext;
+        this.loggedInUser = entry.getLoggedInUser();
+        this.accessedTime = entry.getAccessedTime();
+        this.setValidityPeriod(entry.getValidityPeriod());
     }
 
     public String getLoggedInUser() {
@@ -72,5 +87,25 @@ public class SessionContextCacheEntry extends CacheEntry {
 
     public long getAccessedTime() {
         return this.accessedTime;
+    }
+
+    OptimizedSessionContext getOptimizedSessionContext() {
+
+        return optimizedSessionContext;
+    }
+
+    void resetOptimizedSessionContext() {
+
+        this.optimizedSessionContext = null;
+    }
+
+    public String getContextIdentifier() {
+
+        return this.contextIdentifier;
+    }
+
+    public void setContextIdentifier(String key) {
+
+        this.contextIdentifier = key;
     }
 }

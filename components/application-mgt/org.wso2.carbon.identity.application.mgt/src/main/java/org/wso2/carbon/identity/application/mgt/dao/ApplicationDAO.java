@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,8 +20,10 @@ package org.wso2.carbon.identity.application.mgt.dao;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.sql.Connection;
@@ -335,5 +337,71 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException {
 
         return new ServiceProvider();
+    }
+
+    /**
+     * Method that return the application id of the main application for a given shared application id.
+     *
+     * @param sharedAppId Shared application id.
+     * @return Application id of the main application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining main application id.
+     */
+    default String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Method that returns the tenant id of the application.
+     *
+     * @param applicationId Application id.
+     * @return Tenant id of the application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining tenant id.
+     */
+    default int getTenantIdByApp(String applicationId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Method that returns the SP property value by property key.
+     *
+     * @param applicationId Application UUID.
+     * @param propertyName Property key.
+     * @param tenantDomain Tenant domain.
+     * @return Property value.
+     * @throws IdentityApplicationManagementException Error when retrieving SP property value.
+     */
+    default String getSPPropertyValueByPropertyKey(String applicationId, String propertyName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Method that returns the associated roles of the application.
+     *
+     * @param applicationId Application UUID.
+     * @param tenantDomain  Tenant domain.
+     * @return List of associated roles.
+     * @throws IdentityApplicationManagementException Error when retrieving associated roles.
+     */
+    default List<RoleV2> getAssociatedRolesOfApplication(String applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Create an association between a role and an application.
+     *
+     * @param applicationUUID Application UUID.
+     * @param roleId          Role ID.
+     * @throws IdentityApplicationManagementException if an error occurs while adding role to application.
+     */
+    default void addAssociatedRoleToApplication(String applicationUUID, String roleId)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
     }
 }

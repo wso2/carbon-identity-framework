@@ -35,6 +35,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Sessio
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
+
 /**
  * A service to terminate the sessions of federated users.
  */
@@ -96,6 +98,9 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
     private void addAuditLogs(String sessionKey, String initiator, String authenticatedUser, String userTenantDomain,
                               String traceId, Long terminatedTimestamp) {
 
+        if (isLegacyAuditLogsDisabled()) {
+            return;
+        }
         String initiatedUser = null;
         JSONObject auditData = new JSONObject();
         auditData.put(SessionMgtConstants.SESSION_CONTEXT_ID, sessionKey);

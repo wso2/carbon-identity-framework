@@ -221,7 +221,7 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
                 PROP_SAML_SSO_ISSUER_QUALIFIER), "Issuer Qualifier Value Mismatch");
         String sigAlg = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_SIGNING_ALGORITHM);
         if (StringUtils.isBlank(sigAlg)) {
-            sigAlg = IdentityCoreConstants.XML_SIGNATURE_ALGORITHM_RSA_SHA1_URI;
+            sigAlg = IdentityCoreConstants.XML_SIGNATURE_ALGORITHM_RSA_SHA256_URI;
         }
 
         assertEquals(serviceProviderDO.getSigningAlgorithmUri(), sigAlg, "Sign algorithm mismatch");
@@ -238,7 +238,7 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
 
         String digestAlg = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_DIGEST_ALGORITHM);
         if (StringUtils.isBlank(digestAlg)) {
-            digestAlg = IdentityCoreConstants.XML_DIGEST_ALGORITHM_SHA1;
+            digestAlg = IdentityCoreConstants.XML_DIGEST_ALGORITHM_SHA256;
         }
         assertEquals(serviceProviderDO.getDigestAlgorithmUri(), digestAlg, "Digest algorithm mismatch");
 
@@ -368,6 +368,35 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
         serviceProviderDO.setIssuer("erringIssuer");
         doThrow(RegistryException.class).when(mockRegistry).put(eq(existingPath), any(Resource.class));
         objUnderTest.addServiceProvider(serviceProviderDO);
+    }
+
+    @Test(dataProvider = "ResourceToObjectData")
+    public void testUpdateServiceProvider(Object paramMapObj) throws Exception {
+        Properties properties = new Properties();
+        properties.putAll((Map<?, ?>) paramMapObj);
+        Resource dummyResource = new ResourceImpl();
+        dummyResource.setProperties(properties);
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        String existingIssuer = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER);
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            existingIssuer = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER)
+                    + IdentityRegistryResources.QUALIFIER_ID + dummyResource.getProperty(IdentityRegistryResources.
+                    PROP_SAML_SSO_ISSUER_QUALIFIER);
+        }
+        String expectedPath = getPath(existingIssuer);
+        when(mockRegistry.resourceExists(expectedPath)).thenReturn(true);
+        objUnderTest.updateServiceProvider(serviceProviderDO, existingIssuer);
+        verify(mockRegistry).put(captor.capture(), any(Resource.class));
+        assertEquals(captor.getValue(), expectedPath, "Resource is not added at correct path");
+    }
+
+    @Test
+    public void testUpdatingServiceProviderExistingIssuer() throws Exception {
+        SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
+        serviceProviderDO.setIssuer("newIssuer");
+        when(mockRegistry.resourceExists(getPath("newIssuer"))).thenReturn(true);
+        assertFalse(objUnderTest.updateServiceProvider(serviceProviderDO, "existingIssuer"), "Resource should not have updated.");
     }
 
     @Test

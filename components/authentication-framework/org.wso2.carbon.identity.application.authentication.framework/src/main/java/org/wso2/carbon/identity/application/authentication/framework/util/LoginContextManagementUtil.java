@@ -54,6 +54,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getMyAccountURL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieEnabled;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieValidationSkipped;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.DEFAULT_SP_CONFIG;
 
 /**
@@ -93,7 +94,7 @@ public class LoginContextManagementUtil {
                 log.debug("Setting response for the valid request.");
             }
             // If the context is valid and at the first step.
-            if (isStepHasMultiOption(context)) {
+            if (isStepHasMultiOption(context) && !FrameworkUtils.isIdfInitiatedFromAuthenticator(context)) {
                 context.setCurrentAuthenticator(null);
             }
             result.addProperty("status", "success");
@@ -328,6 +329,12 @@ public class LoginContextManagementUtil {
 
     private static boolean canHandleAuthenticator(AuthenticationContext context, String authenticators) {
 
+        // TODO: Add a validation to check whether the IDF initiated authenticator is in the step config
+        //  without directly returning true.
+        if (FrameworkUtils.isIdfInitiatedFromAuthenticator(context)) {
+            return true;
+        }
+
         List<String> authenticatorsList = new ArrayList();
         if (authenticators != null) {
             String[] authenticatorIdPMappings = authenticators.split(";");
@@ -362,7 +369,7 @@ public class LoginContextManagementUtil {
         if (FrameworkUtils.isAuthenticationContextExpiryEnabled() && isValidRequest) {
             isValidRequest = FrameworkUtils.getCurrentStandardNano() <= context.getExpiryTime();
         }
-        if (isNonceCookieEnabled() && isValidRequest) {
+        if (isNonceCookieEnabled() && !isNonceCookieValidationSkipped(request) && isValidRequest) {
             Cookie nonceCookie = FrameworkUtils.getCookie(request, getNonceCookieName(context));
             isValidRequest = nonceCookie != null && StringUtils.isNotBlank(nonceCookie.getValue());
         }

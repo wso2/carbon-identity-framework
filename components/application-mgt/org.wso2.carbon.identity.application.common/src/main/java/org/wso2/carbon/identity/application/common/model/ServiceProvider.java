@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,8 +45,6 @@ public class ServiceProvider implements Serializable {
 
     private static final long serialVersionUID = 4754526832588478582L;
     private static final Log log = LogFactory.getLog(ServiceProvider.class);
-    private static final String APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER = "ApplicationRoleMappingConfigs";
-    private static final String APPLICATION_ROLE_MAPPING_CONFIG = "ApplicationRoleMappingConfig";
     private static final String CONSENT_CONFIG_ELEM = "ConsentConfig";
 
     private static final String ACCESS_URL = "AccessUrl";
@@ -55,6 +53,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+    private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
 
     @XmlTransient
     @JsonIgnore
@@ -85,10 +84,6 @@ public class ServiceProvider implements Serializable {
 
     @XmlElement(name = "LocalAndOutBoundAuthenticationConfig")
     private LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig;
-
-    @XmlElementWrapper(name = APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER)
-    @XmlElement(name = APPLICATION_ROLE_MAPPING_CONFIG)
-    private AppRoleMappingConfig[] applicationRoleMappingConfig = new AppRoleMappingConfig[0];
 
     @XmlElementWrapper(name = "RequestPathAuthenticatorConfigs")
     @XmlElement(name = "RequestPathAuthenticatorConfig")
@@ -140,6 +135,10 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_B2B_SELF_SERVICE_APP)
     private boolean isB2BSelfServiceApp;
+
+    @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
+    private AssociatedRolesConfig associatedRolesConfig;
+
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -172,6 +171,7 @@ public class ServiceProvider implements Serializable {
             } else if ("ApplicationName".equals(elementName)) {
                 if (element.getText() != null) {
                     serviceProvider.setApplicationName(element.getText());
+                    serviceProvider.setApplicationResourceId(serviceProvider.getApplicationName());
                 } else {
                     log.error("Service provider not loaded from the file. Application Name is null.");
                     return null;
@@ -206,28 +206,6 @@ public class ServiceProvider implements Serializable {
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(LocalAndOutboundAuthenticationConfig
                                 .build(element));
-            } else if (APPLICATION_ROLE_MAPPING_CONFIGS_WRAPPER.equals(elementName)) {
-                // Build application role mapping configurations.
-                Iterator<?> applicationRoleMappingTypeIter = element.getChildElements();
-                List<AppRoleMappingConfig> applicationRoleMappingConfigsArrList = new ArrayList<>();
-
-                if (applicationRoleMappingTypeIter != null) {
-                    while (applicationRoleMappingTypeIter.hasNext()) {
-                        OMElement applicationRoleMappingTypeElement = (OMElement) (applicationRoleMappingTypeIter
-                                .next());
-                        AppRoleMappingConfig applicationRoleMappingConfig = AppRoleMappingConfig
-                                .build(applicationRoleMappingTypeElement);
-                        if (applicationRoleMappingConfig != null) {
-                            applicationRoleMappingConfigsArrList.add(applicationRoleMappingConfig);
-                        }
-                    }
-                }
-                if (CollectionUtils.isNotEmpty(applicationRoleMappingConfigsArrList)) {
-                    AppRoleMappingConfig[] applicationRoleMappingTypeArr = applicationRoleMappingConfigsArrList
-                            .toArray(new AppRoleMappingConfig[0]);
-                    serviceProvider
-                            .setApplicationRoleMappingConfig(applicationRoleMappingTypeArr);
-                }
             } else if ("RequestPathAuthenticatorConfigs".equals(elementName)) {
                 // build request-path authentication configurations.
                 Iterator<?> requestPathAuthenticatorConfigsIter = element.getChildElements();
@@ -274,6 +252,9 @@ public class ServiceProvider implements Serializable {
             } else if ("PermissionAndRoleConfig".equals(elementName)) {
                 // build permission and role configuration.
                 serviceProvider.setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
+            } else if (ASSOCIATED_ROLES_CONFIG.equals(elementName)) {
+                // build role association.
+                serviceProvider.setAssociatedRolesConfig(AssociatedRolesConfig.build(element));
             }
         }
 
@@ -368,28 +349,6 @@ public class ServiceProvider implements Serializable {
     }
 
     /**
-     * Return the application role mapping configuration which indicates whether an IdP should
-     * use application role mapping for IdP roles for this application.
-     *
-     * @return Application role mapping configuration.
-     */
-    public AppRoleMappingConfig[] getApplicationRoleMappingConfig() {
-
-        return applicationRoleMappingConfig;
-    }
-
-    /**
-     * Set the application role mapping configuration which indicates whether an IdP should use
-     * application role mapping for IdP roles for this application.
-     *
-     * @param applicationRoleMappingConfig The application role mapping configuration.
-     */
-    public void setApplicationRoleMappingConfig(AppRoleMappingConfig[] applicationRoleMappingConfig) {
-
-        this.applicationRoleMappingConfig = applicationRoleMappingConfig;
-    }
-
-    /**
      * @return
      */
     public ClaimConfig getClaimConfig() {
@@ -415,6 +374,26 @@ public class ServiceProvider implements Serializable {
      */
     public void setPermissionAndRoleConfig(PermissionsAndRoleConfig permissionAndRoleConfig) {
         this.permissionAndRoleConfig = permissionAndRoleConfig;
+    }
+
+    /**
+     * Get associated roles config.
+     *
+     * @return AssociatedRolesConfig.
+     */
+    public AssociatedRolesConfig getAssociatedRolesConfig() {
+
+        return associatedRolesConfig;
+    }
+
+    /**
+     * Set associated roles config.
+     *
+     * @param associatedRolesConfig AssociatedRolesConfig.
+     */
+    public void setAssociatedRolesConfig(AssociatedRolesConfig associatedRolesConfig) {
+
+        this.associatedRolesConfig = associatedRolesConfig;
     }
 
     /**

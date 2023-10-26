@@ -21,13 +21,17 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG;
 
 /**
  * Handles session nonce cookie.
@@ -40,6 +44,8 @@ public class SessionNonceCookieUtil {
     public static final String NONCE_ERROR_CODE = "sessionNonceErrorCode";
 
     private static Boolean nonceCookieConfig;
+    private static final Set<String> NONCE_COOKIE_WHITELISTED_AUTHENTICATORS = new HashSet<>(
+            IdentityUtil.getPropertyAsList(NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG));
 
     /**
      * Get dynamic name for the nonce cookie
@@ -64,7 +70,7 @@ public class SessionNonceCookieUtil {
                                       AuthenticationContext context) {
 
         if (isNonceCookieEnabled()) {
-            String nonceId = UUIDGenerator.generateUUID();
+            String nonceId = UUID.randomUUID().toString();
             String cookieName = getNonceCookieName(context);
             // Multiplying the TempDataCleanUpTimeout by 2, because the task runs in every TempDataCleanUpTimeout
             // and cleans authentication context data older than TempDataCleanUpTimeout. This to cover the worst case.
@@ -86,7 +92,10 @@ public class SessionNonceCookieUtil {
     public static boolean validateNonceCookie(HttpServletRequest request,
                                               AuthenticationContext context) {
 
-        if (!isNonceCookieEnabled()) {
+        if (!isNonceCookieEnabled() || isNonceCookieValidationSkipped(request)) {
+            return true;
+        }
+        if (NONCE_COOKIE_WHITELISTED_AUTHENTICATORS.contains(context.getCurrentAuthenticator())) {
             return true;
         }
 
@@ -134,6 +143,17 @@ public class SessionNonceCookieUtil {
             nonceCookieConfig = Boolean.parseBoolean(IdentityUtil.getProperty(NONCE_COOKIE_CONFIG));
         }
         return nonceCookieConfig;
+    }
+
+    /**
+     * Check if nonce cookie validation should be skipped based on the request.
+     *
+     * @param request Http servlet request.
+     * @return True if nonce cookie validation should be skipped.
+     */
+    public static boolean isNonceCookieValidationSkipped(HttpServletRequest request) {
+
+        return Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.SKIP_NONCE_COOKIE_VALIDATION));
     }
 
 }

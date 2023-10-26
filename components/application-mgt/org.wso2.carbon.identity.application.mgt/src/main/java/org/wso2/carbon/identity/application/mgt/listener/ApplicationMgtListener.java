@@ -19,8 +19,12 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+
+import java.util.List;
 
 /**
  * Definition for the listeners which listens to Application/Service Provider CRUD events.
@@ -386,6 +390,66 @@ public interface ApplicationMgtListener {
      * @throws IdentityApplicationManagementException
      */
     default boolean doPreUpdateApplicationTemplate(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional action before retrieving the allowed audiences for role association.
+     *
+     * @param applicationUUID Application UUID.
+     * @param tenantDomain    Tenant domain.
+     * @return True if the preprocessing is successful.
+     * @throws IdentityApplicationManagementException Error occurred while preprocessing actions.
+     */
+    default boolean doPreGetAllowedAudienceForRoleAssociation(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional action after retrieving the allowed audiences for role association.
+     *
+     * @param allowedAudienceForRoleAssociation Allowed audiences for role association.
+     * @param applicationUUID                   Application UUID.
+     * @param tenantDomain                      Tenant domain.
+     * @return True if the postprocessing is successful.
+     * @throws IdentityApplicationManagementException Error occurred while postprocessing actions.
+     */
+    default boolean doPostGetAllowedAudienceForRoleAssociation(AssociatedRolesConfig allowedAudienceForRoleAssociation,
+                                                               String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional action before retrieving the associated roles of an application.
+     *
+     * @param applicationUUID Application UUID.
+     * @param tenantDomain    Tenant domain.
+     * @return True if the preprocessing is successful.
+     * @throws IdentityApplicationManagementException Error occurred while preprocessing actions.
+     */
+    default boolean doPreGetAssociatedRolesOfApplication(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional action after retrieving the associated roles of an application.
+     *
+     * @param associatedRolesOfApplication Associated roles of an application.
+     * @param applicationUUID              Application UUID.
+     * @param tenantDomain                 Tenant domain.
+     * @return True if the postprocessing is successful.
+     * @throws IdentityApplicationManagementException Error occurred while postprocessing actions.
+     */
+    default boolean doPostGetAssociatedRolesOfApplication(List<RoleV2> associatedRolesOfApplication,
+                                                          String applicationUUID, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         return true;

@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.model.handlers;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
@@ -29,12 +27,14 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfigurati
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SECONDARY_USER_STORE_DOMAIN_NAME;
 
 /**
  * Abstract Field Validation Configuration Handler.
@@ -68,14 +68,14 @@ public class AbstractFieldValidationConfigurationHandler implements FieldValidat
     protected RealmConfiguration getRealmConfiguration(String tenantDomain) throws InputValidationMgtException {
 
         try {
-            // Retrieve configs from secondary userstore if configured in the identity.xml, else from PRIMARY userstore.
             UserRealm realm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            String secondaryUserStoreName =
-                    IdentityUtil.getProperty("FieldInputValidation.DefaultConfigurations.SecondaryUserStoreName");
-            if (realm != null && StringUtils.isNotBlank(secondaryUserStoreName)
-                    && realm.getUserStoreManager().getSecondaryUserStoreManager(secondaryUserStoreName) != null) {
+            // Retrieve configs from secondary userstore if the tenant domain is not carbon.super.
+            // This logic should be improved when exposing the API to product-is.
+            if (realm != null && !tenantDomain.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME) &&
+                    realm.getUserStoreManager().getSecondaryUserStoreManager(SECONDARY_USER_STORE_DOMAIN_NAME) !=
+                            null) {
                 return realm.getUserStoreManager().getSecondaryUserStoreManager(
-                        secondaryUserStoreName).getRealmConfiguration();
+                        SECONDARY_USER_STORE_DOMAIN_NAME).getRealmConfiguration();
             } else if (CarbonContext.getThreadLocalCarbonContext().getUserRealm() != null &&
                     CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration() != null) {
                 return CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();

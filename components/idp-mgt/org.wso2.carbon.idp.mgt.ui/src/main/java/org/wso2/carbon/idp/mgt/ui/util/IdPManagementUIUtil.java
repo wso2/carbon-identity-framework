@@ -71,7 +71,7 @@ public class IdPManagementUIUtil {
     public static final String JWKS_URI = "jwksUri";
 
     private static final String META_DATA_SAML = "meta_data_saml";
-
+    private static final String SCOPES = "scopes";
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
 
     public static final String FILTER_STRING = "org.wso2.carbon.idp.mgt.filter";
@@ -303,9 +303,11 @@ public class IdPManagementUIUtil {
                     if (("googleapps").equals(provisioningConnector.getName())) {
                         Property[] googleProperties = provisioningConnector
                                 .getProvisioningProperties();
-                        for (Property property : googleProperties) {
-                            if (property.getName().equals("google_prov_private_key")) {
-                                paramMap.put("old_google_prov_private_key", property.getValue());
+                        if (googleProperties != null) {
+                            for (Property property : googleProperties) {
+                                if ("google_prov_private_key".equals(property.getName())) {
+                                    paramMap.put("old_google_prov_private_key", property.getValue());
+                                }
                             }
                         }
 
@@ -1376,9 +1378,9 @@ public class IdPManagementUIUtil {
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.SCOPES);
-        if (paramMap.get("scopes") != null
-                && paramMap.get("scopes").trim().length() > 0) {
-            property.setValue(paramMap.get("scopes"));
+        if (paramMap.get(SCOPES) != null
+                && paramMap.get(SCOPES).trim().length() > 0) {
+            property.setValue(paramMap.get(SCOPES));
         }
         properties[5] = property;
 

@@ -1,0 +1,47 @@
+{
+    "id": "df929521-6768-44f5-8586-624126ec3f8b",
+    "templateId": "windows-desktop-application",
+    "name": "Windows",
+    "description": "Applications developed to target windows desktops.",
+    "image": "windows",
+    "authenticationProtocol": "oidc",
+    "types": [
+        "dotNet"
+    ],
+    "category": "DEFAULT",
+    "displayOrder": 5,
+    "templateGroup": "desktop",
+    "application": {
+        "name": "",
+        "advancedConfigurations": {
+            "discoverableByEndUsers": false,
+            "skipLogoutConsent": true
+        },
+        "authenticationSequence": {
+            "type": "DEFAULT",
+            "steps": [
+                {
+                    "id": 1,
+                    "options": [
+                        {
+                            "idp": "LOCAL",
+                            "authenticator": "basic"
+                        }
+                    ]
+                }
+            ]
+        },
+        "inboundProtocolConfiguration": {
+            "oidc": {
+                "grantTypes": [
+                    "authorization_code"
+                ],
+                "publicClient": false,
+                "pkce": {
+                    "mandatory": false,
+                    "supportPlainTransformAlgorithm": true
+                }
+            }
+        }
+    }
+}

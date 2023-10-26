@@ -1609,6 +1609,34 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
+    @Override
+    public void deleteResourcesByType(int tenantId, String resourceTypeId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            if (isMySQLDB()) {
+                /**
+                 * Need to first delete files since in MySql Clustering scripts for NDB engine `ON DELETE CASCADE`is no
+                 * longer supported for foreign keys on NDB tables when the child table contains a column that uses any
+                 * of the BLOB or TEXT types. Issue: (https://github.com/wso2/product-is/issues/12167).
+                 */
+                List<Resource> resourceList = getResourcesByType(tenantId, resourceTypeId);
+                if (!resourceList.isEmpty()) {
+                    for (Resource resource : resourceList) {
+                        deleteFiles(resource.getResourceId());
+                    }
+                }
+            }
+            jdbcTemplate.executeUpdate(SQLConstants.DELETE_RESOURCES_BY_RESOURCE_TYPE_ID_SQL, preparedStatement -> {
+                int initialParameterIndex = 1;
+                preparedStatement.setString(initialParameterIndex, resourceTypeId);
+                preparedStatement.setInt(++initialParameterIndex, tenantId);
+            });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, e);
+        }
+    }
+
     /**
      * Get Attributes for the {@link Resource}.
      *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,12 +19,14 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
@@ -492,5 +494,70 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
         return Collections.emptySet();
     }
 
+    /**
+     * Get main application ID from the shared application ID.
+     *
+     * @param sharedAppId ID of the shared application.
+     * @return ID of the main application.
+     * @throws IdentityApplicationManagementServerException If an error occurs while retrieving the main application ID.
+     */
+    public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get tenant ID of the application.
+     *
+     * @param appId ID of the application.
+     * @return Tenant ID.
+     * @throws IdentityApplicationManagementServerException If an error occurs while retrieving the tenant ID.
+     */
+    public int getTenantIdByApp(String appId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get allowed role audience for role association of the application.
+     *
+     * @param applicationUUID Application UUID.
+     * @param tenantDomain Tenant domain.
+     * @return Allowed audience for role association.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving allowed audience.
+     */
+    public String getAllowedAudienceForRoleAssociation(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get associated roles of the application.
+     *
+     * @param applicationUUID Application UUID.
+     * @param tenantDomain    Tenant domain.
+     * @return List of associated roles.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving associated roles.
+     */
+    public List<RoleV2> getAssociatedRolesOfApplication(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Add role to application.
+     *
+     * @param serviceProvider Service Provider.
+     * @param roleId         Role ID.
+     * @param tenantDomain   Tenant domain.
+     * @throws IdentityApplicationManagementException If an error occurred while adding role to application.
+     */
+    public void addAssociatedRoleToApplication(ServiceProvider serviceProvider, String roleId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
 }
 

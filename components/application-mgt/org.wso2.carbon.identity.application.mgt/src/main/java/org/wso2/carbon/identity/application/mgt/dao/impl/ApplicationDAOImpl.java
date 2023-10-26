@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -33,9 +33,9 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
-import org.wso2.carbon.identity.application.common.model.AppRoleMappingConfig;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
+import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ConsentConfig;
 import org.wso2.carbon.identity.application.common.model.ConsentPurpose;
 import org.wso2.carbon.identity.application.common.model.ConsentPurposeConfigs;
-import org.wso2.carbon.identity.application.common.model.ExternalizedConsentPageConfig;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
@@ -59,6 +58,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -85,6 +85,9 @@ import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -120,6 +123,8 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ADVANCED_CONFIG;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_DISCOVERABLE;
@@ -140,17 +145,15 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
-import static org.wso2.carbon.identity.base.IdentityConstants.EXTERNAL_CONSENT_PAGE_URL;
-import static org.wso2.carbon.identity.base.IdentityConstants.EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT_DISPLAY_NAME;
-import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNALIZED_CONSENT_PAGE;
-import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNALIZED_CONSENT_PAGE_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_PAGE;
 import static org.wso2.carbon.identity.base.IdentityConstants.USE_EXTERNAL_CONSENT_PAGE_DISPLAY_NAME;
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * This class access the IDN_APPMGT database to store/update and delete application configurations.
@@ -168,7 +171,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
     private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
-    private static final String APP_ROLE_MAPPINGS_KEY = "use_app_role_mappings";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
@@ -421,6 +423,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(application);
             serviceProviderProperties.add(isB2BSSAppProperty);
 
+            ServiceProviderProperty allowedRoleAudienceProperty = buildAllowedRoleAudienceProperty(application);
+            serviceProviderProperties.add(allowedRoleAudienceProperty);
+            application.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));
             addServiceProviderProperties(connection, applicationId, serviceProviderProperties, tenantID);
 
 
@@ -433,6 +438,41 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } finally {
             IdentityApplicationManagementUtil.closeResultSet(results);
             IdentityApplicationManagementUtil.closeStatement(storeAppPrepStmt);
+        }
+    }
+
+    private void updateAssociatedRolesOfApplication(Connection connection, String applicationId, String applicationName,
+                                                    AssociatedRolesConfig associatedRolesConfig, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (associatedRolesConfig == null || associatedRolesConfig.getRoles() == null) {
+            return;
+        }
+        List<RoleV2> roles = new ArrayList<>(Arrays.asList(associatedRolesConfig.getRoles()));
+        if (CollectionUtils.isEmpty(roles)) {
+            return;
+        }
+        // Build SQL query to insert multiple values to the table based on the roles.size.
+        StringBuilder queryBuilder = new StringBuilder(ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_HEAD);
+        for (int i = 0; i < roles.size(); i++) {
+            queryBuilder.append(String.format(ADD_APPLICATION_ASSOC_ROLES_TAIL, i));
+            if (i != roles.size() - 1) {
+                queryBuilder.append(",");
+            }
+        }
+
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, queryBuilder.toString())) {
+            for (int i = 0; i < roles.size(); i++) {
+                statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + i,
+                        applicationId);
+                statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + i,
+                        roles.get(i).getId());
+            }
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error while persisting associated roles of application: " + applicationName +
+                            " of tenantDomain: " + tenantDomain, e);
         }
     }
 
@@ -485,9 +525,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         updateLocalAndOutboundAuthenticationConfiguration(serviceProvider.getApplicationID(),
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig(), connection);
 
-        updateAppRoleMappingConfiguration(serviceProvider, serviceProvider.
-                        getApplicationRoleMappingConfig(), connection);
-
         updateRequestPathAuthenticators(applicationId, serviceProvider.getRequestPathAuthenticatorConfigs(),
                 connection);
 
@@ -503,6 +540,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             deleteAssignedPermissions(connection, serviceProvider.getApplicationName(),
                     serviceProvider.getPermissionAndRoleConfig().getPermissions());
         }
+
+        // Update associated roles.
+        updateAssociatedRolesOfApplication(connection, serviceProvider.getApplicationResourceId(),
+                serviceProvider.getApplicationName(), serviceProvider.getAssociatedRolesConfig(), tenantDomain);
 
         updateConfigurationsAsServiceProperties(serviceProvider);
         if (ArrayUtils.isNotEmpty(serviceProvider.getSpProperties())) {
@@ -531,6 +572,17 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         deleteOutboundProvisioningConfiguration(applicationId, connection);
         deletePermissionAndRoleConfiguration(applicationId, connection);
         // deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
+        deleteAssociatedRolesConfigurations(connection, serviceProvider.getApplicationResourceId());
+    }
+
+    private void deleteAssociatedRolesConfigurations(Connection connection, String applicationId) throws SQLException {
+
+        // Delete associations.
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ApplicationMgtDBQueries
+                .DELETE_APPLICATION_ROLE_ASSOCIATIONS)) {
+            statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID, applicationId);
+            statement.executeUpdate();
+        }
     }
 
     /**
@@ -1490,63 +1542,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Update the application role mapping configuration.
-     *
-     * @param serviceProvider               ServiceProvider to be updated.
-     * @param applicationRoleMappingConfigs Application role mapping configurations.
-     * @param connection                    Connection to the database.
-     * @throws SQLException SQLException when updating application role mapping configuration.
-     */
-    private void updateAppRoleMappingConfiguration(ServiceProvider serviceProvider,
-                                                   AppRoleMappingConfig[] applicationRoleMappingConfigs,
-                                                   Connection connection) throws SQLException {
-
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        int applicationId = serviceProvider.getApplicationID();
-        List<String> attributeStepFIdPs =
-                getAttributeStepFIdPs(serviceProvider.getLocalAndOutBoundAuthenticationConfig());
-        deleteAppRoleMappingConfiguration(applicationId, connection);
-
-        try (PreparedStatement updateAppRoleMappingPrepStmt = connection
-                .prepareStatement(ApplicationMgtDBQueries.UPDATE_SP_IDP_ATTR)) {
-            if (applicationRoleMappingConfigs != null) {
-                for (AppRoleMappingConfig applicationRoleMappingConfig : applicationRoleMappingConfigs) {
-                    String fidPName = applicationRoleMappingConfig.getIdPName();
-                    if (attributeStepFIdPs.contains(fidPName)) {
-                        // Get idp id using idp name.
-                        int idpId = getIdPId(connection, tenantID, applicationRoleMappingConfig.getIdPName());
-                        updateAppRoleMappingPrepStmt.setInt(1, applicationId);
-                        updateAppRoleMappingPrepStmt.setInt(2, idpId);
-                        updateAppRoleMappingPrepStmt.setString(3, APP_ROLE_MAPPINGS_KEY);
-                        updateAppRoleMappingPrepStmt.setString(4, applicationRoleMappingConfig
-                                .isUseAppRoleMappings() ? "1" : "0");
-                        updateAppRoleMappingPrepStmt.addBatch();
-                    }
-                }
-                updateAppRoleMappingPrepStmt.executeBatch();
-            }
-        }
-    }
-
-    /**
-     * Delete the application role mapping configuration.
-     *
-     * @param applicationId Application ID of the service provider.
-     * @param connection    Connection to the database.
-     * @throws SQLException SQLException when deleting application role mapping configuration.
-     */
-    private void deleteAppRoleMappingConfiguration(int applicationId, Connection connection)
-            throws SQLException {
-
-        try (PreparedStatement deleteAppRoleMappingPrepStmt = connection
-                .prepareStatement(ApplicationMgtDBQueries.DELETE_SP_IDP_ATTR)) {
-            deleteAppRoleMappingPrepStmt.setInt(1, applicationId);
-            deleteAppRoleMappingPrepStmt.setString(2, APP_ROLE_MAPPINGS_KEY);
-            deleteAppRoleMappingPrepStmt.execute();
-        }
-    }
-
-    /**
      * @param applicationId
      * @param claimConfiguration
      * @param applicationID
@@ -2086,8 +2081,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider
                     .setLocalAndOutBoundAuthenticationConfig(getLocalAndOutboundAuthenticationConfig(
                             applicationId, connection, tenantID, propertyList));
-            serviceProvider.setApplicationRoleMappingConfig(getAppRoleMappingConfigurations(
-                    applicationId, connection));
 
             serviceProvider.setInboundProvisioningConfig(getInboundProvisioningConfiguration(
                     applicationId, connection, tenantID));
@@ -2113,6 +2106,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
+            // Set role associations.
+            serviceProvider.setAssociatedRolesConfig(
+                    getAssociatedRoles(serviceProvider.getApplicationResourceId(), connection, tenantID));
             // Will be supported with 'Advance Consent Management Feature'.
             /*
             ConsentConfig consentConfig = serviceProvider.getConsentConfig();
@@ -2130,6 +2126,46 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementException("Failed to get service provider with id: " + applicationId,
                     e);
         }
+    }
+
+    private AssociatedRolesConfig getAssociatedRoles(String applicationId, Connection connection, int tenantID)
+            throws IdentityApplicationManagementException {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
+        AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+        List<String> associatedRoleIds = new ArrayList<>();
+        try (NamedPreparedStatement preparedStatement = new NamedPreparedStatement(connection,
+                ApplicationMgtDBQueries.LOAD_ASSOCIATED_ROLES)) {
+            preparedStatement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID,
+                    applicationId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    associatedRoleIds.add(resultSet.getString(1));
+                }
+            }
+            associatedRolesConfig.setRoles(buildAssociatedRolesWithRoleName(associatedRoleIds, tenantDomain));
+        } catch (SQLException | IdentityRoleManagementException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error while retrieving associated roles for application ID: " + applicationId, e);
+        }
+        String allowedAudience =
+                getSPPropertyValueByPropertyKey(applicationId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, tenantDomain);
+        associatedRolesConfig.setAllowedAudience(
+                StringUtils.isNotBlank(allowedAudience) ? allowedAudience.toLowerCase() : RoleConstants.ORGANIZATION);
+        return associatedRolesConfig;
+    }
+
+    private RoleV2[] buildAssociatedRolesWithRoleName(List<String> roleIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<RoleV2> rolesList = new ArrayList<>();
+        RoleManagementService roleManagementServiceV2 =
+                ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2();
+        for (String roleId : roleIds) {
+            String roleName = roleManagementServiceV2.getRoleNameByRoleId(roleId, tenantDomain);
+            rolesList.add(new RoleV2(roleId, roleName));
+        }
+        return rolesList.toArray(new RoleV2[0]);
     }
 
     @Override
@@ -2200,6 +2236,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             ISSUER_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                                 applicationId, connection, tenantID));
+                    }
+                    if (ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME.equals(requiredAttribute)) {
+                        propertyList.stream()
+                                .filter(property -> ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME.equals(property.getName()))
+                                .findFirst()
+                                .ifPresent(property -> {
+                                    AssociatedRolesConfig configExcludingRoles = new AssociatedRolesConfig();
+                                    configExcludingRoles.setAllowedAudience(property.getValue());
+                                    serviceProvider.setAssociatedRolesConfig(configExcludingRoles);
+                                });
                     }
                 }
             }
@@ -2890,43 +2936,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
-    /**
-     * Read and set AppRoleMappingConfigurations from the database.
-     *
-     * @param applicationId Application ID of the application.
-     * @param connection    Database connection.
-     * @return AppRoleMappingConfig[] Array of AppRoleMappingConfigurations.
-     * @throws SQLException SQLException if an error occurs while reading from the database.
-     */
-    private AppRoleMappingConfig[] getAppRoleMappingConfigurations(int applicationId, Connection connection)
-            throws SQLException {
-
-        List<AppRoleMappingConfig> appRoleMappingConfigList = new ArrayList<>();
-
-        try (PreparedStatement getAppRoleMappingConfigPrepStmt = connection
-                .prepareStatement(ApplicationMgtDBQueries.LOAD_SP_IDP_ATTR_BY_APP_ID_AND_ATTR_KEY)) {
-
-            getAppRoleMappingConfigPrepStmt.setInt(1, applicationId);
-            getAppRoleMappingConfigPrepStmt.setString(2, APP_ROLE_MAPPINGS_KEY);
-
-            try (ResultSet getAppRoleMappingConfigResultSet = getAppRoleMappingConfigPrepStmt.executeQuery()) {
-                while (getAppRoleMappingConfigResultSet.next()) {
-                    String attrKey = getAppRoleMappingConfigResultSet.getString(3);
-                    if (APP_ROLE_MAPPINGS_KEY.equals(attrKey)) {
-                        int idpId = getAppRoleMappingConfigResultSet.getInt(2);
-                        String idpName = getIdPName(connection, idpId);
-                        AppRoleMappingConfig appRoleMappingConfig = new AppRoleMappingConfig();
-                        appRoleMappingConfig.setIdPName(idpName);
-                        appRoleMappingConfig.setUseAppRoleMappings("1".equals(
-                                getAppRoleMappingConfigResultSet.getString(4)));
-                        appRoleMappingConfigList.add(appRoleMappingConfig);
-                    }
-                }
-            }
-        }
-        return appRoleMappingConfigList.toArray(new AppRoleMappingConfig[0]);
-    }
-
     private void readAndSetConfigurationsFromProperties(List<ServiceProviderProperty> propertyList,
                                                         LocalAndOutboundAuthenticationConfig localAndOutboundConfig) {
         // Override with changed values.
@@ -2942,24 +2951,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     localAndOutboundConfig.setSkipConsent(Boolean.parseBoolean(value));
                 } else if (SKIP_LOGOUT_CONSENT.equals(name)) {
                     localAndOutboundConfig.setSkipLogoutConsent(Boolean.parseBoolean(value));
-                } else if (USE_EXTERNALIZED_CONSENT_PAGE.equals(name)) {
-                    getExternalizedConsentPageConfig(localAndOutboundConfig).setEnabled(Boolean.parseBoolean(value));
-                } else if (EXTERNAL_CONSENT_PAGE_URL.equals(name)) {
-                    getExternalizedConsentPageConfig(localAndOutboundConfig).setConsentPageUrl(value);
                 } else if (USE_EXTERNAL_CONSENT_PAGE.equals(name)) {
                     localAndOutboundConfig.setUseExternalConsentPage(Boolean.parseBoolean(value));
                 }
             }
         }
-    }
-
-    private ExternalizedConsentPageConfig getExternalizedConsentPageConfig(
-            LocalAndOutboundAuthenticationConfig config) {
-
-        if (config.getExternalizedConsentPageConfig() == null) {
-            config.setExternalizedConsentPageConfig(new ExternalizedConsentPageConfig());
-        }
-        return config.getExternalizedConsentPageConfig();
     }
 
     private AuthenticationScriptConfig getScriptConfiguration(int applicationId, Connection connection)
@@ -4505,87 +4501,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
-     * Retrieve the IDP ID for the given IDP name.
-     *
-     * @param conn     Database connection.
-     * @param tenantId Tenant Id of the application.
-     * @param idpName  Identity Provider Name.
-     * @return Identity Provider ID.
-     * @throws SQLException SQL Exception if error occurred while retrieving IDP ID.
-     */
-    private int getIdPId(Connection conn, int tenantId, String idpName) throws SQLException {
-
-        int idPId = -1;
-        if (idpName.equals("LOCAL")) {
-            return idPId;
-        }
-        String sqlStmt = ApplicationMgtDBQueries.SELECT_IDP_WITH_TENANT;
-        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt);) {
-            prepStmt.setString(1, idpName);
-            prepStmt.setInt(2, tenantId);
-            try (ResultSet resultSet = prepStmt.executeQuery()) {
-                if (resultSet.next()) {
-                    idPId = resultSet.getInt(1);
-                }
-            }
-        }
-        return idPId;
-    }
-
-    /**
-     * Retrieve Identity Provider Name by IDP ID.
-     *
-     * @param conn  Database connection.
-     * @param idpId Identity Provider ID of thr IDP.
-     * @return Identity Provider Name.
-     * @throws SQLException SQL Exception if any error occurs while retrieving the IDP Name.
-     */
-    private String getIdPName(Connection conn, int idpId) throws SQLException {
-
-        String idPName = null;
-        String sqlStmt = ApplicationMgtDBQueries.GET_IDP_NAME_BY_IDP_ID;
-        try (PreparedStatement prepStmt = conn.prepareStatement(sqlStmt)) {
-            prepStmt.setInt(1, idpId);
-            try (ResultSet resultSet = prepStmt.executeQuery()) {
-                if (resultSet.next()) {
-                    idPName = resultSet.getString(1);
-                }
-            }
-        }
-        return idPName;
-    }
-
-    /**
-     * Retrieve the list of federated IDPs in the attribute step of the service provider.
-     *
-     * @param localAndOutboundAuthenticationConfig Local and Outbound Authentication Configuration.
-     * @return List of Federated IDPs in the attribute step.
-     */
-    private List<String> getAttributeStepFIdPs(
-            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig) {
-
-        // If localAndOutboundAuthenticationConfig is null, no federated IDPs are configured.
-        if (localAndOutboundAuthenticationConfig == null) {
-            return new ArrayList<>();
-        }
-        AuthenticationStep attributeAuthStep =
-                localAndOutboundAuthenticationConfig.getAuthenticationStepForAttributes();
-        IdentityProvider[] authStepFederatedIdentityProviders = null;
-        if (attributeAuthStep == null) {
-            attributeAuthStep = Arrays.stream(localAndOutboundAuthenticationConfig.getAuthenticationSteps()).
-                    filter(AuthenticationStep::isAttributeStep).findFirst().orElse(null);
-        }
-        if (attributeAuthStep != null) {
-            authStepFederatedIdentityProviders = attributeAuthStep.getFederatedIdentityProviders();
-        }
-        if (authStepFederatedIdentityProviders != null) {
-            return Arrays.stream(authStepFederatedIdentityProviders)
-                    .map(IdentityProvider::getIdentityProviderName).collect(Collectors.toList());
-        }
-        return new ArrayList<>();
-    }
-
-    /**
      * @param conn
      * @param tenantId
      * @param authenticatorId
@@ -4916,12 +4831,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ServiceProviderProperty skipLogoutConsentProperty = buildSkipLogoutConsentProperty(sp);
             spPropertyMap.put(skipLogoutConsentProperty.getName(), skipLogoutConsentProperty);
 
-            ServiceProviderProperty useExternalizedConsentPageProperty = buildUseExternalizedConsentPageProperty(sp);
-            spPropertyMap.put(useExternalizedConsentPageProperty.getName(), useExternalizedConsentPageProperty);
-
-            ServiceProviderProperty externalConsentPageURLProperty = buildExternalConsentPageURLProperty(sp);
-            spPropertyMap.put(externalConsentPageURLProperty.getName(), externalConsentPageURLProperty);
-
             ServiceProviderProperty useExternalConsentPageProperty = buildUseExternalConsentPageProperty(sp);
             spPropertyMap.put(useExternalConsentPageProperty.getName(), useExternalConsentPageProperty);
         }
@@ -4937,6 +4846,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(sp);
         spPropertyMap.put(isB2BSSAppProperty.getName(), isB2BSSAppProperty);
+
+        ServiceProviderProperty allowedRoleAudienceProperty = buildAllowedRoleAudienceProperty(sp);
+        spPropertyMap.put(allowedRoleAudienceProperty.getName(), allowedRoleAudienceProperty);
 
         sp.setSpProperties(spPropertyMap.values().toArray(new ServiceProviderProperty[0]));
     }
@@ -4958,6 +4870,22 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         isB2BSSAppProperty.setValue(String.valueOf(sp.isB2BSelfServiceApp()));
         return isB2BSSAppProperty;
     }
+
+    private ServiceProviderProperty buildAllowedRoleAudienceProperty(ServiceProvider serviceProvider) {
+
+        ServiceProviderProperty allowedRoleAudienceProperty = new ServiceProviderProperty();
+        allowedRoleAudienceProperty.setName(ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME);
+        AssociatedRolesConfig associatedRolesConfig = serviceProvider.getAssociatedRolesConfig();
+        if (associatedRolesConfig == null) {
+            allowedRoleAudienceProperty.setValue(RoleConstants.ORGANIZATION);
+            return allowedRoleAudienceProperty;
+        }
+        String allowedAudience = StringUtils.isNotBlank(associatedRolesConfig.getAllowedAudience()) ?
+                associatedRolesConfig.getAllowedAudience().toLowerCase() : RoleConstants.ORGANIZATION;
+        allowedRoleAudienceProperty.setValue(allowedAudience);
+        return allowedRoleAudienceProperty;
+    }
+
 
     private ServiceProviderProperty buildTemplateIdProperty(ServiceProvider sp) {
 
@@ -5010,39 +4938,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return useExternalConsentPageProperty;
     }
 
-    private ServiceProviderProperty buildUseExternalizedConsentPageProperty(ServiceProvider sp) {
-
-        ServiceProviderProperty useExternalizedConsentPageProperty = new ServiceProviderProperty();
-
-        ExternalizedConsentPageConfig consentConfig = sp.getLocalAndOutBoundAuthenticationConfig()
-                .getExternalizedConsentPageConfig();
-        if (consentConfig != null) {
-            useExternalizedConsentPageProperty.setName(USE_EXTERNALIZED_CONSENT_PAGE);
-            useExternalizedConsentPageProperty.setDisplayName(USE_EXTERNALIZED_CONSENT_PAGE_DISPLAY_NAME);
-
-            useExternalizedConsentPageProperty.setValue(String.valueOf(
-                    consentConfig.isEnabled()));
-        }
-
-        return useExternalizedConsentPageProperty;
-    }
-
-    private ServiceProviderProperty buildExternalConsentPageURLProperty(ServiceProvider sp) {
-
-        ServiceProviderProperty externalConsentPageURLProperty = new ServiceProviderProperty();
-
-        ExternalizedConsentPageConfig consentConfig = sp.getLocalAndOutBoundAuthenticationConfig()
-                .getExternalizedConsentPageConfig();
-
-        if (consentConfig != null) {
-            externalConsentPageURLProperty.setName(EXTERNAL_CONSENT_PAGE_URL);
-            externalConsentPageURLProperty.setDisplayName(EXTERNAL_CONSENT_PAGE_URL_DISPLAY_NAME);
-
-            externalConsentPageURLProperty.setValue(consentConfig.getConsentPageUrl());
-        }
-        return externalConsentPageURLProperty;
-    }
-    
     private ServiceProviderProperty buildUserStoreDomainInRolesProperty(ServiceProvider sp) {
 
         ServiceProviderProperty property = new ServiceProviderProperty();
@@ -5492,6 +5387,103 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
+    @Override
+    public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            PreparedStatement prepStmt = connection.prepareStatement(ApplicationMgtDBQueries.GET_MAIN_APP_ID);
+            prepStmt.setString(1, sharedAppId);
+            ResultSet resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString(ApplicationTableColumns.MAIN_APP_ID);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while getting main application id for the shared application with id: %s",
+                            sharedAppId), e);
+        }
+    }
+
+    @Override
+    public int getTenantIdByApp(String applicationId) throws IdentityApplicationManagementServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            PreparedStatement prepStmt = connection.prepareStatement(ApplicationMgtDBQueries.GET_APP_TENANT_ID);
+            prepStmt.setString(1, applicationId);
+            ResultSet resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(ApplicationTableColumns.TENANT_ID);
+            }
+            return -1;
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while getting tenant id of the application with id: %s", applicationId), e);
+        }
+    }
+
+    @Override
+    public String getSPPropertyValueByPropertyKey(String applicationId, String propertyName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        int appId = getAppIdUsingResourceId(applicationId, tenantDomain);
+        return getSPPropertyValueByPropertyKey(appId, propertyName);
+    }
+
+    @Override
+    public List<RoleV2> getAssociatedRolesOfApplication(String applicationId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            AssociatedRolesConfig associatedRolesConfig = getAssociatedRoles(applicationId, connection, tenantID);
+            if (associatedRolesConfig.getRoles() == null) {
+                return new ArrayList<>();
+            }
+            return new ArrayList<>(Arrays.asList(associatedRolesConfig.getRoles()));
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error while retrieving associated roles for application ID: " + applicationId, e);
+        }
+    }
+
+    @Override
+    public void addAssociatedRoleToApplication(String applicationUUID, String roleId)
+            throws IdentityApplicationManagementException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement statement = connection.prepareStatement(
+                     ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLE)) {
+            statement.setString(1, applicationUUID);
+            statement.setString(2, roleId);
+            statement.execute();
+        } catch (SQLException e) {
+            String msg = "Error occurred while creating the association between role: %s and application: %s";
+            throw new IdentityApplicationManagementException(String.format(msg, roleId, applicationUUID), e);
+        }
+    }
+
+    private String getSPPropertyValueByPropertyKey(int applicationId, String propertyName)
+            throws IdentityApplicationManagementException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                     isH2DB() ? ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY_H2 :
+                             ApplicationMgtDBQueries.GET_SP_PROPERTY_VALUE_BY_PROPERTY_KEY)) {
+            statement.setInt(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SP_ID, applicationId);
+            statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NAME, propertyName);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_VALUE);
+            }
+            return StringUtils.EMPTY;
+        } catch (SQLException | DataAccessException e) {
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while fetching the property: %s of application with id: %s", propertyName,
+                            applicationId), e);
+        }
+    }
+
     private List<ApplicationBasicInfo> getDiscoverableApplicationBasicInfo(int limit, int offset, String
             tenantDomain) throws IdentityApplicationManagementException {
 
@@ -5811,6 +5803,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      */
     private void audit(String action, String data, String result) {
 
+        if (isLegacyAuditLogsDisabled()) {
+            return;
+        }
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;

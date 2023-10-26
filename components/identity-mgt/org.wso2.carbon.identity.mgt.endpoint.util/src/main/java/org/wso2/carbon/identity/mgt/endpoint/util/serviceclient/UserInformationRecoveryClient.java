@@ -50,10 +50,15 @@ public class UserInformationRecoveryClient {
         StringBuilder builder = new StringBuilder();
         String serviceURL = null;
 
-        serviceURL = builder.append(IdentityManagementServiceUtil.getInstance().getServiceContextURL()).append
-                (IdentityManagementEndpointConstants.ServiceEndpoints.USER_INFORMATION_RECOVERY_SERVICE).toString()
-                            .replaceAll("(?<!(http:|https:))//", "/");
+        /* Build the service URL of the User Information Recovery service.
+        Append the user identity management paths to the service URL.
+        Replace any unintended double slashes in the URL with a single slash. */
+        serviceURL = builder.append(IdentityManagementServiceUtil.getInstance().getServiceContextURL())
+                .append(IdentityManagementEndpointConstants.SERVICE_CONTEXT_PATH)
+                .append(IdentityManagementEndpointConstants.ServiceEndpoints.USER_INFORMATION_RECOVERY_SERVICE)
+                .toString().replaceAll("(?<!(http:|https:))//", "/");
 
+        // Create a stub for the User Information Recovery Admin Service.
         stub = new UserInformationRecoveryServiceStub(serviceURL);
         ServiceClient client = stub._getServiceClient();
         IdentityManagementServiceUtil.getInstance().authenticate(client);
