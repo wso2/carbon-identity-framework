@@ -889,6 +889,116 @@
       {
           "id": "QWNjb3VudERpc2FibGU",
           "displayName": "Account Disabled"
+      },
+      {
+          "id": "RW1haWxDb25maXJt",
+          "displayName": "Email Confirmation",
+          "description": "This email is used to request the user to confirm their email address"
+      },
+      {
+          "id": "QWNjb3VudElkUmVjb3Zlcnk",
+          "displayName": "Recover user account",
+          "description": "This email is sent when a user accounts needs to be recovered"
+      },
+      {
+          "id": "VGVtcG9yYXJ5UGFzc3dvcmQ",
+          "displayName": "Temporary Password",
+          "description": "This email is used to sent a temporary password to the user"
+      },
+      {
+          "id": "T25lVGltZVBhc3N3b3Jk",
+          "displayName": "One-Time Password",
+          "description": "This email is used to sent a One-Time Password (OTP) to the user"
+      },
+      {
+          "id": "cmVzZW5kQXNrUGFzc3dvcmQ",
+          "displayName": "Resend Ask Password",
+          "description": "This email is send when the organization admin reinitiates the Ask Password for a user"
+      },
+      {
+          "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
+          "displayName": "Resend Admin-Requested Forced Password Reset",
+          "description": "This email is sent when the organization admin reinitiates the forced password reset for a user"
+      },
+      {
+          "id": "QWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0V2l0aE9UUA",
+          "displayName": "Admin Forced Password Reset with OTP",
+          "description": "This email is sent when the organization admin initiates the forced password reset for a user with OTP"
+      },
+      {
+          "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0V2l0aE9UUA",
+          "displayName": "Resend Admin Forced Password Reset with OTP",
+          "description": "This email is sent when the organization admin reinitiates the forced password reset for a user with OTP"
+      },
+      {
+          "id": "YWNjb3VudEFjdGl2YXRpb25TdWNjZXNz",
+          "displayName": "Account Activation Confirmation",
+          "description": "This email notifies the user that the account activation is successful"
+      },
+      {
+          "id": "aW5pdGlhdGVSZWNvdmVyeQ",
+          "displayName": "Password Reset Initiation",
+          "description": "This email is sent when the user initiates a password reset"
+      },
+      {
+          "id": "aWRsZUFjY291bnRSZW1pbmRlcg",
+          "displayName": "Idle Account Reminder",
+          "description": "This email is sent when the user account is idle for a long time"
+      },
+      {
+          "id": "VmVyaWZ5RW1haWxPblVwZGF0ZQ",
+          "displayName": "Email Update Verification",
+          "description": "This email is sent when the user changes the email address"
+      },
+      {
+          "id": "bm90aWZ5T25FeGlzdGluZ0VtYWlsVXBkYXRlV2l0aG91dFZlcmlmaWNhdGlvbg",
+          "displayName": "Email update without verification",
+          "description": "This email informs the user that the email address is updated"
+      },
+      {
+          "id": "bm90aWZ5T25FeGlzdGluZ0VtYWlsVXBkYXRl",
+          "displayName": "Email Update Notification",
+          "description": "This email informs the user that the email address is updated"
+      },
+      {
+          "id": "VE9UUA",
+          "displayName": "TOTP",
+          "description": "This email is used to sent a Time-Based One-Time Password (TOTP) to the user"
+      },
+      {
+          "id": "VGVuYW50UmVnaXN0cmF0aW9uQ29uZmlybWF0aW9u",
+          "displayName": "Organization Registration Confirmation",
+          "description": "This email confirms the organization registration"
+      },
+      {
+          "id": "TGl0ZVVzZXJFbWFpbENvbmZpcm1hdGlvbg",
+          "displayName": "Lite User Email Confirmation",
+          "description": "This email is used to confirm a Lite User's email address"
+      },
+      {
+          "id": "UmVzZW5kTGl0ZVVzZXJFbWFpbENvbmZpcm1hdGlvbg",
+          "displayName": "Resend Lite User Email Confirmation",
+          "description": "This email is used to re-send the notification to confirm a Lite User's email address"
+      },
+      {
+          "id": "UmVzZW5kVmVyaWZ5RW1haWxPblVwZGF0ZQ",
+          "displayName": "Resend Email Update Verification",
+          "description": "This email is used to re-send the notification to verify the email address update"
+      },
+      {
+          "id": "c2VsZlNpZ25VcFN1Y2Nlc3M",
+          "displayName": "Self-Signup Success",
+          "description": "This email is sent when the user successfully signs up"
+      },
+      {
+          "id": "c2VsZlNpZ25VcE5vdGlmeQ",
+          "displayName": "Self-Signup Notification",
+          "description": "This email is sent when the user signs up"
+      },
+      {
+          "id": "T3JnYW5pemF0aW9uVXNlckludml0YXRpb24",
+          "displayName": "Organization User Invitation",
+          "description": "This email is sent when the organization admin invites a user to the organization"
       }
     ]
   },
