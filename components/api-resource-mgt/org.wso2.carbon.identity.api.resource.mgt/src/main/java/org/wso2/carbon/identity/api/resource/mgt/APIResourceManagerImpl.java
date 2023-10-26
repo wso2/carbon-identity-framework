@@ -186,6 +186,15 @@ public class APIResourceManagerImpl implements APIResourceManager {
         return CACHE_BACKED_DAO.getScopeMetadata(scopeNames, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    @Override
+    public List<Scope> getSystemAPIScopes(String tenantDomain) throws APIResourceMgtException {
+
+        List<Scope> systemScopes = getScopesByTenantDomain(tenantDomain,
+                APIResourceManagementConstants.INTERNAL_SCOPE_FILTER);
+        systemScopes.addAll(getScopesByTenantDomain(tenantDomain, APIResourceManagementConstants.CONSOLE_SCOPE_FILTER));
+        return systemScopes;
+    }
+
     /**
      * Get the filter node as a list.
      *
