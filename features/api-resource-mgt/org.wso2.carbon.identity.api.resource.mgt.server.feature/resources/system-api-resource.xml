@@ -64,8 +64,8 @@
         <Scopes>
             <Scope displayName="View Application Management"
                    name="internal_org_application_mgt_view"/>
-            <Scope displayName="Delete Application Management"
-                   name="internal_org_application_mgt_delete"/>
+            <Scope displayName="Update Application Management"
+                   name="internal_org_application_mgt_update"/>
         </Scopes>
     </APIResource>
     <APIResource name="Authenticators Management API" identifier="/api/server/v1/authenticators"
@@ -154,6 +154,13 @@
                  requiresAuthorization="true" description="API representation of the CORS Management API">
         <Scopes>
             <Scope displayName="View CORS Origins" name="internal_cors_origins_view"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="CORS Management API" identifier="/o/api/server/v1/cors/origins"
+                 requiresAuthorization="true" description="API representation of the CORS Management API"
+                 type="SYSTEM_ORG">
+        <Scopes>
+            <Scope displayName="View CORS Origins" name="internal_org_cors_origins_view"/>
         </Scopes>
     </APIResource>
     <APIResource name="Expired Password Identification Management API"
