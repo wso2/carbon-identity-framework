@@ -48,11 +48,11 @@ public interface ApplicationAuthenticator extends Serializable {
 
 
     /**
-     * Check whether the request from multi-option page can be handled by the authenticator.
+     * Check whether the request from multi-option step can be handled by the authenticator.
      *
      * @param request HTTP servlet request.
      * @param context Authentication context object.
-     * @return True if the request from multi-option page can be handled by the authenticator.
+     * @return True if the request from multi-option step can be handled by the authenticator.
      */
     default boolean canHandleRequestFromMultiOptionStep(HttpServletRequest request, AuthenticationContext context) {
 
