@@ -58,10 +58,6 @@ public class AuthorizedAPIManagementListener extends AbstractApplicationMgtListe
                     "creation for Tenant: " + tenantDomain);
         }
 
-        if (!serviceProvider.isSaasApp()) {
-            return true;
-        }
-
         String appName = serviceProvider.getApplicationName();
         // Return if the application is not console or my account.
         if (!isConsole(appName) && !isMyAccount(appName)) {
