@@ -893,6 +893,8 @@
     ]
   },
   "console.ui.app_copyright": "WSO2 Identity Server",
+  "console.ui.is_cookie_consent_banner_enabled": true,
+  "console.ui.cookie_policy_url": "/authenticationendpoint/cookie_policy.do",
   "console.ui.app_title": "WSO2 Identity Server Console",
   "console.ui.app_name": "Console",
   "console.ui.app_logo_path": "/assets/images/branding/logo.svg",
@@ -1135,6 +1137,8 @@
   "myaccount.route_paths.login": "",
   "myaccount.route_paths.logout": "/logout",
   "myaccount.ui.app_copyright": "WSO2 Identity Server",
+  "myaccount.ui.is_cookie_consent_banner_enabled": true,
+  "myaccount.ui.cookie_policy_url": "/authenticationendpoint/cookie_policy.do",
   "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
   "myaccount.ui.app_name": "My Account",
   "myaccount.ui.app_logo_path": "/assets/images/branding/logo.svg",
