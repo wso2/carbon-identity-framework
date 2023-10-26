@@ -147,13 +147,17 @@ public class AuthorizedAPIManagementListener extends AbstractApplicationMgtListe
                 return;
             }
             for (APIResource apiResource : apiResources) {
+                String policyId = APIResourceManagementConstants.RBAC_AUTHORIZATION;
+                if (APIResourceManagementConstants.ME_API.equals(apiResource.getName())) {
+                    policyId = APIResourceManagementConstants.NO_POLICY;
+                }
                 List<Scope> scopes = ApplicationManagementServiceComponentHolder.getInstance()
                         .getAPIResourceManager().getAPIScopesById(apiResource.getId(), tenantDomain);
                 AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
                         .apiId(apiResource.getId())
                         .appId(applicationBasicInfo.getApplicationResourceId())
                         .scopes(scopes)
-                        .policyId(APIResourceManagementConstants.RBAC_AUTHORIZATION)
+                        .policyId(policyId)
                         .build();
                 authorizedAPIManagementService.addAuthorizedAPI(applicationBasicInfo.getApplicationResourceId(),
                         authorizedAPI, tenantDomain);
@@ -208,7 +212,7 @@ public class AuthorizedAPIManagementListener extends AbstractApplicationMgtListe
                         .apiId(apiResource.getId())
                         .appId(applicationBasicInfo.getApplicationResourceId())
                         .scopes(scopes)
-                        .policyId(APIResourceManagementConstants.RBAC_AUTHORIZATION)
+                        .policyId(APIResourceManagementConstants.NO_POLICY)
                         .build();
                 authorizedAPIManagementService.addAuthorizedAPI(applicationBasicInfo.getApplicationResourceId(),
                         authorizedAPI, tenantDomain);
