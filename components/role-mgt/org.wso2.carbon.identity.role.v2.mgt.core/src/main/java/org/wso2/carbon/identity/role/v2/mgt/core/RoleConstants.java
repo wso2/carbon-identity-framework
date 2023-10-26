@@ -98,6 +98,7 @@ public class RoleConstants {
         public static final String UM_MAIN_ROLE_TENANT_ID = "UM_MAIN_ROLE_TENANT_ID";
         public static final String UM_GROUP_ID = "UM_GROUP_ID";
         public static final String GROUP_NAME = "GROUP_NAME";
+        public static final String ID = "ID";
 
         public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
         public static final String USER_NOT_FOUND_ERROR_MESSAGE = "A user doesn't exist with name: %s " +

@@ -1191,7 +1191,7 @@ public class RoleDAOImpl implements RoleDAO {
 
         for (RoleDTO roleDTO : sharedRoles) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_SCIM_ROLE_NAME_SQL,
-                    RoleConstants.RoleTableColumns.UM_ID)) {
+                    RoleConstants.RoleTableColumns.ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.NEW_ROLE_NAME, newRoleName);
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, roleDTO.getTenantId());
                 statement.setString(ROLE_NAME, roleDTO.getName());
