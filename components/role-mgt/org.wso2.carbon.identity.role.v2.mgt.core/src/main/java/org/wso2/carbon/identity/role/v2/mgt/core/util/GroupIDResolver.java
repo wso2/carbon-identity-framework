@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID_REQUEST;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 
 /**
  * GroupIDResolver Implementation of the {@link IDResolver} interface.
