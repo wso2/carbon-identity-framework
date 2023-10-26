@@ -54,7 +54,7 @@ public interface ApplicationAuthenticator extends Serializable {
      * @param context Authentication context object.
      * @return boolean
      */
-    default boolean canHandleMultiOptionRequest(HttpServletRequest request, AuthenticationContext context) {
+    default boolean canHandleRequestFromMultiOptionStep(HttpServletRequest request, AuthenticationContext context) {
 
         return canHandle(request);
     }
