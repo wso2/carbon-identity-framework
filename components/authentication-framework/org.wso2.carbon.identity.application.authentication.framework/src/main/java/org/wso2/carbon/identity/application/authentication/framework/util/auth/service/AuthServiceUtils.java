@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util.auth.service;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -47,11 +49,13 @@ public class AuthServiceUtils {
         try {
             URI uri = new URI(url);
             String query = uri.getQuery();
-            String[] pairs = query.split("&");
-            for (String pair : pairs) {
-                int idx = pair.indexOf("=");
-                queryParams.put(URLDecoder.decode(pair.substring(0, idx), UTF_8),
-                        URLDecoder.decode(pair.substring(idx + 1), UTF_8));
+            if (StringUtils.isNotBlank(query)) {
+                String[] pairs = query.split(FrameworkUtils.QUERY_SEPARATOR);
+                for (String pair : pairs) {
+                    int idx = pair.indexOf(FrameworkUtils.EQUAL);
+                    queryParams.put(URLDecoder.decode(pair.substring(0, idx), UTF_8),
+                            URLDecoder.decode(pair.substring(idx + 1), UTF_8));
+                }
             }
         } catch (URISyntaxException | UnsupportedEncodingException e) {
             throw new AuthServiceException("Error while extracting query params from provided url.", e);

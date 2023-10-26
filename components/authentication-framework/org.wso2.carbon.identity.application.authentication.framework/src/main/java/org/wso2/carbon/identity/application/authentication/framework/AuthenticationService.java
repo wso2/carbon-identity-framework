@@ -91,6 +91,8 @@ public class AuthenticationService {
 
         AuthServiceResponse authServiceResponse = new AuthServiceResponse();
 
+        /* This order of flow checking should be maintained as some of the
+         error flows could come with flow status INCOMPLETE.*/
         if (isAuthFlowSuccessful(request)) {
             handleSuccessAuthResponse(request, response, authServiceResponse);
         } else if (isAuthFlowFailed(request, response)) {
