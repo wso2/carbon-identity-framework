@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -154,18 +155,19 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
         if (realm == null) {
             throw new IdentityApplicationManagementException("Error while retrieving user realm");
         }
-        String adminUserName;
+        String adminRoleName;
         try {
-            adminUserName = realm.getRealmConfiguration().getAdminUserName();
+            adminRoleName = realm.getRealmConfiguration().getAdminRoleName();
         } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error while retrieving admin username");
+            throw new IdentityApplicationManagementException("Error while retrieving admin role name");
         }
-        if (StringUtils.isBlank(adminUserName)) {
-            throw new IdentityApplicationManagementException("Admin username not found");
+        if (StringUtils.isBlank(adminRoleName)) {
+            throw new IdentityApplicationManagementException("Admin role name not found");
         }
         try {
             return ApplicationManagementServiceComponentHolder.getInstance()
-                    .getRoleManagementServiceV2().getRoleIdByName(adminUserName, ORGANIZATION, orgId, tenantDomain);
+                    .getRoleManagementServiceV2().getRoleIdByName(UserCoreUtil.removeDomainFromName(adminRoleName),
+                            ORGANIZATION, orgId, tenantDomain);
         } catch (IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException("Error while retrieving role id for admin role in " +
                     "tenant domain : " + tenantDomain, e);
