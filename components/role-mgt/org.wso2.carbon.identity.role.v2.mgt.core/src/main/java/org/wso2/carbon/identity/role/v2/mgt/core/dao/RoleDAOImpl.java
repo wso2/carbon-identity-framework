@@ -2940,6 +2940,7 @@ public class RoleDAOImpl implements RoleDAO {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         // Append internal domain in order to maintain the backward compatibility.
+        roleName = appendInternalDomain(roleName);
         if (log.isDebugEnabled()) {
             log.debug("Deleting the role id: " + roleId + " in the tenantDomain: "
                     + tenantDomain);
