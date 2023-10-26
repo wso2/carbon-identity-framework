@@ -18,8 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
@@ -56,6 +58,12 @@ import static org.testng.Assert.assertNotNull;
 @WithRegistry(injectToSingletons = {FrameworkServiceDataHolder.class})
 @WithAxisConfiguration
 public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerAbstractTest {
+
+    @BeforeClass
+    public void setUpMocks() {
+
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
+    }
 
     @Test(dataProvider = "staticAcrDataProvider")
     public void testHandleStaticJavascriptAcr(String spFileName, String[] acrArray, int authHistoryCount) throws
