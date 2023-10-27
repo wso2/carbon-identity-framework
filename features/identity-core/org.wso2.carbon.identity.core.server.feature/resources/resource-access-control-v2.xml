@@ -568,6 +568,9 @@
     <Resource context="(.*)/o/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/> -->
 
     <!-- Me APIs -->
+    <Resource context="(.*)/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
+        <Scopes>internal_login</Scopes>
+    </Resource>
     <Resource context="(.*)/api/users/v1/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
         <Scopes>internal_login</Scopes>
     </Resource>
@@ -783,9 +786,6 @@
     </Resource>
 
     <!-- [Organization] Identity Governance Management API -->
-    <Resource context="(.*)/o/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
-        <Scopes>internal_org_governance_create</Scopes>
-    </Resource>
     <Resource context="(.*)/o/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_governance_view</Scopes>
     </Resource>
@@ -794,9 +794,6 @@
     </Resource>
 
     <!-- Identity Governance Management API -->
-    <Resource context="(.*)/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
-        <Scopes>internal_governance_create</Scopes>
-    </Resource>
     <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
         <Scopes>internal_governance_view</Scopes>
     </Resource>
