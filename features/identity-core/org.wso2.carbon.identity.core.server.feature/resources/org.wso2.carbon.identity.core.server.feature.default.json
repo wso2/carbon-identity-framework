@@ -751,6 +751,8 @@
   "configuration.store.allow_cross_tenant_search": false,
 
   "fido.webauthn.enable": true,
+  "fido.enable_passkey_progressive_enrollment": true,
+  "fido.enable_usernameless_authentication": false,
   "fido.trusted.origins": ["${carbon.protocol}://${carbon.host}:${carbon.management.port}"],
   "fido.user_response_timeout": "300000",
   "fido.metadata_service.enable": false,

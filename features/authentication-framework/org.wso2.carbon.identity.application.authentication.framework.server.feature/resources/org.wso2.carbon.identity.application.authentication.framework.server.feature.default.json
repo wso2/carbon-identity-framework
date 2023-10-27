@@ -125,6 +125,9 @@
   "authentication.authenticator.fido.enable": true,
   "authentication.authenticator.fido.parameters.FidoAuth": "/authenticationendpoint/fido-auth.jsp",
   "authentication.authenticator.fido.parameters.Fido2Auth": "/authenticationendpoint/fido2-auth.jsp",
+  "authentication.authenticator.fido.parameters.Fido2Enroll": "/authenticationendpoint/fido2-enroll.jsp",
+  "authentication.authenticator.fido.parameters.Fido2PasskeyStatus": "/authenticationendpoint/fido2-passkey-status.jsp",
+  "authentication.authenticator.fido.parameters.Fido2IdentifierFirst": "/authenticationendpoint/fido2-identifierfirst.jsp",
   "authentication.authenticator.fido.parameters.Tags": "MFA,Passwordless,Passkey",
 
   "authentication.authenticator.magiclink.name": "MagicLinkAuthenticator",
