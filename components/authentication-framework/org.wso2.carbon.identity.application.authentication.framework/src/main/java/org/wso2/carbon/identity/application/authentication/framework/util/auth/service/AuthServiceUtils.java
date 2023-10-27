@@ -46,6 +46,10 @@ public class AuthServiceUtils {
     public static Map<String, String> extractQueryParams(String url) throws AuthServiceException {
 
         Map<String, String> queryParams = new HashMap<>();
+
+        if (StringUtils.isBlank(url)) {
+            return queryParams;
+        }
         try {
             URI uri = new URI(url);
             String query = uri.getQuery();

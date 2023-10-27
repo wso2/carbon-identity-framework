@@ -28,6 +28,7 @@ public abstract class FrameworkConstants {
     public static final String SUBJECT = "subject";
     public static final String DEFAULT_SEQUENCE = "default";
     public static final String AUTHENTICATED_AUTHENTICATORS = "authenticatedAuthenticators";
+    public static final String REDIRECT_URL = "REDIRECT_URL";
     public static final String COMMONAUTH_COOKIE = "commonAuthId";
     public static final String ALLOW_SESSION_CREATION = "allowSessionCreation";
     public static final String CONTEXT_PROP_INVALID_EMAIL_USERNAME = "InvalidEmailUsername";
