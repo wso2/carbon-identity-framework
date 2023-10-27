@@ -110,7 +110,7 @@
             },
             {
                 "key": "UserInfoFields",
-                "value": "id,name,gender,emai,first_name,last_name,age_range,link"
+                "value": "id,name,gender,email,first_name,last_name,age_range,link"
             }
         ]
     },
