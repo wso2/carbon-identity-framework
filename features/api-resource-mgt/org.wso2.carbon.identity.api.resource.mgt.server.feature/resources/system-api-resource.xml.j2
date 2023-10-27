@@ -57,13 +57,10 @@
                  requiresAuthorization="true"
                  description="API representation of the Application Management API">
         <Scopes>
-            <Scope displayName="Create Application Management"
-                   name="internal_application_mgt_create"/>
-            <Scope displayName="Update Application Management"
-                   name="internal_application_mgt_update"/>
-            <Scope displayName="View Application Management" name="internal_application_mgt_view"/>
-            <Scope displayName="Delete Application Management"
-                   name="internal_application_mgt_delete"/>
+            <Scope displayName="Create Application" name="internal_application_mgt_create"/>
+            <Scope displayName="Update Application" name="internal_application_mgt_update"/>
+            <Scope displayName="View Application" name="internal_application_mgt_view"/>
+            <Scope displayName="Delete Application" name="internal_application_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management API"
@@ -71,10 +68,8 @@
                  description="API representation of the Application Management API"
                  type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="View Application Management"
-                   name="internal_org_application_mgt_view"/>
-            <Scope displayName="Update Application Management"
-                   name="internal_org_application_mgt_update"/>
+            <Scope displayName="View Application" name="internal_org_application_mgt_view"/>
+            <Scope displayName="Update Application" name="internal_org_application_mgt_update"/>
         </Scopes>
     </APIResource>
     <APIResource name="Authenticators Management API" identifier="/api/server/v1/authenticators"
@@ -106,7 +101,7 @@
                  description="API representation of the Branding Preference Management API"
                  type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="Update Organization Branding Preference"
+            <Scope displayName="Update Branding Preference"
                    name="internal_org_branding_preference_update"/>
         </Scopes>
     </APIResource>
@@ -286,8 +281,7 @@
     <APIResource name="Validation Rules API" identifier="/api/server/v1/validation-rules"
                  requiresAuthorization="true" description="API representation of the Validation Rules API">
         <Scopes>
-            <Scope displayName="Update Validation Rule Management"
-                   name="internal_validation_rule_mgt_update"/>
+            <Scope displayName="Update Validation Rule" name="internal_validation_rule_mgt_update"/>
         </Scopes>
     </APIResource>
     <APIResource name="Validation Rules API"
@@ -296,8 +290,7 @@
                  description="API representation of the Validation Rules API"
                  type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="Update Organization Validation Rule Management"
-                   name="internal_org_validation_rule_mgt_update"/>
+            <Scope displayName="Update Validation Rule" name="internal_org_validation_rule_mgt_update"/>
         </Scopes>
     </APIResource>
     <APIResource name="Keystore Management API" identifier="/api/server/v1/keystores/certs"
@@ -403,7 +396,7 @@
                  description="API representation of the Organization Role Management API"
                  type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="View Roles" name="internal_org_organization_role_view"/>
+            <Scope displayName="View Organization Roles" name="internal_org_organization_role_view"/>
             <Scope displayName="Create Organization Roles"
                    name="internal_org_organization_role_create"/>
             <Scope displayName="Update Organization Roles"
@@ -602,24 +595,20 @@
     <APIResource name="SCIM2 Groups API" identifier="/scim2/Groups" requiresAuthorization="true"
                  description="API representation of the SCIM2 Groups API">
         <Scopes>
-            <Scope displayName="View Group Management" name="internal_group_mgt_view"/>
-            <Scope displayName="Create Group Management" name="internal_group_mgt_create"/>
-            <Scope displayName="Update Group Management" name="internal_group_mgt_update"/>
-            <Scope displayName="Delete Group Management" name="internal_group_mgt_delete"/>
+            <Scope displayName="View Group" name="internal_group_mgt_view"/>
+            <Scope displayName="Create Group" name="internal_group_mgt_create"/>
+            <Scope displayName="Update Group" name="internal_group_mgt_update"/>
+            <Scope displayName="Delete Group" name="internal_group_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Groups API" identifier="/o/scim2/Groups"
                  requiresAuthorization="true"
                  description="API representation of the SCIM2 Groups API" type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="View Organization Group Management"
-                   name="internal_org_group_mgt_view"/>
-            <Scope displayName="Create Group Management"
-                   name="internal_org_group_mgt_create"/>
-            <Scope displayName="Update Group Management"
-                   name="internal_org_group_mgt_update"/>
-            <Scope displayName="Delete Group Management"
-                   name="internal_org_group_mgt_delete"/>
+            <Scope displayName="View Group" name="internal_org_group_mgt_view"/>
+            <Scope displayName="Create Group" name="internal_org_group_mgt_create"/>
+            <Scope displayName="Update Group" name="internal_org_group_mgt_update"/>
+            <Scope displayName="Delete Group" name="internal_org_group_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Users API" identifier="/scim2/Users" requiresAuthorization="true"
@@ -646,55 +635,52 @@
     <APIResource name="SCIM2 Roles API" identifier="/scim2/Roles" requiresAuthorization="true"
                  description="API representation of the SCIM2 Roles API">
         <Scopes>
-            <Scope displayName="View Role Management" name="internal_role_mgt_view"/>
-            <Scope displayName="Create Role Management" name="internal_role_mgt_create"/>
-            <Scope displayName="Update Role Management" name="internal_role_mgt_update"/>
-            <Scope displayName="Delete Role Management" name="internal_role_mgt_delete"/>
+            <Scope displayName="View Role" name="internal_role_mgt_view"/>
+            <Scope displayName="Create Role" name="internal_role_mgt_create"/>
+            <Scope displayName="Update Role" name="internal_role_mgt_update"/>
+            <Scope displayName="Delete Role" name="internal_role_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Roles API" identifier="/o/scim2/Roles"
                  requiresAuthorization="true"
                  description="API representation of the SCIM2 Roles API" type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="View Organization Role Management" name="internal_org_role_mgt_view"/>
-            <Scope displayName="Create Role Management"
-                   name="internal_org_role_mgt_create"/>
-            <Scope displayName="Update Role Management"
-                   name="internal_org_role_mgt_update"/>
-            <Scope displayName="Delete Role Management"
-                   name="internal_org_role_mgt_delete"/>
+            <Scope displayName="View Role" name="internal_org_role_mgt_view"/>
+            <Scope displayName="Create Role" name="internal_org_role_mgt_create"/>
+            <Scope displayName="Update Role" name="internal_org_role_mgt_update"/>
+            <Scope displayName="Delete Role" name="internal_org_role_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true"
                  description="API representation of the SCIM2 Bulk API">
         <Scopes>
-            <Scope displayName="Create Bulk User Management" name="internal_bulk_user_mgt_create"/>
-            <Scope displayName="View Bulk User Management" name="internal_bulk_user_mgt_view"/>
-            <Scope displayName="Update Bulk User Management" name="internal_bulk_user_mgt_update"/>
-            <Scope displayName="Delete Bulk User Management" name="internal_bulk_user_mgt_delete"/>
+            <Scope displayName="Create Bulk User" name="internal_bulk_user_mgt_create"/>
+            <Scope displayName="View Bulk User" name="internal_bulk_user_mgt_view"/>
+            <Scope displayName="Update Bulk User" name="internal_bulk_user_mgt_update"/>
+            <Scope displayName="Delete Bulk User" name="internal_bulk_user_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Bulk API" identifier="/o/scim2/Bulk"
                  requiresAuthorization="true"
                  description="API representation of the SCIM2 Bulk API" type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="Create Bulk User Management"
+            <Scope displayName="Create Bulk User"
                    name="internal_org_bulk_user_mgt_create"/>
-            <Scope displayName="View Bulk User Management"
+            <Scope displayName="View Bulk User"
                    name="internal_org_bulk_user_mgt_view"/>
-            <Scope displayName="Update Bulk User Management"
+            <Scope displayName="Update Bulk User"
                    name="internal_org_bulk_user_mgt_update"/>
-            <Scope displayName="Delete Bulk User Management"
+            <Scope displayName="Delete Bulk User"
                    name="internal_org_bulk_user_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Code Management API" identifier="/api/identity/user/v1.0/(.*)-code"
                  requiresAuthorization="true" description="API representation of the Code Management API">
         <Scopes>
-            <Scope displayName="View Code Management" name="internal_code_mgt_view"/>
-            <Scope displayName="Create Code Management" name="internal_code_mgt_create"/>
-            <Scope displayName="Update Code Management" name="internal_code_mgt_update"/>
-            <Scope displayName="Delete Code Management" name="internal_code_mgt_delete"/>
+            <Scope displayName="View Code" name="internal_code_mgt_view"/>
+            <Scope displayName="Create Code" name="internal_code_mgt_create"/>
+            <Scope displayName="Update Code" name="internal_code_mgt_update"/>
+            <Scope displayName="Delete Code" name="internal_code_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Personal Identification API"
@@ -709,18 +695,18 @@
                  requiresAuthorization="true"
                  description="API representation of the Configuration Management API">
         <Scopes>
-            <Scope displayName="List Configuration Management" name="internal_config_mgt_list"/>
-            <Scope displayName="View Configuration Management" name="internal_config_mgt_view"/>
-            <Scope displayName="Add Configuration Management" name="internal_config_mgt_add"/>
-            <Scope displayName="Update Configuration Management" name="internal_config_mgt_update"/>
-            <Scope displayName="Delete Configuration Management" name="internal_config_mgt_delete"/>
+            <Scope displayName="List Configuration" name="internal_config_mgt_list"/>
+            <Scope displayName="View Configuration" name="internal_config_mgt_view"/>
+            <Scope displayName="Add Configuration" name="internal_config_mgt_add"/>
+            <Scope displayName="Update Configuration" name="internal_config_mgt_update"/>
+            <Scope displayName="Delete Configuration" name="internal_config_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Consent Management API" identifier="/api/identity/consent-mgt/v1.0/consents"
                  requiresAuthorization="true" description="API representation of the Consent Management API">
         <Scopes>
-            <Scope displayName="Add Consent Management" name="internal_consent_mgt_add"/>
-            <Scope displayName="Delete Consent Management" name="internal_consent_mgt_delete"/>
+            <Scope displayName="Add Consent" name="internal_consent_mgt_add"/>
+            <Scope displayName="Delete Consent" name="internal_consent_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Consent Management API"
@@ -728,10 +714,8 @@
                  description="API representation of the Consent Management API"
                  type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="Add Consent Management"
-                   name="internal_org_consent_mgt_add"/>
-            <Scope displayName="Delete Consent Management"
-                   name="internal_org_consent_mgt_delete"/>
+            <Scope displayName="Add Consent" name="internal_org_consent_mgt_add"/>
+            <Scope displayName="Delete Consent" name="internal_org_consent_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Recovery API" identifier="/api/identity/recovery"
@@ -778,10 +762,10 @@
                  identifier="/api/server/v1/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API">
         <Scopes>
-            <Scope displayName="View Email Template Management" name="internal_email_mgt_view"/>
-            <Scope displayName="Create Email Template Management" name="internal_email_mgt_create"/>
-            <Scope displayName="Update Email Template Management" name="internal_email_mgt_update"/>
-            <Scope displayName="Delete Email Template Management" name="internal_email_mgt_delete"/>
+            <Scope displayName="View Email Template" name="internal_email_mgt_view"/>
+            <Scope displayName="Create Email Template" name="internal_email_mgt_create"/>
+            <Scope displayName="Update Email Template" name="internal_email_mgt_update"/>
+            <Scope displayName="Delete Email Template" name="internal_email_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Email Template Management API"
@@ -789,14 +773,10 @@
                  description="API representation of the Email Template Management API"
                  type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="View Email Template Management"
-                   name="internal_org_email_mgt_view"/>
-            <Scope displayName="Create Email Template Management"
-                   name="internal_org_email_mgt_create"/>
-            <Scope displayName="Update Email Template Management"
-                   name="internal_org_email_mgt_update"/>
-            <Scope displayName="Delete Email Template Management"
-                   name="internal_org_email_mgt_delete"/>
+            <Scope displayName="View Email Template" name="internal_org_email_mgt_view"/>
+            <Scope displayName="Create Email Template" name="internal_org_email_mgt_create"/>
+            <Scope displayName="Update Email Template" name="internal_org_email_mgt_update"/>
+            <Scope displayName="Delete Email Template" name="internal_org_email_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Entitlement Management API" identifier="/api/identity/entitlement/"
@@ -809,9 +789,9 @@
     <APIResource name="Media Management API" identifier="/api/identity/media/v1.0/user/"
                  requiresAuthorization="true" description="API representation of the Media Management API">
         <Scopes>
-            <Scope displayName="Create Media Management" name="internal_media_mgt_create"/>
-            <Scope displayName="View Media Management" name="internal_media_mgt_view"/>
-            <Scope displayName="Delete Media Management" name="internal_media_mgt_delete"/>
+            <Scope displayName="Create Media" name="internal_media_mgt_create"/>
+            <Scope displayName="View Media" name="internal_media_mgt_view"/>
+            <Scope displayName="Delete Media" name="internal_media_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Guest Invitation Management API"
