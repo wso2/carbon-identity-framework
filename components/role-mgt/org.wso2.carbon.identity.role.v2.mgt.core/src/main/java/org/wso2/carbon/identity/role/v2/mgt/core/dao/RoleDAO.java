@@ -401,4 +401,14 @@ public interface RoleDAO {
      */
     List<String> getAssociatedApplicationIdsByRoleId(String roleId, String tenantDomain)
             throws IdentityRoleManagementException;
+
+    /**
+     * Get role audience ref id.
+     *
+     * @param audience   Audience.
+     * @param audienceId Audience ID.
+     * @return audience ref id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    int getRoleAudienceRefId(String audience, String audienceId) throws IdentityRoleManagementException;
 }

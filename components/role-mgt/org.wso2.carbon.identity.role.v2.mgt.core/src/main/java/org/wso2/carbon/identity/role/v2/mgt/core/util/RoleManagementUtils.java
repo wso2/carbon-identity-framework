@@ -22,6 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
+import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 
 import java.util.Locale;
 
@@ -31,6 +34,8 @@ import java.util.Locale;
 public class RoleManagementUtils {
 
     private static final Log log = LogFactory.getLog(RoleManagementUtils.class);
+
+    private static final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getRoleDAO();
 
     /**
      * Checks whether the given role is an internal or application role.
@@ -44,5 +49,18 @@ public class RoleManagementUtils {
                 CarbonConstants.DOMAIN_SEPARATOR).toLowerCase(Locale.ENGLISH)) ||
                 roleName.toLowerCase(Locale.ENGLISH).startsWith((RoleConstants.APPLICATION_DOMAIN +
                         CarbonConstants.DOMAIN_SEPARATOR).toLowerCase(Locale.ENGLISH));
+    }
+
+    /**
+     * Resolve role audience ref id.
+     *
+     * @param audience   Audience.
+     * @param audienceId Audience ID.
+     * @return audience ref id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    public static int resolveAudienceRefId(String audience, String audienceId) throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleAudienceRefId(audience, audienceId);
     }
 }
