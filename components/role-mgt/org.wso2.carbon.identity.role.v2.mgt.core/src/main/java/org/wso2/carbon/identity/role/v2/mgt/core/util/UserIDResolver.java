@@ -20,19 +20,20 @@ package org.wso2.carbon.identity.role.v2.mgt.core.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
+import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_NOT_SUPPORTED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 
@@ -46,7 +47,7 @@ public class UserIDResolver implements IDResolver {
     @Override
     public String getNameByID(String id, String tenantDomain) throws IdentityRoleManagementException {
 
-        String userName = resolveUserNameFromUserID(id);
+        String userName = resolveUserNameFromUserID(id, tenantDomain);
         if (userName == null) {
             String errorMessage = "A user doesn't exist with id: " + id + " in the tenantDomain: " + tenantDomain;
             throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
@@ -74,7 +75,7 @@ public class UserIDResolver implements IDResolver {
     @Override
     public String getIDByName(String name, String tenantDomain) throws IdentityRoleManagementException {
 
-        String id = resolveIDFromUserName(name);
+        String id = resolveIDFromUserName(name, tenantDomain);
         if (id == null) {
             String errorMessage = String.format(USER_NOT_FOUND_ERROR_MESSAGE, name, tenantDomain);
             throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
@@ -103,67 +104,51 @@ public class UserIDResolver implements IDResolver {
     /**
      * Retrieves the unique user id of the given userID.
      *
-     * @param userID userID.
+     * @param userID       userID.
+     * @param tenantDomain The tenant domain.
      * @return unique user id of the user.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private String resolveUserNameFromUserID(String userID) throws IdentityRoleManagementException {
+    private String resolveUserNameFromUserID(String userID, String tenantDomain) throws IdentityRoleManagementException {
 
         try {
-            UserStoreManager userStoreManager = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserRealm()
-                    .getUserStoreManager();
-            try {
-                if (userStoreManager instanceof AbstractUserStoreManager) {
-                    return ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("Provided user store manager for the userID: " + userID + ", is not an instance of the "
-                            + "AbstractUserStore manager");
-                }
-                throw new IdentityRoleManagementClientException(OPERATION_NOT_SUPPORTED.getCode(),
-                        "Unable to get the username of the userID: " + userID + ".");
-            } catch (UserStoreException e) {
-                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                        "Error occurred while resolving username for the userID: " + userID, e);
-            }
+            return getUserStoreManager(IdentityTenantUtil.getTenantId(tenantDomain)).getUserNameFromUserID(userID);
         } catch (UserStoreException e) {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    "Error occurred while retrieving the userstore manager to resolve username for the userID: "
-                            + userID, e);
+                    "Error occurred while resolving username for the userID: " + userID, e);
         }
+
     }
 
     /**
      * Retrieves the unique user id of the given userName.
      *
      * @param userName userName.
+     * @param tenantDomain TenantDomain.
      * @return unique user id of the user.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private String resolveIDFromUserName(String userName) throws IdentityRoleManagementException {
+    private String resolveIDFromUserName(String userName, String tenantDomain) throws IdentityRoleManagementException {
 
         try {
-            UserStoreManager userStoreManager = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserRealm()
-                    .getUserStoreManager();
-            try {
-                if (userStoreManager instanceof AbstractUserStoreManager) {
-                    return ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(userName);
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug(
-                            "Provided user store manager for the userName: " + userName + ", is not an instance of the "
-                                    + "AbstractUserStore manager");
-                }
-                throw new IdentityRoleManagementClientException(OPERATION_NOT_SUPPORTED.getCode(),
-                        "Unable to get the username of the userName: " + userName + ".");
-            } catch (UserStoreException e) {
+            return getUserStoreManager(IdentityTenantUtil.getTenantId(tenantDomain)).getUserIDFromUserName(userName);
+        } catch (UserStoreException e) {
                 throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                         "Error occurred while resolving username for the userName: " + userName, e);
-            }
-        } catch (UserStoreException e) {
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    "Error occurred while retrieving the userstore manager to resolve username for the userName: "
-                            + userName, e);
         }
+    }
+
+    /**
+     * Get the userstore manager by tenant id.
+     *
+     * @return The userstore manager.
+     * @throws UserStoreException Error while getting the userstore manager.
+     */
+    private AbstractUserStoreManager getUserStoreManager(int tenantId) throws UserStoreException {
+
+        RealmService realmService = RoleManagementServiceComponentHolder.getInstance().getRealmService();
+        UserRealm tenantUserRealm = realmService.getTenantUserRealm(tenantId);
+
+        return (AbstractUserStoreManager) tenantUserRealm.getUserStoreManager();
     }
 }
