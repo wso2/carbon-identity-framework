@@ -23,6 +23,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
@@ -217,6 +218,11 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         if (StringUtils.isNotBlank(applicationRoles)) {
             localUnfilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM, applicationRoles);
+            if (!CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+                // Add app associated roles to roles claim in Role V2 runtime.
+                String rolesClaimURI = getLocalGroupsClaimURI();
+                localUnfilteredClaims.put(rolesClaimURI, applicationRoles);
+            }
         }
 
         // claim mapping from local service provider to remote service provider.
@@ -570,7 +576,14 @@ public class DefaultClaimHandler implements ClaimHandler {
         // Retrieve all non-null user claim values against local claim uris.
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig, userStore);
 
-        handleApplicationRolesForLocalUser(stepConfig, context, allLocalClaims);
+        String applicationRoles = getApplicationRoles(authenticatedUser, context);
+
+        handleApplicationRolesForLocalUser(stepConfig, context, allLocalClaims, applicationRoles);
+
+        if (!CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+            // Handle app associated roles in roles claim in Role V2 runtime.
+            handleRoleAppAssoication(allLocalClaims, applicationRoles);
+        }
 
         // Insert the runtime claims from the context. The priority is for runtime claims.
         allLocalClaims.putAll(context.getRuntimeClaims());
@@ -1099,6 +1112,22 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
+     * Handle role app association in roles claim.
+     *
+     * @param appAssociatedRoles App associated roles.
+     * @param mappedAttrs Mapped claim attributes.
+     */
+    private void handleRoleAppAssoication(Map<String, String> mappedAttrs, String appAssociatedRoles) {
+
+        // Getting roles claim URI by checking legacy config.
+        String rolesClaimURI = getLocalGroupsClaimURI();
+        if (mappedAttrs.containsKey(rolesClaimURI)) {
+            mappedAttrs.put(rolesClaimURI,
+                    StringUtils.isEmpty(appAssociatedRoles) ? StringUtils.EMPTY : appAssociatedRoles);
+        }
+    }
+
+    /**
      * Specially handle role claim values.
      *
      * @param context Authentication context.
@@ -1172,7 +1201,7 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @throws FrameworkException Exception on handling application roles for local user.
      */
     protected void handleApplicationRolesForLocalUser(StepConfig stepConfig, AuthenticationContext context,
-                                                    Map<String, String> allLocalClaims)
+                                                    Map<String, String> allLocalClaims, String appAssociatedRoles)
             throws FrameworkException {
 
         AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
@@ -1183,9 +1212,8 @@ public class DefaultClaimHandler implements ClaimHandler {
             String requestedAppRoleClaim = context.getSequenceConfig().getApplicationConfig()
                     .getRequestedClaimMappings().get(FrameworkConstants.APP_ROLES_CLAIM);
             if (requestedAppRoleClaim != null) {
-                String appRoles = getApplicationRoles(authenticatedUser, context);
-                if (appRoles != null) {
-                    allLocalClaims.put(FrameworkConstants.APP_ROLES_CLAIM, appRoles);
+                if (appAssociatedRoles != null) {
+                    allLocalClaims.put(FrameworkConstants.APP_ROLES_CLAIM, appAssociatedRoles);
                 }
             }
         }
