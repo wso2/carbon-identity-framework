@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementS
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -112,6 +113,7 @@ public class FrameworkServiceDataHolder {
     private boolean isAdaptiveAuthenticationAvailable = false;
     private boolean isOrganizationManagementEnable = false;
     private OrganizationManager organizationManager;
+    private RoleManagementService roleManagementServiceV2;
 
     private FrameworkServiceDataHolder() {
 
@@ -720,5 +722,25 @@ public class FrameworkServiceDataHolder {
     public ConfigurationManager getConfigurationManager() {
 
         return configurationManager;
+    }
+
+    /**
+     * Get {@link RoleManagementService}.
+     *
+     * @return Instance of {@link RoleManagementService}.
+     */
+    public RoleManagementService getRoleManagementServiceV2() {
+
+        return roleManagementServiceV2;
+    }
+
+    /**
+     * Set {@link RoleManagementService}.
+     *
+     * @param roleManagementServiceV2 Instance of {@link RoleManagementService}.
+     */
+    public void setRoleManagementServiceV2(RoleManagementService roleManagementServiceV2) {
+
+        this.roleManagementServiceV2 = roleManagementServiceV2;
     }
 }

@@ -161,7 +161,8 @@ public class DefaultClaimHandlerTest {
         when(applicationRolesResolver.getRoles(eq(authenticatedUser), eq(applicationId))).thenReturn(
                 mappedApplicationRoles);
 
-        defaultClaimHandler.handleApplicationRolesForLocalUser(stepConfig, authenticationContext, localClaims);
+        defaultClaimHandler.handleApplicationRolesForLocalUser(stepConfig, authenticationContext, localClaims,
+                String.join(FrameworkUtils.getMultiAttributeSeparator(), mappedApplicationRoles));
 
         Assert.assertEquals(localClaims.get(FrameworkConstants.APP_ROLES_CLAIM),
                 String.join(",", mappedApplicationRoles));

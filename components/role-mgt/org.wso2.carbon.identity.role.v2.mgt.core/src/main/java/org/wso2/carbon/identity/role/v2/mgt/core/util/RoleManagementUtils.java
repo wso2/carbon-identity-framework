@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.role.v2.mgt.core.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.identity.role.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 
 import java.util.Locale;
 
