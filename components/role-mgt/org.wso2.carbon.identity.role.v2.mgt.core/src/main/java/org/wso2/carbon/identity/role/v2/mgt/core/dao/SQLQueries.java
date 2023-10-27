@@ -82,7 +82,7 @@ public class SQLQueries {
     public static final String GET_SHARED_ROLES_MAIN_ROLE_IDS_SQL = "SELECT hr.UM_UUID, hr.UM_TENANT_ID FROM " +
             "UM_HYBRID_ROLE hr JOIN UM_SHARED_ROLE sr ON hr.UM_ID = sr.UM_MAIN_ROLE_ID AND hr.UM_TENANT_ID = " +
             "sr.UM_MAIN_ROLE_TENANT_ID JOIN UM_HYBRID_ROLE hr2 ON sr.UM_SHARED_ROLE_ID = hr2.UM_ID AND " +
-            "sr.UM_SHARED_ROLE_TENANT_ID = hr2.UM_TENANT_ID WHERE AND hr2.UM_TENANT_ID =:UM_TENANT_ID; AND " +
+            "sr.UM_SHARED_ROLE_TENANT_ID = hr2.UM_TENANT_ID WHERE hr2.UM_TENANT_ID =:UM_TENANT_ID; AND " +
             "hr2.UM_UUID IN (";
 
     public static final String GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL = "SELECT m_main.UM_UUID " +
