@@ -109,7 +109,8 @@ public class UserIDResolver implements IDResolver {
      * @return unique user id of the user.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private String resolveUserNameFromUserID(String userID, String tenantDomain) throws IdentityRoleManagementException {
+    private String resolveUserNameFromUserID(String userID, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         try {
             return getUserStoreManager(IdentityTenantUtil.getTenantId(tenantDomain)).getUserNameFromUserID(userID);
