@@ -63,7 +63,9 @@
     </Resource>
 
     <!-- [Organization] User Management API -->
-    <Resource context="(.*)/o/api/identity/user/v1.0/validate-username(.*)" secured="true" http-method="all"/>
+    <Resource context="(.*)/o/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_user_update</Scopes>
+    </Resource>
 
     <!-- User Management API -->
     <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
@@ -106,7 +108,7 @@
 
     <!-- Notification Sender Management API -->
     <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="POST">
-        <Scopes>internal_notification_senders_add</Scopes>
+        <Scopes>internal_notification_senders_create</Scopes>
     </Resource>
     <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="PUT">
         <Scopes>internal_notification_senders_update</Scopes>
@@ -267,7 +269,7 @@
         <Scopes>internal_org_recovery_view</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="POST">
-        <Scopes>internal_org_recvoery_create</Scopes>
+        <Scopes>internal_org_recovery_create</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="PATCH, PUT">
         <Scopes>internal_org_recovery_update</Scopes>
@@ -281,7 +283,7 @@
         <Scopes>internal_recovery_view</Scopes>
     </Resource>
     <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="POST">
-        <Scopes>internal_recvoery_create</Scopes>
+        <Scopes>internal_recovery_create</Scopes>
     </Resource>
     <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="PATCH, PUT">
         <Scopes>internal_recovery_update</Scopes>
@@ -375,27 +377,27 @@
     <!-- [Organizational] SCIM2 Roles API -->
     <Resource context="(.*)/o/scim2/v2/Roles/.search" secured="true" http-method="POST">
         <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
-        <Scopes>internal_role_mgt_view</Scopes>
+        <Scopes>internal_org_role_mgt_view</Scopes>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles(.*)" secured="true" http-method="POST">
         <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
-        <Scopes>internal_role_mgt_create</Scopes>
+        <Scopes>internal_org_role_mgt_create</Scopes>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles(.*)" secured="true" http-method="GET">
         <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
-        <Scopes>internal_role_mgt_view</Scopes>
+        <Scopes>internal_org_role_mgt_view</Scopes>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="PUT">
         <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
-        <Scopes>internal_role_mgt_update</Scopes>
+        <Scopes>internal_org_role_mgt_update</Scopes>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="PATCH">
         <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
-        <Scopes>internal_role_mgt_update</Scopes>
+        <Scopes>internal_org_role_mgt_update</Scopes>
     </Resource>
     <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="DELETE">
         <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
-        <Scopes>internal_role_mgt_delete</Scopes>
+        <Scopes>internal_org_role_mgt_delete</Scopes>
     </Resource>
 
     <!-- SCIM2 Users API -->
@@ -495,16 +497,16 @@
 
     <!-- [Organization] SCIM2 Bulk API -->
     <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="GET">
-        <Scopes>internal_bulk_mgt_view</Scopes>
+        <Scopes>internal_org_bulk_mgt_view</Scopes>
     </Resource>
     <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
-        <Scopes>internal_bulk_mgt_create</Scopes>
+        <Scopes>internal_org_bulk_mgt_create</Scopes>
     </Resource>
     <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="PATCH, PUT">
-        <Scopes>internal_bulk_mgt_update</Scopes>
+        <Scopes>internal_org_bulk_mgt_update</Scopes>
     </Resource>
     <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_bulk_mgt_delete</Scopes>
+        <Scopes>internal_org_bulk_mgt_delete</Scopes>
     </Resource>
 
     <!-- SCIM2 Bulk API -->
@@ -755,8 +757,8 @@
     </Resource>
 
     <!-- [Organization] Application Management API -->
-    <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_org_application_mgt_delete</Scopes>
+    <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="PATCH, PUT">
+        <Scopes>internal_org_application_mgt_update</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_application_mgt_view</Scopes>
@@ -989,6 +991,14 @@
     </Resource>
     <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_media_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- [Organization] CORS Management API -->
+    <Resource context="(.*)/o/api/server/v1/cors/origins" secured="true" http-method="GET">
+        <Scopes>internal_org_cors_origins_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET">
+        <Scopes>internal_org_cors_origins_view</Scopes>
     </Resource>
 
     <!-- CORS Management API -->

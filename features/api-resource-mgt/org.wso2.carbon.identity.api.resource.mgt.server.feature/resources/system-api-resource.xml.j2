@@ -105,23 +105,23 @@
                    name="internal_org_branding_preference_update"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Challenges Management API" identifier="/api/server/v1/challenges"
+    <APIResource name="Challenges Management API" identifier="/api/users/v1/(.*)/challenge(.*)"
                  requiresAuthorization="true"
                  description="API representation of the Challenges Management API">
         <Scopes>
-            <Scope displayName="View Challenges" name="internal_challenges_view"/>
-            <Scope displayName="Create Challenges" name="internal_challenges_create"/>
-            <Scope displayName="Update Challenges" name="internal_challenges_update"/>
-            <Scope displayName="Delete Challenges" name="internal_challenges_delete"/>
+            <Scope displayName="View Challenge" name="internal_challenge_mgt_view"/>
+            <Scope displayName="Create Challenge" name="internal_challenge_mgt_create"/>
+            <Scope displayName="Update Challenge" name="internal_challenge_mgt_update"/>
+            <Scope displayName="Delete Challenge" name="internal_challenge_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Claim Management API" identifier="/api/server/v1/claim-dialects"
                  requiresAuthorization="true" description="API representation of the Claim Management API">
         <Scopes>
-            <Scope displayName="Create Claim Meta" name="internal_claim_meta_create"/>
-            <Scope displayName="View Claim Meta" name="internal_claim_meta_view"/>
-            <Scope displayName="Update Claim Meta" name="internal_claim_meta_update"/>
-            <Scope displayName="Delete Claim Meta" name="internal_claim_meta_delete"/>
+            <Scope displayName="Create Claim" name="internal_claim_meta_create"/>
+            <Scope displayName="View Claim" name="internal_claim_meta_view"/>
+            <Scope displayName="Update Claim" name="internal_claim_meta_update"/>
+            <Scope displayName="Delete Claim" name="internal_claim_meta_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Claim Management API"
@@ -129,10 +129,10 @@
                  description="API representation of the Claim Management API"
                  type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="Create Claim Meta" name="internal_org_claim_meta_create"/>
-            <Scope displayName="View Claim Meta" name="internal_org_claim_meta_view"/>
-            <Scope displayName="Update Claim Meta" name="internal_org_claim_meta_update"/>
-            <Scope displayName="Delete Claim Meta" name="internal_org_claim_meta_delete"/>
+            <Scope displayName="Create Claim" name="internal_org_claim_meta_create"/>
+            <Scope displayName="View Claim" name="internal_org_claim_meta_view"/>
+            <Scope displayName="Update Claim" name="internal_org_claim_meta_update"/>
+            <Scope displayName="Delete Claim" name="internal_org_claim_meta_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Configuration Management API" identifier="/api/server/v1/configs"
@@ -248,7 +248,7 @@
                  identifier="/api/server/v1/identity-providers" requiresAuthorization="true"
                  description="API representation of the Identity Provider Management API">
         <Scopes>
-            <Scope displayName="View Identity Providers" name="internal_idp_view"/>
+            <Scope displayName="View Identity Provider" name="internal_idp_view"/>
             <Scope displayName="Create Identity Provider" name="internal_idp_create"/>
             <Scope displayName="Update Identity Provider" name="internal_idp_update"/>
             <Scope displayName="Delete Identity Provider" name="internal_idp_delete"/>
@@ -259,7 +259,7 @@
                  description="API representation of the Identity Provider Management API"
                  type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="View Identity Providers" name="internal_org_idp_view"/>
+            <Scope displayName="View Identity Provider" name="internal_org_idp_view"/>
             <Scope displayName="Create Identity Provider"
                    name="internal_org_idp_create"/>
             <Scope displayName="Update Identity Provider"
@@ -272,7 +272,7 @@
                  requiresAuthorization="true"
                  description="API representation of the Identity Verifier Management API">
         <Scopes>
-            <Scope displayName="View Identity Verifier Providers" name="internal_idvp_view"/>
+            <Scope displayName="View Identity Verifier Provider" name="internal_idvp_view"/>
             <Scope displayName="Add Identity Verifier Provider" name="internal_idvp_add"/>
             <Scope displayName="Update Identity Verifier Provider" name="internal_idvp_update"/>
             <Scope displayName="Delete Identity Verifier Provider" name="internal_idvp_delete"/>
@@ -333,7 +333,7 @@
     <APIResource name="Organization Discovery API"
                  identifier="/api/server/v1/organizations/discovery"
                  requiresAuthorization="true"
-                 description="API representation of the Organization Management API">
+                 description="API representation of the Organization Discovery API">
         <Scopes>
             <Scope displayName="View Organization Discovery"
                    name="internal_organization_discovery_view"/>
@@ -380,7 +380,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Organization Role Management API"
-                 identifier="/api/server/v1/organizations/{organization-id}/roles"
+                 identifier="/api/server/v1/organizations/(.*)/roles"
                  requiresAuthorization="true"
                  description="API representation of the Organization Role Management API">
         <Scopes>
@@ -391,7 +391,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Organization Role Management API"
-                 identifier="/o/api/server/v1/organizations/{organization-id}/roles"
+                 identifier="/o/api/server/v1/organizations/(.*)/roles"
                  requiresAuthorization="true"
                  description="API representation of the Organization Role Management API"
                  type="SYSTEM_ORG">
@@ -411,8 +411,7 @@
         <Scopes>
             <Scope displayName="View Organization Configs" name="internal_organization_config_view"/>
             <Scope displayName="Add Organization Configs" name="internal_organization_config_add"/>
-            <Scope displayName="Delete Organization Configs"
-                   name="internal_organization_config_delete"/>
+            <Scope displayName="Delete Organization Configs" name="internal_organization_config_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Config Discovery Management API"
@@ -437,7 +436,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Self Service API"
-                 identifier="/api/server/v1/self-service" requiresAuthorization="true"
+                 identifier="/o/api/server/v1/self-service" requiresAuthorization="true"
                  description="API representation of the Self Service API"
                  type="SYSTEM_ORG">
         <Scopes>
@@ -510,7 +509,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Association Management API"
-                 identifier="/api/users/v1/{user-id}/(.*)associations" requiresAuthorization="true"
+                 identifier="/api/users/v1/(.*)/(.*)associations" requiresAuthorization="true"
                  description="API representation of the Association Management API">
         <Scopes>
             <Scope displayName="View User Associations" name="internal_user_association_view"/>
@@ -518,7 +517,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Authorized Application Management V1/V2 API"
-                 identifier="/api/users/v(.*)/{user-id}/authorized-apps" requiresAuthorization="true"
+                 identifier="/api/users/v(.*)/(.*)/authorized-apps" requiresAuthorization="true"
                  description="API representation of the Authorized Application Management V2 API">
         <Scopes>
             <Scope displayName="View Authorized Applications"
@@ -527,18 +526,8 @@
                    name="internal_user_authorizedapp_delete"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Challenge Management API" identifier="/api/users/v1/{user-id}/challenge(.*)"
-                 requiresAuthorization="true"
-                 description="API representation of the Challenge Management API">
-        <Scopes>
-            <Scope displayName="View Challenge Answers" name="internal_challenge_view"/>
-            <Scope displayName="Create Challenge Answers" name="internal_challenge_create"/>
-            <Scope displayName="Update Challenge Answers" name="internal_challenge_update"/>
-            <Scope displayName="Delete Challenge Answers" name="internal_challenge_delete"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Functionality Management API"
-                 identifier="/api/users/v1/{user-id}/user-functionality/{function-id}"
+                 identifier="/api/users/v1/(.*)/user-functionality/(.*)"
                  requiresAuthorization="true"
                  description="API representation of the Functionality Management API">
         <Scopes>
@@ -546,7 +535,7 @@
             <Scope displayName="Create User Functionality" name="internal_user_fucntionality_create"/>
         </Scopes>
     </APIResource>
-    <APIResource name="IDV Claim Management API" identifier="/api/users/v1/{user-id}/idv"
+    <APIResource name="IDV Claim Management API" identifier="/api/users/v1/(.*)/idv"
                  requiresAuthorization="true"
                  description="API representation of the IDV Claim Management API">
         <Scopes>
@@ -557,7 +546,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="IDV Claim Management API"
-                 identifier="/o/api/users/v1/{user-id}/idv"
+                 identifier="/o/api/users/v1/(.*)/idv"
                  requiresAuthorization="true"
                  description="API representation of the IDV Claim Management API"
                  type="SYSTEM_ORG">
@@ -654,24 +643,24 @@
     <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true"
                  description="API representation of the SCIM2 Bulk API">
         <Scopes>
-            <Scope displayName="Create Bulk User" name="internal_bulk_user_mgt_create"/>
-            <Scope displayName="View Bulk User" name="internal_bulk_user_mgt_view"/>
-            <Scope displayName="Update Bulk User" name="internal_bulk_user_mgt_update"/>
-            <Scope displayName="Delete Bulk User" name="internal_bulk_user_mgt_delete"/>
+            <Scope displayName="Create Bulk Resource" name="internal_bulk_mgt_create"/>
+            <Scope displayName="View Bulk Resource" name="internal_bulk_mgt_view"/>
+            <Scope displayName="Update Bulk Resource" name="internal_bulk_mgt_update"/>
+            <Scope displayName="Delete Bulk Resource" name="internal_bulk_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Bulk API" identifier="/o/scim2/Bulk"
                  requiresAuthorization="true"
                  description="API representation of the SCIM2 Bulk API" type="SYSTEM_ORG">
         <Scopes>
-            <Scope displayName="Create Bulk User"
-                   name="internal_org_bulk_user_mgt_create"/>
-            <Scope displayName="View Bulk User"
-                   name="internal_org_bulk_user_mgt_view"/>
-            <Scope displayName="Update Bulk User"
-                   name="internal_org_bulk_user_mgt_update"/>
-            <Scope displayName="Delete Bulk User"
-                   name="internal_org_bulk_user_mgt_delete"/>
+            <Scope displayName="Create Bulk Resource"
+                   name="internal_org_bulk_mgt_create"/>
+            <Scope displayName="View Bulk Resource"
+                   name="internal_org_bulk_mgt_view"/>
+            <Scope displayName="Update Bulk Resource"
+                   name="internal_org_bulk_mgt_update"/>
+            <Scope displayName="Delete Bulk Resource"
+                   name="internal_org_bulk_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Code Management API" identifier="/api/identity/user/v1.0/(.*)-code"
@@ -722,7 +711,7 @@
                  requiresAuthorization="true" description="API representation of the Identity Recovery API">
         <Scopes>
             <Scope displayName="View Recovery" name="internal_recovery_view"/>
-            <Scope displayName="Create Recovery" name="internal_recvoery_create"/>
+            <Scope displayName="Create Recovery" name="internal_recovery_create"/>
             <Scope displayName="Update Recovery" name="internal_recovery_update"/>
             <Scope displayName="Delete Recovery" name="internal_recovery_delete"/>
         </Scopes>
@@ -733,7 +722,7 @@
                  type="SYSTEM_ORG">
         <Scopes>
             <Scope displayName="View Recovery" name="internal_org_recovery_view"/>
-            <Scope displayName="Create Recovery" name="internal_org_recvoery_create"/>
+            <Scope displayName="Create Recovery" name="internal_org_recovery_create"/>
             <Scope displayName="Update Recovery" name="internal_org_recovery_update"/>
             <Scope displayName="Delete Recovery" name="internal_org_recovery_delete"/>
         </Scopes>
