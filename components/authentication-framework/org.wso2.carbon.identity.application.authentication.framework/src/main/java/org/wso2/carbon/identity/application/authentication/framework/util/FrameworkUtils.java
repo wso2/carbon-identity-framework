@@ -211,7 +211,7 @@ public class FrameworkUtils {
             .asList(FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2);
 
     public static final String QUERY_SEPARATOR = "&";
-    private static final String EQUAL = "=";
+    public static final String EQUAL = "=";
     public static final String REQUEST_PARAM_APPLICATION = "application";
     private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
 
