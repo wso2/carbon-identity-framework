@@ -867,7 +867,11 @@
 
         <!-- Configs related to OAuth2 token persistence -->
         <TokenPersistence>
+            {% if oauth.token_persistence.enable is defined %}
             <Enable>{{oauth.token_persistence.enable}}</Enable>
+            {% else %}
+            <Enable>true</Enable>
+            {% endif %}
             <PoolSize>0</PoolSize>
             <RetryCount>{{oauth.token_generation.retry_count_on_persistence_failures}}</RetryCount>
         </TokenPersistence>
