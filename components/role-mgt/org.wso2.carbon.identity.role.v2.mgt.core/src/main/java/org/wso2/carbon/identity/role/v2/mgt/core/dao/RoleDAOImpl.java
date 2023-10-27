@@ -1724,6 +1724,34 @@ public class RoleDAOImpl implements RoleDAO {
         return id;
     }
 
+    @Override
+    public int getRoleAudienceRefId(String audience, String audienceId) throws IdentityRoleManagementException {
+
+        int id = -1;
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_AUDIENCE_SQL)) {
+
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    id = resultSet.getInt(1);
+                }
+                // Create new audience.
+                if (id == -1) {
+                    createRoleAudience(audience, audienceId, connection);
+                    return getRoleAudienceRefId(audience, audienceId, connection);
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while resolving the role audiences for the given audience: " + audience
+                            + " and audienceId : " + audienceId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return id;
+    }
+
     /**
      * Create role audience.
      *
