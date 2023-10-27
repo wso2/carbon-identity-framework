@@ -1190,11 +1190,12 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         for (RoleDTO roleDTO : sharedRoles) {
+            String roleName = appendInternalDomain(roleDTO.getName());
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_SCIM_ROLE_NAME_SQL,
                     RoleConstants.RoleTableColumns.ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.NEW_ROLE_NAME, newRoleName);
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, roleDTO.getTenantId());
-                statement.setString(ROLE_NAME, roleDTO.getName());
+                statement.setString(ROLE_NAME, roleName);
                 statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, roleDTO.getAudienceRefId());
                 statement.executeUpdate();
             } catch (SQLException e) {
@@ -3016,7 +3017,8 @@ public class RoleDAOImpl implements RoleDAO {
                     String name = resultSet.getString(1);
                     int tenantId = resultSet.getInt(2);
                     int audienceRefId = resultSet.getInt(3);
-                    hybridRoles.add(new RoleDTO(name, audienceRefId, tenantId));
+                    String id = resultSet.getString(4);
+                    hybridRoles.add(new RoleDTO(name, id, audienceRefId, tenantId));
                 }
             }
         } catch (SQLException e) {
