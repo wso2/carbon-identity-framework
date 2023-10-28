@@ -674,16 +674,16 @@
 
     <!-- User Challenge Management API -->
     <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="GET">
-        <Scopes>internal_challenge_mgt_view</Scopes>
+        <Scopes>internal_user_challenge_mgt_view</Scopes>
     </Resource>
     <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="PUT">
-        <Scopes>internal_challenge_mgt_update</Scopes>
+        <Scopes>internal_user_challenge_mgt_update</Scopes>
     </Resource>
     <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="POST">
-        <Scopes>internal_challenge_mgt_create</Scopes>
+        <Scopes>internal_user_challenge_mgt_create</Scopes>
     </Resource>
     <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_challenge_mgt_delete</Scopes>
+        <Scopes>internal_user_challenge_mgt_delete</Scopes>
     </Resource>
     <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="GET">
         <Scopes>internal_user_challenge_mgt_view</Scopes>
