@@ -263,5 +263,6 @@
   "identity_mgt.events.schemes.UserInvitationEventHandler.module_index": "42",
   "identity_mgt.events.schemes.UserInvitationEventHandler.subscriptions": [
     "POST_ADD_ORGANIZATION_USER_INVITATION"
-  ]
+  ],
+  "identity_mgt.events.schemes.UserInvitationEventHandler.properties.enable": true
 }
