@@ -40,6 +40,7 @@ public class APIResourceManagementConstants {
     public static final String BEFORE = "before";
     public static final String AFTER = "after";
     public static final String PROPERTIES = "properties";
+    public static final String TENANT_MGT_API_NAME = "Tenant Management API";
     public static final String EQ = "eq";
     public static final String CO = "co";
     public static final String SW = "sw";
