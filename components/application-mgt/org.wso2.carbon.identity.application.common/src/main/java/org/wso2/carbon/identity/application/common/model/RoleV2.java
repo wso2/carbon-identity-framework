@@ -122,4 +122,10 @@ public class RoleV2 implements Serializable {
         result = 31 * result + id.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+
+        return id;
+    }
 }
