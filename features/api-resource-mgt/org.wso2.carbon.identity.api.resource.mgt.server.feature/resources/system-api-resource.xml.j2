@@ -105,7 +105,7 @@
                    name="internal_org_branding_preference_update"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Challenges Management API" identifier="/api/users/v1/(.*)/challenge(.*)"
+    <APIResource name="Challenges Management API" identifier="/api/server/v1/challenges(.*)"
                  requiresAuthorization="true"
                  description="API representation of the Challenges Management API">
         <Scopes>
@@ -113,6 +113,16 @@
             <Scope displayName="Create Challenge" name="internal_challenge_mgt_create"/>
             <Scope displayName="Update Challenge" name="internal_challenge_mgt_update"/>
             <Scope displayName="Delete Challenge" name="internal_challenge_mgt_delete"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Challenges Management API" identifier="/api/users/v1/(.*)/challenge(.*)"
+                 requiresAuthorization="true"
+                 description="API representation of the User Challenges Management API">
+        <Scopes>
+            <Scope displayName="View User Challenge" name="internal_user_challenge_mgt_view"/>
+            <Scope displayName="Create User Challenge" name="internal_user_challenge_mgt_create"/>
+            <Scope displayName="Update User Challenge" name="internal_user_challenge_mgt_update"/>
+            <Scope displayName="Delete User Challenge" name="internal_user_challenge_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Claim Management API" identifier="/api/server/v1/claim-dialects"

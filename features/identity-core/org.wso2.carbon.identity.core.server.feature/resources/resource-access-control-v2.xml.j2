@@ -143,30 +143,30 @@
         </Resource>
 
         <!-- Secret Type Management API -->
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
             <Scopes>internal_secret_type_mgt_add</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="PUT">
+        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="PUT">
             <Scopes>internal_secret_type_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="GET">
             <Scopes>internal_secret_type_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
+        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_secret_type_mgt_delete</Scopes>
         </Resource>
 
         <!-- Secret Management API -->
-        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="POST">
             <Scopes>internal_secret_mgt_add</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="PUT">
+        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="PUT">
             <Scopes>internal_secret_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="GET">
             <Scopes>internal_secret_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
+        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_secret_mgt_delete</Scopes>
         </Resource>
 
@@ -592,6 +592,12 @@
         <Resource context="(.*)/o/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/> -->
 
         <!-- Me APIs -->
+        <Resource context="(.*)/api/server/v1/configs/home-realm-identifiers" secured="true" http-method="GET">
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="GET">
+            <Scopes>internal_login</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
             <Scopes>internal_login</Scopes>
         </Resource>
@@ -675,29 +681,43 @@
         </Resource>
 
         <!-- Challenge Management API -->
-        <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/challenges(.*)" secured="true" http-method="GET">
             <Scopes>internal_challenge_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/challenges(.*)" secured="true" http-method="PATCH, PUT">
+            <Scopes>internal_challenge_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/challenges(.*)" secured="true" http-method="POST">
+            <Scopes>internal_challenge_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/challenges(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_challenge_mgt_delete</Scopes>
+        </Resource>
+
+        <!-- User Challenge Management API -->
+        <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="GET">
+            <Scopes>internal_user_challenge_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="PUT">
-            <Scopes>internal_challenge_mgt_update</Scopes>
+            <Scopes>internal_user_challenge_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="POST">
-            <Scopes>internal_challenge_mgt_create</Scopes>
+            <Scopes>internal_user_challenge_mgt_create</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_challenge_mgt_delete</Scopes>
+            <Scopes>internal_user_challenge_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="GET">
-            <Scopes>internal_challenge_mgt_view</Scopes>
+            <Scopes>internal_user_challenge_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="PUT">
-            <Scopes>internal_challenge_mgt_update</Scopes>
+            <Scopes>internal_user_challenge_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="POST">
-            <Scopes>internal_challenge_mgt_create</Scopes>
+            <Scopes>internal_user_challenge_mgt_create</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_challenge_mgt_delete</Scopes>
+            <Scopes>internal_user_challenge_mgt_delete</Scopes>
         </Resource>
 
         <!-- Functionality Management API -->
@@ -1019,7 +1039,7 @@
         <Resource context="(.*)/o/api/server/v1/cors/origins" secured="true" http-method="GET">
             <Scopes>internal_org_cors_origins_view</Scopes>
         </Resource>
-        <Resource context="(.*)/o/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET">
+        <Resource context="(.*)/o/api/server/v1/cors/origins/(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_cors_origins_view</Scopes>
         </Resource>
 
@@ -1027,7 +1047,7 @@
         <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET">
             <Scopes>internal_cors_origins_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/cors/origins/(.*)" secured="true" http-method="GET">
             <Scopes>internal_cors_origins_view</Scopes>
         </Resource>
 
@@ -1037,11 +1057,8 @@
         </Resource>
 
         <!-- Configuration Management API -->
-        <Resource context="(.*)/api/server/v1/configs/home-realm-identifiers" secured="true" http-method="GET">
-            <Scopes>internal_config_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="GET">
-            <Scopes>internal_config_view</Scopes>
+        <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="PATCH, PUT">
+            <Scopes>internal_config_update</Scopes>
         </Resource>
 
         <!-- [Organization] Organization Role Management API -->
