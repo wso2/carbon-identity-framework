@@ -1250,5 +1250,11 @@
   "email_templates.branding.fallbacks.button_font_color": "#FFFFFF",
   "email_templates.branding.fallbacks.light_border_color": "transparent",
   "email_templates.branding.fallbacks.dark_border_color": "#333333",
-  "authentication.enable_basic_auth_handler": true
+  "authentication.enable_basic_auth_handler": true,
+
+  "organization_management.self_service.system_user_name": "B2B-SS-System-User",
+  "organization_management.self_service.default_system_app_name": "B2B-Self-Service-Mgt-Application",
+  "organization_management.self_service.default_token_expiry_time": "7200",
+  "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
+  "organization_management.self_service.user_store_name_for_system_user": "PRIMARY"
 }
