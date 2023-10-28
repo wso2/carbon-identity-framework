@@ -3394,60 +3394,10 @@
         {% endfor %}
         {% endfor %}
             <Context>
-                <BasePath>/scim2/</BasePath>
-                <SubPaths>
-                    <Path>/scim2/Groups</Path>
-                    <Path>/scim2/Users</Path>
-                    <Path>/scim2/v2/Roles</Path>
-                    <Path>/scim2/Schemas</Path>
-                    <Path>/scim2/Bulk</Path>
-                    <Path>/scim2/ResourceTypes</Path>
-                </SubPaths>
-            </Context>
-            <Context>
                 <BasePath>/oauth2/</BasePath>
             </Context>
             <Context>
                 <BasePath>/authenticationendpoint/</BasePath>
-            </Context>
-            <Context>
-                <BasePath>/api/</BasePath>
-                <SubPaths>
-                    <Path>/api/server/v1/identity-providers</Path>
-                    <Path>/api/server/v1/organizations</Path>
-                    <Path>/api/server/v1/applications</Path>
-                    <Path>/api/users/v1/me/organizations</Path>
-                    <Path>/api/server/v1/configs/authenticators</Path>
-                    <Path>/api/server/v1/userstores</Path>
-                    <Path>/api/server/v1/claim-dialects</Path>
-                    <Path>/api/server/v1/identity-governance</Path>
-                    <Path>/api/server/v1/email/template-types</Path>
-                    <Path>/api/identity/recovery/v0.9</Path>
-                    <Path>/api/identity/auth/v1.1</Path>
-                    <Path>/api/identity/consent-mgt/v1.0/consents</Path>
-                    <Path>/api/identity/user/v1.0/me</Path>
-                    <Path>/api/identity/user/v1.0/validate-username</Path>
-                    <Path>/api/server/v1/authenticators</Path>
-                    <Path>/api/server/v1/branding-preference</Path>
-                    <Path>/api/server/v1/validation-rules</Path>
-                    <Path>/api/users/v1/([^/]+)/sessions</Path>
-                    <Path>/api/server/v1/admin-advisory-management</Path>
-                    <Path>/api/server/v1/guests</Path>
-                    <Path>/api/server/v1/admin-advisory-management/banner</Path>
-                    <Path>/api/idle-account-identification/v1/inactive-users</Path>
-                    <Path>/api/server/v1/expired-password-identification/password-expired-users</Path>
-                    <Path>/api/server/v1/api-resources</Path>
-                    <Path>/api/server/v1/extensions</Path>
-                    <Path>/api/server/v1/organization-configs</Path>
-                    <Path>/api/server/v1/self-service/preferences</Path>
-                    <Path>/api/identity/user/v1.0/lite</Path>
-                    <Path>/api/identity/user/v1.0/introspect-code</Path>
-                    <Path>/api/identity/user/v1.0/validate-code</Path>
-                    <Path>/api/identity/user/v1.0/resend-code</Path>
-                </SubPaths>
-            </Context>
-            <Context>
-                <BasePath>/console/</BasePath>
             </Context>
             <Context>
                 <BasePath>/accountrecoveryendpoint/</BasePath>
@@ -3467,12 +3417,6 @@
             <Context>/oidc/</Context>
         </Servlet>
     </OrgContextsToRewrite>
-
-    <OrgRoutingOnlySupportedAPIPaths>
-        <Path>/api/server/v1/organizations</Path>
-        <Path>/api/server/v1/organization-configs</Path>
-        <Path>/api/users/v1/me/organizations</Path>
-    </OrgRoutingOnlySupportedAPIPaths>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>{{server.clock_skew}}</ClockSkew>
