@@ -1282,7 +1282,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     /**
      * Based on the Authz runtime check the given claim is related to the role claim.
      *
-     * @param roleClaim
+     * @param roleClaim URI.
      * @return true if the given claim is related to roles.
      */
     private boolean isRoleClaim(String roleClaim) {
