@@ -1137,7 +1137,7 @@ public class RoleDAOImpl implements RoleDAO {
                     String name = resultSet.getString(2);
                     int tenantId = resultSet.getInt(3);
                     int audienceRefId = resultSet.getInt(4);
-                    hybridRoles.add(new RoleDTO(id, name, audienceRefId, tenantId));
+                    hybridRoles.add(new RoleDTO(name, id, audienceRefId, tenantId));
                 }
             }
         } catch (SQLException e) {
