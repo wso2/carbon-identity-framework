@@ -2329,6 +2329,13 @@
     <OrgContextsToRewrite>
         <WebApp>
             <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/branding-preference/resolve</Path>
+                </SubPaths>
+            </Context>
+            <Context>
                 <BasePath>/oauth2/</BasePath>
             </Context>
             <Context>
