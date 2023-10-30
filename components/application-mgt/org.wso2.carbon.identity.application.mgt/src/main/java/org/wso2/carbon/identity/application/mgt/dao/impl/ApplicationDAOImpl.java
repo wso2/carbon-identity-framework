@@ -1610,12 +1610,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             // IS_LOCAL_CLAIM_DIALECT=?, IS_SEND_LOCAL_SUBJECT_ID=? WHERE TENANT_ID= ? AND ID = ?
             storeClaimDialectAndSendLocalSubIdPrepStmt.setString(1, claimConfiguration.isLocalClaimDialect() ? "1"
                     : "0");
-            if (!claimConfiguration.isAlwaysSendMappedLocalSubjectId()) {
-                storeClaimDialectAndSendLocalSubIdPrepStmt.setString(2, "0");
-            } else if (!claimConfiguration.isMappedLocalSubjectMandatory()) {
+            if (claimConfiguration.isAlwaysSendMappedLocalSubjectId() &&
+                    claimConfiguration.isMappedLocalSubjectMandatory()) {
+                storeClaimDialectAndSendLocalSubIdPrepStmt.setString(2, "2");
+            } else if (claimConfiguration.isAlwaysSendMappedLocalSubjectId() &&
+                    !claimConfiguration.isMappedLocalSubjectMandatory()) {
                 storeClaimDialectAndSendLocalSubIdPrepStmt.setString(2, "1");
             } else {
-                storeClaimDialectAndSendLocalSubIdPrepStmt.setString(2, "2");
+                storeClaimDialectAndSendLocalSubIdPrepStmt.setString(2, "0");
             }
 
             storeClaimDialectAndSendLocalSubIdPrepStmt.setInt(3, tenantID);
