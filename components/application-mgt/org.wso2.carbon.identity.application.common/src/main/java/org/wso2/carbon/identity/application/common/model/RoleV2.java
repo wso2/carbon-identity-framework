@@ -112,7 +112,7 @@ public class RoleV2 implements Serializable {
             return false;
         }
         RoleV2 roleV2 = (RoleV2) o;
-        return Objects.equals(id, roleV2.id) && Objects.equals(name, roleV2.name);
+        return Objects.equals(id, roleV2.id);
     }
 
     @Override
