@@ -62,6 +62,9 @@ public class ClaimConfig implements Serializable {
     @XmlElement(name = "AlwaysSendMappedLocalSubjectId")
     private boolean alwaysSendMappedLocalSubjectId;
 
+    @XmlElement(name = "MappedLocalSubjectMandatory")
+    private boolean mappedLocalSubjectMandatory;
+
     @XmlElementWrapper(name = "SPClaimDialects")
     @XmlElement(name = "SPClaimDialect")
     private String[] spClaimDialects = new String[0];
@@ -92,6 +95,10 @@ public class ClaimConfig implements Serializable {
             } else if ("AlwaysSendMappedLocalSubjectId".equals(elementName)) {
                 if ("true".equals(element.getText())) {
                     claimConfig.setAlwaysSendMappedLocalSubjectId(true);
+                }
+            } else if ("MappedLocalSubjectMandatory".equals(elementName)) {
+                if ("true".equals(element.getText())) {
+                    claimConfig.setMappedLocalSubjectMandatory(true);
                 }
             } else if ("IdpClaims".equals(elementName)) {
                 Iterator<?> idpClaimsIter = element.getChildElements();
@@ -210,6 +217,15 @@ public class ClaimConfig implements Serializable {
 
     public void setAlwaysSendMappedLocalSubjectId(boolean alwaysSendMappedLocalSubjectId) {
         this.alwaysSendMappedLocalSubjectId = alwaysSendMappedLocalSubjectId;
+    }
+
+    public boolean isMappedLocalSubjectMandatory() {
+
+        return mappedLocalSubjectMandatory; }
+
+    public void setMappedLocalSubjectMandatory(boolean mappedLocalSubjectMandatory) {
+
+        this.mappedLocalSubjectMandatory = mappedLocalSubjectMandatory;
     }
 
     /**
