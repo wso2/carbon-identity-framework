@@ -3860,4 +3860,12 @@
     </UserProfileExport>
 
     <EnableBasicAuthHandler>{{authentication.enable_basic_auth_handler}}</EnableBasicAuthHandler>
+    {% if input_validation.username is defined %}
+    <InputValidation>
+        <Username>
+       		<Enabled>{{ input_validation.username.enable }}</Enabled>
+        </Username>
+    </InputValidation>
+    {% endif %}
+
 </Server>

@@ -1238,6 +1238,7 @@
 
   "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
   "input_validation.default_validator": "alphaNumeric",
+  "input_validation.username.enable": false,
 
   "email_templates.branding.fallbacks.copyright_text": "WSO2 Identity Server",
   "email_templates.branding.fallbacks.primary_color": "#FF7300",
