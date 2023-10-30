@@ -3588,12 +3588,8 @@
         <WebAuthn>
             <Enable>{{fido.webauthn.enable}}</Enable>
         </WebAuthn>
-        <EnablePasskeyProgressiveEnrollment>
-            {{fido.enable_passkey_progressive_enrollment}}
-        </EnablePasskeyProgressiveEnrollment>
-        <EnableUsernamelessAuthentication>
-            {{fido.enable_usernameless_authentication}}
-        </EnableUsernamelessAuthentication>
+        <EnablePasskeyProgressiveEnrollment>{{fido.enable_passkey_progressive_enrollment}}</EnablePasskeyProgressiveEnrollment>
+        <EnableUsernamelessAuthentication>{{fido.enable_usernameless_authentication}}</EnableUsernamelessAuthentication>
         <FIDO2TrustedOrigins>
             {% for origin in fido.trusted.origins %}
                 <Origin>{{origin}}</Origin>
