@@ -1012,6 +1012,7 @@
   "console.email_providers.scopes.update": ["internal_config_mgt_update"],
   "console.email_providers.scopes.delete": ["internal_config_mgt_delete"],
   "console.sms_providers.enabled": true,
+  "console.sms_providers.disabled_features": ["choreoAsSMSProvider"],
   "console.sms_providers.scopes.create": ["internal_config_mgt_add"],
   "console.sms_providers.scopes.read": ["internal_config_mgt_view"],
   "console.sms_providers.scopes.update": ["internal_config_mgt_update"],
