@@ -1068,6 +1068,9 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         Map<String, String> rolesMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return rolesMap;
+        }
         String query = GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL +
                 String.join(", ", Collections.nCopies(roleIds.size(), "?")) + ")";
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
