@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.AuthorizedAPIDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.AuthorizedAPIDAOImpl;
+import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedAuthorizedAPIDAOImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
@@ -44,7 +45,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
  */
 public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManagementService {
 
-    private final AuthorizedAPIDAO authorizedAPIDAO = new AuthorizedAPIDAOImpl();
+    private final AuthorizedAPIDAO authorizedAPIDAO = new CacheBackedAuthorizedAPIDAOImpl(new AuthorizedAPIDAOImpl());
 
     @Override
     public void addAuthorizedAPI(String applicationId, AuthorizedAPI authorizedAPI, String tenantDomain)
