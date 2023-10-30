@@ -2523,4 +2523,9 @@
         </RestrictedClaims>
     </UserProfileExport>
 
+    <InputValidation>
+        <Username>
+            <Enabled>false</Enabled>
+        </Username>
+    </InputValidation>
 </Server>

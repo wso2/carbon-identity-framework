@@ -24,6 +24,7 @@ import org.apache.logging.log4j.message.StringFormattedMessage;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtException;
 import org.wso2.carbon.identity.input.validation.mgt.internal.InputValidationDataHolder;
@@ -49,6 +50,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Conf
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VALIDATION_USERNAME_ENABLED_CONFIG;
 
 /**
  * Lister class to validate the password.
@@ -56,6 +58,8 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Erro
 public class InputValidationListener extends AbstractIdentityUserOperationEventListener {
 
     private static final Log LOG = LogFactory.getLog(InputValidationListener.class);
+    private static final boolean IS_USERNAME_VALIDATION_ENABLED =
+            Boolean.parseBoolean(IdentityUtil.getProperty(INPUT_VALIDATION_USERNAME_ENABLED_CONFIG));
     private final InputValidationManagementService inputValidationMgtService =
             new InputValidationManagementServiceImpl();
 
@@ -79,7 +83,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
         if (!UserCoreUtil.getSkipPasswordPatternValidationThreadLocal()) {
             validationRequiredFieldWithValues.put(PASSWORD, credential.toString());
         }
-        if (!UserCoreUtil.getSkipUsernamePatternValidationThreadLocal()) {
+        if (IS_USERNAME_VALIDATION_ENABLED && !UserCoreUtil.getSkipUsernamePatternValidationThreadLocal()) {
             validationRequiredFieldWithValues.put(USERNAME, userName);
         }
         return validate(validationRequiredFieldWithValues, userStoreManager);

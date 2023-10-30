@@ -38,6 +38,7 @@ public class Constants {
     public static final String INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME = "input-validation-configurations";
     public static final String INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX = "input-validation-configs-";
     public static final String SECONDARY_USER_STORE_DOMAIN_NAME = "DEFAULT";
+    public static final String INPUT_VALIDATION_USERNAME_ENABLED_CONFIG = "InputValidation.Username.Enabled";
     public static final List<String> SUPPORTED_PARAMS = Collections.unmodifiableList(
             new ArrayList<String>() {{
                 add(PASSWORD);
