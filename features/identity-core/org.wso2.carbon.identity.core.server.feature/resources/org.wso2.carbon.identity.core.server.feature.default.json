@@ -1242,6 +1242,7 @@
   "input_validation.default_validator": "alphaNumeric",
   "input_validation.username.enable": false,
 
+  "email_templates.branding.organization.enable": true,
   "email_templates.branding.fallbacks.copyright_text": "WSO2 Identity Server",
   "email_templates.branding.fallbacks.primary_color": "#FF7300",
   "email_templates.branding.fallbacks.background_color": "#F8F9FA",
