@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
@@ -39,6 +40,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
@@ -112,9 +114,15 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                                 String sortBy, String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
+        Iterator<RoleBasicInfo> iterator = roleBasicInfoList.iterator();
+        while (iterator.hasNext()) {
+            RoleBasicInfo roleBasicInfo = iterator.next();
             if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
-                roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
+                String applicationName = getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain);
+                if (applicationName == null) {
+                    iterator.remove();
+                }
+                roleBasicInfo.setAudienceName(applicationName);
             }
         }
         return true;
@@ -530,8 +538,9 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             throws IdentityRoleManagementException {
 
         try {
-            return ApplicationManagementService.getInstance()
-                    .getApplicationBasicInfoByResourceId(applicationID, tenantDomain).getApplicationName();
+            ApplicationBasicInfo appBasicInfo = ApplicationManagementService.getInstance()
+                    .getApplicationBasicInfoByResourceId(applicationID, tenantDomain);
+            return  (appBasicInfo != null) ? appBasicInfo.getApplicationName() : null;
         } catch (IdentityApplicationManagementException e) {
             String errorMessage = "Error while retrieving the application name for the given id: " + applicationID;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
