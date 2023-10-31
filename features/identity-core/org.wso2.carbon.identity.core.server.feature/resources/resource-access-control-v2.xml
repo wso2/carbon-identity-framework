@@ -1192,7 +1192,7 @@
         <Scopes>internal_org_self_service_view</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/self-service/(.*)" secured="true" http-method="PATCH">
-        <Scopes>internal__org_self_service_update</Scopes>
+        <Scopes>internal_org_self_service_update</Scopes>
     </Resource>
 
     <!-- Organization Self Service API -->
