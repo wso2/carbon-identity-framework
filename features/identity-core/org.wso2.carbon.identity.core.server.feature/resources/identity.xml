@@ -829,6 +829,7 @@
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
         <DisableAppliesToInPassiveSTSResponse>false</DisableAppliesToInPassiveSTSResponse>
         <EnableDefaultSignatureAndDigestAlgorithm>true</EnableDefaultSignatureAndDigestAlgorithm>
+        <LogoutWreplyValidation>true</LogoutWreplyValidation>
     </PassiveSTS>
 
     <Mex>
