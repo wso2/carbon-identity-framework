@@ -19,7 +19,6 @@
 
 package org.wso2.carbon.identity.client.attestation.mgt.validators;
 
-
 import org.wso2.carbon.identity.client.attestation.mgt.exceptions.ClientAttestationMgtException;
 import org.wso2.carbon.identity.client.attestation.mgt.model.ClientAttestationContext;
 

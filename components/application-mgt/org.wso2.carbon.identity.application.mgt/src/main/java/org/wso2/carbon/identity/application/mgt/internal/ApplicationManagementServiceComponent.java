@@ -156,8 +156,6 @@ public class ApplicationManagementServiceComponent {
             bundleContext.registerService(ApplicationMgtListener.class,
                     new AdminRolePermissionsUpdateListener(), null);
 
-//            SecretResolveManager secretManager = new SecretResolveManagerImpl();
-//            ApplicationManagementServiceComponentHolder.getInstance().setSecretResolveManager(secretManager);
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }

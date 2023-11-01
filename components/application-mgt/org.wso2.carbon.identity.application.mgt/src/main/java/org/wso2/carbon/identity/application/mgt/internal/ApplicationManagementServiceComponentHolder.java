@@ -74,7 +74,6 @@ public class ApplicationManagementServiceComponentHolder {
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
 
-
     private ApplicationManagementServiceComponentHolder() {
 
     }

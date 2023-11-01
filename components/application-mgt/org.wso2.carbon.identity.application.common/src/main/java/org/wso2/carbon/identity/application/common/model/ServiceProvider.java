@@ -54,11 +54,7 @@ public class ServiceProvider implements Serializable {
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
-        private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
-        private static final String IS_ATTESTATION_ENABLED = "IsAttestationEnabled";
-        private static final String ANDROID_PACKAGE_NAME = "AndroidPackageName";
-        private static final String ANDROID_ATTESTATION_SERVICE_CREDENTIALS = "AndroidAttestationServiceCredentials";
-
+    private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
 
     @XmlTransient
     @JsonIgnore

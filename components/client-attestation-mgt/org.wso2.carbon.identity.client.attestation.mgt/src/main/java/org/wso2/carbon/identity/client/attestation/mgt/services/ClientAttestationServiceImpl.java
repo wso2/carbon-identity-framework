@@ -40,19 +40,15 @@ import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.OA
  * The `ClientAttestationServiceImpl` class implements the `ClientAttestationService` interface and is responsible for
  * validating client attestation. It ensures the authenticity and context of the client when
  * API-based authentication is requested.
- *
  * The class provides the following functionalities:
- *
  * - Validation of attestation data, which can be specific to an Android client.
  * - Checks whether API-based authentication is enabled for the client application.
  * - Determines whether the client application is subscribed to client attestation validation.
  * - Validates attestation objects provided by the client application.
- * - Retrieves the service provider's configuration for OAuth2 client authentication.
- *
+ * - Retrieves the service provider's configuration for client attestation.
  * Usage:
  * To validate client attestation, use the `validateAttestation` method, which takes the attestation
  * object, client ID, and tenant domain as parameters.
- *
  * Example usage:
  * ```
  * ClientAttestationService clientAttestationService = new ClientAttestationServiceImpl();
@@ -85,8 +81,8 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
                             " is not subscribed to API-Based Authentication.");
                 }
                 clientAttestationContext.setApiBasedAuthenticationEnabled(false);
-                clientAttestationContext.setAttested(false);
                 clientAttestationContext.setAttestationEnabled(false);
+                clientAttestationContext.setAttested(false);
                 clientAttestationContext.setErrorMessage("App is not subscribed to API-Based Authentication.");
                 return clientAttestationContext;
             }
@@ -114,9 +110,9 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
                     LOG.debug("App :" + serviceProvider.getApplicationResourceId() + " in tenant : " + tenantDomain +
                             " is requested with empty attestation object.");
                 }
-                clientAttestationContext.setApiBasedAuthenticationEnabled(false);
+                clientAttestationContext.setApiBasedAuthenticationEnabled(true);
+                clientAttestationContext.setAttestationEnabled(true);
                 clientAttestationContext.setAttested(false);
-                clientAttestationContext.setAttestationEnabled(false);
                 clientAttestationContext.setErrorMessage("App is configured to validate attestation " +
                         "but attestation object is empty.");
                 return clientAttestationContext;
@@ -131,18 +127,31 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
                 ClientAttestationValidator androidAttestationValidator = new AndroidAttestationValidator(clientId,
                         tenantDomain, serviceProvider.getClientAttestationMetaData());
                 androidAttestationValidator.validateAttestation(attestationObject, clientAttestationContext);
+                return clientAttestationContext;
+            } else {
+                handleInvalidAttestationObject(clientAttestationContext);
+                return clientAttestationContext;
             }
         } catch (ClientAttestationMgtException e) {
             handleClientAttestationException(e, clientAttestationContext);
+            return clientAttestationContext;
         }
-        return clientAttestationContext;
+    }
+
+    private void handleInvalidAttestationObject(ClientAttestationContext clientAttestationContext) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Requested attestation object is not in valid format.");
+        }
+        setErrorToContext("Requested attestation object is not in valid format.",
+                clientAttestationContext);
     }
 
     private void handleClientAttestationException
             (ClientAttestationMgtException e, ClientAttestationContext clientAttestationContext) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Error while evaluating client attestation. ", e);
+            LOG.debug("Error while evaluating client attestation.", e);
         }
         setErrorToContext(e.getMessage(), clientAttestationContext);
     }
@@ -156,7 +165,7 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
         clientAttestationContext.setErrorMessage(message);
     }
 
-    private boolean isAndroidAttestation(String attestationObject) throws ClientAttestationMgtException {
+    private boolean isAndroidAttestation(String attestationObject) {
 
         try {
             JWEObject jweObject = JWEObject.parse(attestationObject);
@@ -164,7 +173,8 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
             // Check if the JWEObject is in a valid state
             return jweObject.getState() == JWEObject.State.ENCRYPTED;
         } catch (ParseException e) {
-            throw new ClientAttestationMgtException("Exception occurred when parsing attestation object.", e);
+            // Exception occurred hence it's not a android attestation request.
+            return false;
         }
     }
 
@@ -185,7 +195,7 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
                 LOG.debug("Could not find an application for client id: " + clientId
                         + ", scope: " + OAUTH2 + ", tenant: " + tenantDomain);
             }
-            throw new ClientAttestationMgtException("Service Provider not found");
+            throw new ClientAttestationMgtException("Service Provider not found.");
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("Retrieved service provider: " + serviceProvider.getApplicationName() + " for client: " +

@@ -1372,7 +1372,6 @@
   "organization_management.self_service.default_system_app_name": "B2B-Self-Service-Mgt-Application",
   "organization_management.self_service.default_token_expiry_time": "7200",
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
-  "organization_management.self_service.user_store_name_for_system_user": "PRIMARY"
-  "input_validation.default_validator": "alphaNumeric",
+  "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
   "client_attestation.allowed_window": "60000"
 }

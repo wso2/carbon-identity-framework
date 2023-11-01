@@ -54,17 +54,13 @@ import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.UT
  * The `AndroidAttestationValidator` class is responsible for validating client attestation for Android clients.
  * It ensures the authenticity and integrity of the client's attestation data, which is typically provided in the
  * form of an integrity token.
- *
  * The class provides the following functionalities:
- *
  * - Decoding and verifying the authenticity of the provided integrity token using the Google Play Integrity API.
  * - Validating the overall integrity of the client's request, including request details and application integrity.
  * - Checking if the application is recognized as "PLAY_RECOGNIZED" by the Google Play Integrity API.
- *
  * Usage:
  * To validate client attestation for Android clients, use the `validateAttestation` method, which takes the
  * attestation header and a context to store validation results and updated information.
- *
  * Example usage:
  * ```
  * AndroidAttestationValidator attestationValidator = new AndroidAttestationValidator(clientId, tenantDomain, metaData);
@@ -118,10 +114,10 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
      * @param attestationObject The integrity token to be decoded and verified.
      * @param clientAttestationContext  The context to store the validation results and updated information.
      * @return The response containing the decoded integrity token data.
-     * @throws ClientAttestationMgtException Thrown when there is an
-     * issue with decoding or verifying the integrity token.
+     * @throws ClientAttestationMgtException Thrown when there is an issue with decoding or verifying the
+     * integrity token.
      */
-    public DecodeIntegrityTokenResponse decodeIntegrityToken(String attestationObject,
+    private DecodeIntegrityTokenResponse decodeIntegrityToken(String attestationObject,
                                                              ClientAttestationContext clientAttestationContext)
             throws ClientAttestationMgtException {
         try {
