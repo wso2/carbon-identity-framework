@@ -1008,6 +1008,7 @@
   "console.certificates.scopes.update": ["internal_keystore_update"],
   "console.certificates.scopes.delete": ["internal_keystore_update"],
   "console.email_providers.enabled": true,
+  "console.email_providers.disabled_features": ["superTenantProvider"],
   "console.email_providers.scopes.create": ["internal_config_mgt_add"],
   "console.email_providers.scopes.read": ["internal_config_mgt_view"],
   "console.email_providers.scopes.update": ["internal_config_mgt_update"],
