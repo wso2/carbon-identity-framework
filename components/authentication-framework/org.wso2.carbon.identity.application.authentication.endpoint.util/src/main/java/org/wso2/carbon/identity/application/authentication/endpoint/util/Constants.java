@@ -267,6 +267,8 @@ public class Constants {
                 "authentication.failed_no.registered.device.found";
         public static final String NO_REGISTERED_DEVICE_FOUND_I18N_KEY =
                 "no.registered.device.found";
+        public static final String AUTHENTICATION_FAILED_PROVISIONED_USER_NOT_FOUND_I18N_KEY = "provisioned.user.not.found";
+        public static final String AUTHENTICATION_FAILED_PROVISIONED_USER_NOT_FOUND = "authentication.attempt.failed_provisioned.user.not.found";
         public static final String INVALID_CLIENT_IN_TENANT = "invalid_client_no.valid.client.in.tenant";
         public static final String INVALID_CLIENT_IN_TENANT_I18N_KEY = "no.valid.client.in.tenant";
         public static final String CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE = "unauthorized_client_not.authorized.to.use.requested.grant.type";
@@ -373,6 +375,8 @@ public class Constants {
                     Constants.ErrorToi18nMappingConstants.SUSPICIOUS_AUTHENTICATION_ATTEMPTS_SUSPICIOUS_AUTHENTICATION_ATTEMPTS_DESCRIPTION_I18N_KEY);
             ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FAILED_NO_REGISTERED_DEVICE_FOUND,
                     Constants.ErrorToi18nMappingConstants.NO_REGISTERED_DEVICE_FOUND_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(ErrorToi18nMappingConstants.AUTHENTICATION_FAILED_PROVISIONED_USER_NOT_FOUND,
+                    ErrorToi18nMappingConstants.AUTHENTICATION_FAILED_PROVISIONED_USER_NOT_FOUND_I18N_KEY);
             ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT,
                     Constants.ErrorToi18nMappingConstants.INVALID_CLIENT_IN_TENANT_I18N_KEY);
             ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE,

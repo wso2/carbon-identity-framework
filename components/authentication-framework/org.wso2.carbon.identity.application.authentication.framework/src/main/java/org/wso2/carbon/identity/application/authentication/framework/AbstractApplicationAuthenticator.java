@@ -449,8 +449,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         + tenantDomain);
             }
         } catch (UserStoreException e) {
-            String msg = "Failed to retrieve the user from the user store.";
-            throw new AuthenticationFailedException(msg, e);
+            throw new AuthenticationFailedException("Failed to retrieve the user from the user store.", e);
         }
         return user;
     }

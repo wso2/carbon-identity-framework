@@ -28,6 +28,7 @@ public abstract class FrameworkConstants {
     public static final String SUBJECT = "subject";
     public static final String DEFAULT_SEQUENCE = "default";
     public static final String AUTHENTICATED_AUTHENTICATORS = "authenticatedAuthenticators";
+    public static final String REDIRECT_URL = "REDIRECT_URL";
     public static final String COMMONAUTH_COOKIE = "commonAuthId";
     public static final String ALLOW_SESSION_CREATION = "allowSessionCreation";
     public static final String CONTEXT_PROP_INVALID_EMAIL_USERNAME = "InvalidEmailUsername";
@@ -42,6 +43,8 @@ public abstract class FrameworkConstants {
     public static final String USER_ID_CLAIM = "http://wso2.org/claims/userid";
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
     public static final String APP_ROLES_CLAIM = "http://wso2.org/claims/applicationRoles";
+    public static final String ROLES_CLAIM = "http://wso2.org/claims/roles";
+
     public static final String GROUPS_CLAIM = "http://wso2.org/claims/groups";
     public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";
     public static final String IDP_TYPE_CLAIM = "http://wso2.org/claims/identity/idpType";

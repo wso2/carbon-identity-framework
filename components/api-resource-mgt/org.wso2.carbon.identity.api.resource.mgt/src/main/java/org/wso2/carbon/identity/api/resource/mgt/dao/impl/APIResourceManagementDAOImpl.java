@@ -537,7 +537,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                             .description(resultSet.getString(SQLConstants.SCOPE_DESCRIPTION_COLUMN_NAME))
                             .build();
                     if (apiResources.containsKey(apiId)) {
-                        apiResources.get(apiId).getScopes().add(scope);
+                        List<Scope> scopeList = new ArrayList<>(apiResources.get(apiId).getScopes());
+                        scopeList.add(scope);
+                        apiResources.get(apiId).setScopes(scopeList);
                     } else {
                         APIResource apiResource = new APIResource.APIResourceBuilder()
                                 .id(apiId)

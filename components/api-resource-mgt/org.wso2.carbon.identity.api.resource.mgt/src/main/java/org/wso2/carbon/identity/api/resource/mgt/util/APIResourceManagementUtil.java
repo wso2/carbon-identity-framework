@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtServerException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Map;
 
@@ -85,6 +86,11 @@ public class APIResourceManagementUtil {
         Map<String, APIResource> configs = APIResourceManagementConfigBuilder.getInstance()
                 .getAPIResourceMgtConfigurations();
         for (APIResource apiResource : configs.values()) {
+            // Skip registering tenant management API in non-super tenant domains.
+            if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)
+                    && APIResourceManagementConstants.TENANT_MGT_API_NAME.equalsIgnoreCase(apiResource.getName())) {
+                continue;
+            }
             if (apiResource != null) {
                 try {
                     APIResourceManagerImpl.getInstance().addAPIResource(apiResource, tenantDomain);

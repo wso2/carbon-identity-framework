@@ -368,8 +368,10 @@ public class DefaultClaimHandler implements ClaimHandler {
         localToSPClaimMappings.entrySet().stream().filter(entry -> StringUtils.isNotBlank(localUnfilteredClaims.
                 get(entry.getKey()))).forEach(entry -> {
                     spUnfilteredClaims.put(entry.getValue(), localUnfilteredClaims.get(entry.getKey()));
+                    /* Add service provider requested claims to the filtered claims. Add federated roles claims even
+                    not requested by the service provider. */
                     if (StringUtils.isNotBlank(spRequestedClaimMappings.get(entry.getValue())) ||
-                            FrameworkConstants.APP_ROLES_CLAIM.equals(entry.getKey())) {
+                            isRoleClaim(entry.getKey())) {
                         spFilteredClaims.put(entry.getValue(), localUnfilteredClaims.get(entry.getKey()));
                     }
                 }
@@ -1275,5 +1277,19 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         return !sequenceConfig.getApplicationConfig().getServiceProvider().getLocalAndOutBoundAuthenticationConfig().
                 isUseUserstoreDomainInRoles();
+    }
+
+    /**
+     * Based on the Authz runtime check the given claim is related to the role claim.
+     *
+     * @param roleClaim URI.
+     * @return true if the given claim is related to roles.
+     */
+    private boolean isRoleClaim(String roleClaim) {
+
+        if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+            return FrameworkConstants.APP_ROLES_CLAIM.equals(roleClaim);
+        }
+        return FrameworkConstants.ROLES_CLAIM.equals(roleClaim);
     }
 }
