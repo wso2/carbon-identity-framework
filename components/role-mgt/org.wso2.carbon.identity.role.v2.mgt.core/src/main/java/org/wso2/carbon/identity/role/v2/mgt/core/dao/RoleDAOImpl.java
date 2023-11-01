@@ -545,9 +545,10 @@ public class RoleDAOImpl implements RoleDAO {
         }
         int audienceRefId = getAudienceRefByID(roleId, tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
             try {
                 List<RoleDTO> sharedHybridRoles = getSharedHybridRoles(roleId, tenantId, connection);
-                deleteSharedHybridRoles(roleId, tenantId, connection);
+                deleteSharedHybridRoles(roleId, tenantId, connection, databaseProductName);
                 try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_ROLE_SQL,
                         RoleConstants.RoleTableColumns.UM_ID)) {
                     statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
@@ -3012,11 +3013,15 @@ public class RoleDAOImpl implements RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     private void deleteSharedHybridRoles(String roleId, int mainTenantId,
-                                         Connection connection)
+                                         Connection connection, String databseProductName)
             throws IdentityRoleManagementException {
 
+        String deleteSharedHybridRolesSQL = DELETE_SHARED_HYBRID_ROLES_WITH_MAIN_ROLE_SQL;
+        if (MY_SQL.equals(databseProductName)) {
+            deleteSharedHybridRolesSQL = SQLQueries.DELETE_SHARED_HYBRID_ROLES_WITH_MAIN_ROLE_MYSQL;
+        }
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                DELETE_SHARED_HYBRID_ROLES_WITH_MAIN_ROLE_SQL)) {
+                deleteSharedHybridRolesSQL)) {
             statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
             statement.executeUpdate();
