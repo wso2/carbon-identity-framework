@@ -191,6 +191,10 @@
             <artifactId>org.wso2.carbon.identity.role.v2.mgt.core</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.secret.mgt.core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -244,6 +248,7 @@
                             org.wso2.carbon.identity.claim.metadata.mgt.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.claim.metadata.mgt.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.claim.metadata.mgt.listener; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.secret.mgt.core.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.consent.mgt.core.*; version="${carbon.consent.mgt.imp.pkg.version.range}",
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",

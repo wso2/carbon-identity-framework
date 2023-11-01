@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>org.wso2.carbon.identity.framework</groupId>
+        <artifactId>identity-framework</artifactId>
+        <version>5.25.399</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>client-attestation-mgt</artifactId>
+    <packaging>pom</packaging>
+    <name>WSO2 Carbon - Client Attestation Mgt Module</name>
+    <url>http://wso2.org</url>
+
+    <modules>
+        <module>org.wso2.carbon.identity.client.attestation.mgt</module>
+    </modules>
+</project>

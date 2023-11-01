@@ -71,6 +71,8 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
@@ -154,6 +156,8 @@ public class ApplicationManagementServiceComponent {
             bundleContext.registerService(ApplicationMgtListener.class,
                     new AdminRolePermissionsUpdateListener(), null);
 
+//            SecretResolveManager secretManager = new SecretResolveManagerImpl();
+//            ApplicationManagementServiceComponentHolder.getInstance().setSecretResolveManager(secretManager);
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }
@@ -552,5 +556,39 @@ public class ApplicationManagementServiceComponent {
 
         ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(null);
         log.debug("OrganizationManager unset in ApplicationManagementServiceComponent bundle.");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl",
+            service = SecretManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretManagerService"
+    )
+    private void setSecretManagerService(SecretManager secretManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setSecretManager(secretManager);
+    }
+
+    private void unsetSecretManagerService(SecretManager secretManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setSecretManager(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretResolveManagerImpl",
+            service = SecretResolveManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretResolveManagerService"
+    )
+    private void setSecretResolveManagerService(SecretResolveManager secretResolveManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setSecretResolveManager(secretResolveManager);
+    }
+
+    private void unsetSecretResolveManagerService(SecretResolveManager secretResolveManager) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setSecretResolveManager(null);
     }
 }

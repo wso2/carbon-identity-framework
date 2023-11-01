@@ -28,6 +28,8 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -68,6 +70,10 @@ public class ApplicationManagementServiceComponentHolder {
     private boolean isOrganizationManagementEnable = false;
 
     private IdentityEventService identityEventService;
+
+    private SecretManager secretManager;
+    private SecretResolveManager secretResolveManager;
+
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -338,4 +344,43 @@ public class ApplicationManagementServiceComponentHolder {
 
         return organizationManager;
     }
+
+    /**
+     * Gets the SecretManager instance.
+     * @return The SecretManager instance.
+     */
+    public SecretManager getSecretManager() {
+
+        return secretManager;
+    }
+
+    /**
+     * Sets the SecretManager instance.
+     * @param secretManager The SecretManager instance to be set.
+     */
+    public void setSecretManager(SecretManager secretManager) {
+
+        this.secretManager = secretManager;
+    }
+
+    /**
+     * Gets the SecretResolveManager instance.
+     *
+     * @return The SecretResolveManager instance.
+     */
+    public SecretResolveManager getSecretResolveManager() {
+
+        return secretResolveManager;
+    }
+
+    /**
+     * Sets the SecretResolveManager instance.
+     *
+     * @param secretResolveManager The SecretResolveManager instance to be set.
+     */
+    public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        this.secretResolveManager = secretResolveManager;
+    }
+
 }

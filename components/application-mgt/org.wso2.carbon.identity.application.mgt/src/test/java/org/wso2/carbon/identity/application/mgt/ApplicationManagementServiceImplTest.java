@@ -61,8 +61,17 @@ import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
+import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.secret.mgt.core.internal.SecretManagerComponentDataHolder;
+import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
+import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
@@ -77,6 +86,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
+import java.util.Collections;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -135,6 +145,22 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
                 invocation -> invocation.getArguments()[0]);
         when(idpSecretsProcessor.decryptAssociatedSecrets(anyObject())).thenAnswer(invocation ->
                 invocation.getArguments()[0]);
+
+        SecretManager secretManager = mock(SecretManagerImpl.class);
+        Secret secret = mock(Secret.class);
+        ApplicationManagementServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(false);
+        when(secretManager.addSecret(anyString(), anyObject())).thenAnswer(
+                invocation -> invocation.getArguments()[1]);
+        when(secretManager.updateSecretValue(anyString(), anyString(), anyString())).thenReturn(secret);
+        ResolvedSecret resolvedSecret = new ResolvedSecret();
+        resolvedSecret.setResolvedSecretValue("random_secret_value");
+        SecretResolveManager secretResolveManager = mock(SecretResolveManagerImpl.class);
+        ApplicationManagementServiceComponentHolder.getInstance().setSecretResolveManager(secretResolveManager);
+        when(secretResolveManager.getResolvedSecret(anyString(), anyString())).thenReturn(resolvedSecret);
+        SecretManagerComponentDataHolder.getInstance().setSecretManagementEnabled(true);
+        SecretDAO secretDAO = new SecretDAOImpl();
+        SecretManagerComponentDataHolder.getInstance().setSecretDAOS(Collections.singletonList(secretDAO));
     }
 
     @DataProvider(name = "addApplicationDataProvider")
