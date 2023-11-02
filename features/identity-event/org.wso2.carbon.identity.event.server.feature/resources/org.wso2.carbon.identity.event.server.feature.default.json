@@ -264,5 +264,9 @@
   "identity_mgt.events.schemes.UserInvitationEventHandler.subscriptions": [
     "POST_ADD_ORGANIZATION_USER_INVITATION"
   ],
+  "identity_mgt.events.schemes.SMSNotificationHandler.module_index":"43",
+  "identity_mgt.events.schemes.SMSNotificationHandler.subscriptions": [
+    "TRIGGER_SMS_NOTIFICATION_LOCAL"
+  ],
   "identity_mgt.events.schemes.UserInvitationEventHandler.properties.enable": true
 }
