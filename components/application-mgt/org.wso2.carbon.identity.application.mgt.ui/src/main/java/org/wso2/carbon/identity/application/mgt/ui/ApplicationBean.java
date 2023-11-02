@@ -937,7 +937,6 @@ public class ApplicationBean {
         if (authRequest != null) {
             for (int i = 0; i < authRequest.length; i++) {
                 if ("passivests".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
-
                     // Get wreply logout url from properties.
                     Property[] properties = authRequest[i].getProperties();
                     if (properties != null) {
