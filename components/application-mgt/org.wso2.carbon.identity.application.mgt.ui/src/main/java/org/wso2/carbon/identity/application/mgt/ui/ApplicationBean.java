@@ -65,6 +65,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PassiveSTS.PASSIVE_STS_REPLY_URL_LOGOUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SP_NAME;
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.PASSIVE_STS;
 
 
 /**
@@ -936,7 +937,7 @@ public class ApplicationBean {
 
         if (authRequest != null) {
             for (int i = 0; i < authRequest.length; i++) {
-                if ("passivests".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
+                if (PASSIVE_STS.equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
                     // Get wreply logout url from properties.
                     Property[] properties = authRequest[i].getProperties();
                     if (properties != null) {
@@ -1374,7 +1375,7 @@ public class ApplicationBean {
             opicAuthenticationRequest.setInboundAuthKey(passiveSTSRealm);
             opicAuthenticationRequest.setInboundAuthType("passivests");
 
-            List<Property> propertiesArrList = new ArrayList<Property>();
+            List<Property> propertiesArrList = new ArrayList<>();
             if (passiveSTSWReply != null && !passiveSTSWReply.isEmpty()) {
                 Property property = new Property();
                 property.setName("passiveSTSWReply");
@@ -1685,6 +1686,7 @@ public class ApplicationBean {
      * @param passiveSTSWReplyLogout Wreply logout url.
      */
     public void setPassiveSTSWReplyLogout(String passiveSTSWReplyLogout) {
+
         this.passiveSTSWReplyLogout = passiveSTSWReplyLogout;
     }
 

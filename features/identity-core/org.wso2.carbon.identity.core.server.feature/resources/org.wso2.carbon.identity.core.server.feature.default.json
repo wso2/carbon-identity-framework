@@ -312,7 +312,7 @@
   "passive_sts.slo.host_name_verification": true,
   "passive_sts.disable_applies_to_in_response": false,
   "passive_sts.enable_default_signature_and_digest_alg": true,
-  "passive_sts.logout_wreply_validation": true,
+  "passive_sts.enable_logout_wreply_validation": true,
 
   "passive_sts.endpoints.idp": "$ref{server.base_path}/passivests",
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
