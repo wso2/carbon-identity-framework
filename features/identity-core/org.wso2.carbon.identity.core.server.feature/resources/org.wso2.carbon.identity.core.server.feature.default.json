@@ -1009,6 +1009,7 @@
   "console.certificates.scopes.update": ["internal_keystore_update"],
   "console.certificates.scopes.delete": ["internal_keystore_update"],
   "console.email_providers.enabled": true,
+  "console.email_providers.disabled_features": ["superTenantProvider"],
   "console.email_providers.scopes.create": ["internal_config_mgt_add"],
   "console.email_providers.scopes.read": ["internal_config_mgt_view"],
   "console.email_providers.scopes.update": ["internal_config_mgt_update"],
@@ -1243,6 +1244,7 @@
   "input_validation.default_validator": "alphaNumeric",
   "input_validation.username.enable": false,
 
+  "email_templates.branding.organization.enable": true,
   "email_templates.branding.fallbacks.copyright_text": "WSO2 Identity Server",
   "email_templates.branding.fallbacks.primary_color": "#FF7300",
   "email_templates.branding.fallbacks.background_color": "#F8F9FA",

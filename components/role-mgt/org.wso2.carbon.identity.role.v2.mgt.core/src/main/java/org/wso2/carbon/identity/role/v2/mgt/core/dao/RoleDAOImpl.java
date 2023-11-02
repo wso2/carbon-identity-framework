@@ -296,7 +296,7 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     "Error while listing roles in tenantDomain: " + tenantDomain, e);
         }
-        return Collections.unmodifiableList(roles);
+        return roles;
     }
 
     @Override
@@ -331,7 +331,7 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
                     "Error while listing roles in tenantDomain: " + tenantDomain, e);
         }
-        return Collections.unmodifiableList(roles);
+        return roles;
     }
 
     @Override

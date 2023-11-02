@@ -1610,8 +1610,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             // IS_LOCAL_CLAIM_DIALECT=?, IS_SEND_LOCAL_SUBJECT_ID=? WHERE TENANT_ID= ? AND ID = ?
             storeClaimDialectAndSendLocalSubIdPrepStmt.setString(1, claimConfiguration.isLocalClaimDialect() ? "1"
                     : "0");
-            storeClaimDialectAndSendLocalSubIdPrepStmt.setString(2,
-                    claimConfiguration.isAlwaysSendMappedLocalSubjectId() ? "1" : "0");
+            if (claimConfiguration.isAlwaysSendMappedLocalSubjectId() &&
+                    claimConfiguration.isMappedLocalSubjectMandatory()) {
+                storeClaimDialectAndSendLocalSubIdPrepStmt.setString(2, "2");
+            } else if (claimConfiguration.isAlwaysSendMappedLocalSubjectId() &&
+                    !claimConfiguration.isMappedLocalSubjectMandatory()) {
+                storeClaimDialectAndSendLocalSubIdPrepStmt.setString(2, "1");
+            } else {
+                storeClaimDialectAndSendLocalSubIdPrepStmt.setString(2, "0");
+            }
+
             storeClaimDialectAndSendLocalSubIdPrepStmt.setInt(3, tenantID);
             storeClaimDialectAndSendLocalSubIdPrepStmt.setInt(4, applicationId);
             storeClaimDialectAndSendLocalSubIdPrepStmt.executeUpdate();
@@ -2391,14 +2399,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     /**
      * @param applicationid
+     * @param tenantID
      * @param connection
      * @return
      * @throws SQLException
      */
-    private String getAuthenticationType(int applicationid, Connection connection)
+    private String getAuthenticationType(int applicationid,  int tenantID, Connection connection)
             throws SQLException {
-
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         PreparedStatement authTypeStmt = null;
         ResultSet authTypeResultSet = null;
@@ -2876,7 +2883,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             localAndOutboundConfiguration.setAuthenticationSteps(authenticationSteps);
 
-            String authType = getAuthenticationType(applicationId, connection);
+            String authType = getAuthenticationType(applicationId, tenantId, connection);
             if (StringUtils.equalsIgnoreCase(authType, ApplicationConstants.AUTH_TYPE_FEDERATED)
                     || StringUtils.equalsIgnoreCase(authType, ApplicationConstants.AUTH_TYPE_FLOW)) {
                 if (ArrayUtils.isEmpty(authenticationSteps)) {
@@ -3111,8 +3118,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             while (loadClaimConfigsResultSet.next()) {
                 claimConfig.setRoleClaimURI(loadClaimConfigsResultSet.getString(1));
                 claimConfig.setLocalClaimDialect("1".equals(loadClaimConfigsResultSet.getString(2)));
-                claimConfig.setAlwaysSendMappedLocalSubjectId("1".equals(loadClaimConfigsResultSet
-                        .getString(3)));
+
+                switch (loadClaimConfigsResultSet.getString(3)) {
+                    case "1":
+                        claimConfig.setAlwaysSendMappedLocalSubjectId(true);
+                        claimConfig.setMappedLocalSubjectMandatory(false);
+                        break;
+                    case "2":
+                        claimConfig.setAlwaysSendMappedLocalSubjectId(true);
+                        claimConfig.setMappedLocalSubjectMandatory(true);
+                        break;
+                    default:
+                       claimConfig.setAlwaysSendMappedLocalSubjectId(false);
+                       claimConfig.setMappedLocalSubjectMandatory(false);
+                }
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while retrieving all application", e);

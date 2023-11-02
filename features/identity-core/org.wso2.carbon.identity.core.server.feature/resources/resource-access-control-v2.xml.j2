@@ -401,10 +401,6 @@
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_org_role_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/o/scim2/v2/Roles(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
-            <Scopes>internal_org_role_mgt_create</Scopes>
-        </Resource>
         <Resource context="(.*)/o/scim2/v2/Roles(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
             <Scopes>internal_org_role_mgt_view</Scopes>
@@ -416,10 +412,6 @@
         <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="PATCH">
             <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
             <Scopes>internal_org_role_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/scim2/v2/Roles/(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
-            <Scopes>internal_org_role_mgt_delete</Scopes>
         </Resource>
 
         <!-- SCIM2 Users API -->
@@ -1214,7 +1206,7 @@
             <Scopes>internal_org_self_service_view</Scopes>
         </Resource>
         <Resource context="(.*)/o/api/server/v1/self-service/(.*)" secured="true" http-method="PATCH">
-            <Scopes>internal__org_self_service_update</Scopes>
+            <Scopes>internal_org_self_service_update</Scopes>
         </Resource>
 
         <!-- Organization Self Service API -->
