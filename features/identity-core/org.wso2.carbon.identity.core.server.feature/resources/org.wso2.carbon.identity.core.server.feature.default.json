@@ -242,6 +242,7 @@
   "oauth.oidc.token_endpoint.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.id_token.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
+  "oauth.oidc.enable_tls_certificate_bound_access_tokens": false,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
