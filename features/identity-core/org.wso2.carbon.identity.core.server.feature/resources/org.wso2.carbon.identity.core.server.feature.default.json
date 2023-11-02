@@ -913,7 +913,7 @@
       {
           "id": "cmVzZW5kQXNrUGFzc3dvcmQ",
           "displayName": "Resend Ask Password",
-          "description": "This email is send when the organization admin reinitiates the Ask Password for a user"
+          "description": "This email is sent when the organization admin re-initiates the request for a new user password."
       },
       {
           "id": "cmVzZW5kQWRtaW5Gb3JjZWRQYXNzd29yZFJlc2V0",
@@ -943,7 +943,7 @@
       {
           "id": "aWRsZUFjY291bnRSZW1pbmRlcg",
           "displayName": "Idle Account Reminder",
-          "description": "This email is sent when the user account is idle for a long time"
+          "description": "This email is sent when the user account is idle for a configured amount of time"
       },
       {
           "id": "VmVyaWZ5RW1haWxPblVwZGF0ZQ",
