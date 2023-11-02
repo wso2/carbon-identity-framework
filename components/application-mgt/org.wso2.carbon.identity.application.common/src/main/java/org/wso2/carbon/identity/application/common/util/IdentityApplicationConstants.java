@@ -268,6 +268,7 @@ public class IdentityApplicationConstants {
             public static final String AUTH_TOKEN_ENDPOINT = "AuthTokenEndpoint";
             public static final String USER_INFO_ENDPOINT = "UserInfoEndpoint";
             public static final String CALLBACK_URL = "callBackUrl";
+            public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
 
             private Facebook() {
 

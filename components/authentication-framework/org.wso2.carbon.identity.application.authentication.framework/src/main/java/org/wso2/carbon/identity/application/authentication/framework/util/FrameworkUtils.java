@@ -101,6 +101,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -1498,9 +1499,13 @@ public class FrameworkUtils {
     }
 
     /**
-     * @param claimMappings
-     * @param useLocalDialectAsKey
-     * @return
+     * Get the flat mapping of the local to remote claims.
+     *
+     * @param claimMappings        The claim mappings from the authenticated context.
+     * @param useLocalDialectAsKey Whether the key will be the local claim uri or remote uri.
+     *                             If true, the returned map will be <localClaimUri, claimValue>.
+     *                             If false, the returned map will be <remoteClaimUri, claimValue>.
+     * @return The flat mapping of local to remote claims.
      */
     public static Map<String, String> getClaimMappings(Map<ClaimMapping, String> claimMappings,
                                                        boolean useLocalDialectAsKey) {
@@ -3531,5 +3536,25 @@ public class FrameworkUtils {
                         .flatMap(List::stream)
                         .allMatch(authenticator ->
                                 authenticator.getApplicationAuthenticator() instanceof AuthenticationFlowHandler);
+    }
+
+    /**
+     * This method checks the value of the authenticator property named IsUserIdInClaims.
+     *
+     * @param externalIdPConfig              Selected ExternalIdPConfig for the authenticator step.
+     * @param authenticatedAuthenticatorName Name of the authenticator.
+     * @return Whether the user id is found among claims.
+     */
+    public static boolean isUserIdFoundAmongClaims(ExternalIdPConfig externalIdPConfig,
+                                                   String authenticatedAuthenticatorName) {
+
+        Map<String, String> authenticatorProperties =
+                FrameworkUtils.getAuthenticatorPropertyMapFromIdP(externalIdPConfig,
+                        authenticatedAuthenticatorName);
+        if (authenticatorProperties.containsKey(IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS)) {
+            return Boolean.parseBoolean(authenticatorProperties.get(IdentityApplicationConstants.Authenticator.OIDC
+                    .IS_USER_ID_IN_CLAIMS));
+        }
+        return false;
     }
 }

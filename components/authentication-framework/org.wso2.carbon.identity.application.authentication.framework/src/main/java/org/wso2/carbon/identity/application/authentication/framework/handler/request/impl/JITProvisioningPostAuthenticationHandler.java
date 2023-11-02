@@ -90,6 +90,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ALLOW_LOGIN_TO_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_REALM_IN_POST_AUTHENTICATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_TRYING_TO_GET_CLAIMS_WHILE_TRYING_TO_PASSWORD_PROVISION;
@@ -422,9 +423,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     //When the local user association is enabled, user email id will be used to create the association.
                     //Since the default provisioning handler removes the email domain, in case the username equals to
                     //the email address, tenant domain is appended to the username.
-                    if (externalIdPConfig.isAssociateLocalUserEnabled() &&
+                    if (StringUtils.isNotBlank(username) &&
                             StringUtils.equals(UserCoreUtil.removeDomainFromName(username),
-                                    localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
+                                    localClaimValues.get(USERNAME_CLAIM))) {
                         username = UserCoreUtil.addTenantDomainToEntry(username, context.getTenantDomain());
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
@@ -441,9 +442,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             throws PostAuthenticationFailedException {
 
         String username;
-        String userIdClaimUriInLocalDialect = getUserIdClaimUriInLocalDialect(externalIdPConfig);
-        if (isUserNameFoundFromUserIDClaimURI(localClaimValues, userIdClaimUriInLocalDialect)) {
-            username = localClaimValues.get(userIdClaimUriInLocalDialect);
+        if (FrameworkUtils.isUserIdFoundAmongClaims(externalIdPConfig,
+                stepConfig.getAuthenticatedAutenticator().getName()) && StringUtils.isNotBlank(localClaimValues.get
+                (USERNAME_CLAIM))) {
+            username = localClaimValues.get(USERNAME_CLAIM);
         } else {
             if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
                 username = getFederatedUsername(stepConfig.getAuthenticatedUser().getUserName(),
@@ -874,7 +876,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         localClaimValues.put(FrameworkConstants.ASSOCIATED_ID,
                 stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
-
+        localClaimValues.put(IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS,
+                String.valueOf(FrameworkUtils.isUserIdFoundAmongClaims(externalIdPConfig,
+                        stepConfig.getAuthenticatedAutenticator().getName())));
         /*
         If TOTP is enabled for federated users, the initial federated user login will be identified with the following
         check and will set the secret key claim for the federated user who is going to be provisioned.
