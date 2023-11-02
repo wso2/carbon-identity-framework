@@ -2399,14 +2399,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     /**
      * @param applicationid
+     * @param tenantID
      * @param connection
      * @return
      * @throws SQLException
      */
-    private String getAuthenticationType(int applicationid, Connection connection)
+    private String getAuthenticationType(int applicationid,  int tenantID, Connection connection)
             throws SQLException {
-
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         PreparedStatement authTypeStmt = null;
         ResultSet authTypeResultSet = null;
@@ -2884,7 +2883,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             localAndOutboundConfiguration.setAuthenticationSteps(authenticationSteps);
 
-            String authType = getAuthenticationType(applicationId, connection);
+            String authType = getAuthenticationType(applicationId, tenantId, connection);
             if (StringUtils.equalsIgnoreCase(authType, ApplicationConstants.AUTH_TYPE_FEDERATED)
                     || StringUtils.equalsIgnoreCase(authType, ApplicationConstants.AUTH_TYPE_FLOW)) {
                 if (ArrayUtils.isEmpty(authenticationSteps)) {
