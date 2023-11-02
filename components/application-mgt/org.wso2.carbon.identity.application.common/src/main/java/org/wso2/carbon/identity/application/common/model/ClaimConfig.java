@@ -41,6 +41,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ClaimConfig implements Serializable {
 
     private static final long serialVersionUID = 94689128465184610L;
+    public static final String ROLE_CLAIM_URI = "RoleClaimURI";
+    public static final String LOCAL_CLAIM_DIALECT = "LocalClaimDialect";
+    public static final String USER_CLAIM_URI = "UserClaimURI";
+    public static final String ALWAYS_SEND_MAPPED_LOCAL_SUBJECT_ID = "AlwaysSendMappedLocalSubjectId";
+    public static final String MAPPED_LOCAL_SUBJECT_MANDATORY = "MappedLocalSubjectMandatory";
+    public static final String IDP_CLAIMS = "IdpClaims";
+    public static final String CLAIM_MAPPINGS = "ClaimMappings";
 
     @XmlElement(name = "RoleClaimURI")
     private String roleClaimURI;
@@ -62,6 +69,9 @@ public class ClaimConfig implements Serializable {
     @XmlElement(name = "AlwaysSendMappedLocalSubjectId")
     private boolean alwaysSendMappedLocalSubjectId;
 
+    @XmlElement(name = "MappedLocalSubjectMandatory")
+    private boolean mappedLocalSubjectMandatory;
+
     @XmlElementWrapper(name = "SPClaimDialects")
     @XmlElement(name = "SPClaimDialect")
     private String[] spClaimDialects = new String[0];
@@ -81,19 +91,23 @@ public class ClaimConfig implements Serializable {
             OMElement element = (OMElement) (iter.next());
             String elementName = element.getLocalName();
 
-            if ("RoleClaimURI".equals(elementName)) {
+            if (ROLE_CLAIM_URI.equals(elementName)) {
                 claimConfig.setRoleClaimURI(element.getText());
-            } else if ("LocalClaimDialect".equals(elementName)) {
+            } else if (LOCAL_CLAIM_DIALECT.equals(elementName)) {
                 if (element.getText() != null) {
                     claimConfig.setLocalClaimDialect(Boolean.parseBoolean(element.getText()));
                 }
-            } else if ("UserClaimURI".equals(elementName)) {
+            } else if (USER_CLAIM_URI.equals(elementName)) {
                 claimConfig.setUserClaimURI(element.getText());
-            } else if ("AlwaysSendMappedLocalSubjectId".equals(elementName)) {
-                if ("true".equals(element.getText())) {
+            } else if (ALWAYS_SEND_MAPPED_LOCAL_SUBJECT_ID.equals(elementName)) {
+                if (Boolean.parseBoolean(element.getText())) {
                     claimConfig.setAlwaysSendMappedLocalSubjectId(true);
                 }
-            } else if ("IdpClaims".equals(elementName)) {
+            } else if (MAPPED_LOCAL_SUBJECT_MANDATORY.equals(elementName)) {
+                if (Boolean.parseBoolean(element.getText())) {
+                    claimConfig.setMappedLocalSubjectMandatory(true);
+                }
+            } else if (IDP_CLAIMS.equals(elementName)) {
                 Iterator<?> idpClaimsIter = element.getChildElements();
                 List<Claim> idpClaimsArrList = new ArrayList<Claim>();
 
@@ -111,7 +125,7 @@ public class ClaimConfig implements Serializable {
                     Claim[] idpClaimsArr = idpClaimsArrList.toArray(new Claim[0]);
                     claimConfig.setIdpClaims(idpClaimsArr);
                 }
-            } else if ("ClaimMappings".equals(elementName)) {
+            } else if (CLAIM_MAPPINGS.equals(elementName)) {
 
                 Iterator<?> claimMappingsIter = element.getChildElements();
                 List<ClaimMapping> claimMappingsArrList = new ArrayList<ClaimMapping>();
@@ -210,6 +224,15 @@ public class ClaimConfig implements Serializable {
 
     public void setAlwaysSendMappedLocalSubjectId(boolean alwaysSendMappedLocalSubjectId) {
         this.alwaysSendMappedLocalSubjectId = alwaysSendMappedLocalSubjectId;
+    }
+
+    public boolean isMappedLocalSubjectMandatory() {
+
+        return mappedLocalSubjectMandatory; }
+
+    public void setMappedLocalSubjectMandatory(boolean mappedLocalSubjectMandatory) {
+
+        this.mappedLocalSubjectMandatory = mappedLocalSubjectMandatory;
     }
 
     /**

@@ -296,7 +296,7 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     "Error while listing roles in tenantDomain: " + tenantDomain, e);
         }
-        return Collections.unmodifiableList(roles);
+        return roles;
     }
 
     @Override
@@ -331,7 +331,7 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
                     "Error while listing roles in tenantDomain: " + tenantDomain, e);
         }
-        return Collections.unmodifiableList(roles);
+        return roles;
     }
 
     @Override
@@ -1068,6 +1068,9 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         Map<String, String> rolesMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return rolesMap;
+        }
         String query = GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL +
                 String.join(", ", Collections.nCopies(roleIds.size(), "?")) + ")";
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
@@ -1134,7 +1137,7 @@ public class RoleDAOImpl implements RoleDAO {
                     String name = resultSet.getString(2);
                     int tenantId = resultSet.getInt(3);
                     int audienceRefId = resultSet.getInt(4);
-                    hybridRoles.add(new RoleDTO(id, name, audienceRefId, tenantId));
+                    hybridRoles.add(new RoleDTO(name, id, audienceRefId, tenantId));
                 }
             }
         } catch (SQLException e) {

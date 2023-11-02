@@ -954,7 +954,7 @@
 
         <!-- Configs related to OAuth2 token persistence -->
         <TokenPersistence>
-            <Enable>true</Enable>
+            <Enable>{{oauth.token_persistence.enable}}</Enable>
             <PoolSize>0</PoolSize>
             <RetryCount>{{oauth.token_generation.retry_count_on_persistence_failures}}</RetryCount>
         </TokenPersistence>
@@ -3394,6 +3394,17 @@
             </Context>
         {% endfor %}
         {% endfor %}
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/server/v1/branding-preference</Path>
+                    <Path>/api/server/v1/branding-preference/resolve</Path>
+                    <Path>/api/server/v1/branding-preference/text</Path>
+                    <Path>/api/server/v1/branding-preference/text/resolve</Path>
+                    <Path>/api/identity/recovery/v0.9</Path>
+                    <Path>/api/server/v1/identity-governance/preferences</Path>
+                </SubPaths>
+            </Context>
             <Context>
                 <BasePath>/oauth2/</BasePath>
             </Context>
