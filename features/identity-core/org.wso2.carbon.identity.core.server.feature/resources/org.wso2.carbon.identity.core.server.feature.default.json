@@ -898,7 +898,7 @@
       {
           "id": "QWNjb3VudElkUmVjb3Zlcnk",
           "displayName": "Recover user account",
-          "description": "This email is sent when a user accounts needs to be recovered"
+          "description": "This email is sent when a user account needs to be recovered"
       },
       {
           "id": "VGVtcG9yYXJ5UGFzc3dvcmQ",
