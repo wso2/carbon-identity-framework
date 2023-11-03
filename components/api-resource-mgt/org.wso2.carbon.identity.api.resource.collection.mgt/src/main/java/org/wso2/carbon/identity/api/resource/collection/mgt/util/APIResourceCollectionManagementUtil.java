@@ -21,12 +21,13 @@ package org.wso2.carbon.identity.api.resource.collection.mgt.util;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants;
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtClientException;
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtServerException;
-import org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants;
 
-
+/**
+ * Utility class for API Resource Collection Management.
+ */
 public class APIResourceCollectionManagementUtil {
 
     private static final Log LOG = LogFactory.getLog(APIResourceCollectionManagementUtil.class);

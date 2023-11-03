@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.api.resource.collection.mgt;
 
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtException;
-import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollectionSearchResult;
 import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollection;
+import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollectionSearchResult;
 
 /**
  * API Resource Collection Manager Interface.

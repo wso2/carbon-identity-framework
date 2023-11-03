@@ -28,11 +28,9 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
-import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
-
 import org.wso2.carbon.identity.api.resource.collection.mgt.APIResourceCollectionManager;
 import org.wso2.carbon.identity.api.resource.collection.mgt.APIResourceCollectionManagerImpl;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 
 /**
  * Service component for the API resource management.

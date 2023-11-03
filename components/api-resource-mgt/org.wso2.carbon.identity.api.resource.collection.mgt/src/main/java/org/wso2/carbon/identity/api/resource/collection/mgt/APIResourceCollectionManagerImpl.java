@@ -20,11 +20,27 @@ package org.wso2.carbon.identity.api.resource.collection.mgt;
 
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtException;
 import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollection;
+import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollectionBasicInfo;
 import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollectionSearchResult;
+import org.wso2.carbon.identity.api.resource.collection.mgt.util.APIResourceCollectionMgtConfigBuilder;
 
+import java.util.List;
+import java.util.Map;
+
+/**
+ * API Resource Collection Manager Implementation.
+ */
 public class APIResourceCollectionManagerImpl implements APIResourceCollectionManager {
 
     private static final APIResourceCollectionManagerImpl INSTANCE = new APIResourceCollectionManagerImpl();
+    private static final APIResourceCollectionMgtConfigBuilder configBuilder =
+            APIResourceCollectionMgtConfigBuilder.getInstance();
+    private static final Map<String, APIResourceCollectionBasicInfo> apiResourceCollectionsBasicInfoMap =
+            configBuilder.getApiResourceCollectionMgtConfigurations();
+
+    private APIResourceCollectionManagerImpl () {
+
+    }
 
     public static APIResourceCollectionManagerImpl getInstance() {
 
@@ -42,7 +58,8 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
     public APIResourceCollectionSearchResult getAPIResourceCollections(String filter)
             throws APIResourceCollectionMgtException {
 
-        return null;
+        return new APIResourceCollectionSearchResult(
+                (List<APIResourceCollectionBasicInfo>) apiResourceCollectionsBasicInfoMap.values());
     }
 
     /**

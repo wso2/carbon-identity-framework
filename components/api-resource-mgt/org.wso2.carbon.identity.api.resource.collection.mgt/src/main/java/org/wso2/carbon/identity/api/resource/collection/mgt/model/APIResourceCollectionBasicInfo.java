@@ -18,26 +18,24 @@
 
 package org.wso2.carbon.identity.api.resource.collection.mgt.model;
 
-import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.Scope;
 
 import java.util.List;
 
+/**
+ * API Resource Collection Basic Info.
+ */
 public class APIResourceCollectionBasicInfo {
 
     private String id;
     private String name;
     private String displayName;
     private String type;
-    private String self;
+    private List<Scope> scopes;
 
     public String getId() {
 
         return id;
-    }
-
-    public void setId(String id) {
-
-        this.id = id;
     }
 
     public String getName() {
@@ -45,19 +43,9 @@ public class APIResourceCollectionBasicInfo {
         return name;
     }
 
-    public void setName(String name) {
-
-        this.name = name;
-    }
-
     public String getDisplayName() {
 
         return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-
-        this.displayName = displayName;
     }
 
     public String getType() {
@@ -65,18 +53,73 @@ public class APIResourceCollectionBasicInfo {
         return type;
     }
 
-    public void setType(String type) {
+    public List<Scope> getScopes() {
 
-        this.type = type;
+        return scopes;
     }
 
-    public String getSelf() {
+    public void setScopes(List<Scope> scopes) {
 
-        return self;
+        this.scopes = scopes;
     }
 
-    public void setSelf(String self) {
-
-        this.self = self;
+    public APIResourceCollectionBasicInfo() {
     }
+
+    public APIResourceCollectionBasicInfo(APIResourceCollectionBasicInfoBuilder apiResourceCollectionBasicInfoBuilder) {
+
+        this.id = apiResourceCollectionBasicInfoBuilder.id;
+        this.name = apiResourceCollectionBasicInfoBuilder.name;
+        this.displayName = apiResourceCollectionBasicInfoBuilder.displayName;
+        this.type = apiResourceCollectionBasicInfoBuilder.type;
+        this.scopes = apiResourceCollectionBasicInfoBuilder.scopes;
+    }
+
+    /**
+     * Builder class for API Resource Collection Basic Info.
+     */
+    public static class APIResourceCollectionBasicInfoBuilder {
+
+        private String id;
+        private String name;
+        private String displayName;
+        private String type;
+        private List<Scope> scopes;
+
+        public APIResourceCollectionBasicInfoBuilder id(String id) {
+
+            this.id = id;
+            return this;
+        }
+
+        public APIResourceCollectionBasicInfoBuilder name(String name) {
+
+            this.name = name;
+            return this;
+        }
+
+        public APIResourceCollectionBasicInfoBuilder displayName(String displayName) {
+
+            this.displayName = displayName;
+            return this;
+        }
+
+        public APIResourceCollectionBasicInfoBuilder type(String type) {
+
+            this.type = type;
+            return this;
+        }
+
+        public APIResourceCollectionBasicInfoBuilder scopes(List<Scope> scopes) {
+
+            this.scopes = scopes;
+            return this;
+        }
+
+        public APIResourceCollectionBasicInfo build() {
+
+            return new APIResourceCollectionBasicInfo(this);
+        }
+    }
+
 }

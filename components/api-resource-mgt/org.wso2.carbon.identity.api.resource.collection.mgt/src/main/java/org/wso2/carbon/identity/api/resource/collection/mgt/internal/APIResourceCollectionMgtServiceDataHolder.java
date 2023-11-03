@@ -20,12 +20,14 @@ package org.wso2.carbon.identity.api.resource.collection.mgt.internal;
 
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 
+/**
+ * API Resource Collection Management Service Data Holder.
+ */
 public class APIResourceCollectionMgtServiceDataHolder {
 
-    private final static APIResourceCollectionMgtServiceDataHolder INSTANCE =
-            new APIResourceCollectionMgtServiceDataHolder();
-
     private APIResourceManager apiResourceManagementService = null;
+    private static final APIResourceCollectionMgtServiceDataHolder INSTANCE =
+            new APIResourceCollectionMgtServiceDataHolder();
 
     public static APIResourceCollectionMgtServiceDataHolder getInstance() {
 

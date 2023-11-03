@@ -22,6 +22,9 @@ import org.wso2.carbon.identity.application.common.model.APIResource;
 
 import java.util.List;
 
+/**
+ * API Resource Collection.
+ */
 public class APIResourceCollection {
     private String id;
     private String name;
@@ -30,8 +33,17 @@ public class APIResourceCollection {
     private String self;
     private List<APIResource> apiResources;
 
+    public APIResourceCollection() {
+    }
+
     public APIResourceCollection(APIResourceCollectionBuilder apiResourceCollectionBuilder) {
 
+            this.id = apiResourceCollectionBuilder.id;
+            this.name = apiResourceCollectionBuilder.name;
+            this.displayName = apiResourceCollectionBuilder.displayName;
+            this.type = apiResourceCollectionBuilder.type;
+            this.self = apiResourceCollectionBuilder.self;
+            this.apiResources = apiResourceCollectionBuilder.apiResources;
     }
 
     public String getId() {
@@ -69,6 +81,9 @@ public class APIResourceCollection {
         this.apiResources = apiResources;
     }
 
+    /**
+     * Builder class for API Resource Collection.
+     */
     public static class APIResourceCollectionBuilder {
 
         private String id;

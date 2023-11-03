@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  ~ Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<APIResourceCollections>
+    {% for collection in api_resource_collections %}
+    <APIResourceCollection name="{{ collection.name }}" displayName="{{ collection.displayName }}" type="{{ collection.type | default('Unknown') }}" enabled="{{ collection.enabled | default('true') }}">
+        <Scopes>
+            {% if collection.scopes.create %}
+            <Create>
+                {% for scope in collection.scopes.create %}
+                <Scope name="{{ scope.name }}"/>
+                {% endfor %}
+            </Create>
+            {% endif %}
+            {% if collection.scopes.update %}
+            <Update>
+                {% for scope in collection.scopes.update %}
+                <Scope name="{{ scope.name }}"/>
+                {% endfor %}
+            </Update>
+            {% endif %}
+            {% if collection.scopes.read %}
+            <Read>
+                {% for scope in collection.scopes.read %}
+                <Scope name="{{ scope.name }}"/>
+                {% endfor %}
+            </Read>
+            {% endif %}
+            {% if collection.scopes.delete %}
+            <Delete>
+                {% for scope in collection.scopes.delete %}
+                <Scope name="{{ scope.name }}"/>
+                {% endfor %}
+            </Delete>
+            {% endif %}
+        </Scopes>
+    </APIResourceCollection>
+    {% endfor %}
+    <APIResourceCollection name="applications" displayName="Applications" type="Unknown">
+        <Scopes>
+            <Create>
+                <Scope name= "internal_application_mgt_create" />
+            </Create>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="administrators" displayName="Administrators" enabled="true">
+        <Scopes>
+            <Update/>
+            <Read/>
+            <Create/>
+            <Delete/>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="analytics" displayName="Analytics" enabled="true">
+        <Scopes>
+            <Update/>
+            <Read/>
+            <Create/>
+            <Delete/>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="apiResources" displayName="API Resources" enabled="true">
+        <Scopes>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+            </Update>
+            <Create>
+                <Scope name="internal_application_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_application_mgt_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_application_mgt_update"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="approvals" displayName="Approvals" enabled="false">
+        <Scopes>
+            <Update>
+                <Scope name="internal_humantask_view"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_humantask_view"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_humantask_view"/>
+            </Create>
+            <Read>
+                <Scope name="internal_humantask_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects" enabled="true">
+        <Scopes>
+            <Create>
+                <Scope name="internal_claim_meta_create"/>
+            </Create>
+            <Update>
+                <Scope name="internal_claim_meta_update"/>
+            </Update>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_claim_meta_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+</APIResourceCollections>

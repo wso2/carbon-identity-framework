@@ -22,6 +22,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * API Resource Collection Management Constants.
+ */
 public class APIResourceCollectionManagementConstants {
     public static final String ID = "id";
     public static final String NAME = "name";
@@ -51,6 +54,20 @@ public class APIResourceCollectionManagementConstants {
         attributeColumnMap.put(NAME, NAME_FIELD_NAME);
         attributeColumnMap.put(TYPE, TYPE_FIELD_NAME);
         attributeColumnMap.put(DISPLAY_NAME, DISPLAY_NAME_FIELD_NAME);
+    }
+
+    /**
+     * API resource collection configuration builder constants.
+     */
+    public static class APIResourceCollectionConfigBuilderConstants {
+
+        public static final String API_RESOURCE_COLLECTION_ELEMENT = "APIResourceCollection";
+        public static final String SCOPES_ELEMENT = "Scopes";
+        public static final String SCOPE_ELEMENT = "Scope";
+        public static final String ID = "id";
+        public static final String NAME = "name";
+        public static final String DISPLAY_NAME = "displayName";
+        public static final String TYPE = "type";
     }
 
     /**

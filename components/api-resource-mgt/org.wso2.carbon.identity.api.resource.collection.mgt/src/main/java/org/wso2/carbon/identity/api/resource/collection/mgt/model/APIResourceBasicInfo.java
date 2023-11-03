@@ -22,6 +22,9 @@ import org.wso2.carbon.identity.application.common.model.Scope;
 
 import java.util.List;
 
+/**
+ * API Resource Collection Basic Info.
+ */
 public class APIResourceBasicInfo {
 
     private String id;

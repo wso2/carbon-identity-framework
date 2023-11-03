@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.api.resource.collection.mgt.exception;
 
+/**
+ * Exception class for API Resource Collection Management.
+ */
 public class APIResourceCollectionMgtException extends Exception {
 
     private String errorCode;
