@@ -53,7 +53,7 @@ import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.OA
  * ```
  * ClientAttestationService clientAttestationService = new ClientAttestationServiceImpl();
  * ClientAttestationContext clientAttestationContext =
- *     clientAttestationService.validateAttestation(attestationObject, clientId, tenantDomain);
+ *     clientAttestationService.validateAttestation(attestationObject, applicationResourceId, tenantDomain);
  * // Check the validation result and obtain client attestation context.
  * ```
  */
@@ -63,77 +63,56 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
 
     @Override
     public ClientAttestationContext validateAttestation(String attestationObject,
-                                                        String clientId, String tenantDomain) {
+                                                        String applicationResourceId, String tenantDomain)
+            throws ClientAttestationMgtException {
 
         ClientAttestationContext clientAttestationContext = new ClientAttestationContext();
-        clientAttestationContext.setClientId(clientId);
+        clientAttestationContext.setApplicationResourceId(applicationResourceId);
         clientAttestationContext.setTenantDomain(tenantDomain);
 
-        try {
-            ServiceProvider serviceProvider = getServiceProvider(clientId, tenantDomain);
+        ServiceProvider serviceProvider = getServiceProvider(applicationResourceId, tenantDomain);
 
-            // Check if the app is subscribed to API-Based Authentication.
-            if (!serviceProvider.isAPIBasedAuthenticationEnabled()) {
-                // App is not subscribed to API-Based Authentication but is calling for validation.
-                // This is a potential attack, so reject the request.
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("App :" + serviceProvider.getApplicationResourceId() + " in tenant : " + tenantDomain +
-                            " is not subscribed to API-Based Authentication.");
-                }
-                clientAttestationContext.setApiBasedAuthenticationEnabled(false);
-                clientAttestationContext.setAttestationEnabled(false);
-                clientAttestationContext.setAttested(false);
-                clientAttestationContext.setErrorMessage("App is not subscribed to API-Based Authentication.");
-                return clientAttestationContext;
+        // Check if the app is subscribed to client attestation validation.
+        if (serviceProvider.getClientAttestationMetaData() == null
+                || !serviceProvider.getClientAttestationMetaData().isAttestationEnabled()) {
+            // App is not subscribed to client attestation validation, proceed without validation.
+            // This may be a testing scenario, so approve the request.
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("App :" + serviceProvider.getApplicationResourceId() + " in tenant : " + tenantDomain +
+                        " is not subscribed to Client Attestation Service.");
             }
+            clientAttestationContext.setAttestationEnabled(false);
+            clientAttestationContext.setAttested(true);
+            return clientAttestationContext;
+        }
 
-            // Check if the app is subscribed to client attestation validation.
-            if (serviceProvider.getClientAttestationMetaData() == null
-                    || !serviceProvider.getClientAttestationMetaData().isAttestationEnabled()) {
-                // App is not subscribed to client attestation validation, proceed without validation.
-                // This may be a testing scenario, so approve the request.
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("App :" + serviceProvider.getApplicationResourceId() + " in tenant : " + tenantDomain +
-                            " is not subscribed to Client Attestation Service.");
-                }
-                clientAttestationContext.setApiBasedAuthenticationEnabled(true);
-                clientAttestationContext.setAttestationEnabled(false);
-                clientAttestationContext.setAttested(true);
-                return clientAttestationContext;
+        // Check if the attestation object is empty.
+        if (StringUtils.isEmpty(attestationObject)) {
+            // App is configured to validate attestation but attestation object is empty.
+            // This is a potential attack, so reject the request.
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("App :" + serviceProvider.getApplicationResourceId() + " in tenant : " + tenantDomain +
+                        " is requested with empty attestation object.");
             }
+            clientAttestationContext.setAttestationEnabled(true);
+            clientAttestationContext.setAttested(false);
+            clientAttestationContext.setValidationFailureMessage("App is configured to validate attestation " +
+                    "but attestation object is empty.");
+            return clientAttestationContext;
+        }
 
-            // Check if the attestation object is empty.
-            if (StringUtils.isEmpty(attestationObject)) {
-                // App is configured to validate attestation but attestation object is empty.
-                // This is a potential attack, so reject the request.
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("App :" + serviceProvider.getApplicationResourceId() + " in tenant : " + tenantDomain +
-                            " is requested with empty attestation object.");
-                }
-                clientAttestationContext.setApiBasedAuthenticationEnabled(true);
-                clientAttestationContext.setAttestationEnabled(true);
-                clientAttestationContext.setAttested(false);
-                clientAttestationContext.setErrorMessage("App is configured to validate attestation " +
-                        "but attestation object is empty.");
-                return clientAttestationContext;
-            }
+        if (isAndroidAttestation(attestationObject)) {
 
-            if (isAndroidAttestation(attestationObject)) {
+            clientAttestationContext.setAttestationEnabled(true);
+            clientAttestationContext.setClientType(Constants.ClientTypes.ANDROID);
 
-                clientAttestationContext.setApiBasedAuthenticationEnabled(true);
-                clientAttestationContext.setAttestationEnabled(true);
-                clientAttestationContext.setClientType(Constants.ClientTypes.ANDROID);
-
-                ClientAttestationValidator androidAttestationValidator = new AndroidAttestationValidator(clientId,
-                        tenantDomain, serviceProvider.getClientAttestationMetaData());
-                androidAttestationValidator.validateAttestation(attestationObject, clientAttestationContext);
-                return clientAttestationContext;
-            } else {
-                handleInvalidAttestationObject(clientAttestationContext);
-                return clientAttestationContext;
-            }
-        } catch (ClientAttestationMgtException e) {
-            handleClientAttestationException(e, clientAttestationContext);
+            ClientAttestationValidator androidAttestationValidator =
+                    new AndroidAttestationValidator(applicationResourceId, tenantDomain,
+                            serviceProvider.getClientAttestationMetaData());
+            androidAttestationValidator.validateAttestation(attestationObject, clientAttestationContext);
+            return clientAttestationContext;
+        } else {
+            handleInvalidAttestationObject(clientAttestationContext);
             return clientAttestationContext;
         }
     }
@@ -162,7 +141,7 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
             LOG.debug("Setting error to client attestation context : Error message : " + message);
         }
         clientAttestationContext.setAttested(false);
-        clientAttestationContext.setErrorMessage(message);
+        clientAttestationContext.setValidationFailureMessage(message);
     }
 
     private boolean isAndroidAttestation(String attestationObject) {
@@ -178,28 +157,27 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
         }
     }
 
-    private ServiceProvider getServiceProvider(String clientId, String tenantDomain)
+    private ServiceProvider getServiceProvider(String applicationId, String tenantDomain)
             throws ClientAttestationMgtException {
 
         ServiceProvider serviceProvider;
         try {
             serviceProvider = ClientAttestationMgtDataHolder.getInstance().getApplicationManagementService()
-                    .getServiceProviderByClientId(clientId, OAUTH2, tenantDomain);
+                    .getApplicationByResourceId(applicationId, tenantDomain);
         } catch (IdentityApplicationManagementException e) {
             throw new ClientAttestationMgtException("Error occurred while retrieving OAuth2 " +
-                    "application data for client id " +
-                    clientId, e);
+                    "application data for application id " + applicationId, e);
         }
         if (serviceProvider == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Could not find an application for client id: " + clientId
-                        + ", scope: " + OAUTH2 + ", tenant: " + tenantDomain);
+                LOG.debug("Could not find an application for application id: " + applicationId
+                        + ", tenant: " + tenantDomain);
             }
             throw new ClientAttestationMgtException("Service Provider not found.");
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("Retrieved service provider: " + serviceProvider.getApplicationName() + " for client: " +
-                    clientId + ", scope: " + OAUTH2 + ", tenant: " +
+                    applicationId + ", scope: " + OAUTH2 + ", tenant: " +
                     tenantDomain);
         }
         return serviceProvider;

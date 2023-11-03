@@ -126,6 +126,8 @@ public class IdentityApplicationConstants {
     public static final String ANDROID_PACKAGE_NAME_DISPLAY_NAME = "Android mobile application package name";
     public static final String APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS
                 = "ANDROID_ATTESTATION_CREDENTIALS";
+    public static final String CLIENT_ATTESTATION = "CLIENT_ATTESTATION";
+    public static final String ANDROID = "ANDROID";
 
     /**
      * Config elements.

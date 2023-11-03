@@ -19,6 +19,7 @@
 
 package org.wso2.carbon.identity.client.attestation.mgt.services;
 
+import org.wso2.carbon.identity.client.attestation.mgt.exceptions.ClientAttestationMgtException;
 import org.wso2.carbon.identity.client.attestation.mgt.model.ClientAttestationContext;
 
 /**
@@ -30,11 +31,13 @@ public interface ClientAttestationService {
     /**
      * Validates the attestation data for a client and tenant and returns a context with the validation result.
      *
-     * @param attestationObject The attestation data to be validated.
-     * @param clientId         The client ID.
-     * @param tenantDomain     The tenant domain.
+     * @param attestationObject         The attestation data to be validated.
+     * @param applicationResourceId     The application Resource Id.
+     * @param tenantDomain              The tenant domain.
      * @return A context with the validation result.
+     * @throws ClientAttestationMgtException If an error occurs during the attestation validation process.
      */
-    public ClientAttestationContext validateAttestation(String attestationObject, String clientId, String tenantDomain);
+    public ClientAttestationContext validateAttestation(String attestationObject, String applicationResourceId,
+                                                        String tenantDomain) throws ClientAttestationMgtException;
 }
 

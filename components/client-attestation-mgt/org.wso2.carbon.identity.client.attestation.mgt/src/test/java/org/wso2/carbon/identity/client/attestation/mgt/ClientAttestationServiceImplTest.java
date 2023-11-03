@@ -25,21 +25,19 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClientAttestationMetaData;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.client.attestation.mgt.exceptions.ClientAttestationMgtException;
 import org.wso2.carbon.identity.client.attestation.mgt.internal.ClientAttestationMgtDataHolder;
 import org.wso2.carbon.identity.client.attestation.mgt.model.ClientAttestationContext;
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationService;
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationServiceImpl;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.OAUTH2;
 
 /**
  * Testing the ClientAttestationServiceImpl class
@@ -71,19 +69,15 @@ public class ClientAttestationServiceImplTest extends PowerMockTestCase {
 
         return new Object[][]{
                 {
-                        "", "tyHuiopdtQdlriM4df5mqCJZEa", "carbon.super", false, false, false,
-                        "App is not subscribed to API-Based Authentication."
-                },
-                {
-                        "", "tyHuiopdtQdlriM4df5mqCJZEa", "carbon.super", true, false, true,
+                        "", "tyHuiopdtQdlriM4df5mqCJZEa", "carbon.super", false, true,
                         null
                 },
                 {
-                        "", "tyHuiopdtQdlriM4df5mqCJZEa", "carbon.super", true, true, false,
+                        "", "tyHuiopdtQdlriM4df5mqCJZEa", "carbon.super", true, false,
                         "App is configured to validate attestation but attestation object is empty."
                 },
                 {
-                        "DUMMY OBJECT", "tyHuiopdtQdlriM4df5mqCJZEa", "carbon.super", true, true, false,
+                        "DUMMY OBJECT", "tyHuiopdtQdlriM4df5mqCJZEa", "carbon.super", true, false,
                         "Requested attestation object is not in valid format."
                 }
         };
@@ -91,43 +85,37 @@ public class ClientAttestationServiceImplTest extends PowerMockTestCase {
 
     @Test(dataProvider = "validateAttestationDataProvider")
     public void validateAttestationTest(String attestationObject,
-                                        String clientId,
+                                        String applicationResourceId,
                                         String tenantDomain,
-                                        boolean isAPIBasedAuthenticationEnabled,
                                         boolean isAttestationEnabled,
                                         boolean isAttested,
-                                        String errorMessage) throws IdentityApplicationManagementException {
+                                        String errorMessage) throws Exception {
 
         ServiceProvider testSp1 = new ServiceProvider();
-        testSp1.setAPIBasedAuthenticationEnabled(isAPIBasedAuthenticationEnabled);
         ClientAttestationMetaData clientAttestationMetaData = new ClientAttestationMetaData();
         clientAttestationMetaData.setAttestationEnabled(isAttestationEnabled);
         testSp1.setClientAttestationMetaData(clientAttestationMetaData);
 
-        when(applicationManagementService.getServiceProviderByClientId(anyString(), eq(OAUTH2), anyString()))
+        when(applicationManagementService.getApplicationByResourceId(anyString(), anyString()))
                 .thenReturn(testSp1);
         ClientAttestationContext clientAttestationContext =
                 clientAttestationService.validateAttestation(attestationObject,
-                        clientId, tenantDomain);
+                        applicationResourceId, tenantDomain);
         Assert.assertEquals(isAttested, clientAttestationContext.isAttested(),
                 "False Client Attestation Validation");
         if (errorMessage != null) {
-            Assert.assertEquals(errorMessage, clientAttestationContext.getErrorMessage(),
+            Assert.assertEquals(errorMessage, clientAttestationContext.getValidationFailureMessage(),
                     "Wrong Error message.");
         }
     }
 
-    @Test
-    public void validateAttestationTestForNullSP() throws IdentityApplicationManagementException {
+    @Test(expectedExceptions = ClientAttestationMgtException.class)
+    public void validateAttestationTestForNullSP() throws Exception {
 
-        when(applicationManagementService.getServiceProviderByClientId(anyString(), eq(OAUTH2), anyString()))
+        when(applicationManagementService.getApplicationByResourceId(anyString(), anyString()))
                 .thenReturn(null);
         ClientAttestationContext clientAttestationContext =
                 clientAttestationService.validateAttestation(" ",
                         "tyHuiopdtQdlriM4df5mqCJZEa", "carbon.super");
-        Assert.assertFalse(clientAttestationContext.isAttested(),
-                "Client Attestation Validation should be false for null SP.");
-        Assert.assertEquals(clientAttestationContext.getErrorMessage(),
-                "Service Provider not found.");
     }
 }

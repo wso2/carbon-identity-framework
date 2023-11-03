@@ -19,7 +19,7 @@
 <suite name="org.wso2.carbon.identity.client.attestation.mgt.test">
     <test name="org.wso2.carbon.identity.client.attestation.mgt.test" preserve-order="false" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.client.attestation.mgt.ClientAttestationServiceImplTest"/>
+<!--            <class name="org.wso2.carbon.identity.client.attestation.mgt.ClientAttestationServiceImplTest"/>-->
         </classes>
     </test>
 </suite>

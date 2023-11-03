@@ -130,9 +130,11 @@ import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ADVANCED_CONFIG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID_PACKAGE_NAME_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID_PACKAGE_NAME_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ATTESTATION;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_DISCOVERABLE;
@@ -2346,11 +2348,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             if (ApplicationManagementServiceComponentHolder.getInstance()
                     .getSecretManager().isSecretExist(APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS,
-                            serviceProvider.getApplicationResourceId())) {
+                            getAndroidAttestationSecretName(serviceProvider.getApplicationResourceId()))) {
                 ResolvedSecret resolvedSecret = ApplicationManagementServiceComponentHolder.getInstance()
                         .getSecretResolveManager()
                         .getResolvedSecret(APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS,
-                                serviceProvider.getApplicationResourceId());
+                                getAndroidAttestationSecretName(serviceProvider.getApplicationResourceId()));
                 if (resolvedSecret != null) {
                     return resolvedSecret.getResolvedSecretValue();
                 }
@@ -4996,13 +4998,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (sp.getClientAttestationMetaData() != null &&
                 sp.getClientAttestationMetaData().getAndroidAttestationServiceCredentials() != null) {
             SecretManager secretManager = ApplicationManagementServiceComponentHolder.getInstance().getSecretManager();
-            Secret secret = new Secret(sp.getApplicationResourceId());
+            Secret secret = new Secret(getAndroidAttestationSecretName(sp.getApplicationResourceId()));
             secret.setSecretValue(sp.getClientAttestationMetaData().getAndroidAttestationServiceCredentials());
             try {
                 if (secretManager.isSecretExist(APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS,
-                        sp.getApplicationResourceId())) {
+                        getAndroidAttestationSecretName(sp.getApplicationResourceId()))) {
                     secretManager.updateSecretValue(APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS,
-                            sp.getApplicationResourceId(),
+                            getAndroidAttestationSecretName(sp.getApplicationResourceId()),
                             sp.getClientAttestationMetaData().getAndroidAttestationServiceCredentials());
 
                 } else {
@@ -5016,6 +5018,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
         }
 
+    }
+
+    private String getAndroidAttestationSecretName(String applicationResourceId) {
+
+        return applicationResourceId + ":" + CLIENT_ATTESTATION + ":" + ANDROID;
     }
 
     private ServiceProviderProperty buildIsManagementAppProperty(ServiceProvider sp) {
@@ -5372,7 +5379,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try {
             ApplicationManagementServiceComponentHolder.getInstance()
                     .getSecretManager().deleteSecret(APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS,
-                            application.getApplicationResourceId());
+                            getAndroidAttestationSecretName(application.getApplicationResourceId()));
         } catch (SecretManagementException e) {
             throw new IdentityApplicationManagementException("Failed to delete Android Attestation " +
                     "Service Credentials for service provider with id: " + application.getApplicationID(), e);

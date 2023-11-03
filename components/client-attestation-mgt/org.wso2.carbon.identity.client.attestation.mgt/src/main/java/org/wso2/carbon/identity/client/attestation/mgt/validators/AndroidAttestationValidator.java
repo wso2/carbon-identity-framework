@@ -63,25 +63,29 @@ import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.UT
  * attestation header and a context to store validation results and updated information.
  * Example usage:
  * ```
- * AndroidAttestationValidator attestationValidator = new AndroidAttestationValidator(clientId, tenantDomain, metaData);
+ * AndroidAttestationValidator attestationValidator = new AndroidAttestationValidator(applicationResourceId,
+ * tenantDomain, metaData);
  * attestationValidator.validateAttestation(attestationHeader, clientAttestationContext);
  * // Check the validation result and obtain client attestation context.
  * ```
+ *
+ * For more info on Integrity Token,
+ * visit  <a href="https://developer.android.com/google/play/integrity/verdicts"> Integrity verdicts </a>}
  */
 public class AndroidAttestationValidator implements ClientAttestationValidator {
 
     private static final Log LOG = LogFactory.getLog(AndroidAttestationValidator.class);
 
     private static final String ANDROID = "ANDROID";
-    private String clientId;
+    private String applicationResourceId;
     private String tenantDomain;
 
     private ClientAttestationMetaData clientAttestationMetaData;
 
-    public AndroidAttestationValidator(String clientId,
+    public AndroidAttestationValidator(String applicationResourceId,
                                        String tenantDomain,
                                        ClientAttestationMetaData clientAttestationMetaData) {
-        this.clientId = clientId;
+        this.applicationResourceId = applicationResourceId;
         this.tenantDomain = tenantDomain;
         this.clientAttestationMetaData = clientAttestationMetaData;
     }
@@ -90,21 +94,16 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
     public void validateAttestation(String attestationHeader, ClientAttestationContext clientAttestationContext)
             throws ClientAttestationMgtException {
 
-        if (StringUtils.isEmpty(attestationHeader)) {
-            // Attestation header is empty.
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Client :" + clientId + " in tenant : " + tenantDomain +
-                        " is requested with empty attestation header.");
-            }
-            clientAttestationContext.setAttested(false);
-            clientAttestationContext.setErrorMessage("Required attestation object is empty.");
-        }
         DecodeIntegrityTokenResponse decodeIntegrityTokenResponse = decodeIntegrityToken(attestationHeader,
                 clientAttestationContext);
 
         if (decodeIntegrityTokenResponse != null) {
 
             validateIntegrityResponse(decodeIntegrityTokenResponse, clientAttestationContext);
+        } else {
+            throw new ClientAttestationMgtException("Unable to validate attestation, cause " +
+                    "decodeIntegrityTokenResponse is null for application : " + applicationResourceId +
+                    "tenant domain : " + tenantDomain);
         }
     }
 
@@ -123,6 +122,12 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
         try {
             // JSON data for service account credentials (replace with actual credentials).
             String jsonData = clientAttestationMetaData.getAndroidAttestationServiceCredentials();
+            if (jsonData == null) {
+
+                throw new ClientAttestationMgtException("Unable to validate attestation, cause " +
+                        "AndroidAttestationServiceCredentials is null for application : " + applicationResourceId +
+                        "tenant domain : " + tenantDomain);
+            }
             // Create an input stream from the JSON data.
             ByteArrayInputStream jsonInputStream = new ByteArrayInputStream(jsonData.getBytes(StandardCharsets.UTF_8));
 
@@ -153,10 +158,10 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
 
         } catch (IOException | GeneralSecurityException e) {
             clientAttestationContext.setAttested(false);
-            clientAttestationContext.setErrorMessage("Unable to decode or verify the integrity token " +
+            clientAttestationContext.setValidationFailureMessage("Unable to decode or verify the integrity token " +
                     "form google play integrity service.");
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Unable to decode or verify attestation request from Client :" + clientId +
+                LOG.debug("Unable to decode or verify attestation request from Client :" + applicationResourceId +
                         " in tenant : " + tenantDomain + " from google play integrity service." , e);
             }
             throw new ClientAttestationMgtException("Unable to decode or verify the integrity token " +
@@ -208,17 +213,17 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
         if (!StringUtils.equals(requestDetails.getRequestPackageName(), expectedPackageName)) {
             // The package name in the request details does not match the requested client.
             clientAttestationContext.setAttested(false);
-            clientAttestationContext.setErrorMessage("Package name in the request details does " +
+            clientAttestationContext.setValidationFailureMessage("Package name in the request details does " +
                     "not match with the requested client.");
             return false;
         } else if (currentTimeInMillis - requestTimeInMillis > allowedWindowMillis) {
             // The generated Integrity token is considered old, likely due to a replay attack.
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Attestation request provided by Client :" + clientId + " in tenant : " + tenantDomain +
-                        " is older than required window.");
+                LOG.debug("Attestation request provided by Client :" + applicationResourceId +
+                        " in tenant : " + tenantDomain + " is older than required window.");
             }
             clientAttestationContext.setAttested(false);
-            clientAttestationContext.setErrorMessage("Package name in the request details does " +
+            clientAttestationContext.setValidationFailureMessage("Package name in the request details does " +
                     "not match with the requested client.");
             return false;
         } else {
@@ -248,12 +253,12 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
             return true;
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Attestation request provided by Client :" + clientId + " in tenant : " + tenantDomain +
-                    " is invalid. Application integrity validation failed." + " Unexpected recognition verdict: "
-                    + appIntegrity.getAppRecognitionVerdict());
+            LOG.debug("Attestation request provided by Client :" + applicationResourceId + " in tenant : "
+                    + tenantDomain + " is invalid. Application integrity validation failed."
+                    + " Unexpected recognition verdict: " + appIntegrity.getAppRecognitionVerdict());
         }
         clientAttestationContext.setAttested(false);
-        clientAttestationContext.setErrorMessage("Application integrity validation failed." +
+        clientAttestationContext.setValidationFailureMessage("Application integrity validation failed." +
                 " Unexpected recognition verdict: " + appIntegrity.getAppRecognitionVerdict());
         // Throw an exception with a descriptive message indicating that the application
         // integrity verdict is unexpected.

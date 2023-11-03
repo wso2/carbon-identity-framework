@@ -32,20 +32,19 @@ public class ClientAttestationContext extends MessageContext {
 
     private static final long serialVersionUID = 1995051819950410L;
 
-    private String clientId;
+    private String applicationResourceId;
     private String tenantDomain;
-    private boolean apiBasedAuthenticationEnabled;
     private boolean attestationEnabled;
     private boolean isAttested;
     private Constants.ClientTypes clientType;
-    private String errorMessage;
+    private String validationFailureMessage;
 
-    public String getClientId() {
-        return clientId;
+    public String getApplicationResourceId() {
+        return applicationResourceId;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setApplicationResourceId(String applicationResourceId) {
+        this.applicationResourceId = applicationResourceId;
     }
 
     public String getTenantDomain() {
@@ -54,14 +53,6 @@ public class ClientAttestationContext extends MessageContext {
 
     public void setTenantDomain(String tenantDomain) {
         this.tenantDomain = tenantDomain;
-    }
-
-    public boolean isApiBasedAuthenticationEnabled() {
-        return apiBasedAuthenticationEnabled;
-    }
-
-    public void setApiBasedAuthenticationEnabled(boolean apiBasedAuthenticationEnabled) {
-        this.apiBasedAuthenticationEnabled = apiBasedAuthenticationEnabled;
     }
 
     public boolean isAttestationEnabled() {
@@ -88,24 +79,23 @@ public class ClientAttestationContext extends MessageContext {
         this.clientType = clientType;
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
+    public String getValidationFailureMessage() {
+        return validationFailureMessage;
     }
 
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
+    public void setValidationFailureMessage(String validationFailureMessage) {
+        this.validationFailureMessage = validationFailureMessage;
     }
 
     @Override
     public String toString() {
         return "ClientAttestationContext{" +
-                "clientId='" + clientId + '\'' +
+                "applicationResourceId='" + applicationResourceId + '\'' +
                 ", tenantDomain='" + tenantDomain + '\'' +
-                ", apiBasedAuthenticationEnabled=" + apiBasedAuthenticationEnabled +
                 ", attestationEnabled=" + attestationEnabled +
                 ", isAttested=" + isAttested +
                 ", clientType=" + clientType +
-                ", errorMessage='" + errorMessage + '\'' +
+                ", errorMessage='" + validationFailureMessage + '\'' +
                 '}';
     }
 }
