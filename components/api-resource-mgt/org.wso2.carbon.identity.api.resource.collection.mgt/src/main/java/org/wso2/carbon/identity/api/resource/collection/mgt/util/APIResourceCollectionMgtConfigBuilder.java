@@ -21,18 +21,21 @@ package org.wso2.carbon.identity.api.resource.collection.mgt.util;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants;
 import org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants.APIResourceCollectionConfigBuilderConstants;
-import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollectionBasicInfo;
-import org.wso2.carbon.identity.application.common.model.Scope;
+import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollection;
 import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -49,16 +52,13 @@ import javax.xml.stream.XMLStreamReader;
 public class APIResourceCollectionMgtConfigBuilder {
 
     private static final Log LOG = LogFactory.getLog(APIResourceCollectionMgtConfigBuilder.class);
-    private static final Map<String, APIResourceCollectionBasicInfo> apiResourceCollectionMgtConfigurations =
-            new HashMap<>();
-    private static final APIResourceCollectionMgtConfigBuilder apiResourceCollectionMgtConfigBuilder =
-            new APIResourceCollectionMgtConfigBuilder();
-
+    private static final Map<String, APIResourceCollection> apiResourceCollectionMgtConfigurations = new HashMap<>();
+    private static final APIResourceCollectionMgtConfigBuilder INSTANCE = new APIResourceCollectionMgtConfigBuilder();
     private OMElement documentElement;
 
     public static APIResourceCollectionMgtConfigBuilder getInstance() {
 
-        return apiResourceCollectionMgtConfigBuilder;
+        return INSTANCE;
     }
 
     private APIResourceCollectionMgtConfigBuilder() {
@@ -71,8 +71,11 @@ public class APIResourceCollectionMgtConfigBuilder {
      *
      * @return Map of API resource collection mgt configurations.
      */
-    public Map<String, APIResourceCollectionBasicInfo> getApiResourceCollectionMgtConfigurations() {
+    public Map<String, APIResourceCollection> getApiResourceCollectionMgtConfigurations() {
 
+        if (apiResourceCollectionMgtConfigurations.isEmpty()) {
+            loadConfiguration();
+        }
         return apiResourceCollectionMgtConfigurations;
     }
 
@@ -82,7 +85,8 @@ public class APIResourceCollectionMgtConfigBuilder {
     private void loadConfiguration() {
 
         String configDirPath = CarbonUtils.getCarbonConfigDirPath();
-        File configFile = new File(configDirPath, FilenameUtils.getName("system-api-resource.xml"));
+        File configFile = new File(configDirPath,
+                FilenameUtils.getName(APIResourceCollectionManagementConstants.API_RESOURCE_COLLECTION_FILE_NAME));
         if (!configFile.exists()) {
             return;
         }
@@ -97,9 +101,9 @@ public class APIResourceCollectionMgtConfigBuilder {
             documentElement = builder.getDocumentElement();
             buildAPIResourceCollectionConfig();
         } catch (IOException e) {
-            LOG.warn("Error while loading system API resource management configs.", e);
+            LOG.error("Error while loading API resource collection management configs.", e);
         } catch (XMLStreamException e) {
-            LOG.warn("Error while streaming system API resource management configs.", e);
+            LOG.error("Error while streaming API resource collection management configs.", e);
         }
     }
 
@@ -110,7 +114,7 @@ public class APIResourceCollectionMgtConfigBuilder {
 
         while (apiResourceCollections.hasNext()) {
             OMElement apiResourceCollection = apiResourceCollections.next();
-            APIResourceCollectionBasicInfo apiResourceCollectionObj =
+            APIResourceCollection apiResourceCollectionObj =
                     buildAPIResourceCollectionBasicInfo(apiResourceCollection);
             if (apiResourceCollectionObj == null) {
                 continue;
@@ -120,34 +124,40 @@ public class APIResourceCollectionMgtConfigBuilder {
             OMElement scopesElement = apiResourceCollection.getFirstChildWithName(
                     new QName(APIResourceCollectionConfigBuilderConstants.SCOPES_ELEMENT));
             if (scopesElement != null) {
-                Iterator<OMElement> scopes = scopesElement.getChildrenWithName(
-                        new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
-                if (scopes != null) {
-                    List<Scope> scopeList = new ArrayList<>();
+                List<String> scopeList = new ArrayList<>();
+                // Iterate over each child element of <Scopes>, like <Update>, <Create>, etc.
+                Iterator<?> actionElements = scopesElement.getChildElements();
+                while (actionElements.hasNext()) {
+                    OMElement actionElement = (OMElement) actionElements.next();
+                    Iterator<OMElement> scopes = actionElement.getChildrenWithName(
+                            new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
                     while (scopes.hasNext()) {
                         OMElement scope = scopes.next();
-                        Scope scopeObj = new Scope.ScopeBuilder()
-                                .name(scope.getAttributeValue(
-                                        new QName(APIResourceCollectionConfigBuilderConstants.NAME)))
-                                .build();
-                        scopeList.add(scopeObj);
+                        String scopeName = scope.getAttributeValue(
+                                new QName(APIResourceCollectionConfigBuilderConstants.NAME));
+                        if (!scopeList.contains(scopeName)) {
+                            scopeList.add(scopeName);
+                        }
                     }
-                    apiResourceCollectionObj.setScopes(scopeList);
                 }
+                apiResourceCollectionObj.setScopes(scopeList);
             }
             apiResourceCollectionMgtConfigurations.put(apiResourceCollectionObj.getId(), apiResourceCollectionObj);
         }
     }
 
-    private APIResourceCollectionBasicInfo buildAPIResourceCollectionBasicInfo(OMElement element) {
+    private APIResourceCollection buildAPIResourceCollectionBasicInfo(OMElement element) {
 
-        String id = element.getAttributeValue(new QName(APIResourceCollectionConfigBuilderConstants.ID));
-        if (apiResourceCollectionMgtConfigurations.containsKey(id)) {
+        // Retrieve the name and encode it using base64, then remove "=" characters.
+        String name = element.getAttributeValue(new QName(APIResourceCollectionConfigBuilderConstants.NAME));
+        String encodedName = Base64.getEncoder().encodeToString(name.getBytes(StandardCharsets.UTF_8)).replace(
+                APIResourceCollectionManagementConstants.EQUAL_SIGN, StringUtils.EMPTY);
+        if (apiResourceCollectionMgtConfigurations.containsKey(encodedName)) {
             return null;
         }
 
-        return new APIResourceCollectionBasicInfo.APIResourceCollectionBasicInfoBuilder()
-                .id(id)
+        return new APIResourceCollection.APIResourceCollectionBuilder()
+                .id(encodedName)
                 .name(element.getAttributeValue(new QName(APIResourceCollectionConfigBuilderConstants.NAME)))
                 .displayName(
                         element.getAttributeValue(new QName(APIResourceCollectionConfigBuilderConstants.DISPLAY_NAME)))

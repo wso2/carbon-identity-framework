@@ -30,7 +30,7 @@ public class APIResourceCollection {
     private String name;
     private String displayName;
     private String type;
-    private String self;
+    private List<String> scopes;
     private List<APIResource> apiResources;
 
     public APIResourceCollection() {
@@ -42,7 +42,6 @@ public class APIResourceCollection {
             this.name = apiResourceCollectionBuilder.name;
             this.displayName = apiResourceCollectionBuilder.displayName;
             this.type = apiResourceCollectionBuilder.type;
-            this.self = apiResourceCollectionBuilder.self;
             this.apiResources = apiResourceCollectionBuilder.apiResources;
     }
 
@@ -66,11 +65,6 @@ public class APIResourceCollection {
         return type;
     }
 
-    public String getSelf() {
-
-        return self;
-    }
-
     public List<APIResource> getApiResources() {
 
         return apiResources;
@@ -79,6 +73,16 @@ public class APIResourceCollection {
     public void setApiResources(List<APIResource> apiResources) {
 
         this.apiResources = apiResources;
+    }
+
+    public List<String> getScopes() {
+
+        return scopes;
+    }
+
+    public void setScopes(List<String> scopes) {
+
+        this.scopes = scopes;
     }
 
     /**
@@ -90,7 +94,7 @@ public class APIResourceCollection {
         private String name;
         private String displayName;
         private String type;
-        private String self;
+        private List<String> scopes;
         private List<APIResource> apiResources;
 
         public APIResourceCollectionBuilder() {
@@ -120,9 +124,9 @@ public class APIResourceCollection {
             return this;
         }
 
-        public APIResourceCollectionBuilder self(String self) {
+        public APIResourceCollectionBuilder scopes(List<String> scopes) {
 
-            this.self = self;
+            this.scopes = scopes;
             return this;
         }
 

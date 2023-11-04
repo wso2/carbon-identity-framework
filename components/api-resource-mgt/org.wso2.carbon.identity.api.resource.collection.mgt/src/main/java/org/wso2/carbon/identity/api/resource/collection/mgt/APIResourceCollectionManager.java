@@ -30,7 +30,7 @@ public interface APIResourceCollectionManager {
     /**
      * Get API Resource Collections.
      *
-     * @param filter       Filter expression.
+     * @param filter Filter expression.
      * @return API resource collection search result.
      * @throws APIResourceCollectionMgtException If an error occurred while retrieving API Resource Collections.
      */
@@ -40,8 +40,10 @@ public interface APIResourceCollectionManager {
      * Get API Resource Collection by id.
      *
      * @param collectionId Collection id.
+     * @param tenantDomain Tenant domain.
      * @return API resource collection.
      * @throws APIResourceCollectionMgtException If an error occurred while retrieving API Resource Collection.
      */
-    APIResourceCollection getAPIResourceCollectionById(String collectionId) throws APIResourceCollectionMgtException;
+    APIResourceCollection getAPIResourceCollectionById(String collectionId, String tenantDomain)
+            throws APIResourceCollectionMgtException;
 }

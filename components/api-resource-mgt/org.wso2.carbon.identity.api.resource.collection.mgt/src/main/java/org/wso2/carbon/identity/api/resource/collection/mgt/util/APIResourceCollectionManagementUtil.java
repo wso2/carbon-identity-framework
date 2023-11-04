@@ -19,8 +19,6 @@
 package org.wso2.carbon.identity.api.resource.collection.mgt.util;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants;
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtClientException;
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtServerException;
@@ -30,14 +28,12 @@ import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourc
  */
 public class APIResourceCollectionManagementUtil {
 
-    private static final Log LOG = LogFactory.getLog(APIResourceCollectionManagementUtil.class);
-
     /**
-     * Handle API Resource Management client exceptions.
+     * Handle API Resource Collection Management client exceptions.
      *
      * @param error Error message.
      * @param data  Data.
-     * @return APIResourceMgtClientException.
+     * @return APIResourceCollectionMgtClientException.
      */
     public static APIResourceCollectionMgtClientException handleClientException(
             APIResourceCollectionManagementConstants.ErrorMessages error, String... data) {
@@ -51,12 +47,12 @@ public class APIResourceCollectionManagementUtil {
     }
 
     /**
-     * Handle API Resource Management server exceptions.
+     * Handle API Resource Collection Management server exceptions.
      *
      * @param error Error message.
      * @param e     Throwable.
      * @param data  Data.
-     * @return APIResourceMgtServerException.
+     * @return APIResourceCollectionMgtServerException.
      */
     public static APIResourceCollectionMgtServerException handleServerException(
             APIResourceCollectionManagementConstants.ErrorMessages error, Throwable e, String... data) {
@@ -65,7 +61,6 @@ public class APIResourceCollectionManagementUtil {
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-
         return new APIResourceCollectionMgtServerException(error.getMessage(), description, error.getCode(), e);
     }
 }

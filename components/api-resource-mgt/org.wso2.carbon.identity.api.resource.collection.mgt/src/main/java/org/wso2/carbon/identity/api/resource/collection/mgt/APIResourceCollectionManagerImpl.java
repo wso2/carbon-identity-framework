@@ -18,28 +18,45 @@
 
 package org.wso2.carbon.identity.api.resource.collection.mgt;
 
+import org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants;
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtException;
+import org.wso2.carbon.identity.api.resource.collection.mgt.internal.APIResourceCollectionMgtServiceDataHolder;
 import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollection;
-import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollectionBasicInfo;
 import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollectionSearchResult;
 import org.wso2.carbon.identity.api.resource.collection.mgt.util.APIResourceCollectionMgtConfigBuilder;
+import org.wso2.carbon.identity.api.resource.collection.mgt.util.FilterUtil;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.Scope;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.wso2.carbon.identity.api.resource.collection.mgt.util.APIResourceCollectionManagementUtil.handleServerException;
 
 /**
  * API Resource Collection Manager Implementation.
  */
 public class APIResourceCollectionManagerImpl implements APIResourceCollectionManager {
 
-    private static final APIResourceCollectionManagerImpl INSTANCE = new APIResourceCollectionManagerImpl();
-    private static final APIResourceCollectionMgtConfigBuilder configBuilder =
-            APIResourceCollectionMgtConfigBuilder.getInstance();
-    private static final Map<String, APIResourceCollectionBasicInfo> apiResourceCollectionsBasicInfoMap =
-            configBuilder.getApiResourceCollectionMgtConfigurations();
+    private static final APIResourceCollectionManagerImpl INSTANCE;
+    private static final APIResourceCollectionMgtConfigBuilder configBuilder;
+    private static Map<String, APIResourceCollection> apiResourceCollectionMap;
+    private final FilterUtil filterUtil;
 
-    private APIResourceCollectionManagerImpl () {
+    static {
+        configBuilder = APIResourceCollectionMgtConfigBuilder.getInstance();
+        apiResourceCollectionMap = configBuilder.getApiResourceCollectionMgtConfigurations();
+        INSTANCE = new APIResourceCollectionManagerImpl();
+    }
 
+    private APIResourceCollectionManagerImpl() {
+
+        filterUtil = new FilterUtil();
     }
 
     public static APIResourceCollectionManagerImpl getInstance() {
@@ -59,7 +76,7 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
             throws APIResourceCollectionMgtException {
 
         return new APIResourceCollectionSearchResult(
-                (List<APIResourceCollectionBasicInfo>) apiResourceCollectionsBasicInfoMap.values());
+                filterUtil.filterAPIResourceCollections(apiResourceCollectionMap, filter));
     }
 
     /**
@@ -70,9 +87,46 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
      * @throws APIResourceCollectionMgtException If an error occurred while retrieving API Resource Collection.
      */
     @Override
-    public APIResourceCollection getAPIResourceCollectionById(String collectionId)
+    public APIResourceCollection getAPIResourceCollectionById(String collectionId, String tenantDomain)
             throws APIResourceCollectionMgtException {
 
-        return null;
+        try {
+            APIResourceCollection apiResourceCollection = apiResourceCollectionMap.get(collectionId);
+            if (apiResourceCollection == null) {
+                return null;
+            }
+            List<APIResource> apiResources =
+                    APIResourceCollectionMgtServiceDataHolder.getInstance().getAPIResourceManagementService()
+                            .getScopeMetadata(apiResourceCollection.getScopes(), tenantDomain);
+            filterAndSetScopes(apiResources, apiResourceCollection);
+            return apiResourceCollection;
+        } catch (APIResourceMgtException e) {
+            throw handleServerException(
+                    APIResourceCollectionManagementConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPE_METADATA,
+                    e);
+        }
+    }
+
+    /**
+     * Filter scopes of API resources based on the scopes defined in the API resource collection.
+     *
+     * @param apiResources List of API resources.
+     * @param apiResourceCollection API resource collection.
+     */
+    private void filterAndSetScopes(List<APIResource> apiResources, APIResourceCollection apiResourceCollection) {
+
+        Set<String> collectionScopes = new HashSet<>(apiResourceCollection.getScopes());
+        apiResources.forEach(apiResource -> {
+            if (apiResource.getScopes() != null) {
+                List<Scope> filteredScopes = apiResource.getScopes().stream()
+                        .filter(scope -> collectionScopes.contains(scope.getName()))
+                        .collect(Collectors.toList());
+                apiResource.setScopes(filteredScopes);
+            } else {
+                apiResource.setScopes(Collections.emptyList());
+            }
+        });
+        apiResourceCollection.setApiResources(apiResources);
     }
 }

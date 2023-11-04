@@ -7,9 +7,9 @@ import java.util.List;
  */
 public class APIResourceCollectionSearchResult {
    private int totalCount;
-   List<APIResourceCollectionBasicInfo> apiResourceCollections;
+   List<APIResourceCollection> apiResourceCollections;
 
-    public APIResourceCollectionSearchResult(List<APIResourceCollectionBasicInfo> apiResourceCollections) {
+    public APIResourceCollectionSearchResult(List<APIResourceCollection> apiResourceCollections) {
 
         this.apiResourceCollections = apiResourceCollections;
         this.totalCount = apiResourceCollections.size();
@@ -20,19 +20,13 @@ public class APIResourceCollectionSearchResult {
         return totalCount;
     }
 
-    public void setTotalCount(int totalCount) {
-
-        this.totalCount = totalCount;
-    }
-
-    public List<APIResourceCollectionBasicInfo> getAPIResourceCollections() {
+    public List<APIResourceCollection> getAPIResourceCollections() {
 
         return apiResourceCollections;
     }
 
-    public void setAPIResourceCollections(List<APIResourceCollectionBasicInfo> apiResourceCollectionBasicInfoList) {
+    public void setAPIResourceCollections(List<APIResourceCollection> apiResourceCollectionBasicInfoList) {
 
         this.apiResourceCollections = apiResourceCollectionBasicInfoList;
     }
-
 }

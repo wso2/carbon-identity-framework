@@ -36,7 +36,7 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
  * Service component for the API resource management.
  */
 @Component(
-        name = "api.resource.mgt.service.component",
+        name = "api.resource.collection.mgt.service.component",
         immediate = true
 )
 public class APIResourceCollectionMgtServiceComponent {

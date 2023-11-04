@@ -18,14 +18,14 @@
   -->
 
 <APIResourceCollections>
-    <APIResourceCollection id="YXBwbGljYXRpb25z" name="applications" displayName="Applications" type="Unknown">
+    <APIResourceCollection name="applications" displayName="Applications" type="Unknown">
         <Scopes>
             <Create>
                 <Scope name= "internal_application_mgt_create" />
             </Create>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection id="YWRtaW5pc3RyYXRvcnM" name="administrators" displayName="Administrators" enabled="true">
+    <APIResourceCollection name="administrators" displayName="Administrators" enabled="true">
         <Scopes>
             <Update/>
             <Read/>
@@ -33,7 +33,7 @@
             <Delete/>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection id="YXBpUmVzb3VyY2Vz" name="apiResources" displayName="API Resources" enabled="true">
+    <APIResourceCollection name="apiResources" displayName="API Resources" enabled="true">
         <Scopes>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -49,7 +49,7 @@
             </Delete>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection id="YXBwcm92YWxz" name="approvals" displayName="Approvals" enabled="false">
+    <APIResourceCollection name="approvals" displayName="Approvals" enabled="false">
         <Scopes>
             <Update>
                 <Scope name="internal_humantask_view"/>
@@ -65,7 +65,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection id="YXR0cmlidXRlRGlhbGVjdHM" name="attributeDialects" displayName="Attribute Dialects" enabled="true">
+    <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects" enabled="true">
         <Scopes>
             <Create>
                 <Scope name="internal_claim_meta_create"/>

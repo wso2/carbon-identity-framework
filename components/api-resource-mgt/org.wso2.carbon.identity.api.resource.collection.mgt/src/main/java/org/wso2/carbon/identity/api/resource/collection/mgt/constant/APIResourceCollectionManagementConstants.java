@@ -18,10 +18,6 @@
 
 package org.wso2.carbon.identity.api.resource.collection.mgt.constant;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * API Resource Collection Management Constants.
  */
@@ -30,31 +26,13 @@ public class APIResourceCollectionManagementConstants {
     public static final String NAME = "name";
     public static final String DISPLAY_NAME = "displayName";
     public static final String TYPE = "type";
-    public static final String SELF = "self";
     public static final String EQ = "eq";
     public static final String CO = "co";
     public static final String SW = "sw";
     public static final String EW = "ew";
-    public static final String GE = "ge";
-    public static final String LE = "le";
-    public static final String GT = "gt";
-    public static final String LT = "lt";
-
-    public static final String ID_FILED_NAME = "id";
-    public static final String NAME_FIELD_NAME = "name";
-    public static final String DISPLAY_NAME_FIELD_NAME = "displayName";
-    public static final String TYPE_FIELD_NAME = "type";
-
-    private static final Map<String, String> attributeColumnMap = new HashMap<>();
-    private static final Map<String, String> scopeAttributeColumnMap = new HashMap<>();
-    public static final Map<String, String> ATTRIBUTE_COLUMN_MAP = Collections.unmodifiableMap(attributeColumnMap);
-
-    static {
-        attributeColumnMap.put(ID, ID_FILED_NAME);
-        attributeColumnMap.put(NAME, NAME_FIELD_NAME);
-        attributeColumnMap.put(TYPE, TYPE_FIELD_NAME);
-        attributeColumnMap.put(DISPLAY_NAME, DISPLAY_NAME_FIELD_NAME);
-    }
+    public static final String OR = "or";
+    public static final String EQUAL_SIGN = "=";
+    public static final String API_RESOURCE_COLLECTION_FILE_NAME = "api-resource-collection.xml";
 
     /**
      * API resource collection configuration builder constants.
@@ -75,17 +53,21 @@ public class APIResourceCollectionManagementConstants {
      */
     public enum ErrorMessages {
 
-        // Client errors.
-        ERROR_CODE_INVALID_FILTER_FORMAT("60001", "Unable to retrieve API resources.",
+        ERROR_CODE_INVALID_FILTER_FORMAT("60001", "Unable to retrieve API resource collections.",
                 "Invalid format used for filtering."),
-        ERROR_CODE_INVALID_FILTER_VALUE("60005", "Unable to retrieve API resources.",
+        ERROR_CODE_INVALID_FILTER_VALUE("60005", "Unable to retrieve API resource collections.",
                 "Invalid filter value used for filtering."),
-
-        // Server errors.
-        ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES("65001", "Error while retrieving API resources.",
-                "Error while retrieving API resources from the database."),
-        ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPES("65002", "Error while retrieving scopes.",
-                "Error while retrieving scopes from the database.");
+        ERROR_CODE_INVALID_FILTER_ATTRIBUTE("60006", "Unable to retrieve API resource collections.",
+                "Invalid filter attribute used for filtering."), //TODO: Change the code.
+        ERROR_CODE_INVALID_FILTER_OPERATOR("60006", "Unable to retrieve API resource collections.",
+                "Invalid filter operator used for filtering."), //TODO: Change the code.
+        ERROR_CODE_INVALID_FILTER_OPERATION("60006", "Unable to retrieve API resource collections.",
+                "Invalid filter operation used for filtering."), //TODO: Change the code.
+        ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPE_METADATA("65012", "Error while retrieving scope metadata.",
+                "Error while retrieving scope metadata from the database."),
+        ERROR_CODE_WHILE_FILTERING_API_RESOURCE_COLLECTIONS("60006",
+                "Unable to retrieve API resource collections.",
+                "Error while filtering API resource collections."); //TODO: Change the code.
 
         private final String code;
         private final String message;
