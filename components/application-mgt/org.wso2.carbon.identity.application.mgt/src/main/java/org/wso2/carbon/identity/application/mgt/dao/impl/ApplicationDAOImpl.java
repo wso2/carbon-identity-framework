@@ -2111,7 +2111,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     applicationId, connection, tenantID);
             serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
 
-            serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
+            serviceProvider.setSpProperties(getSpProperties(propertyList));
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
             // Set role associations.
@@ -2134,6 +2134,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementException("Failed to get service provider with id: " + applicationId,
                     e);
         }
+    }
+
+    private  ServiceProviderProperty[] getSpProperties(List<ServiceProviderProperty> propertyList) {
+
+        List<ServiceProviderProperty> spPropertyList = propertyList.stream()
+                .filter(property -> !ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME.equals(property.getName()))
+                .collect(Collectors.toList());
+        return spPropertyList.toArray(new ServiceProviderProperty[0]);
     }
 
     private AssociatedRolesConfig getAssociatedRoles(String applicationId, Connection connection, int tenantID)
@@ -2234,7 +2242,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     if (ADVANCED_CONFIG.equals(requiredAttribute)) {
                         readAndSetConfigurationsFromProperties(propertyList,
                                 serviceProvider.getLocalAndOutBoundAuthenticationConfig());
-                        serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
+                        serviceProvider.setSpProperties((getSpProperties(propertyList)));
                         serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
                     }
                     if (TEMPLATE_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
