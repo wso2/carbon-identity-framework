@@ -49,7 +49,7 @@ public class FilterUtil {
      * @param filter Filter string.
      * @throws APIResourceCollectionMgtClientException Error when validate filters.
      */
-    private List<ExpressionNode> getExpressionNodes(String filter)
+    private static List<ExpressionNode> getExpressionNodes(String filter)
             throws APIResourceCollectionMgtClientException {
 
         List<ExpressionNode> expressionNodes = new ArrayList<>();
@@ -58,7 +58,7 @@ public class FilterUtil {
             if (StringUtils.isNotBlank(filter)) {
                 FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
                 Node rootNode = filterTreeBuilder.buildTree();
-                this.setExpressionNodeList(rootNode, expressionNodes);
+                setExpressionNodeList(rootNode, expressionNodes);
             }
             return expressionNodes;
         } catch (IOException | IdentityException e) {
@@ -73,7 +73,7 @@ public class FilterUtil {
      * @param node       Filter node.
      * @param expression List of expression nodes.
      */
-    private void setExpressionNodeList(Node node, List<ExpressionNode> expression)
+    private static void setExpressionNodeList(Node node, List<ExpressionNode> expression)
             throws APIResourceCollectionMgtClientException {
 
         if (node instanceof ExpressionNode) {
@@ -100,7 +100,7 @@ public class FilterUtil {
      * @return List of API resource collection.
      * @throws APIResourceCollectionMgtClientException Error when validate filters.
      */
-    public List<APIResourceCollection> filterAPIResourceCollections(
+    public static List<APIResourceCollection> filterAPIResourceCollections(
             Map<String, APIResourceCollection> apiResourceCollectionsMap,
             String filter) throws APIResourceCollectionMgtClientException, APIResourceCollectionMgtServerException {
 
@@ -134,7 +134,8 @@ public class FilterUtil {
      * @return True if the filter matches with the API resource collection object.
      * @throws APIResourceCollectionMgtClientException Error when validate filters.
      */
-    private boolean matchesFilter(APIResourceCollection apiResourceCollection, List<ExpressionNode> expressionNodes)
+    private static boolean matchesFilter(APIResourceCollection apiResourceCollection,
+                                         List<ExpressionNode> expressionNodes)
             throws APIResourceCollectionMgtClientException {
 
         for (ExpressionNode node : expressionNodes) {
@@ -181,7 +182,7 @@ public class FilterUtil {
      * @param attributeName         Attribute name.
      * @return Attribute value.
      */
-    private String getAttributeValue(APIResourceCollection apiResourceCollection, String attributeName)
+    private static String getAttributeValue(APIResourceCollection apiResourceCollection, String attributeName)
             throws APIResourceCollectionMgtClientException {
 
         switch (attributeName) {

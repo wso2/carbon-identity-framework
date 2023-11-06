@@ -46,7 +46,6 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
     private static final APIResourceCollectionManagerImpl INSTANCE;
     private static final APIResourceCollectionMgtConfigBuilder configBuilder;
     private static Map<String, APIResourceCollection> apiResourceCollectionMap;
-    private final FilterUtil filterUtil;
 
     static {
         configBuilder = APIResourceCollectionMgtConfigBuilder.getInstance();
@@ -55,8 +54,6 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
     }
 
     private APIResourceCollectionManagerImpl() {
-
-        filterUtil = new FilterUtil();
     }
 
     public static APIResourceCollectionManagerImpl getInstance() {
@@ -76,7 +73,7 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
             throws APIResourceCollectionMgtException {
 
         return new APIResourceCollectionSearchResult(
-                filterUtil.filterAPIResourceCollections(apiResourceCollectionMap, filter));
+                FilterUtil.filterAPIResourceCollections(apiResourceCollectionMap, filter));
     }
 
     /**
@@ -116,6 +113,10 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
      */
     private void filterAndSetScopes(List<APIResource> apiResources, APIResourceCollection apiResourceCollection) {
 
+        if (apiResourceCollection.getScopes() == null || apiResourceCollection.getScopes().isEmpty()) {
+            apiResourceCollection.setScopes(Collections.emptyList());
+            return;
+        }
         Set<String> collectionScopes = new HashSet<>(apiResourceCollection.getScopes());
         apiResources.forEach(apiResource -> {
             if (apiResource.getScopes() != null) {

@@ -55,19 +55,18 @@ public class APIResourceCollectionManagementConstants {
 
         ERROR_CODE_INVALID_FILTER_FORMAT("60001", "Unable to retrieve API resource collections.",
                 "Invalid format used for filtering."),
-        ERROR_CODE_INVALID_FILTER_VALUE("60005", "Unable to retrieve API resource collections.",
-                "Invalid filter value used for filtering."),
-        ERROR_CODE_INVALID_FILTER_ATTRIBUTE("60006", "Unable to retrieve API resource collections.",
-                "Invalid filter attribute used for filtering."), //TODO: Change the code.
-        ERROR_CODE_INVALID_FILTER_OPERATOR("60006", "Unable to retrieve API resource collections.",
-                "Invalid filter operator used for filtering."), //TODO: Change the code.
-        ERROR_CODE_INVALID_FILTER_OPERATION("60006", "Unable to retrieve API resource collections.",
-                "Invalid filter operation used for filtering."), //TODO: Change the code.
-        ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPE_METADATA("65012", "Error while retrieving scope metadata.",
+        ERROR_CODE_INVALID_FILTER_ATTRIBUTE("60003", "Unable to retrieve API resource collections.",
+                "Invalid filter attribute used for filtering."),
+        ERROR_CODE_INVALID_FILTER_OPERATOR("60004", "Unable to retrieve API resource collections.",
+                "Invalid filter operator used for filtering."),
+        ERROR_CODE_INVALID_FILTER_OPERATION("60005", "Unable to retrieve API resource collections.",
+                "Invalid filter operation used for filtering."),
+        // Server errors.
+        ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPE_METADATA("65001", "Error while retrieving scope metadata.",
                 "Error while retrieving scope metadata from the database."),
-        ERROR_CODE_WHILE_FILTERING_API_RESOURCE_COLLECTIONS("60006",
+        ERROR_CODE_WHILE_FILTERING_API_RESOURCE_COLLECTIONS("65002",
                 "Unable to retrieve API resource collections.",
-                "Error while filtering API resource collections."); //TODO: Change the code.
+                "Error while filtering API resource collections.");
 
         private final String code;
         private final String message;

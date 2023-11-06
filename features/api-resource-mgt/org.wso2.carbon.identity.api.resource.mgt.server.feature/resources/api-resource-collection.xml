@@ -18,14 +18,7 @@
   -->
 
 <APIResourceCollections>
-    <APIResourceCollection name="applications" displayName="Applications" type="Unknown">
-        <Scopes>
-            <Create>
-                <Scope name= "internal_application_mgt_create" />
-            </Create>
-        </Scopes>
-    </APIResourceCollection>
-    <APIResourceCollection name="administrators" displayName="Administrators" enabled="true">
+    <APIResourceCollection name="administrators" displayName="Administrators">
         <Scopes>
             <Update/>
             <Read/>
@@ -33,7 +26,15 @@
             <Delete/>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="apiResources" displayName="API Resources" enabled="true">
+    <APIResourceCollection name="analytics" displayName="Analytics">
+        <Scopes>
+            <Update/>
+            <Read/>
+            <Create/>
+            <Delete/>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="apiResources" displayName="API Resources">
         <Scopes>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -49,7 +50,118 @@
             </Delete>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="approvals" displayName="Approvals" enabled="false">
+    <APIResourceCollection name="applicationRoles" displayName="Application Roles">
+        <Scopes>
+            <Update/>
+            <Read/>
+            <Create/>
+            <Delete/>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="myAccount" displayName="My Account">
+        <Scopes>
+            <Update/>
+            <Read/>
+            <Create/>
+            <Delete/>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="branding" displayName="Branding">
+        <Scopes>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_application_mgt_update"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_application_mgt_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="bulkUserImport" displayName="Bulk User Import">
+        <Scopes>
+            <Update/>
+            <Delete/>
+            <Create>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_user_mgt_create"/>
+                <Scope name="internal_user_mgt_delete"/>
+                <Scope name="internal_claim_meta_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_role_mgt_view"/>
+            </Create>
+            <Read/>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="eventPublishing" displayName="Event Publishing">
+        <Scopes>
+            <Update>
+                <Scope name="internal_event_config_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_event_config_update"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_event_config_view"/>
+            </Create>
+            <Read>
+                <Scope name="internal_event_config_update"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="accountLogin" displayName="Account Login">
+        <Scopes>
+            <Update>
+                <Scope name="internal_config_mgt_update"/>
+            </Update>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="tryIt" displayName="Try It">
+        <Scopes>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_application_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_application_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_cors_origins_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_claim_meta_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_idp_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="applications" displayName="Applications">
+        <Scopes>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_application_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_application_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_cors_origins_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_claim_meta_view"/>
+                <Scope name="internal_idp_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="approvals" displayName="Approvals">
         <Scopes>
             <Update>
                 <Scope name="internal_humantask_view"/>
@@ -65,7 +177,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects" enabled="true">
+    <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects">
         <Scopes>
             <Create>
                 <Scope name="internal_claim_meta_create"/>
@@ -80,6 +192,170 @@
             <Delete>
                 <Scope name="internal_claim_meta_delete"/>
             </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="approvals" displayName="Approvals">
+        <Scopes>
+            <Update>
+                <Scope name="internal_humantask_view"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_humantask_view"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_humantask_view"/>
+            </Create>
+            <Read>
+                <Scope name="internal_humantask_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects">
+        <Scopes>
+            <Create>
+                <Scope name="internal_claim_meta_create"/>
+            </Create>
+            <Update>
+                <Scope name="internal_claim_meta_update"/>
+            </Update>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_claim_meta_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="approvals" displayName="Approvals">
+        <Scopes>
+            <Update>
+                <Scope name="internal_humantask_view"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_humantask_view"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_humantask_view"/>
+            </Create>
+            <Read>
+                <Scope name="internal_humantask_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects">
+        <Scopes>
+            <Create>
+                <Scope name="internal_claim_meta_create"/>
+            </Create>
+            <Update>
+                <Scope name="internal_claim_meta_update"/>
+            </Update>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_claim_meta_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="approvals" displayName="Approvals">
+        <Scopes>
+            <Update>
+                <Scope name="internal_humantask_view"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_humantask_view"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_humantask_view"/>
+            </Create>
+            <Read>
+                <Scope name="internal_humantask_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects">
+        <Scopes>
+            <Create>
+                <Scope name="internal_claim_meta_create"/>
+            </Create>
+            <Update>
+                <Scope name="internal_claim_meta_update"/>
+            </Update>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_claim_meta_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="approvals" displayName="Approvals">
+        <Scopes>
+            <Update>
+                <Scope name="internal_humantask_view"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_humantask_view"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_humantask_view"/>
+            </Create>
+            <Read>
+                <Scope name="internal_humantask_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects">
+        <Scopes>
+            <Create>
+                <Scope name="internal_claim_meta_create"/>
+            </Create>
+            <Update>
+                <Scope name="internal_claim_meta_update"/>
+            </Update>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_claim_meta_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="certificates" displayName="Certificates">
+        <Scopes>
+            <Update>
+                <Scope name="internal_keystore_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_keystore_update"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_keystore_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_keystore_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="emailProviders" displayName="Email Providers">
+        <Scopes>
+            <Update>
+                <Scope name="internal_config_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_config_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_config_mgt_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_config_mgt_view"/>
+            </Read>
         </Scopes>
     </APIResourceCollection>
 </APIResourceCollections>
