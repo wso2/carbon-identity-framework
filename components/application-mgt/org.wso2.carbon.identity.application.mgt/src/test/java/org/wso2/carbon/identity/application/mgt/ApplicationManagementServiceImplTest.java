@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.ClientAttestationMetaData;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
@@ -771,6 +772,119 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         Assert.assertEquals(retrievedSP.isManagementApp(), isManagementApp);
 
+        // Deleting added application.
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+    }
+
+    @DataProvider(name = "testAddApplicationWithAPIBasedAuthenticationData")
+    public Object[][] testAddApplicationWithAPIBasedAuthenticationData() {
+
+
+        return new Object[][]{
+                {true},
+                {false}
+        };
+    }
+
+    @Test(dataProvider = "testAddApplicationWithAPIBasedAuthenticationData")
+    public void testAddApplicationWithAPIBasedAuthentication(boolean isAPIBasedAuthenticationEnabled) throws Exception {
+
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+
+        addApplicationConfigurations(inputSP);
+        inputSP.setAPIBasedAuthenticationEnabled(isAPIBasedAuthenticationEnabled);
+
+        // Adding new application.
+        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+        Assert.assertEquals(addedSP.isAPIBasedAuthenticationEnabled(), isAPIBasedAuthenticationEnabled);
+
+
+        //  Retrieving added application.
+        ServiceProvider retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs
+                (inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertEquals(retrievedSP.isAPIBasedAuthenticationEnabled(), isAPIBasedAuthenticationEnabled);
+
+        // Updating the application by changing the isManagementApplication flag. It should be changed.
+        inputSP.setAPIBasedAuthenticationEnabled(!isAPIBasedAuthenticationEnabled);
+
+        applicationManagementService.updateApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+
+        retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs
+                (inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertEquals(retrievedSP.isAPIBasedAuthenticationEnabled(), !isAPIBasedAuthenticationEnabled);
+
+        // Deleting added application.
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+    }
+
+    @DataProvider(name = "testAddApplicationWithAttestationData")
+    public Object[][] testAddApplicationWithAttestationData() {
+
+
+        return new Object[][]{
+                {true, "com.wso2.sample.mobile.application", "sampleCredentials"}
+        };
+    }
+
+    @Test(dataProvider = "testAddApplicationWithAttestationData")
+    public void testAddApplicationWithAttestationData(boolean isAttestationEnabled,
+                                                      String androidPackageName,
+                                                      String androidCredentials) throws Exception {
+
+        ResolvedSecret resolvedSecret = new ResolvedSecret();
+        resolvedSecret.setResolvedSecretValue(androidCredentials);
+        SecretResolveManager secretResolveManager = mock(SecretResolveManagerImpl.class);
+        ApplicationManagementServiceComponentHolder.getInstance().setSecretResolveManager(secretResolveManager);
+        when(secretResolveManager.getResolvedSecret(anyString(), anyString())).thenReturn(resolvedSecret);
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+
+        addApplicationConfigurations(inputSP);
+        ClientAttestationMetaData clientAttestationMetaData = new ClientAttestationMetaData();
+        clientAttestationMetaData.setAttestationEnabled(isAttestationEnabled);
+        clientAttestationMetaData.setAndroidPackageName(androidPackageName);
+        clientAttestationMetaData.setAndroidAttestationServiceCredentials(androidCredentials);
+        inputSP.setClientAttestationMetaData(clientAttestationMetaData);
+
+        // Adding new application.
+        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+        Assert.assertEquals(addedSP.getClientAttestationMetaData().isAttestationEnabled(), isAttestationEnabled);
+        Assert.assertEquals(addedSP.getClientAttestationMetaData().getAndroidPackageName(), androidPackageName);
+        Assert.assertEquals(addedSP.getClientAttestationMetaData().getAndroidAttestationServiceCredentials(),
+                androidCredentials);
+
+        SecretManager secretManager = mock(SecretManagerImpl.class);
+        when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(true);
+        ApplicationManagementServiceComponentHolder.getInstance().setSecretManager(secretManager);
+
+        //  Retrieving added application.
+        ServiceProvider retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs
+                (inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertEquals(retrievedSP.getClientAttestationMetaData().isAttestationEnabled(), isAttestationEnabled);
+        Assert.assertEquals(retrievedSP.getClientAttestationMetaData().getAndroidPackageName(), androidPackageName);
+        Assert.assertEquals(retrievedSP.getClientAttestationMetaData().getAndroidAttestationServiceCredentials(),
+                androidCredentials);
+        // Updating the application by changing the isManagementApplication flag. It should be changed.
+        ClientAttestationMetaData clientAttestationMetaData2 = new ClientAttestationMetaData();
+        clientAttestationMetaData2.setAttestationEnabled(!isAttestationEnabled);
+        clientAttestationMetaData2.setAndroidPackageName(null);
+        clientAttestationMetaData2.setAndroidAttestationServiceCredentials(null);
+        inputSP.setClientAttestationMetaData(clientAttestationMetaData2);
+        applicationManagementService.updateApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+
+        retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs
+                (inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertEquals(retrievedSP.getClientAttestationMetaData().isAttestationEnabled(), !isAttestationEnabled);
+        Assert.assertNull(retrievedSP.getClientAttestationMetaData().getAndroidAttestationServiceCredentials());
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
                 REGISTRY_SYSTEM_USERNAME);

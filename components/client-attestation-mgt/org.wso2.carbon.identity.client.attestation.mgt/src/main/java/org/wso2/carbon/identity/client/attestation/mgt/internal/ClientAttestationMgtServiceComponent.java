@@ -51,7 +51,9 @@ public class ClientAttestationMgtServiceComponent {
         try {
             context.getBundleContext().registerService(ClientAttestationService.class.getName(),
                     new ClientAttestationServiceImpl(), null);
-            log.info("Client Attestation Service Component deployed.");
+            if (log.isDebugEnabled()) {
+                log.debug("Client Attestation Service Component deployed.");
+            }
 
         } catch (Throwable throwable) {
             log.error("Error while activating Input Validation Service Component.", throwable);

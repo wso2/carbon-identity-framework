@@ -120,7 +120,6 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
                                                              ClientAttestationContext clientAttestationContext)
             throws ClientAttestationMgtException {
         try {
-            // JSON data for service account credentials (replace with actual credentials).
             String jsonData = clientAttestationMetaData.getAndroidAttestationServiceCredentials();
             if (jsonData == null) {
 
@@ -157,9 +156,6 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
                     .execute();
 
         } catch (IOException | GeneralSecurityException e) {
-            clientAttestationContext.setAttested(false);
-            clientAttestationContext.setValidationFailureMessage("Unable to decode or verify the integrity token " +
-                    "form google play integrity service.");
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Unable to decode or verify attestation request from Client :" + applicationResourceId +
                         " in tenant : " + tenantDomain + " from google play integrity service." , e);
@@ -208,7 +204,10 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
         // Get the request time from the token response.
         long requestTimeInMillis = requestDetails.getTimestampMillis();
 
-        long allowedWindowMillis = getConfiguredAllowedWindow();
+        long allowedWindowMillis;
+
+        String allowedWindow = IdentityUtil.getProperty(CLIENT_ATTESTATION_ALLOWED_WINDOW_IN_MILL_SECOND);
+
 
         if (!StringUtils.equals(requestDetails.getRequestPackageName(), expectedPackageName)) {
             // The package name in the request details does not match the requested client.
@@ -216,16 +215,30 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
             clientAttestationContext.setValidationFailureMessage("Package name in the request details does " +
                     "not match with the requested client.");
             return false;
-        } else if (currentTimeInMillis - requestTimeInMillis > allowedWindowMillis) {
-            // The generated Integrity token is considered old, likely due to a replay attack.
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Attestation request provided by Client :" + applicationResourceId +
-                        " in tenant : " + tenantDomain + " is older than required window.");
+        } else if (StringUtils.isNotEmpty(allowedWindow)) {
+            try {
+                allowedWindowMillis = Long.parseLong(allowedWindow);
+                if (currentTimeInMillis - requestTimeInMillis > allowedWindowMillis) {
+                    // The generated Integrity token is considered old, likely due to a replay attack.
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Attestation request provided by Client :" + applicationResourceId +
+                                " in tenant : " + tenantDomain + " is older than required window.");
+                    }
+                    clientAttestationContext.setAttested(false);
+                    clientAttestationContext.setValidationFailureMessage("Attestation request provided by Client " +
+                            "is older than required window.");
+                    return false;
+                } else {
+                    // Request details are valid.
+                    return true;
+                }
+            } catch (NumberFormatException e) {
+                LOG.error("Error while parsing attestation allowed window timeout config: " + allowedWindow, e);
+                clientAttestationContext.setAttested(false);
+                clientAttestationContext.setValidationFailureMessage("Error while parsing attestation allowed window " +
+                        "timeout config. Probably a misconfiguration, hence rejecting the request.");
+                return false;
             }
-            clientAttestationContext.setAttested(false);
-            clientAttestationContext.setValidationFailureMessage("Package name in the request details does " +
-                    "not match with the requested client.");
-            return false;
         } else {
             // Request details are valid.
             return true;
@@ -260,19 +273,7 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
         clientAttestationContext.setAttested(false);
         clientAttestationContext.setValidationFailureMessage("Application integrity validation failed." +
                 " Unexpected recognition verdict: " + appIntegrity.getAppRecognitionVerdict());
-        // Throw an exception with a descriptive message indicating that the application
-        // integrity verdict is unexpected.
         return false;
-    }
-
-    private long getConfiguredAllowedWindow() {
-
-        String allowedWindow = IdentityUtil.getProperty(CLIENT_ATTESTATION_ALLOWED_WINDOW_IN_MILL_SECOND);
-        if (StringUtils.isNotEmpty(allowedWindow)) {
-            return Long.parseLong(allowedWindow);
-        } else {
-            return 60000L; // 1 minute
-        }
     }
 
     /**
@@ -281,7 +282,7 @@ public class AndroidAttestationValidator implements ClientAttestationValidator {
      * @return ANDROID.
      */
     @Override
-    public String getHandledOS() {
+    public String getAttestationValidationType() {
 
         return ANDROID;
     }

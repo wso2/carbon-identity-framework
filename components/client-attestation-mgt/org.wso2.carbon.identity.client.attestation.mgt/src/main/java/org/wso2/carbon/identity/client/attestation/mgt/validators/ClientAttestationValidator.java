@@ -40,10 +40,10 @@ public interface ClientAttestationValidator {
 
 
     /**
-     * This method indicates which client Os it can handle.
+     * This method indicates which client Attestation validation type, it can handle.
      *
      * @return OS name.
      */
-    String getHandledOS();
+    String getAttestationValidationType();
 
 }

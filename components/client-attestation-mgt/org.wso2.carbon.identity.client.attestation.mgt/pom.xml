@@ -47,7 +47,6 @@
             <scope>provided</scope>
         </dependency>
 
-<!--        Dependencies-->
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.base</artifactId>
@@ -93,7 +92,7 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
-<!--        Test dependencies-->
+        <!--Test dependencies-->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>

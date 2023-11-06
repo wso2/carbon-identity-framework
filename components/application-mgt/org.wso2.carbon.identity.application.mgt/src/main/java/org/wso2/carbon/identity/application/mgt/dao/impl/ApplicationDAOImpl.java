@@ -437,6 +437,22 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(application);
             serviceProviderProperties.add(isB2BSSAppProperty);
 
+            ServiceProviderProperty isAPIBasedAuthenticationEnabled
+                    = buildIsAPIBasedAuthenticationEnabledProperty(application);
+            serviceProviderProperties.add(isAPIBasedAuthenticationEnabled);
+
+            if (application.getClientAttestationMetaData() != null) {
+                ServiceProviderProperty isAttestationEnabled =
+                        buildIsAttestationEnabledProperty(application.getClientAttestationMetaData());
+                serviceProviderProperties.add(isAttestationEnabled);
+
+                ServiceProviderProperty androidPackageName =
+                        buildAndroidPackageNameProperty(application.getClientAttestationMetaData());
+                serviceProviderProperties.add(androidPackageName);
+
+                storeAndroidAttestationServiceCredentialAsSecret(application);
+            }
+
             ServiceProviderProperty allowedRoleAudienceProperty = buildAllowedRoleAudienceProperty(application);
             serviceProviderProperties.add(allowedRoleAudienceProperty);
             application.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));

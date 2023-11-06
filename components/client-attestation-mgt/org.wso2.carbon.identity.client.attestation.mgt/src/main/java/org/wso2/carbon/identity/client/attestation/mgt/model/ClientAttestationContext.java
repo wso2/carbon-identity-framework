@@ -40,55 +40,68 @@ public class ClientAttestationContext extends MessageContext {
     private String validationFailureMessage;
 
     public String getApplicationResourceId() {
+
         return applicationResourceId;
     }
 
     public void setApplicationResourceId(String applicationResourceId) {
+
         this.applicationResourceId = applicationResourceId;
     }
 
     public String getTenantDomain() {
+
         return tenantDomain;
     }
 
     public void setTenantDomain(String tenantDomain) {
+
         this.tenantDomain = tenantDomain;
     }
 
     public boolean isAttestationEnabled() {
+
         return attestationEnabled;
     }
 
     public void setAttestationEnabled(boolean attestationEnabled) {
+
         this.attestationEnabled = attestationEnabled;
     }
 
     public boolean isAttested() {
+
         return isAttested;
     }
 
     public void setAttested(boolean attested) {
+
         isAttested = attested;
     }
 
     public Constants.ClientTypes getClientType() {
+
         return clientType;
     }
 
     public void setClientType(Constants.ClientTypes clientType) {
+
         this.clientType = clientType;
     }
 
     public String getValidationFailureMessage() {
+
         return validationFailureMessage;
     }
 
     public void setValidationFailureMessage(String validationFailureMessage) {
+
         this.validationFailureMessage = validationFailureMessage;
     }
 
     @Override
     public String toString() {
+
         return "ClientAttestationContext{" +
                 "applicationResourceId='" + applicationResourceId + '\'' +
                 ", tenantDomain='" + tenantDomain + '\'' +

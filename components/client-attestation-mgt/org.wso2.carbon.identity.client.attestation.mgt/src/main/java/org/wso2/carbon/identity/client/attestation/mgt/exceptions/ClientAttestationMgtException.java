@@ -32,6 +32,7 @@ public class ClientAttestationMgtException extends IdentityException {
      * @param message The error message.
      */
     public ClientAttestationMgtException(String message) {
+
         super(message);
     }
 
@@ -42,6 +43,7 @@ public class ClientAttestationMgtException extends IdentityException {
      * @param message   The error message.
      */
     public ClientAttestationMgtException(String errorCode, String message) {
+
         super(errorCode, message);
     }
 
@@ -52,6 +54,7 @@ public class ClientAttestationMgtException extends IdentityException {
      * @param cause   The throwable cause of the exception.
      */
     public ClientAttestationMgtException(String message, Throwable cause) {
+
         super(message, cause);
     }
 
@@ -64,6 +67,7 @@ public class ClientAttestationMgtException extends IdentityException {
      * @param cause     The throwable cause of the exception.
      */
     public ClientAttestationMgtException(String errorCode, String message, Throwable cause) {
+
         super(errorCode, message, cause);
     }
 }
