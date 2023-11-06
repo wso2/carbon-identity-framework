@@ -77,6 +77,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterData;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
@@ -397,7 +398,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAppPrepStmt.setString(9, "0");
             storeAppPrepStmt.setString(10, resourceId);
             storeAppPrepStmt.setString(11, application.getImageUrl());
-            storeAppPrepStmt.setString(12, application.getAccessUrl());
+            storeAppPrepStmt.setString(12,
+                    ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(application.getAccessUrl()));
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -435,6 +437,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
             return new ApplicationCreateResult(resourceId, applicationId);
+        } catch (URLBuilderException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error occurred when replacing origin of the access URL with placeholders", e);
         } finally {
             IdentityApplicationManagementUtil.closeResultSet(results);
             IdentityApplicationManagementUtil.closeStatement(storeAppPrepStmt);
@@ -952,7 +957,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statement.setString(ApplicationTableColumns.IS_SAAS_APP, isSaasApp ? "1" : "0");
             statement.setString(ApplicationTableColumns.IS_DISCOVERABLE, isDiscoverable ? "1" : "0");
             statement.setString(ApplicationTableColumns.IMAGE_URL, serviceProvider.getImageUrl());
-            statement.setString(ApplicationTableColumns.ACCESS_URL, serviceProvider.getAccessUrl());
+            statement.setString(ApplicationTableColumns.ACCESS_URL,
+                    ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(serviceProvider.getAccessUrl()));
             if (isValidUserForOwnerUpdate) {
                 User owner = serviceProvider.getOwner();
                 statement.setString(ApplicationTableColumns.USERNAME, owner.getUserName());
@@ -962,6 +968,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statement.setInt(ApplicationTableColumns.ID, applicationId);
 
             statement.executeUpdate();
+        } catch (URLBuilderException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error occurred when replacing origin of the access URL with placeholders", e);
         }
 
         if (log.isDebugEnabled()) {
@@ -1880,7 +1889,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setApplicationName(basicAppDataResultSet.getString(3));
                 serviceProvider.setDescription(basicAppDataResultSet.getString(6));
                 serviceProvider.setImageUrl(basicAppDataResultSet.getString(ApplicationTableColumns.IMAGE_URL));
-                serviceProvider.setAccessUrl(basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL));
+                serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+                        basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
                 serviceProvider.setDiscoverable(getBooleanValue(basicAppDataResultSet.getString(ApplicationTableColumns
                         .IS_DISCOVERABLE)));
 
@@ -1928,6 +1938,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
             return serviceProvider;
+        } catch (URLBuilderException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error occurred when resolving origin of the access URL with placeholders", e);
         } finally {
             IdentityApplicationManagementUtil.closeResultSet(basicAppDataResultSet);
             IdentityApplicationManagementUtil.closeStatement(loadBasicAppInfoStmt);
@@ -2336,7 +2349,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setApplicationName(rs.getString(ApplicationTableColumns.APP_NAME));
                 serviceProvider.setDescription(rs.getString(ApplicationTableColumns.DESCRIPTION));
                 serviceProvider.setImageUrl(rs.getString(ApplicationTableColumns.IMAGE_URL));
-                serviceProvider.setAccessUrl(rs.getString(ApplicationTableColumns.ACCESS_URL));
+                serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+                        rs.getString(ApplicationTableColumns.ACCESS_URL)));
                 serviceProvider.setDiscoverable(getBooleanValue(rs.getString(ApplicationTableColumns.IS_DISCOVERABLE)));
 
                 User owner = new User();
@@ -2386,6 +2400,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
             return serviceProvider;
+        } catch (URLBuilderException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error occurred when resolving origin of the access URL with placeholders", e);
         } finally {
             IdentityApplicationManagementUtil.closeResultSet(rs);
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
@@ -5618,7 +5635,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
-        basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
+
+        try {
+            basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+                    appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+        } catch (URLBuilderException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error occurred when resolving origin of the access URL with placeholders", e);
+        }
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
@@ -5651,7 +5675,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
-        basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
+
+        try {
+            basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+                    appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+        } catch (URLBuilderException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error occurred when resolving origin of the access URL with placeholders", e);
+        }
 
         String inboundAuthKey = appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY);
         String inboundAuthType = appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_TYPE);

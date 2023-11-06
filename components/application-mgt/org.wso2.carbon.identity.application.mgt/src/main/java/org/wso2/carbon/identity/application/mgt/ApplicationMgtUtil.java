@@ -46,6 +46,8 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -69,10 +71,12 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.INBOUND_AUTHENTICATION_CONFIG;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
@@ -93,6 +97,7 @@ public class ApplicationMgtUtil {
     private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final String DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME =
             UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME + "/" + CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+    private static final String BASE_URL_PLACEHOLDER = "<PROTOCOL>://<HOSTNAME>:<PORT>";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
@@ -1025,5 +1030,41 @@ public class ApplicationMgtUtil {
 
         return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
                 || isLegacyAuditLogsDisabled();
+    }
+
+    /**
+     * This method use to replace the hostname and port with placeholders of URLs of console and myaccount.
+     *
+     * @param absoluteUrl     The absolute URL which need to be modified.
+     * @return The URL which origin replaced placeholders.
+     * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     */
+    public static String replaceUrlOriginWithPlaceholders(String absoluteUrl) throws URLBuilderException {
+
+        if (StringUtils.contains(absoluteUrl, CONSOLE_APP_PATH) ||
+                StringUtils.contains(absoluteUrl, MY_ACCOUNT_APP_PATH)) {
+            String origin = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
+            absoluteUrl = StringUtils.replace(absoluteUrl, origin, BASE_URL_PLACEHOLDER);
+        }
+
+        return absoluteUrl;
+    }
+
+    /**
+     * This method use to replace placeholders with the hostname and port of URLs of console and myaccount.
+     *
+     * @param absoluteUrl     The URL which need to resolve from placeholders.
+     * @return The resolved URL from placeholders.
+     * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     */
+    public static String resolveOriginUrlFromPlaceholders(String absoluteUrl) throws URLBuilderException {
+
+        if (StringUtils.contains(absoluteUrl, CONSOLE_APP_PATH) ||
+                StringUtils.contains(absoluteUrl, MY_ACCOUNT_APP_PATH)) {
+            String origin = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
+            absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, origin);
+        }
+
+        return absoluteUrl;
     }
 }

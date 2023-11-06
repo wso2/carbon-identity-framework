@@ -102,6 +102,8 @@ public class ApplicationConstants {
     // Console and My Account application names.
     public static final String CONSOLE_APPLICATION_NAME = "Console";
     public static final String MY_ACCOUNT_APPLICATION_NAME = "My Account";
+    public static final String MY_ACCOUNT_APP_PATH = "/myaccount";
+    public static final String CONSOLE_APP_PATH = "/console";
 
     /**
      * Group the constants related to logs.
