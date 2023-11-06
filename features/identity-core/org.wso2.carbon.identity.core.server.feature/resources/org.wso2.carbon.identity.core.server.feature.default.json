@@ -497,7 +497,7 @@
   "application_mgt.enable_role_validation": false,
 
   "event.default_listener.validation.priority": "3",
-  "event.default_listener.validation.enable": false,
+  "event.default_listener.validation.enable": true,
   "event.default_listener.workflow.priority": "10",
   "event.default_listener.workflow.enable": true,
   "event.default_listener.identity_mgt.priority": "50",
