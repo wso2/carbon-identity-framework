@@ -442,6 +442,7 @@ public class IdentityApplicationConstants {
         public static final String NAME = "passivests";
         public static final String PASSIVE_STS_REALM = "passiveSTSRealm";
         public static final String PASSIVE_STS_REPLY_URL = "passiveSTSWReply";
+        public static final String PASSIVE_STS_REPLY_URL_LOGOUT = "passiveSTSWReplyLogout";
     }
 
     /**

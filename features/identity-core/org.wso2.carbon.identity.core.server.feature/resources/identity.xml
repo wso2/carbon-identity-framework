@@ -829,6 +829,7 @@
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
         <DisableAppliesToInPassiveSTSResponse>false</DisableAppliesToInPassiveSTSResponse>
         <EnableDefaultSignatureAndDigestAlgorithm>true</EnableDefaultSignatureAndDigestAlgorithm>
+        <EnableLogoutWreplyValidation>true</EnableLogoutWreplyValidation>
     </PassiveSTS>
 
     <Mex>
@@ -2337,6 +2338,7 @@
                     <Path>/api/server/v1/branding-preference/text/resolve</Path>
                     <Path>/api/identity/recovery/v0.9</Path>
                     <Path>/api/server/v1/identity-governance/preferences</Path>
+                    <Path>/api/server/v1/identity-governance</Path>
                 </SubPaths>
             </Context>
             <Context>

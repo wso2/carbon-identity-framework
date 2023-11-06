@@ -1221,6 +1221,7 @@
         <SLOHostNameVerificationEnabled>{{passive_sts.slo.host_name_verification}}</SLOHostNameVerificationEnabled>
         <DisableAppliesToInPassiveSTSResponse>{{passive_sts.disable_applies_to_in_response}}</DisableAppliesToInPassiveSTSResponse>
         <EnableDefaultSignatureAndDigestAlgorithm>{{passive_sts.enable_default_signature_and_digest_alg}}</EnableDefaultSignatureAndDigestAlgorithm>
+        <EnableLogoutWreplyValidation>{{passive_sts.enable_logout_wreply_validation}}</EnableLogoutWreplyValidation>
     </PassiveSTS>
 
     <Mex>
@@ -3403,6 +3404,7 @@
                     <Path>/api/server/v1/branding-preference/text/resolve</Path>
                     <Path>/api/identity/recovery/v0.9</Path>
                     <Path>/api/server/v1/identity-governance/preferences</Path>
+                    <Path>/api/server/v1/identity-governance</Path>
                 </SubPaths>
             </Context>
             <Context>

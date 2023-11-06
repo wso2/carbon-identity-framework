@@ -309,9 +309,13 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
 
     @Override
     public boolean preUpdatePermissionsForRole(String roleID, List<Permission> addedPermissions,
-                                               List<Permission> deletedPermissions, String tenantDomain)
+                                               List<Permission> deletedPermissions, String audience, String audienceId,
+                                               String tenantDomain)
             throws IdentityRoleManagementException {
 
+        if (APPLICATION.equalsIgnoreCase(audience)) {
+            validatePermissionsForApplication(addedPermissions, audienceId, tenantDomain);
+        }
         return true;
     }
 
