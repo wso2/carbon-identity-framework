@@ -42,7 +42,7 @@ public interface ClientAttestationValidator {
     /**
      * This method indicates which client Attestation validation type, it can handle.
      *
-     * @return OS name.
+     * @return Attestation validation type.
      */
     String getAttestationValidationType();
 
