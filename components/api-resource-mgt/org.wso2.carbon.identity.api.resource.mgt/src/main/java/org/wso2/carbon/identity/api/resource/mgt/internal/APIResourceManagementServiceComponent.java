@@ -31,9 +31,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
-import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.listener.APIResourceManagementListener;
-import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -117,10 +115,7 @@ public class APIResourceManagementServiceComponent {
 
         String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         try {
-            APIResourceSearchResult systemAPIResources = APIResourceManagerImpl.getInstance()
-                    .getAPIResources(null, null, 1, APIResourceManagementConstants.SYSTEM_API_FILTER,
-                            APIResourceManagementConstants.ASC, tenantDomain);
-            if (systemAPIResources.getTotalCount() == 0) {
+            if (!APIResourceManagementUtil.isSystemAPIExist(tenantDomain)) {
                 APIResourceManagementUtil.addSystemAPIs(tenantDomain);
             }
         } catch (APIResourceMgtException e) {
