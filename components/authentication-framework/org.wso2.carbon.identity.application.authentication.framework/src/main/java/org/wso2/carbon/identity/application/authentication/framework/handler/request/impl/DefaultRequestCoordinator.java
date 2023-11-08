@@ -93,6 +93,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.IS_API_BASED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REDIRECT_URL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
@@ -110,7 +111,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class DefaultRequestCoordinator extends AbstractRequestCoordinator implements RequestCoordinator {
 
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
-    public static final String REDIRECT_URI = "redirect_uri";
+    private static final String REDIRECT_URI = "redirect_uri";
+    private static final String TRUE = "true";
     private static volatile DefaultRequestCoordinator instance;
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
@@ -726,6 +728,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         String redirectUrl = request.getParameter(REDIRECT_URI);
         if (isAPIBasedAuthenticationFlow(request)) {
             context.setProperty(REDIRECT_URL, redirectUrl);
+            context.setProperty(IS_API_BASED, TRUE);
         }
 
         return context;
