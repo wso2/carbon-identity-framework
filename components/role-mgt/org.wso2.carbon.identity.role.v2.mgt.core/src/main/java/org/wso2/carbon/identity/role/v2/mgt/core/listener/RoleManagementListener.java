@@ -417,7 +417,8 @@ public interface RoleManagementListener {
      * @throws IdentityRoleManagementException If an error occurs during the pre-update phase.
      */
     boolean preUpdatePermissionsForRole(String roleId, List<Permission> addedPermissions,
-                                        List<Permission> deletedPermissions, String tenantDomain)
+                                        List<Permission> deletedPermissions, String audience, String audienceId,
+                                        String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**

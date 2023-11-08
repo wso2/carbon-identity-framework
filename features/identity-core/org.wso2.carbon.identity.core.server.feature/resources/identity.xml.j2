@@ -198,6 +198,11 @@
         <DefaultUserNameValidator>{{input_validation.default_validator}}</DefaultUserNameValidator>
     </InputValidation>
 
+    <ClientAttestation>
+        <!-- This tag defines the allowed window between current time and attestation object creation time. -->
+        <AllowedWindowMillis>{{client_attestation.allowed_window}}</AllowedWindowMillis>
+    </ClientAttestation>
+
     <OAuth>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
@@ -918,6 +923,7 @@
 
             <DefaultSubjectType>{{oauth.oidc.subject_type.default_subject_type}}</DefaultSubjectType>
             <EnablePairwiseSubForAccessToken>{{oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection}}</EnablePairwiseSubForAccessToken>
+            <EnableTLSCertificateBoundAccessTokensViaBindingType>{{oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type}}</EnableTLSCertificateBoundAccessTokensViaBindingType>
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
