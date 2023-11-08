@@ -62,7 +62,8 @@ public class AuthServiceUtils {
                 }
             }
         } catch (URISyntaxException | UnsupportedEncodingException e) {
-            throw new AuthServiceException("Error while extracting query params from provided url.", e);
+            throw new AuthServiceException(AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_PROCEED.code(),
+                    "Error while extracting query params from provided url.", e);
         }
         return queryParams;
     }

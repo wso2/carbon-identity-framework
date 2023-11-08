@@ -69,7 +69,8 @@ public class AuthenticationService {
         try {
             commonAuthenticationHandler.doPost(wrappedRequest, wrappedResponse);
         } catch (ServletException | IOException e) {
-            throw new AuthServiceException("Error while handling authentication request.", e);
+            throw new AuthServiceException(AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_PROCEED.code(),
+                    AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_PROCEED.description(), e);
         }
 
         return processCommonAuthResponse(wrappedRequest, wrappedResponse);
@@ -100,7 +101,9 @@ public class AuthenticationService {
         } else if (isAuthFlowIncomplete(request)) {
             handleIntermediateAuthResponse(request, response, authServiceResponse);
         } else {
-            throw new AuthServiceException("Unknown authentication flow status: " + request.getAuthFlowStatus());
+            throw new AuthServiceException(AuthServiceConstants.ErrorMessage.ERROR_UNKNOWN_AUTH_FLOW_STATUS.code(),
+                    String.format(AuthServiceConstants.ErrorMessage.ERROR_UNKNOWN_AUTH_FLOW_STATUS.description(),
+                            request.getAuthFlowStatus()));
         }
 
         return authServiceResponse;
@@ -201,7 +204,9 @@ public class AuthenticationService {
 
             ApplicationAuthenticator authenticator = FrameworkUtils.getAppAuthenticatorByName(name);
             if (authenticator == null) {
-                throw new AuthServiceException("Authenticator not found for name: " + name);
+                throw new AuthServiceException(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.code(),
+                        String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.description(),
+                                name));
             }
 
             if (!authenticator.isAPIBasedAuthenticationSupported()) {
