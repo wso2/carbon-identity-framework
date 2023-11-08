@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util.auth.service;
 
+import java.util.Optional;
+
 /**
  * Constants class for Auth Service.
  */
@@ -52,7 +54,7 @@ public class AuthServiceConstants {
     public enum ErrorMessage {
 
         // Client errors starting from 600xx.
-        ERROR_AUTH_REQUEST("60001",
+        ERROR_INVALID_AUTH_REQUEST("60001",
                 "Invalid authentication request.",
                 "Received authentication request is invalid."),
         ERROR_INVALID_AUTHENTICATOR_ID("60002",
@@ -95,14 +97,19 @@ public class AuthServiceConstants {
             return description;
         }
 
-        public ErrorMessage fromCode(String code) {
+        /**
+         * Get error message enum from code.
+         * @param code error code.
+         * @return error message enum.
+         */
+        public static Optional<ErrorMessage> fromCode(String code) {
 
             for (ErrorMessage error : ErrorMessage.values()) {
                 if (error.code.equals(code)) {
-                    return error;
+                    return Optional.of(error);
                 }
             }
-            return null;
+            return Optional.empty();
         }
 
         @Override
