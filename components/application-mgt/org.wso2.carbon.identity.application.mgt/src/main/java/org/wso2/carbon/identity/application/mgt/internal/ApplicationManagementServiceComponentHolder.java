@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt.internal;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
+import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
@@ -33,7 +34,9 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -68,6 +71,8 @@ public class ApplicationManagementServiceComponentHolder {
     private OrganizationManager organizationManager;
 
     private boolean isOrganizationManagementEnable = false;
+    private static final List<ApplicationInboundAuthConfigHandler> applicationInboundAuthConfigHandlers = new
+            ArrayList<>();
 
     private IdentityEventService identityEventService;
 
@@ -381,5 +386,34 @@ public class ApplicationManagementServiceComponentHolder {
 
         this.secretResolveManager = secretResolveManager;
     }
-
+    
+    /**
+     * Add application inbound config service.
+     */
+    public void addApplicationInboundAuthConfigHandler(ApplicationInboundAuthConfigHandler
+                                                               applicationInboundAuthConfigHandler) {
+        
+        applicationInboundAuthConfigHandlers.add(applicationInboundAuthConfigHandler);
+    }
+    
+    /**
+     * Remove application inbound config service.
+     *
+     * @param applicationInboundAuthConfigHandler Protocol service.
+     */
+    public void removeApplicationInboundConfigHandler(ApplicationInboundAuthConfigHandler
+                                                              applicationInboundAuthConfigHandler) {
+        
+        applicationInboundAuthConfigHandlers.remove(applicationInboundAuthConfigHandler);
+    }
+    
+    /**
+     * Get application inbound config service.
+     *
+     * @return List of application inbound config services.
+     */
+    public List<ApplicationInboundAuthConfigHandler> getApplicationInboundAuthConfigHandler() {
+        
+        return applicationInboundAuthConfigHandlers;
+    }
 }

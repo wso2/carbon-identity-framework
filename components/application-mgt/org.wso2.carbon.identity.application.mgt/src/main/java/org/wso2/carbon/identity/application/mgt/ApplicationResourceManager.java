@@ -18,6 +18,8 @@ package org.wso2.carbon.identity.application.mgt;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
 
 /**
  * Allows application CRUD operations using unique resourceId.
@@ -33,6 +35,16 @@ public interface ApplicationResourceManager {
      * @throws IdentityApplicationManagementException
      */
     ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Creates an application and returns the created application.
+     *
+     * @param applicationModelDTO  ApplicationModelDTO containing the app information
+     * @return unique application resource id of the application
+     * @throws IdentityApplicationManagementException
+     */
+    String createApplication(ApplicationDTO applicationModelDTO, String tenantDomain, String username)
             throws IdentityApplicationManagementException;
 
     /**
@@ -70,6 +82,14 @@ public interface ApplicationResourceManager {
     void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApplication,
                                        String tenantDomain, String username)
             throws IdentityApplicationManagementException;
+    
+    default void updateApplicationByResourceId(String resourceId, ServiceProvider application,
+                                               InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO,
+                                               String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        updateApplicationByResourceId(resourceId, application, tenantDomain, username);
+    }
 
     /**
      * Delete an application identified by the resourceId.

@@ -53,6 +53,10 @@ import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorCo
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
@@ -431,6 +435,105 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+    
+    @Test
+    public void testCreateAndGetApplicationWithProtocolService() throws IdentityApplicationManagementException {
+        
+        ApplicationDTO.Builder applicationDTOBuilder = new ApplicationDTO.Builder();
+        ServiceProvider inputSP1 = new ServiceProvider();
+        inputSP1.setApplicationName(APPLICATION_NAME_1);
+        // Adding application configurations except inbound protocol configurations.
+        addApplicationConfigurations(inputSP1);
+        applicationDTOBuilder.serviceProvider(inputSP1);
+        
+        // Creating OAuth2 inbound protocol configurations.
+        InboundProtocolsDTO inbounds = setInboundProtocol();
+        inbounds.addProtocolConfiguration(() -> ApplicationConstants.StandardInboundProtocols.SAML2);
+        applicationDTOBuilder.inboundProtocolConfigurationDto(inbounds);
+        
+        // Mocking protocol service.
+        ApplicationManagementServiceComponentHolder.getInstance().addApplicationInboundAuthConfigHandler(
+                customSAML2InboundAuthConfigHandler());
+        
+        // Creating application.
+        applicationManagementService.createApplication(applicationDTOBuilder.build(), SUPER_TENANT_DOMAIN_NAME,
+                USERNAME_1);
+        ServiceProvider applicationByResourceId = applicationManagementService.getApplicationByResourceId(inputSP1
+                .getApplicationResourceId(), SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertEquals(applicationByResourceId.getApplicationName(), APPLICATION_NAME_1);
+        // There should be 2 inbound protocol configurations. The one that already exists and the one that is created.
+        Assert.assertEquals(applicationByResourceId.getInboundAuthenticationConfig()
+                .getInboundAuthenticationRequestConfigs().length, 2);
+        for (InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig : applicationByResourceId
+                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs()) {
+            // This is the existing inbound protocol configuration. Validate the existing inbound protocol
+            // configuration is unchanged.
+            if (ApplicationConstants.StandardInboundProtocols.OAUTH2.equals(inboundAuthenticationRequestConfig
+                    .getInboundAuthType())) {
+                Assert.assertEquals(inboundAuthenticationRequestConfig.getInboundAuthKey(),
+                        "auth key");
+            }
+            // This is the newly created inbound protocol configuration. Validate the newly created inbound protocol
+            // is added.
+            if (ApplicationConstants.StandardInboundProtocols.SAML2.equals(inboundAuthenticationRequestConfig
+                    .getInboundAuthType())) {
+                Assert.assertEquals(inboundAuthenticationRequestConfig.getInboundAuthKey(),
+                        APPLICATION_INBOUND_AUTH_KEY_1);
+            }
+        }
+        
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+    
+    private ApplicationInboundAuthConfigHandler customSAML2InboundAuthConfigHandler() {
+        
+        return new ApplicationInboundAuthConfigHandler() {
+            @Override
+            public boolean canHandle(InboundProtocolsDTO inboundProtocolsDTO) {
+                
+                return true;
+            }
+            
+            @Override
+            public boolean canHandle(String protocolName) {
+                
+                return ApplicationConstants.StandardInboundProtocols.SAML2.equals(protocolName);
+            }
+            
+            @Override
+            public InboundAuthenticationRequestConfig handleConfigCreation(ServiceProvider serviceProvider,
+                                                                           InboundProtocolsDTO inboundProtocolsDTO)
+                    throws IdentityApplicationManagementException {
+                
+                InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig = new
+                        InboundAuthenticationRequestConfig();
+                inboundAuthenticationRequestConfig.setInboundAuthKey(APPLICATION_INBOUND_AUTH_KEY_1);
+                inboundAuthenticationRequestConfig.setInboundAuthType(
+                        ApplicationConstants.StandardInboundProtocols.SAML2);
+                return inboundAuthenticationRequestConfig;
+            }
+            
+            @Override
+            public InboundAuthenticationRequestConfig handleConfigUpdate(
+                    ServiceProvider application, InboundProtocolConfigurationDTO inboundProtocolsDTO)
+                    throws IdentityApplicationManagementException {
+                
+                return null;
+            }
+            
+            @Override
+            public void handleConfigDeletion(String appId) throws IdentityApplicationManagementException {
+            
+            }
+            
+            @Override
+            public InboundProtocolConfigurationDTO handleConfigRetrieval(String appId)
+                    throws IdentityApplicationManagementException {
+                
+                return null;
+            }
+        };
     }
 
     @DataProvider(name = "getSAMLApplicationDataProvider")
@@ -975,6 +1078,13 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
                 {authRequestConfig};
         inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(authRequests);
         serviceProvider.setInboundAuthenticationConfig(inboundAuthenticationConfig);
+    }
+    
+    private InboundProtocolsDTO setInboundProtocol() {
+
+        InboundProtocolsDTO inboundProtocolsDTO = new InboundProtocolsDTO();
+        inboundProtocolsDTO.addProtocolConfiguration(() -> "oauth2");
+        return inboundProtocolsDTO;
     }
 
     private void setupConfiguration() throws UserStoreException, RegistryException {

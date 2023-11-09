@@ -34,6 +34,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -59,6 +60,11 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -73,10 +79,9 @@ import javax.xml.bind.Unmarshaller;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.ENABLE_V2_AUDIT_LOGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.INBOUND_AUTHENTICATION_CONFIG;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Few common utility functions related to Application (aka. Service Provider) Management.
@@ -988,6 +993,53 @@ public class ApplicationMgtUtil {
         }
     }
 
+    public static ServiceProvider deepCopyApplication(ServiceProvider application)
+            throws IdentityApplicationManagementServerException {
+
+        ObjectOutputStream objOutPutStream;
+        ObjectInputStream objInputStream;
+        ServiceProvider newObject;
+        try {
+            ByteArrayOutputStream byteArrayOutPutStream = new ByteArrayOutputStream();
+            objOutPutStream = new ObjectOutputStream(byteArrayOutPutStream);
+            objOutPutStream.writeObject(application);
+
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutPutStream.toByteArray());
+            objInputStream = new ObjectInputStream(byteArrayInputStream);
+            newObject = (ServiceProvider) objInputStream.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            throw new IdentityApplicationManagementServerException("Error deep cloning application object.", e);
+        }
+        return newObject;
+    }
+    
+    /**
+     * Check whether the v2 audit logs are enabled.
+     * @return true if v2 audit logs are enabled.
+     */
+    public static boolean isEnableV2AuditLogs() {
+        
+        return Boolean.parseBoolean(System.getProperty(ENABLE_V2_AUDIT_LOGS));
+    }
+    
+    /**
+     * Handle the exception and throw the relevant ApplicationManagementException.
+     *
+     * @param msg Error message.
+     * @param e   Throwable object.
+     * @return IdentityApplicationManagementException.
+     */
+    public static IdentityApplicationManagementException handleException(String msg, Throwable e) {
+        
+        if (e instanceof IdentityApplicationManagementClientException) {
+            return new IdentityApplicationManagementClientException(e.getMessage(), e);
+        } else if (e instanceof IdentityApplicationManagementServerException) {
+            return new IdentityApplicationManagementServerException(e.getMessage(), e);
+        } else {
+            return new IdentityApplicationManagementException(msg, e);
+        }
+    }
+
     private static void maskAppOwnerUsername(JSONObject appOwner) throws IdentityException {
 
         if (!LoggerUtils.isLogMaskingEnable) {
@@ -1022,12 +1074,6 @@ public class ApplicationMgtUtil {
         }
         // If userId is not found, return the masked value of tenant qualified username for logging purpose.
         return LoggerUtils.getMaskedContent(loggableUserId);
-    }
-
-    public static boolean isLegacyAuditLogsDisabledInAppMgt() {
-
-        return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
-                || isLegacyAuditLogsDisabled();
     }
 
     /**

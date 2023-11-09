@@ -69,6 +69,10 @@ import org.wso2.carbon.identity.application.mgt.dao.impl.FileBasedApplicationDAO
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtException;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
@@ -162,6 +166,9 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUse
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.validateTenant;
+import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.doRollback;
+import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.rollbackInbounds;
+import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.updateOrInsertInbound;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getInitiatorId;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
@@ -245,7 +252,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 break;
             }
         }
-        if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     getInitiatorId(username, tenantDomain), USER, getAppId(serviceProvider), TARGET_APPLICATION,
                     ApplicationConstants.LogConstants.CREATE_APPLICATION)
@@ -699,7 +706,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     getInitiatorId(username, tenantDomain), USER, getAppId(serviceProvider), TARGET_APPLICATION,
                     ApplicationConstants.LogConstants.UPDATE_APPLICATION)
@@ -814,7 +821,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     getInitiatorId(username, tenantDomain), USER, getAppId(serviceProvider), TARGET_APPLICATION,
                     ApplicationConstants.LogConstants.DELETE_APPLICATION);
@@ -2468,7 +2475,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         return appDAO.getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
     }
-
+    
+    /**
+     * Create the application. This method creates the service provider without creating any protocol configurations.
+     *
+     * @param application  Service provider.
+     * @param tenantDomain Tenant domain.
+     * @param username     Username.
+     */
     @Override
     public String createApplication(ServiceProvider application, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
@@ -2513,7 +2527,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw buildServerException("Server encountered an unexpected error when creating the application.");
             }
         }
-        if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     getInitiatorId(username, tenantDomain), USER, resourceId, TARGET_APPLICATION,
                     ApplicationConstants.LogConstants.CREATE_APPLICATION)
@@ -2521,6 +2535,84 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return resourceId;
+    }
+    
+    /**
+     * Create the application. This method creates the service provider with protocol configurations.
+     *
+     * @param applicationModel ApplicationModelDTO containing the app information
+     * @param tenantDomain     Tenant domain.
+     * @param username         Username.
+     * @return Application ID.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
+    public String createApplication(ApplicationDTO applicationModel, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        List<InboundAuthenticationRequestConfig> addedInbounds = new ArrayList<>();
+        try {
+            ServiceProvider application = applicationModel.getServiceProvider();
+             addedInbounds = addInboundAuthenticationProtocolsToApplication(
+                    application, applicationModel.getInboundProtocolConfigurationDto());
+            
+            return createApplication(application, tenantDomain, username);
+        } catch (Throwable e) {
+            /*
+             * For more information read https://github.com/wso2/product-is/issues/12579. This is to overcome the
+             * above issue.
+             */
+            if (log.isDebugEnabled()) {
+                log.debug("Server encountered unexpected error. Rolling back created application data.", e);
+            }
+            rollbackInbounds(addedInbounds);
+            throw ApplicationMgtUtil.handleException("Server encountered an unexpected error when " +
+                    "creating the application.", e);
+        }
+    }
+
+    private List<InboundAuthenticationRequestConfig> addInboundAuthenticationProtocolsToApplication(
+            ServiceProvider application, InboundProtocolsDTO inboundProtocolsModel)
+            throws IdentityApplicationManagementException {
+
+        if (inboundProtocolsModel == null) {
+            return null;
+        }
+        List<InboundAuthenticationRequestConfig> addedInbounds = new ArrayList<>();
+        try {
+            // This handles the inbound protocol creation with the help of protocol handlers.
+            List<ApplicationInboundAuthConfigHandler> applicationInboundAuthConfigHandlerList =
+                    ApplicationManagementServiceComponentHolder.getInstance().getApplicationInboundAuthConfigHandler();
+            for (ApplicationInboundAuthConfigHandler applicationInboundAuthConfigHandler :
+                    applicationInboundAuthConfigHandlerList) {
+                if (applicationInboundAuthConfigHandler.canHandle(inboundProtocolsModel)) {
+                    addedInbounds.add(applicationInboundAuthConfigHandler.handleConfigCreation(application,
+                            inboundProtocolsModel));
+                }
+            }
+        } catch (IdentityApplicationManagementClientException e) {
+            // This is to void converting client exception in to a server exception.
+            throw e;
+        } catch (IdentityApplicationManagementException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while adding inbound protocols for application id: "
+                        + application.getApplicationResourceId() + ". Cleaning up possible partially created inbound " +
+                        "configurations.");
+            }
+            rollbackInbounds(addedInbounds);
+            throw e;
+        }
+        InboundAuthenticationConfig alreadyAddedInboundConfigs = application.getInboundAuthenticationConfig();
+        InboundAuthenticationConfig inboundAuthConfig = new InboundAuthenticationConfig();
+        if (alreadyAddedInboundConfigs != null) {
+            List<InboundAuthenticationRequestConfig> alreadyAddedInbounds =
+                    Arrays.asList(alreadyAddedInboundConfigs.getInboundAuthenticationRequestConfigs());
+            addedInbounds.addAll(alreadyAddedInbounds);
+        }
+        inboundAuthConfig.setInboundAuthenticationRequestConfigs(
+                addedInbounds.toArray(new InboundAuthenticationRequestConfig[0])
+        );
+        application.setInboundAuthenticationConfig(inboundAuthConfig);
+        return addedInbounds;
     }
 
     private <T> String getName(T listener) {
@@ -2554,7 +2646,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return null;
             }
         }
-
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled() &&
                     !listener.doPostGetApplicationByResourceId(application, resourceId, tenantDomain)) {
@@ -2566,13 +2657,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         return application;
     }
-
+    
     @Override
     public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain,
                                               String username) throws IdentityApplicationManagementException {
-
+        
         validateApplicationConfigurations(updatedApp, tenantDomain, username);
-
+        
         updatedApp.setApplicationResourceId(resourceId);
         setDisplayNamesOfLocalAuthenticators(updatedApp, tenantDomain);
         Collection<ApplicationResourceManagementListener> listeners =
@@ -2580,42 +2671,42 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled() &&
                     !listener.doPreUpdateApplicationByResourceId(updatedApp, resourceId, tenantDomain, username)) {
-
+                
                 throw buildServerException("Pre Update application operation of listener: " + getName(listener) +
                         " failed for application with resourceId: " + resourceId);
             }
         }
-
+        
         try {
             startTenantFlow(tenantDomain, username);
-
+            
             ApplicationBasicInfo storedAppInfo = getApplicationBasicInfo(resourceId, tenantDomain);
             if (storedAppInfo == null) {
                 String msg = "Cannot find an application for " + "resourceId: " + resourceId + " in tenantDomain: "
                         + tenantDomain;
                 throw buildClientException(APPLICATION_NOT_FOUND, msg);
             }
-
+            
             String updatedAppName = updatedApp.getApplicationName();
             String storedAppName = storedAppInfo.getApplicationName();
-
+            
             doPreUpdateChecks(storedAppName, updatedApp, tenantDomain, username);
-
+            
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             ServiceProvider storedApp = getApplicationByResourceId(resourceId, tenantDomain);
             appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
             postApplicationUserAttributeUpdate(updatedApp, storedApp, tenantDomain);
-
+            
             if (isOwnerUpdateRequest(storedAppInfo.getAppOwner(), updatedApp.getOwner())) {
                 // User existence check is already done in appDAO.updateApplicationByResourceId() method.
                 assignApplicationRole(updatedApp.getApplicationName(), updatedApp.getOwner().getUserName());
             }
-
+            
             updateApplicationPermissions(updatedApp, updatedAppName, storedAppName);
         } finally {
             endTenantFlow();
         }
-
+        
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled()
                     && !listener.doPostUpdateApplicationByResourceId(updatedApp, resourceId, tenantDomain, username)) {
@@ -2624,13 +2715,62 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-
-        if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     getInitiatorId(username, tenantDomain), USER, resourceId, TARGET_APPLICATION,
                     ApplicationConstants.LogConstants.UPDATE_APPLICATION)
                     .data(buildSPData(updatedApp));
             triggerAuditLogEvent(auditLogBuilder, true);
+        }
+    }
+    
+    /**
+     * Update the application by resource id. This method allow to update the application with or without triggering
+     * audit logs.
+     *
+     * @param resourceId        Unique resource identifier of the application.
+     * @param serviceProvider   Service provider. This can contain updated application information.
+     * @param tenantDomain      Tenant domain of the application.
+     * @param username          Tenant aware username of the user performing the operation.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
+    public void updateApplicationByResourceId(String resourceId, ServiceProvider serviceProvider,
+                                              InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO,
+                                              String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+        
+        if (inboundProtocolConfigurationDTO == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Inbound protocol configuration is not provided for the application: " + resourceId +
+                        ". Hence updating the application just using the service provider details in the" +
+                        " serviceProvider object.");
+            }
+            updateApplicationByResourceId(resourceId, serviceProvider, tenantDomain, username);
+            return;
+        }
+        InboundAuthenticationRequestConfig addedInbound = null;
+        List<ApplicationInboundAuthConfigHandler> applicationInboundAuthConfigHandler =
+                ApplicationManagementServiceComponentHolder.getInstance().getApplicationInboundAuthConfigHandler();
+        for (ApplicationInboundAuthConfigHandler handler : applicationInboundAuthConfigHandler) {
+            if (handler.canHandle(inboundProtocolConfigurationDTO.getProtocolName())) {
+                addedInbound = handler.handleConfigUpdate(serviceProvider,
+                        inboundProtocolConfigurationDTO);
+                break;
+            }
+        }
+        if (addedInbound != null) {
+            updateOrInsertInbound(serviceProvider, addedInbound);
+        }
+        try {
+            // At this point the serviceProvided object is updated with the inbound auth config details. So we can call
+            // the updateApplicationByResourceId(String, ServiceProvider, String, String) method to update the
+            // service provider details in the database.
+            updateApplicationByResourceId(resourceId, serviceProvider, tenantDomain, username);
+        } catch (IdentityApplicationManagementException e) {
+            if (addedInbound != null) {
+                doRollback(resourceId, addedInbound, tenantDomain);
+            }
+            throw e;
         }
     }
 
@@ -2942,7 +3082,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        if (ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt()) {
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     getInitiatorId(username, tenantDomain), USER, resourceId, TARGET_APPLICATION,
                     ApplicationConstants.LogConstants.DELETE_APPLICATION);

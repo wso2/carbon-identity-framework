@@ -39,9 +39,9 @@ import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.CarbonUtils;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUsernameWithUserTenantDomain;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isLegacyAuditLogsDisabledInAppMgt;
 
 /**
  * Audit log implementation for Application (Service Provider) changes.
@@ -57,8 +57,8 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     public boolean isEnable() {
 
         if (super.isEnable()) {
-            // Either legacy audit logs enabled in app mgt component or system wide, then enable audit logs.
-            return !isLegacyAuditLogsDisabledInAppMgt();
+            // Legacy audit logs should be enabled to log these audit logs.
+            return !CarbonUtils.isLegacyAuditLogsDisabled();
         }
         return false;
     }
