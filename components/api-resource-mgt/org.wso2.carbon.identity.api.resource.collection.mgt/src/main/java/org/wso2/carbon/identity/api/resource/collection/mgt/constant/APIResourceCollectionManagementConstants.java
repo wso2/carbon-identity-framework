@@ -33,6 +33,10 @@ public class APIResourceCollectionManagementConstants {
     public static final String OR = "or";
     public static final String EQUAL_SIGN = "=";
     public static final String API_RESOURCE_COLLECTION_FILE_NAME = "api-resource-collection.xml";
+    public static final String READ_SCOPES = "readScopes";
+    public static final String WRITE_SCOPES = "writeScopes";
+    public static final String READ = "read";
+    public static final String WRITE = "write";
 
     /**
      * API resource collection configuration builder constants.
@@ -46,6 +50,8 @@ public class APIResourceCollectionManagementConstants {
         public static final String NAME = "name";
         public static final String DISPLAY_NAME = "displayName";
         public static final String TYPE = "type";
+        public static final String READ = "Read";
+        public static final String FEATURE = "Feature";
     }
 
     /**

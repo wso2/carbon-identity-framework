@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -92,10 +93,24 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
             if (apiResourceCollection == null) {
                 return null;
             }
-            List<APIResource> apiResources =
+            List<APIResource> readAPIResources =
                     APIResourceCollectionMgtServiceDataHolder.getInstance().getAPIResourceManagementService()
-                            .getScopeMetadata(apiResourceCollection.getScopes(), tenantDomain);
-            filterAndSetScopes(apiResources, apiResourceCollection);
+                            .getScopeMetadata(apiResourceCollection.getReadScopes(), tenantDomain);
+            List<APIResource> writeAPIResources =
+                    APIResourceCollectionMgtServiceDataHolder.getInstance().getAPIResourceManagementService()
+                            .getScopeMetadata(apiResourceCollection.getWriteScopes(), tenantDomain);
+
+            // Filter and set read scopes.
+            filterAndSetScopes(readAPIResources, apiResourceCollection,
+                    APIResourceCollectionManagementConstants.READ_SCOPES);
+            // Filter and set write scopes.
+            filterAndSetScopes(writeAPIResources, apiResourceCollection,
+                    APIResourceCollectionManagementConstants.WRITE_SCOPES);
+
+            Map<String, List<APIResource>> apiResourcesMap = new HashMap<>();
+            apiResourcesMap.put(APIResourceCollectionManagementConstants.READ, readAPIResources);
+            apiResourcesMap.put(APIResourceCollectionManagementConstants.WRITE, writeAPIResources);
+            apiResourceCollection.setApiResources(apiResourcesMap);
             return apiResourceCollection;
         } catch (APIResourceMgtException e) {
             throw handleServerException(
@@ -110,24 +125,38 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
      *
      * @param apiResources List of API resources.
      * @param apiResourceCollection API resource collection.
+     * @param scopeType Scope type.
      */
-    private void filterAndSetScopes(List<APIResource> apiResources, APIResourceCollection apiResourceCollection) {
+    private void filterAndSetScopes(List<APIResource> apiResources, APIResourceCollection apiResourceCollection,
+                                    String scopeType) {
 
-        if (apiResourceCollection.getScopes() == null || apiResourceCollection.getScopes().isEmpty()) {
-            apiResourceCollection.setScopes(Collections.emptyList());
+        if (apiResources == null || apiResources.isEmpty()) {
             return;
         }
-        Set<String> collectionScopes = new HashSet<>(apiResourceCollection.getScopes());
+        Set<String> scopeSet = getScopeSet(apiResourceCollection, scopeType);
+        if (!scopeSet.isEmpty()) {
+            filterAPIResourceScopes(apiResources, scopeSet);
+        }
+    }
+
+    private Set<String> getScopeSet(APIResourceCollection apiResourceCollection, String scopeType) {
+
+        List<String> scopes = APIResourceCollectionManagementConstants.READ_SCOPES.equals(scopeType) ?
+                apiResourceCollection.getReadScopes() : apiResourceCollection.getWriteScopes();
+        return scopes == null ? Collections.emptySet() : new HashSet<>(scopes);
+    }
+
+    private void filterAPIResourceScopes(List<APIResource> apiResources, Set<String> allowedScopes) {
+
         apiResources.forEach(apiResource -> {
             if (apiResource.getScopes() != null) {
                 List<Scope> filteredScopes = apiResource.getScopes().stream()
-                        .filter(scope -> collectionScopes.contains(scope.getName()))
+                        .filter(scope -> allowedScopes.contains(scope.getName()))
                         .collect(Collectors.toList());
                 apiResource.setScopes(filteredScopes);
             } else {
                 apiResource.setScopes(Collections.emptyList());
             }
         });
-        apiResourceCollection.setApiResources(apiResources);
     }
 }

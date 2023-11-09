@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.api.resource.collection.mgt.model;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * API Resource Collection.
@@ -30,8 +31,9 @@ public class APIResourceCollection {
     private String name;
     private String displayName;
     private String type;
-    private List<String> scopes;
-    private List<APIResource> apiResources;
+    private List<String> readScopes;
+    private List<String> writeScopes;
+    private Map<String, List<APIResource>> apiResources;
 
     public APIResourceCollection() {
     }
@@ -43,6 +45,8 @@ public class APIResourceCollection {
             this.displayName = apiResourceCollectionBuilder.displayName;
             this.type = apiResourceCollectionBuilder.type;
             this.apiResources = apiResourceCollectionBuilder.apiResources;
+            this.readScopes = apiResourceCollectionBuilder.readScopes;
+            this.writeScopes = apiResourceCollectionBuilder.writeScopes;
     }
 
     public String getId() {
@@ -65,24 +69,34 @@ public class APIResourceCollection {
         return type;
     }
 
-    public List<APIResource> getApiResources() {
+    public Map<String, List<APIResource>> getApiResources() {
 
         return apiResources;
     }
 
-    public void setApiResources(List<APIResource> apiResources) {
+    public void setApiResources(Map<String, List<APIResource>> apiResources) {
 
         this.apiResources = apiResources;
     }
 
-    public List<String> getScopes() {
+    public List<String> getReadScopes() {
 
-        return scopes;
+        return readScopes;
     }
 
-    public void setScopes(List<String> scopes) {
+    public void setReadScopes(List<String> readScopes) {
 
-        this.scopes = scopes;
+        this.readScopes = readScopes;
+    }
+
+    public List<String> getWriteScopes() {
+
+        return writeScopes;
+    }
+
+    public void setWriteScopes(List<String> writeScopes) {
+
+        this.writeScopes = writeScopes;
     }
 
     /**
@@ -94,8 +108,9 @@ public class APIResourceCollection {
         private String name;
         private String displayName;
         private String type;
-        private List<String> scopes;
-        private List<APIResource> apiResources;
+        private List<String> readScopes;
+        private List<String> writeScopes;
+        private Map<String, List<APIResource>> apiResources;
 
         public APIResourceCollectionBuilder() {
         }
@@ -124,14 +139,20 @@ public class APIResourceCollection {
             return this;
         }
 
-        public APIResourceCollectionBuilder scopes(List<String> scopes) {
+        public APIResourceCollectionBuilder readScopes(List<String> readScopes) {
 
-            this.scopes = scopes;
+            this.readScopes = readScopes;
             return this;
         }
 
-        public APIResourceCollectionBuilder apiResources(List<APIResource> apiResources) {
+        public APIResourceCollectionBuilder writeScopes(List<String> writeScopes) {
 
+            this.writeScopes = writeScopes;
+            return this;
+        }
+
+        public APIResourceCollectionBuilder setApiResources(Map<String, List<APIResource>> apiResources) {
+            
             this.apiResources = apiResources;
             return this;
         }

@@ -126,9 +126,13 @@ public class APIResourceCollectionManagerTest extends PowerMockTestCase {
 
     private static APIResourceCollection createAPIResourceCollection(String postFix) {
 
-        List<String> scopes = new ArrayList<>();
-        scopes.add("testScopeOne " + postFix);
-        scopes.add("testScopeTwo " + postFix);
+        List<String> readScopes = new ArrayList<>();
+        readScopes.add("testReadScopeOne " + postFix);
+        readScopes.add("testReadScopeTwo " + postFix);
+
+        List<String> writeScopes = new ArrayList<>();
+        writeScopes.add("testWriteScopeOne " + postFix);
+        writeScopes.add("testWriteScopeTwo " + postFix);
 
         String name = "name" + postFix;
         String encodedName = getEncodedName(name);
@@ -138,7 +142,8 @@ public class APIResourceCollectionManagerTest extends PowerMockTestCase {
                 .name(name)
                 .displayName("Display Name" + postFix)
                 .type("BUSINESS")
-                .scopes(scopes)
+                .readScopes(readScopes)
+                .writeScopes(writeScopes)
                 .build();
     }
 

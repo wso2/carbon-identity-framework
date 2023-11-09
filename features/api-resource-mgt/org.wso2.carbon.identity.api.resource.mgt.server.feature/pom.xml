@@ -70,7 +70,7 @@
                                     <directory>resources</directory>
                                     <includes>
                                         <include>api-resource-collection.xml</include>
-                                        <include>api-resource-collection.j2</include>
+                                        <include>api-resource-collection.xml.j2</include>
                                         <include>p2.inf</include>
                                         <include>build.properties</include>
                                     </includes>

@@ -119,28 +119,40 @@ public class APIResourceCollectionMgtConfigBuilder {
             if (apiResourceCollectionObj == null) {
                 continue;
             }
-
             // Fetch scopes.
             OMElement scopesElement = apiResourceCollection.getFirstChildWithName(
                     new QName(APIResourceCollectionConfigBuilderConstants.SCOPES_ELEMENT));
             if (scopesElement != null) {
-                List<String> scopeList = new ArrayList<>();
-                // Iterate over each child element of <Scopes>, like <Update>, <Create>, etc.
+                List<String> readScopeList = new ArrayList<>();
+                List<String> writeScopeList = new ArrayList<>();
                 Iterator<?> actionElements = scopesElement.getChildElements();
                 while (actionElements.hasNext()) {
                     OMElement actionElement = (OMElement) actionElements.next();
+                    if (actionElement == null) {
+                        continue;
+                    }
                     Iterator<OMElement> scopes = actionElement.getChildrenWithName(
                             new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
                     while (scopes.hasNext()) {
                         OMElement scope = scopes.next();
                         String scopeName = scope.getAttributeValue(
                                 new QName(APIResourceCollectionConfigBuilderConstants.NAME));
-                        if (!scopeList.contains(scopeName)) {
-                            scopeList.add(scopeName);
+                        // Read, Feature scopes are considered as read scopes.
+                        if (APIResourceCollectionConfigBuilderConstants.READ.equals(actionElement.getLocalName()) ||
+                                APIResourceCollectionConfigBuilderConstants.FEATURE.equals(
+                                        actionElement.getLocalName())) {
+                            if (!readScopeList.contains(scopeName)) {
+                                readScopeList.add(scopeName);
+                            }
+                        } else {
+                            if (!writeScopeList.contains(scopeName)) {
+                                writeScopeList.add(scopeName);
+                            }
                         }
                     }
                 }
-                apiResourceCollectionObj.setScopes(scopeList);
+                apiResourceCollectionObj.setReadScopes(readScopeList);
+                apiResourceCollectionObj.setWriteScopes(writeScopeList);
             }
             apiResourceCollectionMgtConfigurations.put(apiResourceCollectionObj.getId(), apiResourceCollectionObj);
         }

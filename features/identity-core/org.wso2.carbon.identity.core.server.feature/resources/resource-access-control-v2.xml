@@ -1241,6 +1241,8 @@
     <Resource context="(.*)/api/server/v1/scopes(.*)" secured="true" http-method="GET">
         <Scopes>internal_api_resource_view</Scopes>
     </Resource>
+    <Resource context="(.*)/api/server/v1/api-resource-collections(.*)" secured="true" http-method="GET">
+    </Resource>
 
     <!-- [Organization] Extension Management API -->
     <Resource context="(.*)/o/api/server/v1/extensions(.*)" secured="true" http-method="GET">
