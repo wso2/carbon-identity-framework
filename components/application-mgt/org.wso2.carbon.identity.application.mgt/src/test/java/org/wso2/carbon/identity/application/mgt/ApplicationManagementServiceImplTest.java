@@ -828,14 +828,15 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
 
         return new Object[][]{
-                {true, "com.wso2.sample.mobile.application", "sampleCredentials"}
+                {true, "com.wso2.sample.mobile.application", "sampleCredentials", "APPLETEAMID.com.wso2.mobile.sample"}
         };
     }
 
     @Test(dataProvider = "testAddApplicationWithAttestationData")
     public void testAddApplicationWithAttestationData(boolean isAttestationEnabled,
                                                       String androidPackageName,
-                                                      String androidCredentials) throws Exception {
+                                                      String androidCredentials,
+                                                      String appleAppId) throws Exception {
 
         ResolvedSecret resolvedSecret = new ResolvedSecret();
         resolvedSecret.setResolvedSecretValue(androidCredentials);
@@ -850,6 +851,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         ClientAttestationMetaData clientAttestationMetaData = new ClientAttestationMetaData();
         clientAttestationMetaData.setAttestationEnabled(isAttestationEnabled);
         clientAttestationMetaData.setAndroidPackageName(androidPackageName);
+        clientAttestationMetaData.setAppleAppId(appleAppId);
         clientAttestationMetaData.setAndroidAttestationServiceCredentials(androidCredentials);
         inputSP.setClientAttestationMetaData(clientAttestationMetaData);
 
@@ -860,6 +862,8 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         Assert.assertEquals(addedSP.getClientAttestationMetaData().getAndroidPackageName(), androidPackageName);
         Assert.assertEquals(addedSP.getClientAttestationMetaData().getAndroidAttestationServiceCredentials(),
                 androidCredentials);
+        Assert.assertEquals(addedSP.getClientAttestationMetaData().getAppleAppId(),
+                appleAppId);
 
         SecretManager secretManager = mock(SecretManagerImpl.class);
         when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(true);
@@ -870,12 +874,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
                 (inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
         Assert.assertEquals(retrievedSP.getClientAttestationMetaData().isAttestationEnabled(), isAttestationEnabled);
         Assert.assertEquals(retrievedSP.getClientAttestationMetaData().getAndroidPackageName(), androidPackageName);
+        Assert.assertEquals(retrievedSP.getClientAttestationMetaData().getAppleAppId(), appleAppId);
         Assert.assertEquals(retrievedSP.getClientAttestationMetaData().getAndroidAttestationServiceCredentials(),
                 androidCredentials);
         // Updating the application by changing the isManagementApplication flag. It should be changed.
         ClientAttestationMetaData clientAttestationMetaData2 = new ClientAttestationMetaData();
         clientAttestationMetaData2.setAttestationEnabled(!isAttestationEnabled);
         clientAttestationMetaData2.setAndroidPackageName(null);
+        clientAttestationMetaData2.setAppleAppId(null);
         clientAttestationMetaData2.setAndroidAttestationServiceCredentials(null);
         inputSP.setClientAttestationMetaData(clientAttestationMetaData2);
         applicationManagementService.updateApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);

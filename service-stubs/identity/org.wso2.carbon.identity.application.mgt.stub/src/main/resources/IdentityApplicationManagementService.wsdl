@@ -427,6 +427,7 @@
                 <xs:sequence>
                     <xs:element minOccurs="0" name="androidAttestationServiceCredentials" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="androidPackageName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="appleAppId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="attestationEnabled" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>

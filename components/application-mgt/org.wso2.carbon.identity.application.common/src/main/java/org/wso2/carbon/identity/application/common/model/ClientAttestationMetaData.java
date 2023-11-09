@@ -42,6 +42,7 @@ public class ClientAttestationMetaData implements Serializable {
     private static final String IS_ATTESTATION_ENABLED = "IsAttestationEnabled";
     private static final String ANDROID_PACKAGE_NAME = "AndroidPackageName";
     private static final String ANDROID_ATTESTATION_SERVICE_CREDENTIALS = "AndroidAttestationServiceCredentials";
+    private static final String APPLE_APP_ID = "AppleAppId";
 
     // Field to store whether attestation is enabled.
     @IgnoreNullElement
@@ -57,6 +58,11 @@ public class ClientAttestationMetaData implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = ANDROID_ATTESTATION_SERVICE_CREDENTIALS)
     private String androidAttestationServiceCredentials;
+
+    // Field to store Apple app ID.
+    @IgnoreNullElement
+    @XmlElement(name = APPLE_APP_ID)
+    private String appleAppId;
 
     /**
      * Creates an instance of the ClientAttestationMetaData class by parsing an OMElement.
@@ -82,6 +88,9 @@ public class ClientAttestationMetaData implements Serializable {
             }
             if (ANDROID_ATTESTATION_SERVICE_CREDENTIALS.equals(elementName)) {
                 metaData.setAndroidAttestationServiceCredentials(element.getText());
+            }
+            if (APPLE_APP_ID.equals(elementName)) {
+                metaData.setAppleAppId(element.getText());
             }
         }
         return metaData;
@@ -146,5 +155,25 @@ public class ClientAttestationMetaData implements Serializable {
     public void setAndroidAttestationServiceCredentials(String androidAttestationServiceCredentials) {
 
         this.androidAttestationServiceCredentials = androidAttestationServiceCredentials;
+    }
+
+    /**
+     * Gets the Apple App ID.
+     *
+     * @return The Apple App ID.
+     */
+    public String getAppleAppId() {
+
+        return appleAppId;
+    }
+
+    /**
+     * Sets the Apple App ID.
+     *
+     * @param appleAppId The Apple App ID to set.
+     */
+    public void setAppleAppId(String appleAppId) {
+
+        this.appleAppId = appleAppId;
     }
 }

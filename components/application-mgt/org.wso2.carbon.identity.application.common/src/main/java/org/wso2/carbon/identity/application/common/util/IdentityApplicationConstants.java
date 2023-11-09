@@ -124,6 +124,8 @@ public class IdentityApplicationConstants {
     public static final String IS_ATTESTATION_ENABLED_DISPLAY_NAME = "Is Client Attestation Enabled";
     public static final String ANDROID_PACKAGE_NAME_PROPERTY_NAME = "androidPackageName";
     public static final String ANDROID_PACKAGE_NAME_DISPLAY_NAME = "Android mobile application package name";
+    public static final String APPLE_APP_ID_PROPERTY_NAME = "appleAppId";
+    public static final String APPLE_APP_ID_DISPLAY_NAME = "Apple application id";
     public static final String APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS
                 = "ANDROID_ATTESTATION_CREDENTIALS";
     public static final String CLIENT_ATTESTATION = "CLIENT_ATTESTATION";
