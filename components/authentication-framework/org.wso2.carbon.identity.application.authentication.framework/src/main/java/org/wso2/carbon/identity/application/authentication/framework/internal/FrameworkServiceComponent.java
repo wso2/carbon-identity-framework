@@ -51,8 +51,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -146,9 +144,6 @@ public class FrameworkServiceComponent {
     private static final String LOGIN_CONTEXT_SERVLET_URL = "/logincontext";
     private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
-
-    private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
-    private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
 
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
@@ -280,7 +275,7 @@ public class FrameworkServiceComponent {
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
 
-        JsBaseGraphBuilderFactory jsGraphBuilderFactory = createJsGraphBuilderFactoryFromConfig();
+        JsBaseGraphBuilderFactory jsGraphBuilderFactory = FrameworkUtils.createJsGraphBuilderFactoryFromConfig();
         if (jsGraphBuilderFactory != null) {
             bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
             dataHolder.setAdaptiveAuthenticationAvailable(true);
@@ -972,33 +967,6 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(null);
     }
-
-    private JsBaseGraphBuilderFactory createJsGraphBuilderFactoryFromConfig() {
-
-        String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.SCRIPT_ENGINE_CONFIG);
-        if (scriptEngineName != null) {
-            if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
-                return new JsOpenJdkNashornGraphBuilderFactory();
-            }
-        }
-        // Config is not set. Hence going with class for name approach.
-        return createJsGraphBuilderFactory();
-    };
-
-    private JsBaseGraphBuilderFactory createJsGraphBuilderFactory() {
-
-        try {
-            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
-            return new JsOpenJdkNashornGraphBuilderFactory();
-        } catch (ClassNotFoundException e) {
-            try {
-                Class.forName(JDK_SCRIPTER_CLASS_NAME);
-                return new JsGraphBuilderFactory();
-            } catch (ClassNotFoundException classNotFoundException) {
-                return null;
-            }
-        }
-    };
 
     @Reference(
             service = ApplicationManagementService.class,
