@@ -133,6 +133,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID_PACKAGE_NAME_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID_PACKAGE_NAME_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLE_APP_ID_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLE_APP_ID_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ATTESTATION;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ID_SP_PROPERTY_NAME;
@@ -449,6 +451,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 ServiceProviderProperty androidPackageName =
                         buildAndroidPackageNameProperty(application.getClientAttestationMetaData());
                 serviceProviderProperties.add(androidPackageName);
+
+                ServiceProviderProperty appleAppId =
+                        buildAppleAppIdProperty(application.getClientAttestationMetaData());
+                serviceProviderProperties.add(appleAppId);
 
                 storeAndroidAttestationServiceCredentialAsSecret(application);
             }
@@ -2118,6 +2124,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ClientAttestationMetaData clientAttestationMetaData = new ClientAttestationMetaData();
             clientAttestationMetaData.setAttestationEnabled(getIsAttestationEnabled(propertyList));
             clientAttestationMetaData.setAndroidPackageName(getAndroidPackageName(propertyList));
+            clientAttestationMetaData.setAppleAppId(getAppleAppId(propertyList));
             if (StringUtils.isNotEmpty(clientAttestationMetaData.getAndroidPackageName())
                     && clientAttestationMetaData.isAttestationEnabled()) {
                 clientAttestationMetaData.setAndroidAttestationServiceCredentials
@@ -2353,6 +2360,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         return propertyList.stream()
                 .filter(property -> ANDROID_PACKAGE_NAME_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+    }
+
+    private String getAppleAppId(List<ServiceProviderProperty> propertyList) {
+
+        return propertyList.stream()
+                .filter(property -> APPLE_APP_ID_PROPERTY_NAME.equals(property.getName()))
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
@@ -4973,6 +4989,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     buildAndroidPackageNameProperty(sp.getClientAttestationMetaData());
             spPropertyMap.put(androidPackageName.getName(), androidPackageName);
 
+            ServiceProviderProperty appleAppId =
+                    buildAppleAppIdProperty(sp.getClientAttestationMetaData());
+            spPropertyMap.put(appleAppId.getName(), appleAppId);
+
             storeAndroidAttestationServiceCredentialAsSecret(sp);
         }
 
@@ -5006,6 +5026,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         androidPackageName.setDisplayName(ANDROID_PACKAGE_NAME_DISPLAY_NAME);
         androidPackageName.setValue(String.valueOf(clientAttestationMetaData.getAndroidPackageName()));
         return androidPackageName;
+    }
+
+    private ServiceProviderProperty buildAppleAppIdProperty
+            (ClientAttestationMetaData clientAttestationMetaData) {
+
+        ServiceProviderProperty appleAppId = new ServiceProviderProperty();
+        appleAppId.setName(APPLE_APP_ID_PROPERTY_NAME);
+        appleAppId.setDisplayName(APPLE_APP_ID_DISPLAY_NAME);
+        appleAppId.setValue(String.valueOf(clientAttestationMetaData.getAppleAppId()));
+        return appleAppId;
     }
 
     private void storeAndroidAttestationServiceCredentialAsSecret(ServiceProvider sp)
