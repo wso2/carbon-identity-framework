@@ -1253,25 +1253,14 @@ public class RoleDAOImpl implements RoleDAO {
         if (groups == null || groups.isEmpty()) {
             return;
         }
-        for (IdpGroup group : groups) {
 
-            IdentityProvider identityProvider = getIdpById(group.getIdpId(), tenantDomain);
-            if (identityProvider == null) {
-                throw new IdentityRoleManagementException("Idp not found.",
-                        "Idp not found for id : " + group.getIdpId());
-            }
-            IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
-            Map<String, String> idpGroupIdList = new HashMap<>();
-            for (IdPGroup idpGroup : idpGroups) {
-                idpGroupIdList.put(idpGroup.getIdpGroupId(), idpGroup.getIdpGroupName());
-            }
-            if (idpGroupIdList.containsKey(group.getGroupId())) {
-                group.setGroupName(idpGroupIdList.get(group.getGroupId()));
-            } else {
-                throw new IdentityRoleManagementException("Idp group not found.",
-                        "Idp group not found for id : " + group.getGroupId());
-            }
-        }
+        List<String> idpGroupIds = groups.stream()
+                .map(IdpGroup::getGroupId)
+                .collect(Collectors.toList());
+        List<IdPGroup> idpGroups = getIdpGroupsByIds(idpGroupIds, tenantDomain);
+
+        groups.clear();
+        idpGroups.stream().map(this::convertToIdpGroup).forEach(groups::add);
     }
 
     /**
@@ -2959,6 +2948,27 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     /**
+     * Get idp groups by id.
+     *
+     * @param idpGroupIds  Idp group ids.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while retrieving idp groups by id.
+     */
+    private List<IdPGroup> getIdpGroupsByIds(List<String> idpGroupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<IdPGroup> idpGroups;
+        try {
+            idpGroups = RoleManagementServiceComponentHolder.getInstance()
+                    .getIdentityProviderManager().getValidIdPGroupsByIdPGroupIds(idpGroupIds, tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            throw new IdentityRoleManagementException("Error while retrieving idp groups", "Error while retrieving idp "
+                    + "groups for idp Ids: " + idpGroupIds, e);
+        }
+        return idpGroups;
+    }
+
+    /**
      * Delete SCIM role.
      *
      * @param roleId            Role ID.
@@ -3244,5 +3254,12 @@ public class RoleDAOImpl implements RoleDAO {
         String filterString = " < :" + attributeName + "; AND ";
         filter.append(attributeName).append(filterString);
         filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+    }
+
+    private IdpGroup convertToIdpGroup(IdPGroup idpGroup) {
+
+        IdpGroup convertedGroup = new IdpGroup(idpGroup.getIdpGroupId(), idpGroup.getIdpId());
+        convertedGroup.setGroupName(idpGroup.getIdpGroupName());
+        return convertedGroup;
     }
 }

@@ -74,6 +74,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -5020,6 +5021,43 @@ public class IdPManagementDAO {
                     "Providers for IDP IDs for tenantId: " + tenantId, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
+        }
+    }
+
+    /**
+     * Get IDP group data by IDP group IDs.
+     *
+     * @param idpGroupIds List of IDP group IDs.
+     * @param tenantId    Tenant ID.
+     * @return List of IDP groups.
+     * @throws IdentityProviderManagementException If an error occurred while retrieving IDP groups.
+     */
+    public List<IdPGroup> getIdPGroupsByIds(List<String> idpGroupIds, int tenantId)
+            throws IdentityProviderManagementException {
+
+        String query = IdPManagementConstants.SQLQueries.GET_IDP_GROUPS_BY_IDP_GROUP_IDS;
+        String placeholders = String.join(",", Collections.nCopies(idpGroupIds.size(), "?"));
+        query = query.replace(IdPManagementConstants.IDP_GROUP_LIST_PLACEHOLDER, placeholders);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = connection.prepareStatement(query)) {
+            prepStmt.setInt(1, tenantId);
+            for (int i = 0; i < idpGroupIds.size(); i++) {
+                prepStmt.setString(i + 2, idpGroupIds.get(i));
+            }
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                List<IdPGroup> idpGroups = new ArrayList<>();
+                while (resultSet.next()) {
+                    IdPGroup idpGroup = new IdPGroup();
+                    idpGroup.setIdpGroupId(resultSet.getString("UUID"));
+                    idpGroup.setIdpGroupName(resultSet.getString("GROUP_NAME"));
+                    idpGroup.setIdpId(resultSet.getString("IDP_ID"));
+                    idpGroups.add(idpGroup);
+                }
+                return idpGroups;
+            }
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occurred while retrieving IDP groups for IDP group " +
+                    "IDs: " + idpGroupIds, e);
         }
     }
 }

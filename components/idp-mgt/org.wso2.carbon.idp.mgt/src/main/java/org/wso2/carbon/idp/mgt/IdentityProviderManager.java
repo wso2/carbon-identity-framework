@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
@@ -81,6 +82,7 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -2957,6 +2959,22 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         return getIdPByName(idPName, tenantDomain, ignoreFileBasedIdps);
+    }
+
+    @Override
+    public List<IdPGroup> getValidIdPGroupsByIdPGroupIds(List<String> idpGroupIds, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        if (CollectionUtils.isEmpty(idpGroupIds)) {
+            return Collections.emptyList();
+        }
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            return dao.getIdPGroupsByIds(idpGroupIds, tenantId);
+        } catch (IdentityProviderManagementException e) {
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVING_IDP_GROUPS, null, e);
+        }
     }
 
     /**
