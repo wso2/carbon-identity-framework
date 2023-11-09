@@ -61,6 +61,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.OptimizedApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -227,6 +230,8 @@ public class FrameworkUtils {
     private static final String QUESTION_MARK = "?";
 
     private static Boolean authenticatorNameInAuthConfigPreference;
+    private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
+    private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
 
     private FrameworkUtils() {
     }
@@ -3531,5 +3536,27 @@ public class FrameworkUtils {
                         .flatMap(List::stream)
                         .allMatch(authenticator ->
                                 authenticator.getApplicationAuthenticator() instanceof AuthenticationFlowHandler);
+    }
+
+    public static JsBaseGraphBuilderFactory createJsGraphBuilderFactoryFromConfig() {
+
+        String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.SCRIPT_ENGINE_CONFIG);
+        if (scriptEngineName != null) {
+            if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
+                return new JsOpenJdkNashornGraphBuilderFactory();
+            }
+        }
+        // Config is not set. Hence going with class for name approach.
+        try {
+            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
+            return new JsOpenJdkNashornGraphBuilderFactory();
+        } catch (ClassNotFoundException e) {
+            try {
+                Class.forName(JDK_SCRIPTER_CLASS_NAME);
+                return new JsGraphBuilderFactory();
+            } catch (ClassNotFoundException classNotFoundException) {
+                return null;
+            }
+        }
     }
 }
