@@ -20,37 +20,38 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
 
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Holds the errors related to an authenticator which requires to populate {@Code AuthenticatorData}
- * during an authentication flow. This contains error related details specific to authentication flow.
+ * Holds the messages related to an authenticator which requires to populate {@Code AuthenticatorData}
+ * during an authentication flow. This contains messages related details specific to authentication flow.
  */
-public class AuthenticatorMessages {
+public class AuthenticatorMessage {
 
     private FrameworkConstants.AuthenticatorMessageType type;
     private String code;
     private String message;
-    private String description;
-    private Map<String, String> context;
+    private Map<String, String> context = new HashMap<>();
 
-    public AuthenticatorMessages(FrameworkConstants.AuthenticatorMessageType type, String code, String message,
-                                 String description,
-                                 Map<String, String> context) {
+    public AuthenticatorMessage() {
+
+    }
+
+    public AuthenticatorMessage(FrameworkConstants.AuthenticatorMessageType type, String code, String message,
+                                Map<String, String> context) {
 
         this.type = type;
         this.code = code;
         this.message = message;
-        this.description = description;
         this.context = context;
     }
 
-    public AuthenticatorMessages(FrameworkConstants.AuthenticatorMessageType type, String message, String description,
-                                 Map<String, String> context) {
+    public AuthenticatorMessage(FrameworkConstants.AuthenticatorMessageType type, String message,
+                                Map<String, String> context) {
 
         this.type = type;
         this.message = message;
-        this.description = description;
         this.context = context;
     }
 
@@ -82,16 +83,6 @@ public class AuthenticatorMessages {
     public void setMessage(String message) {
 
         this.message = message;
-    }
-
-    public String getDescription() {
-
-        return description;
-    }
-
-    public void setDescription(String description) {
-
-        this.description = description;
     }
 
     public Map<String, String> getContext() {
