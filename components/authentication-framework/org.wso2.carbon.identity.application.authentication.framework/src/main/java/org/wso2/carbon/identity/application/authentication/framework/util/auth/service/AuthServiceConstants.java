@@ -41,11 +41,10 @@ public class AuthServiceConstants {
     public static final String FLOW_ID = "flowId";
     public static final String AUTHENTICATOR_SEPARATOR = ";";
     public static final String AUTHENTICATOR_IDP_SEPARATOR = ":";
+    public static final String INTERNAL_ERROR_MSG_SEPARATOR = "-";
     public static final String AUTH_FAILURE_PARAM = "authFailure";
     public static final String AUTH_FAILURE_MSG_PARAM = "authFailureMsg";
     public static final String ERROR_CODE_PARAM = "errorCode";
-    public static final String ERROR_CODE_UNKNOWN_ERROR = "UNKNOWN_ERROR";
-    public static final String ERROR_MSG_UNKNOWN_ERROR = "Unknown error occurred.";
     public static final String ERROR_CODE_PREFIX = "ABA-";
 
     /**
@@ -54,14 +53,24 @@ public class AuthServiceConstants {
     public enum ErrorMessage {
 
         // Client errors starting from 600xx.
+        /* The 60001 ERROR_INVALID_AUTH_REQUEST is used as the default client error
+         therefor be cautious if that is being changed.*/
         ERROR_INVALID_AUTH_REQUEST("60001",
                 "Invalid authentication request.",
                 "Received authentication request is invalid."),
-        ERROR_INVALID_AUTHENTICATOR_ID("60002",
+        ERROR_AUTHENTICATION_FAILURE("60002",
+                "Authentication failure.",
+                "Authentication flow has concluded with a failure."),
+        ERROR_AUTHENTICATION_FAILURE_RETRY_AVAILABLE("60003",
+                "Authentication failure.",
+                "Authentication failure please retry."),
+        ERROR_INVALID_AUTHENTICATOR_ID("60004",
                 "Invalid authenticatorId.",
                 "Provided authenticatorId %s is invalid."),
 
         // Server Error starting from 650xx.
+        /* The 65001 ERROR_UNABLE_TO_PROCEED is used as the default server error
+         therefor be cautious if that is being changed.*/
         ERROR_UNABLE_TO_PROCEED("65001",
                 "Unable to proceed with authentication.",
                 "Server encountered an error while processing the authentication request."),

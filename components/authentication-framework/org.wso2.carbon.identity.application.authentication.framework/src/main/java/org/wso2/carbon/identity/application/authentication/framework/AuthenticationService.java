@@ -139,35 +139,80 @@ public class AuthenticationService {
     private void handleFailedAuthResponse(AuthServiceRequestWrapper request, AuthServiceResponseWrapper response,
                                           AuthServiceResponse authServiceResponse) throws AuthServiceException {
 
-        String errorCode = null;
-        String errorMessage = null;
         if (request.isAuthFlowConcluded()) {
-            authServiceResponse.setSessionDataKey(request.getSessionDataKey());
-            authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.FAIL_COMPLETED);
-            AuthenticationResult authenticationResult = getAuthenticationResult(request);
-            if (authenticationResult != null) {
-                errorCode = (String) authenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE);
-                errorMessage = (String) authenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG);
-            }
+            handleFailedConcludedAuthResponse(request, authServiceResponse);
         } else {
-            authServiceResponse.setSessionDataKey(request.getSessionDataKey());
-            authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
-            List<AuthenticatorData> authenticatorDataList = request.getAuthInitiationData();
-            AuthServiceResponseData responseData = new AuthServiceResponseData(authenticatorDataList);
-            authServiceResponse.setData(responseData);
-            errorCode = getErrorCode(response);
-            errorMessage = getErrorMessage(response);
+            handleFailedIncompleteAuthResponse(request, response, authServiceResponse);
+        }
+    }
+
+    private void handleFailedConcludedAuthResponse(AuthServiceRequestWrapper request,
+                                                   AuthServiceResponse authServiceResponse) {
+
+        String errorCode = AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FAILURE.code();
+        String errorMessage = AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FAILURE.message();
+        String errorDescription = AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FAILURE.description();
+        String internalErrorCode = null;
+        String internalErrorMessage = null;
+
+        authServiceResponse.setSessionDataKey(request.getSessionDataKey());
+        authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.FAIL_COMPLETED);
+        AuthenticationResult authenticationResult = getAuthenticationResult(request);
+        if (authenticationResult != null) {
+            internalErrorCode = (String) authenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE);
+            internalErrorMessage = (String) authenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG);
         }
 
+        String errorMsgBuilder = StringUtils.EMPTY;
+        if (StringUtils.isNotBlank(internalErrorCode)) {
+            errorMsgBuilder = internalErrorCode;
+        }
+
+        if (StringUtils.isNotBlank(internalErrorMessage)) {
+            if (StringUtils.isNotBlank(errorMsgBuilder)) {
+                errorMsgBuilder = errorMsgBuilder + AuthServiceConstants.INTERNAL_ERROR_MSG_SEPARATOR
+                        + internalErrorMessage;
+            } else if (StringUtils.isBlank(errorMsgBuilder)) {
+                errorMsgBuilder = internalErrorMessage;
+            }
+        }
+
+        /* If there is an error message and an error code provided from the authentication framework then the
+         final error message will be set as "<internal errorCode> - <internal errorMessage>".
+         This is done to preserve the error details while sending out a standard error response.*/
+        if (StringUtils.isNotBlank(errorMsgBuilder)) {
+            errorMessage = errorMsgBuilder;
+        }
+
+        AuthServiceErrorInfo errorInfo = new AuthServiceErrorInfo(errorCode, errorMessage, errorDescription);
+        authServiceResponse.setErrorInfo(errorInfo);
+    }
+
+    private void handleFailedIncompleteAuthResponse(AuthServiceRequestWrapper request, AuthServiceResponseWrapper
+            response, AuthServiceResponse authServiceResponse) throws AuthServiceException {
+
+        String errorCode;
+        String errorMessage;
+        String errorDescription = AuthServiceConstants.ErrorMessage.
+                ERROR_AUTHENTICATION_FAILURE_RETRY_AVAILABLE.description();
+
+        authServiceResponse.setSessionDataKey(request.getSessionDataKey());
+        authServiceResponse.setFlowStatus(AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
+        List<AuthenticatorData> authenticatorDataList = request.getAuthInitiationData();
+        AuthServiceResponseData responseData = new AuthServiceResponseData(authenticatorDataList);
+        authServiceResponse.setData(responseData);
+        errorCode = getErrorCode(response);
+        errorMessage = getErrorMessage(response);
+
         if (StringUtils.isBlank(errorCode)) {
-            errorCode = AuthServiceConstants.ERROR_CODE_UNKNOWN_ERROR;
+            errorCode = AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FAILURE_RETRY_AVAILABLE.code();
         }
 
         if (StringUtils.isBlank(errorMessage)) {
-            errorMessage = AuthServiceConstants.ERROR_MSG_UNKNOWN_ERROR;
+            errorMessage = AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FAILURE_RETRY_AVAILABLE.message();
         }
 
-        AuthServiceErrorInfo errorInfo = new AuthServiceErrorInfo(errorCode, errorMessage);
+        AuthServiceErrorInfo errorInfo = new AuthServiceErrorInfo(errorCode, errorMessage, errorDescription);
         authServiceResponse.setErrorInfo(errorInfo);
     }
 
