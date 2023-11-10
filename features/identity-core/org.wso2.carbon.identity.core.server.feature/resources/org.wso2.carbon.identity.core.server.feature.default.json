@@ -1349,6 +1349,7 @@
   "organization.user.invitation.default.expiry_time": "4320",
   "organization.user.invitation.primary.user_domain": "PRIMARY",
   "organization.user.invitation.default.accept_url": "/accountrecoveryendpoint/acceptinvitation.do",
+  "organization.user.invitation.association.wait_time": "5000",
   "extension_mgt.extension_types": "applications,connections,identity-verification-providers",
 
   "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
