@@ -771,4 +771,15 @@ public abstract class FrameworkConstants {
         INTERNAL_PROMPT,
         REDIRECTION_PROMPT
     }
+
+    /**
+     * Enum for authenticator message type.
+     * INFO - Info messages.
+     * ERROR - Error messages.
+     */
+    public enum AuthenticatorMessageType {
+
+        INFO,
+        ERROR
+    }
 }

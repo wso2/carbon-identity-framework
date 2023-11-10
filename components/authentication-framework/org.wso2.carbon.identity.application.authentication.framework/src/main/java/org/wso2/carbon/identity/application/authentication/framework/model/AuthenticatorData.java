@@ -37,6 +37,7 @@ public class AuthenticatorData {
     private List<String> requiredParams = new ArrayList<>();
     private FrameworkConstants.AuthenticatorPromptType promptType;
     private AdditionalData additionalData;
+    private AuthenticatorMessage authenticatorMessage;
 
     public String getI18nKey() {
 
@@ -116,5 +117,15 @@ public class AuthenticatorData {
     public void setAdditionalData(AdditionalData additionalData) {
 
         this.additionalData = additionalData;
+    }
+
+    public AuthenticatorMessage getMessage() {
+
+        return authenticatorMessage;
+    }
+
+    public void setMessage(AuthenticatorMessage authenticatorMessage) {
+
+        this.authenticatorMessage = authenticatorMessage;
     }
 }

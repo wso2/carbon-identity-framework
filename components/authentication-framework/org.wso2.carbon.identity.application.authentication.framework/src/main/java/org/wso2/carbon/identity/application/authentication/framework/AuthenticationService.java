@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -170,8 +171,10 @@ public class AuthenticationService {
 
         if (StringUtils.isNotBlank(internalErrorMessage)) {
             if (StringUtils.isNotBlank(errorMsgBuilder)) {
-                errorMsgBuilder = errorMsgBuilder + AuthServiceConstants.INTERNAL_ERROR_MSG_SEPARATOR
-                        + internalErrorMessage;
+                errorMsgBuilder = new StringJoiner(" ")
+                        .add(errorMsgBuilder)
+                        .add(AuthServiceConstants.INTERNAL_ERROR_MSG_SEPARATOR)
+                        .add(internalErrorMessage).toString();
             } else if (StringUtils.isBlank(errorMsgBuilder)) {
                 errorMsgBuilder = internalErrorMessage;
             }
