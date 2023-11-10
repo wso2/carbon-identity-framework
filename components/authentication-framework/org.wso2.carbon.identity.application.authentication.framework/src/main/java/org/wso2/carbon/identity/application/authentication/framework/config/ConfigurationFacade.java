@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -323,7 +324,9 @@ public class ConfigurationFacade {
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             try {
-                return ServiceURLBuilder.create().addPath(defaultContext).build().getAbsolutePublicURL();
+                String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+                return ServiceURLBuilder.create().addPath(defaultContext).setOrganization(organizationId).build()
+                        .getAbsolutePublicURL();
             } catch (URLBuilderException e) {
                 throw new IdentityRuntimeException(
                         "Error while building tenant qualified url for context: " + defaultContext, e);
