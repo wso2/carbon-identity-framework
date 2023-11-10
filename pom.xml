@@ -1837,6 +1837,11 @@
                 <artifactId>grpc-context</artifactId>
                 <version>${org.wso2.orbit.io.grpc.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-cbor</artifactId>
+                <version>${com.fasterxml.jackson.cbor.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -2074,6 +2079,7 @@
         <com.fasterxml.jackson.version>2.15.2</com.fasterxml.jackson.version>
         <com.fasterxml.jackson.annotation.version>2.15.2</com.fasterxml.jackson.annotation.version>
         <com.fasterxml.jackson.databind.version>2.15.2</com.fasterxml.jackson.databind.version>
+        <com.fasterxml.jackson.cbor.version>2.15.2</com.fasterxml.jackson.cbor.version>
         <com.fasterxml.jackson.jaxrs-json-provider-version>2.15.2</com.fasterxml.jackson.jaxrs-json-provider-version>
         <com.fasterxml.jackson.annotation.version.range>[2.13.0, 2.16.0)</com.fasterxml.jackson.annotation.version.range>
 

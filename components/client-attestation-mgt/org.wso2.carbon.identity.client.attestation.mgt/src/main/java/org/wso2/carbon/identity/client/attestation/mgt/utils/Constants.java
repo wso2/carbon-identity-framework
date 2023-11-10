@@ -32,7 +32,7 @@ public class Constants {
          // Represents an Android client application.
         ANDROID,
         // Represents an iOS client application.
-        iOS
+        IOS
     }
     public static final String ATTESTATION_HEADER = "x-client-attestation";
     public static final String CLIENT_ATTESTATION_CONTEXT = "client.attestation.context";
@@ -41,8 +41,17 @@ public class Constants {
     public static final String RESPONSE_MODE = "response_mode";
     public static final String OAUTH2 = "oauth2";
     public static final String UTC = "UTC";
-    public static final String PLAY_RECOGNIZED = "PLAY_RECOGNIZED";
     public static final String CLIENT_ATTESTATION_ALLOWED_WINDOW_IN_MILL_SECOND
             = "ClientAttestation.AllowedWindowMillis";
+
+    // Constants related to Android Attestation
+    public static final String PLAY_RECOGNIZED = "PLAY_RECOGNIZED";
+
+    // Constants related to Apple Attestation
+    public static final String AUTH_DATA = "authData";
+    public static final String ATT_STMT = "attStmt";
+    public static final String FMT = "fmt";
+    public static final String APPLE_APP_ATTEST = "apple-appattest";
+    public static final String SHA_256 = "SHA-256";
 
 }
