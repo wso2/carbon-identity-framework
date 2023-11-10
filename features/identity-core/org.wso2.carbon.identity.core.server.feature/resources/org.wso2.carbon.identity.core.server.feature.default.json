@@ -937,7 +937,7 @@
       },
       {
           "id": "cmVzZW5kQXNrUGFzc3dvcmQ",
-          "displayName": "Resend Ask Password",
+          "displayName": "Resend request New User Password",
           "description": "This email is sent when the organization admin re-initiates the request for a new user password."
       },
       {
@@ -987,7 +987,7 @@
       },
       {
           "id": "VE9UUA",
-          "displayName": "TOTP",
+          "displayName": "Time-Based One-Time Passcode",
           "description": "This email is used to sent a Time-Based One-Time Password (TOTP) to the user"
       },
       {
