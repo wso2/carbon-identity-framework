@@ -253,7 +253,8 @@
   ],
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.module_index": "40",
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.subscriptions": [
-    "POST_SHARED_CONSOLE_APP"
+    "POST_SHARED_CONSOLE_APP",
+    "POST_ADD_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.SharedRoleMgtHandler.module_index": "41",
   "identity_mgt.events.schemes.SharedRoleMgtHandler.subscriptions": [
