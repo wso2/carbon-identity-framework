@@ -249,5 +249,6 @@
     "internal",
     "console",
     "SYSTEM"
-  ]
+  ],
+  "otp_backup_codes.use_identity_claim": false
 }

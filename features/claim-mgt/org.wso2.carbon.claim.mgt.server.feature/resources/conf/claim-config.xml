@@ -818,6 +818,14 @@
 				<Description>Claim to store failed Backup Code Attempts</Description>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/otpbackupcodes</ClaimURI>
+				<DisplayName>OTP Backup Codes</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+                in your user store must be configured for this. -->
+				<AttributeID> OTP backupCodes</AttributeID>
+				<Description>Claim to store OTP backup codes of the user</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/managedOrg</ClaimURI>
 				<DisplayName>Managed Organization</DisplayName>
 				<AttributeID>managedOrg</AttributeID>

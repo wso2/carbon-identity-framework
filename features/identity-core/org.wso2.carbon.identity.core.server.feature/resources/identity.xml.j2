@@ -3866,6 +3866,13 @@
         <DataStoreType>{{identity_datastore.datastore_type}}</DataStoreType>
     </IdentityDataStore>
 
+    <!-- Configuration to enable OTP backup code claim as an identity claim -->
+    <OTPBackupCodes>
+        {% if otp_backup_codes.use_identity_claim is defined %}
+        <UseIdentityClaims>{{otp_backup_codes.use_identity_claim}}</UseIdentityClaims>
+        {% endif %}
+    </OTPBackupCodes>
+
     <UserProfileExport>
         <AdditionalClaims>
             {% for item in user_profile_export.additional_claims %}
