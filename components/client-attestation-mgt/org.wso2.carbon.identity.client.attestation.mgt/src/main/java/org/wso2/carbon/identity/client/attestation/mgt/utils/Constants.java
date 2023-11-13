@@ -51,6 +51,7 @@ public class Constants {
     public static final String AUTH_DATA = "authData";
     public static final String ATT_STMT = "attStmt";
     public static final String FMT = "fmt";
+    public static final String X5C = "x5c";
     public static final String APPLE_APP_ATTEST = "apple-appattest";
     public static final String SHA_256 = "SHA-256";
 
