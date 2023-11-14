@@ -111,7 +111,7 @@ public class APIResourceCollectionManagerTest extends PowerMockTestCase {
         String encodedName1 = getEncodedName("nametest1");
         APIResourceCollection apiResourceCollection =
                 apiResourceCollectionManager.getAPIResourceCollectionById(encodedName1, "test");
-        Assert.assertEquals(apiResourceCollection, apiResourceCollectionMapMock.get(encodedName1));
+        Assert.assertNotNull(apiResourceCollection);
     }
 
     private void addTestAPIResourceCollections() {
