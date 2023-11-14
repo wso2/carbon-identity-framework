@@ -5035,6 +5035,9 @@ public class IdPManagementDAO {
     public List<IdPGroup> getIdPGroupsByIds(List<String> idpGroupIds, int tenantId)
             throws IdentityProviderManagementException {
 
+        if (CollectionUtils.isEmpty(idpGroupIds)) {
+            return Collections.emptyList();
+        }
         String query = IdPManagementConstants.SQLQueries.GET_IDP_GROUPS_BY_IDP_GROUP_IDS;
         String placeholders = String.join(",", Collections.nCopies(idpGroupIds.size(), "?"));
         query = query.replace(IdPManagementConstants.IDP_GROUP_LIST_PLACEHOLDER, placeholders);
