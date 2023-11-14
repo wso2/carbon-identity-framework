@@ -22,6 +22,12 @@ import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants;
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtClientException;
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtServerException;
+import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollection;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for API Resource Collection Management.
@@ -62,5 +68,19 @@ public class APIResourceCollectionManagementUtil {
             description = String.format(description, data);
         }
         return new APIResourceCollectionMgtServerException(error.getMessage(), description, error.getCode(), e);
+    }
+
+    /**
+     * Convert list of API Resource Collections to a map.
+     *
+     * @param collections List of API Resource Collections.
+     * @return Map of API Resource Collections.
+     */
+    public static Map<String, APIResourceCollection> convertListToMap(List<APIResourceCollection> collections) {
+
+        return collections.stream()
+                .collect(Collectors.toMap(
+                        APIResourceCollection::getId,
+                        Function.identity()));
     }
 }

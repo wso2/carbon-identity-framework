@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.api.resource.collection.mgt.util.APIResourceCollectionManagementUtil.convertListToMap;
 import static org.wso2.carbon.identity.api.resource.collection.mgt.util.APIResourceCollectionManagementUtil.handleServerException;
 
 /**
@@ -78,6 +80,30 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
     }
 
     /**
+     * Get API Resource Collections.
+     *
+     * @param filter Filter expression.
+     * @return API resource collection search result.
+     * @throws APIResourceCollectionMgtException If an error occurred while retrieving API Resource Collections.
+     */
+    @Override
+    public APIResourceCollectionSearchResult
+    getAPIResourceCollectionsWithRequiredAttributes(String filter, List<String> requiredAttributes, String tenantDomain)
+            throws APIResourceCollectionMgtException {
+
+        List<APIResourceCollection> filteredList =
+                FilterUtil.filterAPIResourceCollections(apiResourceCollectionMap, filter);
+        Map<String, APIResourceCollection> filteredMap = convertListToMap(filteredList);
+
+        if (requiredAttributes.contains(APIResourceCollectionManagementConstants.API_RESOURCES)) {
+            for (Map.Entry<String, APIResourceCollection> entry : filteredMap.entrySet()) {
+                entry.setValue(populateAPIResourcesForCollection(entry.getValue(), tenantDomain));
+            }
+        }
+        return new APIResourceCollectionSearchResult(new ArrayList<>(filteredMap.values()));
+    }
+
+    /**
      * Get API Resource Collection by id.
      *
      * @param collectionId Collection id.
@@ -88,30 +114,45 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
     public APIResourceCollection getAPIResourceCollectionById(String collectionId, String tenantDomain)
             throws APIResourceCollectionMgtException {
 
-        try {
-            APIResourceCollection apiResourceCollection = apiResourceCollectionMap.get(collectionId);
-            if (apiResourceCollection == null) {
-                return null;
-            }
-            List<APIResource> readAPIResources =
-                    APIResourceCollectionMgtServiceDataHolder.getInstance().getAPIResourceManagementService()
-                            .getScopeMetadata(apiResourceCollection.getReadScopes(), tenantDomain);
-            List<APIResource> writeAPIResources =
-                    APIResourceCollectionMgtServiceDataHolder.getInstance().getAPIResourceManagementService()
-                            .getScopeMetadata(apiResourceCollection.getWriteScopes(), tenantDomain);
+        APIResourceCollection apiResourceCollection = apiResourceCollectionMap.get(collectionId);
+        if (apiResourceCollection == null) {
+            return null;
+        }
+        return populateAPIResourcesForCollection(apiResourceCollection, tenantDomain);
+    }
 
-            // Filter and set read scopes.
-            filterAndSetScopes(readAPIResources, apiResourceCollection,
+    /**
+     * Populate API resources for the given API resource collection.
+     *
+     * @param collection   API resource collection.
+     * @param tenantDomain Tenant domain.
+     * @throws APIResourceCollectionMgtException If an error occurred while retrieving API resource metadata.
+     */
+    private APIResourceCollection populateAPIResourcesForCollection(APIResourceCollection collection,
+                                                                    String tenantDomain)
+            throws APIResourceCollectionMgtException {
+
+        try {
+            APIResourceCollection clonedCollection = cloneAPIResourceCollection(collection);
+            // Fetch and filter read API resources.
+            List<APIResource> readAPIResources = APIResourceCollectionMgtServiceDataHolder.getInstance()
+                    .getAPIResourceManagementService().getScopeMetadata(clonedCollection.getReadScopes(), tenantDomain);
+            filterAndSetScopes(readAPIResources, clonedCollection,
                     APIResourceCollectionManagementConstants.READ_SCOPES);
-            // Filter and set write scopes.
-            filterAndSetScopes(writeAPIResources, apiResourceCollection,
+
+            // Fetch and filter write API resources.
+            List<APIResource> writeAPIResources = APIResourceCollectionMgtServiceDataHolder.getInstance()
+                    .getAPIResourceManagementService()
+                    .getScopeMetadata(clonedCollection.getWriteScopes(), tenantDomain);
+            filterAndSetScopes(writeAPIResources, clonedCollection,
                     APIResourceCollectionManagementConstants.WRITE_SCOPES);
 
+            // Set read and write resources.
             Map<String, List<APIResource>> apiResourcesMap = new HashMap<>();
             apiResourcesMap.put(APIResourceCollectionManagementConstants.READ, readAPIResources);
             apiResourcesMap.put(APIResourceCollectionManagementConstants.WRITE, writeAPIResources);
-            apiResourceCollection.setApiResources(apiResourcesMap);
-            return apiResourceCollection;
+            clonedCollection.setApiResources(apiResourcesMap);
+            return clonedCollection;
         } catch (APIResourceMgtException e) {
             throw handleServerException(
                     APIResourceCollectionManagementConstants.ErrorMessages
@@ -123,9 +164,9 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
     /**
      * Filter scopes of API resources based on the scopes defined in the API resource collection.
      *
-     * @param apiResources List of API resources.
+     * @param apiResources          List of API resources.
      * @param apiResourceCollection API resource collection.
-     * @param scopeType Scope type.
+     * @param scopeType             Scope type.
      */
     private void filterAndSetScopes(List<APIResource> apiResources, APIResourceCollection apiResourceCollection,
                                     String scopeType) {
@@ -158,5 +199,18 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
                 apiResource.setScopes(Collections.emptyList());
             }
         });
+    }
+
+    private APIResourceCollection cloneAPIResourceCollection(APIResourceCollection apiResourceCollection) {
+
+        return new APIResourceCollection.APIResourceCollectionBuilder()
+                .id(apiResourceCollection.getId())
+                .name(apiResourceCollection.getName())
+                .displayName(apiResourceCollection.getDisplayName())
+                .type(apiResourceCollection.getType())
+                .readScopes(apiResourceCollection.getReadScopes())
+                .writeScopes(apiResourceCollection.getWriteScopes())
+                .apiResources(apiResourceCollection.getApiResources())
+                .build();
     }
 }

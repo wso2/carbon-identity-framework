@@ -37,6 +37,7 @@ public class APIResourceCollectionManagementConstants {
     public static final String WRITE_SCOPES = "writeScopes";
     public static final String READ = "read";
     public static final String WRITE = "write";
+    public static final String API_RESOURCES = "apiResources";
 
     /**
      * API resource collection configuration builder constants.

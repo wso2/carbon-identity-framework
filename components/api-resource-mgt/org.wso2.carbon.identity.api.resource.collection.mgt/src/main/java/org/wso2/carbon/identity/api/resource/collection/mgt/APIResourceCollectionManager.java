@@ -22,6 +22,8 @@ import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourc
 import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollection;
 import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollectionSearchResult;
 
+import java.util.List;
+
 /**
  * API Resource Collection Manager Interface.
  */
@@ -35,6 +37,19 @@ public interface APIResourceCollectionManager {
      * @throws APIResourceCollectionMgtException If an error occurred while retrieving API Resource Collections.
      */
     APIResourceCollectionSearchResult getAPIResourceCollections(String filter) throws APIResourceCollectionMgtException;
+
+    /**
+     * Get API Resource Collections with required attributes.
+     *
+     * @param filter             Filter expression.
+     * @param requiredAttributes Required attributes.
+     * @return API resource collection search result with required attributes.
+     * @throws APIResourceCollectionMgtException If an error occurred while retrieving API Resource Collections.
+     */
+    APIResourceCollectionSearchResult getAPIResourceCollectionsWithRequiredAttributes(String filter,
+                                                                                      List<String> requiredAttributes,
+                                                                                      String tenantDomain)
+            throws APIResourceCollectionMgtException;
 
     /**
      * Get API Resource Collection by id.

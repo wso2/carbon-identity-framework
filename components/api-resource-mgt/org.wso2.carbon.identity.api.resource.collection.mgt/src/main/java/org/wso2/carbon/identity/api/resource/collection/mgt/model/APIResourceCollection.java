@@ -151,7 +151,7 @@ public class APIResourceCollection {
             return this;
         }
 
-        public APIResourceCollectionBuilder setApiResources(Map<String, List<APIResource>> apiResources) {
+        public APIResourceCollectionBuilder apiResources(Map<String, List<APIResource>> apiResources) {
             
             this.apiResources = apiResources;
             return this;
