@@ -69,6 +69,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -127,7 +128,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_RO
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLE_SCOPE_BY_SCOPE_NAME_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SCIM_ROLE_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SHARED_HYBRID_ROLES_WITH_MAIN_ROLE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SHARED_ROLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SHARED_SCIM_ROLES_WITH_MAIN_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ASSOCIATED_APPS_BY_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ASSOCIATED_APP_IDS_BY_ROLE_ID_SQL;
@@ -168,6 +169,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SCOPE_BY_ROLES_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_MAIN_ROLE_IDS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
@@ -3011,19 +3013,34 @@ public class RoleDAOImpl implements RoleDAO {
      * @param connection   DB connection.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private void deleteSharedHybridRoles(String roleId, int mainTenantId,
-                                         Connection connection)
+    private void deleteSharedHybridRoles(String roleId, int mainTenantId, Connection connection)
             throws IdentityRoleManagementException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                DELETE_SHARED_HYBRID_ROLES_WITH_MAIN_ROLE_SQL)) {
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
-            statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
-            statement.executeUpdate();
+        try (NamedPreparedStatement selectStatement = new NamedPreparedStatement(
+                connection, GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL)) {
+            selectStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
+            selectStatement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
+
+            List<Map.Entry<Integer, Integer>> idsToDelete = new ArrayList<>();
+            try (ResultSet resultSet = selectStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    idsToDelete.add(new AbstractMap.SimpleEntry<>(
+                                    resultSet.getInt(1), resultSet.getInt(2)));
+                }
+            }
+
+            try (NamedPreparedStatement deleteStatement = new NamedPreparedStatement(connection, DELETE_SHARED_ROLE)) {
+                for (Map.Entry<Integer, Integer> idPair : idsToDelete) {
+                    deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_ID, idPair.getKey());
+                    deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, idPair.getValue());
+                    deleteStatement.addBatch();
+                }
+                deleteStatement.executeBatch();
+            }
+
         } catch (SQLException e) {
             String errorMessage = "Error while deleting shared roles of role id : " + roleId;
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    errorMessage, e);
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
     }
 
