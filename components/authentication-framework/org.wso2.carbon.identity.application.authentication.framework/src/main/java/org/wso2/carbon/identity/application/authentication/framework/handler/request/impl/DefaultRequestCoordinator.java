@@ -847,11 +847,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } else if (isAPIBasedAuthenticationFlow(request)) {
             /* If it's an API based authentication flow, the sha256 hashed value
              of the session identifier can be passed as a query param as well.*/
-            String hashedSessionId = request.getParameter(FrameworkConstants.REQ_PARAM_SESSION_ID);
+            String hashedSessionId = request.getParameter(FrameworkConstants.RequestParams.SESSION_ID);
             if (StringUtils.isNotBlank(hashedSessionId)) {
                 if (log.isDebugEnabled()) {
-                    log.debug(FrameworkConstants.REQ_PARAM_SESSION_ID + " query param is available with the value: "
-                            + hashedSessionId);
+                    log.debug(FrameworkConstants.RequestParams.SESSION_ID +
+                            " query param is available with the value: " + hashedSessionId);
                 }
                 sessionContextKey = hashedSessionId;
             }

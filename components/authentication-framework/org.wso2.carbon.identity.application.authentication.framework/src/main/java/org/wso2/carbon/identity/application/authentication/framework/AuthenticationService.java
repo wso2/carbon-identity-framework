@@ -482,7 +482,7 @@ public class AuthenticationService {
 
     private String getClientId(HttpServletRequest request) {
 
-        return request.getParameter(FrameworkConstants.RequestParams.ISSUER);
+        return (String) request.getAttribute(AuthServiceConstants.REQ_ATTR_RELYING_PARTY);
     }
 
     private boolean isInitialAuthRequest(AuthServiceRequest authServiceRequest) {

@@ -47,6 +47,7 @@ public class AuthServiceConstants {
     public static final String ERROR_CODE_PARAM = "errorCode";
     public static final String ERROR_CODE_PREFIX = "ABA-";
     public static final String REQ_ATTR_IS_INITIAL_API_BASED_AUTH_REQUEST = "isInitialAPIBasedAuthRequest";
+    public static final String REQ_ATTR_RELYING_PARTY = "relyingParty";
 
     /**
      * Enum for error messages.
@@ -122,12 +123,22 @@ public class AuthServiceConstants {
          */
         public static Optional<ErrorMessage> fromCode(String code) {
 
+            code = getPrefixRemovedCode(code);
             for (ErrorMessage error : ErrorMessage.values()) {
                 if (error.code.equals(code)) {
                     return Optional.of(error);
                 }
             }
             return Optional.empty();
+        }
+
+        private static String getPrefixRemovedCode(String code) {
+
+            if (code != null && code.startsWith(ERROR_CODE_PREFIX)) {
+                return code.substring(ERROR_CODE_PREFIX.length());
+            }
+
+            return code;
         }
 
         @Override

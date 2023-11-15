@@ -240,7 +240,6 @@ public abstract class FrameworkConstants {
     public static final String ERROR_DESCRIPTION_AUTH_CONTEXT_NULL = "authentication.context.null.description";
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
-    public static final String REQ_PARAM_SESSION_ID = "sessionId";
 
     private FrameworkConstants() {
 
@@ -416,6 +415,7 @@ public abstract class FrameworkConstants {
         public static final String USER_TENANT_DOMAIN_HINT = "ut";
         public static final String CORRELATION_ID = "crId";
         public static final String IS_IDF_INITIATED_FROM_AUTHENTICATOR = "isIdfInitiatedFromAuthenticator";
+        public static final String SESSION_ID = "sessionId";
 
         private RequestParams() {
         }
