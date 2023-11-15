@@ -97,8 +97,8 @@ public class APIResourceCollectionManagerTest extends PowerMockTestCase {
     @Test(dataProvider = "getAPIResourceCollectionsDataProvider")
     public void testGetAPIResourceCollections(String filter, int expected) throws Exception {
 
-        APIResourceCollectionSearchResult
-                apiResourceSearchResult = apiResourceCollectionManager.getAPIResourceCollections(filter);
+        APIResourceCollectionSearchResult apiResourceSearchResult =
+                apiResourceCollectionManager.getAPIResourceCollections(filter, null, "test");
         Assert.assertNotNull(apiResourceSearchResult.getAPIResourceCollections());
         Assert.assertEquals(apiResourceSearchResult.getAPIResourceCollections().size(), expected);
     }

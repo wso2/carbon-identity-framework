@@ -30,15 +30,6 @@ import java.util.List;
 public interface APIResourceCollectionManager {
 
     /**
-     * Get API Resource Collections.
-     *
-     * @param filter Filter expression.
-     * @return API resource collection search result.
-     * @throws APIResourceCollectionMgtException If an error occurred while retrieving API Resource Collections.
-     */
-    APIResourceCollectionSearchResult getAPIResourceCollections(String filter) throws APIResourceCollectionMgtException;
-
-    /**
      * Get API Resource Collections with required attributes.
      *
      * @param filter             Filter expression.
@@ -46,9 +37,8 @@ public interface APIResourceCollectionManager {
      * @return API resource collection search result with required attributes.
      * @throws APIResourceCollectionMgtException If an error occurred while retrieving API Resource Collections.
      */
-    APIResourceCollectionSearchResult getAPIResourceCollectionsWithRequiredAttributes(String filter,
-                                                                                      List<String> requiredAttributes,
-                                                                                      String tenantDomain)
+    APIResourceCollectionSearchResult getAPIResourceCollections(String filter, List<String> requiredAttributes,
+                                                                String tenantDomain)
             throws APIResourceCollectionMgtException;
 
     /**

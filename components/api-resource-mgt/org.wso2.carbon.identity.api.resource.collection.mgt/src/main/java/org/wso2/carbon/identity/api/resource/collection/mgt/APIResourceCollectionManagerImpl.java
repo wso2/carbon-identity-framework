@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.api.resource.collection.mgt.util.APIResourceCollectionManagementUtil.convertListToMap;
 import static org.wso2.carbon.identity.api.resource.collection.mgt.util.APIResourceCollectionManagementUtil.handleServerException;
 
 /**
@@ -72,30 +71,14 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
      * @throws APIResourceCollectionMgtException If an error occurred while retrieving API Resource Collections.
      */
     @Override
-    public APIResourceCollectionSearchResult getAPIResourceCollections(String filter)
+    public APIResourceCollectionSearchResult getAPIResourceCollections(String filter, List<String> requiredAttributes,
+                                                                       String tenantDomain)
             throws APIResourceCollectionMgtException {
 
-        return new APIResourceCollectionSearchResult(
-                FilterUtil.filterAPIResourceCollections(apiResourceCollectionMap, filter));
-    }
-
-    /**
-     * Get API Resource Collections.
-     *
-     * @param filter Filter expression.
-     * @return API resource collection search result.
-     * @throws APIResourceCollectionMgtException If an error occurred while retrieving API Resource Collections.
-     */
-    @Override
-    public APIResourceCollectionSearchResult
-    getAPIResourceCollectionsWithRequiredAttributes(String filter, List<String> requiredAttributes, String tenantDomain)
-            throws APIResourceCollectionMgtException {
-
-        List<APIResourceCollection> filteredList =
+        Map<String, APIResourceCollection> filteredMap =
                 FilterUtil.filterAPIResourceCollections(apiResourceCollectionMap, filter);
-        Map<String, APIResourceCollection> filteredMap = convertListToMap(filteredList);
-
-        if (requiredAttributes.contains(APIResourceCollectionManagementConstants.API_RESOURCES)) {
+        if (requiredAttributes != null &&
+                requiredAttributes.contains(APIResourceCollectionManagementConstants.API_RESOURCES)) {
             for (Map.Entry<String, APIResourceCollection> entry : filteredMap.entrySet()) {
                 entry.setValue(populateAPIResourcesForCollection(entry.getValue(), tenantDomain));
             }

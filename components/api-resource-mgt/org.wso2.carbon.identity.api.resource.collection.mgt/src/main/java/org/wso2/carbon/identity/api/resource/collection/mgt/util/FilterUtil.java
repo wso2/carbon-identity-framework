@@ -97,24 +97,24 @@ public class FilterUtil {
      *
      * @param apiResourceCollectionsMap API resource collection map.
      * @param filter                    Filter string.
-     * @return List of API resource collection.
+     * @return Map of API resource collection.
      * @throws APIResourceCollectionMgtClientException Error when validate filters.
      */
-    public static List<APIResourceCollection> filterAPIResourceCollections(
-            Map<String, APIResourceCollection> apiResourceCollectionsMap,
-            String filter) throws APIResourceCollectionMgtClientException, APIResourceCollectionMgtServerException {
+    public static Map<String, APIResourceCollection> filterAPIResourceCollections(
+            Map<String, APIResourceCollection> apiResourceCollectionsMap, String filter)
+            throws APIResourceCollectionMgtClientException, APIResourceCollectionMgtServerException {
 
         try {
             List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
-            return apiResourceCollectionsMap.values().stream()
-                    .filter(apiResourceCollection -> {
+            return apiResourceCollectionsMap.entrySet().stream()
+                    .filter(entry -> {
                         try {
-                            return matchesFilter(apiResourceCollection, expressionNodes);
+                            return matchesFilter(entry.getValue(), expressionNodes);
                         } catch (APIResourceCollectionMgtClientException e) {
                             throw new RuntimeException(e);
                         }
                     })
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         } catch (RuntimeException e) {
             if (e.getCause() instanceof APIResourceCollectionMgtClientException) {
                 throw (APIResourceCollectionMgtClientException) e.getCause();
