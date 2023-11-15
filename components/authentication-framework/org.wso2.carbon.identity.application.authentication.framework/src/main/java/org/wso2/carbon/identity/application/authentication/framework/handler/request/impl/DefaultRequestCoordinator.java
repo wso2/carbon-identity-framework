@@ -836,17 +836,29 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
 
+        String sessionContextKey = null;
         Cookie cookie = FrameworkUtils.getAuthCookie(request);
-
-        // if cookie exists user has previously authenticated
         if (cookie != null) {
-
             if (log.isDebugEnabled()) {
                 log.debug(FrameworkConstants.COMMONAUTH_COOKIE + " cookie is available with the value: " + cookie
                         .getValue());
             }
+            sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
+        } else if (isAPIBasedAuthenticationFlow(request)) {
+            /* If it's an API based authentication flow, the sha256 hashed value
+             of the session identifier can be passed as a query param as well.*/
+            String hashedSessionId = request.getParameter(FrameworkConstants.REQ_PARAM_SESSION_ID);
+            if (StringUtils.isNotBlank(hashedSessionId)) {
+                if (log.isDebugEnabled()) {
+                    log.debug(FrameworkConstants.REQ_PARAM_SESSION_ID + " query param is available with the value: "
+                            + hashedSessionId);
+                }
+                sessionContextKey = hashedSessionId;
+            }
+        }
+        // if a value for the sessionContextKey exists user has previously authenticated
+        if (sessionContextKey != null) {
 
-            String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
             SessionContext sessionContext = null;
             // get the authentication details from the cache
             try {

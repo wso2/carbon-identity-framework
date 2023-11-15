@@ -240,6 +240,7 @@ public abstract class FrameworkConstants {
     public static final String ERROR_DESCRIPTION_AUTH_CONTEXT_NULL = "authentication.context.null.description";
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
+    public static final String REQ_PARAM_SESSION_ID = "sessionId";
 
     private FrameworkConstants() {
 
