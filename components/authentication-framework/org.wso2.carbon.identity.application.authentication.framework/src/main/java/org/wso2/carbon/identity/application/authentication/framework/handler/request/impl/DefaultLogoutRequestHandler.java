@@ -578,8 +578,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         String defaultLogoutUrl = IdentityUtil.getProperty(DEFAULT_LOGOUT_URL_CONFIG);
         if (StringUtils.isBlank(defaultLogoutUrl)) {
             if (log.isDebugEnabled()) {
-                log.debug("The default logout URL is not set in the identity.xml file. Therefore directing to" +
-                        " the default logout page of the server.");
+                log.debug("The default logout URL is not set in the identity.xml file. Therefore directing to the " +
+                        "default logout page of the server.");
             }
             defaultLogoutUrl = "/authenticationendpoint/samlsso_logout.do";
         }
