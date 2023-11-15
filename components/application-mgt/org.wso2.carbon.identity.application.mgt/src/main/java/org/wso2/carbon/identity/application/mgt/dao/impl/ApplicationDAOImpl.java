@@ -5423,9 +5423,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws IdentityApplicationManagementException {
 
         try {
-            if (ApplicationManagementServiceComponentHolder.getInstance()
-                    .getSecretManager().isSecretExist(APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS,
-                            getAndroidAttestationSecretName(application.getApplicationResourceId()))) {
+            if (application.getClientAttestationMetaData() != null
+                    && StringUtils.isNotEmpty(application.getClientAttestationMetaData()
+                    .getAndroidAttestationServiceCredentials())) {
                 ApplicationManagementServiceComponentHolder.getInstance()
                         .getSecretManager().deleteSecret(APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS,
                                 getAndroidAttestationSecretName(application.getApplicationResourceId()));

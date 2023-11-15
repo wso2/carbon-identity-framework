@@ -3338,6 +3338,7 @@
         <TenantQualifiedUrls>
             <Enable>{{tenant_context.enable_tenant_qualified_urls}}</Enable>
             <RequireSuperTenantInUrls>{{tenant_context.enable_tenant_qualified_urls && tenant_context.require_super_tenant_in_urls}}</RequireSuperTenantInUrls>
+            <AppendSuperTenantInCookiePath>{{tenant_context.enable_tenant_qualified_urls && tenant_context.append_super_tenant_in_cookie_path}}</AppendSuperTenantInCookiePath>
             <EnableTenantedSessions>{{tenant_context.enable_tenant_qualified_urls && tenant_context.enable_tenanted_sessions}}</EnableTenantedSessions>
        </TenantQualifiedUrls>
     </TenantContext>
