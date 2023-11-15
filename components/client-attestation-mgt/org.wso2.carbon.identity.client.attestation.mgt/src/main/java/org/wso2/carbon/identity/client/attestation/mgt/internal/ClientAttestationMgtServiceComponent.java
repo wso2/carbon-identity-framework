@@ -74,34 +74,49 @@ public class ClientAttestationMgtServiceComponent {
         }
     }
 
+    /**
+     * Loads configurations for the Client Attestation Service.
+     */
     private void loadConfigs() {
 
+        // Set the Apple attestation root certificate and revocation check status
         ClientAttestationMgtDataHolder.getInstance()
                 .setAppleAttestationRootCertificate(getAppleAttestationRootCertificate());
         ClientAttestationMgtDataHolder.getInstance()
                 .setAppleAttestationRevocationCheckEnabled(loadAppleAttestationRevocationCheckEnabled());
-
     }
 
+    /**
+     * Loads the status of Apple attestation revocation check from the configuration.
+     *
+     * @return True if revocation check is enabled, false otherwise.
+     */
     private boolean loadAppleAttestationRevocationCheckEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(APPLE_ATTESTATION_REVOCATION_CHECK_ENABLED));
     }
 
-
+    /**
+     * Retrieves the Apple attestation root certificate from the configured file path.
+     *
+     * @return The Apple attestation root certificate, or null if not found.
+     */
     private X509Certificate getAppleAttestationRootCertificate() {
 
         try {
             String appleAttestationRootCertificatePath =
                     IdentityUtil.getProperty(APPLE_ATTESTATION_ROOT_CERTIFICATE_PATH);
+
             if (StringUtils.isNotBlank(appleAttestationRootCertificatePath)) {
                 CertificateFactory certificateFactory = CertificateFactory.getInstance("X509");
                 FileInputStream fileInputStream = new FileInputStream(appleAttestationRootCertificatePath);
                 X509Certificate appleAttestationRootCertificate =
                         (X509Certificate) certificateFactory.generateCertificate(fileInputStream);
+
+                // Warn if the certificate is expiring soon
                 if (isCertificateExpiringSoon(appleAttestationRootCertificate)) {
                     LOG.warn("Provided apple attestation root certificate is going to expire soon. " +
-                            "Please add latest certificate.");
+                            "Please add the latest certificate.");
                 }
                 return appleAttestationRootCertificate;
             } else {
@@ -113,6 +128,12 @@ public class ClientAttestationMgtServiceComponent {
         return null;
     }
 
+    /**
+     * Checks if the given X.509 certificate is expiring within 30 days.
+     *
+     * @param certificate The X.509 certificate to check.
+     * @return True if the certificate is expiring soon, false otherwise.
+     */
     private boolean isCertificateExpiringSoon(X509Certificate certificate) {
 
         Date currentDate = new Date();
@@ -121,7 +142,7 @@ public class ClientAttestationMgtServiceComponent {
         // Calculate the difference in days
         long differenceInDays = (expirationDate.getTime() - currentDate.getTime()) / (24 * 60 * 60 * 1000);
 
-        // Check if the certificate is expiring within month.
+        // Check if the certificate is expiring within a month
         return differenceInDays <= 30;
     }
 
