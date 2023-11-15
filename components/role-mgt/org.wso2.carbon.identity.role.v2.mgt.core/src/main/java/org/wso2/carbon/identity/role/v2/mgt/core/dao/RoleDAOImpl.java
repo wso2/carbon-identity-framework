@@ -3031,7 +3031,6 @@ public class RoleDAOImpl implements RoleDAO {
                 connection, GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL)) {
             selectStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
             selectStatement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
-
             List<Map.Entry<Integer, Integer>> idsToDelete = new ArrayList<>();
             try (ResultSet resultSet = selectStatement.executeQuery()) {
                 while (resultSet.next()) {
@@ -3039,7 +3038,6 @@ public class RoleDAOImpl implements RoleDAO {
                                     resultSet.getInt(1), resultSet.getInt(2)));
                 }
             }
-
             try (NamedPreparedStatement deleteStatement = new NamedPreparedStatement(connection, DELETE_SHARED_ROLE)) {
                 for (Map.Entry<Integer, Integer> idPair : idsToDelete) {
                     deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_ID, idPair.getKey());
@@ -3048,7 +3046,6 @@ public class RoleDAOImpl implements RoleDAO {
                 }
                 deleteStatement.executeBatch();
             }
-
         } catch (SQLException e) {
             String errorMessage = "Error while deleting shared roles of role id : " + roleId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
@@ -3101,7 +3098,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 DELETE_SHARED_SCIM_ROLES_WITH_MAIN_ROLE_SQL)) {
             for (RoleDTO roleDTO : deletedSharedSCIMRoles) {
-                statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleDTO.getName());
+                statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, appendInternalDomain(roleDTO.getName()));
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, roleDTO.getTenantId());
                 statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, roleDTO.getAudienceRefId());
                 statement.executeUpdate();
