@@ -436,6 +436,16 @@ public class IdentityTenantUtil {
     }
 
     /**
+     * Checks if it is required to append the carbon.super in cookie path.
+     *
+     * @return true if it is mandatory, false otherwise.
+     */
+    public static boolean isSuperTenantAppendInCookiePath() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.APPEND_SUPER_TENANT_IN_COOKIE_PATH));
+    }
+
+    /**
      *
      * Checks whether legacy SaaS authentication is enabled.
      *

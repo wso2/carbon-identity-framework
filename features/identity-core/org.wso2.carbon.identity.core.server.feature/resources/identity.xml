@@ -2297,6 +2297,7 @@
         <TenantQualifiedUrls>
             <Enable>false</Enable>
             <RequireSuperTenantInUrls>false</RequireSuperTenantInUrls>
+            <AppendSuperTenantInCookiePath>false</AppendSuperTenantInCookiePath>
             <EnableTenantedSessions>false</EnableTenantedSessions>
         </TenantQualifiedUrls>
     </TenantContext>

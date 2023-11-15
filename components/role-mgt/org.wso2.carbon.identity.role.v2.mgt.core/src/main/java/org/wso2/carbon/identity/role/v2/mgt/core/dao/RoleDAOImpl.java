@@ -1303,7 +1303,8 @@ public class RoleDAOImpl implements RoleDAO {
             try {
                 addRoleID(roleId, roleName, audienceRefId, tenantDomain, connection);
                 addPermissions(roleId, permissions, tenantDomain, connection);
-                if (APPLICATION.equals(audience)) {
+
+                if (APPLICATION.equals(audience) && !isSubOrgByTenant(tenantDomain)) {
                     addAppRoleAssociation(roleId, audienceId, connection);
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
