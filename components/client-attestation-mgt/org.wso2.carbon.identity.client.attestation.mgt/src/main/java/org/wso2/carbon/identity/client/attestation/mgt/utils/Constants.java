@@ -61,5 +61,7 @@ public class Constants {
     public static final String X_509_CERTIFICATE_TYPE = "X.509";
     public static final String PKIX = "PKIX";
     public static final int CERTIFICATE_EXPIRY_THRESHOLD = 90;
+    // Milli seconds in days 24 * 60 * 60 * 1000
+    public static final int MILLI_SECOND_IN_DAY = 86400000;
 
 }

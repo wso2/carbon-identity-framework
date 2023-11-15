@@ -55,6 +55,7 @@ import java.util.Map;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.ATT_STMT;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.AUTH_DATA;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.CERTIFICATE_EXPIRY_THRESHOLD;
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.MILLI_SECOND_IN_DAY;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.PKIX;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.SHA_256;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.X5C;
@@ -284,7 +285,7 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
         Date expirationDate = certificate.getNotAfter();
 
         // Calculate the difference in days
-        long differenceInDays = (expirationDate.getTime() - currentDate.getTime()) / (24 * 60 * 60 * 1000);
+        long differenceInDays = (expirationDate.getTime() - currentDate.getTime()) / MILLI_SECOND_IN_DAY;
 
         // Check if the certificate is expiring within 3 months.
         return differenceInDays <= CERTIFICATE_EXPIRY_THRESHOLD;
