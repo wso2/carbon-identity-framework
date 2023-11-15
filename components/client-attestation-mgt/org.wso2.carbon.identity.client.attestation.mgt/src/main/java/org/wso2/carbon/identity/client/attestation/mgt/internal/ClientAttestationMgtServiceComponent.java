@@ -19,6 +19,7 @@
 
 package org.wso2.carbon.identity.client.attestation.mgt.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
@@ -31,6 +32,17 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationService;
 import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestationServiceImpl;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.APPLE_ATTESTATION_REVOCATION_CHECK_ENABLED;
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.APPLE_ATTESTATION_ROOT_CERTIFICATE_PATH;
 
 /**
  * OSGi declarative services component which handled registration and un-registration of
@@ -43,7 +55,7 @@ import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestatio
 )
 public class ClientAttestationMgtServiceComponent {
 
-    private static final Log log = LogFactory.getLog(ClientAttestationMgtServiceComponent.class);
+    private static final Log LOG = LogFactory.getLog(ClientAttestationMgtServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -51,20 +63,73 @@ public class ClientAttestationMgtServiceComponent {
         try {
             context.getBundleContext().registerService(ClientAttestationService.class.getName(),
                     new ClientAttestationServiceImpl(), null);
-            if (log.isDebugEnabled()) {
-                log.debug("Client Attestation Service Component deployed.");
+            loadConfigs();
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Client Attestation Service Component deployed.");
             }
 
         } catch (Throwable throwable) {
-            log.error("Error while activating Input Validation Service Component.", throwable);
+            LOG.error("Error while activating Input Validation Service Component.", throwable);
         }
+    }
+
+    private void loadConfigs() {
+
+        ClientAttestationMgtDataHolder.getInstance()
+                .setAppleAttestationRootCertificate(getAppleAttestationRootCertificate());
+        ClientAttestationMgtDataHolder.getInstance()
+                .setAppleAttestationRevocationCheckEnabled(loadAppleAttestationRevocationCheckEnabled());
+
+    }
+
+    private boolean loadAppleAttestationRevocationCheckEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(APPLE_ATTESTATION_REVOCATION_CHECK_ENABLED));
+    }
+
+
+    private X509Certificate getAppleAttestationRootCertificate() {
+
+        try {
+            String appleAttestationRootCertificatePath =
+                    IdentityUtil.getProperty(APPLE_ATTESTATION_ROOT_CERTIFICATE_PATH);
+            if (StringUtils.isNotBlank(appleAttestationRootCertificatePath)) {
+                CertificateFactory certificateFactory = CertificateFactory.getInstance("X509");
+                FileInputStream fileInputStream = new FileInputStream(appleAttestationRootCertificatePath);
+                X509Certificate appleAttestationRootCertificate =
+                        (X509Certificate) certificateFactory.generateCertificate(fileInputStream);
+                if (isCertificateExpiringSoon(appleAttestationRootCertificate)) {
+                    LOG.warn("Provided apple attestation root certificate is going to expire soon. " +
+                            "Please add latest certificate.");
+                }
+                return appleAttestationRootCertificate;
+            } else {
+                LOG.warn("Apple attestation root certificate path is not configured.");
+            }
+        } catch (CertificateException | FileNotFoundException e) {
+            LOG.warn("Apple attestation root certificate not found.", e);
+        }
+        return null;
+    }
+
+    private boolean isCertificateExpiringSoon(X509Certificate certificate) {
+
+        Date currentDate = new Date();
+        Date expirationDate = certificate.getNotAfter();
+
+        // Calculate the difference in days
+        long differenceInDays = (expirationDate.getTime() - currentDate.getTime()) / (24 * 60 * 60 * 1000);
+
+        // Check if the certificate is expiring within month.
+        return differenceInDays <= 30;
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Input Validation service component deactivated.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Input Validation service component deactivated.");
         }
     }
 

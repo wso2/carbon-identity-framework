@@ -43,8 +43,10 @@ public class Constants {
     public static final String UTC = "UTC";
     public static final String CLIENT_ATTESTATION_ALLOWED_WINDOW_IN_MILL_SECOND
             = "ClientAttestation.AllowedWindowMillis";
-    public static final String CLIENT_ATTESTATION_APPLE_ATTESTATION_ROOT_CERTIFICATE_PATH
-            = "ClientAttestation.AppleAttestationRootCertificate";
+    public static final String APPLE_ATTESTATION_ROOT_CERTIFICATE_PATH
+            = "ClientAttestation.AppleAttestationRootCertificatePath";
+    public static final String APPLE_ATTESTATION_REVOCATION_CHECK_ENABLED
+            = "ClientAttestation.AppleAttestationRevocationCheckEnabled";
 
     // Constants related to Android Attestation
     public static final String PLAY_RECOGNIZED = "PLAY_RECOGNIZED";

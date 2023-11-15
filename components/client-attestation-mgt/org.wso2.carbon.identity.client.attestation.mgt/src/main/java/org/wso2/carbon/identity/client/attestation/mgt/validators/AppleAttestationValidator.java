@@ -27,8 +27,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.ClientAttestationMetaData;
 import org.wso2.carbon.identity.client.attestation.mgt.exceptions.ClientAttestationMgtException;
+import org.wso2.carbon.identity.client.attestation.mgt.internal.ClientAttestationMgtDataHolder;
 import org.wso2.carbon.identity.client.attestation.mgt.model.ClientAttestationContext;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -99,7 +100,7 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
 
         try {
             // Parse the CBOR data into a Map.
-            Map<String, Object> cborMap = cborMapper.readValue(cborData, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> cborMap = cborMapper.readValue(cborData, new TypeReference<Map<String, Object>>() { });
 
             if (verifyAppleAttestationStatement(cborMap, clientAttestationContext)
                     && verifyAppleAuthData(cborMap, clientAttestationContext)) {
@@ -109,14 +110,14 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
         } catch (IOException e) {
             // An exception occurred, indicating it's not an Apple Attestation.
             throw new ClientAttestationMgtException("Unable to validate attestation, cause " +
-                    "decodeIntegrityTokenResponse is null for application : " + applicationResourceId +
+                    "Attestation object is not in expected statement : " + applicationResourceId +
                     "tenant domain : " + tenantDomain);
         }
     }
 
     private boolean verifyAppleAttestationStatement(Map<String, Object> cborMap,
                                                     ClientAttestationContext clientAttestationContext)
-            throws ClientAttestationMgtException{
+            throws ClientAttestationMgtException {
 
         Object attStmtObject = cborMap.get(ATT_STMT);
         if (!(attStmtObject instanceof Map)) {
@@ -136,20 +137,17 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
         ArrayList<byte[]> x5c = (ArrayList<byte[]>) x5cObject;
 
         try {
-            String appleAttestationCertificate = "MIICITCCAaegAwIBAgIQC/O+DvHN0uD7jG5yH2IXmDAKBggqhkjOPQQDAzBSMSYw" +
-                    "JAYDVQQDDB1BcHBsZSBBcHAgQXR0ZXN0YXRpb24gUm9vdCBDQTETMBEGA1UECgwK" +
-                    "QXBwbGUgSW5jLjETMBEGA1UECAwKQ2FsaWZvcm5pYTAeFw0yMDAzMTgxODMyNTNa" +
-                    "Fw00NTAzMTUwMDAwMDBaMFIxJjAkBgNVBAMMHUFwcGxlIEFwcCBBdHRlc3RhdGlv" +
-                    "biBSb290IENBMRMwEQYDVQQKDApBcHBsZSBJbmMuMRMwEQYDVQQIDApDYWxpZm9y" +
-                    "bmlhMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAERTHhmLW07ATaFQIEVwTtT4dyctdh" +
-                    "NbJhFs/Ii2FdCgAHGbpphY3+d8qjuDngIN3WVhQUBHAoMeQ/cLiP1sOUtgjqK9au" +
-                    "Yen1mMEvRq9Sk3Jm5X8U62H+xTD3FE9TgS41o0IwQDAPBgNVHRMBAf8EBTADAQH/" +
-                    "MB0GA1UdDgQWBBSskRBTM72+aEH/pwyp5frq5eWKoTAOBgNVHQ8BAf8EBAMCAQYw" +
-                    "CgYIKoZIzj0EAwMDaAAwZQIwQgFGnByvsiVbpTKwSga0kP0e8EeDS4+sQmTvb7vn" +
-                    "53O5+FRXgeLhpJ06ysC5PrOyAjEAp5U4xDgEgllF7En3VcE3iexZZtKeYnpqtijV" +
-                    "oyFraWVIyd/dganmrduC1bmTBGwD";
-            X509Certificate appleRootCA = (X509Certificate)
-                    IdentityUtil.convertPEMEncodedContentToCertificate(appleAttestationCertificate);
+
+            X509Certificate appleRootCA = ClientAttestationMgtDataHolder.getInstance()
+                    .getAppleAttestationRootCertificate();
+            if (appleRootCA == null) {
+                throw new ClientAttestationMgtException("Unable to validate attestation, apple attestation root " +
+                        "certificate is not found. ");
+            }
+            if (isCertificateExpiringSoon(appleRootCA)) {
+                LOG.warn("Provided apple attestation root certificate is going to expire soon. " +
+                        "Please add latest certificate.");
+            }
 
             // Load the attestation certificate and intermediate CA certificate from the attestation object
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
@@ -165,6 +163,11 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
             // Create a CertPathValidator and validate the certificate chain
             CertPathValidator certPathValidator = CertPathValidator.getInstance("PKIX");
             PKIXParameters params = new PKIXParameters(Collections.singleton(new TrustAnchor(appleRootCA, null)));
+            // In the context of PKIX (Public Key Infrastructure for X.509), revocation refers to the process of
+            // declaring a digital certificate as invalid before its natural expiration date.
+            // In Development this is not necessary, hence provide a config to configure revocation.
+            params.setRevocationEnabled(ClientAttestationMgtDataHolder.getInstance()
+                    .isAppleAttestationRevocationCheckEnabled());
 
             try {
                 certPathValidator.validate(certPath, params);
@@ -254,6 +257,18 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
             throw new ClientAttestationMgtException("Unable to validate attestation, cause " +
                     "SHA-256 algorithm is not available." , e);
         }
+    }
+
+    private boolean isCertificateExpiringSoon(X509Certificate certificate) {
+
+        Date currentDate = new Date();
+        Date expirationDate = certificate.getNotAfter();
+
+        // Calculate the difference in days
+        long differenceInDays = (expirationDate.getTime() - currentDate.getTime()) / (24 * 60 * 60 * 1000);
+
+        // Check if the certificate is expiring within month.
+        return differenceInDays <= 30;
     }
 
     /**
