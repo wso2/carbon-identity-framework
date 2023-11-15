@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
@@ -35,11 +37,24 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 
 import javax.servlet.ServletException;
@@ -64,6 +79,10 @@ public class AuthenticationService {
      */
     public AuthServiceResponse handleAuthentication(AuthServiceRequest authRequest) throws AuthServiceException {
 
+        // Request validation is only required for the initial authentication request.
+        if (isInitialAuthRequest(authRequest)) {
+            validateRequest(authRequest);
+        }
         AuthServiceRequestWrapper wrappedRequest = getWrappedRequest(authRequest.getRequest(),
                 authRequest.getParameters());
         AuthServiceResponseWrapper wrappedResponse = getWrappedResponse(authRequest.getResponse());
@@ -342,5 +361,133 @@ public class AuthenticationService {
         }
 
         return completionSessionDataKey;
+    }
+
+    private void validateRequest(AuthServiceRequest authServiceRequest) throws AuthServiceException {
+
+        // Validate all configured authenticators support API based authentication.
+        String clientId = getClientId(authServiceRequest.getRequest());
+        String tenantDomain = getTenantDomain(authServiceRequest.getRequest());
+        Set<ApplicationAuthenticator> authenticators = getConfiguredAuthenticators(clientId, tenantDomain);
+        for (ApplicationAuthenticator authenticator : authenticators) {
+            if (!authenticator.isAPIBasedAuthenticationSupported()) {
+                throw new AuthServiceException(
+                        AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED.code(),
+                        String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED.description(),
+                                authenticator.getName()));
+            }
+        }
+
+    }
+
+    private Set<ApplicationAuthenticator> getConfiguredAuthenticators(String clientId, String tenantDomain) throws
+            AuthServiceException {
+
+        ServiceProvider serviceProvider = getServiceProvider(clientId, tenantDomain);
+        if (serviceProvider == null) {
+            throw new AuthServiceClientException(
+                    AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_FIND_APPLICATION.code(),
+                    String.format(AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_FIND_APPLICATION.description(),
+                            clientId, tenantDomain));
+        }
+
+        LocalAndOutboundAuthenticationConfig authenticationConfig = serviceProvider
+                .getLocalAndOutBoundAuthenticationConfig();
+        if (authenticationConfig == null || authenticationConfig.getAuthenticationSteps() == null) {
+            return Collections.emptySet();
+        }
+
+        Set<ApplicationAuthenticator> authenticators = new HashSet<>();
+        for (AuthenticationStep authenticationStep : authenticationConfig.getAuthenticationSteps()) {
+            processLocalAuthenticators(authenticationStep, authenticators);
+            processFederatedAuthenticators(authenticationStep, authenticators);
+        }
+
+        return authenticators;
+    }
+
+    private void processLocalAuthenticators(AuthenticationStep authenticationStep,
+                                            Set<ApplicationAuthenticator> authenticators) {
+
+        if (authenticationStep.getLocalAuthenticatorConfigs() != null) {
+            for (LocalAuthenticatorConfig localAuthenticatorConfig :
+                    authenticationStep.getLocalAuthenticatorConfigs()) {
+                addAuthenticator(authenticators, localAuthenticatorConfig.getName());
+            }
+        }
+    }
+
+    private void processFederatedAuthenticators(AuthenticationStep authenticationStep,
+                                                Set<ApplicationAuthenticator> authenticators) {
+
+        if (authenticationStep.getFederatedIdentityProviders() != null) {
+            for (IdentityProvider federatedIdP : authenticationStep.getFederatedIdentityProviders()) {
+                FederatedAuthenticatorConfig fedAuthenticatorConfig = federatedIdP.getDefaultAuthenticatorConfig();
+                if (fedAuthenticatorConfig != null) {
+                    addAuthenticator(authenticators, fedAuthenticatorConfig.getName());
+                }
+            }
+        }
+    }
+
+    private void addAuthenticator(Set<ApplicationAuthenticator> authenticators, String authenticatorName) {
+
+        ApplicationAuthenticator authenticator = FrameworkUtils.getAppAuthenticatorByName(authenticatorName);
+        if (authenticator != null) {
+            authenticators.add(authenticator);
+        }
+    }
+
+    private ServiceProvider getServiceProvider(String clientId, String tenantDomain)
+            throws AuthServiceException {
+
+        ApplicationManagementService appMgtService = ApplicationManagementService.getInstance();
+
+        try {
+            return appMgtService.getServiceProviderByClientId(clientId, FrameworkConstants.OAUTH2,
+                    tenantDomain);
+        } catch (IdentityApplicationManagementClientException e) {
+            throw new AuthServiceClientException(
+                    AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_FIND_APPLICATION.code(),
+                    String.format(AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_FIND_APPLICATION.description(),
+                            clientId, tenantDomain, e));
+        } catch (IdentityApplicationManagementException e) {
+            throw new AuthServiceException(AuthServiceConstants.ErrorMessage.ERROR_RETRIEVING_APPLICATION.code(),
+                    String.format(AuthServiceConstants.ErrorMessage.ERROR_RETRIEVING_APPLICATION.description(),
+                            clientId, tenantDomain, e));
+        }
+    }
+
+    private String getTenantDomain(HttpServletRequest request) {
+
+        String tenantDomain;
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread local context.");
+            }
+            tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        } else {
+            tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
+        }
+
+        if (StringUtils.isEmpty(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Resolved tenant domain: " + tenantDomain);
+        }
+        return tenantDomain;
+    }
+
+    private String getClientId(HttpServletRequest request) {
+
+        return request.getParameter(FrameworkConstants.RequestParams.ISSUER);
+    }
+
+    private boolean isInitialAuthRequest(AuthServiceRequest authServiceRequest) {
+
+        return Boolean.TRUE.equals(authServiceRequest.getRequest().getAttribute(
+                AuthServiceConstants.REQ_ATTR_IS_INITIAL_API_BASED_AUTH_REQUEST));
     }
 }
