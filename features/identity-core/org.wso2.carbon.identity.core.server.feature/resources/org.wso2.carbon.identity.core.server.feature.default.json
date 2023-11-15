@@ -684,6 +684,7 @@
   "tenant_context.enable_tenant_qualified_urls": true,
   "tenant_context.enable_tenanted_sessions": true,
   "tenant_context.require_super_tenant_in_urls": false,
+  "tenant_context.append_super_tenant_in_cookie_path": true,
   "tenant_context.rewrite.webapps": [
     "/oauth2/",
     "/scim2/",
