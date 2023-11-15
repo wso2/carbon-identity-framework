@@ -167,6 +167,8 @@
     <ClientAttestation>
         <!-- This tag defines the allowed window between current time and attestation object creation time. -->
         <AllowedWindowMillis>60000</AllowedWindowMillis>
+        <AppleAttestationRootCertificatePath>${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem</AppleAttestationRootCertificatePath>
+        <AppleAttestationRevocationCheckEnabled>false</AppleAttestationRevocationCheckEnabled>
     </ClientAttestation>
 
     <OAuth>
