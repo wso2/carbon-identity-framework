@@ -71,12 +71,12 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APP_PATH;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APP_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.INBOUND_AUTHENTICATION_CONFIG;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APP_PATH;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_APP_NAME;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
@@ -1039,14 +1039,13 @@ public class ApplicationMgtUtil {
      * @return The URL which origin replaced placeholders.
      * @throws URLBuilderException If any error occurs when building absolute public url without path.
      */
-    public static String replaceUrlOriginWithPlaceholders(String absoluteUrl) throws URLBuilderException {
+    public static String replaceUrlOriginWithPlaceholders(String applicationName, String absoluteUrl) throws URLBuilderException {
 
-        if (StringUtils.contains(absoluteUrl, CONSOLE_APP_PATH) ||
-                StringUtils.contains(absoluteUrl, MY_ACCOUNT_APP_PATH)) {
+        if (applicationName.equalsIgnoreCase(CONSOLE_APP_NAME) ||
+                applicationName.equalsIgnoreCase(MY_ACCOUNT_APP_NAME)) {
             String origin = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
             absoluteUrl = StringUtils.replace(absoluteUrl, origin, BASE_URL_PLACEHOLDER);
         }
-
         return absoluteUrl;
     }
 
@@ -1057,14 +1056,13 @@ public class ApplicationMgtUtil {
      * @return The resolved URL from placeholders.
      * @throws URLBuilderException If any error occurs when building absolute public url without path.
      */
-    public static String resolveOriginUrlFromPlaceholders(String absoluteUrl) throws URLBuilderException {
+    public static String resolveOriginUrlFromPlaceholders(String applicationName, String absoluteUrl) throws URLBuilderException {
 
-        if (StringUtils.contains(absoluteUrl, CONSOLE_APP_PATH) ||
-                StringUtils.contains(absoluteUrl, MY_ACCOUNT_APP_PATH)) {
+        if (applicationName.equalsIgnoreCase(CONSOLE_APP_NAME) ||
+                applicationName.equalsIgnoreCase(MY_ACCOUNT_APP_NAME)) {
             String origin = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
             absoluteUrl = StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, origin);
         }
-
         return absoluteUrl;
     }
 }

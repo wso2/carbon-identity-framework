@@ -399,7 +399,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAppPrepStmt.setString(10, resourceId);
             storeAppPrepStmt.setString(11, application.getImageUrl());
             storeAppPrepStmt.setString(12,
-                    ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(application.getAccessUrl()));
+                    ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(applicationName, application.getAccessUrl()));
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -958,7 +958,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statement.setString(ApplicationTableColumns.IS_DISCOVERABLE, isDiscoverable ? "1" : "0");
             statement.setString(ApplicationTableColumns.IMAGE_URL, serviceProvider.getImageUrl());
             statement.setString(ApplicationTableColumns.ACCESS_URL,
-                    ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(serviceProvider.getAccessUrl()));
+                    ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(serviceProvider.getApplicationName(), serviceProvider.getAccessUrl()));
             if (isValidUserForOwnerUpdate) {
                 User owner = serviceProvider.getOwner();
                 statement.setString(ApplicationTableColumns.USERNAME, owner.getUserName());
@@ -1890,6 +1890,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setDescription(basicAppDataResultSet.getString(6));
                 serviceProvider.setImageUrl(basicAppDataResultSet.getString(ApplicationTableColumns.IMAGE_URL));
                 serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+                        serviceProvider.getApplicationName(),
                         basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
                 serviceProvider.setDiscoverable(getBooleanValue(basicAppDataResultSet.getString(ApplicationTableColumns
                         .IS_DISCOVERABLE)));
@@ -2350,6 +2351,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setDescription(rs.getString(ApplicationTableColumns.DESCRIPTION));
                 serviceProvider.setImageUrl(rs.getString(ApplicationTableColumns.IMAGE_URL));
                 serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+                        serviceProvider.getApplicationName(),
                         rs.getString(ApplicationTableColumns.ACCESS_URL)));
                 serviceProvider.setDiscoverable(getBooleanValue(rs.getString(ApplicationTableColumns.IS_DISCOVERABLE)));
 
@@ -5637,7 +5639,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
 
         try {
-            basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+            basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(basicInfo.getApplicationName(),
                     appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
@@ -5677,7 +5679,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
 
         try {
-            basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+            basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(basicInfo.getApplicationName(),
                     appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
