@@ -147,6 +147,7 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
      * @return true if it is an Apple Attestation, false otherwise.
      */
     private boolean isAppleAttestation(String attestationObject) {
+
         // Create a CBOR factory and an ObjectMapper for CBOR serialization.
         CBORFactory factory = new CBORFactory();
         ObjectMapper cborMapper = new ObjectMapper(factory);

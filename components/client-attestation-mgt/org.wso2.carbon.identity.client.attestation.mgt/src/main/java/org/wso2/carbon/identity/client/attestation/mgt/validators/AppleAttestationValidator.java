@@ -54,8 +54,11 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.ATT_STMT;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.AUTH_DATA;
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.CERTIFICATE_EXPIRY_THRESHOLD;
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.PKIX;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.SHA_256;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.X5C;
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.X_509_CERTIFICATE_TYPE;
 
 /**
  * Implementation of the {@link ClientAttestationValidator} interface specific to Apple attestation.
@@ -79,6 +82,7 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
     private String tenantDomain;
 
     private ClientAttestationMetaData clientAttestationMetaData;
+
     public AppleAttestationValidator(String applicationResourceId,
                                      String tenantDomain,
                                      ClientAttestationMetaData clientAttestationMetaData) {
@@ -162,7 +166,7 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
             }
 
             // Load the attestation certificate and intermediate CA certificate from the attestation object
-            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            CertificateFactory certificateFactory = CertificateFactory.getInstance(X_509_CERTIFICATE_TYPE);
             X509Certificate credCert = (X509Certificate) certificateFactory.generateCertificate(
                     new ByteArrayInputStream(x5c.get(0)));
             X509Certificate caCert = (X509Certificate) certificateFactory.generateCertificate(
@@ -173,7 +177,7 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
             CertPath certPath = certificateFactory.generateCertPath(certs);
 
             // Create a CertPathValidator and validate the certificate chain
-            CertPathValidator certPathValidator = CertPathValidator.getInstance("PKIX");
+            CertPathValidator certPathValidator = CertPathValidator.getInstance(PKIX);
             PKIXParameters params = new PKIXParameters(Collections.singleton(new TrustAnchor(appleRootCA, null)));
             // In the context of PKIX (Public Key Infrastructure for X.509), revocation refers to the process of
             // declaring a digital certificate as invalid before its natural expiration date.
@@ -221,6 +225,9 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
             return false;
         }
         byte[] authData = (byte[]) authDataObject;
+        // As per the official documentation at
+        // https://developer.apple.com/documentation/devicecheck/validating_apps_that_connect_to_your_server#3576643
+        // rpIdHash(Relaying Party Id) is the hash of the app’s App ID is represented with first 31 byte on authData.
         byte[] rpIdHash = Arrays.copyOfRange(authData, 0, 32);
 
         // Get the configured Apple App ID
@@ -279,8 +286,8 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
         // Calculate the difference in days
         long differenceInDays = (expirationDate.getTime() - currentDate.getTime()) / (24 * 60 * 60 * 1000);
 
-        // Check if the certificate is expiring within month.
-        return differenceInDays <= 30;
+        // Check if the certificate is expiring within 3 months.
+        return differenceInDays <= CERTIFICATE_EXPIRY_THRESHOLD;
     }
 
     /**

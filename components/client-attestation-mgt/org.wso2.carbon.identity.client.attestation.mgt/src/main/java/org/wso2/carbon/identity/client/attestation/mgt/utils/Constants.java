@@ -58,5 +58,8 @@ public class Constants {
     public static final String X5C = "x5c";
     public static final String APPLE_APP_ATTEST = "apple-appattest";
     public static final String SHA_256 = "SHA-256";
+    public static final String X_509_CERTIFICATE_TYPE = "X.509";
+    public static final String PKIX = "PKIX";
+    public static final int CERTIFICATE_EXPIRY_THRESHOLD = 90;
 
 }

@@ -43,6 +43,7 @@ import java.util.Date;
 
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.APPLE_ATTESTATION_REVOCATION_CHECK_ENABLED;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.APPLE_ATTESTATION_ROOT_CERTIFICATE_PATH;
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.CERTIFICATE_EXPIRY_THRESHOLD;
 
 /**
  * OSGi declarative services component which handled registration and un-registration of
@@ -142,8 +143,8 @@ public class ClientAttestationMgtServiceComponent {
         // Calculate the difference in days
         long differenceInDays = (expirationDate.getTime() - currentDate.getTime()) / (24 * 60 * 60 * 1000);
 
-        // Check if the certificate is expiring within a month
-        return differenceInDays <= 30;
+        // Check if the certificate is expiring within 3 months.
+        return differenceInDays <= CERTIFICATE_EXPIRY_THRESHOLD;
     }
 
     @Deactivate
