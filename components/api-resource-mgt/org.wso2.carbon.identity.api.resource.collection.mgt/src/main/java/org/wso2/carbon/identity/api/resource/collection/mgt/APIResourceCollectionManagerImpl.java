@@ -98,9 +98,6 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
             throws APIResourceCollectionMgtException {
 
         APIResourceCollection apiResourceCollection = apiResourceCollectionMap.get(collectionId);
-        if (apiResourceCollection == null) {
-            return null;
-        }
         return populateAPIResourcesForCollection(apiResourceCollection, tenantDomain);
     }
 
@@ -116,6 +113,9 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
             throws APIResourceCollectionMgtException {
 
         try {
+            if (collection == null) {
+                return null;
+            }
             APIResourceCollection clonedCollection = cloneAPIResourceCollection(collection);
             // Fetch and filter read API resources.
             List<APIResource> readAPIResources = APIResourceCollectionMgtServiceDataHolder.getInstance()
