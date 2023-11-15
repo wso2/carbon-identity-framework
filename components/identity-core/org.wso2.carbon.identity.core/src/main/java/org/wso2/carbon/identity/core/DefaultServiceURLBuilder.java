@@ -127,7 +127,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
             if (isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
-                setUrlBasedOnOrgOrTenantPerspective(resolvedUrlStringBuilder, tenantDomain);
+                setURL(resolvedUrlStringBuilder, tenantDomain);
             }
         }
 
@@ -463,7 +463,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
     }
 
-    private void setUrlBasedOnOrgOrTenantPerspective(StringBuilder resolvedUrlStringBuilder, String tenantDomain) {
+    private void setURL(StringBuilder resolvedUrlStringBuilder, String tenantDomain) {
 
         // ####### Organization perspective resource URL building.
         // if organization ID is explicitly set, build an organization qualified URL.
