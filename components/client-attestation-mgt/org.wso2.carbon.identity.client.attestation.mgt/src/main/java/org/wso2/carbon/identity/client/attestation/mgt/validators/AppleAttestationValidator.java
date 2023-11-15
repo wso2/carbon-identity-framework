@@ -115,10 +115,19 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
         }
     }
 
+    /**
+     * Verifies the Apple attestation statement by validating the certificate chain.
+     *
+     * @param cborMap                 CBOR map containing the attestation statement.
+     * @param clientAttestationContext Context containing information related to client attestation.
+     * @return True if the attestation statement is successfully verified, false otherwise.
+     * @throws ClientAttestationMgtException If an error occurs during the verification process.
+     */
     private boolean verifyAppleAttestationStatement(Map<String, Object> cborMap,
                                                     ClientAttestationContext clientAttestationContext)
             throws ClientAttestationMgtException {
 
+        // Extract attestation statement from CBOR map
         Object attStmtObject = cborMap.get(ATT_STMT);
         if (!(attStmtObject instanceof Map)) {
             clientAttestationContext.setAttested(false);
@@ -127,6 +136,8 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
             return false;
         }
         Map<String, Object> attStmt = (Map<String, Object>) attStmtObject;
+
+        // Extract X5C (certificate chain) from attestation statement
         Object x5cObject = attStmt.get(X5C);
         if (!(x5cObject instanceof ArrayList)) {
             clientAttestationContext.setAttested(false);
@@ -137,16 +148,17 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
         ArrayList<byte[]> x5c = (ArrayList<byte[]>) x5cObject;
 
         try {
-
+            // Retrieve the Apple attestation root certificate
             X509Certificate appleRootCA = ClientAttestationMgtDataHolder.getInstance()
                     .getAppleAttestationRootCertificate();
             if (appleRootCA == null) {
                 throw new ClientAttestationMgtException("Unable to validate attestation, apple attestation root " +
                         "certificate is not found. ");
             }
+            // Warn if the Apple attestation root certificate is expiring soon
             if (isCertificateExpiringSoon(appleRootCA)) {
                 LOG.warn("Provided apple attestation root certificate is going to expire soon. " +
-                        "Please add latest certificate.");
+                        "Please add the latest certificate.");
             }
 
             // Load the attestation certificate and intermediate CA certificate from the attestation object
@@ -165,7 +177,7 @@ public class AppleAttestationValidator implements ClientAttestationValidator {
             PKIXParameters params = new PKIXParameters(Collections.singleton(new TrustAnchor(appleRootCA, null)));
             // In the context of PKIX (Public Key Infrastructure for X.509), revocation refers to the process of
             // declaring a digital certificate as invalid before its natural expiration date.
-            // In Development this is not necessary, hence provide a config to configure revocation.
+            // In Development, this is not necessary; hence, provide a config to configure revocation.
             params.setRevocationEnabled(ClientAttestationMgtDataHolder.getInstance()
                     .isAppleAttestationRevocationCheckEnabled());
 

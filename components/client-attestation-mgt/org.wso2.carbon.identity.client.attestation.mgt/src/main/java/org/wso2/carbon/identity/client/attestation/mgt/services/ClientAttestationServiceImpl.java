@@ -196,7 +196,8 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
      * This method developed using following documentation
      * <a href="https://developer.android.com/google/play/integrity/classic#token-format">
      *     Google Play Integrity Token Format
-     * </a>     * @param attestationObject The attestation object to be checked, typically in JWE format.
+     * </a>
+     * @param attestationObject The attestation object to be checked, typically in JWE format.
      * @return true if it is an Android Attestation request, false otherwise.
      */
     private boolean isAndroidAttestation(String attestationObject) {
