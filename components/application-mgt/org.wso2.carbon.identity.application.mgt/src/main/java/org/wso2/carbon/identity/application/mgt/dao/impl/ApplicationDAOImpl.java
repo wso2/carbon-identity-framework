@@ -378,6 +378,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement storeAppPrepStmt = null;
         ResultSet results = null;
         try {
+            if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
+                application.setAccessUrl(
+                        ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(application.getAccessUrl()));
+            }
             String resourceId = generateApplicationResourceId(application);
             String dbProductName = connection.getMetaData().getDatabaseProductName();
             storeAppPrepStmt = connection.prepareStatement(
@@ -398,8 +402,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAppPrepStmt.setString(9, "0");
             storeAppPrepStmt.setString(10, resourceId);
             storeAppPrepStmt.setString(11, application.getImageUrl());
-            storeAppPrepStmt.setString(12,
-                    ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(applicationName, application.getAccessUrl()));
+            storeAppPrepStmt.setString(12, application.getAccessUrl());
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -951,14 +954,23 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             sql = ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO;
         }
 
+        if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
+            try {
+                serviceProvider.setAccessUrl(
+                        ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(serviceProvider.getAccessUrl()));
+            } catch (URLBuilderException e) {
+                throw new IdentityApplicationManagementException(
+                        "Error occurred when replacing origin of the access URL with placeholders", e);
+            }
+        }
+
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql)) {
             statement.setString(ApplicationTableColumns.APP_NAME, applicationName);
             statement.setString(ApplicationTableColumns.DESCRIPTION, description);
             statement.setString(ApplicationTableColumns.IS_SAAS_APP, isSaasApp ? "1" : "0");
             statement.setString(ApplicationTableColumns.IS_DISCOVERABLE, isDiscoverable ? "1" : "0");
             statement.setString(ApplicationTableColumns.IMAGE_URL, serviceProvider.getImageUrl());
-            statement.setString(ApplicationTableColumns.ACCESS_URL,
-                    ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(serviceProvider.getApplicationName(), serviceProvider.getAccessUrl()));
+            statement.setString(ApplicationTableColumns.ACCESS_URL, serviceProvider.getAccessUrl());
             if (isValidUserForOwnerUpdate) {
                 User owner = serviceProvider.getOwner();
                 statement.setString(ApplicationTableColumns.USERNAME, owner.getUserName());
@@ -968,9 +980,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statement.setInt(ApplicationTableColumns.ID, applicationId);
 
             statement.executeUpdate();
-        } catch (URLBuilderException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error occurred when replacing origin of the access URL with placeholders", e);
         }
 
         if (log.isDebugEnabled()) {
@@ -1889,9 +1898,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setApplicationName(basicAppDataResultSet.getString(3));
                 serviceProvider.setDescription(basicAppDataResultSet.getString(6));
                 serviceProvider.setImageUrl(basicAppDataResultSet.getString(ApplicationTableColumns.IMAGE_URL));
-                serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                        serviceProvider.getApplicationName(),
-                        basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+
+                serviceProvider.setAccessUrl(basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL));
+                if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
+                    serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+                            basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+                }
+
                 serviceProvider.setDiscoverable(getBooleanValue(basicAppDataResultSet.getString(ApplicationTableColumns
                         .IS_DISCOVERABLE)));
 
@@ -2350,9 +2363,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setApplicationName(rs.getString(ApplicationTableColumns.APP_NAME));
                 serviceProvider.setDescription(rs.getString(ApplicationTableColumns.DESCRIPTION));
                 serviceProvider.setImageUrl(rs.getString(ApplicationTableColumns.IMAGE_URL));
-                serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                        serviceProvider.getApplicationName(),
-                        rs.getString(ApplicationTableColumns.ACCESS_URL)));
+
+                serviceProvider.setAccessUrl(rs.getString(ApplicationTableColumns.ACCESS_URL));
+                if (ApplicationMgtUtil.isConsoleOrMyAccount(serviceProvider.getApplicationName())) {
+                    serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+                            rs.getString(ApplicationTableColumns.ACCESS_URL)));
+                }
+
                 serviceProvider.setDiscoverable(getBooleanValue(rs.getString(ApplicationTableColumns.IS_DISCOVERABLE)));
 
                 User owner = new User();
@@ -5639,8 +5656,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
 
         try {
-            basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(basicInfo.getApplicationName(),
-                    appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+            basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
+            if (ApplicationMgtUtil.isConsoleOrMyAccount(basicInfo.getApplicationName())) {
+                basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+            }
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
                     "Error occurred when resolving origin of the access URL with placeholders", e);
@@ -5679,8 +5699,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
 
         try {
-            basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(basicInfo.getApplicationName(),
-                    appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+            basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
+            if (ApplicationMgtUtil.isConsoleOrMyAccount(basicInfo.getApplicationName())) {
+                basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
+                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+            }
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
                     "Error occurred when resolving origin of the access URL with placeholders", e);
