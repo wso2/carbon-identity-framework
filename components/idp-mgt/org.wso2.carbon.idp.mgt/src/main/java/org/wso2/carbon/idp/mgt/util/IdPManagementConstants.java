@@ -25,6 +25,7 @@ public class IdPManagementConstants {
 
     public static final String SHARED_IDP_PREFIX = "SHARED_";
     public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
+    public static final String IDP_GROUP_LIST_PLACEHOLDER = "_IDP_GROUP_LIST_";
     public static final String MULTI_VALUED_PROPERTY_CHARACTER = ".";
     public static final String IS_TRUE_VALUE = "1";
     public static final String IS_FALSE_VALUE = "0";
@@ -553,6 +554,9 @@ public class IdPManagementConstants {
                 "IDP_METADATA.TENANT_ID = ?";
         public static final String GET_TOTAL_IDP_CLAIM_USAGES = "SELECT COUNT(*) FROM IDP_CLAIM_MAPPING WHERE " +
                 "TENANT_ID = ? AND LOCAL_CLAIM = ?";
+        public static final String GET_IDP_GROUPS_BY_IDP_GROUP_IDS = "SELECT IDP_GROUP.UUID, IDP_GROUP.GROUP_NAME, " +
+                "IDP.UUID AS IDP_ID FROM IDP_GROUP LEFT JOIN IDP ON IDP.ID = IDP_GROUP.IDP_ID WHERE " +
+                "IDP_GROUP.TENANT_ID = ? AND IDP_GROUP.UUID IN (" + IDP_GROUP_LIST_PLACEHOLDER + ")";
     }
 
     public enum ErrorMessage {
@@ -585,7 +589,8 @@ public class IdPManagementConstants {
         ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected " +
                 "applications of Identity Provider with resource ID: %s."),
         ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
-                "the outbound provisioning roles");
+                "the outbound provisioning roles"),
+        ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups");
 
         private final String code;
         private final String message;
