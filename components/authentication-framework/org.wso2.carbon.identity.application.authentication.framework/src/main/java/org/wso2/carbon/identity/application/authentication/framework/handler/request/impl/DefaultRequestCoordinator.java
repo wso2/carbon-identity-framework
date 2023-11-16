@@ -833,28 +833,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
         // Get service provider chain
         SequenceConfig effectiveSequence = getSequenceConfig(context, request.getParameterMap());
-        ServiceProviderProperty[] spProperties = effectiveSequence.getApplicationConfig().getServiceProvider()
-                .getSpProperties();
-        boolean showOrganizationAuthenticator = true;
-        for (ServiceProviderProperty property : spProperties) {
-            if (IS_APP_SHARED.equals(property.getName()) && !Boolean.parseBoolean(property.getValue())) {
-                showOrganizationAuthenticator = false;
-                break;
-            }
-        }
-        if (!showOrganizationAuthenticator) {
-            Map<Integer, StepConfig> stepMap = effectiveSequence.getStepMap();
-            if (MapUtils.isNotEmpty(stepMap)) {
-                StepConfig stepConfig = stepMap.get(1);
-                if (stepConfig != null) {
-                    List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
-                    authenticatorList = authenticatorList.stream()
-                            .filter(authenticatorConfig -> !authenticatorConfig.getName()
-                                    .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
-                    stepConfig.setAuthenticatorList(authenticatorList);
-                }
-            }
-        }
+        setStepConfigAuthenticatorList(effectiveSequence);
 
         if (acrRequested != null) {
             for (String acr : acrRequested) {
@@ -1205,5 +1184,34 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } catch (UserStoreException e) {
             throw new FrameworkException("Error occurred while retrieving claim: " + claimURI, e);
         }
+    }
+
+    private void setStepConfigAuthenticatorList(SequenceConfig effectiveSequence) {
+
+        Map<Integer, StepConfig> stepMap = effectiveSequence.getStepMap();
+        ApplicationConfig applicationConfig = effectiveSequence.getApplicationConfig();
+        if (MapUtils.isEmpty(stepMap) && applicationConfig == null) {
+            return;
+        }
+        ServiceProviderProperty[] spProperties = applicationConfig.getServiceProvider().getSpProperties();
+        boolean showOrganizationAuthenticator = true;
+        for (ServiceProviderProperty property : spProperties) {
+            if (IS_APP_SHARED.equals(property.getName()) && !Boolean.parseBoolean(property.getValue())) {
+                showOrganizationAuthenticator = false;
+                break;
+            }
+        }
+        if (showOrganizationAuthenticator) {
+            return;
+        }
+        StepConfig stepConfig = stepMap.get(1);
+        if (stepConfig == null) {
+            return;
+        }
+        List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
+        authenticatorList = authenticatorList.stream()
+                .filter(authenticatorConfig -> !authenticatorConfig.getName()
+                        .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
+        stepConfig.setAuthenticatorList(authenticatorList);
     }
 }
