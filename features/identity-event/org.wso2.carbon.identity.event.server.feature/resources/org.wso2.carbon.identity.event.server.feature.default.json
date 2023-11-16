@@ -235,7 +235,9 @@
   ],
   "identity_mgt.events.schemes.OrganizationCreationHandler.module_index": "37",
   "identity_mgt.events.schemes.OrganizationCreationHandler.subscriptions": [
-    "POST_ADD_ORGANIZATION"
+    "POST_ADD_ORGANIZATION",
+    "PRE_DELETE_ORGANIZATION",
+    "POST_DELETE_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "38",
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
