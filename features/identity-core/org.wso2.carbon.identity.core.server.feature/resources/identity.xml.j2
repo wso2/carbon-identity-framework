@@ -872,6 +872,10 @@
             <RetryCount>{{oauth.token_generation.retry_count_on_persistence_failures}}</RetryCount>
         </TokenPersistence>
         
+        <!--
+            Config related to OAuth2 authorization code persistence.
+            Prior to IS 7.0.0, this was handled by the config <TokenPersistence>.<Enable>.
+       -->
         <EnableAuthCodePersistence>true</EnableAuthCodePersistence>
 
         <!--
