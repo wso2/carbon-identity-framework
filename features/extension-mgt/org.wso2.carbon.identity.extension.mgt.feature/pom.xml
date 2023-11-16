@@ -19,7 +19,7 @@
     <parent>
         <artifactId>extension-management-feature</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.25.517-SNAPSHOT</version>
+        <version>5.25.517</version>
     </parent>
 
     <artifactId>org.wso2.carbon.identity.extension.mgt.feature</artifactId>
