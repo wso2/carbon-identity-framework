@@ -1374,5 +1374,7 @@
   "organization_management.self_service.default_token_expiry_time": "7200",
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
-  "client_attestation.allowed_window": "60000"
+  "client_attestation.allowed_window": "60000",
+  "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
+  "client_attestation.apple_attestation_revocation_check_enabled": false
 }
