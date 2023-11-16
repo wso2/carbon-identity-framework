@@ -843,11 +843,17 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
         if (!showOrganizationAuthenticator) {
-            List<AuthenticatorConfig> authenticatorList = effectiveSequence.getStepMap().get(1).getAuthenticatorList();
-            authenticatorList = authenticatorList.stream()
-                    .filter(authenticatorConfig -> !authenticatorConfig.getName().equals(ORGANIZATION_AUTHENTICATOR))
-                    .collect(Collectors.toList());
-            effectiveSequence.getStepMap().get(1).setAuthenticatorList(authenticatorList);
+            Map<Integer, StepConfig> stepMap = effectiveSequence.getStepMap();
+            if (MapUtils.isNotEmpty(stepMap)) {
+                StepConfig stepConfig = stepMap.get(1);
+                if (stepConfig != null) {
+                    List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
+                    authenticatorList = authenticatorList.stream()
+                            .filter(authenticatorConfig -> !authenticatorConfig.getName()
+                                    .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
+                    stepConfig.setAuthenticatorList(authenticatorList);
+                }
+            }
         }
 
         if (acrRequested != null) {
