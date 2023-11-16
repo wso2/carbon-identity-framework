@@ -519,7 +519,7 @@
   "event.default_listener.governance_identity_store.enable_hybrid_data_store": false,
   "event.default_listener.application_authentication.priority": "11",
   "event.default_listener.application_authentication.enable": true,
-  "event.default_listener.mutual_tls_authenticator.priority": "158",
+  "event.default_listener.mutual_tls_authenticator.priority": "9999",
   "event.default_listener.mutual_tls_authenticator.enable": true,
   "event.default_listener.private_key_jwt_authenticator.priority": "899",
   "event.default_listener.private_key_jwt_authenticator.enable": true,
