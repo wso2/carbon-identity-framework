@@ -1345,6 +1345,7 @@
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
   "show_pending_user_information.enable": true,
+  "replace_amr_value_with_idp_sent_values.enable": false,
   "identity_util.enable_sha256_random_numbers": true,
   "organization.user.invitation.default.expiry_time": "4320",
   "organization.user.invitation.primary.user_domain": "PRIMARY",

@@ -1123,6 +1123,9 @@
         </RestrictedScopes>
         {% endif %}
 
+        <!-- Configuration to enable setting local IDP generated AMR values with the values sent by the used idp. -->
+        <ReplaceDefaultAMRValuesWithIDPSentValues>{{replace_amr_value_with_idp_sent_values.enable}}</ReplaceDefaultAMRValuesWithIDPSentValues>
+
     </OAuth>
 
     <RestApiAuthentication>
