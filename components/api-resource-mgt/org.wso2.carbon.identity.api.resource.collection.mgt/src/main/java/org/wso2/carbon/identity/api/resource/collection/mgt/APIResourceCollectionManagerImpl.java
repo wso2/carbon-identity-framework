@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -112,25 +113,24 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
                                                                     String tenantDomain)
             throws APIResourceCollectionMgtException {
 
+        if (collection == null) {
+            return null;
+        }
         try {
-            if (collection == null) {
-                return null;
-            }
             APIResourceCollection clonedCollection = cloneAPIResourceCollection(collection);
-            // Fetch and filter read API resources.
-            List<APIResource> readAPIResources = APIResourceCollectionMgtServiceDataHolder.getInstance()
-                    .getAPIResourceManagementService().getScopeMetadata(clonedCollection.getReadScopes(), tenantDomain);
-            filterAndSetScopes(readAPIResources, clonedCollection,
-                    APIResourceCollectionManagementConstants.READ_SCOPES);
 
-            // Fetch and filter write API resources.
-            List<APIResource> writeAPIResources = APIResourceCollectionMgtServiceDataHolder.getInstance()
-                    .getAPIResourceManagementService()
-                    .getScopeMetadata(clonedCollection.getWriteScopes(), tenantDomain);
-            filterAndSetScopes(writeAPIResources, clonedCollection,
-                    APIResourceCollectionManagementConstants.WRITE_SCOPES);
+            // Combine read and write scopes for a single fetch.
+            Set<String> combinedScopes = new HashSet<>();
+            Optional.ofNullable(clonedCollection.getReadScopes()).ifPresent(combinedScopes::addAll);
+            Optional.ofNullable(clonedCollection.getWriteScopes()).ifPresent(combinedScopes::addAll);
+            List<APIResource> allAPIResources = APIResourceCollectionMgtServiceDataHolder.getInstance()
+                    .getAPIResourceManagementService().getScopeMetadata(new ArrayList<>(combinedScopes), tenantDomain);
 
-            // Set read and write resources.
+            List<APIResource> readAPIResources =
+                    filterAPIResources(allAPIResources, clonedCollection.getReadScopes());
+            List<APIResource> writeAPIResources =
+                    filterAPIResources(allAPIResources, clonedCollection.getWriteScopes());
+
             Map<String, List<APIResource>> apiResourcesMap = new HashMap<>();
             apiResourcesMap.put(APIResourceCollectionManagementConstants.READ, readAPIResources);
             apiResourcesMap.put(APIResourceCollectionManagementConstants.WRITE, writeAPIResources);
@@ -144,44 +144,44 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
         }
     }
 
-    /**
-     * Filter scopes of API resources based on the scopes defined in the API resource collection.
-     *
-     * @param apiResources          List of API resources.
-     * @param apiResourceCollection API resource collection.
-     * @param scopeType             Scope type.
-     */
-    private void filterAndSetScopes(List<APIResource> apiResources, APIResourceCollection apiResourceCollection,
-                                    String scopeType) {
+    private List<APIResource> filterAPIResources(List<APIResource> apiResources, List<String> scopes) {
 
-        if (apiResources == null || apiResources.isEmpty()) {
-            return;
+        if (scopes == null || scopes.isEmpty()) {
+            return Collections.emptyList();
         }
-        Set<String> scopeSet = getScopeSet(apiResourceCollection, scopeType);
-        if (!scopeSet.isEmpty()) {
-            filterAPIResourceScopes(apiResources, scopeSet);
-        }
+        Set<String> scopeSet = new HashSet<>(scopes);
+        return apiResources.stream()
+                .filter(apiResource ->
+                        apiResource.getScopes().stream().anyMatch(scope -> scopeSet.contains(scope.getName()))
+                       )
+                .map(apiResource -> filterAPIResourceScopes(apiResource, scopeSet))
+                .collect(Collectors.toList());
     }
 
-    private Set<String> getScopeSet(APIResourceCollection apiResourceCollection, String scopeType) {
+    private APIResource filterAPIResourceScopes(APIResource apiResource, Set<String> allowedScopes) {
 
-        List<String> scopes = APIResourceCollectionManagementConstants.READ_SCOPES.equals(scopeType) ?
-                apiResourceCollection.getReadScopes() : apiResourceCollection.getWriteScopes();
-        return scopes == null ? Collections.emptySet() : new HashSet<>(scopes);
+        APIResource clonedResource = cloneAPIResource(apiResource);
+        if (clonedResource.getScopes() != null) {
+            List<Scope> filteredScopes = clonedResource.getScopes().stream()
+                    .filter(scope -> allowedScopes.contains(scope.getName()))
+                    .collect(Collectors.toList());
+            clonedResource.setScopes(filteredScopes);
+        } else {
+            clonedResource.setScopes(Collections.emptyList());
+        }
+        return clonedResource;
     }
 
-    private void filterAPIResourceScopes(List<APIResource> apiResources, Set<String> allowedScopes) {
+    private APIResource cloneAPIResource(APIResource apiResource) {
 
-        apiResources.forEach(apiResource -> {
-            if (apiResource.getScopes() != null) {
-                List<Scope> filteredScopes = apiResource.getScopes().stream()
-                        .filter(scope -> allowedScopes.contains(scope.getName()))
-                        .collect(Collectors.toList());
-                apiResource.setScopes(filteredScopes);
-            } else {
-                apiResource.setScopes(Collections.emptyList());
-            }
-        });
+        return new APIResource.APIResourceBuilder()
+                .id(apiResource.getId())
+                .name(apiResource.getName())
+                .type(apiResource.getType())
+                .identifier(apiResource.getIdentifier())
+                .description(apiResource.getDescription())
+                .scopes(apiResource.getScopes())
+                .build();
     }
 
     private APIResourceCollection cloneAPIResourceCollection(APIResourceCollection apiResourceCollection) {
