@@ -35,6 +35,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
@@ -613,6 +614,24 @@ public class EntitlementServiceComponent {
             log.debug("ConfigurationContextService unset in EntitlementServiceComponent bundle.");
         }
         EntitlementConfigHolder.getInstance().setConfigurationContextService(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.application.mgt.ApplicationManagementService",
+            service = org.wso2.carbon.identity.application.mgt.ApplicationManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationManagementService")
+    protected void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        EntitlementConfigHolder.getInstance().setApplicationManagementService(applicationManagementService);
+        log.debug("ApplicationManagementService set in EntitlementServiceComponent bundle.");
+    }
+
+    protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        EntitlementConfigHolder.getInstance().setApplicationManagementService(null);
+        log.debug("ApplicationManagementService unset in EntitlementServiceComponent bundle.");
     }
 
 

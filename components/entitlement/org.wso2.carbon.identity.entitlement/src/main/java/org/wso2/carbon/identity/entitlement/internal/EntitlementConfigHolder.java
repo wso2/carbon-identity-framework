@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.entitlement.internal;
 
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
 import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
 import org.wso2.carbon.identity.entitlement.pap.EntitlementDataFinderModule;
@@ -144,6 +145,7 @@ public class EntitlementConfigHolder {
             new HashMap<String, List<PublisherDataHolder>>();
 
     private ConfigurationContextService configurationContextService;
+    private ApplicationManagementService applicationManagementService;
     private static EntitlementConfigHolder instance = new EntitlementConfigHolder();
 
     private EntitlementConfigHolder() {
@@ -298,5 +300,15 @@ public class EntitlementConfigHolder {
 
     public void setConfigurationContextService(ConfigurationContextService configurationContextService) {
         this.configurationContextService = configurationContextService;
+    }
+
+    public ApplicationManagementService getApplicationManagementService() {
+
+        return applicationManagementService;
+    }
+
+    public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+
+        this.applicationManagementService = applicationManagementService;
     }
 }
