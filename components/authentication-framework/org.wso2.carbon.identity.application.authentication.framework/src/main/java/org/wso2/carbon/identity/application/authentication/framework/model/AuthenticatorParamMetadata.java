@@ -32,6 +32,15 @@ public class AuthenticatorParamMetadata {
     private int paramOrder;
     private String i18nKey;
 
+    /**
+     * AuthenticatorParamMetadata constructor.
+     *
+     * @param name parameter name
+     * @param displayName parameter display name
+     * @param type parameter type
+     * @param paramOrder parameter order
+     * @param i18nKey i18n key
+     */
     public AuthenticatorParamMetadata(String name, String displayName, FrameworkConstants.AuthenticatorParamType type,
                                       int paramOrder, String i18nKey) {
 
@@ -42,10 +51,42 @@ public class AuthenticatorParamMetadata {
         this.i18nKey = i18nKey;
     }
 
-    public AuthenticatorParamMetadata(String name, FrameworkConstants.AuthenticatorParamType type, int paramOrder,
-                                      boolean isConfidential, String i18nKey) {
+    /**
+     * @deprecated Use {@link #AuthenticatorParamMetadata(String, String, FrameworkConstants.AuthenticatorParamType,
+     * int, boolean, String)} instead.
+     *
+     * @param name parameter name
+     * @param type parameter type
+     * @param paramOrder parameter order
+     * @param isConfidential true if the parameter is confidential
+     * @param i18nKey i18n key
+     */
+    @Deprecated
+    public AuthenticatorParamMetadata(String name, FrameworkConstants.AuthenticatorParamType type,
+                                      int paramOrder, boolean isConfidential, String i18nKey) {
 
         this.name = name;
+        this.type = type;
+        this.paramOrder = paramOrder;
+        this.isConfidential = isConfidential;
+        this.i18nKey = i18nKey;
+    }
+
+    /**
+     * AuthenticatorParamMetadata constructor.
+     *
+     * @param name parameter name
+     * @param displayName parameter display name
+     * @param type parameter type
+     * @param paramOrder parameter order
+     * @param isConfidential true if the parameter is confidential
+     * @param i18nKey i18n key
+     */
+    public AuthenticatorParamMetadata(String name, String displayName, FrameworkConstants.AuthenticatorParamType type,
+                                      int paramOrder, boolean isConfidential, String i18nKey) {
+
+        this.name = name;
+        this.displayName = displayName;
         this.type = type;
         this.paramOrder = paramOrder;
         this.isConfidential = isConfidential;

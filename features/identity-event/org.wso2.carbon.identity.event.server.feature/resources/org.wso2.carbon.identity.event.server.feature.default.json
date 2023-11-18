@@ -235,7 +235,9 @@
   ],
   "identity_mgt.events.schemes.OrganizationCreationHandler.module_index": "37",
   "identity_mgt.events.schemes.OrganizationCreationHandler.subscriptions": [
-    "POST_ADD_ORGANIZATION"
+    "POST_ADD_ORGANIZATION",
+    "PRE_DELETE_ORGANIZATION",
+    "POST_DELETE_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "38",
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
@@ -253,7 +255,8 @@
   ],
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.module_index": "40",
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.subscriptions": [
-    "POST_SHARED_CONSOLE_APP"
+    "POST_SHARED_CONSOLE_APP",
+    "POST_ADD_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.SharedRoleMgtHandler.module_index": "41",
   "identity_mgt.events.schemes.SharedRoleMgtHandler.subscriptions": [
@@ -263,6 +266,10 @@
   "identity_mgt.events.schemes.UserInvitationEventHandler.module_index": "42",
   "identity_mgt.events.schemes.UserInvitationEventHandler.subscriptions": [
     "POST_ADD_ORGANIZATION_USER_INVITATION"
+  ],
+  "identity_mgt.events.schemes.SMSNotificationHandler.module_index":"43",
+  "identity_mgt.events.schemes.SMSNotificationHandler.subscriptions": [
+    "TRIGGER_SMS_NOTIFICATION_LOCAL"
   ],
   "identity_mgt.events.schemes.UserInvitationEventHandler.properties.enable": true
 }

@@ -69,6 +69,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -127,7 +128,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_RO
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLE_SCOPE_BY_SCOPE_NAME_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SCIM_ROLE_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SHARED_HYBRID_ROLES_WITH_MAIN_ROLE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SHARED_ROLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SHARED_SCIM_ROLES_WITH_MAIN_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ASSOCIATED_APPS_BY_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ASSOCIATED_APP_IDS_BY_ROLE_ID_SQL;
@@ -168,6 +169,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SCOPE_BY_ROLES_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_MAIN_ROLE_IDS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
@@ -1253,25 +1255,14 @@ public class RoleDAOImpl implements RoleDAO {
         if (groups == null || groups.isEmpty()) {
             return;
         }
-        for (IdpGroup group : groups) {
 
-            IdentityProvider identityProvider = getIdpById(group.getIdpId(), tenantDomain);
-            if (identityProvider == null) {
-                throw new IdentityRoleManagementException("Idp not found.",
-                        "Idp not found for id : " + group.getIdpId());
-            }
-            IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
-            Map<String, String> idpGroupIdList = new HashMap<>();
-            for (IdPGroup idpGroup : idpGroups) {
-                idpGroupIdList.put(idpGroup.getIdpGroupId(), idpGroup.getIdpGroupName());
-            }
-            if (idpGroupIdList.containsKey(group.getGroupId())) {
-                group.setGroupName(idpGroupIdList.get(group.getGroupId()));
-            } else {
-                throw new IdentityRoleManagementException("Idp group not found.",
-                        "Idp group not found for id : " + group.getGroupId());
-            }
-        }
+        List<String> idpGroupIds = groups.stream()
+                .map(IdpGroup::getGroupId)
+                .collect(Collectors.toList());
+        List<IdPGroup> idpGroups = getIdpGroupsByIds(idpGroupIds, tenantDomain);
+
+        groups.clear();
+        idpGroups.stream().map(this::convertToIdpGroup).forEach(groups::add);
     }
 
     /**
@@ -1303,7 +1294,8 @@ public class RoleDAOImpl implements RoleDAO {
             try {
                 addRoleID(roleId, roleName, audienceRefId, tenantDomain, connection);
                 addPermissions(roleId, permissions, tenantDomain, connection);
-                if (APPLICATION.equals(audience)) {
+
+                if (APPLICATION.equals(audience) && !isSubOrgByTenant(tenantDomain)) {
                     addAppRoleAssociation(roleId, audienceId, connection);
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -2959,6 +2951,27 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     /**
+     * Get idp groups by id.
+     *
+     * @param idpGroupIds  Idp group ids.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while retrieving idp groups by id.
+     */
+    private List<IdPGroup> getIdpGroupsByIds(List<String> idpGroupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<IdPGroup> idpGroups;
+        try {
+            idpGroups = RoleManagementServiceComponentHolder.getInstance()
+                    .getIdentityProviderManager().getValidIdPGroupsByIdPGroupIds(idpGroupIds, tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            throw new IdentityRoleManagementException("Error while retrieving idp groups", "Error while retrieving idp "
+                    + "groups for idp Ids: " + idpGroupIds, e);
+        }
+        return idpGroups;
+    }
+
+    /**
      * Delete SCIM role.
      *
      * @param roleId            Role ID.
@@ -3011,19 +3024,31 @@ public class RoleDAOImpl implements RoleDAO {
      * @param connection   DB connection.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private void deleteSharedHybridRoles(String roleId, int mainTenantId,
-                                         Connection connection)
+    private void deleteSharedHybridRoles(String roleId, int mainTenantId, Connection connection)
             throws IdentityRoleManagementException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                DELETE_SHARED_HYBRID_ROLES_WITH_MAIN_ROLE_SQL)) {
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
-            statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
-            statement.executeUpdate();
+        try (NamedPreparedStatement selectStatement = new NamedPreparedStatement(
+                connection, GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL)) {
+            selectStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
+            selectStatement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
+            List<Map.Entry<Integer, Integer>> idsToDelete = new ArrayList<>();
+            try (ResultSet resultSet = selectStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    idsToDelete.add(new AbstractMap.SimpleEntry<>(
+                                    resultSet.getInt(1), resultSet.getInt(2)));
+                }
+            }
+            try (NamedPreparedStatement deleteStatement = new NamedPreparedStatement(connection, DELETE_SHARED_ROLE)) {
+                for (Map.Entry<Integer, Integer> idPair : idsToDelete) {
+                    deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_ID, idPair.getKey());
+                    deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, idPair.getValue());
+                    deleteStatement.addBatch();
+                }
+                deleteStatement.executeBatch();
+            }
         } catch (SQLException e) {
             String errorMessage = "Error while deleting shared roles of role id : " + roleId;
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    errorMessage, e);
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
     }
 
@@ -3073,7 +3098,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 DELETE_SHARED_SCIM_ROLES_WITH_MAIN_ROLE_SQL)) {
             for (RoleDTO roleDTO : deletedSharedSCIMRoles) {
-                statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, roleDTO.getName());
+                statement.setString(RoleConstants.RoleTableColumns.ROLE_NAME, appendInternalDomain(roleDTO.getName()));
                 statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, roleDTO.getTenantId());
                 statement.setInt(RoleConstants.RoleTableColumns.AUDIENCE_REF_ID, roleDTO.getAudienceRefId());
                 statement.executeUpdate();
@@ -3244,5 +3269,12 @@ public class RoleDAOImpl implements RoleDAO {
         String filterString = " < :" + attributeName + "; AND ";
         filter.append(attributeName).append(filterString);
         filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+    }
+
+    private IdpGroup convertToIdpGroup(IdPGroup idpGroup) {
+
+        IdpGroup convertedGroup = new IdpGroup(idpGroup.getIdpGroupId(), idpGroup.getIdpId());
+        convertedGroup.setGroupName(idpGroup.getIdpGroupName());
+        return convertedGroup;
     }
 }

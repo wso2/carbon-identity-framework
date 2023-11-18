@@ -29,6 +29,7 @@ public abstract class FrameworkConstants {
     public static final String DEFAULT_SEQUENCE = "default";
     public static final String AUTHENTICATED_AUTHENTICATORS = "authenticatedAuthenticators";
     public static final String REDIRECT_URL = "REDIRECT_URL";
+    public static final String IS_API_BASED = "IS_API_BASED";
     public static final String COMMONAUTH_COOKIE = "commonAuthId";
     public static final String ALLOW_SESSION_CREATION = "allowSessionCreation";
     public static final String CONTEXT_PROP_INVALID_EMAIL_USERNAME = "InvalidEmailUsername";
@@ -414,6 +415,7 @@ public abstract class FrameworkConstants {
         public static final String USER_TENANT_DOMAIN_HINT = "ut";
         public static final String CORRELATION_ID = "crId";
         public static final String IS_IDF_INITIATED_FROM_AUTHENTICATOR = "isIdfInitiatedFromAuthenticator";
+        public static final String SESSION_ID = "sessionId";
 
         private RequestParams() {
         }
@@ -769,5 +771,16 @@ public abstract class FrameworkConstants {
         USER_PROMPT,
         INTERNAL_PROMPT,
         REDIRECTION_PROMPT
+    }
+
+    /**
+     * Enum for authenticator message type.
+     * INFO - Info messages.
+     * ERROR - Error messages.
+     */
+    public enum AuthenticatorMessageType {
+
+        INFO,
+        ERROR
     }
 }

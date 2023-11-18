@@ -102,6 +102,8 @@ public class IdentityApplicationManagementUtil {
     private static final int MODE_MULTI_LINE = 5;
     private static final Pattern JS_LOOP_PATTERN = Pattern.compile("\\b(for|while|forEach)\\b");
 
+    private static ThreadLocal<Boolean> allowUpdateSystemApplicationThreadLocal = new ThreadLocal<>();
+
     static {
         //initialize xmlSignatureAlgorithms
         Map<String, String> xmlSignatureAlgorithmMap = new LinkedHashMap<>();
@@ -1009,6 +1011,35 @@ public class IdentityApplicationManagementUtil {
         }
 
         return Boolean.parseBoolean(confAllowLoops);
+    }
+
+    /**
+     * Set updating system apps allowed for the current thread.
+     *
+     * @param isAllowUpdateSystem True if updating system apps is allowed.
+     */
+    public static void setAllowUpdateSystemApplicationThreadLocal(Boolean isAllowUpdateSystem) {
+
+        allowUpdateSystemApplicationThreadLocal.set(isAllowUpdateSystem);
+    }
+
+    /**
+     * Get updating system apps allowed for the current thread.
+     *
+     * @return True if updating system apps is allowed.
+     */
+    public static boolean getAllowUpdateSystemApplicationThreadLocal() {
+
+        return allowUpdateSystemApplicationThreadLocal.get() != null ?
+                allowUpdateSystemApplicationThreadLocal.get() : false;
+    }
+
+    /**
+     * Clear allow update system application thread local.
+     */
+    public static void removeAllowUpdateSystemApplicationThreadLocal() {
+
+        allowUpdateSystemApplicationThreadLocal.remove();
     }
 
     /**

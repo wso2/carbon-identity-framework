@@ -250,6 +250,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreDeleteRoleWithException(roleId, tenantDomain);
         doPreValidateRoleDeletion(roleId, tenantDomain);
+        List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
+                .getRoleManagementListenerList();
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.preDeleteRole(roleId, tenantDomain);
+            }
+        }
         roleDAO.deleteRole(roleId, tenantDomain);
         roleManagementEventPublisherProxy.publishPostDeleteRole(roleId, tenantDomain);
         if (log.isDebugEnabled()) {
@@ -412,6 +419,14 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 deletedPermissions, tenantDomain);
         removeSimilarPermissions(addedPermissions, deletedPermissions);
         RoleBasicInfo roleBasicInfo =  roleDAO.getRoleBasicInfoById(roleId, tenantDomain);
+        List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
+                .getRoleManagementListenerList();
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.preUpdatePermissionsForRole(roleId, addedPermissions, deletedPermissions,
+                        roleBasicInfo.getAudience(), roleBasicInfo.getAudienceId(), tenantDomain);
+            }
+        }
         validatePermissions(addedPermissions, roleBasicInfo.getAudience(), roleBasicInfo.getAudienceId(), tenantDomain);
         roleDAO.updatePermissionListOfRole(roleId, addedPermissions,
                 deletedPermissions, tenantDomain);

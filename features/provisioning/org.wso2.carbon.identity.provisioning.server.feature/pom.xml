@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>provisioning-feature</artifactId>
-        <version>5.25.490-SNAPSHOT</version>
+        <version>5.25.528-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

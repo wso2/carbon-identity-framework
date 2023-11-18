@@ -356,6 +356,7 @@
             <xs:import namespace="http://script.model.common.application.identity.carbon.wso2.org/xsd"/>
             <xs:complexType name="ServiceProvider">
                 <xs:sequence>
+                    <xs:element minOccurs="0" name="APIBasedAuthenticationEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="accessUrl" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationID" type="xs:int"/>
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
@@ -364,6 +365,7 @@
                     <xs:element minOccurs="0" name="b2BSelfServiceApp" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2173:ClaimConfig"/>
+                    <xs:element minOccurs="0" name="clientAttestationMetaData" nillable="true" type="ax2173:ClientAttestationMetaData"/>
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="discoverable" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
@@ -419,6 +421,14 @@
                 <xs:sequence>
                     <xs:element minOccurs="0" name="claimId" type="xs:int"/>
                     <xs:element minOccurs="0" name="claimUri" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ClientAttestationMetaData">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="androidAttestationServiceCredentials" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="androidPackageName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="appleAppId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="attestationEnabled" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="InboundAuthenticationConfig">

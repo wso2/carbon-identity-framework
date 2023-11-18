@@ -118,6 +118,19 @@ public class IdentityApplicationConstants {
     public static final String ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME = "allowedAudienceForAssociatedRoles";
     public static final String ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME = "associatedRoles.allowedAudience";
 
+    public static final String IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME = "isAPIBasedAuthenticationEnabled";
+    public static final String IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME = "Is API Based Authentication Enabled";
+    public static final String IS_ATTESTATION_ENABLED_PROPERTY_NAME = "IsAttestationEnabled";
+    public static final String IS_ATTESTATION_ENABLED_DISPLAY_NAME = "Is Client Attestation Enabled";
+    public static final String ANDROID_PACKAGE_NAME_PROPERTY_NAME = "androidPackageName";
+    public static final String ANDROID_PACKAGE_NAME_DISPLAY_NAME = "Android mobile application package name";
+    public static final String APPLE_APP_ID_PROPERTY_NAME = "appleAppId";
+    public static final String APPLE_APP_ID_DISPLAY_NAME = "Apple application id";
+    public static final String APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS
+                = "ANDROID_ATTESTATION_CREDENTIALS";
+    public static final String CLIENT_ATTESTATION = "CLIENT_ATTESTATION";
+    public static final String ANDROID = "ANDROID";
+
     /**
      * Config elements.
      */
@@ -442,6 +455,7 @@ public class IdentityApplicationConstants {
         public static final String NAME = "passivests";
         public static final String PASSIVE_STS_REALM = "passiveSTSRealm";
         public static final String PASSIVE_STS_REPLY_URL = "passiveSTSWReply";
+        public static final String PASSIVE_STS_REPLY_URL_LOGOUT = "passiveSTSWReplyLogout";
     }
 
     /**

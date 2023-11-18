@@ -46,6 +46,8 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -93,6 +95,7 @@ public class ApplicationMgtUtil {
     private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final String DOMAIN_QUALIFIED_REGISTRY_SYSTEM_USERNAME =
             UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME + "/" + CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+    private static final String BASE_URL_PLACEHOLDER = "<PROTOCOL>://<HOSTNAME>:<PORT>";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
 
@@ -1025,5 +1028,43 @@ public class ApplicationMgtUtil {
 
         return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
                 || isLegacyAuditLogsDisabled();
+    }
+
+    /**
+     * This method use to replace the hostname and port with placeholders of URLs.
+     *
+     * @param absoluteUrl     The absolute URL which need to be modified.
+     * @return The URL which origin replaced placeholders.
+     * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     */
+    public static String replaceUrlOriginWithPlaceholders(String absoluteUrl) throws URLBuilderException {
+
+        String basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
+        return StringUtils.replace(absoluteUrl, basePath, BASE_URL_PLACEHOLDER);
+    }
+
+    /**
+     * This method use to replace placeholders with the hostname and port of URLs.
+     *
+     * @param absoluteUrl     The URL which need to resolve from placeholders.
+     * @return The resolved URL from placeholders.
+     * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     */
+    public static String resolveOriginUrlFromPlaceholders(String absoluteUrl) throws URLBuilderException {
+
+        String basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
+        return StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
+    }
+
+    /**
+     * Check whether the application is Console or My Account by app name.
+     *
+     * @param name Application name.
+     * @return True if the application is Console or My Account.
+     */
+    public static boolean isConsoleOrMyAccount(String name) {
+
+        return ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(name) ||
+                ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(name);
     }
 }

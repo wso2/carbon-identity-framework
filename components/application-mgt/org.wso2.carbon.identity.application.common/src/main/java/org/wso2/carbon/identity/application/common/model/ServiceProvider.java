@@ -54,6 +54,7 @@ public class ServiceProvider implements Serializable {
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
+    private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
 
     @XmlTransient
     @JsonIgnore
@@ -139,6 +140,15 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
 
+
+    @IgnoreNullElement
+    @XmlElement(name = IS_API_BASED_AUTHENTICATION_ENABLED)
+    private boolean isAPIBasedAuthenticationEnabled;
+
+    @IgnoreNullElement
+    @XmlElement(name = "ClientAttestationMetaData")
+    private ClientAttestationMetaData clientAttestationMetaData;
+
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -188,6 +198,14 @@ public class ServiceProvider implements Serializable {
                 serviceProvider.setCertificateContent(element.getText());
             } else if ("JwksUri".equals(elementName)) {
                 serviceProvider.setJwksUri(element.getText());
+            } else if (IS_API_BASED_AUTHENTICATION_ENABLED.equals(elementName)) {
+                boolean isAPIBasedAuthEnabled = element.getText() != null && "true".equals(element.getText());
+                serviceProvider.setAPIBasedAuthenticationEnabled(isAPIBasedAuthEnabled);
+            } else if ("ClientAttestationMetaData".equals(elementName)) {
+                // build client attestation meta data configuration.
+                serviceProvider
+                        .setClientAttestationMetaData(ClientAttestationMetaData
+                                .build(element));
             } else if ("IsSaaSApp".equals(elementName)) {
                 if (element.getText() != null && "true".equals(element.getText())) {
                     serviceProvider.setSaasApp(true);
@@ -564,6 +582,25 @@ public class ServiceProvider implements Serializable {
     public void setB2BSelfServiceApp(boolean isB2BSelfServiceApp) {
 
         this.isB2BSelfServiceApp = isB2BSelfServiceApp;
+    }
+
+    public boolean isAPIBasedAuthenticationEnabled() {
+
+        return isAPIBasedAuthenticationEnabled;
+    }
+
+    public void setAPIBasedAuthenticationEnabled(boolean isAPIBasedAuthenticationEnabled) {
+
+        this.isAPIBasedAuthenticationEnabled = isAPIBasedAuthenticationEnabled;
+    }
+    public ClientAttestationMetaData getClientAttestationMetaData() {
+
+        return clientAttestationMetaData;
+    }
+
+    public void setClientAttestationMetaData(ClientAttestationMetaData clientAttestationMetaData) {
+
+        this.clientAttestationMetaData = clientAttestationMetaData;
     }
 }
 

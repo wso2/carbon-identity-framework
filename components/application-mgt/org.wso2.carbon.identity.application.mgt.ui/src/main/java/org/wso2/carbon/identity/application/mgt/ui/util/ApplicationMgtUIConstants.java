@@ -46,6 +46,7 @@ public class ApplicationMgtUIConstants {
     public static final String DEFAULT_ITEM_VALUE = "service_providers_list";
     public static final String PAGINATION_VALUE = "region=%s&item=%s";
     public static final String PAGINATION_VALUE_WITH_FILTER = "region=%s&item=%s&filterString=%s";
+    public static final String PASSIVE_STS = "passivests";
 
     /**
      * Holds the application UI param related constants.

@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.AssociatedApplication;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.GroupBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
@@ -197,6 +198,20 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     public boolean preDeleteRole(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        try {
+            Role role = ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2()
+                    .getRole(roleID, tenantDomain);
+            List<AssociatedApplication> associatedApplications = role.getAssociatedApplications();
+            for (AssociatedApplication application : associatedApplications) {
+                ServiceProviderResourceIdCacheKey resourceIdKey = new
+                        ServiceProviderResourceIdCacheKey(application.getId());
+                ServiceProviderByResourceIdCache.getInstance().clearCacheEntry(resourceIdKey, tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            throw new IdentityRoleManagementException(
+                    String.format("Error occurred while deleting role : %s and tenant domain : %s",
+                            roleID, tenantDomain), e);
+        }
         return true;
     }
 
@@ -309,9 +324,13 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
 
     @Override
     public boolean preUpdatePermissionsForRole(String roleID, List<Permission> addedPermissions,
-                                               List<Permission> deletedPermissions, String tenantDomain)
+                                               List<Permission> deletedPermissions, String audience, String audienceId,
+                                               String tenantDomain)
             throws IdentityRoleManagementException {
 
+        if (APPLICATION.equalsIgnoreCase(audience)) {
+            validatePermissionsForApplication(addedPermissions, audienceId, tenantDomain);
+        }
         return true;
     }
 

@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -125,16 +126,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
-            if (isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
-                String organizationId = StringUtils.isNotBlank(orgId) ? orgId :
-                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-                if (organizationId != null) {
-                    // When requesting from an organization qualified url, the service urls should also be organization
-                    // qualified.
-                    resolvedUrlStringBuilder.append("/o/").append(organizationId);
-                } else {
-                    resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
-                }
+            if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
+                setURL(resolvedUrlStringBuilder, tenantDomain);
             }
         }
 
@@ -468,6 +461,33 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
                 serverUrl.append(contextPath.trim());
             }
         }
+    }
+
+    private void setURL(StringBuilder resolvedUrlStringBuilder, String tenantDomain) {
+
+        // ####### Organization perspective resource URL building.
+        // if organization ID is explicitly set, build an organization qualified URL.
+        if (StringUtils.isNotEmpty(this.orgId)) {
+            // The service urls are requested to be organization qualified.
+            resolvedUrlStringBuilder.append("/o/").append(this.orgId);
+            return;
+        }
+        /*  If the root tenant domain of the accessed organization is set in the thread local properties, use it to build
+        the URL in the form of /t/<tenant-domain>/o   */
+        String rootTenantDomain = (String) IdentityUtil.threadLocalProperties.get()
+                .get(OrganizationManagementConstants.ROOT_TENANT_DOMAIN);
+        if (StringUtils.isNotEmpty(rootTenantDomain)) {
+            // Set root tenant domain when resource accessed with organization perspective.
+            resolvedUrlStringBuilder.append("/t/").append(rootTenantDomain).append("/o");
+            return;
+        }
+        String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+        if (StringUtils.isNotEmpty(organizationId)) {
+            resolvedUrlStringBuilder.append("/o/").append(organizationId);
+            return;
+        }
+        // ####### Tenant perspective resource URL building.
+        resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
     }
 
     protected static class ServiceURLImpl implements ServiceURL {

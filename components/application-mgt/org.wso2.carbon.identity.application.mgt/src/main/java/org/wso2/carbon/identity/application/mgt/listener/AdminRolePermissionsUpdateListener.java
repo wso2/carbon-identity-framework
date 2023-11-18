@@ -25,11 +25,9 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
@@ -75,7 +73,6 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
                 return true;
             }
             String adminRoleId = getAdminRoleId(tenantDomain);
-            addAdminRoleToConsoleAppAsAssociatedRole(adminRoleId, serviceProvider, tenantDomain);
             updateAdminRolePermissions(adminRoleId, tenantDomain);
         } catch (OrganizationManagementException e) {
             LOG.error("Error while registering system API resources in tenant: " + tenantDomain);
@@ -107,26 +104,6 @@ public class AdminRolePermissionsUpdateListener extends AbstractApplicationMgtLi
         } catch (IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException("Error while update admin role permissions", e);
         }
-    }
-
-    /**
-     * Add admin role to console app as associated role.
-     *
-     * @param adminRoleId     Admin role id.
-     * @param serviceProvider Service provider.
-     * @param tenantDomain    Tenant domain.
-     * @throws IdentityApplicationManagementException if an error occurs while adding admin role to console app.
-     */
-    private void addAdminRoleToConsoleAppAsAssociatedRole(String adminRoleId, ServiceProvider serviceProvider,
-                                                          String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
-        associatedRolesConfig.setAllowedAudience(ORGANIZATION);
-        serviceProvider.setAssociatedRolesConfig(associatedRolesConfig);
-        ApplicationManagementServiceImpl.getInstance().addAssociatedRoleToApplication(serviceProvider, adminRoleId,
-                tenantDomain);
-        LOG.debug("Create an association between admin role and an console successfully.");
     }
 
     /**

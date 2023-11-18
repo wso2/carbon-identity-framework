@@ -1746,7 +1746,8 @@ CREATE TABLE IDN_SECRET_TYPE (
 INSERT INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('1358bdbf-e0cc-4268-a42c-c3e0960e13f0', 'ADAPTIVE_AUTH_CALL_CHOREO', 'Secret type to uniquely identify secrets relevant to callChoreo adaptive auth function'),
 ('c508ca28-60c0-4493-a758-77e4173ffdb9', 'IDP_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to identity providers'),
-('433df096-62b7-4a36-b3eb-1bed9150ed35', 'IDVP_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to identity verification providers')
+('433df096-62b7-4a36-b3eb-1bed9150ed35', 'IDVP_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to identity verification providers'),
+('29d0c37d-139a-4b1e-a343-7b8d26f0a2a9', 'ANDROID_ATTESTATION_CREDENTIALS', 'Secret type to uniquely identify secrets relevant to android client attestation credentials')
 /
 
 CREATE TABLE IDN_SECRET (

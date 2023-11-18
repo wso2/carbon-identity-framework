@@ -157,16 +157,19 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
     public Object[][] authProviderForFailures() {
 
         // String redirectUrl, Object authenticatorFlowStatus, Object authServiceFlowStatus,
-        // String sessionDataKey, String authenticatorList, String errorCode,String errorMsg
+        // String sessionDataKey, String authenticatorList, String errorCode, String errorMsg
         return new Object[][]{
                 {getFailureRedirectUrl(SESSION_DATA_KEY, SINGLE_AUTHENTICATOR, ERROR_MSG_LOGIN_FAIL),
                         AuthenticatorFlowStatus.INCOMPLETE, AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE,
-                        SESSION_DATA_KEY, SINGLE_AUTHENTICATOR, AuthServiceConstants.ERROR_CODE_UNKNOWN_ERROR,
+                        SESSION_DATA_KEY, SINGLE_AUTHENTICATOR,
+                        AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FAILURE_RETRY_AVAILABLE.code(),
                         ERROR_MSG_LOGIN_FAIL},
                 {getFinalRedirectUrl(FINAL_SESSION_DATA_KEY),
                         AuthenticatorFlowStatus.FAIL_COMPLETED, AuthServiceConstants.FlowStatus.FAIL_COMPLETED,
-                        FINAL_SESSION_DATA_KEY, StringUtils.EMPTY, AuthServiceConstants.ERROR_CODE_UNKNOWN_ERROR,
-                        AuthServiceConstants.ERROR_MSG_UNKNOWN_ERROR},
+                        FINAL_SESSION_DATA_KEY, StringUtils.EMPTY,
+                        AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FAILURE.code(),
+                        AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FAILURE.message()}
+                ,
         };
     }
 

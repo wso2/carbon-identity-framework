@@ -2417,7 +2417,27 @@
                                             </td>
 
                                         </tr>
-
+                                        <tr>
+                                            <td style="width:15%" class="leftCol-med labelField">
+                                                <fmt:message key='application.passive.sts.wreply.logout'/>:
+                                            </td>
+                                            <td>
+                                                <%
+                                                    if (appBean.getPassiveSTSWReplyLogout() != null) {
+                                                %>
+                                                <input style="width:50%" id="passiveSTSWReplyLogout" name="passiveSTSWReplyLogout"
+                                                       type="text"
+                                                       value="<%=Encode.forHtmlAttribute(appBean.getPassiveSTSWReplyLogout())%>"
+                                                       autocomplete="off" autofocus/>
+                                                <% } else { %>
+                                                <input style="width:50%" id="passiveSTSWReplyLogout" name="passiveSTSWReplyLogout"
+                                                       type="text" value="" autocomplete="off" autofocus/>
+                                                <% } %>
+                                                <div class="sectionHelp">
+                                                    <fmt:message key='help.passive.sts.wreply.logout'/>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     </table>
                                 </div>
 
