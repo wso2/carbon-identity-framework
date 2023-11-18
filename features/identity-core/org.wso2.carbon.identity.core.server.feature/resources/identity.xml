@@ -2504,8 +2504,13 @@
     <!-- System Applications -->
     <SystemApplications>
         <ApplicationName>Console</ApplicationName>
-        <ApplicationName>My Account</ApplicationName>
     </SystemApplications>
+
+    <!-- Default Applications -->
+    <DefaultApplications>
+        <ApplicationName>Console</ApplicationName>
+        <ApplicationName>My Account</ApplicationName>
+    </DefaultApplications>
 
     <!-- Claim to store localization code  -->
     <!--    By setting true localization code will be stored inside the http://wso2.org/claims/locality-->
