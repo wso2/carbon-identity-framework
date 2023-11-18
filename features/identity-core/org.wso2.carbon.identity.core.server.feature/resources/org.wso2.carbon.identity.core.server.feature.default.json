@@ -788,7 +788,9 @@
     "APPLICATION"
   ],
 
-  "system_applications.read_only_apps": ["Console", "My Account"],
+  "system_applications.read_only_apps": ["Console"],
+
+  "system_applications.default_apps": ["Console", "My Account"],
 
   "legacy_feature": [
     {

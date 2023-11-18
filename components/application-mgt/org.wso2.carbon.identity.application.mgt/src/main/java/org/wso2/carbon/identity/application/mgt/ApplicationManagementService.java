@@ -495,6 +495,16 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     }
 
     /**
+     * Get default applications defined for the server.
+     *
+     * @return default applications set.
+     */
+    public Set<String> getDefaultApplications() {
+
+        return Collections.emptySet();
+    }
+
+    /**
      * Get main application ID from the shared application ID.
      *
      * @param sharedAppId ID of the shared application.

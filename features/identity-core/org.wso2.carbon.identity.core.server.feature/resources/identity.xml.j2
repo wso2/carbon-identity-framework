@@ -3697,6 +3697,15 @@
     </SystemApplications>
     {% endif %}
 
+    <!-- Default Applications -->
+    {% if system_applications.default_apps is defined %}
+    <DefaultApplications>
+        {% for application in system_applications.default_apps %}
+        <ApplicationName>{{application}}</ApplicationName>
+        {% endfor %}
+    </DefaultApplications>
+    {% endif %}
+
     <!-- System Roles -->
     {% if system_roles is defined %}
     <SystemRoles>
