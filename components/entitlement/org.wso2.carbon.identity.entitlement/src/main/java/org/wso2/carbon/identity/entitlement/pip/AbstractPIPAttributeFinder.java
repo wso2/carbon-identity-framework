@@ -170,11 +170,15 @@ public abstract class AbstractPIPAttributeFinder implements PIPAttributeFinder {
             // Resolve application roles.
             if (UserCoreConstants.INTERNAL_ROLES_CLAIM.equals(attributeId.toString()) &&
                     !CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
-                    Set<String> roleNames = getAssociatedRolesOfApplication(issuer, evaluationCtx);
+                String spName =  getServiceProviderName(issuer, evaluationCtx);
+                String spTenantDomain = getServiceProviderTenantDomain(issuer, evaluationCtx);
+                if (StringUtils.isNotBlank(spName) && StringUtils.isNotBlank(spTenantDomain)) {
+                    Set<String> roleNames = getAssociatedRolesOfApplication(spName, spTenantDomain);
                     if (roleNames != null && !roleNames.isEmpty()) {
                         attributeValues = attributeValues.stream().filter(roleNames::contains).collect(
                                 Collectors.toSet());
                     }
+                }
             }
             if (isAbstractAttributeCachingEnabled && key != null) {
                 if (attributeValues != null && !attributeValues.isEmpty()) {
@@ -219,27 +223,21 @@ public abstract class AbstractPIPAttributeFinder implements PIPAttributeFinder {
     /**
      * Get roles associated with the application.
      *
-     * @param issuer        The attribute issuer.
-     * @param evaluationCtx       EvaluationCtx which encapsulates the XACML request.
+     * @param spName         Service provider name.
+     * @param spTenantDomain Service provider tenant domain.
      * @return Set of roles
      * @throws Exception if fails to get roles.
      */
-    private Set<String> getAssociatedRolesOfApplication(String issuer, EvaluationCtx evaluationCtx) throws Exception {
+    private Set<String> getAssociatedRolesOfApplication(String spName, String spTenantDomain) throws Exception {
 
-        Set<String> roleNames = null;
-        String spName =  getServiceProviderName(issuer, evaluationCtx);
-        String spTenantDomain = getServiceProviderTenantDomain(issuer, evaluationCtx);
-        if (StringUtils.isNotBlank(spName) && StringUtils.isNotBlank(spTenantDomain)) {
-            ApplicationBasicInfo applicationBasicInfo = EntitlementConfigHolder.getInstance()
-                    .getApplicationManagementService().getApplicationBasicInfoByName(spName, spTenantDomain);
-            List<RoleV2> roles = EntitlementConfigHolder.getInstance()
-                    .getApplicationManagementService()
-                    .getAssociatedRolesOfApplication(applicationBasicInfo.getApplicationResourceId(),
-                            spTenantDomain);
-            roleNames = roles.stream().map(RoleV2::getName).map(
-                    this::appendInternalDomain).collect(Collectors.toSet());
-        }
-        return roleNames;
+        ApplicationBasicInfo applicationBasicInfo = EntitlementConfigHolder.getInstance()
+                .getApplicationManagementService().getApplicationBasicInfoByName(spName, spTenantDomain);
+        List<RoleV2> roles = EntitlementConfigHolder.getInstance()
+                .getApplicationManagementService()
+                .getAssociatedRolesOfApplication(applicationBasicInfo.getApplicationResourceId(),
+                        spTenantDomain);
+        return roles.stream().map(RoleV2::getName).map(
+                this::appendInternalDomain).collect(Collectors.toSet());
     }
 
     /**
