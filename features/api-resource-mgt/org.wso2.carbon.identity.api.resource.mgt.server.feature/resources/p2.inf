@@ -1,3 +1,5 @@
 instructions.configure = \
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.api.resource.mgt.server_${feature.version}/system-api-resource.xml,target:${installFolder}/../../conf/system-api-resource.xml,overwrite:true);\
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.api.resource.mgt.server_${feature.version}/system-api-resource.xml.j2,target:${installFolder}/../../resources/conf/templates/repository/conf/system-api-resource.xml.j2,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.api.resource.mgt.server_${feature.version}/api-resource-collection.xml,target:${installFolder}/../../conf/api-resource-collection.xml,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.api.resource.mgt.server_${feature.version}/api-resource-collection.xml.j2,target:${installFolder}/../../resources/conf/templates/repository/conf/api-resource-collection.xml.j2,overwrite:true);\
