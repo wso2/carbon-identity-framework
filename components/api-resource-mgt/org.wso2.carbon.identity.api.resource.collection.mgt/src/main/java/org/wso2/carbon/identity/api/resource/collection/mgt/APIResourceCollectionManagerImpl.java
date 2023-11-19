@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.api.resource.collection.mgt;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants;
 import org.wso2.carbon.identity.api.resource.collection.mgt.exception.APIResourceCollectionMgtException;
 import org.wso2.carbon.identity.api.resource.collection.mgt.internal.APIResourceCollectionMgtServiceDataHolder;
@@ -146,7 +147,7 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
 
     private List<APIResource> filterAPIResources(List<APIResource> apiResources, List<String> scopes) {
 
-        if (scopes == null || scopes.isEmpty()) {
+        if (CollectionUtils.isEmpty(scopes)) {
             return Collections.emptyList();
         }
         Set<String> scopeSet = new HashSet<>(scopes);
