@@ -1,49 +1,19 @@
 {
-  "user_based": {
-    "displayName": "User",
-    "order": 1,
-    "icon": "./images/user-template.png"
-  },
-
-  "request_based": {
-    "displayName": "Request",
-    "order": 2,
-    "icon": "./images/request-template.png"
-  },
-
-  "environment_based": {
-    "displayName": "Environment",
-    "order": 3,
-    "icon": "./images/environment-template.png"
-  },
-
-  "analytics_based": {
-    "displayName": "Analytics",
-    "order": 4,
-    "icon": "./images/analytics-template.png"
-  },
-
-  "idp_based": {
-    "displayName": "Idp",
-    "order": 5,
-    "icon": "./images/idp-template.png"
-  },
-
   "AccessControl": {
     "displayName": "Access Control",
-    "order": 6,
+    "order": 1,
     "icon": "./images/access-control-template.png"
   },
 
   "AdaptiveMFA": {
     "displayName": "Adaptive MFA",
-    "order": 7,
+    "order": 2,
     "icon": "./images/adaptive-mfa-template.png"
   },
 
   "UserAttributes": {
     "displayName": "User Attributes",
-    "order": 8,
+    "order": 3,
     "icon": "./images/user-attributes-template.png"
   }
 }
