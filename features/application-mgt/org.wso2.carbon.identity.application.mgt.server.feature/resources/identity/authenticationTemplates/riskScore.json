@@ -1,6 +1,6 @@
 {
-  "category": "analytics_based",
-  "name": "Risk-Based [Deprecated]",
+  "category": "AdaptiveMFA",
+  "name": "[Deprecated] Risk-Based",
   "title": "Risk-Based 2FA Template [Deprecated]",
   "summary": "Define conditional authentication by risk score value calculated from analytics engine.",
   "preRequisites": [

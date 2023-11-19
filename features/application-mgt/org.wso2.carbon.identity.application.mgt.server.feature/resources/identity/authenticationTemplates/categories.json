@@ -27,5 +27,23 @@
     "displayName": "Idp",
     "order": 5,
     "icon": "./images/idp-template.png"
+  },
+
+  "AccessControl": {
+    "displayName": "Access Control",
+    "order": 6,
+    "icon": "./images/access-control-template.png"
+  },
+
+  "AdaptiveMFA": {
+    "displayName": "Adaptive MFA",
+    "order": 7,
+    "icon": "./images/adaptive-mfa-template.png"
+  },
+
+  "UserAttributes": {
+    "displayName": "User Attributes",
+    "order": 8,
+    "icon": "./images/user-attributes-template.png"
   }
 }

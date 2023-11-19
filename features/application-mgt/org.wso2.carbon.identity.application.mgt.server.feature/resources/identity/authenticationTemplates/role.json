@@ -1,5 +1,5 @@
 {
-  "category": "user_based",
+  "category": "AdaptiveMFA",
   "name": "Role-Based",
   "title": "Role-Based 2FA Template",
   "summary": "Prompts 2FA to the users who belongs to any of the given set of roles.",

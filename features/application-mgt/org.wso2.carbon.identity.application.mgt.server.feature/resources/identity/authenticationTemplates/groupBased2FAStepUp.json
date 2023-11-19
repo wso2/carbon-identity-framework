@@ -1,5 +1,5 @@
 {
-  "category": "user_based",
+  "category": "AdaptiveMFA",
   "name": "Group-Based",
   "title": "Group-Based 2FA Template",
   "summary": "Prompts 2FA to the users who belong to any of the given sets of groups.",
