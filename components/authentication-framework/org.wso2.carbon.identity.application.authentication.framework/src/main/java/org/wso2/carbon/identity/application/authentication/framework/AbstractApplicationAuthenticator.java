@@ -128,8 +128,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
                     context.setSendToMultiOptionPage(sendToMultiOptionPage);
-                    context.setRetrying(retryAuthenticationEnabled());
-                    if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
+                    if (!context.isRetrying()) {
+                        context.setRetrying(retryAuthenticationEnabled());
+                    }
+                    if (retryAuthenticationEnabled(context) || context.isRetrying() && !sendToMultiOptionPage) {
                         if (log.isDebugEnabled()) {
                             log.debug("Error occurred during the authentication process, hence retrying.", e);
                         }
