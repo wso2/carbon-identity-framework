@@ -202,6 +202,7 @@
                             org.wso2.carbon.utils;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils.multitenancy;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.*;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.*;version="${org.wso2.carbon.identity.organization.management.core.version.range}",
 
                             org.wso2.carbon.identity.base;version="${carbon.identity.package.import.version.range}",
 
