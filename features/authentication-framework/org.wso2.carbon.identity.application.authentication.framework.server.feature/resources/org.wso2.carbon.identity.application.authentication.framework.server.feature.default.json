@@ -225,6 +225,7 @@
   "authentication.authenticator.email_otp_local.name": "email-otp-authenticator",
   "authentication.authenticator.email_otp_local.enable": true,
   "authentication.authenticator.email_otp_local.parameters.Tags": "Passwordless,MFA",
+  "authentication.authenticator.email_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
 
   "authentication.authenticator.sms_otp_local.name": "sms-otp-authenticator",
   "authentication.authenticator.sms_otp_local.enable": true,
