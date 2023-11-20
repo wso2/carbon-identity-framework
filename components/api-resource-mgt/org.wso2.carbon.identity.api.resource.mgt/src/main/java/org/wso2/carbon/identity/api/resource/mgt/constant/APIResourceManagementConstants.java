@@ -34,9 +34,12 @@ public class APIResourceManagementConstants {
     public static final String NO_POLICY = "NO POLICY";
     public static final String ASC = "ASC";
     public static final String SYSTEM_API_FILTER = "type eq SYSTEM";
-    public static final String TENANT_API_FILTER = "type eq TENANT";
-    public static final String ORGANIZATION_API_FILTER = "type eq ORGANIZATION";
-    public static final String ME_API_FILTER = "type eq ME";
+    public static final String TENANT_ADMIN_API_FILTER = "type eq TENANT_ADMIN";
+    public static final String TENANT_USER_API_FILTER = "type eq TENANT_USER";
+    public static final String ORGANIZATION_ADMIN_API_FILTER = "type eq ORGANIZATION_ADMIN";
+    public static final String ORGANIZATION_USER_API_FILTER = "type eq ORGANIZATION_USER";
+    public static final String OTHER_API_FILTER = "type eq OTHER";
+    public static final String ME_API_FILTER = "name eq ME API and type eq OTHER";
     public static final String CONSOLE_FEATURE_API_FILTER = "type eq CONSOLE_FEATURE";
     public static final String INTERNAL_SCOPE_FILTER = "name sw internal_";
     public static final String CONSOLE_SCOPE_FILTER = "name sw console:";
