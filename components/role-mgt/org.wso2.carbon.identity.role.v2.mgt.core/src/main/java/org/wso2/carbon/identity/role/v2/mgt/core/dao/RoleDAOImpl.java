@@ -824,12 +824,70 @@ public class RoleDAOImpl implements RoleDAO {
                     roles.add(roleBasicInfo);
                 }
             }
+            roles.add(getEveryOneRole(tenantDomain));
         } catch (SQLException e) {
             String errorMessage =
                     "Error while retrieving role list of user by id: " + userId + " and tenantDomain : " + tenantDomain;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
         return roles;
+    }
+
+    /**
+     * Get everyone role name.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return every one role name.
+     * @throws IdentityRoleManagementException if error occurred while retrieving everyone role name.
+     */
+    private String getEveryOneRoleName(String tenantDomain) throws IdentityRoleManagementException {
+
+        String everyOneRoleName;
+        try {
+            everyOneRoleName = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration()
+                    .getEveryOneRoleName();
+        } catch (UserStoreException e) {
+            throw new IdentityRoleManagementException("Error while retrieving everyone role name", e);
+        }
+        if (everyOneRoleName == null) {
+            String errorMessage =
+                    "Everyone role name not found for tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage);
+        }
+        return removeInternalDomain(everyOneRoleName);
+    }
+
+    /**
+     * Get everyone role basic info.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return basic info of every one role.
+     * @throws IdentityRoleManagementException if error occurred while retrieving everyone role.
+     */
+    private RoleBasicInfo getEveryOneRole(String tenantDomain) throws IdentityRoleManagementException {
+
+        String everyOneRoleName = getEveryOneRoleName(tenantDomain);
+        String orgId = getOrganizationId(tenantDomain);
+        String roleId = getRoleIdByName(everyOneRoleName, ORGANIZATION, orgId, tenantDomain);
+        RoleBasicInfo roleBasicInfo = new RoleBasicInfo(roleId, everyOneRoleName);
+        roleBasicInfo.setAudience(ORGANIZATION);
+        roleBasicInfo.setAudienceId(getOrganizationId(tenantDomain));
+        roleBasicInfo.setAudienceName(getOrganizationName(orgId));
+        return roleBasicInfo;
+    }
+
+    /**
+     * Get everyone role id.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return every one role id.
+     * @throws IdentityRoleManagementException if error occurred while retrieving everyone role id.
+     */
+    private String getEveryOneRoleId(String tenantDomain) throws IdentityRoleManagementException {
+
+        String everyOneRoleName = getEveryOneRoleName(tenantDomain);
+        String orgId = getOrganizationId(tenantDomain);
+        return getRoleIdByName(everyOneRoleName, ORGANIZATION, orgId, tenantDomain);
     }
 
     private String getUsernameByUserID(String userId, String tenantDomain) throws IdentityRoleManagementException {
@@ -954,6 +1012,7 @@ public class RoleDAOImpl implements RoleDAO {
                     roleIds.add(roleId);
                 }
             }
+            roleIds.add(getEveryOneRoleId(tenantDomain));
         } catch (SQLException e) {
             String errorMessage = "Error while retrieving role id list of user by id: " + userId + " and " +
                     "tenantDomain : " + tenantDomain;
@@ -2052,6 +2111,24 @@ public class RoleDAOImpl implements RoleDAO {
                     .getOrganizationNameById(organizationId);
         } catch (OrganizationManagementException e) {
             String errorMessage = "Error while retrieving the organization name for the given id: " + organizationId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+    }
+
+    /**
+     * Get organization id by tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return organization id.
+     * @throws IdentityRoleManagementServerException IdentityRoleManagementServerException.
+     */
+    private String getOrganizationId(String tenantDomain) throws IdentityRoleManagementServerException {
+
+        try {
+            return RoleManagementServiceComponentHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(tenantDomain);
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while retrieving the organization id for the tenant domain: " + tenantDomain;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
     }
