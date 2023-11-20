@@ -124,6 +124,12 @@ public class PDPConstants {
 
     public static final String SUBJECT_ID_ROLE = "http://wso2.org/claims/roles";
 
+    public static  final String SERVICE_PROVIDER_NAME = "http://wso2.org/identity/sp/sp-name";
+
+    public static  final String SERVICE_PROVIDER_TENANT_DOMAIN = "http://wso2.org/identity/sp/sp-tenant-domain";
+
+    public  static  final String SERVICE_PROVIDER = "http://wso2.org/identity/sp";
+
     public static final String RULE_EFFECT_PERMIT = "Permit";
 
     public static final String RULE_EFFECT_DENY = "Deny";
