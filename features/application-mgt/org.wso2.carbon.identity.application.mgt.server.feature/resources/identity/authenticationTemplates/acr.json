@@ -1,5 +1,5 @@
 {
-  "category": "request_based",
+  "category": "AdaptiveMFA",
   "name": "ACR-Based",
   "title": "ACR-Based 2FA Template",
   "summary": "Define conditional authentication by passing one or many Authentication Context Class References as comma separated values.",

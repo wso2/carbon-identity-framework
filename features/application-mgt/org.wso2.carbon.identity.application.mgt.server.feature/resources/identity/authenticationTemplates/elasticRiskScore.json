@@ -1,5 +1,5 @@
 {
-  "category": "analytics_based",
+  "category": "AdaptiveMFA",
   "name": "ELK-Risk-Based",
   "title": "ELK Risk-Based 2FA Template",
   "summary": "Define conditional authentication by risk score value calculated from ELK.",

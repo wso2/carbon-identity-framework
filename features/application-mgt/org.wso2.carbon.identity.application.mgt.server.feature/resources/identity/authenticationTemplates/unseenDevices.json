@@ -1,5 +1,5 @@
 {
-  "category": "request_based",
+  "category": "AdaptiveMFA",
   "name": "New-Device-Based",
   "title": "New-Device-Based Authentication Template",
   "summary": "Send an email notification and/or prompts 2FA to the users who is logging in from a previously unused device. A cookie is used to identify whether the device has been used before.",

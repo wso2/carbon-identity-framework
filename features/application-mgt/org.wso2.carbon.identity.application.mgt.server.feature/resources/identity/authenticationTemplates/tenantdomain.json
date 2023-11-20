@@ -1,5 +1,5 @@
 {
-  "category": "user_based",
+  "category": "AdaptiveMFA",
   "name": "Tenant-Based",
   "title": "Tenant-Based Authentication Template",
   "summary": "Prompts 2FA to the users who are from one of the given tenants.",

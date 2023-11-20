@@ -1,5 +1,5 @@
 {
-  "category": "user_based",
+  "category": "AdaptiveMFA",
   "name": "Login-Attempts-Based",
   "title": "Login-Attempts-Based Authentication Template",
   "summary": "Prompts 2FA to the users who are successfully logging after specific number of failed login attempts.",
