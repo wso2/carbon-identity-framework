@@ -176,7 +176,7 @@ public class APIResourceManagementUtil {
     public static boolean isSystemAPIExist(String tenantDomain) throws APIResourceMgtException {
 
         return !APIResourceManagerImpl.getInstance()
-                .getAPIResources(null, null, 1, APIResourceManagementConstants.TENANT_API_FILTER,
+                .getAPIResources(null, null, 1, APIResourceManagementConstants.TENANT_ADMIN_API_FILTER,
                         APIResourceManagementConstants.ASC, tenantDomain).getAPIResources().isEmpty();
     }
 }
