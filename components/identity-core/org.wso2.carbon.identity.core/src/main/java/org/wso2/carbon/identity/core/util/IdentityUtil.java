@@ -50,13 +50,16 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
 import org.wso2.carbon.identity.core.model.LegacyFeatureConfig;
 import org.wso2.carbon.identity.core.model.ReverseProxyConfig;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.User;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
@@ -86,6 +89,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1648,7 +1652,24 @@ public class IdentityUtil {
                         if (log.isDebugEnabled()) {
                             log.debug("User id could not be resolved for username: " + username + " in user store " +
                                     "domain: " + userStoreDomain + " and tenant with id: " + tenantId + ". Probably " +
-                                    "user does not exist in the user store.");
+                                    "user does not exist in the user store. Hence trying to resolve user from the " +
+                                    "resident organization.");
+                        }
+                        Tenant tenant = IdentityCoreServiceDataHolder.getInstance().getRealmService()
+                                .getTenantManager().getTenant(tenantId);
+                        if (tenant == null) {
+                            return userId;
+                        }
+                        String associatedOrganizationUUID = tenant.getAssociatedOrganizationUUID();
+                        if (StringUtils.isBlank(associatedOrganizationUUID)) {
+                            // Trying to resolve the user from the Resident Organization if the user is not found in
+                            // the user store of the current organization.
+                            Optional<User> user = IdentityCoreServiceDataHolder.getInstance()
+                                    .getOrganizationUserResidentResolverService().resolveUserFromResidentOrganization(
+                                            username, null, associatedOrganizationUUID);
+                            if (user.isPresent()) {
+                                return user.get().getUserID();
+                            }
                         }
                     }
                     return userId;
@@ -1658,7 +1679,7 @@ public class IdentityUtil {
                             "AbstractUserStore manager");
                 }
                 throw new IdentityException("Unable to get the unique id of the user: " + username + ".");
-            } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            } catch (org.wso2.carbon.user.core.UserStoreException | OrganizationManagementException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error occurred while resolving Id for the user: " + username, e);
                 }
