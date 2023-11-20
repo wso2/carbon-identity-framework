@@ -824,7 +824,9 @@ public class RoleDAOImpl implements RoleDAO {
                     roles.add(roleBasicInfo);
                 }
             }
-            roles.add(getEveryOneRole(tenantDomain));
+            if (!isSubOrgByTenant(tenantDomain)) {
+                roles.add(getEveryOneRole(tenantDomain));
+            }
         } catch (SQLException e) {
             String errorMessage =
                     "Error while retrieving role list of user by id: " + userId + " and tenantDomain : " + tenantDomain;
@@ -1012,7 +1014,9 @@ public class RoleDAOImpl implements RoleDAO {
                     roleIds.add(roleId);
                 }
             }
-            roleIds.add(getEveryOneRoleId(tenantDomain));
+            if (!isSubOrgByTenant(tenantDomain)) {
+                roleIds.add(getEveryOneRoleId(tenantDomain));
+            }
         } catch (SQLException e) {
             String errorMessage = "Error while retrieving role id list of user by id: " + userId + " and " +
                     "tenantDomain : " + tenantDomain;
