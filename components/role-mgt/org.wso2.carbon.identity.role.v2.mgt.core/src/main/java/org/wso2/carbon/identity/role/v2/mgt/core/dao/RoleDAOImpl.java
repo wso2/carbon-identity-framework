@@ -1806,7 +1806,7 @@ public class RoleDAOImpl implements RoleDAO {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         boolean isExist = false;
-        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             int audienceRefId = getRoleAudienceRefId(audience, audienceId, connection);
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_EXIST_SQL,
                     RoleConstants.RoleTableColumns.UM_ID)) {
