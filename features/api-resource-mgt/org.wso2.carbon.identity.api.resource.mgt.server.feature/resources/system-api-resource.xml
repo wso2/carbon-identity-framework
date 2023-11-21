@@ -796,7 +796,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Me API" identifier="/me/" requiresAuthorization="false"
-                 description="API representation of the Me API" type="ME">
+                 description="API representation of the Me API" type="OTHER">
         <Scopes>
             <Scope displayName="User Login" name="internal_login"/>
         </Scopes>

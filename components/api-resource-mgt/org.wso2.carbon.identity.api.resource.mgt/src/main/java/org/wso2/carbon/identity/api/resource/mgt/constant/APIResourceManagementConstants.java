@@ -39,7 +39,7 @@ public class APIResourceManagementConstants {
     public static final String ORGANIZATION_ADMIN_API_FILTER = "type eq ORGANIZATION_ADMIN";
     public static final String ORGANIZATION_USER_API_FILTER = "type eq ORGANIZATION_USER";
     public static final String OTHER_API_FILTER = "type eq OTHER";
-    public static final String ME_API_FILTER = "name eq ME API and type eq OTHER";
+    public static final String ME_API_FILTER = "name eq Me API and type eq OTHER";
     public static final String CONSOLE_FEATURE_API_FILTER = "type eq CONSOLE_FEATURE";
     public static final String INTERNAL_SCOPE_FILTER = "name sw internal_";
     public static final String CONSOLE_SCOPE_FILTER = "name sw console:";
