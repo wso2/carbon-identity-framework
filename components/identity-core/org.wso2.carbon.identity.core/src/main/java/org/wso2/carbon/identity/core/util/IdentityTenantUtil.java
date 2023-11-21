@@ -463,4 +463,14 @@ public class IdentityTenantUtil {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_LEGACY_SAAS_AUTHENTICATION));
     }
+
+    /**
+     * Checks if it is required to specify carbon.super in tenant qualified URLs.
+     *
+     * @return true if it is mandatory, false otherwise.
+     */
+    public static String getCarbonSuperReplaceNameInUrls() {
+
+        return IdentityUtil.getProperty(IdentityCoreConstants.CARBON_SUPER_REPLACE_NAME_IN_URLS);
+    }
 }

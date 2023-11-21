@@ -91,7 +91,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String recoveryEndpointPath = fetchRecoveryEndpointPath();
         int proxyPort = fetchPort();
         int transportPort = fetchTransportPort();
-        String tenantDomain = StringUtils.isNotBlank(tenant) ? tenant : resolveTenantDomain();
+        String tenantDomain = resolveTenantDomainForUrlBuilder();
         String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(PROXY_CONTEXT_PATH);
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         String urlPath = getResolvedUrlPath(tenantDomain);
@@ -488,6 +488,16 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
         // ####### Tenant perspective resource URL building.
         resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+    }
+
+    private String resolveTenantDomainForUrlBuilder() {
+
+        String tenantDomain = StringUtils.isNotBlank(tenant) ? tenant : resolveTenantDomain();
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) &&
+                StringUtils.isNotBlank(IdentityTenantUtil.getCarbonSuperReplaceNameInUrls())) {
+            return IdentityTenantUtil.getCarbonSuperReplaceNameInUrls();
+        }
+        return tenantDomain;
     }
 
     protected static class ServiceURLImpl implements ServiceURL {
