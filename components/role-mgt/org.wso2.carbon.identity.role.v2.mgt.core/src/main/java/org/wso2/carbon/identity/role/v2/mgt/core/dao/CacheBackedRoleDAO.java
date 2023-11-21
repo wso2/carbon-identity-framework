@@ -1,12 +1,21 @@
 package org.wso2.carbon.identity.role.v2.mgt.core.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceIdCacheKey;
+import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceIdentifierCacheKey;
+import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleCacheById;
 import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleCacheEntry;
+import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleIdCacheByName;
+import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleIdCacheEntry;
 import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleIdCacheKey;
+import org.wso2.carbon.identity.role.v2.mgt.core.cache.RoleNameCacheKey;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.AssociatedApplication;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.GroupBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
@@ -17,17 +26,20 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CacheBackedRoleDAO implements RoleDAO {
 
     private static final Log LOG = LogFactory.getLog(CacheBackedRoleDAO.class);
     private final RoleCacheById roleCacheById;
+    private final RoleIdCacheByName roleIdCacheByName;
     private final RoleDAO roleDAO;
 
     public CacheBackedRoleDAO(RoleDAO roleDAO) {
 
         this.roleDAO = roleDAO;
         roleCacheById = RoleCacheById.getInstance();
+        roleIdCacheByName =  RoleIdCacheByName.getInstance();
     }
 
     @Override
@@ -62,6 +74,7 @@ public class CacheBackedRoleDAO implements RoleDAO {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Cache entry found for role " + roleId);
             }
+            return entry.getRole();
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("Cache entry not found for role " + roleId + ". Fetching entry from DB");
@@ -74,6 +87,10 @@ public class CacheBackedRoleDAO implements RoleDAO {
                 LOG.debug("Entry fetched from DB for role " + roleId + ". Updating cache");
             }
             roleCacheById.addToCache(cacheKey, new RoleCacheEntry(role), tenantDomain);
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Entry for role " + roleId + " not found in cache or DB");
+            }
         }
         return role;
     }
@@ -82,6 +99,17 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public List<Permission> getPermissionListOfRole(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleIdCacheKey cacheKey =  new RoleIdCacheKey(roleId);
+        RoleCacheEntry entry = roleCacheById.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role " + roleId);
+            }
+            return entry.getRole().getPermissions();
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleId + ". Fetching entry from DB");
+        }
         return roleDAO.getPermissionListOfRole(roleId, tenantDomain);
     }
 
@@ -97,6 +125,7 @@ public class CacheBackedRoleDAO implements RoleDAO {
                                            List<Permission> deletedPermissions, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        clearRoleCacheById(roleId, tenantDomain);
         roleDAO.updatePermissionListOfRole(roleId, addedPermissions, deletedPermissions, tenantDomain);
     }
 
@@ -104,6 +133,17 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public List<IdpGroup> getIdpGroupListOfRole(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleIdCacheKey cacheKey =  new RoleIdCacheKey(roleId);
+        RoleCacheEntry entry = roleCacheById.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role " + roleId);
+            }
+            return entry.getRole().getIdpGroups();
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleId + ". Fetching entry from DB");
+        }
         return roleDAO.getIdpGroupListOfRole(roleId, tenantDomain);
     }
 
@@ -111,12 +151,14 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public void updateIdpGroupListOfRole(String roleId, List<IdpGroup> newGroupList, List<IdpGroup> deletedGroupList,
                                          String tenantDomain) throws IdentityRoleManagementException {
 
+        clearRoleCacheById(roleId, tenantDomain);
         roleDAO.updateIdpGroupListOfRole(roleId, newGroupList, deletedGroupList, tenantDomain);
     }
 
     @Override
     public void deleteRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
+        clearRoleCacheById(roleId, tenantDomain);
         roleDAO.deleteRole(roleId, tenantDomain);
     }
 
@@ -124,6 +166,7 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public void updateRoleName(String roleId, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        clearRoleCacheById(roleId, tenantDomain);
         roleDAO.updateRoleName(roleId, newRoleName, tenantDomain);
     }
 
@@ -131,6 +174,17 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public List<UserBasicInfo> getUserListOfRole(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleIdCacheKey cacheKey =  new RoleIdCacheKey(roleId);
+        RoleCacheEntry entry = roleCacheById.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role " + roleId);
+            }
+            return entry.getRole().getUsers();
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleId + ". Fetching entry from DB");
+        }
         return roleDAO.getUserListOfRole(roleId, tenantDomain);
     }
 
@@ -138,6 +192,7 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public void updateGroupListOfRole(String roleId, List<String> newGroupIDList, List<String> deletedGroupIDList,
                                       String tenantDomain) throws IdentityRoleManagementException {
 
+        clearRoleCacheById(roleId, tenantDomain);
         roleDAO.updateGroupListOfRole(roleId, newGroupIDList, deletedGroupIDList, tenantDomain);
     }
 
@@ -145,6 +200,17 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public List<GroupBasicInfo> getGroupListOfRole(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleIdCacheKey cacheKey =  new RoleIdCacheKey(roleId);
+        RoleCacheEntry entry = roleCacheById.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role " + roleId);
+            }
+            return entry.getRole().getGroups();
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleId + ". Fetching entry from DB");
+        }
         return roleDAO.getGroupListOfRole(roleId, tenantDomain);
     }
 
@@ -152,12 +218,24 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public void updateUserListOfRole(String roleId, List<String> newUserIDList, List<String> deletedUserIDList,
                                      String tenantDomain) throws IdentityRoleManagementException {
 
+        clearRoleCacheById(roleId, tenantDomain);
         roleDAO.updateUserListOfRole(roleId, newUserIDList, deletedUserIDList, tenantDomain);
     }
 
     @Override
     public String getRoleNameByID(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
+        RoleIdCacheKey cacheKey =  new RoleIdCacheKey(roleId);
+        RoleCacheEntry entry = roleCacheById.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role " + roleId);
+            }
+            return entry.getRole().getId();
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleId + ". Fetching entry from DB");
+        }
         return roleDAO.getRoleNameByID(roleId, tenantDomain);
     }
 
@@ -165,19 +243,71 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public String getRoleIdByName(String roleName, String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return roleDAO.getRoleIdByName(roleName, audience, audienceId, tenantDomain);
+        RoleNameCacheKey cacheKey =  new RoleNameCacheKey(roleName, audience, audienceId, tenantDomain);
+        RoleIdCacheEntry entry = roleIdCacheByName.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role : " + roleName + " audience : " + audience
+                        + " audienceId : " + audienceId + "tenant domain : " + tenantDomain);
+            }
+            return entry.getRoleId();
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleName + " audience : " + audience
+                    + " audienceId : " + audienceId + "tenant domain : " + tenantDomain + ". Fetching entry from DB");
+        }
+
+        String roleId = roleDAO.getRoleIdByName(roleName, audience, audienceId, tenantDomain);
+
+        if (StringUtils.isNotBlank(roleId)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Entry fetched from DB for role " + roleName + " audience : " + audience
+                        + " audienceId : " + audienceId + "tenant domain : " + tenantDomain + ". Updating cache");
+            }
+            roleIdCacheByName.addToCache(cacheKey, new RoleIdCacheEntry(roleId), tenantDomain);
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Entry for role " + roleName + " audience : " + audience + " audienceId : "
+                        + audienceId + "tenant domain : " + tenantDomain + " not found in cache or DB");
+            }
+        }
+        return roleId;
     }
 
     @Override
     public boolean isExistingRoleName(String roleName, String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleNameCacheKey cacheKey =  new RoleNameCacheKey(roleName, audience, audienceId, tenantDomain);
+        RoleIdCacheEntry entry = roleIdCacheByName.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role : " + roleName + " audience : " + audience
+                        + " audienceId : " + audienceId + "tenant domain : " + tenantDomain);
+            }
+            return true;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleName + " audience : " + audience
+                    + " audienceId : " + audienceId + "tenant domain : " + tenantDomain + ". Fetching entry from DB");
+        }
         return roleDAO.isExistingRoleName(roleName, audience, audienceId, tenantDomain);
     }
 
     @Override
     public boolean isExistingRoleID(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
+        RoleIdCacheKey cacheKey =  new RoleIdCacheKey(roleId);
+        RoleCacheEntry entry = roleCacheById.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role " + roleId);
+            }
+            return true;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleId + ". Fetching entry from DB");
+        }
         return roleDAO.isExistingRoleID(roleId, tenantDomain);
     }
 
@@ -185,6 +315,22 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public RoleBasicInfo getRoleBasicInfoById(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleIdCacheKey cacheKey =  new RoleIdCacheKey(roleId);
+        RoleCacheEntry entry = roleCacheById.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role " + roleId);
+            }
+            Role role = entry.getRole();
+            RoleBasicInfo roleBasicInfo = new RoleBasicInfo(role.getId(), role.getName());
+            roleBasicInfo.setAudienceId(role.getAudienceId());
+            roleBasicInfo.setAudience(role.getAudience());
+            roleBasicInfo.setAudienceName(role.getAudienceName());
+            return roleBasicInfo;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleId + ". Fetching entry from DB");
+        }
         return roleDAO.getRoleBasicInfoById(roleId, tenantDomain);
     }
 
@@ -203,6 +349,19 @@ public class CacheBackedRoleDAO implements RoleDAO {
     @Override
     public Role getRoleWithoutUsers(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
+        RoleIdCacheKey cacheKey =  new RoleIdCacheKey(roleId);
+        RoleCacheEntry entry = roleCacheById.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role " + roleId);
+            }
+            Role role = entry.getRole();
+            role.setUsers(null);
+            return role;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleId + ". Fetching entry from DB");
+        }
         return roleDAO.getRoleWithoutUsers(roleId, tenantDomain);
     }
 
@@ -260,6 +419,7 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public void deleteRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        roleCacheById.clear(tenantDomain);
         roleDAO.deleteRolesByApplication(applicationId, tenantDomain);
     }
 
@@ -274,6 +434,41 @@ public class CacheBackedRoleDAO implements RoleDAO {
     public List<String> getAssociatedApplicationIdsByRoleId(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleIdCacheKey cacheKey =  new RoleIdCacheKey(roleId);
+        RoleCacheEntry entry = roleCacheById.getValueFromCache(cacheKey, tenantDomain);
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for role " + roleId);
+            }
+            return entry.getRole().getAssociatedApplications().stream().map(AssociatedApplication::getId).collect(
+                    Collectors.toList());
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for role " + roleId + ". Fetching entry from DB");
+        }
         return roleDAO.getAssociatedApplicationIdsByRoleId(roleId, tenantDomain);
+    }
+
+    private void clearRoleCacheById(String roleId, String tenantDomain) throws IdentityRoleManagementException {
+
+        // clearing cache entries related to the role by id.
+        Role role = null;
+        if (StringUtils.isNotBlank(roleId)) {
+            role = this.getRole(roleId, tenantDomain);
+        }
+
+        if (role != null) {
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Removing entry for role " + role.getName() + " of tenant domain:"
+                        + tenantDomain + " from cache.");
+            }
+            RoleIdCacheKey roleIdCacheKey = new RoleIdCacheKey(roleId);
+            roleCacheById.clearCacheEntry(roleIdCacheKey, tenantDomain);
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Entry for role " + roleId + " not found in cache or DB");
+            }
+        }
     }
 }
