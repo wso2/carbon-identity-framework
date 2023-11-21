@@ -1770,7 +1770,7 @@ public class RoleDAOImpl implements RoleDAO {
                 }
                 // Create new audience.
                 if (id == -1) {
-                    createRoleAudience(audience, audienceId);
+                    createRoleAudience(audience, audienceId, connection);
                     return getRoleAudienceRefId(audience, audienceId, connection);
                 }
             }
@@ -1798,7 +1798,7 @@ public class RoleDAOImpl implements RoleDAO {
                 }
                 // Create new audience.
                 if (id == -1) {
-                    createRoleAudience(audience, audienceId);
+                    createRoleAudience(audience, audienceId, connection);
                     return getRoleAudienceRefId(audience, audienceId, connection);
                 }
             }
@@ -1818,22 +1818,17 @@ public class RoleDAOImpl implements RoleDAO {
      * @param audienceId Audience ID.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private void createRoleAudience(String audience, String audienceId)
+    private void createRoleAudience(String audience, String audienceId, Connection connection)
             throws IdentityRoleManagementException {
 
-        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_AUDIENCE_SQL)) {
-                statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
-                statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
-                statement.executeUpdate();
-                IdentityDatabaseUtil.commitTransaction(connection);
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                String errorMessage = "Error while adding role audiences for the given audience: " + audience
-                        + " and audienceId : " + audienceId;
-                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
-            }
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_AUDIENCE_SQL)) {
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
+            statement.executeUpdate();
+
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             String errorMessage = "Error while adding role audiences for the given audience: " + audience
                     + " and audienceId : " + audienceId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
@@ -1874,7 +1869,7 @@ public class RoleDAOImpl implements RoleDAO {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         boolean isExist = false;
-        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             int audienceRefId = getRoleAudienceRefId(audience, audienceId, connection);
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_EXIST_SQL,
                     RoleConstants.RoleTableColumns.UM_ID)) {
