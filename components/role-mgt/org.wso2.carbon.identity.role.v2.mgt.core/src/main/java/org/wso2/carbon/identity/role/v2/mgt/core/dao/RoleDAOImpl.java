@@ -1770,7 +1770,7 @@ public class RoleDAOImpl implements RoleDAO {
                 }
                 // Create new audience.
                 if (id == -1) {
-                    createRoleAudience(audience, audienceId, connection);
+                    createRoleAudience(audience, audienceId);
                     return getRoleAudienceRefId(audience, audienceId, connection);
                 }
             }
@@ -1798,7 +1798,7 @@ public class RoleDAOImpl implements RoleDAO {
                 }
                 // Create new audience.
                 if (id == -1) {
-                    createRoleAudience(audience, audienceId, connection);
+                    createRoleAudience(audience, audienceId);
                     return getRoleAudienceRefId(audience, audienceId, connection);
                 }
             }
@@ -1818,17 +1818,22 @@ public class RoleDAOImpl implements RoleDAO {
      * @param audienceId Audience ID.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private void createRoleAudience(String audience, String audienceId, Connection connection)
+    private void createRoleAudience(String audience, String audienceId)
             throws IdentityRoleManagementException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_AUDIENCE_SQL)) {
-            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
-            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
-            statement.executeUpdate();
-
-            IdentityDatabaseUtil.commitTransaction(connection);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_AUDIENCE_SQL)) {
+                statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
+                statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
+                statement.executeUpdate();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                String errorMessage = "Error while adding role audiences for the given audience: " + audience
+                        + " and audienceId : " + audienceId;
+                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+            }
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             String errorMessage = "Error while adding role audiences for the given audience: " + audience
                     + " and audienceId : " + audienceId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
