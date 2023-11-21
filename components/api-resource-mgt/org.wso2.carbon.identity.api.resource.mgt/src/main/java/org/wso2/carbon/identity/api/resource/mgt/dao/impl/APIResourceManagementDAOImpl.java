@@ -737,6 +737,10 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             sqlStmtTail = SQLConstants.GET_API_RESOURCES_TAIL_MSSQL;
 
             return String.format(sqlStmtHead, limit) + filterQuery + String.format(sqlStmtTail, tenantId, sortOrder);
+        } else if (databaseName.contains(SQLConstants.ORACLE)) {
+            sqlStmtTail = SQLConstants.GET_API_RESOURCES_TAIL_ORACLE;
+
+            return String.format(sqlStmtHead, limit) + filterQuery + String.format(sqlStmtTail, tenantId, sortOrder);
         }
 
         return sqlStmtHead + filterQuery + String.format(sqlStmtTail, tenantId, sortOrder, limit);
