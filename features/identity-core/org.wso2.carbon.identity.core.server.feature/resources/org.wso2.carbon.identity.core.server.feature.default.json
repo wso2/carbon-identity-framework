@@ -1067,7 +1067,7 @@
   "console.account_login.enabled": true,
   "console.account_login.scopes.feature": [],
   "console.account_login.scopes.update": ["internal_config_mgt_update"],
-  "console.administrators.enabled": true,
+  "console.administrators.enabled": false,
   "console.administrators.scopes.feature": [],
   "console.administrators.scopes.create": [],
   "console.administrators.scopes.read": [],
