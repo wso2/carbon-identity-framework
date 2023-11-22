@@ -4,7 +4,7 @@ import org.wso2.carbon.identity.core.cache.BaseCache;
 
 public class RolesCacheByUserId extends BaseCache<UserIdCacheKey, RolesCacheEntry> {
 
-    private static final String CACHE_NAME = "RoleIdCacheByName";
+    private static final String CACHE_NAME = "RolesCacheByUserId";
     private static volatile RolesCacheByUserId instance;
 
     private RolesCacheByUserId() {
