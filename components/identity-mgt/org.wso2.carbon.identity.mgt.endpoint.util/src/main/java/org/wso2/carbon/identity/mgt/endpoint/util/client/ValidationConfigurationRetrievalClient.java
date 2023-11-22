@@ -61,8 +61,10 @@ public class ValidationConfigurationRetrievalClient {
     private static final String MAX_REPEATED_KEY = "maxConsecutiveChr";
     private static final String PROPERTIES = "properties";
     private static final String VALIDATOR = "enable.validator";
+    private static final String ENABLE_SPECIAL_CHARACTERS = "enable.special.characters";
     private static final String EMAIL_VALIDATOR_KEY = "emailFormatValidator";
     private static final String ALPHANUMERIC_VALIDATOR_KEY = "alphanumericFormatValidator";
+    private static final String ENABLE_SPECIAL_CHARACTERS_KEY = "enableSpecialCharacters";
     private static final String JS_REG_EX_VALIDATOR_KEY = "JsRegExValidator";
 
     /**
@@ -272,6 +274,8 @@ public class ValidationConfigurationRetrievalClient {
         } else if (name.equalsIgnoreCase("AlphanumericValidator")) {
             addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), config,
                     ALPHANUMERIC_VALIDATOR_KEY);
+            addBooleanValue(ENABLE_SPECIAL_CHARACTERS, (JSONArray) rule.get(PROPERTIES), config,
+                    ENABLE_SPECIAL_CHARACTERS_KEY);
         } else if (name.equalsIgnoreCase("EmailFormatValidator")) {
             addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), config,
                     EMAIL_VALIDATOR_KEY);
