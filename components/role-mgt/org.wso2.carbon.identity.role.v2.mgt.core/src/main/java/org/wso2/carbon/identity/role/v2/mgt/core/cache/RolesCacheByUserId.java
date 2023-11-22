@@ -2,22 +2,22 @@ package org.wso2.carbon.identity.role.v2.mgt.core.cache;
 
 import org.wso2.carbon.identity.core.cache.BaseCache;
 
-public class RoleIdCacheByName extends BaseCache<RoleNameCacheKey, RoleIdCacheEntry> {
+public class RolesCacheByUserId extends BaseCache<UserIdCacheKey, RolesCacheEntry> {
 
     private static final String CACHE_NAME = "RoleIdCacheByName";
-    private static volatile RoleIdCacheByName instance;
+    private static volatile RolesCacheByUserId instance;
 
-    private RoleIdCacheByName() {
+    private RolesCacheByUserId() {
 
         super(CACHE_NAME);
     }
 
-    public static RoleIdCacheByName getInstance() {
+    public static RolesCacheByUserId getInstance() {
 
         if (instance == null) {
-            synchronized (RoleIdCacheByName.class) {
+            synchronized (RolesCacheByUserId.class) {
                 if (instance == null) {
-                    instance = new RoleIdCacheByName();
+                    instance = new RolesCacheByUserId();
                 }
             }
         }
