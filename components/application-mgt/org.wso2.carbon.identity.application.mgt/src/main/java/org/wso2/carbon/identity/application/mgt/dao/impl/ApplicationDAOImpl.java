@@ -394,9 +394,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement storeAppPrepStmt = null;
         ResultSet results = null;
         try {
+            String templatedAccessUrl = application.getAccessUrl();
             if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
-                application.setAccessUrl(
-                        ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(application.getAccessUrl()));
+                templatedAccessUrl = ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(templatedAccessUrl);
             }
             String resourceId = generateApplicationResourceId(application);
             String dbProductName = connection.getMetaData().getDatabaseProductName();
@@ -418,7 +418,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAppPrepStmt.setString(9, "0");
             storeAppPrepStmt.setString(10, resourceId);
             storeAppPrepStmt.setString(11, application.getImageUrl());
-            storeAppPrepStmt.setString(12, application.getAccessUrl());
+            storeAppPrepStmt.setString(12, templatedAccessUrl);
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -990,10 +990,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             sql = ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO;
         }
 
+        String templatedAccessUrl = serviceProvider.getAccessUrl();
         if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
             try {
-                serviceProvider.setAccessUrl(
-                        ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(serviceProvider.getAccessUrl()));
+                templatedAccessUrl = ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(templatedAccessUrl);
             } catch (URLBuilderException e) {
                 throw new IdentityApplicationManagementException(
                         "Error occurred when replacing origin of the access URL with placeholders", e);
@@ -1006,7 +1006,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statement.setString(ApplicationTableColumns.IS_SAAS_APP, isSaasApp ? "1" : "0");
             statement.setString(ApplicationTableColumns.IS_DISCOVERABLE, isDiscoverable ? "1" : "0");
             statement.setString(ApplicationTableColumns.IMAGE_URL, serviceProvider.getImageUrl());
-            statement.setString(ApplicationTableColumns.ACCESS_URL, serviceProvider.getAccessUrl());
+            statement.setString(ApplicationTableColumns.ACCESS_URL, templatedAccessUrl);
             if (isValidUserForOwnerUpdate) {
                 User owner = serviceProvider.getOwner();
                 statement.setString(ApplicationTableColumns.USERNAME, owner.getUserName());
