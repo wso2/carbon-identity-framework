@@ -1277,7 +1277,6 @@
   "console.organization_discovery.scopes.update": ["internal_organization_update"],
   "console.organization_discovery.scopes.delete": ["internal_organization_delete", "internal_config_mgt_delete"],
   "console.console_settings.enabled": true,
-  "console.console_settings.scopes.feature": ["console:console_settings"],
   "console.console_settings.scopes.create": ["internal_role_mgt_create"],
   "console.console_settings.scopes.read": ["internal_application_mgt_view", "internal_user_mgt_list", "internal_role_mgt_view", "internal_guest_mgt_invite_list", "internal_idp_view"],
   "console.console_settings.scopes.update": ["internal_application_mgt_update", "internal_user_mgt_update"],
