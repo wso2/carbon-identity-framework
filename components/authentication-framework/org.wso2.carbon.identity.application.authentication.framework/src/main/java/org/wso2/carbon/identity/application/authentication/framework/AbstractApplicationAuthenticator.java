@@ -202,6 +202,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
     }
 
+    /**
+     * Checks whether the skipPrompt step config is set to true for the current step.
+     *
+     * @param context Authentication context.
+     * @return True if the skipPrompt step config is set to true for the current step.
+     */
     private boolean isSkipPrompt(AuthenticationContext context) {
 
         return context.getSequenceConfig().getStepMap().get(context.getCurrentStep()).isSkipPrompt();

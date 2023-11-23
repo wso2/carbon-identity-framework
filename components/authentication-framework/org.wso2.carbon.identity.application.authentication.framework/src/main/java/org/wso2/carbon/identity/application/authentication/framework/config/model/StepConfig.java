@@ -239,11 +239,21 @@ public class StepConfig implements Serializable {
         this.forced = forced;
     }
 
+    /**
+     * This method is used to check whether the prompt should be skipped or not.
+     *
+     * @return True if the prompt should be skipped.
+     */
     public boolean isSkipPrompt() {
 
         return skipPrompt;
     }
 
+    /**
+     * This method is used to set whether the prompt should be skipped or not.
+     *
+     * @param skipPrompt True if the prompt should be skipped.
+     */
     public void setSkipPrompt(boolean skipPrompt) {
 
         this.skipPrompt = skipPrompt;
