@@ -35,6 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
@@ -259,7 +260,12 @@ public class IdentityProviderDataRetrievalClient {
             throws IdentityProviderDataRetrievalClientException {
 
         try {
-            return IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+            String endpoint = IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+            if (endpoint != null && endpoint.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                endpoint = endpoint.replace(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX,
+                        FrameworkConstants.TENANT_CONTEXT_PREFIX);
+            }
+            return endpoint;
         } catch (ApiException e) {
             throw new IdentityProviderDataRetrievalClientException("Error while building url for context: " + context);
         }
