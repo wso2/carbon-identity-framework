@@ -35,6 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -776,6 +777,11 @@ public class IdentityManagementEndpointUtil {
         try {
             if (StringUtils.isBlank(serverUrl)) {
                 if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                    if (StringUtils.isNotEmpty(PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                            .getOrganizationId())) {
+                        serverUrl = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
+                        return serverUrl + "/t/" + tenantDomain + "/o/" + context;
+                    }
                     basePath = ServiceURLBuilder.create().addPath(context).setTenant(tenantDomain).build()
                             .getAbsoluteInternalURL();
                 } else {
