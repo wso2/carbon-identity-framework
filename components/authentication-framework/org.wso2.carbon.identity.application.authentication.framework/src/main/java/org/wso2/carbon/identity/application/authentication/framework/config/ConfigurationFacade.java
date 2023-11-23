@@ -357,7 +357,8 @@ public class ConfigurationFacade {
         }
         try {
             String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-            return ServiceURLBuilder.create().addPath(path).setOrganization(organizationId).build().getAbsolutePublicURL();
+            return ServiceURLBuilder.create().addPath(path).setOrganization(organizationId).build()
+                    .getAbsolutePublicURL();
         } catch (URLBuilderException e) {
             throw new IdentityRuntimeException(
                     "Error while building tenant qualified url for context: " + defaultContext, e);
