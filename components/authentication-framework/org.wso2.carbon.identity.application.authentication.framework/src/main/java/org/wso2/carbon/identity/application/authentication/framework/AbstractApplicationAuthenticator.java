@@ -92,8 +92,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
         // if an authentication flow
         if (!context.isLogoutRequest()) {
-            if (!canHandle(request)
-                    || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED))) {
+            boolean skipPrompt = isSkipPrompt(context);
+            if (!skipPrompt && (!canHandle(request)
+                    || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)))) {
                 if (getName().equals(context.getProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR))) {
                     context.setRetrying(true);
                 }
@@ -103,6 +104,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 return AuthenticatorFlowStatus.INCOMPLETE;
             } else {
                 try {
+                    if (skipPrompt) {
+                        context.setCurrentAuthenticator(getName());
+                        context.setRetrying(false);
+                    }
                     processAuthenticationResponse(request, response, context);
                     if (this instanceof LocalApplicationAuthenticator) {
                         if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
@@ -128,7 +133,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
                     context.setSendToMultiOptionPage(sendToMultiOptionPage);
-                    context.setRetrying(retryAuthenticationEnabled());
+                    context.setRetrying(retryAuthenticationEnabled() && !skipPrompt);
                     if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
                         if (log.isDebugEnabled()) {
                             log.debug("Error occurred during the authentication process, hence retrying.", e);
@@ -195,6 +200,11 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
         }
+    }
+
+    private boolean isSkipPrompt(AuthenticationContext context) {
+
+        return context.getSequenceConfig().getStepMap().get(context.getCurrentStep()).isSkipPrompt();
     }
 
     private void handlePostAuthentication(AuthenticationContext context) throws AuthenticationFailedException {

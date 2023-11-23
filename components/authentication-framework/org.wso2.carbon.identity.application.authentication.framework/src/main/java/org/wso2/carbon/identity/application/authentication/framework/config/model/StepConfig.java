@@ -47,6 +47,7 @@ public class StepConfig implements Serializable {
     private boolean multiOption;
     private boolean retrying;
     private boolean forced;
+    private boolean skipPrompt;
 
     public StepConfig() {
     }
@@ -236,6 +237,16 @@ public class StepConfig implements Serializable {
     public void setForced(boolean forced) {
 
         this.forced = forced;
+    }
+
+    public boolean isSkipPrompt() {
+
+        return skipPrompt;
+    }
+
+    public void setSkipPrompt(boolean skipPrompt) {
+
+        this.skipPrompt = skipPrompt;
     }
 
     /**

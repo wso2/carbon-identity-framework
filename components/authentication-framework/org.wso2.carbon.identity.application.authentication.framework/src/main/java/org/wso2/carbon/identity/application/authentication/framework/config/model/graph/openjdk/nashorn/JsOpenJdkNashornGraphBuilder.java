@@ -435,6 +435,8 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
         if (Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.SUBJECT_ATTRIBUTE_PARAM))) {
             setCurrentStepAsSubjectAttribute(stepConfig, stepConfigMap);
         }
+        stepConfig.setSkipPrompt(Boolean.parseBoolean(stepOptions.get(
+                FrameworkConstants.JSAttributes.SKIP_PROMPT)));
     }
 
     /**
