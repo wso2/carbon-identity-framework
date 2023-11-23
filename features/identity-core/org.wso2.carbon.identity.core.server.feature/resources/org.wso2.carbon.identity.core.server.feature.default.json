@@ -265,7 +265,7 @@
   "oauth.jarm.query_jwt.enable": true,
   "oauth.jarm.fragment_jwt.enable": true,
   "oauth.jarm.form_post_jwt.enable": true,
-  "oauth.jarm.jarm_response_jwt_validity": "7200",
+  "oauth.jarm.jarm_response_jwt_validity": "600",
   "oauth.jarm.response_mode.jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.JwtResponseModeProvider",
   "oauth.jarm.response_mode.query_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.QueryJwtResponseModeProvider",
   "oauth.jarm.response_mode.fragment_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FragmentJwtResponseModeProvider",
