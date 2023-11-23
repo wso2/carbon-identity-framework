@@ -1283,7 +1283,6 @@
   "console.console_settings.scopes.delete": ["internal_guest_mgt_invite_delete"],
   "console.ui.is_default_dialect_editing_enabled": false,
   "console.ui.is_header_avatar_label_allowed": true,
-  "console.fapi_application_creation.enabled": true,
   "console.get_profile_info_from_id_token": true,
   "console.super_tenant_proxy_name": "",
   "myaccount.app_base_name": "myaccount",
