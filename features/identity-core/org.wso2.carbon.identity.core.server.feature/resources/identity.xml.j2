@@ -986,6 +986,12 @@
         <EnableAuthCodePersistence>true</EnableAuthCodePersistence>
 
         <!--
+            Config to enable revoked token headers : "RevokedAccessToken", "RevokedRefreshToken" in OAuth2 revoke
+            endpoint response.
+        -->
+        <EnableRevokeTokenHeadersInResponse>{{oauth.revoked_token_headers_in_response.enable}}</EnableRevokeTokenHeadersInResponse>
+
+        <!--
             Configuration provides the ability to renew the access token and the refresh token(where applicable) per each token request
             and revoke previously available active token for a matching clientid, user and scopes combination.
 
