@@ -2540,7 +2540,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * Create the application. This method creates the service provider with protocol configurations.
      *
-     * @param applicationModel ApplicationModelDTO containing the app information
+     * @param applicationModel ApplicationModelDTO containing the app information.
      * @param tenantDomain     Tenant domain.
      * @param username         Username.
      * @return Application ID.
@@ -2556,14 +2556,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     application, applicationModel.getInboundProtocolConfigurationDto());
             
             return createApplication(application, tenantDomain, username);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             /*
-             * For more information read https://github.com/wso2/product-is/issues/12579. This is to overcome the
-             * above issue.
+             * The current implementation of the application creation process is not atomic. Therefore, if an Exception
+             * occurs, there is a chance that the database gets updated partially. Hence, we need to rollback the
+             * created inbounds if available.
+             * For more information read https://github.com/wso2/product-is/issues/12579.
              */
-            if (log.isDebugEnabled()) {
-                log.debug("Server encountered unexpected error. Rolling back created application data.", e);
-            }
             rollbackInbounds(addedInbounds);
             throw ApplicationMgtUtil.handleException("Server encountered an unexpected error when " +
                     "creating the application.", e);
@@ -2575,7 +2574,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         if (inboundProtocolsModel == null) {
-            return null;
+            return Collections.emptyList();
         }
         List<InboundAuthenticationRequestConfig> addedInbounds = new ArrayList<>();
         try {
@@ -2590,7 +2589,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
             }
         } catch (IdentityApplicationManagementClientException e) {
-            // This is to void converting client exception in to a server exception.
+           /*  If there is a client exception, we don't need to do rollback since it will not affect the already
+             existing app. */
             throw e;
         } catch (IdentityApplicationManagementException e) {
             if (log.isDebugEnabled()) {
@@ -2749,9 +2749,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return;
         }
         InboundAuthenticationRequestConfig addedInbound = null;
-        List<ApplicationInboundAuthConfigHandler> applicationInboundAuthConfigHandler =
+        List<ApplicationInboundAuthConfigHandler> applicationInboundAuthConfigHandlers =
                 ApplicationManagementServiceComponentHolder.getInstance().getApplicationInboundAuthConfigHandler();
-        for (ApplicationInboundAuthConfigHandler handler : applicationInboundAuthConfigHandler) {
+        for (ApplicationInboundAuthConfigHandler handler : applicationInboundAuthConfigHandlers) {
             if (handler.canHandle(inboundProtocolConfigurationDTO.getProtocolName())) {
                 addedInbound = handler.handleConfigUpdate(serviceProvider,
                         inboundProtocolConfigurationDTO);
@@ -2762,9 +2762,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             updateOrInsertInbound(serviceProvider, addedInbound);
         }
         try {
-            // At this point the serviceProvided object is updated with the inbound auth config details. So we can call
-            // the updateApplicationByResourceId(String, ServiceProvider, String, String) method to update the
-            // service provider details in the database.
+            /* At this point the serviceProvided object is updated with the inbound auth config details. So we can call
+             the updateApplicationByResourceId(String, ServiceProvider, String, String) method to update the
+             service provider details in the database. */
             updateApplicationByResourceId(resourceId, serviceProvider, tenantDomain, username);
         } catch (IdentityApplicationManagementException e) {
             if (addedInbound != null) {

@@ -80,9 +80,9 @@ public class IdentityApplicationManagementServerException extends IdentityApplic
     /**
      * Constructs a new exception with the specified error code, message, description and cause.
      *
-     * @param errorCode Error code
-     * @param message   Detailed message
-     * @param cause     Cause as {@link Throwable}
+     * @param errorCode Error code.
+     * @param message   Detailed message.
+     * @param cause     Cause as {@link Throwable}.
      * @param description Error description.
      */
     public IdentityApplicationManagementServerException(String errorCode, String message, String description,

@@ -36,17 +36,20 @@ public interface ApplicationResourceManager {
      */
     ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
             throws IdentityApplicationManagementException;
-
+    
     /**
      * Creates an application and returns the created application.
      *
-     * @param applicationModelDTO  ApplicationModelDTO containing the app information
-     * @return unique application resource id of the application
-     * @throws IdentityApplicationManagementException
+     * @param applicationModelDTO ApplicationModelDTO containing the app information.
+     * @return unique application resource id of the application.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
      */
-    String createApplication(ApplicationDTO applicationModelDTO, String tenantDomain, String username)
-            throws IdentityApplicationManagementException;
-
+    default String createApplication(ApplicationDTO applicationModelDTO, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+        
+        return createApplication(applicationModelDTO.getServiceProvider(), tenantDomain, username);
+    }
+    
     /**
      * Creates an application and returns the created application.
      *

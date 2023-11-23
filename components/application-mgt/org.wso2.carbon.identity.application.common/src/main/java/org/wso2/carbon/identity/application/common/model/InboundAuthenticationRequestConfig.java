@@ -232,7 +232,6 @@ public class InboundAuthenticationRequestConfig implements Serializable {
         this.inboundConfigurationProtocol = inboundConfigurationProtocol;
     }
     
-    @JsonProperty("data")
     public Map<String, Object> getData() {
         
         return data;

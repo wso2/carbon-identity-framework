@@ -62,7 +62,6 @@ public class ApplicationDTO {
             }
             return new ApplicationDTO(this);
         }
-
     }
 
     public ServiceProvider getServiceProvider() {
@@ -74,6 +73,4 @@ public class ApplicationDTO {
 
         return inboundProtocolConfigurationDto;
     }
-
-
 }

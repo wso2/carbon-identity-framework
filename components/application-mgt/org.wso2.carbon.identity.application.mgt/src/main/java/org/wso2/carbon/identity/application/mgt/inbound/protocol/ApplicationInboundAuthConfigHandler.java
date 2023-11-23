@@ -37,7 +37,6 @@ public interface ApplicationInboundAuthConfigHandler {
      */
     boolean canHandle(InboundProtocolsDTO inboundProtocolsDTO);
     
-    
     /**
      * Checks whether the handler can handle the given inbound protocol name.
      *
@@ -45,7 +44,6 @@ public interface ApplicationInboundAuthConfigHandler {
      * @return True if the handler can handle the given protocol.
      */
     boolean canHandle(String inboundAuthConfigName);
-    
     
     /**
      * Handles the creation of inbound authentication configuration.
@@ -59,7 +57,6 @@ public interface ApplicationInboundAuthConfigHandler {
                                                             InboundProtocolsDTO inboundProtocolsDTO)
             throws IdentityApplicationManagementException;
     
-    
     /**
      * Handles the update of inbound authentication configuration.
      *
@@ -72,7 +69,6 @@ public interface ApplicationInboundAuthConfigHandler {
             ServiceProvider application, InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO)
             throws IdentityApplicationManagementException;
     
-    
     /**
      * Handles the deletion of inbound authentication configuration.
      *
@@ -80,7 +76,6 @@ public interface ApplicationInboundAuthConfigHandler {
      * @throws IdentityApplicationManagementException If an error occurred while deleting the configuration.
      */
     void handleConfigDeletion(String inboundAuthKey) throws IdentityApplicationManagementException;
-    
     
     /**
      * Handles the retrieval of inbound authentication configuration.

@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementSe
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
  */
 public class InboundFunctions {
     
-    private static final Log log = LogFactory.getLog(InboundFunctions.class);
+    private static final Log LOG = LogFactory.getLog(InboundFunctions.class);
     
     private InboundFunctions() {
     
@@ -53,8 +54,8 @@ public class InboundFunctions {
      * @param inboundType Inbound type.
      * @return Inbound authentication key.
      */
-    public static String getInboundAuthKey(ServiceProvider application,
-                                           String inboundType) {
+    public static Optional<String> getInboundAuthKey(ServiceProvider application,
+                                                    String inboundType) {
         
         InboundAuthenticationConfig inboundAuthConfig = application.getInboundAuthenticationConfig();
         if (inboundAuthConfig != null) {
@@ -63,11 +64,10 @@ public class InboundFunctions {
                 return Arrays.stream(inbounds)
                         .filter(inbound -> inboundType.equals(inbound.getInboundAuthType()))
                         .findAny()
-                        .map(InboundAuthenticationRequestConfig::getInboundAuthKey)
-                        .orElse(null);
+                        .map(InboundAuthenticationRequestConfig::getInboundAuthKey);
             }
         }
-        return null;
+        return Optional.empty();
     }
     
     /**
@@ -99,25 +99,40 @@ public class InboundFunctions {
                 applicationInboundAuthConfigHandlerList) {
             if (applicationInboundAuthConfigHandler.canHandle(inbound.getInboundAuthType())) {
                 applicationInboundAuthConfigHandler.handleConfigDeletion(inbound.getInboundAuthKey());
+                break;
             }
         }
     }
     
-    public static void doRollback(String applicationId, InboundAuthenticationRequestConfig updatedInbound,
+    /**
+     * Rollback the inbound authentication request config.
+     *
+     * @param resourceId     Application Resource ID.
+     * @param updatedInbound Updated inbound authentication request config.
+     * @param tenantDomain   Tenant domain.
+     * @throws IdentityApplicationManagementException If an error occurred while rolling back the inbound.
+     */
+    public static void doRollback(String resourceId, InboundAuthenticationRequestConfig updatedInbound,
                             String tenantDomain) throws IdentityApplicationManagementException {
         
         ServiceProvider applicationByResourceId;
         applicationByResourceId = ApplicationManagementServiceImpl.getInstance().getApplicationByResourceId(
-                applicationId, tenantDomain);
+                resourceId, tenantDomain);
+        Optional<String> optionalInboundKey = getInboundAuthKey(applicationByResourceId,
+                updatedInbound.getInboundAuthType());
+        if (!optionalInboundKey.isPresent()) {
+            // No inbound configs found for the given inbound type. Nothing to rollback.
+            return;
+        }
         // Current inbound key. This will give us an idea whether updatedInbound was newly added or not.
-        String previousInboundKey = getInboundAuthKey(applicationByResourceId, updatedInbound.getInboundAuthType());
+        String previousInboundKey = optionalInboundKey.get();
         String attemptedInboundKeyForUpdate = updatedInbound.getInboundAuthKey();
         if (!StringUtils.equals(previousInboundKey, attemptedInboundKeyForUpdate)) {
             // This means the application was updated with a newly created inbound. So the updated inbound details
             // could have been created before the update. Attempt to rollback by deleting any inbound configs created.
-            if (log.isDebugEnabled()) {
+            if (LOG.isDebugEnabled()) {
                 String inboundType = updatedInbound.getInboundAuthType();
-                log.debug("Removing inbound data related to inbound type: " + inboundType + " of application: "
+                LOG.debug("Removing inbound data related to inbound type: " + inboundType + " of application: "
                         + applicationByResourceId + " as part of rollback.");
             }
             rollbackInbound(updatedInbound);
@@ -159,7 +174,6 @@ public class InboundFunctions {
         
         InboundAuthenticationConfig inboundAuth = new InboundAuthenticationConfig();
         inboundAuth.setInboundAuthenticationRequestConfigs(new InboundAuthenticationRequestConfig[]{newInbound});
-        
         application.setInboundAuthenticationConfig(inboundAuth);
     }
 }

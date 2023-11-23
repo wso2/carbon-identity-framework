@@ -91,9 +91,9 @@ public class IdentityApplicationManagementException extends Exception {
     /**
      * Constructs a new exception with the specified error code, message, description and cause.
      *
-     * @param errorCode Error code
-     * @param message   Detailed message
-     * @param cause     Cause as {@link Throwable}
+     * @param errorCode Error code.
+     * @param message   Detailed message.
+     * @param cause     Cause as {@link Throwable}.
      * @param description Error description.
      */
     public IdentityApplicationManagementException(String errorCode, String message, String description,

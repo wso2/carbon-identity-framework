@@ -389,6 +389,8 @@ public class ApplicationManagementServiceComponentHolder {
     
     /**
      * Add application inbound config service.
+     *
+     * @param applicationInboundAuthConfigHandler Protocol service.
      */
     public void addApplicationInboundAuthConfigHandler(ApplicationInboundAuthConfigHandler
                                                                applicationInboundAuthConfigHandler) {
