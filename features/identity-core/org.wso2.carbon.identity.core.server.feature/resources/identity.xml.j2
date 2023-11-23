@@ -201,6 +201,8 @@
     <ClientAttestation>
         <!-- This tag defines the allowed window between current time and attestation object creation time. -->
         <AllowedWindowMillis>{{client_attestation.allowed_window}}</AllowedWindowMillis>
+        <AppleAttestationRootCertificatePath>{{client_attestation.apple_attestation_root_certificate_path}}</AppleAttestationRootCertificatePath>
+        <AppleAttestationRevocationCheckEnabled>{{client_attestation.apple_attestation_revocation_check_enabled}}</AppleAttestationRevocationCheckEnabled>
     </ClientAttestation>
 
     <OAuth>
@@ -546,6 +548,18 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch.grant_validator}}</GrantTypeValidatorImplClass>
                 <IdTokenAllowed>true</IdTokenAllowed>
                 <PublicClientAllowed>{{oauth.grant_type.organization_switch.allow_public_client}}</PublicClientAllowed>
+            </SupportedGrantType>
+            {% endif %}
+            {% if oauth.grant_type.organization_switch_cc.enable is sameas true %}
+            <SupportedGrantType>
+                <GrantTypeName>organization_switch_cc</GrantTypeName>
+                <GrantTypeHandlerImplClass>{{oauth.grant_type.organization_switch_cc.grant_handler}}</GrantTypeHandlerImplClass>
+                {% if oauth.grant_type.organization_switch_cc.grant_validator is defined %}
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch_cc.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
+                <IsRefreshTokenAllowed>{{oauth.grant_type.organization_switch_cc.allow_refresh_tokens}}</IsRefreshTokenAllowed>
+                <IdTokenAllowed>false</IdTokenAllowed>
+                <PublicClientAllowed>{{oauth.grant_type.organization_switch_cc.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
@@ -964,6 +978,12 @@
             <PoolSize>0</PoolSize>
             <RetryCount>{{oauth.token_generation.retry_count_on_persistence_failures}}</RetryCount>
         </TokenPersistence>
+        
+        <!--
+            Config related to OAuth2 authorization code persistence.
+            Prior to IS 7.0.0, this was handled by the config <TokenPersistence>.<Enable>.
+       -->
+        <EnableAuthCodePersistence>true</EnableAuthCodePersistence>
 
         <!--
             Configuration provides the ability to renew the access token and the refresh token(where applicable) per each token request
@@ -1114,6 +1134,9 @@
             {% endfor %}
         </RestrictedScopes>
         {% endif %}
+
+        <!-- Configuration to enable setting local IDP generated AMR values with the values sent by the used idp. -->
+        <ReplaceDefaultAMRValuesWithIDPSentValues>{{replace_amr_value_with_idp_sent_values.enable}}</ReplaceDefaultAMRValuesWithIDPSentValues>
 
     </OAuth>
 
@@ -3433,6 +3456,7 @@
             <Context>/commonauth(.*)</Context>
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
+            <Context>/identity/metadata/saml2</Context>
             <Context>/longwaitstatus(.*)</Context>
             <Context>/oidc/</Context>
         </Servlet>
@@ -3672,6 +3696,15 @@
         <ApplicationName>{{application}}</ApplicationName>
         {% endfor %}
     </SystemApplications>
+    {% endif %}
+
+    <!-- Default Applications -->
+    {% if system_applications.default_apps is defined %}
+    <DefaultApplications>
+        {% for application in system_applications.default_apps %}
+        <ApplicationName>{{application}}</ApplicationName>
+        {% endfor %}
+    </DefaultApplications>
     {% endif %}
 
     <!-- System Roles -->

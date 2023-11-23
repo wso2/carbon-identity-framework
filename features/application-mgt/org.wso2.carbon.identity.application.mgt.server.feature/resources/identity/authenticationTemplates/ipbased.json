@@ -1,5 +1,5 @@
 {
-  "category": "environment_based",
+  "category": "AdaptiveMFA",
   "name": "IP-Based",
   "title": "IP-Based Authentication Template",
   "summary": "Prompts 2FA to the users who are logging outside of the given ip range.",

@@ -19,6 +19,9 @@
 
 package org.wso2.carbon.identity.client.attestation.mgt.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import com.nimbusds.jose.JWEObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -30,10 +33,18 @@ import org.wso2.carbon.identity.client.attestation.mgt.internal.ClientAttestatio
 import org.wso2.carbon.identity.client.attestation.mgt.model.ClientAttestationContext;
 import org.wso2.carbon.identity.client.attestation.mgt.utils.Constants;
 import org.wso2.carbon.identity.client.attestation.mgt.validators.AndroidAttestationValidator;
+import org.wso2.carbon.identity.client.attestation.mgt.validators.AppleAttestationValidator;
 import org.wso2.carbon.identity.client.attestation.mgt.validators.ClientAttestationValidator;
 
+import java.io.IOException;
 import java.text.ParseException;
+import java.util.Base64;
+import java.util.Map;
 
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.APPLE_APP_ATTEST;
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.ATT_STMT;
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.AUTH_DATA;
+import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.FMT;
 import static org.wso2.carbon.identity.client.attestation.mgt.utils.Constants.OAUTH2;
 
 /**
@@ -111,11 +122,57 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
                             serviceProvider.getClientAttestationMetaData());
             androidAttestationValidator.validateAttestation(attestationObject, clientAttestationContext);
             return clientAttestationContext;
+        } else if (isAppleAttestation(attestationObject)) {
+            clientAttestationContext.setAttestationEnabled(true);
+            clientAttestationContext.setClientType(Constants.ClientTypes.IOS);
+
+            ClientAttestationValidator appleAttestationValidator =
+                    new AppleAttestationValidator(applicationResourceId, tenantDomain,
+                            serviceProvider.getClientAttestationMetaData());
+            appleAttestationValidator.validateAttestation(attestationObject, clientAttestationContext);
+            return clientAttestationContext;
         } else {
             handleInvalidAttestationObject(clientAttestationContext);
             return clientAttestationContext;
         }
     }
+
+    /**
+     * Checks if the provided attestation object is an Apple Attestation.
+     * This method developed using following documentation
+     * <a href="https://developer.apple.com/documentation/devicecheck/validating_apps_that_connect_to_your_server">
+     *     Validating Apps That Connect to Your Servers
+     * </a>
+     * @param attestationObject The attestation object to be checked.
+     * @return true if it is an Apple Attestation, false otherwise.
+     */
+    private boolean isAppleAttestation(String attestationObject) {
+
+        // Create a CBOR factory and an ObjectMapper for CBOR serialization.
+        CBORFactory factory = new CBORFactory();
+        ObjectMapper cborMapper = new ObjectMapper(factory);
+
+        try {
+            // Decode the Base64-encoded attestation object.
+            byte[] cborData = Base64.getDecoder().decode(attestationObject);
+            // Parse the CBOR data into a Map.
+            Map<String, Object> cborMap = cborMapper.readValue(cborData, new TypeReference<Map<String, Object>>() { });
+
+            // Check for the presence of specific keys and the "fmt" value.
+            if (cborMap.containsKey(AUTH_DATA)
+                    && cborMap.containsKey(ATT_STMT)
+                    && cborMap.containsKey(FMT)
+                    && StringUtils.equals(cborMap.get(FMT).toString(), APPLE_APP_ATTEST)) {
+                return true;
+            }
+        } catch (IOException | IllegalArgumentException e) {
+            // An exception occurred, indicating it's not an Apple Attestation.
+            return false;
+        }
+        // It didn't meet the criteria for an Apple Attestation.
+        return false;
+    }
+
 
     private void handleInvalidAttestationObject(ClientAttestationContext clientAttestationContext) {
 
@@ -124,15 +181,6 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
         }
         setErrorToContext("Requested attestation object is not in valid format.",
                 clientAttestationContext);
-    }
-
-    private void handleClientAttestationException
-            (ClientAttestationMgtException e, ClientAttestationContext clientAttestationContext) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Error while evaluating client attestation.", e);
-        }
-        setErrorToContext(e.getMessage(), clientAttestationContext);
     }
 
     private void setErrorToContext(String message, ClientAttestationContext clientAttestationContext) {
@@ -144,6 +192,15 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
         clientAttestationContext.setValidationFailureMessage(message);
     }
 
+    /**
+     * Checks if the provided attestation object is an Android Attestation request.
+     * This method developed using following documentation
+     * <a href="https://developer.android.com/google/play/integrity/classic#token-format">
+     *     Google Play Integrity Token Format
+     * </a>
+     * @param attestationObject The attestation object to be checked, typically in JWE format.
+     * @return true if it is an Android Attestation request, false otherwise.
+     */
     private boolean isAndroidAttestation(String attestationObject) {
 
         try {

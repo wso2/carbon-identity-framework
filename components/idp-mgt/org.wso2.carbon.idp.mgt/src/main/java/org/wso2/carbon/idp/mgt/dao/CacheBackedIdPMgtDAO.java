@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -1061,5 +1062,19 @@ public class CacheBackedIdPMgtDAO {
             throws IdentityProviderManagementException {
 
         return idPMgtDAO.getIdPNamesById(tenantId, idpIds);
+    }
+
+    /**
+     * Get IDP group data by IDP group IDs.
+     *
+     * @param idpGroupIds List of IDP group IDs.
+     * @param tenantId    Tenant ID.
+     * @return List of IDP groups.
+     * @throws IdentityProviderManagementException If an error occurred while retrieving IDP groups.
+     */
+    public List<IdPGroup> getIdPGroupsByIds(List<String> idpGroupIds, int tenantId)
+            throws IdentityProviderManagementException {
+
+        return idPMgtDAO.getIdPGroupsByIds(idpGroupIds, tenantId);
     }
 }

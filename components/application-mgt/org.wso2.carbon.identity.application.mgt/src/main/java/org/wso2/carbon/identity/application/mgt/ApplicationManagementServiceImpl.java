@@ -151,6 +151,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_APPLICATIONS_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.TARGET_APPLICATION;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.USER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
@@ -2636,35 +2637,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public Set<String> getSystemApplications() {
 
-        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
-        OMElement systemApplicationsConfig = configParser.getConfigElement(SYSTEM_APPLICATIONS_CONFIG_ELEMENT);
-        if (systemApplicationsConfig == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("'" + SYSTEM_APPLICATIONS_CONFIG_ELEMENT + "' config not found.");
-            }
-            return Collections.emptySet();
-        }
+        return getApplications(SYSTEM_APPLICATIONS_CONFIG_ELEMENT);
+    }
 
-        Iterator applicationIdentifierIterator = systemApplicationsConfig
-                .getChildrenWithLocalName(APPLICATION_NAME_CONFIG_ELEMENT);
-        if (applicationIdentifierIterator == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("'" + APPLICATION_NAME_CONFIG_ELEMENT + "' config not found.");
-            }
-            return Collections.emptySet();
-        }
+    @Override
+    public Set<String> getDefaultApplications() {
 
-        Set<String> systemApplications = new HashSet<>();
-
-        while (applicationIdentifierIterator.hasNext()) {
-            OMElement applicationIdentifierConfig = (OMElement) applicationIdentifierIterator.next();
-            String applicationName = applicationIdentifierConfig.getText();
-            if (StringUtils.isNotBlank(applicationName)) {
-                systemApplications.add(applicationName.trim());
-            }
-        }
-
-        return systemApplications;
+        return getApplications(DEFAULT_APPLICATIONS_CONFIG_ELEMENT);
     }
 
     @Override
@@ -3171,6 +3150,38 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             return false;
         }
         return false;
+    }
+
+    private static Set<String> getApplications(String parentElement) {
+
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemApplicationsConfig = configParser.getConfigElement(parentElement);
+        if (systemApplicationsConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + parentElement + "' config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Iterator applicationIdentifierIterator = systemApplicationsConfig
+                .getChildrenWithLocalName(APPLICATION_NAME_CONFIG_ELEMENT);
+        if (applicationIdentifierIterator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + APPLICATION_NAME_CONFIG_ELEMENT + "' config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Set<String> applications = new HashSet<>();
+        while (applicationIdentifierIterator.hasNext()) {
+            OMElement applicationIdentifierConfig = (OMElement) applicationIdentifierIterator.next();
+            String applicationName = applicationIdentifierConfig.getText();
+            if (StringUtils.isNotBlank(applicationName)) {
+                applications.add(applicationName.trim());
+            }
+        }
+
+        return applications;
     }
 
     private static RoleManagementService getRoleManagementServiceV2() {

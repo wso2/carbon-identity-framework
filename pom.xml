@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.25.509-SNAPSHOT</version>
+    <version>5.25.545-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -655,6 +655,11 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.api.resource.collection.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.role.v2.mgt.core</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1102,7 +1107,6 @@
                 <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
                 <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
                 <version>${org.wso2.carbon.identity.organization.management.core.version}</version>
-                <scope>provided</scope>
             </dependency>
             <!--Components Dependencies Ends-->
 
@@ -1837,6 +1841,11 @@
                 <artifactId>grpc-context</artifactId>
                 <version>${org.wso2.orbit.io.grpc.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-cbor</artifactId>
+                <version>${com.fasterxml.jackson.cbor.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -1885,7 +1894,7 @@
         <carbon.identity.package.export.version>${project.version}</carbon.identity.package.export.version>
         <carbon.identity.package.import.version.range>[5.14.0, 6.0.0)</carbon.identity.package.import.version.range>
 
-        <org.wso2.carbon.identity.organization.management.core.version>1.0.70
+        <org.wso2.carbon.identity.organization.management.core.version>1.0.90
         </org.wso2.carbon.identity.organization.management.core.version>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
@@ -2074,6 +2083,7 @@
         <com.fasterxml.jackson.version>2.15.2</com.fasterxml.jackson.version>
         <com.fasterxml.jackson.annotation.version>2.15.2</com.fasterxml.jackson.annotation.version>
         <com.fasterxml.jackson.databind.version>2.15.2</com.fasterxml.jackson.databind.version>
+        <com.fasterxml.jackson.cbor.version>2.15.2</com.fasterxml.jackson.cbor.version>
         <com.fasterxml.jackson.jaxrs-json-provider-version>2.15.2</com.fasterxml.jackson.jaxrs-json-provider-version>
         <com.fasterxml.jackson.annotation.version.range>[2.13.0, 2.16.0)</com.fasterxml.jackson.annotation.version.range>
 

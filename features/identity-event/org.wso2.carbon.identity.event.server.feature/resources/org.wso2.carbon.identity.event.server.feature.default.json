@@ -235,7 +235,9 @@
   ],
   "identity_mgt.events.schemes.OrganizationCreationHandler.module_index": "37",
   "identity_mgt.events.schemes.OrganizationCreationHandler.subscriptions": [
-    "POST_ADD_ORGANIZATION"
+    "POST_ADD_ORGANIZATION",
+    "PRE_DELETE_ORGANIZATION",
+    "POST_DELETE_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "38",
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
@@ -249,7 +251,10 @@
     "POST_DELETE_EXTERNAL_CLAIM",
     "POST_UPDATE_LOCAL_CLAIM",
     "POST_UPDATE_EXTERNAL_CLAIM",
-    "POST_ADD_EXTERNAL_CLAIM"
+    "POST_ADD_EXTERNAL_CLAIM",
+    "POST_ADD_CLAIM_DIALECT",
+    "POST_RENAME_CLAIM_DIALECT",
+    "POST_DELETE_CLAIM_DIALECT"
   ],
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.module_index": "40",
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.subscriptions": [

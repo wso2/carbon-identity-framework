@@ -1,5 +1,5 @@
 {
-  "category": "user_based",
+  "category": "AdaptiveMFA",
   "name": "User Store-Based",
   "title": "User Store-Based Authentication Template",
   "summary": "Prompts 2FA to the users who are from one of the given user store domains.",

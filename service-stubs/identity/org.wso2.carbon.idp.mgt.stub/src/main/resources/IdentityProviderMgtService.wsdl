@@ -130,6 +130,7 @@
                 <xs:sequence>
                     <xs:element minOccurs="0" name="idpGroupId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="idpGroupName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="idpId" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="IdentityProviderProperty">

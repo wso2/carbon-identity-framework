@@ -79,7 +79,7 @@
   "oauth.token_validation.validation_response_signing_algorithm": "SHA256withRSA",
   "oauth.token.validation.validation_response_jwt_validity": "15m",
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
-  "oauth.token_persistence.enable": "true",
+  "oauth.token_persistence.enable": true,
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
   "oauth.enable_sha256_params": true,
@@ -178,6 +178,11 @@
   "oauth.grant_type.organization_switch.grant_handler": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchGrant",
   "oauth.grant_type.organization_switch.grant_validator": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchGrantValidator",
   "oauth.grant_type.organization_switch.allow_public_client": true,
+  "oauth.grant_type.organization_switch_cc.enable": true,
+  "oauth.grant_type.organization_switch_cc.grant_handler": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchCCGrant",
+  "oauth.grant_type.organization_switch_cc.grant_validator": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchGrantValidator",
+  "oauth.grant_type.organization_switch_cc.allow_refresh_tokens": false,
+  "oauth.grant_type.organization_switch_cc.allow_public_client": false,
   "oauth.par.expiry_time": "60s",
   "oauth.grant_type.token_exchange.grant_handler": "org.wso2.carbon.identity.oauth2.grant.token.exchange.TokenExchangeGrantHandler",
   "oauth.grant_type.token_exchange.grant_validator": "org.wso2.carbon.identity.oauth2.grant.token.exchange.TokenExchangeGrantValidator",
@@ -487,7 +492,7 @@
 
   "sp_role_management.return_only_mapped_local_roles": false,
   "idp_role_management.return_only_mapped_local_roles": false,
-  "idp_role_management.return_manually_added_local_roles": false,
+  "idp_role_management.return_manually_added_local_roles": true,
   "outbound_provisioning_management.reset_provisioning_entities_on_config_update": true,
 
   "authentication_policy.check_account_exist": true,
@@ -519,7 +524,7 @@
   "event.default_listener.governance_identity_store.enable_hybrid_data_store": false,
   "event.default_listener.application_authentication.priority": "11",
   "event.default_listener.application_authentication.enable": true,
-  "event.default_listener.mutual_tls_authenticator.priority": "158",
+  "event.default_listener.mutual_tls_authenticator.priority": "919",
   "event.default_listener.mutual_tls_authenticator.enable": true,
   "event.default_listener.private_key_jwt_authenticator.priority": "899",
   "event.default_listener.private_key_jwt_authenticator.enable": true,
@@ -783,7 +788,9 @@
     "APPLICATION"
   ],
 
-  "system_applications.read_only_apps": ["Console", "My Account"],
+  "system_applications.read_only_apps": ["Console"],
+
+  "system_applications.default_apps": ["Console", "My Account"],
 
   "legacy_feature": [
     {
@@ -937,7 +944,7 @@
       },
       {
           "id": "cmVzZW5kQXNrUGFzc3dvcmQ",
-          "displayName": "Resend Ask Password",
+          "displayName": "Resend Request New User Password",
           "description": "This email is sent when the organization admin re-initiates the request for a new user password."
       },
       {
@@ -987,7 +994,7 @@
       },
       {
           "id": "VE9UUA",
-          "displayName": "TOTP",
+          "displayName": "Time-Based One-Time Passcode",
           "description": "This email is used to sent a Time-Based One-Time Password (TOTP) to the user"
       },
       {
@@ -1040,7 +1047,7 @@
   "console.ui.idp_templates.github.enabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
   "console.ui.hiddenAuthenticators": [],
-  "console.ui.hiddenConnectionTemplates": [ "hypr-idp", "github-idp" ],
+  "console.ui.hiddenConnectionTemplates": [ "hypr-idp" ],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.theme": "wso2is",
@@ -1060,7 +1067,7 @@
   "console.account_login.enabled": true,
   "console.account_login.scopes.feature": [],
   "console.account_login.scopes.update": ["internal_config_mgt_update"],
-  "console.administrators.enabled": true,
+  "console.administrators.enabled": false,
   "console.administrators.scopes.feature": [],
   "console.administrators.scopes.create": [],
   "console.administrators.scopes.read": [],
@@ -1269,8 +1276,14 @@
   "console.organization_discovery.scopes.read": ["internal_organization_view", "internal_config_mgt_view"],
   "console.organization_discovery.scopes.update": ["internal_organization_update"],
   "console.organization_discovery.scopes.delete": ["internal_organization_delete", "internal_config_mgt_delete"],
+  "console.console_settings.enabled": true,
+  "console.console_settings.scopes.create": ["internal_role_mgt_create"],
+  "console.console_settings.scopes.read": ["internal_application_mgt_view", "internal_user_mgt_list", "internal_role_mgt_view", "internal_guest_mgt_invite_list", "internal_idp_view"],
+  "console.console_settings.scopes.update": ["internal_application_mgt_update", "internal_user_mgt_update"],
+  "console.console_settings.scopes.delete": ["internal_guest_mgt_invite_delete"],
   "console.ui.is_default_dialect_editing_enabled": false,
   "console.ui.is_header_avatar_label_allowed": true,
+  "console.fapi_application_creation.enabled": true,
   "console.get_profile_info_from_id_token": true,
   "console.super_tenant_proxy_name": "",
   "myaccount.app_base_name": "myaccount",
@@ -1345,6 +1358,7 @@
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
   "show_pending_user_information.enable": true,
+  "replace_amr_value_with_idp_sent_values.enable": false,
   "identity_util.enable_sha256_random_numbers": true,
   "organization.user.invitation.default.expiry_time": "4320",
   "organization.user.invitation.primary.user_domain": "PRIMARY",
@@ -1374,5 +1388,7 @@
   "organization_management.self_service.default_token_expiry_time": "7200",
   "organization_management.self_service.internal_role_name": "B2B-SS-System-Role",
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
-  "client_attestation.allowed_window": "60000"
+  "client_attestation.allowed_window": "60000",
+  "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
+  "client_attestation.apple_attestation_revocation_check_enabled": false
 }

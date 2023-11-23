@@ -20,6 +20,7 @@ package org.wso2.carbon.idp.mgt;
 
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
@@ -527,6 +528,20 @@ public interface IdpManager {
      */
     default IdentityProvider getIdPByMetadataProperty(String property, String value, String tenantDomain,
                                                       boolean ignoreFileBasedIdps)
+            throws IdentityProviderManagementException {
+
+        return null;
+    }
+
+    /**
+     * Get valid IDP groups by IDP group IDs.
+     *
+     * @param idpGroupIds  List of IDP group IDs.
+     * @param tenantDomain Tenant domain.
+     * @return List of valid IDP groups.
+     * @throws IdentityProviderManagementException If an error occurred while getting IDP Group data.
+     */
+    default List<IdPGroup> getValidIdPGroupsByIdPGroupIds(List<String> idpGroupIds, String tenantDomain)
             throws IdentityProviderManagementException {
 
         return null;

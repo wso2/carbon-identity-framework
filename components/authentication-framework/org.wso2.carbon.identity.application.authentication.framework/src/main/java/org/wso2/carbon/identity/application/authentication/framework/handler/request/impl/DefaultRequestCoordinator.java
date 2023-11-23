@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.LoginC
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -82,6 +83,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -94,6 +96,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.IS_API_BASED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REDIRECT_URL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
@@ -104,6 +107,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.IS_APP_SHARED;
 
 /**
  * Request Coordinator
@@ -829,6 +833,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
         // Get service provider chain
         SequenceConfig effectiveSequence = getSequenceConfig(context, request.getParameterMap());
+        setStepConfigAuthenticatorList(effectiveSequence);
 
         if (acrRequested != null) {
             for (String acr : acrRequested) {
@@ -836,17 +841,29 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
 
+        String sessionContextKey = null;
         Cookie cookie = FrameworkUtils.getAuthCookie(request);
-
-        // if cookie exists user has previously authenticated
         if (cookie != null) {
-
             if (log.isDebugEnabled()) {
                 log.debug(FrameworkConstants.COMMONAUTH_COOKIE + " cookie is available with the value: " + cookie
                         .getValue());
             }
+            sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
+        } else if (isAPIBasedAuthenticationFlow(request)) {
+            /* If it's an API based authentication flow, the sha256 hashed value
+             of the session identifier can be passed as a query param as well.*/
+            String hashedSessionId = request.getParameter(FrameworkConstants.RequestParams.SESSION_ID);
+            if (StringUtils.isNotBlank(hashedSessionId)) {
+                if (log.isDebugEnabled()) {
+                    log.debug(FrameworkConstants.RequestParams.SESSION_ID +
+                            " query param is available with the value: " + hashedSessionId);
+                }
+                sessionContextKey = hashedSessionId;
+            }
+        }
+        // if a value for the sessionContextKey exists user has previously authenticated
+        if (sessionContextKey != null) {
 
-            String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
             SessionContext sessionContext = null;
             // get the authentication details from the cache
             try {
@@ -1167,5 +1184,34 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } catch (UserStoreException e) {
             throw new FrameworkException("Error occurred while retrieving claim: " + claimURI, e);
         }
+    }
+
+    private void setStepConfigAuthenticatorList(SequenceConfig effectiveSequence) {
+
+        Map<Integer, StepConfig> stepMap = effectiveSequence.getStepMap();
+        ApplicationConfig applicationConfig = effectiveSequence.getApplicationConfig();
+        if (MapUtils.isEmpty(stepMap) && applicationConfig == null) {
+            return;
+        }
+        ServiceProviderProperty[] spProperties = applicationConfig.getServiceProvider().getSpProperties();
+        boolean showOrganizationAuthenticator = true;
+        for (ServiceProviderProperty property : spProperties) {
+            if (IS_APP_SHARED.equals(property.getName()) && !Boolean.parseBoolean(property.getValue())) {
+                showOrganizationAuthenticator = false;
+                break;
+            }
+        }
+        if (showOrganizationAuthenticator) {
+            return;
+        }
+        StepConfig stepConfig = stepMap.get(1);
+        if (stepConfig == null) {
+            return;
+        }
+        List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
+        authenticatorList = authenticatorList.stream()
+                .filter(authenticatorConfig -> !authenticatorConfig.getName()
+                        .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
+        stepConfig.setAuthenticatorList(authenticatorList);
     }
 }

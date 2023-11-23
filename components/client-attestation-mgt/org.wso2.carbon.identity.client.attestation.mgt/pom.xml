@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>client-attestation-mgt</artifactId>
-        <version>5.25.509-SNAPSHOT</version>
+        <version>5.25.545-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -90,6 +90,22 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-cbor</artifactId>
+        </dependency>
         <!--Test dependencies-->
         <dependency>
             <groupId>org.testng</groupId>
@@ -149,6 +165,10 @@
                             com.google.api.client.http.*;version="${com.google.api.http.clients.osgi.version.range}",
                             com.google.api.client.json.*;version="${com.google.api.http.clients.osgi.version.range}",
                             com.google.api.client.util.*;version="${com.google.api.http.clients.osgi.version.range}",
+                            com.fasterxml.jackson.core.*; version="${com.fasterxml.jackson.annotation.version.range}",
+                            com.fasterxml.jackson.databind.*; version="${com.fasterxml.jackson.annotation.version.range}",
+                            com.fasterxml.jackson.annotation.*; version="${com.fasterxml.jackson.annotation.version.range}",
+                            com.fasterxml.jackson.dataformat.cbor.*; version="${com.fasterxml.jackson.annotation.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.client.attestation.mgt.internal,

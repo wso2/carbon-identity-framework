@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.client.attestation.mgt.internal;
 
 
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+
+import java.security.cert.X509Certificate;
+
 /**
  * The `ClientAttestationMgtDataHolder` class serves as a data holder for managing
  * client attestation-related data and services.
@@ -31,6 +34,9 @@ public class ClientAttestationMgtDataHolder {
 
     private static ClientAttestationMgtDataHolder instance
             = new ClientAttestationMgtDataHolder();
+
+    private X509Certificate appleAttestationRootCertificate;
+    private boolean appleAttestationRevocationCheckEnabled;
 
     private ClientAttestationMgtDataHolder() {
 
@@ -49,5 +55,25 @@ public class ClientAttestationMgtDataHolder {
     public void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
 
         this.applicationManagementService = applicationManagementService;
+    }
+
+    public X509Certificate getAppleAttestationRootCertificate() {
+
+        return appleAttestationRootCertificate;
+    }
+
+    public void setAppleAttestationRootCertificate(X509Certificate appleAttestationRootCertificate) {
+
+        this.appleAttestationRootCertificate = appleAttestationRootCertificate;
+    }
+
+    public boolean isAppleAttestationRevocationCheckEnabled() {
+
+        return appleAttestationRevocationCheckEnabled;
+    }
+
+    public void setAppleAttestationRevocationCheckEnabled(boolean appleAttestationRevocationCheckEnabled) {
+
+        this.appleAttestationRevocationCheckEnabled = appleAttestationRevocationCheckEnabled;
     }
 }

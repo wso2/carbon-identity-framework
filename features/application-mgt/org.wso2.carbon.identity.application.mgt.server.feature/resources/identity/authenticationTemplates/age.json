@@ -1,5 +1,5 @@
 {
-  "category": "user_based",
+  "category": "AccessControl",
   "name": "User-Age-Based",
   "title": "User-Age-Based Authentication Template",
   "summary": "Allow login to application if the user's age is over configured value. User's age is calculated using the user's date of birth attribute.",

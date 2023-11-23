@@ -167,6 +167,8 @@
     <ClientAttestation>
         <!-- This tag defines the allowed window between current time and attestation object creation time. -->
         <AllowedWindowMillis>60000</AllowedWindowMillis>
+        <AppleAttestationRootCertificatePath>${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem</AppleAttestationRootCertificatePath>
+        <AppleAttestationRevocationCheckEnabled>false</AppleAttestationRevocationCheckEnabled>
     </ClientAttestation>
 
     <OAuth>
@@ -2361,6 +2363,7 @@
             <Context>/commonauth(.*)</Context>
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
+            <Context>/identity/metadata/saml2</Context>
             <Context>/longwaitstatus(.*)</Context>
             <Context>/oidc/</Context>
         </Servlet>
@@ -2502,8 +2505,13 @@
     <!-- System Applications -->
     <SystemApplications>
         <ApplicationName>Console</ApplicationName>
-        <ApplicationName>My Account</ApplicationName>
     </SystemApplications>
+
+    <!-- Default Applications -->
+    <DefaultApplications>
+        <ApplicationName>Console</ApplicationName>
+        <ApplicationName>My Account</ApplicationName>
+    </DefaultApplications>
 
     <!-- Claim to store localization code  -->
     <!--    By setting true localization code will be stored inside the http://wso2.org/claims/locality-->

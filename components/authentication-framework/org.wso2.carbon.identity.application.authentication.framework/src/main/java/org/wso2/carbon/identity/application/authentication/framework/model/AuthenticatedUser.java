@@ -215,8 +215,13 @@ public class AuthenticatedUser extends User {
             try {
                 int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
                 int idpId = UserSessionStore.getInstance().getIdPId(this.getFederatedIdPName(), tenantId);
-                userId = UserSessionStore.getInstance()
-                        .getFederatedUserId(this.getAuthenticatedSubjectIdentifier(), tenantId, idpId);
+                String subjectIdentifier = this.getAuthenticatedSubjectIdentifier();
+                /* The federated user from another organization is happening via organization SSO login flow. In that
+                case the subject identifier is set in the authenticated username */
+                if (StringUtils.isNotEmpty(this.userResidentOrganization)) {
+                    subjectIdentifier = this.userName;
+                }
+                userId = UserSessionStore.getInstance().getFederatedUserId(subjectIdentifier, tenantId, idpId);
                 try {
                     if (userId == null) {
                         userId = UUID.randomUUID().toString();

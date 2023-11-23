@@ -809,6 +809,7 @@ public class IdentityApplicationManagementUtil {
      * @return
      * @throws SignatureException
      */
+    @Deprecated
     public static String calculateHmacSha1(String key, String value) throws SignatureException {
         String result;
         try {
