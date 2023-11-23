@@ -1512,12 +1512,14 @@ public class FrameworkUtils {
 
         Map<String, String> remoteToLocalClaimMap = new HashMap<String, String>();
 
-        for (Entry<ClaimMapping, String> entry : claimMappings.entrySet()) {
-            ClaimMapping claimMapping = entry.getKey();
-            if (useLocalDialectAsKey) {
-                remoteToLocalClaimMap.put(claimMapping.getLocalClaim().getClaimUri(), entry.getValue());
-            } else {
-                remoteToLocalClaimMap.put(claimMapping.getRemoteClaim().getClaimUri(), entry.getValue());
+        if (claimMappings != null) {
+            for (Entry<ClaimMapping, String> entry : claimMappings.entrySet()) {
+                ClaimMapping claimMapping = entry.getKey();
+                if (useLocalDialectAsKey) {
+                    remoteToLocalClaimMap.put(claimMapping.getLocalClaim().getClaimUri(), entry.getValue());
+                } else {
+                    remoteToLocalClaimMap.put(claimMapping.getRemoteClaim().getClaimUri(), entry.getValue());
+                }
             }
         }
         return remoteToLocalClaimMap;
