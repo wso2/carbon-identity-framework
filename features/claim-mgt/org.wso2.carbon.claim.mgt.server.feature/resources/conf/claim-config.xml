@@ -480,22 +480,6 @@
 				<Description>Number of consecutive failed attempts done for password recovery</Description>
 			</Claim>
 
-
-		    <Claim>
-				<ClaimURI>http://wso2.org/claims/primaryChallengeQuestion</ClaimURI>
-				<DisplayName>Primary Challenge Question</DisplayName>
-			<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>primaryChallengeQuestion</AttributeID>
-				<Description>Primary Challenge Question</Description>
-		    </Claim>
-		    <Claim>
-				<ClaimURI>http://wso2.org/claims/challengeQuestionUris</ClaimURI>
-				<DisplayName>Challenge Question</DisplayName>
-			<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>challengeQuestionUris</AttributeID>
-				<Description>Challenge Question</Description>
-		    </Claim>
-
 		    <Claim>
 				<ClaimURI>http://wso2.org/claims/oneTimePassword</ClaimURI>
 				<DisplayName>One Time Password</DisplayName>
@@ -666,21 +650,6 @@
 				in your user store must be configured for this. -->
 				<AttributeID>lastPasswordUpdate</AttributeID>
 				<Description>Last Password Update Time</Description>
-			</Claim>
-		     <Claim>
-				<ClaimURI>http://wso2.org/claims/challengeQuestion1</ClaimURI>
-				<DisplayName>Challenge Question1</DisplayName>
-			<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>firstChallenge</AttributeID>
-				<Description>Challenge Question1</Description>
-
-			</Claim>
-			<Claim>
-				<ClaimURI>http://wso2.org/claims/challengeQuestion2</ClaimURI>
-				<DisplayName>Challenge Question2</DisplayName>
-			<!-- Proper attribute Id in your user store must be used configured for this -->
-				<AttributeID>secondChallenge</AttributeID>
-				<Description>Challenge Question2</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/displayName</ClaimURI>
