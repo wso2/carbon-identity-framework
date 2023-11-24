@@ -210,6 +210,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
      */
     private boolean isSkipPrompt(AuthenticationContext context) {
 
+        if (context.getCurrentStep() == 0) {
+            return false;
+        }
         return context.getSequenceConfig().getStepMap().get(context.getCurrentStep()).isSkipPrompt();
     }
 
