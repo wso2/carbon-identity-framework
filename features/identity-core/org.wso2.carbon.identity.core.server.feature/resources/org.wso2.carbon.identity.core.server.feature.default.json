@@ -903,6 +903,8 @@
   "console.ui.email_templates.default_white_logo_url": "/libs/themes/default/assets/images/branding/logo-white.svg",
   "console.ui.app_favicon_path": "/assets/images/branding/favicon.ico",
   "console.ui.idp_templates.github.enabled": false,
+  "console.ui.i18nConfigs.showLanguageSwitcher": false,
+  "console.ui.i18nConfigs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
   "console.ui.hiddenAuthenticators": [],
   "console.ui.hiddenConnectionTemplates": [],
