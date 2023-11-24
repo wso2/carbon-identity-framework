@@ -262,6 +262,8 @@ public class IdentityProviderDataRetrievalClient {
         try {
             String endpoint = IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
             if (endpoint != null && endpoint.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                /* Resolving tenant domain from organization ID is not provided by an API. Hence, the retrieval client
+                will have to assume organization ID is same as tenant domain. */
                 endpoint = endpoint.replace(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX,
                         FrameworkConstants.TENANT_CONTEXT_PREFIX);
             }
