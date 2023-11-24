@@ -55,4 +55,22 @@ public class AuthorizedAPICacheKey extends CacheKey {
 
         this.apiId = apiId;
     }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        AuthorizedAPICacheKey that = (AuthorizedAPICacheKey) o;
+
+        return appId.equals(that.appId) && apiId.equals(that.apiId);
+    }
 }
