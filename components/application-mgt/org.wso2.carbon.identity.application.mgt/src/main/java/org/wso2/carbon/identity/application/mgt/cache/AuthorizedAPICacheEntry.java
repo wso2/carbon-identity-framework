@@ -19,13 +19,12 @@
 package org.wso2.carbon.identity.application.mgt.cache;
 
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
-
-import java.io.Serializable;
+import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 /**
  * Cache entry for authorized API.
  */
-public class AuthorizedAPICacheEntry implements Serializable {
+public class AuthorizedAPICacheEntry extends CacheEntry {
 
     private AuthorizedAPI authorizedAPI;
 

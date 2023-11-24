@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.application.mgt.cache;
 
-import java.io.Serializable;
+import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
  * Cache key for authorized API.
  */
-public class AuthorizedAPICacheKey implements Serializable {
+public class AuthorizedAPICacheKey extends CacheKey {
 
     private static final long serialVersionUID = 3112605038259278777L;
 

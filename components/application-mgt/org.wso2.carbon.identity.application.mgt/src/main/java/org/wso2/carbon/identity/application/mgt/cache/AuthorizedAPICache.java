@@ -26,11 +26,11 @@ import org.wso2.carbon.identity.core.cache.BaseCache;
 public class AuthorizedAPICache extends BaseCache<AuthorizedAPICacheKey, AuthorizedAPICacheEntry> {
 
     private static final String CACHE_NAME = "AuthorizedAPICache";
-    private static volatile AuthorizedAPICache instance;
+    private static final AuthorizedAPICache instance = new AuthorizedAPICache();
 
-    public AuthorizedAPICache(String cacheName) {
+    private AuthorizedAPICache() {
 
-        super(cacheName);
+        super(CACHE_NAME);
     }
 
     /**
@@ -40,13 +40,6 @@ public class AuthorizedAPICache extends BaseCache<AuthorizedAPICacheKey, Authori
      */
     public static AuthorizedAPICache getInstance() {
 
-        if (instance == null) {
-            synchronized (AuthorizedAPICache.class) {
-                if (instance == null) {
-                    instance = new AuthorizedAPICache(CACHE_NAME);
-                }
-            }
-        }
         return instance;
     }
 }

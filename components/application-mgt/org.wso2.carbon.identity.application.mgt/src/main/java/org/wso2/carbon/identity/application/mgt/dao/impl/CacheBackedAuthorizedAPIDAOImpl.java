@@ -53,7 +53,6 @@ public class CacheBackedAuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     public void addAuthorizedAPI(String applicationId, String apiId, String policyId, List<Scope> scopes, int tenantId)
             throws IdentityApplicationManagementException {
 
-
         authorizedAPIDAO.addAuthorizedAPI(applicationId, apiId, policyId, scopes, tenantId);
     }
 
@@ -101,11 +100,10 @@ public class CacheBackedAuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             } catch (IdentityApplicationManagementException e) {
                 String error = "Error while retrieving authorized API for application id: " + appId + " and api id: "
                         + apiId + " in tenant id: " + tenantId;
-                LOG.error(error, e);
                 throw new IdentityApplicationManagementException(error, e);
             }
         }
-        return authorizedAPI != null ? authorizedAPI : authorizedAPIDAO.getAuthorizedAPI(appId, apiId, tenantId);
+        return authorizedAPI;
     }
 
     private AuthorizedAPI getAuthorizedAPIFromCache(String appId, String apiId, int tenantId) {
