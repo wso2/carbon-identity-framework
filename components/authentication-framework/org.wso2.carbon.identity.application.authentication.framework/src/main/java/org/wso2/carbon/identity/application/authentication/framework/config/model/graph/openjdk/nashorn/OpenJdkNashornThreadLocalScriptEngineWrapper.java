@@ -20,116 +20,48 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.openjdk.nashorn.api.scripting.ClassFilter;
 import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.BaseThreadLocalScriptEngineWrapper;
 
-import java.io.Reader;
-
-import javax.script.AbstractScriptEngine;
-import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
-import javax.script.ScriptException;
-import javax.script.SimpleScriptContext;
 
 /**
- * ThreadLocal Implementation of the Script Engine.
- * This holds different script engine between different
+ * ThreadLocal Implementation of the OpenJdk Nashorn Script Engine.
+ * This holds different script engine instances between different
  * threads. Thread safety is achieved by binding the script
- * engine to the current running Thread
+ * engine to the current running Thread.
  */
-public class OpenJdkNashornThreadLocalScriptEngineWrapper extends AbstractScriptEngine {
+public class OpenJdkNashornThreadLocalScriptEngineWrapper extends BaseThreadLocalScriptEngineWrapper {
 
-    private static final ThreadLocal<ScriptEngine> threadLocalScriptEngineHolder = new ThreadLocal<>();
-    private Bindings engineScopeBindings;
-    private Bindings globalScopeBindings;
-    private ScriptContext scriptContext;
     private NashornScriptEngineFactory factory;
     private ClassFilter classFilter;
-    private static final String[] NASHORN_ARGS = {"--no-java"};
 
     public OpenJdkNashornThreadLocalScriptEngineWrapper() {
 
-        init(); //Needs to initialize the Script Engine each time.
+        init();
     }
 
-    public ScriptEngine init() {
+    protected void init() {
 
-        ScriptEngine scriptEngine = threadLocalScriptEngineHolder.get();
+        ScriptEngine scriptEngine = getScriptEngine();
         if (scriptEngine == null) {
             factory = new NashornScriptEngineFactory();
             classFilter = new OpenJdkNashornRestrictedClassFilter();
             scriptEngine = factory.getScriptEngine(NASHORN_ARGS, getClassLoader(), classFilter);
         } else {
-            //Clears the existing bindings
+            //Clear the existing bindings.
             scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE).clear();
             scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE).clear();
         }
         setScriptContext(scriptEngine);
-        //Sets the threadLocal Script Engine
-        threadLocalScriptEngineHolder.set(scriptEngine);
-        return scriptEngine;
+        //Set the threadLocal Script Engine.
+        setScriptEngine(scriptEngine);
     }
 
-    public ScriptEngine getScriptEngine() {
-
-        return threadLocalScriptEngineHolder.get();
-    }
-
-    @Override
-    public Object eval(String script, ScriptContext context) throws ScriptException {
-
-        return threadLocalScriptEngineHolder.get().eval(script, context);
-    }
-
-    @Override
-    public Object eval(Reader reader, ScriptContext context) throws ScriptException {
-
-        return threadLocalScriptEngineHolder.get().eval(reader, context);
-    }
-
-    @Override
-    public Bindings createBindings() {
-
-        return threadLocalScriptEngineHolder.get().createBindings();
-    }
-
-    @Override
-    public void setBindings(Bindings bindings, int scope) {
-
-        threadLocalScriptEngineHolder.get().setBindings(bindings, scope);
-    }
-
-    @Override
-    public Bindings getBindings(int scope) {
-
-        return threadLocalScriptEngineHolder.get().getBindings(scope);
-    }
-
-    @Override
-    public ScriptEngineFactory getFactory() {
-
-        return threadLocalScriptEngineHolder.get().getFactory();
-    }
-
-    private ClassLoader getClassLoader() {
+    protected ClassLoader getClassLoader() {
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         return classLoader == null ? NashornScriptEngineFactory.class.getClassLoader() : classLoader;
-    }
-
-    private void setScriptContext(ScriptEngine scriptEngine) {
-
-        scriptContext = new SimpleScriptContext();
-
-        //Sets the engine scope bindings
-        engineScopeBindings = scriptEngine.createBindings();
-        scriptContext.setBindings(engineScopeBindings, ScriptContext.ENGINE_SCOPE);
-
-        //Sets the global scope bindings
-        globalScopeBindings = scriptEngine.createBindings();
-        scriptContext.setBindings(globalScopeBindings, ScriptContext.GLOBAL_SCOPE);
-
-        scriptEngine.setContext(this.scriptContext);
     }
 
 }
