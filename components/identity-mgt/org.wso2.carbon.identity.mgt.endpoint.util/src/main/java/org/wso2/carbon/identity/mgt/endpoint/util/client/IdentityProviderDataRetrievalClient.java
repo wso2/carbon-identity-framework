@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2022-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
@@ -259,7 +260,14 @@ public class IdentityProviderDataRetrievalClient {
             throws IdentityProviderDataRetrievalClientException {
 
         try {
-            return IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+            String endpoint = IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+            if (endpoint != null && endpoint.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                /* Resolving tenant domain from organization ID is not provided by an API. Hence, the retrieval client
+                will have to assume organization ID is same as tenant domain. */
+                endpoint = endpoint.replace(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX,
+                        FrameworkConstants.TENANT_CONTEXT_PREFIX);
+            }
+            return endpoint;
         } catch (ApiException e) {
             throw new IdentityProviderDataRetrievalClientException("Error while building url for context: " + context);
         }
