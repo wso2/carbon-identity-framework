@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core</artifactId>
-        <version>5.25.533-SNAPSHOT</version>
+        <version>5.25.538-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -85,7 +85,6 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
             <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.ws.commons.axiom.wso2</groupId>
@@ -202,6 +201,7 @@
                             org.wso2.carbon.utils;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils.multitenancy;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.*;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.*;version="${org.wso2.carbon.identity.organization.management.core.version.range}",
 
                             org.wso2.carbon.identity.base;version="${carbon.identity.package.import.version.range}",
 

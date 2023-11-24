@@ -160,6 +160,7 @@
   "authentication.authenticator.email_otp.parameters.GmailTokenEndpoint": "https://www.googleapis.com/oauth2/v3/token",
   "authentication.authenticator.email_otp.parameters.SendgridAuthTokenType": "Bearer",
   "authentication.authenticator.email_otp.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.email_otp.parameters.enableRetryFromAuthenticator": true,
   "authentication.authenticator.email_otp.parameters.Tags": "MFA",
 
   "authentication.authenticator.sms_otp.name": "SMSOTP",
@@ -175,6 +176,7 @@
   "authentication.authenticator.sms_otp.parameters.CaptureAndUpdateMobileNumber": true,
   "authentication.authenticator.sms_otp.parameters.SendOTPDirectlyToMobile": false,
   "authentication.authenticator.sms_otp.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.sms_otp.parameters.enableRetryFromAuthenticator": true,
   "authentication.authenticator.sms_otp.parameters.Tags": "MFA",
   "authentication.authenticator.sms_otp.parameters.enable_payload_encoding_for_sms_otp": true,
 
@@ -192,6 +194,7 @@
   "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointErrorPage": "authenticationendpoint/totp_error.do",
   "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage": "authenticationendpoint/totp_enroll.do",
   "authentication.authenticator.totp.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.totp.parameters.enableRetryFromAuthenticator": true,
   "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail": false,
   "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
   "authentication.authenticator.totp.parameters.EnableAccountLockingForFailedAttempts": true,
@@ -225,10 +228,14 @@
   "authentication.authenticator.email_otp_local.name": "email-otp-authenticator",
   "authentication.authenticator.email_otp_local.enable": true,
   "authentication.authenticator.email_otp_local.parameters.Tags": "Passwordless,MFA",
+  "authentication.authenticator.email_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.email_otp_local.parameters.enableRetryFromAuthenticator": true,
 
   "authentication.authenticator.sms_otp_local.name": "sms-otp-authenticator",
   "authentication.authenticator.sms_otp_local.enable": true,
   "authentication.authenticator.sms_otp_local.parameters.Tags": "Passwordless,MFA",
+  "authentication.authenticator.sms_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.sms_otp_local.parameters.enableRetryFromAuthenticator": true,
 
   "account_recovery.endpoint.auth.name":"dashboard",
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
