@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -154,12 +155,56 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
             throws ApplicationRolesException {
 
         String tenantDomain = authenticatedUser.getTenantDomain();
-        List<String> userIDPGroups = getFederatedUserIDPGroup(authenticatedUser);
-        if (CollectionUtils.isEmpty(userIDPGroups)) {
+        String idpName = authenticatedUser.getFederatedIdPName();
+        IdentityProvider identityProvider = getIDP(idpName, tenantDomain);
+        if (identityProvider == null) {
             return Collections.emptySet();
         }
-        List<String> roleIdsFromIDPGroups = getRoleIdsOfIdpGroups(userIDPGroups, tenantDomain);
-        return new HashSet<>(roleIdsFromIDPGroups);
+        IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
+        List<String> idpGroupNamesOfUser = getFederatedIdPGroupNamesOfUser(authenticatedUser, identityProvider);
+        if (CollectionUtils.isEmpty(idpGroupNamesOfUser)) {
+            return Collections.emptySet();
+        }
+        List<String> idpGroupIdsOfUser = getIdPGroupIdListOfUser(idpGroupNamesOfUser, idpGroups);
+        List<String> roleIdsFromIdPGroups = getRoleIdsOfIdpGroups(idpGroupIdsOfUser, tenantDomain);
+        return new HashSet<>(roleIdsFromIdPGroups);
+    }
+
+    /**
+     * Get IDP by IDP name and tenant domain.
+     *
+     * @param idpName      IDP name.
+     * @param tenantDomain Tenant domain.
+     * @return Identity provider.
+     * @throws ApplicationRolesException If an error occurred while getting IDP.
+     */
+    private IdentityProvider getIDP(String idpName, String tenantDomain) throws ApplicationRolesException {
+
+        try {
+            return FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
+                    .getIdPByName(idpName, tenantDomain, true);
+        } catch (IdentityProviderManagementException e) {
+            throw RoleResolverUtils.handleServerException(
+                    ERROR_CODE_RETRIEVING_IDENTITY_PROVIDER, e, idpName, tenantDomain);
+        }
+    }
+
+    /**
+     * Get user IDP group ids.
+     *
+     * @param userIdPGroups User IDP group names.
+     * @param idpGroups     IDP groups.
+     * @return User IDP group ids.
+     */
+    private List<String> getIdPGroupIdListOfUser(List<String> userIdPGroups, IdPGroup[] idpGroups) {
+
+        List<String> idpGroupIds = new ArrayList<>();
+        for (IdPGroup group : idpGroups) {
+            if (group.getIdpGroupId() != null && userIdPGroups.contains(group.getIdpGroupName())) {
+                idpGroupIds.add(group.getIdpGroupId());
+            }
+        }
+        return idpGroupIds;
     }
 
     /**
@@ -215,22 +260,12 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
      * Get federated user IDP groups.
      *
      * @param authenticatedUser Authenticated user.
+     * @param federatedIdP      Federated IDP.
      * @return Federated user IDP groups.
-     * @throws ApplicationRolesException If an error occurred while getting federated user IDP groups.
      */
-    private List<String> getFederatedUserIDPGroup(AuthenticatedUser authenticatedUser)
-            throws ApplicationRolesException {
+    private List<String> getFederatedIdPGroupNamesOfUser(AuthenticatedUser authenticatedUser,
+                                                         IdentityProvider federatedIdP) {
 
-        String idpName = authenticatedUser.getFederatedIdPName();
-        String tenantDomain = authenticatedUser.getTenantDomain();
-        IdentityProvider federatedIdP;
-        try {
-            federatedIdP = FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
-                    .getIdPByName(idpName, tenantDomain, true);
-        } catch (IdentityProviderManagementException e) {
-            throw RoleResolverUtils.handleServerException(
-                    ERROR_CODE_RETRIEVING_IDENTITY_PROVIDER, e, idpName, tenantDomain);
-        }
         if (federatedIdP != null) {
             String idpGroupsClaimUri = Arrays.stream(federatedIdP.getClaimConfig().getClaimMappings())
                     .filter(claimMapping ->
