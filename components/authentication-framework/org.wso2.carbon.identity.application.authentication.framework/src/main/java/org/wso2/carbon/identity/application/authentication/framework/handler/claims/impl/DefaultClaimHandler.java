@@ -233,6 +233,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         // <code>spUnfilteredClaims</code> and <code>spFilteredClaims</code>
         filterSPClaims(spRequestedClaimMappings, localUnfilteredClaims, spUnfilteredClaims, spFilteredClaims,
                        localToSPClaimMappings);
+        // Remove app roles claim from localUnfilteredClaims after setting spFilteredClaims.
+        localUnfilteredClaims.remove(FrameworkConstants.APP_ROLES_CLAIM);
 
         if (stepConfig.isSubjectAttributeStep()) {
             if (MapUtils.isNotEmpty(localUnfilteredClaimsForNullValues)) {
