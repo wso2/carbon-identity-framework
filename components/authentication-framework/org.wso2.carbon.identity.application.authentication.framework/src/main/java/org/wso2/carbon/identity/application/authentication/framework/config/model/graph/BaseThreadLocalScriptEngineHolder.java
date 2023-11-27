@@ -55,11 +55,11 @@ public abstract class BaseThreadLocalScriptEngineHolder {
 
         ScriptContext scriptContext = new SimpleScriptContext();
 
-        //Set the engine scope bindings.
+        // Set the engine scope bindings.
         Bindings engineScopeBindings = scriptEngine.createBindings();
         scriptContext.setBindings(engineScopeBindings, ScriptContext.ENGINE_SCOPE);
 
-        //Set the global scope bindings.
+        // Set the global scope bindings.
         Bindings globalScopeBindings = scriptEngine.createBindings();
         scriptContext.setBindings(globalScopeBindings, ScriptContext.GLOBAL_SCOPE);
 
