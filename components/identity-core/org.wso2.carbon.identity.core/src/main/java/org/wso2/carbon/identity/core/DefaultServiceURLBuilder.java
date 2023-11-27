@@ -478,6 +478,10 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
                 .get(OrganizationManagementConstants.ROOT_TENANT_DOMAIN);
         if (StringUtils.isNotEmpty(rootTenantDomain)) {
             // Set root tenant domain when resource accessed with organization perspective.
+            if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(rootTenantDomain)) {
+                resolvedUrlStringBuilder.append("/o");
+                return;
+            }
             resolvedUrlStringBuilder.append("/t/").append(rootTenantDomain).append("/o");
             return;
         }
