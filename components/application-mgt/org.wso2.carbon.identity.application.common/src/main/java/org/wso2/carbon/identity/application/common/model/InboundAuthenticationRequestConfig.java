@@ -19,9 +19,8 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.axiom.om.OMElement;
+import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
@@ -39,6 +38,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Inbound authentication request configuration.
@@ -72,10 +72,11 @@ public class InboundAuthenticationRequestConfig implements Serializable {
     @XmlElement(name = "Property")
     private Property[] properties = new Property[0];
     
-    @JsonInclude(JsonInclude.Include.NON_EMPTY) // This will only include the map if it's not empty.
-    @JsonProperty("data")
     // This is used to store the data related to the inbound protocol. This is not persisted in the database.
     // We use this for auditing purposes.
+    @IgnoreNullElement
+    @XmlTransient
+    @JsonIgnore
     private Map<String, Object> data;
 
     /*
