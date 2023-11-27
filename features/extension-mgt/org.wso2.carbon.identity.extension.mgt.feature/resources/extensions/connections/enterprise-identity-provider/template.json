@@ -4,6 +4,8 @@
     "displayOrder": 7,
     "id": "enterprise-idp",
     "idp": {
+        "alias": "Alias",
+        "idpIssuerName": "IDP issuer name",
         "certificate": {},
         "claims": {
             "provisioningClaims": [],

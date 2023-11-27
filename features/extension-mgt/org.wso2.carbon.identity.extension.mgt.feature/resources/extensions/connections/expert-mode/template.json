@@ -8,6 +8,8 @@
     "services": [],
     "tags": [ "Custom" ],
     "idp": {
+        "alias": "Alias",
+        "idpIssuerName": "IDP issuer name",
         "certificate": {},
         "claims": {
             "provisioningClaims": [],
