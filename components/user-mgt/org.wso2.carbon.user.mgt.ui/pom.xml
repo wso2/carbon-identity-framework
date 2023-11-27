@@ -57,10 +57,6 @@
             <artifactId>org.wso2.carbon.identity.user.store.count.stub</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.user.mgt.workflow.stub</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
@@ -91,6 +87,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.user.mgt</artifactId>
         </dependency>
     </dependencies>
     <build>
