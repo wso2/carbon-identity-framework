@@ -1293,6 +1293,8 @@
   "myaccount.client_id": "MY_ACCOUNT",
   "myaccount.login_callback_path": "",
   "myaccount.logout_callback_path": "",
+  "myaccount.enable_mfa_user_wise": true,
+  "myaccount.force_backup_code": true,
   "myaccount.route_paths.home": "/overview",
   "myaccount.route_paths.login": "",
   "myaccount.route_paths.logout": "/logout",
