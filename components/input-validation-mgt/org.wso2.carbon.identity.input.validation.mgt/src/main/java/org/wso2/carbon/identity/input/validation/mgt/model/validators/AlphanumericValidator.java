@@ -108,7 +108,8 @@ public class AlphanumericValidator extends AbstractRulesValidator {
         Property allowSpecialChars = new Property();
         allowSpecialChars.setName(ENABLE_SPECIAL_CHARACTERS);
         allowSpecialChars.setDisplayName("Alphanumeric field value with special characters");
-        allowSpecialChars.setDescription("Validate whether the field value is alphanumeric.");
+        allowSpecialChars.setDescription("Validate for allowed set of special characters along with alphanumeric" +
+                " in the field value.");
         allowSpecialChars.setType("boolean");
         allowSpecialChars.setDisplayOrder(++parameterCount);
         configProperties.add(allowSpecialChars);
