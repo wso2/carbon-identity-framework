@@ -130,7 +130,7 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
             List<APIResource> readAPIResources =
                     filterAPIResources(allAPIResources, clonedCollection.getReadScopes());
             List<APIResource> writeAPIResources =
-                    filterAPIResources(allAPIResources, clonedCollection.getWriteScopes());
+                    filterAPIResources(allAPIResources, new ArrayList<>(combinedScopes));
 
             Map<String, List<APIResource>> apiResourcesMap = new HashMap<>();
             apiResourcesMap.put(APIResourceCollectionManagementConstants.READ, readAPIResources);
