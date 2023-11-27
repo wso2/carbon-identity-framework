@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import javax.xml.XMLConstants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -637,11 +638,19 @@ public class ApplicationMgtUtil {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            // Disable external entity processing to prevent XXE attacks.
+            unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             return (ServiceProvider) unmarshaller.unmarshal(spFileStream.getFileStream());
 
         } catch (JAXBException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain), e);
+        } catch (Exception e) {
+            // Catch any other unexpected exceptions for proper error handling
+            throw new IdentityApplicationManagementException(String.format("Unexpected error in reading Service " +
+                    "Provider configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain),
+                    e);
         }
     }
 
