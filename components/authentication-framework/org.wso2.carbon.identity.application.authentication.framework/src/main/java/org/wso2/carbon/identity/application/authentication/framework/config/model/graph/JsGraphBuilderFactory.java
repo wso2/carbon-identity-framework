@@ -94,7 +94,7 @@ public class JsGraphBuilderFactory implements JsBaseGraphBuilderFactory {
         ScriptEngine engine;
         Bindings globalBindings;
         if (useThreadLocalScriptEngine) {
-            ThreadLocalScriptEngineWrapper threadLocalScriptEngineWrapper = new ThreadLocalScriptEngineWrapper();
+            ThreadLocalScriptEngineHolder threadLocalScriptEngineWrapper = new ThreadLocalScriptEngineHolder();
             engine = threadLocalScriptEngineWrapper.getScriptEngine();
             globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
         } else {

@@ -101,8 +101,8 @@ public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFa
         ScriptEngine engine;
         Bindings globalBindings;
         if (useThreadLocalScriptEngine) {
-            OpenJdkNashornThreadLocalScriptEngineWrapper threadLocalScriptEngineWrapper =
-                    new OpenJdkNashornThreadLocalScriptEngineWrapper();
+            OpenJdkNashornThreadLocalScriptEngineHolder threadLocalScriptEngineWrapper =
+                    new OpenJdkNashornThreadLocalScriptEngineHolder();
             engine = threadLocalScriptEngineWrapper.getScriptEngine();
             globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
         } else {

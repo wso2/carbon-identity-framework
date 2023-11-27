@@ -16,27 +16,27 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn;
 
-import jdk.nashorn.api.scripting.ClassFilter;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import org.openjdk.nashorn.api.scripting.ClassFilter;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.BaseThreadLocalScriptEngineHolder;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 
 /**
- * ThreadLocal Implementation of the deprecated Nashorn Script Engine.
- * This holds different script engine instances for different
+ * ThreadLocal Implementation of the OpenJdk Nashorn Script Engine.
+ * This holds different script engine instances between different
  * threads. Thread safety is achieved by binding the script
  * engine to the current running Thread.
  */
-public class ThreadLocalScriptEngineWrapper extends BaseThreadLocalScriptEngineWrapper {
+public class OpenJdkNashornThreadLocalScriptEngineHolder extends BaseThreadLocalScriptEngineHolder {
 
-    @SuppressWarnings("removal")
     private NashornScriptEngineFactory factory;
     private ClassFilter classFilter;
 
-    public ThreadLocalScriptEngineWrapper() {
+    public OpenJdkNashornThreadLocalScriptEngineHolder() {
 
         init();
     }
@@ -46,7 +46,7 @@ public class ThreadLocalScriptEngineWrapper extends BaseThreadLocalScriptEngineW
         ScriptEngine scriptEngine = getScriptEngine();
         if (scriptEngine == null) {
             factory = new NashornScriptEngineFactory();
-            classFilter = new RestrictedClassFilter();
+            classFilter = new OpenJdkNashornRestrictedClassFilter();
             scriptEngine = factory.getScriptEngine(NASHORN_ARGS, getClassLoader(), classFilter);
         } else {
             //Clear the existing bindings.
@@ -54,9 +54,8 @@ public class ThreadLocalScriptEngineWrapper extends BaseThreadLocalScriptEngineW
             scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE).clear();
         }
         setScriptContext(scriptEngine);
-        //Set the threadLocal Script Engine
+        //Set the threadLocal Script Engine.
         setScriptEngine(scriptEngine);
-
     }
 
     protected ClassLoader getClassLoader() {

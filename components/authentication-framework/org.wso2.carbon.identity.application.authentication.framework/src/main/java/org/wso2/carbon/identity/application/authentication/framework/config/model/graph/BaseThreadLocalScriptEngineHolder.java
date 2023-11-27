@@ -29,9 +29,9 @@ import javax.script.SimpleScriptContext;
  * threads. Thread safety is achieved by binding the script
  * engine to the current running Thread.
  */
-public abstract class BaseThreadLocalScriptEngineWrapper {
+public abstract class BaseThreadLocalScriptEngineHolder {
 
-    private static final ThreadLocal<ScriptEngine> threadLocalScriptEngineWrapper = new ThreadLocal<>();
+    private static final ThreadLocal<ScriptEngine> threadLocalScriptEngine = new ThreadLocal<>();
     protected static final String[] NASHORN_ARGS = {"--no-java"};
 
     protected abstract void init();
@@ -43,12 +43,12 @@ public abstract class BaseThreadLocalScriptEngineWrapper {
      */
     public ScriptEngine getScriptEngine() {
 
-        return threadLocalScriptEngineWrapper.get();
+        return threadLocalScriptEngine.get();
     }
 
     protected void setScriptEngine(ScriptEngine scriptEngine) {
 
-        threadLocalScriptEngineWrapper.set(scriptEngine);
+        threadLocalScriptEngine.set(scriptEngine);
     }
 
     protected void setScriptContext(ScriptEngine scriptEngine) {
