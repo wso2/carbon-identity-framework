@@ -27,6 +27,7 @@ public class SQLConstants {
     public static final String MICROSOFT = "Microsoft";
     public static final String DB2 = "DB2";
     public static final String H2 = "H2";
+    public static final String ORACLE = "Oracle";
 
     // Column names.
     public static final String ID_COLUMN_NAME = "ID";
@@ -70,6 +71,8 @@ public class SQLConstants {
             " TENANT_ID = %d ORDER BY CURSOR_KEY %s LIMIT %d";
     public static final String GET_API_RESOURCES_TAIL_MSSQL =
             " TENANT_ID = %d ORDER BY CURSOR_KEY %s";
+    public static final String GET_API_RESOURCES_TAIL_ORACLE =
+            " TENANT_ID = %d ORDER BY CURSOR_KEY %s FETCH FIRST %d ROWS ONLY";
     public static final String GET_API_RESOURCES_WITH_PROPERTIES_SELECTION = "SELECT" +
             " AR.ID AS API_RESOURCE_ID," +
             " AR.CURSOR_KEY AS CURSOR_KEY," +
