@@ -9,7 +9,7 @@
     "tags": [ "Custom" ],
     "idp": {
         "alias": "Alias",
-        "idpIssuerName": "IDP issuer name",
+        "idpIssuerName": "Custom IDP issuer name",
         "certificate": {},
         "claims": {
             "provisioningClaims": [],

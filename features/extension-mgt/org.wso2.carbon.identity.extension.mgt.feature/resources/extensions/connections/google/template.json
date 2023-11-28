@@ -19,7 +19,7 @@
             "certificates": []
         },
         "alias": "https://localhost:9444/oauth2/token",
-        "idpIssuerName": "IDP issuer name",
+        "idpIssuerName": "Google IDP issuer name",
         "claims": {
             "userIdClaim": {
                 "uri": "http://wso2.org/claims/username"

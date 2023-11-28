@@ -8,7 +8,7 @@
     "tags": [ "SAML" ],
     "idp": {
         "alias": "Alias",
-        "idpIssuerName": "IDP issuer name",
+        "idpIssuerName": "SAML IDP issuer name",
         "certificate": {},
         "claims": {
             "provisioningClaims": [],
