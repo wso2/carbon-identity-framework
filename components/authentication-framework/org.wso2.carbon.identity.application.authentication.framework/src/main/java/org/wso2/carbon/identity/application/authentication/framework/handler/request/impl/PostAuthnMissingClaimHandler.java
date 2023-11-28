@@ -114,6 +114,12 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
             log.debug("Post authentication handling for missing claims started");
         }
 
+        /* If the authentication flow is API based, we will not handle missing
+         claims as it is not supported by the authentication API.*/
+        if (FrameworkUtils.isAPIBasedAuthenticationFlow(request)) {
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
         if (getAuthenticatedUser(context) == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No authenticated user found. Hence returning without handling mandatory claims");

@@ -3561,4 +3561,15 @@ public class FrameworkUtils {
             }
         }
     }
+
+    /**
+     * This method will check whether the authentication flow is API based or not.
+     *
+     * @param request Http servlet request.
+     * @return True if the authentication flow is API based.
+     */
+    public static boolean isAPIBasedAuthenticationFlow(HttpServletRequest request) {
+
+        return Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.IS_API_BASED_AUTH_FLOW));
+    }
 }
