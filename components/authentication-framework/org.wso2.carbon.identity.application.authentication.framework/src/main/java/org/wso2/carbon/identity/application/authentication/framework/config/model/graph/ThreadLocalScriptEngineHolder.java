@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 
 /**
@@ -32,37 +31,17 @@ import javax.script.ScriptEngine;
  */
 public class ThreadLocalScriptEngineHolder extends BaseThreadLocalScriptEngineHolder {
 
-    @SuppressWarnings("removal")
-    private NashornScriptEngineFactory factory;
-    private ClassFilter classFilter;
-
-    public ThreadLocalScriptEngineHolder() {
-
-        init();
-    }
-
-    protected void init() {
-
-        ScriptEngine scriptEngine = getScriptEngine();
-        if (scriptEngine == null) {
-            factory = new NashornScriptEngineFactory();
-            classFilter = new RestrictedClassFilter();
-            scriptEngine = factory.getScriptEngine(NASHORN_ARGS, getClassLoader(), classFilter);
-        } else {
-            //Clear the existing bindings.
-            scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE).clear();
-            scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE).clear();
-        }
-        setScriptContext(scriptEngine);
-        //Set the threadLocal Script Engine
-        setScriptEngine(scriptEngine);
-
-    }
-
     protected ClassLoader getClassLoader() {
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         return classLoader == null ? NashornScriptEngineFactory.class.getClassLoader() : classLoader;
+    }
+
+    protected ScriptEngine createScriptEngine() {
+
+        NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
+        ClassFilter classFilter = new RestrictedClassFilter();
+        return factory.getScriptEngine(NASHORN_ARGS, getClassLoader(), classFilter);
     }
 
 }

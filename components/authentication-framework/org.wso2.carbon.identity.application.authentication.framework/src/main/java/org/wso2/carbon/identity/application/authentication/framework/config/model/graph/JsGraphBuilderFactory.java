@@ -30,10 +30,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -94,8 +96,9 @@ public class JsGraphBuilderFactory implements JsBaseGraphBuilderFactory {
         ScriptEngine engine;
         Bindings globalBindings;
         if (useThreadLocalScriptEngine) {
-            ThreadLocalScriptEngineHolder threadLocalScriptEngineWrapper = new ThreadLocalScriptEngineHolder();
-            engine = threadLocalScriptEngineWrapper.getScriptEngine();
+            Optional<ScriptEngine> optionalScriptEngine = new ThreadLocalScriptEngineHolder().getScriptEngine();
+            engine = optionalScriptEngine.orElseThrow(
+                    () -> new IdentityRuntimeException("Failed to create a script engine"));
             globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
         } else {
             engine = factory.getScriptEngine(NASHORN_ARGS, getClassLoader(), classFilter);

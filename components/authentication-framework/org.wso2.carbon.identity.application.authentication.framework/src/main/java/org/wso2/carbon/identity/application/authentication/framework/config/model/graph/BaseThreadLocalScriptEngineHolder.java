@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import java.util.Optional;
+
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -31,27 +33,48 @@ import javax.script.SimpleScriptContext;
  */
 public abstract class BaseThreadLocalScriptEngineHolder {
 
-    private static final ThreadLocal<ScriptEngine> threadLocalScriptEngine = new ThreadLocal<>();
+    private static final ThreadLocal<ScriptEngine> THREAD_LOCAL_SCRIPT_ENGINE = new ThreadLocal<>();
     protected static final String[] NASHORN_ARGS = {"--no-java"};
 
-    protected abstract void init();
+    public BaseThreadLocalScriptEngineHolder() {
+
+        init();
+    }
+
+    protected void init() {
+
+        getScriptEngine()
+                .ifPresent(this::clearScriptEngineBindings);
+
+        ScriptEngine scriptEngine = getScriptEngine()
+                .orElseGet(this::createScriptEngine);
+
+        initializeScriptContext(scriptEngine);
+
+        // Set the threadLocal Script Engine.
+        setScriptEngine(scriptEngine);
+    }
 
     /**
      * Get the thread local script engine.
      *
      * @return ScriptEngine
      */
-    public ScriptEngine getScriptEngine() {
+    public Optional<ScriptEngine> getScriptEngine() {
 
-        return threadLocalScriptEngine.get();
+        ScriptEngine scriptEngine = THREAD_LOCAL_SCRIPT_ENGINE.get();
+        if (scriptEngine != null) {
+            return Optional.of(scriptEngine);
+        }
+        return Optional.empty();
     }
 
-    protected void setScriptEngine(ScriptEngine scriptEngine) {
+    private void setScriptEngine(ScriptEngine scriptEngine) {
 
-        threadLocalScriptEngine.set(scriptEngine);
+        THREAD_LOCAL_SCRIPT_ENGINE.set(scriptEngine);
     }
 
-    protected void setScriptContext(ScriptEngine scriptEngine) {
+    private void initializeScriptContext(ScriptEngine scriptEngine) {
 
         ScriptContext scriptContext = new SimpleScriptContext();
 
@@ -66,5 +89,14 @@ public abstract class BaseThreadLocalScriptEngineHolder {
         scriptEngine.setContext(scriptContext);
     }
 
+    private void clearScriptEngineBindings(ScriptEngine scriptEngine) {
+
+        // Clear the existing bindings.
+        scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE).clear();
+        scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE).clear();
+    }
+
     protected abstract ClassLoader getClassLoader();
+
+    protected abstract ScriptEngine createScriptEngine();
 }
