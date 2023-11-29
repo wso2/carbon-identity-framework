@@ -128,8 +128,10 @@ public class InboundFunctions {
         String previousInboundKey = optionalInboundKey.get();
         String attemptedInboundKeyForUpdate = updatedInbound.getInboundAuthKey();
         if (!StringUtils.equals(previousInboundKey, attemptedInboundKeyForUpdate)) {
-            // This means the application was updated with a newly created inbound. So the updated inbound details
-            // could have been created before the update. Attempt to rollback by deleting any inbound configs created.
+             /*
+              * This means the application was updated with a newly created inbound. So the updated inbound details
+              * could have been created before the update. Attempt to rollback by deleting any inbound configs created.
+              */
             if (LOG.isDebugEnabled()) {
                 String inboundType = updatedInbound.getInboundAuthType();
                 LOG.debug("Removing inbound data related to inbound type: " + inboundType + " of application: "

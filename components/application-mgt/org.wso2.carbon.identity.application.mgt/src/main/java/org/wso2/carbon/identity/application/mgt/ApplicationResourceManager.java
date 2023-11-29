@@ -86,6 +86,16 @@ public interface ApplicationResourceManager {
                                        String tenantDomain, String username)
             throws IdentityApplicationManagementException;
     
+    /**
+     * Update the application by resource id. This method will update the inbound protocol configurations of the
+     * application with the provided inbound protocol configurations object.
+     *
+     * @param resourceId        Unique resource identifier of the application.
+     * @param application   Service provider. This can contain updated application information.
+     * @param tenantDomain      Tenant domain of the application.
+     * @param username          Tenant aware username of the user performing the operation.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
     default void updateApplicationByResourceId(String resourceId, ServiceProvider application,
                                                InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO,
                                                String tenantDomain, String username)

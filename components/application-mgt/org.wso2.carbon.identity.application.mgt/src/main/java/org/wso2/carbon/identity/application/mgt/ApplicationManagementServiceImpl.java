@@ -2589,8 +2589,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
             }
         } catch (IdentityApplicationManagementClientException e) {
-           /*  If there is a client exception, we don't need to do rollback since it will not affect the already
-             existing app. */
+            /*
+             * If there is a client exception, we don't need to do rollback since it will not affect the already
+             * existing app.
+             */
             throw e;
         } catch (IdentityApplicationManagementException e) {
             if (log.isDebugEnabled()) {
@@ -2725,8 +2727,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
     
     /**
-     * Update the application by resource id. This method allow to update the application with or without triggering
-     * audit logs.
+     * Update the application by resource id. This method update the inbound protocol configurations of the application
+     * by calling the relevant protocol handlers if available.
      *
      * @param resourceId        Unique resource identifier of the application.
      * @param serviceProvider   Service provider. This can contain updated application information.
@@ -2762,9 +2764,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             updateOrInsertInbound(serviceProvider, addedInbound);
         }
         try {
-            /* At this point the serviceProvided object is updated with the inbound auth config details. So we can call
-             the updateApplicationByResourceId(String, ServiceProvider, String, String) method to update the
-             service provider details in the database. */
+            /*
+             * At this point the serviceProvided object is updated with the inbound auth config details. So we can call
+             * the updateApplicationByResourceId(String, ServiceProvider, String, String) method to update the
+             * service provider details in the database.
+             */
             updateApplicationByResourceId(resourceId, serviceProvider, tenantDomain, username);
         } catch (IdentityApplicationManagementException e) {
             if (addedInbound != null) {
