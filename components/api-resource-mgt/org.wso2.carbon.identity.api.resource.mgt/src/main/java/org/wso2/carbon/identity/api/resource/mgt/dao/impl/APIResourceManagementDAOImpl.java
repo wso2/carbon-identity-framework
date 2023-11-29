@@ -516,6 +516,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     public List<APIResource> getScopeMetadata(List<String> scopeNames, Integer tenantId)
             throws APIResourceMgtException {
 
+        if (CollectionUtils.isEmpty(scopeNames)) {
+            return new ArrayList<>();
+        }
         String query = SQLConstants.GET_SCOPE_METADATA;
         String placeholders = String.join(",", Collections.nCopies(scopeNames.size(), "?"));
         query = query.replace(SQLConstants.SCOPE_LIST_PLACEHOLDER, placeholders);
