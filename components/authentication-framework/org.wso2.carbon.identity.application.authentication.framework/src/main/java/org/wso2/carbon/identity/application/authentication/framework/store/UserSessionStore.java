@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
@@ -26,6 +27,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -1309,5 +1311,35 @@ public class UserSessionStore {
 
         // When federated user is stored, the userDomain is added as "FEDERATED" to the store.
         return getUserId(subjectIdentifier, tenantId, FEDERATED_USER_DOMAIN, idPId);
+    }
+
+    /**
+     * Method to retrieve user and associated IDP available in the IDN_AUTH_USER table.
+     *
+     * @param userId Id of the authenticated user
+     * @return the user and associated IDP
+     * @throws UserSessionException if an error occurs when retrieving the mapping from the database
+     */
+    public AuthenticatedUser getUser(String userId) throws UserSessionException {
+
+        AuthenticatedUser user = null;
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_SELECT_USER_FROM_USER_ID)) {
+                preparedStatement.setString(1, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        user = new AuthenticatedUser();
+                        user.setUserName(resultSet.getString(1));
+                        user.setTenantDomain(IdentityTenantUtil.getTenantDomain(resultSet.getInt(2)));
+                        user.setUserStoreDomain(resultSet.getString(3));
+                        user.setFederatedIdPName(resultSet.getString(4));
+                    }
+                }
+            }
+            return user;
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving information of user id: " + userId, e);
+        }
     }
 }
