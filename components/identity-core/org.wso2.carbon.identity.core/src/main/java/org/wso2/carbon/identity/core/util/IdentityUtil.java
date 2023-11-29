@@ -1661,7 +1661,7 @@ public class IdentityUtil {
                             return userId;
                         }
                         String associatedOrganizationUUID = tenant.getAssociatedOrganizationUUID();
-                        if (StringUtils.isBlank(associatedOrganizationUUID)) {
+                        if (StringUtils.isNotBlank(associatedOrganizationUUID)) {
                             // Trying to resolve the user from the Resident Organization if the user is not found in
                             // the user store of the current organization.
                             Optional<User> user = IdentityCoreServiceDataHolder.getInstance()
