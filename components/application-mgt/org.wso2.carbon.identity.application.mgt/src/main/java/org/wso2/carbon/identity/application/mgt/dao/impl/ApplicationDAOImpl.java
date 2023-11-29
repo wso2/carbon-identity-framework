@@ -474,7 +474,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 log.debug("Application Stored successfully with applicationId: " + applicationId +
                         " and applicationResourceId: " + resourceId);
             }
-
+            application.setApplicationResourceId(resourceId);
             return new ApplicationCreateResult(resourceId, applicationId);
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(

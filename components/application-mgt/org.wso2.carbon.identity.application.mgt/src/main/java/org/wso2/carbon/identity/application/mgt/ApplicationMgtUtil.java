@@ -18,14 +18,17 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -34,6 +37,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -59,6 +63,7 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -74,7 +79,7 @@ import javax.xml.bind.Unmarshaller;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.INBOUND_AUTHENTICATION_CONFIG;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.ENABLE_V2_AUDIT_LOGS;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
@@ -947,10 +952,13 @@ public class ApplicationMgtUtil {
         if (serviceProvider == null) {
             return StringUtils.EMPTY;
         }
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(InboundAuthenticationRequestConfig.class, new InboundAuthRequestConfigSerializer());
+        mapper.registerModule(module);
         try {
             JSONObject serviceProviderJSONObject =
-                    new JSONObject(new ObjectMapper().writeValueAsString(serviceProvider));
-            maskClientSecret(serviceProviderJSONObject.optJSONObject(INBOUND_AUTHENTICATION_CONFIG));
+                    new JSONObject(mapper.writeValueAsString(serviceProvider));
             maskAppOwnerUsername(serviceProviderJSONObject.optJSONObject(APP_OWNER));
             return serviceProviderJSONObject.toString();
         } catch (JsonProcessingException | IdentityException e) {
@@ -958,33 +966,32 @@ public class ApplicationMgtUtil {
         }
         return StringUtils.EMPTY;
     }
-
-    private static void maskClientSecret(JSONObject inboundAuthenticationConfig) {
-
-        if (inboundAuthenticationConfig == null) {
-            return;
-        }
-        JSONArray inboundAuthenticationRequestConfigsArray =
-                inboundAuthenticationConfig.optJSONArray("inboundAuthenticationRequestConfigs");
-        if (inboundAuthenticationRequestConfigsArray == null) {
-            return;
-        }
-
-        for (int i = 0; i < inboundAuthenticationRequestConfigsArray.length(); i++) {
-            JSONObject requestConfig = inboundAuthenticationRequestConfigsArray.getJSONObject(i);
-            JSONArray properties = requestConfig.optJSONArray("properties");
-            if (properties == null) {
-                return;
-            }
-            for (int j = 0; j < properties.length(); j++) {
-                JSONObject property = properties.optJSONObject(j);
-                if (property != null && StringUtils.equalsIgnoreCase("oauthConsumerSecret",
-                        (String) property.get("name"))) {
-                    String secret = property.get("value").toString();
-                    property.put("value", LoggerUtils.getMaskedContent(secret));
-                    break;
-                }
-            }
+    
+    /**
+     * Check whether the v2 audit logs are enabled.
+     *
+     * @return true if v2 audit logs are enabled.
+     */
+    public static boolean isEnableV2AuditLogs() {
+        
+        return Boolean.parseBoolean(System.getProperty(ENABLE_V2_AUDIT_LOGS));
+    }
+    
+    /**
+     * Handle the exception and throw the relevant ApplicationManagementException.
+     *
+     * @param msg Error message.
+     * @param e   Throwable object.
+     * @return IdentityApplicationManagementException.
+     */
+    public static IdentityApplicationManagementException handleException(String msg, Throwable e) {
+        
+        if (e instanceof IdentityApplicationManagementClientException) {
+            return new IdentityApplicationManagementClientException(e.getMessage(), e);
+        } else if (e instanceof IdentityApplicationManagementServerException) {
+            return new IdentityApplicationManagementServerException(e.getMessage(), e);
+        } else {
+            return new IdentityApplicationManagementException(msg, e);
         }
     }
 
@@ -1024,6 +1031,7 @@ public class ApplicationMgtUtil {
         return LoggerUtils.getMaskedContent(loggableUserId);
     }
 
+    @Deprecated
     public static boolean isLegacyAuditLogsDisabledInAppMgt() {
 
         return Boolean.parseBoolean(System.getProperty(DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG))
@@ -1066,5 +1074,28 @@ public class ApplicationMgtUtil {
 
         return ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(name) ||
                 ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(name);
+    }
+    
+    private static class InboundAuthRequestConfigSerializer extends StdSerializer<InboundAuthenticationRequestConfig> {
+        
+        public InboundAuthRequestConfigSerializer() {
+            
+            super(InboundAuthenticationRequestConfig.class);
+        }
+        
+        @Override
+        public void serialize(InboundAuthenticationRequestConfig value, JsonGenerator gen, SerializerProvider provider)
+                throws IOException {
+            
+            gen.writeStartObject();
+            gen.writeStringField("inboundAuthKey", value.getInboundAuthKey());
+            gen.writeStringField("inboundAuthType", value.getInboundAuthType());
+            gen.writeStringField("friendlyName", value.getFriendlyName());
+            // Handle the data field.
+            if (value.getData() != null && !value.getData().isEmpty()) {
+                gen.writeObjectField("config", value.getData());
+            }
+            gen.writeEndObject();
+        }
     }
 }

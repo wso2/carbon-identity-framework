@@ -18,6 +18,8 @@ package org.wso2.carbon.identity.application.mgt;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
 
 /**
  * Allows application CRUD operations using unique resourceId.
@@ -34,7 +36,20 @@ public interface ApplicationResourceManager {
      */
     ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
             throws IdentityApplicationManagementException;
-
+    
+    /**
+     * Creates an application and returns the created application.
+     *
+     * @param applicationModelDTO ApplicationModelDTO containing the app information.
+     * @return unique application resource id of the application.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
+     */
+    default String createApplication(ApplicationDTO applicationModelDTO, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+        
+        return createApplication(applicationModelDTO.getServiceProvider(), tenantDomain, username);
+    }
+    
     /**
      * Creates an application and returns the created application.
      *
@@ -70,6 +85,24 @@ public interface ApplicationResourceManager {
     void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApplication,
                                        String tenantDomain, String username)
             throws IdentityApplicationManagementException;
+    
+    /**
+     * Update the application by resource id. This method will update the inbound protocol configurations of the
+     * application with the provided inbound protocol configurations object.
+     *
+     * @param resourceId        Unique resource identifier of the application.
+     * @param application   Service provider. This can contain updated application information.
+     * @param tenantDomain      Tenant domain of the application.
+     * @param username          Tenant aware username of the user performing the operation.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
+    default void updateApplicationByResourceId(String resourceId, ServiceProvider application,
+                                               InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO,
+                                               String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        updateApplicationByResourceId(resourceId, application, tenantDomain, username);
+    }
 
     /**
      * Delete an application identified by the resourceId.

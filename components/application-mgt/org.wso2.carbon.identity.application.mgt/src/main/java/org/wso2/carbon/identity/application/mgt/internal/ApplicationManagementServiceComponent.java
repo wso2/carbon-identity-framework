@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceIm
 import org.wso2.carbon.identity.application.mgt.DiscoverableApplicationManager;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
+import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.internal.impl.DiscoverableApplicationManagerImpl;
 import org.wso2.carbon.identity.application.mgt.listener.AdminRolePermissionsUpdateListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationClaimMgtListener;
@@ -482,6 +483,27 @@ public class ApplicationManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("SAMLSSOServiceProviderManager unset in to bundle");
         }
+    }
+
+    @Reference(
+            name = "application.mgt.inbound.config.service",
+            service = ApplicationInboundAuthConfigHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationInboundAuthConfigService"
+    )
+    protected void setApplicationInboundAuthConfigService(ApplicationInboundAuthConfigHandler
+                                                                  applicationInboundAuthConfigHandler) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().addApplicationInboundAuthConfigHandler(
+                applicationInboundAuthConfigHandler);
+    }
+
+    protected void unsetApplicationInboundAuthConfigService(ApplicationInboundAuthConfigHandler
+                                                                    applicationInboundAuthConfigHandler) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().removeApplicationInboundConfigHandler(
+                applicationInboundAuthConfigHandler);
     }
 
     @Reference(
