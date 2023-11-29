@@ -5060,7 +5060,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty androidPackageName = new ServiceProviderProperty();
         androidPackageName.setName(ANDROID_PACKAGE_NAME_PROPERTY_NAME);
         androidPackageName.setDisplayName(ANDROID_PACKAGE_NAME_DISPLAY_NAME);
-        androidPackageName.setValue(String.valueOf(clientAttestationMetaData.getAndroidPackageName()));
+        if (StringUtils.isNotBlank(clientAttestationMetaData.getAndroidPackageName())) {
+            androidPackageName.setValue(String.valueOf(clientAttestationMetaData.getAndroidPackageName()));
+        }
         return androidPackageName;
     }
 
@@ -5070,7 +5072,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty appleAppId = new ServiceProviderProperty();
         appleAppId.setName(APPLE_APP_ID_PROPERTY_NAME);
         appleAppId.setDisplayName(APPLE_APP_ID_DISPLAY_NAME);
-        appleAppId.setValue(String.valueOf(clientAttestationMetaData.getAppleAppId()));
+        if (StringUtils.isNotBlank(clientAttestationMetaData.getAppleAppId())) {
+            appleAppId.setValue(String.valueOf(clientAttestationMetaData.getAppleAppId()));
+        }
         return appleAppId;
     }
 
