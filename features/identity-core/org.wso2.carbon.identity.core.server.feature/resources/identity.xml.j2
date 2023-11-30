@@ -3642,8 +3642,9 @@
         <EnablePasskeyProgressiveEnrollment>{{fido.enable_passkey_progressive_enrollment}}</EnablePasskeyProgressiveEnrollment>
         <EnableUsernamelessAuthentication>{{fido.enable_usernameless_authentication}}</EnableUsernamelessAuthentication>
         <FIDO2TrustedOrigins>
+            <Origin>${carbon.protocol}://${carbon.host}:${carbon.management.port}</Origin>
             {% for origin in fido.trusted.origins %}
-                <Origin>{{origin}}</Origin>
+            <Origin>{{origin}}</Origin>
             {% endfor %}
         </FIDO2TrustedOrigins>
 

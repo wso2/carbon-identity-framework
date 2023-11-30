@@ -762,7 +762,7 @@
   "fido.webauthn.enable": true,
   "fido.enable_passkey_progressive_enrollment": false,
   "fido.enable_usernameless_authentication": true,
-  "fido.trusted.origins": ["${carbon.protocol}://${carbon.host}:${carbon.management.port}"],
+  "fido.trusted.origins": [],
   "fido.user_response_timeout": "300000",
   "fido.metadata_service.enable": false,
   "fido.metadata_service.mds_endpoints": [],
