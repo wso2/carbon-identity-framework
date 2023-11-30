@@ -146,8 +146,6 @@
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
-        <!-- To enable or disable sha256 ppid display value -->
-        <EnableSHA256PPIDDisplayValue>{{openid.enable_sha256_ppid_value}}</EnableSHA256PPIDDisplayValue>
         <!--
                OpenID private association store is configurable from following configs.
                It includes two new replication stores,
@@ -249,7 +247,7 @@
         {% endif %}
 
         <!-- This configuration is used to enable or disable generation of random numbers using HMAC-SHA256 algorithm.-->
-        <EnableSHA256Params>{{oauth.enable_sha256_params}}</EnableSHA256Params>
+        <EnableSHA256Params>{{oauth.enable_sha256}}</EnableSHA256Params>
 
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
@@ -282,7 +280,7 @@
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
         <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
 
-        <EnableSHA256OAuth2JWKThumbprint>{{oauth.enable_sha256_jwk_thumbprint}}</EnableSHA256OAuth2JWKThumbprint>
+        <EnableSHA256OAuth2JWKThumbprint>{{oauth.jwk_thumbprint_enable_sha256}}</EnableSHA256OAuth2JWKThumbprint>
 
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>{{oauth.use_entityid_as_issuer_in_oidc_discovery}}</UseEntityIdAsIssuerInOidcDiscovery>
@@ -1210,8 +1208,8 @@
         <SAMLECPEndpoint>{{saml.endpoints.ecp}}</SAMLECPEndpoint>
         <SAMLMetadataValidityPeriod>{{saml.metadata.validity_period}}</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>{{saml.metadata.enable_signing}}</SAMLMetadataSigningEnabled>
-        <SAMLIDPMetadataEnableSHA256Alg>{{saml.metadata.idp_enable_sha256_alg}}</SAMLIDPMetadataEnableSHA256Alg>
-        <SAMLSPMetadataParsingEnableSHA256Alg>{{saml.metadata.sp_enable_sha256_alg}}</SAMLSPMetadataParsingEnableSHA256Alg>
+        <SAMLIDPMetadataEnableSHA256Alg>{{saml.metadata.idp_enable_sha256}}</SAMLIDPMetadataEnableSHA256Alg>
+        <SAMLSPMetadataParsingEnableSHA256Alg>{{saml.metadata.sp_enable_sha256}}</SAMLSPMetadataParsingEnableSHA256Alg>
         <SAML2AuthenticationRequestValidityPeriodEnabled>{{saml.enable_request_validity_period}}</SAML2AuthenticationRequestValidityPeriodEnabled>
         <!-- Request validity period in minutes-->
         <SAML2AuthenticationRequestValidityPeriod>{{saml.request_validity_period}}</SAML2AuthenticationRequestValidityPeriod>
@@ -1259,13 +1257,9 @@
         <EnableLogoutWreplyValidation>{{passive_sts.enable_logout_wreply_validation}}</EnableLogoutWreplyValidation>
     </PassiveSTS>
 
-    <Mex>
-        <EnableSHA256Alg>{{mex.enable_sha256_alg}}</EnableSHA256Alg>
-    </Mex>
-
     <UserAccountAssociation>
-            <EnableSHA256Key>{{user_account_association.enable_sha256_key}}</EnableSHA256Key>
-        </UserAccountAssociation>
+            <EnableSHA256Key>{{user_account_association.enable_sha256}}</EnableSHA256Key>
+    </UserAccountAssociation>
 
     <EntitlementSettings>
         <ThirftBasedEntitlementConfig>
@@ -3889,8 +3883,14 @@
         {% endfor %}
     </OrganizationLevelEmailBrandingFallbacks>
 
-    <!-- Configuration to enable the generation of random numbers using HMACSHA256 in IdentityUtil-->
-    <EnableSHA256RandomNumberGenerator>{{identity_util.enable_sha256_random_numbers}}</EnableSHA256RandomNumberGenerator>
+    <!-- Configuration to enable SHA256 in IdentityUtil-->
+    <IdentityUtil>
+        <EnableSHA256>{{identity_util.enable_sha256}}</EnableSHA256>
+    </IdentityUtil>
+
+    <CertThumbprint>
+        <EnableSHA256>{{cert_thumbprint.enable_sha256}}</EnableSHA256>
+    </CertThumbprint>
 
     <OrganizationUserInvitation>
         <DefaultExpiryTime>{{organization.user.invitation.default.expiry_time}}</DefaultExpiryTime>
