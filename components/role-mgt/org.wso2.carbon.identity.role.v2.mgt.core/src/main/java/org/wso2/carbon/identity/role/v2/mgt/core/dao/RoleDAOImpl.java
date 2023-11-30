@@ -606,7 +606,7 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException, UserStoreException {
 
         RoleBasicInfo roleBasicInfo = getRoleBasicInfoById(roleId, tenantDomain);
-        // There won't be multiple internal/admin and internal/system roles in the same organization
+        // There won't be multiple internal/admin and internal/system roles in the same organization with organization audience.
         if (ORGANIZATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
             String roleNameWithDomain = UserCoreUtil.addInternalDomainName(roleBasicInfo.getName());
             return isInternalSystemRole(roleNameWithDomain) || isInternalAdminRole(roleNameWithDomain, userRealm);
