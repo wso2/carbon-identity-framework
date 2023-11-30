@@ -52,7 +52,6 @@
   "remote_fetch.enable": false,
   "remote_fetch.working_directory": "${carbon.home}/tmp/",
 
-  "openid.enable_sha256_ppid_value": true,
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": false,
 
@@ -82,7 +81,7 @@
   "oauth.token_persistence.enable": true,
 
   "oauth.access_token.generate_with_sp_tenant_domain": true,
-  "oauth.enable_sha256_params": true,
+  "oauth.enable_sha256": true,
 
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
@@ -105,7 +104,7 @@
   "oauth.endpoints.oidc_web_finger_url": "$ref{server.base_path}/.well-known/webfinger",
   "oauth.endpoints.oidc_discovery_url": "$ref{server.base_path}/oauth2/oidcdiscovery",
   "oauth.endpoints.oauth2_device_authz_url": "$ref{server.base_path}/oauth2/device_authorize",
-  "oauth.enable_sha256_jwk_thumbprint": true,
+  "oauth.jwk_thumbprint_enable_sha256": true,
 
   "oauth.response_type.token.enable": true,
   "oauth.response_type.token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.AccessTokenResponseTypeHandler",
@@ -307,8 +306,8 @@
   "saml.metadata.validity_period": "1h",
   "saml.metadata.enable_signing": false,
   "saml.metadata.enable_authentication_requests_signing": false,
-  "saml.metadata.idp_enable_sha256_alg": true,
-  "saml.metadata.sp_enable_sha256_alg": true,
+  "saml.metadata.idp_enable_sha256": true,
+  "saml.metadata.sp_enable_sha256": true,
 
   "sts.endpoint.idp": "$ref{server.base_path}/services/wso2carbon-sts",
   "sts.local_subject_identifier.include_user_store_domain": true,
@@ -323,8 +322,7 @@
   "passive_sts.endpoints.idp": "$ref{server.base_path}/passivests",
   "passive_sts.endpoints.retry": "$ref{server.base_path}/authenticationendpoint/retry.do",
 
-  "mex.enable_sha256_alg": true,
-  "user_account_association.enable_sha256_key": true,
+  "user_account_association.enable_sha256": true,
 
   "entitlement.thrift.enable": false,
   "entitlement.thrift.receiver_port": "${Ports.ThriftEntitlementReceivePort}",
@@ -1353,7 +1351,8 @@
 
   "show_pending_user_information.enable": true,
   "replace_amr_value_with_idp_sent_values.enable": false,
-  "identity_util.enable_sha256_random_numbers": true,
+  "identity_util.enable_sha256": true,
+  "cert_thumbprint.enable_sha256": true,
   "organization.user.invitation.default.expiry_time": "4320",
   "organization.user.invitation.primary.user_domain": "PRIMARY",
   "organization.user.invitation.default.accept_url": "/accountrecoveryendpoint/acceptinvitation.do",

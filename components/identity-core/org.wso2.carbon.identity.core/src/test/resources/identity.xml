@@ -70,6 +70,10 @@
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
     </OpenID>
 
+    <IdentityUtil>
+        <EnableSHA256>true</EnableSHA256>
+    </IdentityUtil>
+
     <OAuth>
         <OAuth1RequestTokenUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/request-token</OAuth1RequestTokenUrl>
         <OAuth1AuthorizeUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/authorize-url</OAuth1AuthorizeUrl>

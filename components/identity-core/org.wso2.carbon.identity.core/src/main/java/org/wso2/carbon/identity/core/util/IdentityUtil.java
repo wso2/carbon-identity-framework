@@ -332,7 +332,7 @@ public class IdentityUtil {
         byte[] rawPpid = Base64.getDecoder().decode(value);
 
         String algorithm;
-        if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.OpenId.ENABLE_SHA256_PPID_DISPLAY_VALUE))) {
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.IDENTITY_UTIL_ENABLE_SHA256))) {
             algorithm = SHA256_ALGORITHM;
         } else {
             algorithm = SHA1_ALGORITHM;
@@ -367,8 +367,14 @@ public class IdentityUtil {
 
     public static String getHMAC(String secretKey, String baseString) throws SignatureException {
         try {
-            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), HMAC_SHA256_ALGORITHM);
-            Mac mac = Mac.getInstance(HMAC_SHA256_ALGORITHM);
+            String algorithm;
+            if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.IDENTITY_UTIL_ENABLE_SHA256))) {
+                algorithm = HMAC_SHA256_ALGORITHM;
+            } else {
+                algorithm = HMAC_SHA1_ALGORITHM;
+            }
+            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), algorithm);
+            Mac mac = Mac.getInstance(algorithm);
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
             return Base64.getEncoder().encodeToString(rawHmac);
@@ -414,7 +420,7 @@ public class IdentityUtil {
             String baseString = UUIDGenerator.generateUUID();
 
             String algorithm;
-            if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.IDENTITY_UTIL_ENABLE_SHA256_RANDOM_NUMBERS))) {
+            if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.IDENTITY_UTIL_ENABLE_SHA256))) {
                 algorithm = HMAC_SHA256_ALGORITHM;
             } else {
                 algorithm = HMAC_SHA1_ALGORITHM;

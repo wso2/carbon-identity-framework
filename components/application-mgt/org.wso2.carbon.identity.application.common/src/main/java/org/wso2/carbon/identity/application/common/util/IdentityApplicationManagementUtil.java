@@ -417,7 +417,13 @@ public class IdentityApplicationManagementUtil {
 
         if (encodedCert != null) {
             MessageDigest digestValue = null;
-            digestValue = MessageDigest.getInstance("SHA-256");
+            String algorithm;
+            if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.CERT_THUMBPRINT_ENABLE_SHA256))) {
+                algorithm = "SHA-256";
+            } else {
+                algorithm = "SHA-1";
+            }
+            digestValue = MessageDigest.getInstance(algorithm);
             byte[] der = Base64.decode(encodedCert);
             digestValue.update(der);
             byte[] digestInBytes = digestValue.digest();
