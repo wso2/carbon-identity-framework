@@ -97,6 +97,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.SORT
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.H2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INFORMIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_SYSTEM_ROLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MARIADB;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MY_SQL;
@@ -537,7 +538,8 @@ public class RoleDAOImpl implements RoleDAO {
         UserRealm userRealm;
         try {
             userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())) {
+            if (UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())
+                    || isInternalAdminOrSystemRole(roleId, tenantDomain, userRealm)) {
                 throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
                         "Invalid operation. Role: " + roleName + " Cannot be deleted.");
             }
@@ -589,6 +591,27 @@ public class RoleDAOImpl implements RoleDAO {
                     String.format(message, roleName, tenantDomain), e);
         }
         clearUserRolesCacheByTenant(tenantId);
+    }
+
+    /**
+     * Check whether the given role is an internal admin or system role.
+     *
+     * @param roleId           Role ID.
+     * @param tenantDomain     Tenant domain.
+     * @param userRealm        User realm.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private boolean isInternalAdminOrSystemRole(String roleId, String tenantDomain, UserRealm userRealm)
+            throws IdentityRoleManagementException, UserStoreException {
+
+        RoleBasicInfo roleBasicInfo = getRoleBasicInfoById(roleId, tenantDomain);
+        if (ORGANIZATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+            String roleNameWithInternalDomain = UserCoreUtil.addInternalDomainName(roleBasicInfo.getName());
+            RealmConfiguration realmConfig = userRealm.getRealmConfiguration();
+            return INTERNAL_SYSTEM_ROLE.equalsIgnoreCase(roleNameWithInternalDomain) || (realmConfig.isPrimary()
+                    && realmConfig.getAdminRoleName().equalsIgnoreCase(roleNameWithInternalDomain));
+        }
+        return false;
     }
 
     @Override
