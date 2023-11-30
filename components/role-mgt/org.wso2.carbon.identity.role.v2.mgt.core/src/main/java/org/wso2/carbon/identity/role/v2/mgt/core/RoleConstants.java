@@ -65,7 +65,7 @@ public class RoleConstants {
     // Role audiences
     public static final String APPLICATION = "application";
     public static final String ORGANIZATION = "organization";
-    public static final String INTERNAL_SYSTEM_ROLE = "Internal/system";
+    public static final String SYSTEM = "system";
 
     /**
      * Grouping of constants related to database table names.
