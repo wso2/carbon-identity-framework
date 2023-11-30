@@ -2347,6 +2347,7 @@
                     <Path>/api/identity/recovery/v0.9</Path>
                     <Path>/api/server/v1/identity-governance/preferences</Path>
                     <Path>/api/server/v1/identity-governance</Path>
+                    <Path>/api/identity/auth/v1.1/data</Path>
                 </SubPaths>
             </Context>
             <Context>
