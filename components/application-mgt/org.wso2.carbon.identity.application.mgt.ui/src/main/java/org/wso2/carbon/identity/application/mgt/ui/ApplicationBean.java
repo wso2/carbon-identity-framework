@@ -1447,6 +1447,8 @@ public class ApplicationBean {
                 }
             }
             authStep.setLocalAuthenticatorConfigs(new LocalAuthenticatorConfig[]{localAuthenticator});
+            authStep.setSubjectStep(true);
+            authStep.setAttributeStep(true);
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
                     new AuthenticationStep[]{authStep});
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationScriptConfig(null);
