@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
+import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
@@ -127,16 +128,9 @@ public class AuthorizedAPIManagementListener extends AbstractApplicationMgtListe
                         + tenantDomain);
                 return;
             }
-            // Fetch the system API resources count.
-            int systemAPICount = ApplicationManagementServiceComponentHolder.getInstance()
-                    .getAPIResourceManager().getAPIResources(null, null, 1,
-                            APIResourceManagementConstants.SYSTEM_API_FILTER, APIResourceManagementConstants.ASC,
-                            tenantDomain).getTotalCount();
+
             // Fetch all system APIs.
-            List<APIResource> apiResources = ApplicationManagementServiceComponentHolder.getInstance()
-                    .getAPIResourceManager().getAPIResources(null, null, systemAPICount,
-                            APIResourceManagementConstants.SYSTEM_API_FILTER, APIResourceManagementConstants.ASC,
-                            tenantDomain).getAPIResources();
+            List<APIResource> apiResources = APIResourceManagementUtil.getSystemAPIs(tenantDomain);
             if (apiResources.isEmpty()) {
                 LOG.error("Error while authorizing system APIs to the Console. System APIs not found in tenant: "
                         + tenantDomain);
