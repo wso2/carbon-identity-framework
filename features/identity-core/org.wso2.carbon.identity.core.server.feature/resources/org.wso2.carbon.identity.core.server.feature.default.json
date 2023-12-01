@@ -1051,12 +1051,10 @@
   "console.ui.hiddenConnectionTemplates": [ "hypr-idp", "swe-idp" ],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
-  "console.ui.legacy_features": {
-    "applicationOIDCSubjectIdentifierEnabled": false,
-    "applicationRequestPathAuthenticationEnabled": false,
-    "applicationRoleEnabled": false,
-    "applicationXacmlAuthorizationEnabled": false
-  },
+  "console.ui.legacy_features.applicationOIDCSubjectIdentifierEnabled": false,
+  "console.ui.legacy_features.applicationRequestPathAuthenticationEnabled": false,
+  "console.ui.legacy_features.applicationRoleEnabled": false,
+  "console.ui.legacy_features.applicationXacmlAuthorizationEnabled": false,
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
   "console.session.params.userIdleWarningTimeOut": 580,
