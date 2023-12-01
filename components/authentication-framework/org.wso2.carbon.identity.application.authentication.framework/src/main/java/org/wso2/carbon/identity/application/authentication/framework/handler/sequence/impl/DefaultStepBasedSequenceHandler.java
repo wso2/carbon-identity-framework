@@ -571,61 +571,79 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     @Override
     public void callJitProvisioning(String subjectIdentifier, AuthenticationContext context,
-            List<String> mappedRoles, Map<String, String> extAttributesValueMap) throws FrameworkException {
+                                    List<String> mappedRoles, Map<String, String> extAttributesValueMap)
+            throws FrameworkException {
+
         handleJitProvisioning(subjectIdentifier, context, mappedRoles, extAttributesValueMap);
     }
 
+    @Override
+    public void callJitProvisioningWithV2Roles(String subjectIdentifier, AuthenticationContext context,
+                                               List<String> assignedRoleIdList,
+                                               Map<String, String> extAttributesValueMap) throws FrameworkException {
+
+        handleJitProvisioningWithV2Roles(subjectIdentifier, context, assignedRoleIdList, extAttributesValueMap);
+    }
+
     /**
-     * @param context
-     * @param mappedRoles
-     * @param extAttributesValueMap
+     * Handle JIT provisioning with v1 roles.
+     *
+     * @param context               Authentication context.
+     * @param mappedRoles           Mapped roles.
+     * @param extAttributesValueMap Attribute value map.
+     * @throws FrameworkException If an error occurred while handling JIT provisioning.
      */
     protected void handleJitProvisioning(String subjectIdentifier, AuthenticationContext context,
                                          List<String> mappedRoles, Map<String, String> extAttributesValueMap)
             throws FrameworkException {
 
         try {
-            @SuppressWarnings("unchecked")
-            String userStoreDomain = null;
-            String provisioningClaimUri = context.getExternalIdP().getProvisioningUserStoreClaimURI();
-            String provisioningUserStoreId = context.getExternalIdP().getProvisioningUserStoreId();
+            String userStoreDomain = getProvisioningUserstoreDomain(context.getExternalIdP(), extAttributesValueMap);
 
-            if (provisioningUserStoreId != null) {
-                userStoreDomain = provisioningUserStoreId;
-            } else if (provisioningClaimUri != null) {
-                userStoreDomain = extAttributesValueMap.get(provisioningClaimUri);
-            }
+            // Setup thread local variable to be consumed by the provisioning framework.
+            setThreadLocalProvisioningServiceProvider(context);
+            setLocalUnfilteredClaimsForNullValues(context, extAttributesValueMap);
+            setIdPRoleToLocalRoleMappingToThreadLocal(context);
+            setAttributeSyncMethodToThreadLocal(context);
 
-            // setup thread local variable to be consumed by the provisioning
-            // framework.
-            ThreadLocalProvisioningServiceProvider serviceProvider = new ThreadLocalProvisioningServiceProvider();
-            serviceProvider.setServiceProviderName(context.getSequenceConfig()
-                    .getApplicationConfig().getApplicationName());
-            serviceProvider.setJustInTimeProvisioning(true);
-            serviceProvider.setClaimDialect(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
-            serviceProvider.setTenantDomain(context.getTenantDomain());
-            IdentityApplicationManagementUtil.setThreadLocalProvisioningServiceProvider(serviceProvider);
-            Map<String, String> localUnfilteredClaimsForNullValues =
-                    (Map<String, String>) context
-                            .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES);
-            if (MapUtils.isNotEmpty(localUnfilteredClaimsForNullValues)) {
-                extAttributesValueMap.putAll(localUnfilteredClaimsForNullValues);
-            }
-            List<String> idpToLocalRoleMapping = new ArrayList<String>(
-                    context.getExternalIdP().getRoleMappings().values());
-
-            IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING,
-                    idpToLocalRoleMapping);
-            IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD,
-                    context.getExternalIdP().getAttributeSyncMethod());
             FrameworkUtils.getProvisioningHandler()
                     .handle(mappedRoles, subjectIdentifier, extAttributesValueMap, userStoreDomain,
                             context.getTenantDomain());
-
         } catch (FrameworkException e) {
             log.error("User provisioning failed!", e);
         } finally {
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING);
+            IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
+        }
+    }
+
+    /**
+     * Handle JIT provisioning with v2 roles.
+     *
+     * @param context               Authentication context.
+     * @param assignedRoleIdList    Assigned Role ID list.
+     * @param extAttributesValueMap Attribute value map.
+     * @throws FrameworkException If an error occurred while handling JIT provisioning.
+     */
+    protected void handleJitProvisioningWithV2Roles(String subjectIdentifier, AuthenticationContext context,
+                                                    List<String> assignedRoleIdList,
+                                                    Map<String, String> extAttributesValueMap)
+            throws FrameworkException {
+
+        try {
+            String userStoreDomain = getProvisioningUserstoreDomain(context.getExternalIdP(), extAttributesValueMap);
+
+            // Setup thread local variable to be consumed by the provisioning framework.
+            setThreadLocalProvisioningServiceProvider(context);
+            setLocalUnfilteredClaimsForNullValues(context, extAttributesValueMap);
+            setAttributeSyncMethodToThreadLocal(context);
+
+            FrameworkUtils.getProvisioningHandler()
+                    .handleWithV2Roles(assignedRoleIdList, subjectIdentifier, extAttributesValueMap, userStoreDomain,
+                            context.getTenantDomain());
+        } catch (FrameworkException e) {
+            log.error("User provisioning failed!", e);
+        } finally {
             IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
         }
     }
@@ -643,4 +661,81 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         return FrameworkUtils.getLocalClaimUriMappedForIdPRoleClaim(externalIdPConfig);
     }
 
+    /**
+     * Returns the provisioning userstore domain.
+     *
+     * @param externalIdPConfig External IdP config.
+     * @param extAttributesValueMap Attributes value map.
+     * @return Provisioning userstore domain.
+     */
+    private String getProvisioningUserstoreDomain(ExternalIdPConfig externalIdPConfig,
+                                                  Map<String, String> extAttributesValueMap) {
+
+        String provisioningUserStoreId = externalIdPConfig.getProvisioningUserStoreId();
+        String provisioningClaimUri = externalIdPConfig.getProvisioningUserStoreClaimURI();
+        String userStoreDomain = null;
+        if (provisioningUserStoreId != null) {
+            userStoreDomain = provisioningUserStoreId;
+        } else if (provisioningClaimUri != null) {
+            userStoreDomain = extAttributesValueMap.get(provisioningClaimUri);
+        }
+        return userStoreDomain;
+    }
+
+    /**
+     * Set the provisioning service provider to the thread local.
+     *
+     * @param context Authentication context.
+     */
+    private void setThreadLocalProvisioningServiceProvider(AuthenticationContext context) {
+
+        String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
+        ThreadLocalProvisioningServiceProvider serviceProvider = new ThreadLocalProvisioningServiceProvider();
+        serviceProvider.setServiceProviderName(serviceProviderName);
+        serviceProvider.setJustInTimeProvisioning(true);
+        serviceProvider.setClaimDialect(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
+        serviceProvider.setTenantDomain(context.getTenantDomain());
+        IdentityApplicationManagementUtil.setThreadLocalProvisioningServiceProvider(serviceProvider);
+    }
+
+    /**
+     * Set the local unfiltered claims for null values.
+     *
+     * @param context Authentication context.
+     * @param extAttributesValueMap Attribute value map.
+     */
+    private void setLocalUnfilteredClaimsForNullValues(AuthenticationContext context,
+                                                       Map<String, String> extAttributesValueMap) {
+
+        Map<String, String> localUnfilteredClaimsForNullValues =
+                (Map<String, String>) context
+                        .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES);
+        if (MapUtils.isNotEmpty(localUnfilteredClaimsForNullValues)) {
+            extAttributesValueMap.putAll(localUnfilteredClaimsForNullValues);
+        }
+    }
+
+    /**
+     * Set the IdP to local role mapping to the thread local.
+     *
+     * @param context Authentication context.
+     */
+    private void setIdPRoleToLocalRoleMappingToThreadLocal(AuthenticationContext context) {
+
+        List<String> idpToLocalRoleMapping = new ArrayList<String>(
+                context.getExternalIdP().getRoleMappings().values());
+        IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.IDP_TO_LOCAL_ROLE_MAPPING,
+                idpToLocalRoleMapping);
+    }
+
+    /**
+     * Set attribute sync method to thread local.
+     *
+     * @param context Authentication context.
+     */
+    private void setAttributeSyncMethodToThreadLocal(AuthenticationContext context) {
+
+        IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.ATTRIBUTE_SYNC_METHOD,
+                context.getExternalIdP().getAttributeSyncMethod());
+    }
 }

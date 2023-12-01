@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
@@ -837,11 +838,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         ApplicationAuthenticator authenticator
                 = stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator();
         String idPStandardDialect = authenticator.getClaimDialectURI();
-        String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
         Map<ClaimMapping, String> extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
         Map<String, String> originalExternalAttributeValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
         Map<String, String> claimMapping = null;
-        boolean excludeUnmappedRoles = false;
+
         if (useDefaultIdpDialect && StringUtils.isNotBlank(idPStandardDialect)) {
             try {
                 claimMapping = ClaimMetadataHandler.getInstance()
@@ -853,24 +853,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
         }
 
-        if (claimMapping != null) {
-            //Ex. Standard dialects like OIDC.
-            idpRoleClaimUri = claimMapping.get(IdentityUtil.getLocalGroupsClaimURI());
-        } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
-            //Ex. SAML custom claims.
-            idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
-        }
-
-        /* Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from the
-         returned list.
-         */
-        if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
-            excludeUnmappedRoles = Boolean
-                    .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
-        }
-        List<String> identityProviderMappedUserRolesUnmappedExclusive = FrameworkUtils
-                .getIdentityProvideMappedUserRoles(externalIdPConfig, originalExternalAttributeValueMap,
-                        idpRoleClaimUri, excludeUnmappedRoles);
         localClaimValues.put(FrameworkConstants.ASSOCIATED_ID,
                 stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
@@ -906,9 +888,42 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         }
 
         try {
-            FrameworkUtils.getStepBasedSequenceHandler()
-                    .callJitProvisioning(username, context, identityProviderMappedUserRolesUnmappedExclusive,
-                            localClaimValues);
+            if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+                // This block handle the JIT provisioning in legacy authz runtime with v1 roles.
+                String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
+                if (claimMapping != null) {
+                    //Ex. Standard dialects like OIDC.
+                    idpRoleClaimUri = claimMapping.get(IdentityUtil.getLocalGroupsClaimURI());
+                } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
+                    //Ex. SAML custom claims.
+                    idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
+                }
+
+                /*
+                 Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from
+                 the returned list.
+                 */
+                boolean excludeUnmappedRoles = false;
+                if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
+                    excludeUnmappedRoles = Boolean
+                            .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+                }
+                List<String> identityProviderMappedUserRolesUnmappedExclusive = FrameworkUtils
+                        .getIdentityProvideMappedUserRoles(externalIdPConfig, originalExternalAttributeValueMap,
+                                idpRoleClaimUri, excludeUnmappedRoles);
+
+                FrameworkUtils.getStepBasedSequenceHandler()
+                        .callJitProvisioning(username, context, identityProviderMappedUserRolesUnmappedExclusive,
+                                localClaimValues);
+            } else {
+                // This block handle the JIT provisioning in new authz runtime with v2 roles.
+                String idpGroupsClaimUri = FrameworkUtils.getIdpGroupClaimUri(externalIdPConfig);
+                List<String> assignedRoleIdList = FrameworkUtils.getAssignedRolesFromIdPGroups(externalIdPConfig,
+                        originalExternalAttributeValueMap, idpGroupsClaimUri, context.getTenantDomain());
+
+                FrameworkUtils.getStepBasedSequenceHandler()
+                        .callJitProvisioningWithV2Roles(username, context, assignedRoleIdList, localClaimValues);
+            }
         } catch (FrameworkException e) {
             handleExceptions(
                     String.format(ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getMessage(),
