@@ -293,8 +293,21 @@
         </Scopes>
     </APIResource>
     <APIResource name="Notification Sender Management API"
-                 identifier="/api/server/v1/notification-senders/email" requiresAuthorization="true"
+                 identifier="/api/server/v1/notification-senders" requiresAuthorization="true"
                  description="API representation of the Notification Sender Management API" type="TENANT_ADMIN">
+        <Scopes>
+            <Scope displayName="View Notification Senders" name="internal_notification_senders_view"/>
+            <Scope displayName="Create Notification Senders"
+                   name="internal_notification_senders_create"/>
+            <Scope displayName="Update Notification Senders"
+                   name="internal_notification_senders_update"/>
+            <Scope displayName="Delete Notification Senders"
+                   name="internal_notification_senders_delete"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Notification Sender Management API"
+                 identifier="/o/api/server/v1/notification-senders" requiresAuthorization="true"
+                 description="API representation of the Notification Sender Management API" type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Notification Senders" name="internal_notification_senders_view"/>
             <Scope displayName="Create Notification Senders"
