@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.APIResourceProperty;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.sql.Connection;
@@ -589,6 +590,12 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
             if (filterAttributeValue != null) {
                 for (Map.Entry<Integer, String> entry : filterAttributeValue.entrySet()) {
+                    // PostgreSQL requires the value to be sent as integer for SERIAL datatype columns.
+                    if (databaseName.contains(IdentityCoreConstants.POSTGRE_SQL)
+                            && isValueOfCursorKey(entry.getKey(), filterQueryBuilder)) {
+                        prepStmt.setInt(entry.getKey(), Integer.parseInt(entry.getValue()));
+                        continue;
+                    }
                     prepStmt.setString(entry.getKey(), entry.getValue());
                 }
             }
@@ -611,6 +618,18 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
         }
         return apiResources;
+    }
+
+    /**
+     * Check whether the value of the key belongs to the CURSOR_KEY column.
+     *
+     * @param key                   Key of the filter.
+     * @param filterQueryBuilder    Filter query builder.
+     */
+    private boolean isValueOfCursorKey(int key, FilterQueryBuilder filterQueryBuilder) {
+
+        String filterForKey = filterQueryBuilder.getFilterQuery().split("AND")[key - 1];
+        return filterForKey.contains(SQLConstants.CURSOR_KEY_COLUMN_NAME);
     }
 
     /**
