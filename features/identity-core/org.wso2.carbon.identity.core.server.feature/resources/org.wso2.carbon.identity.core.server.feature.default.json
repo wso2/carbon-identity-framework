@@ -1243,7 +1243,6 @@
       "internal_identity_mgt_create",
       "internal_identity_mgt_delete"
   ],
-  "console.resident_idp.enabled": true,
   "console.user_roles.enabled": true,
   "console.user_roles.scopes.feature": ["console:roles"],
   "console.user_roles.scopes.create": ["internal_role_mgt_create"],
