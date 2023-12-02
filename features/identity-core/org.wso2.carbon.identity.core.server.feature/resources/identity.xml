@@ -286,8 +286,6 @@
                 <ResponseModeName>form_post</ResponseModeName>
                 <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.FormPostResponseModeProvider</ResponseModeProviderClass>
             </SupportedResponseMode>
-            <!-- Validity period for jarm response jwt in seconds -->
-            <JARMResponseJwtValidityPeriodInSeconds>7200</JARMResponseJwtValidityPeriodInSeconds>
             <SupportedResponseMode>
                 <ResponseModeName>jwt</ResponseModeName>
                 <ResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.JwtResponseModeProvider</ResponseModeProviderClass>
@@ -307,6 +305,9 @@
         </SupportedResponseModes>
 
         <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
+        
+        <!-- Validity period for jarm response jwt in seconds -->
+        <JARMResponseJwtValidityPeriodInSeconds>600</JARMResponseJwtValidityPeriodInSeconds>
 
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
