@@ -526,9 +526,10 @@ public class FrameworkServiceComponent {
 
     private static String[] getTags(ApplicationAuthenticator authenticator) {
 
-        if (authenticator == null) {
-            return new String[0];
+        if (!authenticator.isAPIBasedAuthenticationSupported()) {
+            return authenticator.getTags();
         }
+
         List<String> tagList = new ArrayList<>();
         if (authenticator.getTags() != null) {
             Collections.addAll(tagList, authenticator.getTags());
