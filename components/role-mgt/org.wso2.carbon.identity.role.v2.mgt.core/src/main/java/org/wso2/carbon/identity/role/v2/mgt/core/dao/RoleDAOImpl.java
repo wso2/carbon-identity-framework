@@ -97,6 +97,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.SORT
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.H2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INFORMIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MARIADB;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MY_SQL;
@@ -105,6 +106,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATI
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.POSTGRE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.ROLE_NAME;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.SYSTEM;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_APP_ROLE_ASSOCIATION_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
@@ -537,7 +539,8 @@ public class RoleDAOImpl implements RoleDAO {
         UserRealm userRealm;
         try {
             userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())) {
+            if (UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())
+                    || isInternalAdminOrSystemRole(roleId, tenantDomain, userRealm)) {
                 throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
                         "Invalid operation. Role: " + roleName + " Cannot be deleted.");
             }
@@ -589,6 +592,51 @@ public class RoleDAOImpl implements RoleDAO {
                     String.format(message, roleName, tenantDomain), e);
         }
         clearUserRolesCacheByTenant(tenantId);
+    }
+
+    /**
+     * Check whether the given role is an internal admin or system role.
+     *
+     * @param roleId           Role ID.
+     * @param tenantDomain     Tenant domain.
+     * @param userRealm        User realm.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private boolean isInternalAdminOrSystemRole(String roleId, String tenantDomain, UserRealm userRealm)
+            throws IdentityRoleManagementException, UserStoreException {
+
+        RoleBasicInfo roleBasicInfo = getRoleBasicInfoById(roleId, tenantDomain);
+        /* There won't be multiple internal/admin and internal/system roles in the same organization
+        with organization audience. */
+        if (ORGANIZATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+            String roleNameWithDomain = UserCoreUtil.addInternalDomainName(roleBasicInfo.getName());
+            return isInternalSystemRole(roleNameWithDomain) || isInternalAdminRole(roleNameWithDomain, userRealm);
+        }
+        return false;
+    }
+
+    /**
+     * Check whether the given role is an internal system role.
+     *
+     * @param roleName Role name with domain.
+     */
+    private boolean isInternalSystemRole(String roleName) {
+
+        String internalSystemRole = INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + SYSTEM;
+        return internalSystemRole.equalsIgnoreCase(roleName);
+    }
+
+    /**
+     * Check whether the given role is an internal admin role.
+     *
+     * @param roleName  Role name with domain.
+     * @param userRealm User realm.
+     * @throws UserStoreException User store exception.
+     */
+    private boolean isInternalAdminRole(String roleName, UserRealm userRealm) throws UserStoreException {
+
+        RealmConfiguration realmConfig = userRealm.getRealmConfiguration();
+        return realmConfig.isPrimary() && realmConfig.getAdminRoleName().equalsIgnoreCase(roleName);
     }
 
     @Override
