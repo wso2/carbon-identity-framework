@@ -144,7 +144,6 @@ public class FrameworkServiceComponent {
     private static final String LOGIN_CONTEXT_SERVLET_URL = "/logincontext";
     private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
-    private static final String IS_API_BASED_SUPPORTED = "IS_API_BASED_SUPPORTED";
     private static final String API_AUTH = "APIAuth";
 
     private HttpService httpService;
@@ -501,7 +500,6 @@ public class FrameworkServiceComponent {
             localAuthenticatorConfig.setTags(getTags(authenticator));
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
-            localAuthenticatorConfig.setProperties(getProperties(authenticator));
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
@@ -509,7 +507,6 @@ public class FrameworkServiceComponent {
             federatedAuthenticatorConfig.setProperties(configProperties);
             federatedAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
             federatedAuthenticatorConfig.setTags(getTags(authenticator));
-            federatedAuthenticatorConfig.setProperties(getProperties(authenticator));
             ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
@@ -519,7 +516,6 @@ public class FrameworkServiceComponent {
             reqPathAuthenticatorConfig.setTags(getTags(authenticator));
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             reqPathAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
-            reqPathAuthenticatorConfig.setProperties(getProperties(authenticator));
             ApplicationAuthenticatorService.getInstance().addRequestPathAuthenticator(reqPathAuthenticatorConfig);
         }
 
@@ -537,16 +533,6 @@ public class FrameworkServiceComponent {
             tags[tags.length - 1] = API_AUTH;
         }
         return tags;
-    }
-
-    private static Property[] getProperties(ApplicationAuthenticator authenticator) {
-
-        List<Property> apiBasedProperties = new ArrayList<>();
-        Property property = new Property();
-        property.setName(IS_API_BASED_SUPPORTED);
-        property.setValue(String.valueOf(authenticator.isAPIBasedAuthenticationSupported()));
-        apiBasedProperties.add(property);
-        return apiBasedProperties.toArray(new Property[0]);
     }
 
     @Reference(
