@@ -309,7 +309,7 @@
         <DefaultResponseModeProviderClass>org.wso2.carbon.identity.oauth2.responsemode.provider.impl.DefaultResponseModeProvider</DefaultResponseModeProviderClass>
         
         <!-- Validity period for jarm response jwt in seconds -->
-        <JARMResponseJwtValidityPeriodInSeconds>7200</JARMResponseJwtValidityPeriodInSeconds>
+        <JARMResponseJwtValidityPeriodInSeconds>600</JARMResponseJwtValidityPeriodInSeconds>
 
         <!-- Supported Response Types -->
         <SupportedResponseTypes>
