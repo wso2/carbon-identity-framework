@@ -365,13 +365,30 @@ public class AuthenticationService {
 
     private void validateRequest(AuthServiceRequest authServiceRequest) throws AuthServiceException {
 
-        // Validate all configured authenticators support API based authentication.
         String clientId = getClientId(authServiceRequest.getRequest());
         String tenantDomain = getTenantDomain(authServiceRequest.getRequest());
-        Set<ApplicationAuthenticator> authenticators = getConfiguredAuthenticators(clientId, tenantDomain);
+        ServiceProvider serviceProvider = getServiceProvider(clientId, tenantDomain);
+
+        if (serviceProvider == null) {
+            throw new AuthServiceClientException(
+                    AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_FIND_APPLICATION.code(),
+                    String.format(AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_FIND_APPLICATION.description(),
+                            clientId, tenantDomain));
+        }
+
+        // Check whether api based authentication is enabled for the SP.
+        if (!serviceProvider.isAPIBasedAuthenticationEnabled()) {
+            throw new AuthServiceClientException(
+                    AuthServiceConstants.ErrorMessage.ERROR_API_BASED_AUTH_NOT_ENABLED.code(),
+                    String.format(AuthServiceConstants.ErrorMessage.ERROR_API_BASED_AUTH_NOT_ENABLED.description(),
+                            serviceProvider.getApplicationResourceId()));
+        }
+
+        // Validate all configured authenticators support API based authentication.
+        Set<ApplicationAuthenticator> authenticators = getConfiguredAuthenticators(serviceProvider);
         for (ApplicationAuthenticator authenticator : authenticators) {
             if (!authenticator.isAPIBasedAuthenticationSupported()) {
-                throw new AuthServiceException(
+                throw new AuthServiceClientException(
                         AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED.code(),
                         String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED.description(),
                                 authenticator.getName()));
@@ -380,16 +397,7 @@ public class AuthenticationService {
 
     }
 
-    private Set<ApplicationAuthenticator> getConfiguredAuthenticators(String clientId, String tenantDomain) throws
-            AuthServiceException {
-
-        ServiceProvider serviceProvider = getServiceProvider(clientId, tenantDomain);
-        if (serviceProvider == null) {
-            throw new AuthServiceClientException(
-                    AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_FIND_APPLICATION.code(),
-                    String.format(AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_FIND_APPLICATION.description(),
-                            clientId, tenantDomain));
-        }
+    private Set<ApplicationAuthenticator> getConfiguredAuthenticators(ServiceProvider serviceProvider) {
 
         LocalAndOutboundAuthenticationConfig authenticationConfig = serviceProvider
                 .getLocalAndOutBoundAuthenticationConfig();
