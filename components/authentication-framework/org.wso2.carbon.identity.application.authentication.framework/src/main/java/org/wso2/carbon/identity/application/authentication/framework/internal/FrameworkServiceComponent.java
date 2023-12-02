@@ -144,6 +144,7 @@ public class FrameworkServiceComponent {
     private static final String LOGIN_CONTEXT_SERVLET_URL = "/logincontext";
     private static final String LONGWAITSTATUS_SERVLET_URL = "/longwaitstatus";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
+    private static final String API_AUTH = "APIAuth";
 
     private HttpService httpService;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
@@ -351,7 +352,7 @@ public class FrameworkServiceComponent {
         FrameworkUtils.checkIfTenantIdColumnIsAvailableInFedAuthTable();
         // Check whether the IDP_ID column is available in the IDN_FED_AUTH_SESSION_MAPPING table.
         FrameworkUtils.checkIfIdpIdColumnIsAvailableInFedAuthTable();
-        
+
         // Set user session mapping enabled.
         FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
                 .isUserSessionMappingEnabled());
@@ -496,7 +497,7 @@ public class FrameworkServiceComponent {
             localAuthenticatorConfig.setName(authenticator.getName());
             localAuthenticatorConfig.setProperties(configProperties);
             localAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
-            localAuthenticatorConfig.setTags(authenticator.getTags());
+            localAuthenticatorConfig.setTags(getTags(authenticator));
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
@@ -505,14 +506,14 @@ public class FrameworkServiceComponent {
             federatedAuthenticatorConfig.setName(authenticator.getName());
             federatedAuthenticatorConfig.setProperties(configProperties);
             federatedAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
-            federatedAuthenticatorConfig.setTags(authenticator.getTags());
+            federatedAuthenticatorConfig.setTags(getTags(authenticator));
             ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
             reqPathAuthenticatorConfig.setName(authenticator.getName());
             reqPathAuthenticatorConfig.setProperties(configProperties);
             reqPathAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
-            reqPathAuthenticatorConfig.setTags(authenticator.getTags());
+            reqPathAuthenticatorConfig.setTags(getTags(authenticator));
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             reqPathAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             ApplicationAuthenticatorService.getInstance().addRequestPathAuthenticator(reqPathAuthenticatorConfig);
@@ -521,6 +522,17 @@ public class FrameworkServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Added application authenticator : " + authenticator.getName());
         }
+    }
+
+    private static String[] getTags(ApplicationAuthenticator authenticator) {
+
+        String[] existingTags = authenticator.getTags();
+        String[] tags = new String[existingTags.length + 1];
+        System.arraycopy(existingTags, 0, tags, 0, existingTags.length);
+        if (authenticator.isAPIBasedAuthenticationSupported()) {
+            tags[tags.length - 1] = API_AUTH;
+        }
+        return tags;
     }
 
     @Reference(
