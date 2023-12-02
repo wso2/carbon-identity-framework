@@ -526,13 +526,15 @@ public class FrameworkServiceComponent {
 
     private static String[] getTags(ApplicationAuthenticator authenticator) {
 
-        String[] existingTags = authenticator.getTags();
-        String[] tags = new String[existingTags.length + 1];
-        System.arraycopy(existingTags, 0, tags, 0, existingTags.length);
-        if (authenticator.isAPIBasedAuthenticationSupported()) {
-            tags[tags.length - 1] = API_AUTH;
+        if (authenticator == null) {
+            return new String[0];
         }
-        return tags;
+        List<String> tagList = new ArrayList<>();
+        if (authenticator.getTags() != null) {
+            Collections.addAll(tagList, authenticator.getTags());
+        }
+        tagList.add(API_AUTH);
+        return tagList.toArray(new String[0]);
     }
 
     @Reference(
