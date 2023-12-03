@@ -1031,46 +1031,6 @@
         <Scopes>internal_config_update</Scopes>
     </Resource>
 
-    <!-- [Organization] Organization Role Management API -->
-    <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles" secured="true" http-method="GET">
-        <Scopes>internal_org_organization_role_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="GET">
-        <Scopes>internal_org_organization_role_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="POST">
-        <Scopes>internal_org_organization_role_create</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PATCH">
-        <Scopes>internal_org_organization_role_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PUT">
-        <Scopes>internal_org_organization_role_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_org_organization_role_delete</Scopes>
-    </Resource>
-
-    <!-- Organization Role Management API -->
-    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="GET">
-        <Scopes>internal_organization_role_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="GET">
-        <Scopes>internal_organization_role_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="POST">
-        <Scopes>internal_organization_role_create</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PATCH">
-        <Scopes>internal_organization_role_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PUT">
-        <Scopes>internal_organization_role_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_organization_role_delete</Scopes>
-    </Resource>
-
     <!-- [Organization] Organization Discovery API -->
     <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="POST">
         <Scopes>internal_org_organization_discovery_update</Scopes>
@@ -1177,14 +1137,6 @@
     </Resource>
     <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
         <Scopes>internal_organization_config_delete</Scopes>
-    </Resource>
-
-    <!-- [Organization] Organization Self Service API -->
-    <Resource context="(.*)/o/api/server/v1/self-service/(.*)" secured="true" http-method="GET">
-        <Scopes>internal_org_self_service_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/self-service/(.*)" secured="true" http-method="PATCH">
-        <Scopes>internal_org_self_service_update</Scopes>
     </Resource>
 
     <!-- Organization Self Service API -->
