@@ -567,7 +567,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 log.debug("Federated user's username is equal to super admin's username of local IdP.");
             }
 
-            String superAdminRoleName = realm.getRealmConfiguration().getAdminRoleName();
+            String superAdminRoleName = UserCoreUtil.removeDomainFromName(
+                    realm.getRealmConfiguration().getAdminRoleName());
             String superAdminRoleId;
             try {
                 superAdminRoleId = roleManagementService.getRoleIdByName(superAdminRoleName, ORGANIZATION,
@@ -592,8 +593,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                                      String tenantDomain, UserRealm realm) throws FrameworkException {
 
         try {
-            return roleManagementService.getRoleIdByName(realm.getRealmConfiguration().getAdminRoleName(),
-                    ORGANIZATION, organizationId, tenantDomain);
+            String everyoneRoleName = UserCoreUtil.removeDomainFromName(
+                    realm.getRealmConfiguration().getEveryOneRoleName());
+            return roleManagementService.getRoleIdByName(everyoneRoleName, ORGANIZATION, organizationId, tenantDomain);
         } catch (IdentityRoleManagementException | UserStoreException e) {
             throw new FrameworkException("Error while retrieving role id for everyone role", e);
         }
