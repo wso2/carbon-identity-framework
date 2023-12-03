@@ -11,8 +11,8 @@
     "disabled": false,
     "templateId": "swe-idp",
     "idp": {
-        "alias": "Alias",
-        "idpIssuerName": "Ethereum IDP issuer name",
+        "alias": "",
+        "idpIssuerName": "",
         "certificate": {
             "jwksUri": "https://oidc.signinwithethereum.org/jwk"
         },

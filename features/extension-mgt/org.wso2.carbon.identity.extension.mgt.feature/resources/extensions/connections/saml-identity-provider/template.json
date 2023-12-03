@@ -7,8 +7,8 @@
     "id": "enterprise-saml-idp",
     "tags": [ "SAML" ],
     "idp": {
-        "alias": "Alias",
-        "idpIssuerName": "SAML IDP issuer name",
+        "alias": "",
+        "idpIssuerName": "",
         "certificate": {},
         "claims": {
             "provisioningClaims": [],

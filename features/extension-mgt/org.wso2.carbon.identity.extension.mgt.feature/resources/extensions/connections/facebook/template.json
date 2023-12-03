@@ -19,7 +19,7 @@
             "certificates": []
         },
         "alias": "https://localhost:9444/oauth2/token",
-        "idpIssuerName": "Facebook IDP issuer name",
+        "idpIssuerName": "",
         "claims": {
             "userIdClaim": {
                 "uri": "email"
