@@ -29,6 +29,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -37,6 +38,10 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -69,6 +74,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 
 /**
  * Default provisioning handler.
@@ -108,8 +114,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             throws FrameworkException {
 
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
-        String attributeSyncMethod = IdentityUtil.threadLocalProperties.get()
-                .get(FrameworkConstants.ATTRIBUTE_SYNC_METHOD).toString();
+
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
@@ -140,199 +145,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 log.debug("User: " + username + " with roles : " + roles + " is going to be provisioned");
             }
 
-            // If internal roles exists convert internal role domain names to pre defined camel case domain names.
-            List<String> rolesToAdd = convertInternalRoleDomainsToCamelCase(roles);
-
-            String idp = attributes.remove(FrameworkConstants.IDP_ID);
-            String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
-
-            Map<String, String> userClaims = prepareClaimMappings(attributes);
-
-            if (userStoreManager.isExistingUser(username)) {
-                /*
-                Set PROVISIONED_USER thread local property to true, to identify already provisioned
-                user claim update scenario.
-                 */
-                IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
-                if (!userClaims.isEmpty() && !FrameworkConstants.SYNC_NONE.equals(attributeSyncMethod)) {
-                    /*
-                    In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned user,
-                    To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
-                     */
-                    List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
-                    Claim[] existingUserClaimList = userStoreManager.getUserClaimValues(
-                            UserCoreUtil.removeDomainFromName(username), UserCoreConstants.DEFAULT_PROFILE);
-                    if (existingUserClaimList != null) {
-                        List<Claim> toBeDeletedFromExistingUserClaims = new ArrayList<>(
-                                Arrays.asList(existingUserClaimList));
-
-                        // Claim mappings which do not come with the IDP claim mapping set but must not delete.
-                        Set<String> indelibleClaimSet = getIndelibleClaims();
-                        toBeDeletedFromExistingUserClaims.removeIf(claim -> claim.getClaimUri().contains("/identity/")
-                                || indelibleClaimSet.contains(claim.getClaimUri()) ||
-                                userClaims.containsKey(claim.getClaimUri()));
-
-                        // Do not delete the claims updated locally if the attributeSyncMethod is set to preserve
-                        // the local claims.
-                        if (FrameworkConstants.PRESERVE_LOCAL.equals(attributeSyncMethod)) {
-                            toBeDeletedFromExistingUserClaims.removeIf(claim -> !attributes
-                                    .containsKey(claim.getClaimUri()));
-                        }
-
-                        for (Claim claim : toBeDeletedFromExistingUserClaims) {
-                            toBeDeletedUserClaims.add(claim.getClaimUri());
-                        }
-                    }
-
-                    userClaims.remove(FrameworkConstants.PASSWORD);
-                    userClaims.remove(USERNAME_CLAIM);
-                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
-                    /*
-                    Since the user is exist following code is get all active claims of user and crosschecking against
-                    tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
-                    will be deleted.
-                    */
-                    if (CollectionUtils.isNotEmpty(toBeDeletedUserClaims)) {
-                        Claim[] userActiveClaims =
-                                userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
-                        for (Claim claim : userActiveClaims) {
-                            if (toBeDeletedUserClaims.contains(claim.getClaimUri())) {
-                                if (log.isDebugEnabled()) {
-                                    log.debug("Claim from external attributes " + claim.getClaimUri() +
-                                            " has null value But user has not null claim value for Claim " +
-                                            claim.getClaimUri() + ". Hence user claim value will be deleted.");
-                                }
-                                userStoreManager.deleteUserClaimValue(UserCoreUtil.removeDomainFromName(username),
-                                        claim.getClaimUri(), null);
-                            }
-                        }
-                    }
-                }
-                String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
-                        .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
-                if (StringUtils.isEmpty(associatedUserName)) {
-                    // Associate User
-                    associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
-                }
-            } else {
-                String password = generatePassword();
-                String passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD);
-                if (StringUtils.isNotEmpty(passwordFromUser)) {
-                    password = passwordFromUser;
-                }
-
-                // Check for inconsistencies in username attribute and the username claim.
-                if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
-                    // If so update the username claim with the username attribute.
-                    userClaims.put(USERNAME_CLAIM, username);
-                }
-
-                userClaims.remove(FrameworkConstants.PASSWORD);
-                boolean userWorkflowEngaged = false;
-                try {
-                    /*
-                    This thread local is set to skip the username and password pattern validation even if the password
-                    is generated, or user entered one. If it is required to check password pattern validation,
-                    need to write a provisioning handler extending the "DefaultProvisioningHandler".
-                     */
-                    UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
-                    UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
-                    if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
-                        setJitProvisionedSource(tenantDomain, idp, userClaims);
-                    }
-                    userStoreManager.addUser(username, password, null, userClaims, null);
-                } catch (UserStoreException e) {
-                    // Add user operation will fail if a user operation workflow is already defined for the same user.
-                    if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
-                        userWorkflowEngaged = true;
-                        if (log.isDebugEnabled()) {
-                            log.debug("Failed to add the user while JIT provisioning since user workflows are engaged" +
-                                    " and there is a workflow already defined for the same user");
-                        }
-                    } else {
-                        throw e;
-                    }
-                } finally {
-                    UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
-                    UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
-                }
-
-                if (userWorkflowEngaged ||
-                        !userStoreManager.isExistingUser(UserCoreUtil.addDomainToName(username, userStoreDomain))) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("User is not found in the userstore. Most probably the local user creation is not " +
-                                "complete while JIT provisioning due to user operation workflow engagement. Therefore" +
-                                " the user account association and role and permission update are skipped.");
-                    }
-                    return;
-                }
-
-                // Associate user only if the user is existing in the userstore.
-                associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Federated user: " + username + " is provisioned by authentication framework.");
-                }
-            }
-
-            boolean includeManuallyAddedLocalRoles = Boolean
-                    .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
-
-            List<String> currentRolesList = Arrays.asList(userStoreManager.getRoleListOfUser(username));
-            Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
-
-            // Updating user roles.
-            if (roles != null && roles.size() > 0) {
-
-                if (idpToLocalRoleMapping != null && !idpToLocalRoleMapping.isEmpty()) {
-                    boolean excludeUnmappedRoles = false;
-
-                    if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
-                        excludeUnmappedRoles = Boolean
-                                .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
-                    }
-
-                    if (excludeUnmappedRoles && includeManuallyAddedLocalRoles) {
-                        /*
-                            Get the intersection of deletingRoles with idpRoleMappings. Here we're deleting mapped
-                            roles and keeping manually added local roles.
-                        */
-                        deletingRoles = deletingRoles.stream().distinct().filter(idpToLocalRoleMapping::contains)
-                                .collect(Collectors.toSet());
-                    }
-                }
-
-                // No need to add already existing roles again.
-                rolesToAdd.removeAll(currentRolesList);
-
-                // Cannot add roles that doesn't exists in the system.
-                List<String> nonExistingUnmappedIdpRoles = new ArrayList<>();
-                for (String role : rolesToAdd) {
-                    if (!userStoreManager.isExistingRole(role)) {
-                        nonExistingUnmappedIdpRoles.add(role);
-                    }
-                }
-                rolesToAdd.removeAll(nonExistingUnmappedIdpRoles);
-
-                // TODO : Does it need to check this?
-                // Check for case whether super admin login
-                handleFederatedUserNameEqualsToSuperAdminUserName(realm, username, userStoreManager, deletingRoles);
-
-                updateUserWithNewRoleSet(username, userStoreManager, rolesToAdd, deletingRoles);
-            } else {
-                if (includeManuallyAddedLocalRoles) {
-                    // Remove only IDP mapped roles and keep manually added local roles.
-                    if (CollectionUtils.isNotEmpty(idpToLocalRoleMapping)) {
-                        deletingRoles = deletingRoles.stream().distinct().filter(idpToLocalRoleMapping::contains)
-                                .collect(Collectors.toSet());
-                        updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
-                    }
-                } else {
-                    // Remove all roles of the user.
-                    updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
-                }
-            }
-
+            handleUserProvisioning(username, userStoreManager, userStoreDomain, attributes, tenantDomain);
+            handleV1Roles(username, userStoreManager, realm, roles, idpToLocalRoleMapping);
             PermissionUpdateUtil.updatePermissionTree(tenantId);
 
         } catch (org.wso2.carbon.user.api.UserStoreException | FederatedAssociationManagerException e) {
@@ -341,6 +155,311 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             IdentityUtil.clearIdentityErrorMsg();
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.JIT_PROVISIONING_FLOW);
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.ATTRIBUTE_SYNC_METHOD);
+        }
+    }
+
+    @Override
+    public void handleWithV2Roles(List<String> roleIdList, String subject, Map<String, String> attributes,
+                       String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
+
+        RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+
+        try {
+            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            UserRealm realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
+            String username = MultitenantUtils.getTenantAwareUsername(subject);
+
+            String userStoreDomain;
+            UserStoreManager userStoreManager;
+            if (IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT
+                    .equalsIgnoreCase(provisioningUserStoreId)) {
+                String userStoreDomainFromSubject = UserCoreUtil.extractDomainFromName(subject);
+                try {
+                    userStoreManager = getUserStoreManager(realm, userStoreDomainFromSubject);
+                    userStoreDomain = userStoreDomainFromSubject;
+                } catch (FrameworkException e) {
+                    log.error("User store domain " + userStoreDomainFromSubject + " does not exist for the tenant "
+                            + tenantDomain + ", hence provisioning user to "
+                            + UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+                    userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+                    userStoreManager = getUserStoreManager(realm, userStoreDomain);
+                }
+            } else {
+                userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
+                userStoreManager = getUserStoreManager(realm, userStoreDomain);
+            }
+            username = UserCoreUtil.removeDomainFromName(username);
+
+            if (log.isDebugEnabled()) {
+                log.debug("User: " + username + " with roles : " + roleIdList + " is going to be provisioned");
+            }
+
+            handleUserProvisioning(username, userStoreManager, userStoreDomain, attributes, tenantDomain);
+            handleV2Roles(username, userStoreManager, realm, roleIdList, tenantDomain);
+            PermissionUpdateUtil.updatePermissionTree(tenantId);
+
+        } catch (org.wso2.carbon.user.api.UserStoreException | FederatedAssociationManagerException e) {
+            throw new FrameworkException("Error while provisioning user : " + subject, e);
+        } finally {
+            IdentityUtil.clearIdentityErrorMsg();
+            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.JIT_PROVISIONING_FLOW);
+            IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.ATTRIBUTE_SYNC_METHOD);
+        }
+    }
+
+    private void handleUserProvisioning(String username, UserStoreManager userStoreManager, String userStoreDomain,
+                                        Map<String, String> attributes, String tenantDomain)
+            throws UserStoreException, FederatedAssociationManagerException, FrameworkException {
+
+        String attributeSyncMethod = IdentityUtil.threadLocalProperties.get()
+                .get(FrameworkConstants.ATTRIBUTE_SYNC_METHOD).toString();
+        String idp = attributes.remove(FrameworkConstants.IDP_ID);
+        String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
+
+        Map<String, String> userClaims = prepareClaimMappings(attributes);
+
+        if (userStoreManager.isExistingUser(username)) {
+                /*
+                Set PROVISIONED_USER thread local property to true, to identify already provisioned
+                user claim update scenario.
+                 */
+            IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.JIT_PROVISIONING_FLOW, true);
+            if (!userClaims.isEmpty() && !FrameworkConstants.SYNC_NONE.equals(attributeSyncMethod)) {
+                    /*
+                    In the syncing process of existing claim mappings with IDP claim mappings for JIT provisioned user,
+                    To delete corresponding existing claim mapping, if any IDP claim mapping is absence.
+                     */
+                List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
+                Claim[] existingUserClaimList = userStoreManager.getUserClaimValues(
+                        UserCoreUtil.removeDomainFromName(username), UserCoreConstants.DEFAULT_PROFILE);
+                if (existingUserClaimList != null) {
+                    List<Claim> toBeDeletedFromExistingUserClaims = new ArrayList<>(
+                            Arrays.asList(existingUserClaimList));
+
+                    // Claim mappings which do not come with the IDP claim mapping set but must not delete.
+                    Set<String> indelibleClaimSet = getIndelibleClaims();
+                    toBeDeletedFromExistingUserClaims.removeIf(claim -> claim.getClaimUri().contains("/identity/")
+                            || indelibleClaimSet.contains(claim.getClaimUri()) ||
+                            userClaims.containsKey(claim.getClaimUri()));
+
+                    // Do not delete the claims updated locally if the attributeSyncMethod is set to preserve
+                    // the local claims.
+                    if (FrameworkConstants.PRESERVE_LOCAL.equals(attributeSyncMethod)) {
+                        toBeDeletedFromExistingUserClaims.removeIf(claim -> !attributes
+                                .containsKey(claim.getClaimUri()));
+                    }
+
+                    for (Claim claim : toBeDeletedFromExistingUserClaims) {
+                        toBeDeletedUserClaims.add(claim.getClaimUri());
+                    }
+                }
+
+                userClaims.remove(FrameworkConstants.PASSWORD);
+                userClaims.remove(USERNAME_CLAIM);
+                userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                    /*
+                    Since the user is exist following code is get all active claims of user and crosschecking against
+                    tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
+                    will be deleted.
+                    */
+                if (CollectionUtils.isNotEmpty(toBeDeletedUserClaims)) {
+                    Claim[] userActiveClaims =
+                            userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
+                    for (Claim claim : userActiveClaims) {
+                        if (toBeDeletedUserClaims.contains(claim.getClaimUri())) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Claim from external attributes " + claim.getClaimUri() +
+                                        " has null value But user has not null claim value for Claim " +
+                                        claim.getClaimUri() + ". Hence user claim value will be deleted.");
+                            }
+                            userStoreManager.deleteUserClaimValue(UserCoreUtil.removeDomainFromName(username),
+                                    claim.getClaimUri(), null);
+                        }
+                    }
+                }
+            }
+            String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
+                    .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
+            if (StringUtils.isEmpty(associatedUserName)) {
+                // Associate User
+                associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+            }
+        } else {
+            String password = generatePassword();
+            String passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD);
+            if (StringUtils.isNotEmpty(passwordFromUser)) {
+                password = passwordFromUser;
+            }
+
+            // Check for inconsistencies in username attribute and the username claim.
+            if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
+                // If so update the username claim with the username attribute.
+                userClaims.put(USERNAME_CLAIM, username);
+            }
+
+            userClaims.remove(FrameworkConstants.PASSWORD);
+            boolean userWorkflowEngaged = false;
+            try {
+                    /*
+                    This thread local is set to skip the username and password pattern validation even if the password
+                    is generated, or user entered one. If it is required to check password pattern validation,
+                    need to write a provisioning handler extending the "DefaultProvisioningHandler".
+                     */
+                UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+                UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
+                if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
+                    setJitProvisionedSource(tenantDomain, idp, userClaims);
+                }
+                userStoreManager.addUser(username, password, null, userClaims, null);
+            } catch (UserStoreException e) {
+                // Add user operation will fail if a user operation workflow is already defined for the same user.
+                if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
+                    userWorkflowEngaged = true;
+                    if (log.isDebugEnabled()) {
+                        log.debug("Failed to add the user while JIT provisioning since user workflows are engaged" +
+                                " and there is a workflow already defined for the same user");
+                    }
+                } else {
+                    throw e;
+                }
+            } finally {
+                UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
+                UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
+            }
+
+            if (userWorkflowEngaged ||
+                    !userStoreManager.isExistingUser(UserCoreUtil.addDomainToName(username, userStoreDomain))) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User is not found in the userstore. Most probably the local user creation is not " +
+                            "complete while JIT provisioning due to user operation workflow engagement. Therefore" +
+                            " the user account association and role and permission update are skipped.");
+                }
+                return;
+            }
+
+            // Associate user only if the user is existing in the userstore.
+            associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Federated user: " + username + " is provisioned by authentication framework.");
+            }
+        }
+    }
+
+    private void handleV1Roles(String username, UserStoreManager userStoreManager, UserRealm realm,
+                               List<String> roles, List<String> idpToLocalRoleMapping)
+            throws UserStoreException, FrameworkException {
+
+        // If internal roles exists convert internal role domain names to pre defined camel case domain names.
+        List<String> rolesToAdd = convertInternalRoleDomainsToCamelCase(roles);
+
+        boolean includeManuallyAddedLocalRoles = Boolean
+                .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
+
+        List<String> currentRolesList = Arrays.asList(userStoreManager.getRoleListOfUser(username));
+        Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
+
+        // Updating user roles.
+        if (roles != null && roles.size() > 0) {
+
+            if (idpToLocalRoleMapping != null && !idpToLocalRoleMapping.isEmpty()) {
+                boolean excludeUnmappedRoles = false;
+
+                if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
+                    excludeUnmappedRoles = Boolean
+                            .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+                }
+
+                if (excludeUnmappedRoles && includeManuallyAddedLocalRoles) {
+                        /*
+                            Get the intersection of deletingRoles with idpRoleMappings. Here we're deleting mapped
+                            roles and keeping manually added local roles.
+                        */
+                    deletingRoles = deletingRoles.stream().distinct().filter(idpToLocalRoleMapping::contains)
+                            .collect(Collectors.toSet());
+                }
+            }
+
+            // No need to add already existing roles again.
+            rolesToAdd.removeAll(currentRolesList);
+
+            // Cannot add roles that doesn't exists in the system.
+            List<String> nonExistingUnmappedIdpRoles = new ArrayList<>();
+            for (String role : rolesToAdd) {
+                if (!userStoreManager.isExistingRole(role)) {
+                    nonExistingUnmappedIdpRoles.add(role);
+                }
+            }
+            rolesToAdd.removeAll(nonExistingUnmappedIdpRoles);
+
+            // TODO : Does it need to check this?
+            // Check for case whether super admin login
+            handleFederatedUserNameEqualsToSuperAdminUserName(realm, username, userStoreManager, deletingRoles);
+
+            updateUserWithNewRoleSet(username, userStoreManager, rolesToAdd, deletingRoles);
+        } else {
+            if (includeManuallyAddedLocalRoles) {
+                // Remove only IDP mapped roles and keep manually added local roles.
+                if (CollectionUtils.isNotEmpty(idpToLocalRoleMapping)) {
+                    deletingRoles = deletingRoles.stream().distinct().filter(idpToLocalRoleMapping::contains)
+                            .collect(Collectors.toSet());
+                    updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
+                }
+            } else {
+                // Remove all roles of the user.
+                updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
+            }
+        }
+    }
+
+    private void handleV2Roles(String username, UserStoreManager userStoreManager, UserRealm realm,
+                              List<String> rolesToAdd, String tenantDomain)
+            throws UserStoreException, FrameworkException {
+
+        try {
+            boolean includeManuallyAddedLocalRoles = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP));
+
+            OrganizationManager organizationManager = FrameworkServiceDataHolder.getInstance().getOrganizationManager();
+            String organizationId = organizationManager.resolveOrganizationId(tenantDomain);
+            RoleManagementService roleManagementService = FrameworkServiceDataHolder.getInstance()
+                    .getRoleManagementServiceV2();
+            String userId = FrameworkUtils.resolveUserIdFromUsername(userStoreManager, username);
+
+            // TODO : Does it need to check this?
+            // Check for case whether super admin login
+            handleSuperAdminUsernameWithV2Roles(realm, username, userStoreManager, roleManagementService,
+                    organizationId, tenantDomain, rolesToAdd);
+
+            List<String> currentRoleIdList = roleManagementService.getRoleIdListOfUser(userId, tenantDomain);
+            List<String> rolesToDelete;
+
+            rolesToAdd.removeAll(currentRoleIdList);
+            if (includeManuallyAddedLocalRoles) {
+                rolesToDelete = new ArrayList<>();
+            } else {
+                rolesToDelete = new ArrayList<>(currentRoleIdList);
+                rolesToDelete.removeAll(rolesToAdd);
+            }
+            // Remove everyone role from deleting roles.
+            rolesToDelete.remove(getEveryoneRoleId(roleManagementService, organizationId, tenantDomain, realm));
+
+            // Assign the user to the adding roles.
+            for (String roleId : rolesToAdd) {
+                if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                    roleManagementService.updateUserListOfRole(roleId, Arrays.asList(userId),
+                            new ArrayList<>(), tenantDomain);
+                }
+            }
+            // Remove the assignment of the user from the deleting roles.
+            for (String roleId : rolesToDelete) {
+                if (roleManagementService.isExistingRole(roleId, tenantDomain)) {
+                    roleManagementService.updateUserListOfRole(roleId, new ArrayList<>(),
+                            Arrays.asList(userId), tenantDomain);
+                }
+            }
+        } catch (UserSessionException | IdentityRoleManagementException | OrganizationManagementException e) {
+            throw new FrameworkException("Error while retrieving roles of user: " + username, e);
         }
     }
 
@@ -432,6 +551,53 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         "Federated user which having same username to super admin username of local IdP," +
                                 " trying login without having super admin role assigned");
             }
+        }
+    }
+
+    private void handleSuperAdminUsernameWithV2Roles(UserRealm realm, String username,
+                                                     UserStoreManager userStoreManager,
+                                                     RoleManagementService roleManagementService,
+                                                     String organizationId, String tenantDomain,
+                                                     Collection<String> roleIds)
+            throws UserStoreException, FrameworkException {
+
+        if (userStoreManager.getRealmConfiguration().isPrimary()
+                && username.equals(realm.getRealmConfiguration().getAdminUserName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Federated user's username is equal to super admin's username of local IdP.");
+            }
+
+            String superAdminRoleName = UserCoreUtil.removeDomainFromName(
+                    realm.getRealmConfiguration().getAdminRoleName());
+            String superAdminRoleId;
+            try {
+                superAdminRoleId = roleManagementService.getRoleIdByName(superAdminRoleName, ORGANIZATION,
+                        organizationId, tenantDomain);
+            } catch (IdentityRoleManagementException e) {
+                throw new FrameworkException("Error while retrieving role id for super admin role", e);
+            }
+            // Whether superadmin login without superadmin role is permitted
+            if (!roleIds.contains(superAdminRoleId)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Federated user doesn't have super admin role. Unable to sync roles, since" +
+                            " super admin role cannot be unassigned from super admin user");
+                }
+                throw new FrameworkException(
+                        "Federated user which having same username to super admin username of local IdP," +
+                                " trying login without having super admin role assigned");
+            }
+        }
+    }
+
+    private String getEveryoneRoleId(RoleManagementService roleManagementService, String organizationId,
+                                     String tenantDomain, UserRealm realm) throws FrameworkException {
+
+        try {
+            String everyoneRoleName = UserCoreUtil.removeDomainFromName(
+                    realm.getRealmConfiguration().getEveryOneRoleName());
+            return roleManagementService.getRoleIdByName(everyoneRoleName, ORGANIZATION, organizationId, tenantDomain);
+        } catch (IdentityRoleManagementException | UserStoreException e) {
+            throw new FrameworkException("Error while retrieving role id for everyone role", e);
         }
     }
 

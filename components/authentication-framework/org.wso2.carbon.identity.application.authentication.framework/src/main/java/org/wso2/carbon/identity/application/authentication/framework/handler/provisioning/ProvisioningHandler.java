@@ -55,4 +55,20 @@ public interface ProvisioningHandler {
             throws FrameworkException {
         throw new FrameworkException("Operation is not supported.");
     }
+
+    /**
+     * Handle provisioning with v2 roles.
+     *
+     * @param roleIdList              List of role ids.
+     * @param subject                 Subject identifier.
+     * @param attributes              Attributes.
+     * @param provisioningUserStoreId Provisioning user store Id.
+     * @param tenantDomain            Tenant domain.
+     * @throws FrameworkException If an error occurred while handling provisioning with v2 roles.
+     */
+    default void handleWithV2Roles(List<String> roleIdList, String subject, Map<String, String> attributes,
+                                   String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
+
+        throw new FrameworkException("Operation is not supported.");
+    }
 }
