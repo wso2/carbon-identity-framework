@@ -27,10 +27,6 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.user.mgt.UserManagementWorkflowStub;
 
 import java.rmi.RemoteException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 public class UserManagementWorkflowServiceClient {
 

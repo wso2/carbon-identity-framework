@@ -472,12 +472,6 @@
             <Scope displayName="Update Userstore" name="internal_org_userstore_update"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Management API" identifier="/api/server/v1/workflow-engines"
-                 requiresAuthorization="true" description="API representation of the Workflow Management API" type="TENANT_ADMIN">
-        <Scopes>
-            <Scope displayName="View Workflow" name="internal_workflow_view"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Association Management API"
                  identifier="/api/users/v1/(.*)/(.*)associations" requiresAuthorization="true"
                  description="API representation of the Association Management API" type="TENANT_ADMIN">
