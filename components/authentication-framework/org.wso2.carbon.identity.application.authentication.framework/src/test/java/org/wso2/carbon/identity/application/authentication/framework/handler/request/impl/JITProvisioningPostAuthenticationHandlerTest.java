@@ -26,6 +26,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
@@ -99,6 +100,7 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         mockStatic(ConfigurationFacade.class);
         ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
 
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
         PowerMockito.when(ConfigurationFacade.getInstance()).thenReturn(configurationFacade);
         IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
         ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
