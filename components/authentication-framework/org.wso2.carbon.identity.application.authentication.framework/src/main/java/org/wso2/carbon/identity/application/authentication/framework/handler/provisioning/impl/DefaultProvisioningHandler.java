@@ -429,7 +429,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             // TODO : Does it need to check this?
             // Check for case whether super admin login
             handleSuperAdminUsernameWithV2Roles(realm, username, userStoreManager, roleManagementService,
-                    organizationId, tenantDomain, new ArrayList<>());
+                    organizationId, tenantDomain, rolesToAdd);
 
             List<String> currentRoleIdList = roleManagementService.getRoleIdListOfUser(userId, tenantDomain);
             List<String> rolesToDelete;
@@ -577,7 +577,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 throw new FrameworkException("Error while retrieving role id for super admin role", e);
             }
             // Whether superadmin login without superadmin role is permitted
-            if (roleIds.contains(superAdminRoleId)) {
+            if (!roleIds.contains(superAdminRoleId)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Federated user doesn't have super admin role. Unable to sync roles, since" +
                             " super admin role cannot be unassigned from super admin user");
