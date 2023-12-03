@@ -130,7 +130,6 @@
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.user.mgt.workflow.stub.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.governance.stub;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.governance.stub.*;version="${carbon.identity.package.import.version.range}",
