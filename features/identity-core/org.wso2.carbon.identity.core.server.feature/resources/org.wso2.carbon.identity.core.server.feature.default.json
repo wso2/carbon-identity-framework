@@ -445,7 +445,7 @@
   "identity_mgt.user_self_registration.otp.otp_length": "6",
   "identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel": true,
   "identity_mgt.user_self_registration.enable_detailed_api_response": false,
-  "identity_mgt.user_self_registration.lock_on_creation": true,
+  "identity_mgt.user_self_registration.lock_on_creation": false,
   "identity_mgt.user_self_registration.send_confirmation_on_creation": false,
   "identity_mgt.user_self_registration.notify_account_confirmation": false,
   "identity_mgt.user_self_registration.enable_recaptcha": true,
