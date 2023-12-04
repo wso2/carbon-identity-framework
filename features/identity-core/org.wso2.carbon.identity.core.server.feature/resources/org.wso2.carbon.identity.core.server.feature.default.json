@@ -1060,7 +1060,7 @@
   "console.ui.legacy_mode.approvals": false,
   "console.ui.legacy_mode.certificates": false,
   "console.ui.legacy_mode.loginAndRegistrationEmailDomainDiscovery": false,
-  "console.ui.legacy_mode.organizations": false,
+  "console.ui.legacy_mode.organizations": true,
   "console.ui.legacy_mode.rolesV1": false,
   "console.ui.legacy_mode.roleMapping": false,
   "console.ui.legacy_mode.secretsManagement": false,
