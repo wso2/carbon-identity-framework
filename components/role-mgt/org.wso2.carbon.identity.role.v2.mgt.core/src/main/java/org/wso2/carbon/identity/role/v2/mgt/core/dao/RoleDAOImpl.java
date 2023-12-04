@@ -391,7 +391,7 @@ public class RoleDAOImpl implements RoleDAO {
     public List<Permission> getPermissionListOfRole(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (isSubOrgByTenant(tenantDomain)) {
+        if (isTenantDomainAssociatedForOrganization(tenantDomain)) {
             return getPermissionsOfSharedRole(roleId, tenantDomain);
         } else {
             return getPermissions(roleId, tenantDomain);
@@ -402,7 +402,7 @@ public class RoleDAOImpl implements RoleDAO {
     public List<String> getPermissionListOfRoles(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (isSubOrgByTenant(tenantDomain)) {
+        if (isTenantDomainAssociatedForOrganization(tenantDomain)) {
             return getPermissionsOfSharedRoles(roleIds, tenantDomain);
         } else {
             return getPermissionListOfRolesByIds(roleIds, tenantDomain);
@@ -530,6 +530,8 @@ public class RoleDAOImpl implements RoleDAO {
     @Override
     public void deleteRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
+        // The shared roles are allowed to be deleted for organizations.
+        boolean isOrganization = isTenantDomainAssociatedForOrganization(tenantDomain);
         String roleName = getRoleNameByID(roleId, tenantDomain);
         if (systemRoles.contains(roleName)) {
             throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
@@ -539,8 +541,15 @@ public class RoleDAOImpl implements RoleDAO {
         UserRealm userRealm;
         try {
             userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())
-                    || isInternalAdminOrSystemRole(roleId, tenantDomain, userRealm)) {
+            if (!isOrganization && UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())) {
+                throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
+                        "Invalid operation. Role: " + roleName + " Cannot be deleted.");
+            }
+            if (isInternalAdminOrSystemRole(roleId, tenantDomain, userRealm)) {
+                // System role is not allowed to be deleted from organizations when application unsharing.
+                if (isOrganization) {
+                    return;
+                }
                 throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
                         "Invalid operation. Role: " + roleName + " Cannot be deleted.");
             }
@@ -872,7 +881,7 @@ public class RoleDAOImpl implements RoleDAO {
                     roles.add(roleBasicInfo);
                 }
             }
-            if (!isSubOrgByTenant(tenantDomain)) {
+            if (!isTenantDomainAssociatedForOrganization(tenantDomain)) {
                 roles.add(getEveryOneRole(tenantDomain));
             }
         } catch (SQLException e) {
@@ -1062,7 +1071,7 @@ public class RoleDAOImpl implements RoleDAO {
                     roleIds.add(roleId);
                 }
             }
-            if (!isSubOrgByTenant(tenantDomain)) {
+            if (!isTenantDomainAssociatedForOrganization(tenantDomain)) {
                 roleIds.add(getEveryOneRoleId(tenantDomain));
             }
         } catch (SQLException e) {
@@ -1406,7 +1415,7 @@ public class RoleDAOImpl implements RoleDAO {
                 addRoleID(roleId, roleName, audienceRefId, tenantDomain, connection);
                 addPermissions(roleId, permissions, tenantDomain, connection);
 
-                if (APPLICATION.equals(audience) && !isSubOrgByTenant(tenantDomain)) {
+                if (APPLICATION.equals(audience) && !isTenantDomainAssociatedForOrganization(tenantDomain)) {
                     addAppRoleAssociation(roleId, audienceId, connection);
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -1457,13 +1466,14 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     /**
-     * Check tenant is a sub organization.
+     * Check whether the given tenant domain is associated to an organization.
      *
      * @param tenantDomain Tenant Domain.
-     * @return is Shared Organization.
+     * @return is an Organization.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private boolean isSubOrgByTenant(String tenantDomain) throws IdentityRoleManagementException {
+    private boolean isTenantDomainAssociatedForOrganization(String tenantDomain)
+            throws IdentityRoleManagementException {
 
         try {
             return OrganizationManagementUtil.isOrganization(tenantDomain);
