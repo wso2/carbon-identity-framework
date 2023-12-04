@@ -2542,6 +2542,11 @@
         <DataStoreType>org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</DataStoreType>
     </IdentityDataStore>
 
+    <!-- Configuration to enable OTP backup code claim as an identity claim -->
+    <OTPBackupCodes>
+        <UseIdentityClaims>false</UseIdentityClaims>
+    </OTPBackupCodes>
+
     <UserProfileExport>
         <AdditionalClaims>
         </AdditionalClaims>
