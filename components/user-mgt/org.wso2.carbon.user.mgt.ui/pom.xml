@@ -57,10 +57,6 @@
             <artifactId>org.wso2.carbon.identity.user.store.count.stub</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.user.mgt.workflow.stub</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
@@ -91,6 +87,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.user.mgt</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -130,7 +130,6 @@
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.user.mgt.workflow.stub.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.governance.stub;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.governance.stub.*;version="${carbon.identity.package.import.version.range}",

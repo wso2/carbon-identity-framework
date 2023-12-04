@@ -1242,11 +1242,6 @@
             <Scopes>internal_remote_fetch_view</Scopes>
         </Resource>
 
-        <!-- Workflow Management API -->
-        <Resource context="(.*)/api/server/v1/workflow-engines(.*)" secured="true" http-method="GET">
-            <Scopes>internal_workflow_view</Scopes>
-        </Resource>
-
         <!-- Authorized Application Management V1/V2 API -->
         <Resource context="(.*)/api/users/v(.*)/(.*)/authorized-apps(.*)" secured="true" http-method="GET">
             <Scopes>internal_user_authorizedapp_view</Scopes>
