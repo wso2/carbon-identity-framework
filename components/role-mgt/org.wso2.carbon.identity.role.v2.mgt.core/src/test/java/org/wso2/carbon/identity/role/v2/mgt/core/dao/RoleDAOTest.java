@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleAudience;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.user.api.AuthorizationManager;
@@ -280,8 +281,8 @@ public class RoleDAOTest extends PowerMockTestCase {
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection8);
             doCallRealMethod().when(IdentityUtil.class, "extractDomainFromName", anyString());
             doCallRealMethod().when(UserCoreUtil.class, "removeDomainFromName", anyString());
-            List<RoleBasicInfo> roles = roleDAO.getRoles(2, 1, null, null,
-                    SAMPLE_TENANT_DOMAIN);
+            List<Role> roles = roleDAO.getRoles(2, 1, null, null,
+                    SAMPLE_TENANT_DOMAIN, null);
             Assert.assertEquals(getRoleNamesList(roles), expectedRoles);
         }
     }
@@ -317,15 +318,16 @@ public class RoleDAOTest extends PowerMockTestCase {
             when(UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class))).thenReturn(false);
 
             when(IdentityUtil.getDefaultItemsPerPage()).thenReturn(IdentityCoreConstants.DEFAULT_ITEMS_PRE_PAGE);
-            when(IdentityUtil.getMaximumItemPerPage()).thenReturn(IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE);
+            when(IdentityUtil.getMaximumItemPerPage()).
+            thenReturn(IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE);
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection7);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection8);
             doCallRealMethod().when(IdentityUtil.class, "extractDomainFromName", anyString());
             doCallRealMethod().when(UserCoreUtil.class, "removeDomainFromName", anyString());
             List<ExpressionNode> expressionNodes =
                     getExpressionNodes("name co roleA and audience co application and audienceId co test-app-id");
-            List<RoleBasicInfo> roles = roleDAO.getRoles(expressionNodes, 2, 1, null, null,
-                    SAMPLE_TENANT_DOMAIN);
+            List<Role> roles = roleDAO.getRoles(expressionNodes, 2, 1, null, null,
+                    SAMPLE_TENANT_DOMAIN, null);
             Assert.assertEquals(getRoleNamesList(roles), expectedRoles);
         }
     }
@@ -801,10 +803,10 @@ public class RoleDAOTest extends PowerMockTestCase {
         when(mockUserRealm.getRealmConfiguration()).thenReturn(realmConfiguration);
     }
 
-    private List<String> getRoleNamesList(List<RoleBasicInfo> roles) {
+    private List<String> getRoleNamesList(List<Role> roles) {
 
         List<String> roleNames = new ArrayList<>();
-        for (RoleBasicInfo role : roles) {
+        for (Role role : roles) {
             roleNames.add(role.getName());
         }
         return roleNames.stream().sorted().collect(Collectors.toList());

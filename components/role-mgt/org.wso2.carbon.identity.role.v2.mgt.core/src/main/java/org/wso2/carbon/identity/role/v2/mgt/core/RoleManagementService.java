@@ -55,32 +55,33 @@ public interface RoleManagementService {
     /**
      * Retrieve available roles.
      *
-     * @param limit        Limit value.
-     * @param offset       Offset value.
-     * @param sortBy       SortBy value.
-     * @param sortOrder    Sort order value.
-     * @param tenantDomain Tenant domain.
+     * @param limit              Limit value.
+     * @param offset             Offset value.
+     * @param sortBy             SortBy value.
+     * @param sortOrder          Sort order value.
+     * @param tenantDomain       Tenant domain.
+     * @param requiredAttributes Required attributes.
      * @return List of roles.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    List<RoleBasicInfo> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain)
-            throws IdentityRoleManagementException;
+    List<Role> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
+                        List<String> requiredAttributes) throws IdentityRoleManagementException;
 
     /**
      * Retrieve available roles.
      *
-     * @param filter       Filter for the Role ID.
-     * @param limit        Limit value.
-     * @param offset       Offset value.
-     * @param sortBy       SortBy value.
-     * @param sortOrder    Sort order value.
-     * @param tenantDomain Tenant domain.
+     * @param filter             Filter for the Role ID.
+     * @param limit              Limit value.
+     * @param offset             Offset value.
+     * @param sortBy             SortBy value.
+     * @param sortOrder          Sort order value.
+     * @param tenantDomain       Tenant domain.
+     * @param requiredAttributes Required attributes.
      * @return List of roles.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    List<RoleBasicInfo> getRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
-                                                                        String tenantDomain)
-            throws IdentityRoleManagementException;
+    List<Role> getRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
+                        String tenantDomain, List<String> requiredAttributes) throws IdentityRoleManagementException;
 
     /**
      * Retrieve the given role.
