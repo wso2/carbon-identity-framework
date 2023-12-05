@@ -3586,6 +3586,11 @@
     <!--This is the separator that use to separate multiple roles in the role claim value coming from IDP side-->
     <FederatedIDPRoleClaimValueAttributeSeparator>{{federated.idp.role_claim_value_attribute_separator}}</FederatedIDPRoleClaimValueAttributeSeparator>
 
+    {% if federated.idp.group_claim_value_attribute_separator is defined %}
+    <!--This is the separator that use to separate multiple groups in the group claim value coming from IDP side-->
+    <FederatedIDPGroupClaimValueAttributeSeparator>{{federated.idp.group_claim_value_attribute_separator}}</FederatedIDPGroupClaimValueAttributeSeparator>
+    {% endif %}
+
      {% if system_applications.fidp_role_based_authz_enabled_apps is defined %}
      <!-- Following applications can use federated user role based authorization -->
      <FIdPRoleBasedAuthzApplications>
