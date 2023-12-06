@@ -4841,6 +4841,7 @@ public class IdPManagementDAO {
 
         // Replace the property default values with the values saved in the database.
         propertiesFromConnectors.putAll(propertyMapFromDb);
+        resolveOtpConnectorProperties(propertiesFromConnectors);
 
         return new ArrayList<>(propertiesFromConnectors.values());
     }
@@ -5062,5 +5063,78 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("Error occurred while retrieving IDP groups for IDP group " +
                     "IDs: " + idpGroupIds, e);
         }
+    }
+
+    private void resolveOtpConnectorProperties(
+            Map<String, IdentityProviderProperty> propertiesFromConnectors) throws ConnectorException{
+
+        resolveOTPPattern(propertiesFromConnectors, "SelfRegistration");
+        resolveOTPPattern(propertiesFromConnectors,
+                "Recovery.Notification.Password");
+        resolveOTPPattern(propertiesFromConnectors,
+                "LiteRegistration");
+    }
+
+    private void resolveOTPPattern(
+            Map<String, IdentityProviderProperty> propertiesFromConnectors, String connectorName) throws ConnectorException{
+
+        String useUppercaseProperty = connectorName + ".OTP.UseUppercaseCharactersInOTP";
+        String useLowercaseProperty = connectorName + ".OTP.UseLowercaseCharactersInOTP";
+        String useNumericProperty = connectorName + ".OTP.UseNumbersInOTP";
+        String otpLengthProperty = connectorName + ".OTP.OTPLength";
+        String otpRegexProperty = connectorName + ".SMSOTP.Regex";
+        if (connectorName.equals("Recovery.Notification.Password")) {
+            otpRegexProperty = connectorName + ".smsOtp.Regex";
+        }
+        String validOTPRegex = "^\\[((a-z)|(A-Z)|(0-9)){1,3}\\]\\{[0-9]+\\}$";
+
+        if(!propertiesFromConnectors.containsKey(useUppercaseProperty) || !propertiesFromConnectors.containsKey(useLowercaseProperty) ||
+                !propertiesFromConnectors.containsKey(useNumericProperty) || !propertiesFromConnectors.containsKey(otpRegexProperty)) {
+            return;
+        }
+        String useUppercase = propertiesFromConnectors.get(useUppercaseProperty).getValue();
+        String useLowercase = propertiesFromConnectors.get(useLowercaseProperty).getValue();
+        String useNumeric = propertiesFromConnectors.get(useNumericProperty).getValue();
+        String otpRegex = propertiesFromConnectors.get(otpRegexProperty).getValue();
+
+        if (!useUppercase.isEmpty() && !useLowercase.isEmpty() && !useNumeric.isEmpty()) {
+            propertiesFromConnectors.get(useUppercaseProperty).setValue(String.valueOf(Boolean.parseBoolean(useUppercase)));
+            propertiesFromConnectors.get(useLowercaseProperty).setValue(String.valueOf(Boolean.parseBoolean(useLowercase)));
+            propertiesFromConnectors.get(useNumericProperty).setValue(String.valueOf(Boolean.parseBoolean(useNumeric)));
+            return;
+        }
+        if (otpRegex.isEmpty() || !Pattern.matches(validOTPRegex,otpRegex)) {
+            propertiesFromConnectors.get(useUppercaseProperty).setValue(Boolean.TRUE.toString());
+            propertiesFromConnectors.get(useLowercaseProperty).setValue(Boolean.TRUE.toString());
+            propertiesFromConnectors.get(useNumericProperty).setValue(Boolean.TRUE.toString());
+            return;
+        }
+        setOldOTPRegexValue(propertiesFromConnectors, useUppercaseProperty, useLowercaseProperty, useNumericProperty,
+                otpRegexProperty, otpLengthProperty);
+    }
+
+    private void setOldOTPRegexValue(
+            Map<String, IdentityProviderProperty> propertiesFromConnectors, String useUppercaseProperty,
+            String useLowercaseProperty, String useNumericProperty, String otpRegexProperty, String otpLengthProperty) {
+
+        String charsRegex = propertiesFromConnectors.get(otpRegexProperty).getValue().replaceAll("[{].*", "");
+        int otpLength = Integer.parseInt(propertiesFromConnectors.get(otpRegexProperty).getValue().
+                replaceAll(".*[{]", "").replaceAll("}", ""));
+        if (charsRegex.contains("A-Z")) {
+            propertiesFromConnectors.get(useUppercaseProperty).setValue(Boolean.TRUE.toString());
+        } else {
+            propertiesFromConnectors.get(useUppercaseProperty).setValue(Boolean.FALSE.toString());
+        }
+        if (charsRegex.contains("a-z")) {
+            propertiesFromConnectors.get(useLowercaseProperty).setValue(Boolean.TRUE.toString());
+        } else {
+            propertiesFromConnectors.get(useLowercaseProperty).setValue(Boolean.FALSE.toString());
+        }
+        if (charsRegex.contains("0-9")) {
+            propertiesFromConnectors.get(useNumericProperty).setValue(Boolean.TRUE.toString());
+        } else {
+            propertiesFromConnectors.get(useNumericProperty).setValue(Boolean.FALSE.toString());
+        }
+        propertiesFromConnectors.get(otpLengthProperty).setValue(Integer.toString(otpLength));
     }
 }
