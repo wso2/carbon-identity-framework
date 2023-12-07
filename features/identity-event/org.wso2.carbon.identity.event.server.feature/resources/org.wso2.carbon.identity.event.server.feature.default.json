@@ -222,24 +222,24 @@
   "identity_mgt.events.schemes.OIDCClaimMetaDataOperationHandler.subscriptions": [
     "POST_DELETE_EXTERNAL_CLAIM"
   ],
-  "identity_mgt.events.schemes.enforcePasswordResetEventHandler.module_index": "36",
+  "identity_mgt.events.schemes.enforcePasswordResetEventHandler.module_index": "35",
   "identity_mgt.events.schemes.enforcePasswordResetEventHandler.subscriptions": [
     "POST_UPDATE_CREDENTIAL",
     "POST_UPDATE_CREDENTIAL_BY_ADMIN",
     "POST_ADD_USER",
     "PASSWORD_GRANT_POST_AUTHENTICATION"
   ],
-  "identity_mgt.events.schemes.OrganizationCreationHandler.module_index": "37",
+  "identity_mgt.events.schemes.OrganizationCreationHandler.module_index": "36",
   "identity_mgt.events.schemes.OrganizationCreationHandler.subscriptions": [
     "POST_ADD_ORGANIZATION",
     "PRE_DELETE_ORGANIZATION",
     "POST_DELETE_ORGANIZATION"
   ],
-  "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "38",
+  "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.module_index": "37",
   "identity_mgt.events.schemes.GovernanceConfigUpdateHandler.subscriptions": [
     "POST_ADD_ORGANIZATION"
   ],
-  "identity_mgt.events.schemes.OrgClaimMgtHandler.module_index": "39",
+  "identity_mgt.events.schemes.OrgClaimMgtHandler.module_index": "38",
   "identity_mgt.events.schemes.OrgClaimMgtHandler.subscriptions": [
     "POST_SHARE_APPLICATION",
     "POST_APP_USER_ATTRIBUTE_UPDATE",
@@ -252,21 +252,21 @@
     "POST_RENAME_CLAIM_DIALECT",
     "POST_DELETE_CLAIM_DIALECT"
   ],
-  "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.module_index": "40",
+  "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.module_index": "39",
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.subscriptions": [
     "POST_SHARED_CONSOLE_APP",
     "POST_ADD_ORGANIZATION"
   ],
-  "identity_mgt.events.schemes.SharedRoleMgtHandler.module_index": "41",
+  "identity_mgt.events.schemes.SharedRoleMgtHandler.module_index": "40",
   "identity_mgt.events.schemes.SharedRoleMgtHandler.subscriptions": [
     "POST_ADD_ROLE_V2_EVENT",
     "POST_SHARE_APPLICATION"
   ],
-  "identity_mgt.events.schemes.UserInvitationEventHandler.module_index": "42",
+  "identity_mgt.events.schemes.UserInvitationEventHandler.module_index": "41",
   "identity_mgt.events.schemes.UserInvitationEventHandler.subscriptions": [
     "POST_ADD_ORGANIZATION_USER_INVITATION"
   ],
-  "identity_mgt.events.schemes.SMSNotificationHandler.module_index":"43",
+  "identity_mgt.events.schemes.SMSNotificationHandler.module_index":"42",
   "identity_mgt.events.schemes.SMSNotificationHandler.subscriptions": [
     "TRIGGER_SMS_NOTIFICATION_LOCAL"
   ],
