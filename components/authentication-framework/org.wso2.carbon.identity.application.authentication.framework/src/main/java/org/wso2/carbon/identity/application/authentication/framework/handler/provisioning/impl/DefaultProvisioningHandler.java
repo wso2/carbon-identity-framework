@@ -571,6 +571,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     realm.getRealmConfiguration().getAdminRoleName());
             String superAdminRoleId;
             try {
+                if (!roleManagementService.isExistingRoleName(superAdminRoleName, ORGANIZATION, organizationId,
+                        tenantDomain)) {
+                    return;
+                }
                 superAdminRoleId = roleManagementService.getRoleIdByName(superAdminRoleName, ORGANIZATION,
                         organizationId, tenantDomain);
             } catch (IdentityRoleManagementException e) {
@@ -595,6 +599,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         try {
             String everyoneRoleName = UserCoreUtil.removeDomainFromName(
                     realm.getRealmConfiguration().getEveryOneRoleName());
+            if (!roleManagementService.isExistingRoleName(everyoneRoleName, ORGANIZATION, organizationId,
+                    tenantDomain)) {
+                return null;
+            }
             return roleManagementService.getRoleIdByName(everyoneRoleName, ORGANIZATION, organizationId, tenantDomain);
         } catch (IdentityRoleManagementException | UserStoreException e) {
             throw new FrameworkException("Error while retrieving role id for everyone role", e);
