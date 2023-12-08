@@ -1792,6 +1792,32 @@
                 <artifactId>jackson-dataformat-cbor</artifactId>
                 <version>${com.fasterxml.jackson.cbor.version}</version>
             </dependency>
+<!--            GraalVM related dependencies-->
+            <dependency>
+                <groupId>org.graalvm.sdk</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.truffle</groupId>
+                <artifactId>truffle-api</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>com.ibm.icu</groupId>-->
+<!--                <artifactId>icu4j</artifactId>-->
+<!--                <version>${icu.version}</version>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--            <groupId>org.graalvm.regex</groupId>-->
+<!--            <artifactId>regex</artifactId>-->
+<!--            <version>${graalvm.version}</version>-->
+<!--            </dependency>-->
         </dependencies>
 
     </dependencyManagement>
@@ -2095,6 +2121,10 @@
         <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
 
         <h2database.version>2.2.224</h2database.version>
+
+        <graalvm.version>20.2.0</graalvm.version>
+        <!-- ICU version must be reflecting graalvm version -->
+        <icu.version>68.1</icu.version>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>

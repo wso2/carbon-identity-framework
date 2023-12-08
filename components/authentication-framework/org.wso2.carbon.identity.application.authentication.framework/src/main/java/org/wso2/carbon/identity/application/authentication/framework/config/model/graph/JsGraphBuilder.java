@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.abdera.model.Base;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -54,14 +58,14 @@ import javax.script.ScriptException;
 public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
 
     private static final Log log = LogFactory.getLog(JsGraphBuilder.class);
-    private Map<Integer, StepConfig> stepNamedMap;
-    private AuthenticationGraph result = new AuthenticationGraph();
-    private AuthGraphNode currentNode = null;
-    private AuthenticationContext authenticationContext;
+    protected Map<Integer, StepConfig> stepNamedMap;
+    protected AuthenticationGraph result = new AuthenticationGraph();
+    protected AuthGraphNode currentNode = null;
+    protected AuthenticationContext authenticationContext;
     private ScriptEngine engine;
-    private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
-    private static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
-    private static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
+    protected static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
+    protected static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
+    protected static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
     private static final String REMOVE_FUNCTIONS = "var quit=function(){Log.error('quit function is restricted.')};" +
             "var exit=function(){Log.error('exit function is restricted.')};" +
             "var print=function(){Log.error('print function is restricted.')};" +
@@ -519,7 +523,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
      * @param destination Current node.
      * @param newNode     New node to attach.
      */
-    private static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
+    protected static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
 
         if (destination instanceof StepConfigGraphNode) {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) destination);
@@ -545,7 +549,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
      * @param baseNode     Base node.
      * @param nodeToAttach Node to attach.
      */
-    private static void attachToLeaf(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
+    protected static void attachToLeaf(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
 
         if (baseNode instanceof StepConfigGraphNode) {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) baseNode);
@@ -594,7 +598,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
      * @param stepConfig Step Config Object.
      * @return built and wrapped new StepConfigGraphNode.
      */
-    private static StepConfigGraphNode wrap(StepConfig stepConfig) {
+    protected static StepConfigGraphNode wrap(StepConfig stepConfig) {
 
         return new StepConfigGraphNode(stepConfig);
     }
