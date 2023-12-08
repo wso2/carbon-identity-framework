@@ -56,31 +56,34 @@ public interface RoleDAO {
     /**
      * Retrieve available roles.
      *
-     * @param limit        Limit value.
-     * @param offset       Offset value.
-     * @param sortBy       SortBy value.
-     * @param sortOrder    Sort order value.
-     * @param tenantDomain Tenant domain.
+     * @param limit              Limit value.
+     * @param offset             Offset value.
+     * @param sortBy             SortBy value.
+     * @param sortOrder          Sort order value.
+     * @param tenantDomain       Tenant domain.
+     * @param requiredAttributes Required attributes.
      * @return List of roles.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    List<RoleBasicInfo> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain)
+    List<Role> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
+                        List<String> requiredAttributes)
             throws IdentityRoleManagementException;
 
     /**
      * Retrieve available roles matching the provided filter.
      *
-     * @param expressionNodes List of expressionNodes.
-     * @param limit           Limit value.
-     * @param offset          Offset value.
-     * @param sortBy          SortBy value.
-     * @param sortOrder       Sort order value.
-     * @param tenantDomain    Tenant domain.
+     * @param expressionNodes    List of expressionNodes.
+     * @param limit              Limit value.
+     * @param offset             Offset value.
+     * @param sortBy             SortBy value.
+     * @param sortOrder          Sort order value.
+     * @param tenantDomain       Tenant domain.
+     * @param requiredAttributes Required attributes.
      * @return List of roles.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    List<RoleBasicInfo> getRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset, String sortBy,
-                                 String sortOrder, String tenantDomain)
+    List<Role> getRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset, String sortBy,
+                        String sortOrder, String tenantDomain, List<String> requiredAttributes)
             throws IdentityRoleManagementException;
 
     /**
