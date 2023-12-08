@@ -271,6 +271,9 @@
   "oauth.jarm.response_mode.fragment_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FragmentJwtResponseModeProvider",
   "oauth.jarm.response_mode.form_post_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider",
 
+  "oauth.drop_unregistered_scopes": true,
+  "oauth.allowed_scopes": ["^device_.*"],
+
   "rest_api_authentication.add_realm_user_to_error": false,
 
   "saml.entity_id": "${carbon.host}",
