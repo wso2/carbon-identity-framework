@@ -2378,20 +2378,20 @@ public class FrameworkUtils {
             idpGroupAttrValue = extAttributesValueMap.get(idpGroupClaimUri);
         }
         List<String> idpGroupValues;
-        String federatedIDPRoleClaimAttributeSeparator;
+        String federatedIDPGroupClaimAttributeSeparator;
         if (idpGroupAttrValue != null) {
-            if (IdentityUtil.getProperty(FrameworkConstants.FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR) != null) {
-                federatedIDPRoleClaimAttributeSeparator = IdentityUtil.getProperty(FrameworkConstants
-                        .FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR);
+            if (IdentityUtil.getProperty(FrameworkConstants.FEDERATED_IDP_GROUP_CLAIM_VALUE_SEPARATOR) != null) {
+                federatedIDPGroupClaimAttributeSeparator = IdentityUtil.getProperty(FrameworkConstants
+                        .FEDERATED_IDP_GROUP_CLAIM_VALUE_SEPARATOR);
                 if (log.isDebugEnabled()) {
-                    log.debug("The IDP side role claim value separator is configured as : "
-                            + federatedIDPRoleClaimAttributeSeparator);
+                    log.debug("The IDP side group claim value separator is configured as : "
+                            + federatedIDPGroupClaimAttributeSeparator);
                 }
             } else {
-                federatedIDPRoleClaimAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+                federatedIDPGroupClaimAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
             }
 
-            idpGroupValues = Arrays.asList(idpGroupAttrValue.split(federatedIDPRoleClaimAttributeSeparator));
+            idpGroupValues = Arrays.asList(idpGroupAttrValue.split(federatedIDPGroupClaimAttributeSeparator));
         } else {
             // No identity provider group values found.
             if (log.isDebugEnabled()) {

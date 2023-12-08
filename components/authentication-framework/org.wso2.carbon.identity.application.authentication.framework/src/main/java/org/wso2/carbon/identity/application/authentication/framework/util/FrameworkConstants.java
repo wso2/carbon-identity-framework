@@ -179,6 +179,8 @@ public abstract class FrameworkConstants {
 
     public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
             "FederatedIDPRoleClaimValueAttributeSeparator";
+    public static final String FEDERATED_IDP_GROUP_CLAIM_VALUE_SEPARATOR =
+            "FederatedIDPGroupClaimValueAttributeSeparator";
 
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
