@@ -28,9 +28,8 @@ import javax.script.ScriptEngine;
 /**
  * Interface for Factory to create a Javascript based sequence builder.
  * This factory is there to reuse of script engine and any related expensive objects.
- *
  */
-public interface JsBaseGraphBuilderFactory {
+public interface JsBaseGraphBuilderFactory<T> {
 
     void init();
 
@@ -39,7 +38,7 @@ public interface JsBaseGraphBuilderFactory {
     JsBaseGraphBuilder createBuilder(AuthenticationContext authenticationContext,
                                      Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode);
 
-    ScriptEngine createEngine(AuthenticationContext authenticationContext);
+    T createEngine(AuthenticationContext authenticationContext);
 
     JsSerializer getJsUtil();
 

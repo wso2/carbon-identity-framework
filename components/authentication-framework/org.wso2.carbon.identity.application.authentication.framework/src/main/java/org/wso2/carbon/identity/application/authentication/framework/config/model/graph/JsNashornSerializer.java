@@ -36,7 +36,7 @@ import javax.script.ScriptException;
 /**
  * Serializer class supports JDK Nashorn Engine.
  */
-public class JsNashornSerializer implements JsSerializer {
+public class JsNashornSerializer implements JsSerializer<ScriptEngine> {
 
     private static final Log log = LogFactory.getLog(JsNashornSerializer.class);
 

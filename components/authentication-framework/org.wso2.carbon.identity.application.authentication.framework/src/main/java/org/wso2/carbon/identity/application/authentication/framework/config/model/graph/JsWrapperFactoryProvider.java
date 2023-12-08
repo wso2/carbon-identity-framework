@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -33,9 +35,12 @@ public class JsWrapperFactoryProvider {
 
     private JsWrapperFactoryProvider() {
 
-        if (FrameworkServiceDataHolder.getInstance().
-                getJsGraphBuilderFactory() instanceof JsOpenJdkNashornGraphBuilderFactory) {
+        if (FrameworkServiceDataHolder.getInstance()
+                .getJsGraphBuilderFactory() instanceof JsOpenJdkNashornGraphBuilderFactory) {
             jsWrapperBaseFactory = new JsOpenJdkNashornWrapperFactory();
+        } else if (FrameworkServiceDataHolder.getInstance()
+                .getJsGraphBuilderFactory() instanceof JsGraalGraphBuilderFactory) {
+            jsWrapperBaseFactory = new JsGraalWrapperFactory();
         } else {
             jsWrapperBaseFactory = new JsWrapperFactory();
         }

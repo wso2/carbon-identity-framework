@@ -29,8 +29,9 @@ import javax.script.ScriptEngine;
  * The request may come to different node.
  * The current authentication context holds this function in serialized form.
  *
+ * @param <T> Script Engine
  */
-public interface BaseSerializableJsFunction extends Serializable {
+public interface BaseSerializableJsFunction<T> extends Serializable {
 
     void setSource(String name);
 
@@ -40,6 +41,6 @@ public interface BaseSerializableJsFunction extends Serializable {
 
     void setFunction(boolean function);
 
-    Object apply(ScriptEngine scriptEngine, Object... params);
+    Object apply(T scriptEngine, Object... params);
 
 }
