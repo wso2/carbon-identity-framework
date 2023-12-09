@@ -403,11 +403,15 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 if (CollectionUtils.isNotEmpty(idpToLocalRoleMapping)) {
                     deletingRoles = deletingRoles.stream().distinct().filter(idpToLocalRoleMapping::contains)
                             .collect(Collectors.toSet());
-                    updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
+                    if (!deletingRoles.isEmpty()) {
+                        updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
+                    }
                 }
             } else {
                 // Remove all roles of the user.
-                updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
+                if (!deletingRoles.isEmpty()) {
+                    updateUserWithNewRoleSet(username, userStoreManager, new ArrayList<>(), deletingRoles);
+                }
             }
         }
     }
