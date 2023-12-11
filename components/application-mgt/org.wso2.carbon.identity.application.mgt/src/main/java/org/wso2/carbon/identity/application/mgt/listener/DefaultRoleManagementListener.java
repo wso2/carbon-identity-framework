@@ -108,19 +108,19 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     }
 
     @Override
-    public void postGetRoles(List<Role> roleInfoList, Integer limit, Integer offset,
+    public void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, Integer limit, Integer offset,
                              String sortBy, String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        Iterator<Role> iterator = roleInfoList.iterator();
+        Iterator<RoleBasicInfo> iterator = roleBasicInfoList.iterator();
         while (iterator.hasNext()) {
-            Role roleInfo = iterator.next();
-            if (APPLICATION.equalsIgnoreCase(roleInfo.getAudience())) {
-                String applicationName = getApplicationName(roleInfo.getAudienceId(), tenantDomain);
+            RoleBasicInfo roleBasicInfo = iterator.next();
+            if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+                String applicationName = getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain);
                 if (applicationName == null) {
                     iterator.remove();
                 }
-                roleInfo.setAudienceName(applicationName);
+                roleBasicInfo.setAudienceName(applicationName);
             }
         }
     }
@@ -132,13 +132,13 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     }
 
     @Override
-    public void postGetRoles(List<Role> roleInfoList, String filter, Integer limit, Integer offset,
+    public void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, String filter, Integer limit, Integer offset,
                              String sortBy, String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        for (Role roleInfo : roleInfoList) {
-            if (APPLICATION.equalsIgnoreCase(roleInfo.getAudience())) {
-                roleInfo.setAudienceName(getApplicationName(roleInfo.getAudienceId(), tenantDomain));
+        for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
+            if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+                roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
             }
         }
     }

@@ -137,8 +137,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
-    public List<Role> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
-                               List<String> requiredAttributes) throws IdentityRoleManagementException {
+    public List<RoleBasicInfo> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder,
+                                        String tenantDomain) throws IdentityRoleManagementException {
 
         List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
                 .getRoleManagementListenerList();
@@ -151,23 +151,23 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreGetRolesWithException(limit, offset, sortBy, sortOrder,
                 tenantDomain);
-        List<Role> roleList = roleDAO.getRoles(limit, offset, sortBy, sortOrder, tenantDomain, requiredAttributes);
+        List<RoleBasicInfo> roleBasicInfoList = roleDAO.getRoles(limit, offset, sortBy, sortOrder, tenantDomain);
         roleManagementEventPublisherProxy.publishPostGetRoles(limit, offset, sortBy, sortOrder, tenantDomain);
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
-                roleManagementListener.postGetRoles(roleList, limit, offset, sortBy, sortOrder,
+                roleManagementListener.postGetRoles(roleBasicInfoList, limit, offset, sortBy, sortOrder,
                         tenantDomain);
             }
         }
         if (log.isDebugEnabled()) {
             log.debug(String.format("%s get roles successfully.", getUser(tenantDomain)));
         }
-        return roleList;
+        return roleBasicInfoList;
     }
 
     @Override
-    public List<Role> getRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
-                                        String tenantDomain, List<String> requiredAttributes)
+    public List<RoleBasicInfo> getRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
+                                        String tenantDomain)
             throws IdentityRoleManagementException {
 
         List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
@@ -182,19 +182,19 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         roleManagementEventPublisherProxy.publishPreGetRolesWithException(filter, limit, offset, sortBy, sortOrder,
                 tenantDomain);
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
-        List<Role> roleInfoList = roleDAO.getRoles(expressionNodes, limit, offset, sortBy,
-                sortOrder, tenantDomain, requiredAttributes);
+        List<RoleBasicInfo> roleBasicInfoList = roleDAO.getRoles(expressionNodes, limit, offset, sortBy,
+                sortOrder, tenantDomain);
         roleManagementEventPublisherProxy.publishPostGetRoles(filter, limit, offset, sortBy, sortOrder, tenantDomain);
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
-                roleManagementListener.postGetRoles(roleInfoList, filter, limit, offset, sortBy, sortOrder,
+                roleManagementListener.postGetRoles(roleBasicInfoList, filter, limit, offset, sortBy, sortOrder,
                         tenantDomain);
             }
         }
         if (log.isDebugEnabled()) {
             log.debug(String.format("%s get filtered roles successfully.", getUser(tenantDomain)));
         }
-        return roleInfoList;
+        return roleBasicInfoList;
     }
 
     @Override
