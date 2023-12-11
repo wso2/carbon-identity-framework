@@ -428,6 +428,11 @@
                 <type>zip</type>
             </dependency>
             <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.onboard.core.service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.wso2.securevault</groupId>
                 <artifactId>org.wso2.securevault</artifactId>
                 <version>${org.wso2.securevault.version}</version>
@@ -1780,7 +1785,20 @@
                 <artifactId>jackson-dataformat-cbor</artifactId>
                 <version>${com.fasterxml.jackson.cbor.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.wso2.config.mapper</groupId>
+                <artifactId>config-mapper</artifactId>
+                <version>${config.mapper.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.governance</groupId>
+                <artifactId>org.wso2.carbon.identity.recovery</artifactId>
+                <version>${identity.governance.version}</version>
+                <scope>provided</scope>
+            </dependency>
         </dependencies>
+
 
     </dependencyManagement>
 
@@ -1811,6 +1829,8 @@
 
         <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
         <osgi.service.http.imp.pkg.version.range>[1.2.1, 2.0.0)</osgi.service.http.imp.pkg.version.range>
+        <commons-logging.osgi.version.range>[1.2.0, 2.0.0)</commons-logging.osgi.version.range>
+        <commons-lang.osgi.version.range>[2.6.0, 3.0.0)</commons-lang.osgi.version.range>
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.util.tracker.imp.pkg.version.range>[1.5.1, 2.0.0)</osgi.util.tracker.imp.pkg.version.range>
         <equinox.osgi.services.version>3.5.100.v20160504-1419</equinox.osgi.services.version>
@@ -2106,6 +2126,12 @@
         <com.google.api.http.clients.osgi.version.range>[1.41.2,1.44.0)</com.google.api.http.clients.osgi.version.range>
         <org.wso2.orbit.io.opencensus.version>0.31.1.wso2v1</org.wso2.orbit.io.opencensus.version>
         <org.wso2.orbit.io.grpc.version>1.59.0.wso2v1</org.wso2.orbit.io.grpc.version>
+
+        <!--Identity Governance Version-->
+        <identity.governance.version>1.8.73</identity.governance.version>
+        <identity.governance.imp.pkg.version.range>[1.4.75, 3.0.0)</identity.governance.imp.pkg.version.range>
+
+        <config.mapper.version>1.0.13</config.mapper.version>
     </properties>
 
     <build>
