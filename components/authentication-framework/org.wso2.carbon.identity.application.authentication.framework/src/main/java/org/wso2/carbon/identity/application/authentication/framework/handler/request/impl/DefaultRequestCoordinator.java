@@ -312,7 +312,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         (FrameworkUtils.getCurrentStandardNano() > context.getExpiryTime())) {
                     log.error("Redirecting to retry page as the authentication context has expired.");
                     FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
-                            "authentication.flow.timeout", "authentication.flow.timeout.description");
+                            FrameworkConstants.ERROR_STATUS_AUTH_FLOW_TIMEOUT,
+                            FrameworkConstants.ERROR_DESCRIPTION_AUTH_FLOW_TIMEOUT);
                     return;
                 }
 

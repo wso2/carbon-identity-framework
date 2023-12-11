@@ -128,6 +128,20 @@
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
+        <!-- [Organization]  Notification Sender Management API -->
+        <Resource context="(.*)/o/api/server/v1/notification-senders/(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_notification_senders_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/notification-senders/(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_org_notification_senders_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/notification-senders/(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_notification_senders_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/notification-senders/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_notification_senders_delete</Scopes>
+        </Resource>
+
         <!-- Notification Sender Management API -->
         <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="POST">
             <Scopes>internal_notification_senders_create</Scopes>

@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,6 +32,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
@@ -238,7 +240,16 @@ public class BrandingPreferenceRetrievalClient {
             throws BrandingPreferenceRetrievalClientException {
 
         try {
-            return IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+            String brandingPreferenceURL = IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+            /* Branding preference retrieval API has exposed as an organization qualified API when accessing the
+               branding preferences of organizations. */
+            if (StringUtils.isNotEmpty(PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId()) &&
+                    brandingPreferenceURL != null &&
+                    brandingPreferenceURL.contains(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
+                brandingPreferenceURL = brandingPreferenceURL.replace(FrameworkConstants.TENANT_CONTEXT_PREFIX,
+                        FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX);
+            }
+            return brandingPreferenceURL;
         } catch (ApiException e) {
             throw new BrandingPreferenceRetrievalClientException("Error while building url for context: " + context);
         }

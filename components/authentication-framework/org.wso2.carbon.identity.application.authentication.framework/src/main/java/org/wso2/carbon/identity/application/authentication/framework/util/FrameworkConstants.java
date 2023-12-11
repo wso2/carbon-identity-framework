@@ -241,8 +241,11 @@ public abstract class FrameworkConstants {
     public static final String IS_USER_RESOLVED = "isUserResolved";
     public static final String ERROR_STATUS_AUTH_CONTEXT_NULL = "authentication.context.null";
     public static final String ERROR_DESCRIPTION_AUTH_CONTEXT_NULL = "authentication.context.null.description";
+    public static final String ERROR_STATUS_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout";
+    public static final String ERROR_DESCRIPTION_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout.description";
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
+    public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
 
     private FrameworkConstants() {
 
