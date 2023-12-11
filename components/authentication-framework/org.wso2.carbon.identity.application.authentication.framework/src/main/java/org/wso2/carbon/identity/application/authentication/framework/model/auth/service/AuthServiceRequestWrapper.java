@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 public class AuthServiceRequestWrapper extends HttpServletRequestWrapper {
 
     private Map<String, String[]> parameters = new HashMap<>();
+    private boolean isAuthFlowConcluded;
 
     public AuthServiceRequestWrapper(HttpServletRequest request, Map<String, String[]> parameters) {
 
@@ -133,7 +134,17 @@ public class AuthServiceRequestWrapper extends HttpServletRequestWrapper {
      */
     public boolean isAuthFlowConcluded() {
 
-        return Boolean.TRUE.equals(getAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED));
+        return Boolean.TRUE.equals(getAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED)) || isAuthFlowConcluded;
+    }
+
+    /**
+     * Mark whether the flow is concluded.
+     *
+     * @param isAuthFlowConcluded set true if the flow is concluded.
+     */
+    public void setAuthFlowConcluded(boolean isAuthFlowConcluded) {
+
+        this.isAuthFlowConcluded = isAuthFlowConcluded;
     }
 
     private void setSessionDataKey(Map<String, String[]> parameters) {
@@ -168,5 +179,15 @@ public class AuthServiceRequestWrapper extends HttpServletRequestWrapper {
         }
 
         return null;
+    }
+
+    /**
+     * Check if the request was sent to retry.
+     *
+     * @return True if sent to retry.
+     */
+    public boolean isSentToRetry() {
+
+        return Boolean.TRUE.equals(getAttribute(FrameworkConstants.IS_SENT_TO_RETRY));
     }
 }

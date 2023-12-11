@@ -181,33 +181,52 @@ public class AuthenticationService {
         if (authenticationResult != null) {
             internalErrorCode = (String) authenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE);
             internalErrorMessage = (String) authenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG);
+        } else if (request.isSentToRetry()) {
+            // Check for retry status to resolve mapped error.
+            String retryStatus = (String) request.getAttribute(FrameworkConstants.REQ_ATTR_RETRY_STATUS);
+            if (StringUtils.isNotBlank(retryStatus)) {
+                internalErrorCode = retryStatus;
+            }
         }
+
+        AuthServiceConstants.ErrorMessage mappedError = getMappedError(internalErrorCode);
+        if (mappedError != null) {
+            errorCode = mappedError.code();
+            errorMessage = mappedError.message();
+            errorDescription = mappedError.description();
+        } else {
+            String builtErrorMessage = buildFailedConcludedErrorMessage(internalErrorCode, internalErrorMessage);
+            if (StringUtils.isNotBlank(builtErrorMessage)) {
+                errorMessage = builtErrorMessage;
+            }
+        }
+
+        AuthServiceErrorInfo errorInfo = new AuthServiceErrorInfo(errorCode, errorMessage, errorDescription);
+        authServiceResponse.setErrorInfo(errorInfo);
+    }
+
+    private static String buildFailedConcludedErrorMessage(String errorCode, String errorMessage) {
 
         String errorMsgBuilder = StringUtils.EMPTY;
-        if (StringUtils.isNotBlank(internalErrorCode)) {
-            errorMsgBuilder = internalErrorCode;
+        if (StringUtils.isNotBlank(errorCode)) {
+            errorMsgBuilder = errorCode;
         }
 
-        if (StringUtils.isNotBlank(internalErrorMessage)) {
+        if (StringUtils.isNotBlank(errorMessage)) {
             if (StringUtils.isNotBlank(errorMsgBuilder)) {
                 errorMsgBuilder = new StringJoiner(" ")
                         .add(errorMsgBuilder)
                         .add(AuthServiceConstants.INTERNAL_ERROR_MSG_SEPARATOR)
-                        .add(internalErrorMessage).toString();
+                        .add(errorMessage).toString();
             } else if (StringUtils.isBlank(errorMsgBuilder)) {
-                errorMsgBuilder = internalErrorMessage;
+                errorMsgBuilder = errorMessage;
             }
         }
 
         /* If there is an error message and an error code provided from the authentication framework then the
          final error message will be set as "<internal errorCode> - <internal errorMessage>".
          This is done to preserve the error details while sending out a standard error response.*/
-        if (StringUtils.isNotBlank(errorMsgBuilder)) {
-            errorMessage = errorMsgBuilder;
-        }
-
-        AuthServiceErrorInfo errorInfo = new AuthServiceErrorInfo(errorCode, errorMessage, errorDescription);
-        authServiceResponse.setErrorInfo(errorInfo);
+        return errorMsgBuilder;
     }
 
     private void handleFailedIncompleteAuthResponse(AuthServiceRequestWrapper request, AuthServiceResponseWrapper
@@ -317,7 +336,7 @@ public class AuthenticationService {
             throws AuthServiceException {
 
         return AuthenticatorFlowStatus.FAIL_COMPLETED == request.getAuthFlowStatus() || response.isErrorResponse() ||
-                isSentToRetryPageOnMissingContext(request, response);
+                isSentToRetryPage(request);
     }
 
     private boolean isAuthFlowIncomplete(AuthServiceRequestWrapper request) {
@@ -339,15 +358,12 @@ public class AuthenticationService {
         return authenticationResult;
     }
 
-    private boolean isSentToRetryPageOnMissingContext(AuthServiceRequestWrapper request,
-                                                      AuthServiceResponseWrapper response) throws AuthServiceException {
+    private boolean isSentToRetryPage(AuthServiceRequestWrapper request) {
 
-        // If it's a retry due to context being null there is nothing to retry again the flow should be restarted.
-        if (AuthenticatorFlowStatus.INCOMPLETE == request.getAuthFlowStatus() &&
-                Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.IS_SENT_TO_RETRY))) {
-            Map<String, String> queryParams = AuthServiceUtils.extractQueryParams(response.getRedirectURL());
-            return StringUtils.equals(queryParams.get(FrameworkConstants.STATUS_PARAM),
-                    FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL);
+        if (request.isSentToRetry()) {
+            // If it's a retry the flow should be restarted.
+            request.setAuthFlowConcluded(true);
+            return true;
         }
         return false;
     }
@@ -497,5 +513,21 @@ public class AuthenticationService {
 
         return Boolean.TRUE.equals(authServiceRequest.getRequest().getAttribute(
                 AuthServiceConstants.REQ_ATTR_IS_INITIAL_API_BASED_AUTH_REQUEST));
+    }
+
+    private AuthServiceConstants.ErrorMessage getMappedError(String errorCode) {
+
+        if (errorCode == null) {
+            return null;
+        }
+
+        switch (errorCode) {
+            case FrameworkConstants.ERROR_STATUS_AUTH_FLOW_TIMEOUT:
+                return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FLOW_TIMEOUT;
+            case FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL:
+                return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_CONTEXT_NULL;
+            default:
+                return null;
+        }
     }
 }

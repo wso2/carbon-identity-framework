@@ -78,6 +78,12 @@ public class AuthServiceConstants {
         ERROR_API_BASED_AUTH_NOT_ENABLED("60007",
                 "App native authentication is not enabled for the application.",
                 "App native authentication is not enabled for this application with id %s"),
+        ERROR_AUTHENTICATION_FLOW_TIMEOUT("60008",
+                "Authentication flow time out.",
+                "Authentication flow has timed out as it took too long to complete."),
+        ERROR_AUTHENTICATION_CONTEXT_NULL("60009",
+                "Invalid flow identifier.",
+                "The provided flowId is invalid."),
         // Server Error starting from 650xx.
         /* The 65001 ERROR_UNABLE_TO_PROCEED is used as the default server error
          therefor be cautious if that is being changed.*/
