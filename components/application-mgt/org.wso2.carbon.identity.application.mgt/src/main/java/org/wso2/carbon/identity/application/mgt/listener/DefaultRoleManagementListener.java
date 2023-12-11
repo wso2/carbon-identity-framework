@@ -176,12 +176,6 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     public void preUpdateRoleName(String roleID, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
-    }
-
-    @Override
-    public void postUpdateRoleName(String roleID, String newRoleName, String tenantDomain)
-            throws IdentityRoleManagementException {
-
         try {
             Role role = ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2()
                     .getRole(roleID, tenantDomain);
@@ -194,6 +188,13 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                     String.format("Error occurred while updating the name of role : %s in tenant domain : %s",
                             roleID, tenantDomain), e);
         }
+
+    }
+
+    @Override
+    public void postUpdateRoleName(String roleID, String newRoleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
     }
 
     @Override
