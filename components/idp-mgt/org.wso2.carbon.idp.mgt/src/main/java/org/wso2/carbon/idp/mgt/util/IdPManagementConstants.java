@@ -116,6 +116,11 @@ public class IdPManagementConstants {
 
     public static final String IS_TRUSTED_TOKEN_ISSUER = "isTrustedTokenIssuer";
 
+    // Email OTP properties.
+    public static final String EMAIL_OTP_AUTHENTICATOR_NAME = "EmailOTP";
+    public static final String EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY = "OnlyNumericCharactersForOtp";
+    public static final String EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY = "AlphanumericCharactersForOtp";
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +

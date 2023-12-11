@@ -87,6 +87,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_AUTHENTICATOR_NAME;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_TOKEN_ISSUER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
@@ -1120,6 +1123,13 @@ public class IdPManagementDAO {
                     properties.add(property);
                 }
                 authnConfig.setProperties(properties.toArray(new Property[properties.size()]));
+
+                if (isEmailOTPAuthenticator(authnConfig.getName())) {
+                    // This is to support backward compatibility.
+                    // If the authenticator is EmailOTP, then we need to set the value of OnlyNumericCharactersForOtp
+                    // property to AlphanumericCharactersForOtp property.
+                    updateEmailOTPCharTypeProperty(authnConfig, true);
+                }
                 federatedAuthenticatorConfigs.add(authnConfig);
             }
 
@@ -1159,6 +1169,9 @@ public class IdPManagementDAO {
                 newFedAuthnConfigMap.put(fedAuthenticator.getName(), fedAuthenticator);
                 if (fedAuthenticator.isValid()) {
                     if (oldFedAuthnConfigMap.containsKey(fedAuthenticator.getName())) {
+                        if (isEmailOTPAuthenticator(fedAuthenticator.getName())) {
+                            updateEmailOTPCharTypeProperty(fedAuthenticator, false);
+                        }
                         updateFederatedAuthenticatorConfig(fedAuthenticator,
                                 oldFedAuthnConfigMap.get(fedAuthenticator.getName()),
                                 dbConnection, idpId, tenantId);
@@ -1178,6 +1191,56 @@ public class IdPManagementDAO {
                 }
             }
         }
+    }
+
+    /**
+     * This method writes AlphanumericCharactersForOtp config value to OnlyNumericCharactersForOtp.
+     *
+     * @param emailOTPAuthenticator EmailOTP authenticator.
+     * @param isReadIDP             Whether the operation is reading or updating IDP data.
+     */
+    private void updateEmailOTPCharTypeProperty(FederatedAuthenticatorConfig emailOTPAuthenticator, boolean isReadIDP) {
+
+        Property alphaNumericCharactersForOtp = new Property();
+        Property onlyNumericCharactersForOtp = new Property();
+        onlyNumericCharactersForOtp.setName(EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY);
+
+        ArrayList<Property> emailOTPProperties = new ArrayList<Property>();
+        for (Property property : emailOTPAuthenticator.getProperties()) {
+            if (EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY.equals(property.getName())) {
+                alphaNumericCharactersForOtp = property;
+                continue;
+            }
+            if (EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY.equals(property.getName())) {
+                onlyNumericCharactersForOtp = property;
+                continue;
+            }
+            emailOTPProperties.add(property);
+        }
+
+        if (onlyNumericCharactersForOtp.getValue() != null && isReadIDP) {
+            boolean useNumericCharactersForOtpValue = Boolean.parseBoolean(onlyNumericCharactersForOtp.getValue());
+            alphaNumericCharactersForOtp.setValue(String.valueOf(!useNumericCharactersForOtpValue));
+        } else if (alphaNumericCharactersForOtp.getValue() != null && !isReadIDP) {
+            boolean alphaNumericCharactersForOtpValue = Boolean.parseBoolean(alphaNumericCharactersForOtp.getValue());
+            onlyNumericCharactersForOtp.setValue(String.valueOf(!alphaNumericCharactersForOtpValue));
+            // add the OnlyNumericCharactersForOtp property to the list only when updating.
+            emailOTPProperties.add(onlyNumericCharactersForOtp);
+        }
+        emailOTPProperties.add(alphaNumericCharactersForOtp);
+        emailOTPAuthenticator.setProperties(emailOTPProperties.toArray(new Property[emailOTPProperties.size()]));
+    }
+
+    /**
+     * This method is used to check whether the authenticator is email OTP connector or not.
+     *
+     * @param authenticatorName   Name of the authenticator.
+     *
+     * @return True if the authenticator is EmailOTP.
+     */
+    private boolean isEmailOTPAuthenticator(String authenticatorName) {
+
+        return EMAIL_OTP_AUTHENTICATOR_NAME.equals(authenticatorName);
     }
 
     /**
