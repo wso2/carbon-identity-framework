@@ -191,7 +191,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             }
         } catch (IdentityRoleManagementException e) {
             throw new IdentityRoleManagementException(
-                    String.format("Error occurred while updating the name of role : %s and tenant domain : %s",
+                    String.format("Error occurred while updating the name of role : %s in tenant domain : %s",
                             roleID, tenantDomain), e);
         }
     }
@@ -556,7 +556,6 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             String errorMessage = "Error while retrieving the basic information for the given app id: " + applicationID;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
-        
     }
 
     /**
@@ -584,7 +583,6 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
         IdentityServiceProviderCacheKey appNameKey = new IdentityServiceProviderCacheKey(
                 appBasicInfo.getApplicationName());
         IdentityServiceProviderCache.getInstance().clearCacheEntry(appNameKey, tenantDomain);
-        
     }
 
     @Override
