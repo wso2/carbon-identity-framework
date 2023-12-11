@@ -105,15 +105,15 @@ public interface RoleManagementListener {
     /**
      * Invoked after retrieving a list of roles based on specified criteria.
      *
-     * @param roleInfoList The list of role basic info.
-     * @param limit        The maximum number of roles to retrieve.
-     * @param offset       The starting index from which to retrieve roles.
-     * @param sortBy       The attribute by which the roles should be sorted (e.g., "name", "creationDate").
-     * @param sortOrder    The order in which to sort the roles.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param roleBasicInfoList The list of role basic info.
+     * @param limit             The maximum number of roles to retrieve.
+     * @param offset            The starting index from which to retrieve roles.
+     * @param sortBy            The attribute by which the roles should be sorted (e.g., "name", "creationDate").
+     * @param sortOrder         The order in which to sort the roles.
+     * @param tenantDomain      The domain in which the operation is being performed.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    void postGetRoles(List<Role> roleInfoList, Integer limit, Integer offset, String sortBy,
+    void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, Integer limit, Integer offset, String sortBy,
                       String sortOrder, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
@@ -133,16 +133,16 @@ public interface RoleManagementListener {
     /**
      * Invoked after retrieving a list of roles based on specified criteria.
      *
-     * @param roleInfoList The list of role basic info.
-     * @param filter       The filter value.
-     * @param limit        The maximum number of roles to retrieve.
-     * @param offset       The starting index from which to retrieve roles.
-     * @param sortBy       The attribute by which the roles should be sorted (e.g., "name", "creationDate").
-     * @param sortOrder    The order in which to sort the roles.
-     * @param tenantDomain The domain in which the operation is being performed.
+     * @param roleBasicInfoList The list of role basic info.
+     * @param filter            The filter value.
+     * @param limit             The maximum number of roles to retrieve.
+     * @param offset            The starting index from which to retrieve roles.
+     * @param sortBy            The attribute by which the roles should be sorted (e.g., "name", "creationDate").
+     * @param sortOrder         The order in which to sort the roles.
+     * @param tenantDomain      The domain in which the operation is being performed.
      * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
      */
-    void postGetRoles(List<Role> roleInfoList, String filter, Integer limit, Integer offset,
+    void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, String filter, Integer limit, Integer offset,
                       String sortBy, String sortOrder, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
