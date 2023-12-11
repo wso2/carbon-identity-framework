@@ -31,13 +31,15 @@ public class AuthorizedAPI {
     private String apiName;
     private String policyId;
     private List<Scope> scopes;
+    private String type;
 
-    public AuthorizedAPI(String appId, String apiId, String policyId, List<Scope> scopes) {
+    public AuthorizedAPI(String appId, String apiId, String policyId, List<Scope> scopes, String type) {
 
         this.appId = appId;
         this.apiId = apiId;
         this.policyId = policyId;
         this.scopes = scopes;
+        this.type = type;
     }
 
     public AuthorizedAPI() {
@@ -94,6 +96,16 @@ public class AuthorizedAPI {
         this.scopes.add(scope);
     }
 
+    public void setType(String type) {
+
+        this.type = type;
+    }
+
+    public String getType() {
+
+        return type;
+    }
+
     /**
      * Builder class for {@link AuthorizedAPI}.
      */
@@ -103,6 +115,7 @@ public class AuthorizedAPI {
         private String apiId;
         private String policyId;
         private List<Scope> scopes;
+        private String type;
 
         public AuthorizedAPIBuilder() {
 
@@ -132,9 +145,15 @@ public class AuthorizedAPI {
             return this;
         }
 
+        public AuthorizedAPIBuilder type(String type) {
+
+            this.type = type;
+            return this;
+        }
+
         public AuthorizedAPI build() {
 
-            return new AuthorizedAPI(appId, apiId, policyId, scopes);
+            return new AuthorizedAPI(appId, apiId, policyId, scopes, type);
         }
     }
 }
