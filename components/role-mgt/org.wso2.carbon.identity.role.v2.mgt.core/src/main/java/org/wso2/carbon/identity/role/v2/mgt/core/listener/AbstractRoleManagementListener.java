@@ -54,7 +54,7 @@ public abstract class AbstractRoleManagementListener implements RoleManagementLi
     }
 
     @Override
-    public void postGetRoles(List<Role> roleBasicInfoList, Integer limit, Integer offset, String sortBy,
+    public void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, Integer limit, Integer offset, String sortBy,
                              String sortOrder, String tenantDomain) throws IdentityRoleManagementException {
 
     }
@@ -66,7 +66,7 @@ public abstract class AbstractRoleManagementListener implements RoleManagementLi
     }
 
     @Override
-    public void postGetRoles(List<Role> roleInfoList, String filter, Integer limit, Integer offset,
+    public void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, String filter, Integer limit, Integer offset,
                              String sortBy, String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException {
 
