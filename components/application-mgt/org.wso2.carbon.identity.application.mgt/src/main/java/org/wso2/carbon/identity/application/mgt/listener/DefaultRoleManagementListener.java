@@ -25,8 +25,12 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
+import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
+import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
@@ -95,9 +99,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
         if (APPLICATION.equalsIgnoreCase(audience)) {
             // Set audience name by application name.
             roleBasicInfo.setAudienceName(getApplicationName(audienceId, tenantDomain));
-            // Clear cache of the application.
-            ServiceProviderResourceIdCacheKey resourceIdKey = new ServiceProviderResourceIdCacheKey(audienceId);
-            ServiceProviderByResourceIdCache.getInstance().clearCacheEntry(resourceIdKey, tenantDomain);
+            clearApplicationCaches(audienceId, tenantDomain);
         }
     }
 
@@ -174,6 +176,19 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     public void preUpdateRoleName(String roleID, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        try {
+            Role role = ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2()
+                    .getRole(roleID, tenantDomain);
+            List<AssociatedApplication> associatedApplications = role.getAssociatedApplications();
+            for (AssociatedApplication application : associatedApplications) {
+                clearApplicationCaches(application.getId(), tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            throw new IdentityRoleManagementException(
+                    String.format("Error occurred while updating the name of role : %s in tenant domain : %s",
+                            roleID, tenantDomain), e);
+        }
+
     }
 
     @Override
@@ -191,9 +206,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                     .getRole(roleID, tenantDomain);
             List<AssociatedApplication> associatedApplications = role.getAssociatedApplications();
             for (AssociatedApplication application : associatedApplications) {
-                ServiceProviderResourceIdCacheKey resourceIdKey = new
-                        ServiceProviderResourceIdCacheKey(application.getId());
-                ServiceProviderByResourceIdCache.getInstance().clearCacheEntry(resourceIdKey, tenantDomain);
+                clearApplicationCaches(application.getId(), tenantDomain);
             }
         } catch (IdentityRoleManagementException e) {
             throw new IdentityRoleManagementException(
@@ -523,6 +536,54 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             String errorMessage = "Error while retrieving the application name for the given id: " + applicationID;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
+    }
+
+    /**
+     * Get application basic information.
+     *
+     * @param applicationID Application ID.
+     * @param tenantDomain  Tenant domain.
+     * @return Basic information of the application.
+     * @throws IdentityRoleManagementServerException When an error occurred while retrieving application basic 
+     *                                               information.
+     */
+    private ApplicationBasicInfo getApplicationBasicInfo(String applicationID, String tenantDomain) 
+            throws IdentityRoleManagementServerException {
+
+        try {
+            return ApplicationManagementService.getInstance()
+                    .getApplicationBasicInfoByResourceId(applicationID, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            String errorMessage = "Error while retrieving the basic information for the given app id: " + applicationID;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+    }
+
+    /**
+     * Clears the ServiceProviderByIDCache, ServiceProviderByResourceIdCache and IdentityServiceProviderCache.
+     * 
+     * @param appId Application ID.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException When an error occurred while retrieving the basic information of the 
+     *                                         application, or if the basic info of the application is null.
+     */
+    private void clearApplicationCaches(String appId, String tenantDomain) throws IdentityRoleManagementException {
+
+        ApplicationBasicInfo appBasicInfo = getApplicationBasicInfo(appId, tenantDomain);
+        if (appBasicInfo == null) {
+            throw new IdentityRoleManagementClientException(UNEXPECTED_SERVER_ERROR.getCode(), "Error while " +
+                    "retrieving the application information for the given application id: " + appId);
+        }
+        
+        ServiceProviderResourceIdCacheKey resourceIdKey = new ServiceProviderResourceIdCacheKey(appId);
+        ServiceProviderByResourceIdCache.getInstance().clearCacheEntry(resourceIdKey, tenantDomain);
+        
+        ServiceProviderIDCacheKey appIdKey = new ServiceProviderIDCacheKey(appBasicInfo.getApplicationId());
+        ServiceProviderByIDCache.getInstance().clearCacheEntry(appIdKey, tenantDomain);
+        
+        IdentityServiceProviderCacheKey appNameKey = new IdentityServiceProviderCacheKey(
+                appBasicInfo.getApplicationName());
+        IdentityServiceProviderCache.getInstance().clearCacheEntry(appNameKey, tenantDomain);
     }
 
     @Override
