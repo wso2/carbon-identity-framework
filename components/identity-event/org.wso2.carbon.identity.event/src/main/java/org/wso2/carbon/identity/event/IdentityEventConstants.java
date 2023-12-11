@@ -377,6 +377,7 @@ public class IdentityEventConstants {
         public static final String AUDIENCE_ID = "audienceId";
 
         public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
+        public static final String REQUIRED_ATTRIBUTES = "requiredAttributes";
     }
 
     public class ErrorMessage {

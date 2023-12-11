@@ -54,8 +54,21 @@ public abstract class AbstractRoleManagementListener implements RoleManagementLi
     }
 
     @Override
+    public void preGetRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
+                            List<String> requiredAttributes) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
     public void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, Integer limit, Integer offset, String sortBy,
                              String sortOrder, String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetRoles(List<Role> roleInfoList, Integer limit, Integer offset, String sortBy,
+                             String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
 
     }
 
@@ -66,8 +79,22 @@ public abstract class AbstractRoleManagementListener implements RoleManagementLi
     }
 
     @Override
+    public void preGetRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
+                            String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
     public void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, String filter, Integer limit, Integer offset,
                              String sortBy, String sortOrder, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetRoles(List<Role> roleInfoList, String filter, Integer limit, Integer offset,
+                             String sortBy, String sortOrder, String tenantDomain, List<String> requiredAttributes)
             throws IdentityRoleManagementException {
 
     }

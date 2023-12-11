@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.listener;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.GroupBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
@@ -103,6 +104,23 @@ public interface RoleManagementListener {
                      String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Invoked before retrieving a list of roles based on specified criteria.
+     *
+     * @param limit              The maximum number of roles to retrieve.
+     * @param offset             The starting index from which to retrieve roles.
+     * @param sortBy             The attribute by which the roles should be sorted (e.g., "name", "creationDate").
+     * @param sortOrder          The order in which to sort the roles.
+     * @param tenantDomain       The domain in which the operation is being performed.
+     * @param requiredAttributes Required attributes.
+     * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
+     */
+    default void preGetRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
+                             List<String> requiredAttributes) throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("preGetRoles method is not implemented");
+    }
+
+    /**
      * Invoked after retrieving a list of roles based on specified criteria.
      *
      * @param roleBasicInfoList The list of role basic info.
@@ -115,6 +133,25 @@ public interface RoleManagementListener {
      */
     void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, Integer limit, Integer offset, String sortBy,
                       String sortOrder, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Invoked after retrieving a list of roles based on specified criteria.
+     *
+     * @param roleInfoList       The list of role info.
+     * @param limit              The maximum number of roles to retrieve.
+     * @param offset             The starting index from which to retrieve roles.
+     * @param sortBy             The attribute by which the roles should be sorted (e.g., "name", "creationDate").
+     * @param sortOrder          The order in which to sort the roles.
+     * @param tenantDomain       The domain in which the operation is being performed.
+     * @param requiredAttributes Required attributes.
+     * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
+     */
+    default void postGetRoles(List<Role> roleInfoList, Integer limit, Integer offset, String sortBy,
+                              String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("postGetRoles method is not implemented");
+    }
 
     /**
      * Invoked before retrieving a list of roles based on specified criteria.
@@ -131,6 +168,25 @@ public interface RoleManagementListener {
                      String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Invoked before retrieving a list of roles based on specified criteria.
+     *
+     * @param filter             The filter value.
+     * @param limit              The maximum number of roles to retrieve.
+     * @param offset             The starting index from which to retrieve roles.
+     * @param sortBy             The attribute by which the roles should be sorted (e.g., "name", "creationDate").
+     * @param sortOrder          The order in which to sort the roles.
+     * @param tenantDomain       The domain in which the operation is being performed.
+     * @param requiredAttributes Required attributes.
+     * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
+     */
+    default void preGetRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
+                             String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("preGetRoles method is not implemented");
+    }
+
+    /**
      * Invoked after retrieving a list of roles based on specified criteria.
      *
      * @param roleBasicInfoList The list of role basic info.
@@ -144,6 +200,26 @@ public interface RoleManagementListener {
      */
     void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, String filter, Integer limit, Integer offset,
                       String sortBy, String sortOrder, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Invoked after retrieving a list of roles based on specified criteria.
+     *
+     * @param roleInfoList       The list of role info.
+     * @param filter             The filter value.
+     * @param limit              The maximum number of roles to retrieve.
+     * @param offset             The starting index from which to retrieve roles.
+     * @param sortBy             The attribute by which the roles should be sorted (e.g., "name", "creationDate").
+     * @param sortOrder          The order in which to sort the roles.
+     * @param tenantDomain       The domain in which the operation is being performed.
+     * @param requiredAttributes Required attributes.
+     * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
+     */
+    default void postGetRoles(List<Role> roleInfoList, String filter, Integer limit, Integer offset,
+                              String sortBy, String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("postGetRoles method is not implemented");
+    }
 
     /**
      * Invoked before retrieving details of a specific role.

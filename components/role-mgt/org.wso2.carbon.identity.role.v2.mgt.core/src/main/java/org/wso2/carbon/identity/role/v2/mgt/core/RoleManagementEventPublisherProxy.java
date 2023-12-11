@@ -136,6 +136,32 @@ public class RoleManagementEventPublisherProxy {
     }
 
     /**
+     * Public event before retrieving a list of roles based on specified criteria.
+     *
+     * @param limit              The maximum number of roles to retrieve.
+     * @param offset             The starting index from which to retrieve roles.
+     * @param sortBy             The attribute by which the roles should be sorted (e.g., "name").
+     * @param sortOrder          The order in which to sort the roles.
+     * @param tenantDomain       The domain in which the operation is being performed.
+     * @param requiredAttributes Required attributes.
+     * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
+     */
+    public void publishPreGetRolesWithException(Integer limit, Integer offset, String sortBy, String sortOrder,
+                                                String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.LIMIT, limit);
+        eventProperties.put(IdentityEventConstants.EventProperty.OFFSET, offset);
+        eventProperties.put(IdentityEventConstants.EventProperty.SORT_BY, sortBy);
+        eventProperties.put(IdentityEventConstants.EventProperty.SORT_ORDER, sortOrder);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        eventProperties.put(IdentityEventConstants.EventProperty.REQUIRED_ATTRIBUTES, requiredAttributes);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_GET_ROLES_V2_EVENT);
+        doPublishEvent(event);
+    }
+
+    /**
      * Public event after retrieving a list of roles based on specified criteria.
      *
      * @param limit        The maximum number of roles to retrieve.
@@ -153,6 +179,34 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.SORT_BY, sortBy);
         eventProperties.put(IdentityEventConstants.EventProperty.SORT_ORDER, sortOrder);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLES_V2_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Public event after retrieving a list of roles based on specified criteria.
+     *
+     * @param limit              The maximum number of roles to retrieve.
+     * @param offset             The starting index from which to retrieve roles.
+     * @param sortBy             The attribute by which the roles should be sorted (e.g., "name").
+     * @param sortOrder          The order in which to sort the roles.
+     * @param tenantDomain       The domain in which the operation is being performed.
+     * @param requiredAttributes Required attributes.
+     */
+    public void publishPostGetRoles(Integer limit, Integer offset, String sortBy, String sortOrder,
+                                    String tenantDomain, List<String> requiredAttributes) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.LIMIT, limit);
+        eventProperties.put(IdentityEventConstants.EventProperty.OFFSET, offset);
+        eventProperties.put(IdentityEventConstants.EventProperty.SORT_BY, sortBy);
+        eventProperties.put(IdentityEventConstants.EventProperty.SORT_ORDER, sortOrder);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        eventProperties.put(IdentityEventConstants.EventProperty.REQUIRED_ATTRIBUTES, requiredAttributes);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLES_V2_EVENT);
         try {
             doPublishEvent(event);
@@ -188,6 +242,34 @@ public class RoleManagementEventPublisherProxy {
     }
 
     /**
+     * Publish event before retrieving a list of roles based on specified criteria.
+     *
+     * @param filter             The filter value.
+     * @param limit              The maximum number of roles to retrieve.
+     * @param offset             The starting index from which to retrieve roles.
+     * @param sortBy             The attribute by which the roles should be sorted (e.g., "name").
+     * @param sortOrder          The order in which to sort the roles.
+     * @param tenantDomain       The domain in which the operation is being performed.
+     * @param requiredAttributes Required attributes.
+     * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
+     */
+    public void publishPreGetRolesWithException(String filter, Integer limit, Integer offset, String sortBy,
+                                                String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.FILTER, filter);
+        eventProperties.put(IdentityEventConstants.EventProperty.LIMIT, limit);
+        eventProperties.put(IdentityEventConstants.EventProperty.OFFSET, offset);
+        eventProperties.put(IdentityEventConstants.EventProperty.SORT_BY, sortBy);
+        eventProperties.put(IdentityEventConstants.EventProperty.SORT_ORDER, sortOrder);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        eventProperties.put(IdentityEventConstants.EventProperty.REQUIRED_ATTRIBUTES, requiredAttributes);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_GET_ROLES_V2_EVENT);
+        doPublishEvent(event);
+    }
+
+    /**
      * Publish event after retrieving a list of roles based on specified criteria.
      *
      * @param filter       The filter value.
@@ -207,6 +289,36 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.SORT_BY, sortBy);
         eventProperties.put(IdentityEventConstants.EventProperty.SORT_ORDER, sortOrder);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLES_V2_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Publish event after retrieving a list of roles based on specified criteria.
+     *
+     * @param filter             The filter value.
+     * @param limit              The maximum number of roles to retrieve.
+     * @param offset             The starting index from which to retrieve roles.
+     * @param sortBy             The attribute by which the roles should be sorted (e.g., "name").
+     * @param sortOrder          The order in which to sort the roles.
+     * @param tenantDomain       The domain in which the operation is being performed.
+     * @param requiredAttributes Required attributes.
+     */
+    public void publishPostGetRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
+                                    String tenantDomain, List<String> requiredAttributes) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.FILTER, filter);
+        eventProperties.put(IdentityEventConstants.EventProperty.LIMIT, limit);
+        eventProperties.put(IdentityEventConstants.EventProperty.OFFSET, offset);
+        eventProperties.put(IdentityEventConstants.EventProperty.SORT_BY, sortBy);
+        eventProperties.put(IdentityEventConstants.EventProperty.SORT_ORDER, sortOrder);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        eventProperties.put(IdentityEventConstants.EventProperty.REQUIRED_ATTRIBUTES, requiredAttributes);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLES_V2_EVENT);
         try {
             doPublishEvent(event);
