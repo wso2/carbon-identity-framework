@@ -117,26 +117,6 @@ public class ResetLinkGenerator {
     }
 
     /**
-     * Check if the usestore is readonly.
-     *
-     * @param tenantDomain Name of the tenant.
-     * @return whether the userstore is readonly.
-     * @throws IdentityRecoveryServerException
-     */
-    private boolean isReadOnlyUserStore(String tenantDomain) throws IdentityRecoveryServerException {
-
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        UserStoreManager userStoreManager;
-        try {
-            userStoreManager = IdentityRecoveryServiceDataHolder.getInstance().getRealmService().
-                    getTenantUserRealm(tenantId).getUserStoreManager();
-            return userStoreManager.isReadOnly();
-        } catch (UserStoreException e) {
-            throw Utils.handleServerException(IdentityRecoveryConstants.ErrorMessages.ERROR_CODE_UNEXPECTED, null, e);
-        }
-    }
-
-    /**
      * Check for user existence.
      *
      * @param user User
