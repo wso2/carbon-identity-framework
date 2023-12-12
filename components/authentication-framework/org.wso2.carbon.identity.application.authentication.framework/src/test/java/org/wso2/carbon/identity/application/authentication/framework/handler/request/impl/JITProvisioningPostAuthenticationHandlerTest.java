@@ -172,6 +172,8 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         when(mockUserStoreManager.getUserClaimValues(anyString(),
                 eq(new String[]{FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI}),
                 eq(UserCoreConstants.DEFAULT_PROFILE))).thenReturn(mockClaimValues);
+        when(mockUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(mockUserStoreManager);
+        when(mockUserStoreManager.isExistingUser(anyString())).thenReturn(false);
         when(mockClaimValues.get(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI)).thenReturn("false");
 
         // Need to mock getIdPConfigByName with a null parameter.
