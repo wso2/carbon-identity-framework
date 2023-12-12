@@ -90,6 +90,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                         .getAPIResourceManager().getAPIResourceById(authorizedAPI.getAPIId(), tenantDomain);
                 authorizedAPI.setAPIIdentifier(apiResource.getIdentifier());
                 authorizedAPI.setAPIName(apiResource.getName());
+                authorizedAPI.setType(apiResource.getType());
                 // Get Scope data from OSGi service.
                 List<Scope> scopeList = new ArrayList<>();
                 if (authorizedAPI.getScopes() != null) {
