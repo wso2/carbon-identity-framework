@@ -73,6 +73,8 @@ public class FrameworkErrorConstants {
                 "Authenticated subject identifier is null."),
         ERROR_WHILE_CONCLUDING_AUTHENTICATION_USER_ID_NULL("80029", "Error occurred during post authentication. " +
                 "Authenticated user id is null."),
+        ERROR_WHILE_TRYING_TO_HANDLE_ROLE_CLAIM_FOR_PROVISIONED_USER("80030", "Error while trying to handle role "
+                + "claim for provisioned user."),
         MISMATCHING_TENANT_DOMAIN("AFW-60001",
                 "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
         SYSTEM_ERROR_WHILE_AUTHENTICATING("AFW-65001", "System error while authenticating");
