@@ -41,7 +41,6 @@
         <module>org.wso2.carbon.identity.user.profile</module>
         <module>org.wso2.carbon.identity.user.profile.ui</module>
         <module>org.wso2.carbon.identity.user.registration</module>
-        <module>org.wso2.carbon.identity.user.onboard.core.service</module>
     </modules>
 
 </project>

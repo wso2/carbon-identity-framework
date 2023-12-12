@@ -979,7 +979,7 @@
             <PoolSize>0</PoolSize>
             <RetryCount>{{oauth.token_generation.retry_count_on_persistence_failures}}</RetryCount>
         </TokenPersistence>
-
+        
         <!--
             Config related to OAuth2 authorization code persistence.
             Prior to IS 7.0.0, this was handled by the config <TokenPersistence>.<Enable>.
@@ -2836,10 +2836,6 @@
             <Permissions>/permission/admin/manage/identity/identitymgt/update</Permissions>
             <Scopes>internal_identity_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/offline-invite-link(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
-            <Scopes>internal_offline_invite</Scopes>
-        </Resource>
         <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
             <Scopes>internal_claim_meta_create</Scopes>
@@ -3435,7 +3431,6 @@
                     <Path>/api/server/v1/branding-preference/text</Path>
                     <Path>/api/server/v1/branding-preference/text/resolve</Path>
                     <Path>/api/identity/auth/v1.1/data</Path>
-                    <Path>/api/users/v1/offline-invite-link</Path>
                 </SubPaths>
             </Context>
             <Context>
