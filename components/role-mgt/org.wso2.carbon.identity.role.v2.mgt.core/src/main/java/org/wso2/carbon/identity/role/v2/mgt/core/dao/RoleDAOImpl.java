@@ -194,6 +194,10 @@ public class RoleDAOImpl implements RoleDAO {
     private final GroupIDResolver groupIDResolver = new GroupIDResolver();
     private final UserIDResolver userIDResolver = new UserIDResolver();
     private final Set<String> systemRoles = getSystemRoles();
+    private final String users = "users";
+    private final String groups = "groups";
+    private final String permissions = "permissions";
+    private final String associatedApplications = "associatedApplications";
 
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
@@ -283,6 +287,12 @@ public class RoleDAOImpl implements RoleDAO {
     public List<RoleBasicInfo> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder,
                                         String tenantDomain) throws IdentityRoleManagementException {
 
+        return getRolesBasicInfo(limit, offset, sortBy, sortOrder, tenantDomain);
+    }
+
+    private List<RoleBasicInfo> getRolesBasicInfo(Integer limit, Integer offset, String sortBy, String sortOrder,
+                                                 String tenantDomain) throws IdentityRoleManagementException {
+
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         limit = validateLimit(limit);
         offset = validateOffset(offset);
@@ -304,9 +314,24 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     @Override
+    public List<Role> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
+                                 List<String> requiredAttributes) throws IdentityRoleManagementException {
+
+        List<RoleBasicInfo> roleBasicInfoList = getRolesBasicInfo(limit, offset, sortBy, sortOrder, tenantDomain);
+        return getRolesRequestedAttributes(roleBasicInfoList, requiredAttributes, tenantDomain);
+    }
+
+    @Override
     public List<RoleBasicInfo> getRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset,
                                         String sortBy, String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException {
+
+        return getFilteredRolesBasicInfo(expressionNodes, limit, offset, sortBy, sortOrder, tenantDomain);
+    }
+
+    private List<RoleBasicInfo> getFilteredRolesBasicInfo(List<ExpressionNode> expressionNodes, Integer limit,
+                                                         Integer offset, String sortBy, String sortOrder,
+                                                         String tenantDomain) throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
@@ -336,6 +361,59 @@ public class RoleDAOImpl implements RoleDAO {
                     "Error while listing roles in tenantDomain: " + tenantDomain, e);
         }
         return roles;
+    }
+
+    @Override
+    public List<Role> getRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset, String sortBy,
+                                 String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+        List<RoleBasicInfo> roleBasicInfoList = getFilteredRolesBasicInfo(expressionNodes, limit, offset, sortBy,
+                sortOrder, tenantDomain);
+        return getRolesRequestedAttributes(roleBasicInfoList, requiredAttributes, tenantDomain);
+    }
+
+    private List<Role> getRolesRequestedAttributes(List<RoleBasicInfo> roles, List<String> requiredAttributes,
+                                                   String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        List<Role> rolesList = new ArrayList();
+        for (RoleBasicInfo roleBasicInfo : roles) {
+            Role role = new Role();
+            role.setId(roleBasicInfo.getId());
+            role.setName(roleBasicInfo.getName());
+            role.setAudienceId(roleBasicInfo.getAudienceId());
+            role.setAudienceName(roleBasicInfo.getAudienceName());
+            role.setAudience(roleBasicInfo.getAudience());
+            if (requiredAttributes != null && !requiredAttributes.isEmpty()) {
+                if (requiredAttributes.contains(users)) {
+                    role.setUsers(getUserListOfRole(roleBasicInfo.getId(), tenantDomain));
+                }
+                if (requiredAttributes.contains(groups)) {
+                    role.setGroups(getGroupListOfRole(roleBasicInfo.getId(), tenantDomain));
+                    role.setIdpGroups(getIdpGroupListOfRole(roleBasicInfo.getId(), tenantDomain));
+                }
+                if (requiredAttributes.contains(permissions)) {
+                    if (isSharedRole(roleBasicInfo.getId(), tenantDomain)) {
+                        role.setPermissions(getPermissionsOfSharedRole(roleBasicInfo.getId(), tenantDomain));
+                    } else {
+                        role.setPermissions(getPermissions(roleBasicInfo.getId(), tenantDomain));
+                    }
+                }
+                if (requiredAttributes.contains(associatedApplications)) {
+                    if (ORGANIZATION.equals(roleBasicInfo.getAudience())) {
+                        role.setAssociatedApplications(getAssociatedAppsById(roleBasicInfo.getId(), tenantDomain));
+                    } else if (APPLICATION.equals(roleBasicInfo.getAudience())) {
+                        List<AssociatedApplication> associatedApplications = new ArrayList<>();
+                        associatedApplications.add(new AssociatedApplication(roleBasicInfo.getAudienceId(),
+                                roleBasicInfo.getAudienceName()));
+                        role.setAssociatedApplications(associatedApplications);
+                    }
+                }
+            }
+            rolesList.add(role);
+        }
+        return rolesList;
     }
 
     @Override
