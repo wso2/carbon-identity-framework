@@ -249,7 +249,6 @@
       "console.ui.legacy_mode.applicationOIDCSubjectIdentifier": true,
       "console.ui.legacy_mode.applicationRequestPathAuthentication": true,
       "console.ui.legacy_mode.applicationSystemAppsSettings": true,
-      "console.ui.legacy_mode.applicationXacmlAuthorization": true,
       "console.ui.legacy_mode.approvals": true,
       "console.ui.legacy_mode.certificates": true,
       "console.ui.legacy_mode.loginAndRegistrationEmailDomainDiscovery": true,
