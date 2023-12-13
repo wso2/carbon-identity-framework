@@ -497,6 +497,7 @@
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
   "authentication.jit_provisioning.password_provisioning_url": "/accountrecoveryendpoint/signup.do",
+  "authentication.jit_provisioning.skip_username_pattern_validation": false,
   "authentication.jit_provisioning.enable_enhanced_feature": false,
 
   "application_mgt.enable_role_validation": false,
