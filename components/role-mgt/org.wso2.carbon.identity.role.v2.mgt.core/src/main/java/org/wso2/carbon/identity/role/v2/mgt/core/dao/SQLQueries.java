@@ -85,11 +85,11 @@ public class SQLQueries {
             "sr.UM_SHARED_ROLE_TENANT_ID = hr2.UM_TENANT_ID WHERE hr2.UM_TENANT_ID =:UM_TENANT_ID; AND " +
             "hr2.UM_UUID IN (";
 
-    public static final String GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL = "SELECT m_main.UM_UUID " +
-            ", m_shared.UM_UUID FROM UM_SHARED_ROLE AS s JOIN UM_HYBRID_ROLE " +
-            "AS m_main ON s.UM_MAIN_ROLE_ID = m_main.UM_ID AND s.UM_MAIN_ROLE_TENANT_ID = m_main.UM_TENANT_ID " +
-            "JOIN UM_HYBRID_ROLE AS m_shared ON s.UM_SHARED_ROLE_ID = m_shared.UM_ID AND s.UM_SHARED_ROLE_TENANT_ID " +
-            "= m_shared.UM_TENANT_ID WHERE s.UM_SHARED_ROLE_TENANT_ID = ? AND m_main.UM_UUId IN (";
+    public static final String GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL = "SELECT m_main.UM_UUID, " +
+            "m_shared.UM_UUID FROM UM_SHARED_ROLE s JOIN UM_HYBRID_ROLE " +
+            "m_main ON s.UM_MAIN_ROLE_ID = m_main.UM_ID AND s.UM_MAIN_ROLE_TENANT_ID = m_main.UM_TENANT_ID " +
+            "JOIN UM_HYBRID_ROLE m_shared ON s.UM_SHARED_ROLE_ID = m_shared.UM_ID AND s.UM_SHARED_ROLE_TENANT_ID " +
+            "= m_shared.UM_TENANT_ID WHERE s.UM_SHARED_ROLE_TENANT_ID = ? AND m_main.UM_UUID IN (";
 
     public static final String GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL = "SELECT UM_SHARED_ROLE_ID, " +
             "UM_SHARED_ROLE_TENANT_ID FROM UM_SHARED_ROLE WHERE (UM_MAIN_ROLE_ID, UM_MAIN_ROLE_TENANT_ID) IN (" +
