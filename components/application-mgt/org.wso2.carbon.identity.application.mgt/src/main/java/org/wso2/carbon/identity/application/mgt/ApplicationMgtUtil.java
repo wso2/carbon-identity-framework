@@ -1084,6 +1084,28 @@ public class ApplicationMgtUtil {
         return ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(name) ||
                 ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(name);
     }
+
+    /**
+     * Check whether the application is Console by app name.
+     *
+     * @param name Application name.
+     * @return True if the application is Console.
+     */
+    public static boolean isConsole(String name) {
+
+        return ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(name);
+    }
+
+    /**
+     * Check whether the application is My Account by app name.
+     *
+     * @param name Application name.
+     * @return True if the application is My Account.
+     */
+    public static boolean isMyAccount(String name) {
+
+        return ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(name);
+    }
     
     private static class InboundAuthRequestConfigSerializer extends StdSerializer<InboundAuthenticationRequestConfig> {
         
