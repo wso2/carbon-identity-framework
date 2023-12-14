@@ -1276,6 +1276,9 @@
             <!-- Enable this element to mention the host-name of your IS machine -->
             <ThriftHostName>{{entitlement.thrift.hostname}}</ThriftHostName>
         </ThirftBasedEntitlementConfig>
+        <XacmlPolicyStatus>
+            <UseLastStatusOnly>{{identity.entitlement.xacml_policy_status.use_last_status_only}}</UseLastStatusOnly>
+        </XacmlPolicyStatus>
     </EntitlementSettings>
 
     <SCIM>
