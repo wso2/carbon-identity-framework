@@ -118,7 +118,7 @@ public interface ConfigurationManager {
      * Get all the resources belonging to the given {@link ResourceType}.
      *
      * @param resourceTypeName {@link ResourceType} object name.
-     * @return 200 ok. {@link Resources} object with all the resources of the given resource type name.
+     * @return {@link Resources} object with all the resources of the given resource type name.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
     Resources getResourcesByType(String resourceTypeName) throws ConfigurationManagementException;
