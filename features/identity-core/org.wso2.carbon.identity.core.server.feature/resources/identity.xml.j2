@@ -1145,6 +1145,12 @@
         <!-- Configuration to enable setting local IDP generated AMR values with the values sent by the used idp. -->
         <ReplaceDefaultAMRValuesWithIDPSentValues>{{replace_amr_value_with_idp_sent_values.enable}}</ReplaceDefaultAMRValuesWithIDPSentValues>
 
+        <!-- Configuration to enable global scope validators. -->
+        <GlobalScopeValidators>
+            <RoleBasedScopeIssuer>
+                <Enable>{{oauth.global_scope_validators.role_based_scope_issuer.enable}}</Enable>
+            </RoleBasedScopeIssuer>
+        </GlobalScopeValidators>
     </OAuth>
 
     <RestApiAuthentication>

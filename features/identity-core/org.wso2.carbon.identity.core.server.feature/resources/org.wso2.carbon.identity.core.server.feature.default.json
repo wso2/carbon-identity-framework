@@ -731,6 +731,7 @@
   "oauth.jwks_endpoint.read_timeout": "1s",
   "oauth.jwks_endpoint.size_limit_bytes": "51200",
   "oauth.jwks_endpoint.add_previous_version_kid" : false,
+  "oauth.global_scope_validators.role_based_scope_issuer.enable": false,
 
   "authentication.adaptive.event_publisher.authentication_type": "basic",
   "authentication.adaptive.async_executer_pool_size": "5",
