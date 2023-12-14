@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.entitlement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
 import org.wso2.carbon.identity.entitlement.dto.PublisherPropertyDTO;
 import org.wso2.carbon.identity.entitlement.dto.StatusHolder;
@@ -173,7 +174,9 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
         try {
             registry = EntitlementServiceComponent.getRegistryService().
                     getGovernanceSystemRegistry(tenantId);
-            if (registry.resourceExists(path) && !isNew) {
+            boolean useLastStatusOnly = Boolean.parseBoolean(
+                    IdentityUtil.getProperty(EntitlementConstants.PROP_USE_LAST_STATUS_ONLY));
+            if (registry.resourceExists(path) && !isNew && !useLastStatusOnly) {
                 resource = registry.get(path);
                 String[] versions = registry.getVersions(path);
                 // remove all versions.  As we have no way to disable versioning for specific resource
