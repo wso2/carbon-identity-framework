@@ -101,11 +101,11 @@ public interface ConfigurationManager {
     Resources getResources() throws ConfigurationManagementException;
 
     /**
-     * Get all the resources belongs to the given {@link ResourceType} for a given tenant ID.
+     * Get all the resources belonging to the given {@link ResourceType} for a given tenant ID.
 
      * @param tenantId         The ID of the tenant.
      * @param resourceTypeName {@link ResourceType} object name.
-     * @return 200 ok. @link Resources} object with all the resources of the given resource type name.
+     * @return {@link Resources} object with all the resources of the given resource type name.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
    default Resources getResourcesByType(int tenantId, String resourceTypeName) throws ConfigurationManagementException {
@@ -114,10 +114,10 @@ public interface ConfigurationManager {
    }
 
     /**
-     * Get all the resources belongs to the given {@link ResourceType}.
+     * Get all the resources belonging to the given {@link ResourceType}.
      *
      * @param resourceTypeName {@link ResourceType} object name.
-     * @return 200 ok. @link Resources} object with all the resources of the given resource type name.
+     * @return 200 ok. {@link Resources} object with all the resources of the given resource type name.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
     Resources getResourcesByType(String resourceTypeName) throws ConfigurationManagementException;
