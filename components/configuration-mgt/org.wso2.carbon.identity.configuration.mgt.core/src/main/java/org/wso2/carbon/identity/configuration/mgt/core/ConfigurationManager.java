@@ -108,10 +108,11 @@ public interface ConfigurationManager {
      * @return {@link Resources} object with all the resources of the given resource type name.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
-   default Resources getResourcesByType(int tenantId, String resourceTypeName) throws ConfigurationManagementException {
+    default Resources getResourcesByType(int tenantId, String resourceTypeName)
+            throws ConfigurationManagementException {
 
-            throw new NotImplementedException("This functionality is not implemented.");
-   }
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * Get all the resources belonging to the given {@link ResourceType}.
