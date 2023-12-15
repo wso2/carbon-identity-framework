@@ -84,5 +84,5 @@
     "    return false;",
     "};"
   ],
-  "runTime": "any"
+  "runtime": "any"
 }

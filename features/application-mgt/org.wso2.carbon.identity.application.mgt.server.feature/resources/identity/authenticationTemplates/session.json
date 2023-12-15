@@ -1,7 +1,7 @@
 
 {
   "category": "AccessControl",
-  "name": "Session-based",
+  "name": "Session-Based",
   "title": "Concurrent Session Management Template",
   "summary": "Prompts session handling to the users who belongs to any of the given set of roles based on currently active session count.",
   "preRequisites": [
@@ -63,5 +63,5 @@
     "   });",
     "};"
   ],
-  "runTime": "legacy"
+  "runtime": "legacy"
 }

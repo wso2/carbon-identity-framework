@@ -82,5 +82,5 @@
     "    return age;",
     "};"
   ],
-  "runTime": "any"
+  "runtime": "any"
 }

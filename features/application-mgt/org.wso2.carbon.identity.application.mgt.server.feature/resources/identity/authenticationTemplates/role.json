@@ -52,5 +52,5 @@
     "    });",
     "};"
   ],
-  "runTime": "legacy"
+  "runtime": "legacy"
 }
