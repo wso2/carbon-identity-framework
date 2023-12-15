@@ -1084,8 +1084,7 @@ public class ApplicationMgtUtil {
      */
     public static boolean isConsoleOrMyAccount(String name) {
 
-        return ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(name) ||
-                ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(name);
+        return isConsole(name) || isMyAccount(name);
     }
 
     /**
