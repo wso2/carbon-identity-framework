@@ -1046,22 +1046,7 @@
     </Resource>
 
     <!-- [Organization] Organization Discovery API -->
-    <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="POST">
-        <Scopes>internal_org_organization_discovery_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="GET">
-        <Scopes>internal_org_organization_discovery_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="GET">
-        <Scopes>internal_org_organization_discovery_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="PUT">
-        <Scopes>internal_org_organization_discovery_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="DELETE">
-        <Scopes>internal_org_organization_discovery_delete</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/organizations/check-discovery" secured="true" http-method="POST">
+    <Resource context="(.*)/o/api/server/v1/organizations/check-discovery" secured="true" http-method="POST">
         <Scopes>internal_org_organization_discovery_view</Scopes>
     </Resource>
 

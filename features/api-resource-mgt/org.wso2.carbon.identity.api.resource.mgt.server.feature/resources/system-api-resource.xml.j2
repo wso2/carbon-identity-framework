@@ -347,7 +347,7 @@
     <APIResource name="Organization Discovery API"
                  identifier="/api/server/v1/organizations/discovery"
                  requiresAuthorization="true"
-                 description="API representation of the Organization Discovery API" type="OTHER">
+                 description="API representation of the Organization Discovery API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Organization Discovery"
                    name="internal_organization_discovery_view"/>
@@ -361,14 +361,10 @@
                  identifier="/o/api/server/v1/organizations/discovery"
                  requiresAuthorization="true"
                  description="API representation of the Organization Discovery API"
-                 type="OTHER">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Organization Discovery"
                    name="internal_org_organization_discovery_view"/>
-            <Scope displayName="Update Organization Discovery"
-                   name="internal_org_organization_discovery_update"/>
-            <Scope displayName="Delete Organization Discovery"
-                   name="internal_org_organization_discovery_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Management API" identifier="/api/server/v1/organizations"
