@@ -57,6 +57,10 @@ public class ApplicationConstants {
     public static final String TEMPLATE_CATEGORY = "category";
     public static final String CATEGORY_DISPLAY_NAME = "displayName";
     public static final String CATEGORY_ORDER = "order";
+    public static final String RUN_TIME = "runtime";
+    public static final String RUN_TIME_ANY = "any";
+    public static final String RUN_TIME_NEW = "new";
+    public static final String RUN_TIME_LEGACY = "legacy";
     public static final String CATEGORY_TEMPLATES = "templates";
     public static final String UNCATEGORIZED = "uncategorized";
     public static final String DISPLAY_NAME_FOR_UNCATEGORIZED = "Uncategorized";
