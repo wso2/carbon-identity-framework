@@ -872,4 +872,11 @@
             <Scope displayName="User Feature" name="console:users"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Offline User Onboard API" identifier="/api/users/v1/offline-invite-link/"
+                     requiresAuthorization="true"
+                     description="API to generate user onboard offline invite link" type="TENANT_ADMIN">
+            <Scopes>
+                <Scope displayName="Offline invite link" name="internal_offline_invite"/>
+            </Scopes>
+        </APIResource>
 </APIResources>

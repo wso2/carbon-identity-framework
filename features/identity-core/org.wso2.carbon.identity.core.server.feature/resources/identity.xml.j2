@@ -1276,6 +1276,9 @@
             <!-- Enable this element to mention the host-name of your IS machine -->
             <ThriftHostName>{{entitlement.thrift.hostname}}</ThriftHostName>
         </ThirftBasedEntitlementConfig>
+        <XacmlPolicyStatus>
+            <UseLastStatusOnly>{{identity.entitlement.xacml_policy_status.use_last_status_only}}</UseLastStatusOnly>
+        </XacmlPolicyStatus>
     </EntitlementSettings>
 
     <SCIM>
@@ -2836,6 +2839,10 @@
             <Permissions>/permission/admin/manage/identity/identitymgt/update</Permissions>
             <Scopes>internal_identity_mgt_update</Scopes>
         </Resource>
+        <Resource context="(.*)/api/users/v1/offline-invite-link(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
+            <Scopes>internal_offline_invite</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
             <Scopes>internal_claim_meta_create</Scopes>
@@ -3431,6 +3438,7 @@
                     <Path>/api/server/v1/branding-preference/text</Path>
                     <Path>/api/server/v1/branding-preference/text/resolve</Path>
                     <Path>/api/identity/auth/v1.1/data</Path>
+                    <Path>/api/users/v1/offline-invite-link</Path>
                 </SubPaths>
             </Context>
             <Context>

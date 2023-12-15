@@ -110,6 +110,12 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     }
 
     @Override
+    public void preGetRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
+                            List<String> requiredAttributes) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
     public void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, Integer limit, Integer offset,
                              String sortBy, String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException {
@@ -128,8 +134,33 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     }
 
     @Override
+    public void postGetRoles(List<Role> roleInfoList, Integer limit, Integer offset,
+                             String sortBy, String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+        Iterator<Role> iterator = roleInfoList.iterator();
+        while (iterator.hasNext()) {
+            Role roleInfo = iterator.next();
+            if (APPLICATION.equalsIgnoreCase(roleInfo.getAudience())) {
+                String applicationName = getApplicationName(roleInfo.getAudienceId(), tenantDomain);
+                if (applicationName == null) {
+                    iterator.remove();
+                }
+                roleInfo.setAudienceName(applicationName);
+            }
+        }
+    }
+
+    @Override
     public void preGetRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
                             String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void preGetRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
+                            String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
 
     }
 
@@ -141,6 +172,18 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
         for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
             if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
                 roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
+            }
+        }
+    }
+
+    @Override
+    public void postGetRoles(List<Role> roleInfoList, String filter, Integer limit, Integer offset,
+                             String sortBy, String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+        for (Role roleInfo : roleInfoList) {
+            if (APPLICATION.equalsIgnoreCase(roleInfo.getAudience())) {
+                roleInfo.setAudienceName(getApplicationName(roleInfo.getAudienceId(), tenantDomain));
             }
         }
     }

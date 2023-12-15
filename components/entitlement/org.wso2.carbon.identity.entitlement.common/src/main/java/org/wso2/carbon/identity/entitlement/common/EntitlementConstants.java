@@ -37,6 +37,8 @@ public class EntitlementConstants {
 
     public static final String PDP_SUBSCRIBER_ID = "PDP Subscriber";
 
+    public static final String PROP_USE_LAST_STATUS_ONLY = "EntitlementSettings.XacmlPolicyStatus.UseLastStatusOnly";
+
     public static final class PolicyPublish {
 
         public static final String ACTION_CREATE = "CREATE";
