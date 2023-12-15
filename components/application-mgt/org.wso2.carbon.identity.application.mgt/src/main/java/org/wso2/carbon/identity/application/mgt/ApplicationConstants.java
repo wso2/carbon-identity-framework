@@ -105,6 +105,9 @@ public class ApplicationConstants {
     // Console and My Account application names.
     public static final String CONSOLE_APPLICATION_NAME = "Console";
     public static final String MY_ACCOUNT_APPLICATION_NAME = "My Account";
+    public static final String CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS = "Console.AccessURL";
+    public static final String MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS = "MyAccount.AccessURL";
+    public static final String TENANT_DOMAIN_PLACEHOLDER = "{TENANT_DOMAIN}";
 
     /**
      * Group the constants related to logs.

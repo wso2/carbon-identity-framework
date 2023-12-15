@@ -77,10 +77,13 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.ENABLE_V2_AUDIT_LOGS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TENANT_DOMAIN_PLACEHOLDER;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
@@ -1105,6 +1108,38 @@ public class ApplicationMgtUtil {
     public static boolean isMyAccount(String name) {
 
         return ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(name);
+    }
+
+    /**
+     * Resolve Console application access url for a specific tenant based on the access url configured in toml.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Console access url.
+     */
+    public static String getConsoleAccessUrlFromServerConfig(String tenantDomain) {
+
+        String accessUrl = IdentityUtil.getProperty(CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS);
+        if (StringUtils.isNotBlank(accessUrl)) {
+            accessUrl = accessUrl.replace(TENANT_DOMAIN_PLACEHOLDER, tenantDomain);
+            return accessUrl;
+        }
+        return null;
+    }
+
+    /**
+     * Resolve MyAccount application access url for a specific tenant based on the access url configured in toml.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return MyAccount access url.
+     */
+    public static String getMyAccountAccessUrlFromServerConfig(String tenantDomain) {
+
+        String accessUrl = IdentityUtil.getProperty(MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS);
+        if (StringUtils.isNotBlank(accessUrl)) {
+            accessUrl = accessUrl.replace(TENANT_DOMAIN_PLACEHOLDER, tenantDomain);
+            return accessUrl;
+        }
+        return null;
     }
     
     private static class InboundAuthRequestConfigSerializer extends StdSerializer<InboundAuthenticationRequestConfig> {
