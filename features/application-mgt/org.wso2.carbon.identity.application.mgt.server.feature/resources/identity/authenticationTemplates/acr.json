@@ -66,5 +66,6 @@
     "            executeStep(3);",
     "    }",
     "};"
-  ]
+  ],
+  "runtime": "any"
 }

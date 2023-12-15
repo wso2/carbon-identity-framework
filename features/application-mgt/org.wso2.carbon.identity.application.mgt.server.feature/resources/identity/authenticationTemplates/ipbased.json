@@ -83,5 +83,6 @@
     "    }",
     "    return false;",
     "};"
-  ]
+  ],
+  "runtime": "any"
 }

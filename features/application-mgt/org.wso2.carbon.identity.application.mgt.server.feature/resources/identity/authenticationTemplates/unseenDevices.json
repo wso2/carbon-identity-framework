@@ -98,5 +98,6 @@
     "    return subject.identifier === cookieVal;",
     "};",
     ""
-  ]
+  ],
+  "runTime": "any"
 }

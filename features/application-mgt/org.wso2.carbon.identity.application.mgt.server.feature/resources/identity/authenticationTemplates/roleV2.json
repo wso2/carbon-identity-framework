@@ -1,8 +1,8 @@
 {
   "category": "AdaptiveMFA",
-  "name": "Role-Based",
-  "title": "Role-Based 2FA Template",
-  "summary": "Prompts 2FA to the users who belongs to any of the given set of roles.",
+  "name": "Role-Based-V2",
+  "title": "Role-V2-Based 2FA Template",
+  "summary": "Prompts 2FA to the users who belongs to any of the given set of roles which are associated to the application.",
   "preRequisites": [
     "Change the rolesList parameter to an array of roles of which users need to enforce 2FA.",
     "Modify the 1st and 2nd factor authentication option(s) from defaults as required."
@@ -30,7 +30,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+Role-Based+Adaptive+Authentication",
+  "helpLink": "https://is.docs.wso2.com/en/latest/guides/authentication/conditional-auth/role-based-template/",
   "code": [
     "// This script will step up authentication for any user belonging",
     "// to one of the given roles",
@@ -43,7 +43,7 @@
     "            // Extracting authenticated subject from the first step",
     "            var user = context.currentKnownSubject;",
     "            // Checking if the user is assigned to one of the given roles",
-    "            var hasRole = hasAnyOfTheRoles(user, rolesToStepUp);",
+    "            var hasRole = hasAnyOfTheRolesV2(context, rolesToStepUp);",
     "            if (hasRole) {",
     "                Log.info(user.username + ' Has one of Roles: ' + rolesToStepUp.toString());",
     "                executeStep(2);",
@@ -52,5 +52,5 @@
     "    });",
     "};"
   ],
-  "runtime": "legacy"
+  "runtime": "new"
 }

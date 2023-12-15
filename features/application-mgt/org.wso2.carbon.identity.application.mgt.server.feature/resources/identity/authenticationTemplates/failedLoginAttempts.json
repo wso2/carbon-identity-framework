@@ -68,5 +68,6 @@
     "       return false;",
     "   }",
     "};"
-  ]
+  ],
+  "runtime": "any"
 }
