@@ -1027,6 +1027,13 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
             // Get the assigned roles of the user.
             List<String> userRoleIdList = roleManagementService.getRoleIdListOfUser(userId, tenantDomain);
+            if (CollectionUtils.isEmpty(userRoleIdList)) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("No roles found for the user: %s in the tenant domain: %s. Hence role " +
+                            "claim will not be handled for the user.", username, tenantDomain));
+                }
+                return;
+            }
             String applicationId = context.getSequenceConfig().getApplicationConfig().getServiceProvider()
                     .getApplicationResourceId();
             // Get the roles assigned to the application.
@@ -1269,7 +1276,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             localToSPClaimMappings = FrameworkUtils.getLocalToSPClaimMappings(spClaimMappings);
         } else {
             // no standard dialect and no custom claim mappings
-            throw new AssertionError("Authenticator Error! Authenticator does not have a " +
+            throw new FrameworkException("Authenticator Error! Authenticator does not have a " +
                     "standard dialect and no custom claim mappings defined for IdP");
         }
         if (localToSPClaimMappings != null) {
