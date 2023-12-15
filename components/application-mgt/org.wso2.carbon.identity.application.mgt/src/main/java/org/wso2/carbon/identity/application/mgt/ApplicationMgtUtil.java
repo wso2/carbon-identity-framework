@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -443,6 +444,16 @@ public class ApplicationMgtUtil {
                                         PermissionsAndRoleConfig permissionsConfig)
             throws IdentityApplicationManagementException {
 
+        /*
+         There can be places like migration client, where this method is called before initializing the
+         ApplicationMgtService from the OSGi environment. In such places, if we need to initialize the
+         ApplicationPermissionProvider, we need to check the provider and initialize a default one. In this case
+         the default provider is RegistryBasedApplicationPermissionProvider.
+        */
+        if (ApplicationManagementServiceComponentHolder.getInstance().getApplicationPermissionProvider() == null) {
+            ApplicationManagementServiceComponentHolder.getInstance()
+                    .setApplicationPermissionProvider(new RegistryBasedApplicationPermissionProvider());
+        }
         ApplicationManagementServiceComponentHolder.getInstance().getApplicationPermissionProvider()
                 .storePermissions(applicationName, permissionsConfig);
     }
