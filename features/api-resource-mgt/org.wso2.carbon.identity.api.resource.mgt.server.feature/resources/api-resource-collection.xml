@@ -319,7 +319,6 @@
                 <Scope name="internal_guest_mgt_user_delete"/>
             </Delete>
             <Create>
-                <Scope name="internal_guest_mgt_invite_validate"/>
                 <Scope name="internal_guest_mgt_invite_add"/>
             </Create>
             <Read>
