@@ -305,7 +305,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     need to write a provisioning handler extending the "DefaultProvisioningHandler".
                      */
                 UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
-                UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
+                if (FrameworkUtils.isSkipUsernamePatternValidation()) {
+                    UserCoreUtil.setSkipUsernamePatternValidationThreadLocal(true);
+                }
                 if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
                     setJitProvisionedSource(tenantDomain, idp, userClaims);
                 }

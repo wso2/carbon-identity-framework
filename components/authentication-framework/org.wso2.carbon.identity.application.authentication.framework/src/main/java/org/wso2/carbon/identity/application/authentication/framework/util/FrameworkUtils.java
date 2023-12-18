@@ -2664,6 +2664,19 @@ public class FrameworkUtils {
     }
 
     /**
+     * This method determines whether username pattern validation should be skipped for JIT provisioning users based
+     * on the configuration file.
+     *
+     * @return boolean Whether to skip username validation or not.
+     */
+    public static boolean isSkipUsernamePatternValidation() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty("JITProvisioning.SkipUsernamePatternValidation"));
+    }
+
+
+    /**
      * This method is to provide flag about Adaptive authentication is availability.
      *
      * @return AdaptiveAuthentication Available or not.
