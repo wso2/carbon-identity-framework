@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
+import com.google.gson.Gson;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -3670,5 +3671,31 @@ public class FrameworkUtils {
     public static boolean isAPIBasedAuthenticationFlow(HttpServletRequest request) {
 
         return Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.IS_API_BASED_AUTH_FLOW));
+    }
+
+    /**
+     * Create a shallow copy of the input Identity Provider.
+     *
+     * @param idP Identity Provider.
+     * @return Clone of IDP.
+     */
+    public static IdentityProvider createIdPClone(IdentityProvider idP) {
+
+        Gson gson = new Gson();
+        IdentityProvider clonedIdentityProvider = gson.fromJson(gson.toJson(idP), IdentityProvider.class);
+        return clonedIdentityProvider;
+    }
+
+    /**
+     * Create a shallow copy of the input Service Provider.
+     *
+     * @param serviceProvider Service Provider.
+     * @return Clone of Application.
+     */
+    public static ServiceProvider createSPClone(ServiceProvider serviceProvider) {
+
+        Gson gson = new Gson();
+        ServiceProvider clonedServiceProvider = gson.fromJson(gson.toJson(serviceProvider), ServiceProvider.class);
+        return clonedServiceProvider;
     }
 }

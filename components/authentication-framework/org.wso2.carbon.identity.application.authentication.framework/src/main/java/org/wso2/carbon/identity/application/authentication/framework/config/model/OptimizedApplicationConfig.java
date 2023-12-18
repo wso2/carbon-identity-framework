@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -27,12 +28,11 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.io.Serializable;
@@ -40,12 +40,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.createIdPClone;
+
 /**
  * This class is used to have the mandatory attributes of the application config class.
  */
 public class OptimizedApplicationConfig implements Serializable {
 
-    private static final long serialVersionUID = -6197084910144813735L;
+    private static final long serialVersionUID = -6197084910144813736L;
 
     private String serviceProviderResourceId;
     private List<OptimizedAuthStep> optimizedAuthSteps;
@@ -61,7 +63,7 @@ public class OptimizedApplicationConfig implements Serializable {
 
         private int stepOrder;
         private List<String> localAuthenticatorConfigNames;
-        private List<String> federatedIdPResourceIds;
+        private List<OptimizedFederatedIdP> optimizedFederatedIdPs;
         private boolean subjectStep;
         private boolean attributeStep;
 
@@ -71,10 +73,42 @@ public class OptimizedApplicationConfig implements Serializable {
             this.stepOrder = authStep.getStepOrder();
             this.localAuthenticatorConfigNames =
                     setLocalAuthenticatorConfigNames(authStep.getLocalAuthenticatorConfigs());
-            this.federatedIdPResourceIds = setFederatedIdPResourceIds(authStep.getFederatedIdentityProviders(),
-                    tenantDomain);
+            this.optimizedFederatedIdPs =
+                    setOptimizedFederatedIdPs(authStep.getFederatedIdentityProviders(), tenantDomain);
             this.subjectStep = authStep.isSubjectStep();
             this.attributeStep = authStep.isAttributeStep();
+        }
+
+        private class OptimizedFederatedIdP implements Serializable {
+
+            private String idpResourceId;
+            private String defaultAuthenticatorName;
+
+            private OptimizedFederatedIdP(String idpResourceId, String defaultAuthenticatorName) {
+
+                this.idpResourceId = idpResourceId;
+                this.defaultAuthenticatorName = defaultAuthenticatorName;
+            }
+
+            /**
+             * This method is used to get the IdP resource Id of optimized federated Idp.
+             *
+             * @return Subject step.
+             */
+            public String getIdpResourceId() {
+
+                return idpResourceId;
+            }
+
+            /**
+             * This method is used to get default authenticator name of optimized federated Idp.
+             *
+             * @return Subject step.
+             */
+            public String getDefaultAuthenticatorName() {
+
+                return defaultAuthenticatorName;
+            }
         }
 
         private List<String> setLocalAuthenticatorConfigNames(LocalAuthenticatorConfig[] localAuthenticatorConfigs) {
@@ -86,33 +120,44 @@ public class OptimizedApplicationConfig implements Serializable {
             return localAuthConfigNames;
         }
 
-        private List<String> setFederatedIdPResourceIds(IdentityProvider[] idPs, String tenantDomain) throws
-                SessionDataStorageOptimizationException {
+        /**
+         * This method is used to get the optimized federated IdPs from authentication step federated IdPs.
+         *
+         * @param idPsFromAuthStep FederatedIdentityProviders of authentication step.
+         * @param tenantDomain     Tenant domain of the application.
+         * @return List of optimized federated IdPs.
+         * @throws SessionDataStorageOptimizationException If an error occurs when getting federated identity providers.
+         */
+        private List<OptimizedFederatedIdP> setOptimizedFederatedIdPs(IdentityProvider[] idPsFromAuthStep,
+                                                                      String tenantDomain)
+                throws SessionDataStorageOptimizationException {
 
-            List<String> federatedIdPResourceIDs = new ArrayList<>();
+            List<OptimizedFederatedIdP> optimizedFederatedIdPs = new ArrayList<>();
             IdentityProviderManager manager = IdentityProviderManager.getInstance();
-            for (IdentityProvider idp : idPs) {
-                if (idp.getResourceId() == null) {
+            for (IdentityProvider idPFromAuthStep : idPsFromAuthStep) {
+                if (StringUtils.isBlank(idPFromAuthStep.getResourceId())) {
                     try {
-                        IdentityProvider identityProvider = manager.
-                                getIdPByName(idp.getIdentityProviderName(), tenantDomain);
-                        if (identityProvider == null) {
+                        IdentityProvider idPByName =
+                                manager.getIdPByName(idPFromAuthStep.getIdentityProviderName(), tenantDomain);
+                        if (idPByName == null) {
                             throw new SessionDataStorageOptimizationException(String.format(
                                     "Cannot find the Identity Provider by the name: %s tenant domain: %s",
-                                    idp.getIdentityProviderName(), tenantDomain));
+                                    idPFromAuthStep.getIdentityProviderName(), tenantDomain));
                         }
-                        federatedIdPResourceIDs.add(identityProvider.getResourceId());
+                        optimizedFederatedIdPs.add(new OptimizedFederatedIdP(idPByName.getResourceId(),
+                                idPFromAuthStep.getDefaultAuthenticatorConfig().getName()));
+
                     } catch (IdentityProviderManagementException e) {
                         throw new SessionDataStorageOptimizationException(String.format(
                                 "Failed to get the Identity Provider by name: %s tenant domain: %s",
-                                 idp.getIdentityProviderName(), tenantDomain), e);
+                                idPFromAuthStep.getIdentityProviderName(), tenantDomain), e);
                     }
-
                 } else {
-                    federatedIdPResourceIDs.add(idp.getResourceId());
+                    optimizedFederatedIdPs.add(new OptimizedFederatedIdP(idPFromAuthStep.getResourceId(),
+                            idPFromAuthStep.getDefaultAuthenticatorConfig().getName()));
                 }
             }
-            return federatedIdPResourceIDs;
+            return optimizedFederatedIdPs;
         }
 
         /**
@@ -136,13 +181,13 @@ public class OptimizedApplicationConfig implements Serializable {
         }
 
         /**
-         * This method is used to get the resource ids of the federated IdPs of authentication step.
+         * This method is used to get the Optimized federated IDPs of authentication step.
          *
          * @return List of resource ids.
          */
-        public List<String> getFederatedIdPResourceIds() {
+        public List<OptimizedFederatedIdP> getOptimizedFederatedIdPs() {
 
-            return federatedIdPResourceIds;
+            return optimizedFederatedIdPs;
         }
 
         /**
@@ -225,8 +270,8 @@ public class OptimizedApplicationConfig implements Serializable {
             authenticationStep.setStepOrder(authStep.getStepOrder());
             authenticationStep.setLocalAuthenticatorConfigs(
                     getLocalAuthenticatorConfigs(authStep.getLocalAuthenticatorConfigNames()));
-            authenticationStep.setFederatedIdentityProviders(getFederatedIdPs(
-                    authStep.getFederatedIdPResourceIds(), tenantDomain));
+            authenticationStep.setFederatedIdentityProviders(getIdPsFromOptimizedFederatedIdPs(
+                    authStep.getOptimizedFederatedIdPs(), tenantDomain));
             authenticationStep.setSubjectStep(authStep.isSubjectStep());
             authenticationStep.setAttributeStep(authStep.isAttributeStep());
             authenticationSteps[i] = authenticationStep;
@@ -248,37 +293,57 @@ public class OptimizedApplicationConfig implements Serializable {
         return localAuthenticatorConfigs;
     }
 
-    private IdentityProvider[] getFederatedIdPs(List<String> federatedIdPResourceIds, String tenantDomain)
+    /**
+     * This method is used to get the array of federated IdPs using optimized federated identity providers.
+     *
+     * @param optimizedFederatedIdPs Optimized federated identity providers.
+     * @param tenantDomain Tenant domain of the application.
+     * @return Array of federated identity providers.
+     * @throws FrameworkException If any error occurs when getting federated identity providers.
+     */
+    private IdentityProvider[] getIdPsFromOptimizedFederatedIdPs(
+            List<OptimizedAuthStep.OptimizedFederatedIdP> optimizedFederatedIdPs, String tenantDomain)
             throws FrameworkException {
 
-        IdentityProvider[] idPs = new IdentityProvider[federatedIdPResourceIds.size()];
+        List<IdentityProvider> idPList = new ArrayList<>();
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
-        for (int i = 0; i < federatedIdPResourceIds.size(); i++) {
+        for (OptimizedAuthStep.OptimizedFederatedIdP optimizedFederatedIdP : optimizedFederatedIdPs) {
             try {
-                IdentityProvider idp = manager.getIdPByResourceId(federatedIdPResourceIds.get(i), tenantDomain,
-                        false);
-                if (idp == null) {
+                IdentityProvider idPByResourceId = manager.getIdPByResourceId(optimizedFederatedIdP.getIdpResourceId(),
+                        tenantDomain, false);
+                if (idPByResourceId == null) {
                     throw new SessionDataStorageOptimizationClientException(
                             String.format("Cannot find the IdP by the resource Id: %s Tenant Domain: %s",
-                                    federatedIdPResourceIds.get(i), tenantDomain));
+                                    optimizedFederatedIdP.getIdpResourceId(), tenantDomain));
                 }
-                idPs[i] = idp;
-            } catch (IdentityProviderManagementClientException e) {
-                throw new SessionDataStorageOptimizationClientException(
-                        String.format("IDP management client error. Failed to get the IdP by the name: %s " +
-                                        "Tenant Domain: %s", federatedIdPResourceIds.get(i), tenantDomain), e);
-            } catch (IdentityProviderManagementServerException e) {
-                throw new SessionDataStorageOptimizationServerException(
-                        String.format("IDP management server error. Failed to get the IdP by the name: %s " +
-                                        "Tenant Domain: %s", federatedIdPResourceIds.get(i), tenantDomain), e);
+                if (StringUtils.equals(idPByResourceId.getDefaultAuthenticatorConfig().getName(),
+                        optimizedFederatedIdP.getDefaultAuthenticatorName())) {
+                    idPList.add(idPByResourceId);
+                } else {
+                    /**
+                     * For applications that use custom connector IdPs as a sign-in method, admin can select and use one
+                     * of the authenticators available in the custom connector IDP, other than the default authenticator
+                     * of the IDP. So need to find the exact authenticator configured in the SP.
+                     */
+                    IdentityProvider clonedIdP = createIdPClone(idPByResourceId);
+                    for (FederatedAuthenticatorConfig fedAuthConfig :
+                            idPByResourceId.getFederatedAuthenticatorConfigs()) {
+                        if (StringUtils.equals(fedAuthConfig.getName(),
+                                optimizedFederatedIdP.getDefaultAuthenticatorName())) {
+                            clonedIdP.setDefaultAuthenticatorConfig(fedAuthConfig);
+                            break;
+                        }
+                    }
+                    idPList.add(clonedIdP);
+                }
             } catch (IdentityProviderManagementException e) {
                 throw new SessionDataStorageOptimizationServerException(
-                        String.format("IDP management error. Failed to get the IdP by the name: %s " +
-                                        "Tenant Domain: %s", federatedIdPResourceIds.get(i), tenantDomain), e);
+                        String.format("IDP management error. Failed to get the IdP by the resource Id: %s " +
+                                "Tenant Domain: %s", optimizedFederatedIdP.getIdpResourceId(), tenantDomain), e);
             }
         }
-        return idPs;
+        return idPList.toArray(new IdentityProvider[0]);
     }
 
     /**
