@@ -1062,6 +1062,7 @@
   "console.ui.legacy_mode.rolesV1": false,
   "console.ui.legacy_mode.roleMapping": false,
   "console.ui.legacy_mode.secretsManagement": false,
+  "console.ui.legacy_mode.saasApplications": false,
   "console.ui.isXacmlConnectorEnabled": false,
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
