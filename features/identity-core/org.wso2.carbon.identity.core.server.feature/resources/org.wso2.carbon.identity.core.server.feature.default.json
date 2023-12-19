@@ -18,6 +18,7 @@
   "session_data.persistence.persistence_pool_size": "0",
   "session_data.persistence.persist_temporary_data": true,
   "session_data.persistence.enable_user_session_mapping": true,
+  "session_data.storage_optimization.enable": true,
   "session_data.cleanup.enable_expired_data_cleanup": false,
   "session_data.cleanup.expire_session_data_after": "$ref{session.timeout.remember_me_session_timeout}",
   "session_data.cleanup.expire_pre_session_data_after": "40m",

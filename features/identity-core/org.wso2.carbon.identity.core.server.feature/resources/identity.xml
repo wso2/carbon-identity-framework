@@ -57,6 +57,9 @@
             <UserSessionMapping>
                 <Enable>true</Enable>
             </UserSessionMapping>
+            <SessionDataStorageOptimization>
+                <Enable>true</Enable>
+            </SessionDataStorageOptimization>
         </SessionDataPersist>
         <PushedAuthReqCleanUp>
             <Enable>true</Enable>
