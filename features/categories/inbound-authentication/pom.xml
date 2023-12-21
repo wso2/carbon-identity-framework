@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>5.25.633-SNAPSHOT</version>
+        <version>5.25.633</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
