@@ -221,17 +221,21 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             ResultSet resultSet = prepStmt.executeQuery();
             AuthorizedAPI authorizedAPI = null;
             while (resultSet.next()) {
-                Scope scope = new Scope.ScopeBuilder()
-                        .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME)).build();
                 if (authorizedAPI == null) {
                     authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
                             .apiId(apiId)
                             .appId(applicationId)
                             .policyId(resultSet.getString(ApplicationConstants.ApplicationTableColumns.POLICY_ID))
-                            .scopes(Collections.singletonList(scope)).build();
+                            .build();
+                    if (resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME) != null) {
+                        Scope scope = new Scope.ScopeBuilder()
+                                .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME))
+                                .build();
+                        authorizedAPI.setScopes(Collections.singletonList(scope));
+                    }
                 } else {
                     List<Scope> scopes = new ArrayList<>(authorizedAPI.getScopes());
-                    scope = new Scope.ScopeBuilder()
+                    Scope scope = new Scope.ScopeBuilder()
                             .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME)).build();
                     scopes.add(scope);
                     authorizedAPI.setScopes(scopes);
