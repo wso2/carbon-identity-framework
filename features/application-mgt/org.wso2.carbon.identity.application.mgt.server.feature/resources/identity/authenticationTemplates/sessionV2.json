@@ -30,7 +30,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://is.docs.wso2.com/en/latest/guides/authentication/conditional-auth/concurrent-session-based-template/",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/concurrent-session-based-template/",
   "code": [
     "// This script will prompt concurrent session handling",
     "// to one of the given roles",

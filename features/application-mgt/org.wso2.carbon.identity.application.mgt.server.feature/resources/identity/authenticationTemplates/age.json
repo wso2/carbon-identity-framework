@@ -24,7 +24,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+User-Age-Based+Adaptive+Authentication",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/user-age-based-template/",
   "code": [
     "// This script will only allow login to application if the user's age is over configured value",
     "// The user will be redirected to an error page if the date of birth is not present or user is below configured value",

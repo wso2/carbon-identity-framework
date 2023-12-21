@@ -29,7 +29,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+User+Store-Based+Adaptive+Authentication",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/user-store-based-template/",
   "code": [
     "// This script will prompt 2FA to the app only for a selected set of user stores.",
     "// If the user is in one of the following user stores, user will be prompted 2FA",
