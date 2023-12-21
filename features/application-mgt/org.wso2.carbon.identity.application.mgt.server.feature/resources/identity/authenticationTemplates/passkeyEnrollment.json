@@ -19,7 +19,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/passwordless-login/add-passwordless-login-with-passkey",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/passkey-progressive-enrollment-based-template/",
   "code": [
     "var onLoginRequest = function(context) {",
     "    executeStep(1, {",
