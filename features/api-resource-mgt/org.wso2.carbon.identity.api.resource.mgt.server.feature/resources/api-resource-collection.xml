@@ -204,6 +204,27 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="consoleSettings" displayName="Console Settings" type="tenant">
+        <Scopes>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+                <Scope name="internal_user_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_guest_mgt_invite_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_role_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_guest_mgt_invite_list"/>
+                <Scope name="internal_idp_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="emailProviders" displayName="Email Providers" type="tenant">
         <Scopes>
             <Update>
@@ -288,6 +309,40 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="guestUser" displayName="Guest User" type="tenant">
+        <Scopes>
+            <Update>
+                <Scope name="internal_guest_mgt_invite_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_guest_mgt_invite_delete"/>
+                <Scope name="internal_guest_mgt_user_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_guest_mgt_invite_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_guest_mgt_invite_list"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="gettingStarted" displayName="Getting Started" type="tenant">
+        <Scopes>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+            </Update>
+            <Delete/>
+            <Create>
+                <Scope name="internal_application_mgt_create"/>
+                <Scope name="internal_idp_create"/>
+                <Scope name="internal_user_mgt_create"/>
+                <Scope name="internal_group_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="identityProviders" displayName="Identity Providers" type="tenant">
         <Scopes>
             <Feature>
@@ -347,10 +402,25 @@
     </APIResourceCollection>
     <APIResourceCollection name="logs" displayName="Logs" type="tenant">
         <Scopes>
-            <Update/>
+            <Update>
+                <Scope name="internal_application_mgt_view"/>
+            </Update>
             <Read/>
             <Create/>
             <Delete/>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="loginAndRegistration" displayName="Login And Registration" type="tenant">
+        <Scopes>
+            <Feature/>
+            <Update/>
+            <Delete/>
+            <Create>
+                <Scope name="internal_idvp_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_governance_view"/>
+            </Read>
         </Scopes>
     </APIResourceCollection>
     <APIResourceCollection name="myAccount" displayName="My Account" type="tenant">
@@ -359,6 +429,22 @@
             <Read/>
             <Create/>
             <Delete/>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="notificationChannels" displayName="Notification Channels" type="tenant">
+        <Scopes>
+            <Update>
+                <Scope name="internal_config_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_config_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_config_mgt_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_config_mgt_view"/>
+            </Read>
         </Scopes>
     </APIResourceCollection>
     <APIResourceCollection name="oidcScopes" displayName="OIDC Scopes" type="tenant">
@@ -400,6 +486,28 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="organizationDiscovery" displayName="Organization Discovery" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:organizationDiscovery"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_organization_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_organization_delete"/>
+                <Scope name="internal_config_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_organization_create"/>
+                <Scope name="internal_config_mgt_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_organization_view"/>
+                <Scope name="internal_config_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="secretsManagement" displayName="Secrets Management" type="tenant">
         <Scopes>
             <Feature/>
@@ -414,6 +522,34 @@
             </Create>
             <Read>
                 <Scope name="internal_secret_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="server" displayName="Server" type="tenant">
+        <Scopes>
+            <Update>
+                <Scope name="internal_governance_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_governance_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="smsProviders" displayName="SMS Providers" type="tenant">
+        <Scopes>
+            <Update>
+                <Scope name="internal_config_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_config_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_config_mgt_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_config_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -456,9 +592,13 @@
             </Update>
             <Delete>
                 <Scope name="internal_role_mgt_delete"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_group_mgt_view"/>
             </Delete>
             <Create>
                 <Scope name="internal_role_mgt_create"/>
+                <Scope name="internal_application_mgt_view"/>
             </Create>
             <Read>
                 <Scope name="internal_user_mgt_view"/>
@@ -495,6 +635,18 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="userOnboarding" displayName="User Onboarding" type="tenant">
+        <Scopes>
+            <Update>
+                <Scope name="internal_governance_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_governance_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="userStores" displayName="User Stores" type="tenant">
         <Scopes>
             <Update>
@@ -512,6 +664,27 @@
         </Scopes>
     </APIResourceCollection>
 <!--    Organization API Resource Collections-->
+    <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization">
+        <Scopes>
+            <Update>
+                <Scope name="internal_org_application_mgt_update"/>
+                <Scope name="internal_org_user_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_guest_mgt_invite_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_role_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_guest_mgt_invite_list"/>
+                <Scope name="internal_org_idp_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="org_identityProviders" displayName="Identity Providers" type="organization">
         <Scopes>
             <Feature/>
@@ -572,7 +745,7 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="groups" displayName="Groups" type="organization">
+    <APIResourceCollection name="org_groups" displayName="Groups" type="organization">
         <Scopes>
             <Feature/>
             <Update>
@@ -592,17 +765,16 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="roles" displayName="Roles" type="organization">
+    <APIResourceCollection name="org_roles" displayName="Roles" type="organization">
         <Scopes>
             <Feature/>
             <Update>
                 <Scope name="internal_org_role_mgt_update"/>
             </Update>
-            <Delete>
-                <Scope name="internal_org_role_mgt_delete"/>
-            </Delete>
+            <Delete/>
             <Create>
                 <Scope name="internal_org_role_mgt_create"/>
+                <Scope name="internal_org_application_mgt_view"/>
             </Create>
             <Read>
                 <Scope name="internal_org_user_mgt_view"/>
@@ -673,6 +845,76 @@
             </Delete>
             <Create>
                 <Scope name="internal_org_application_mgt_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_smsProviders" displayName="SMS Providers" type="organization">
+        <Scopes>
+            <Update>
+                <Scope name="internal_org_config_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_config_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_config_mgt_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_config_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_guestUser" displayName="Guest User" type="organization">
+        <Scopes>
+            <Update>
+                <Scope name="internal_org_guest_mgt_invite_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_guest_mgt_invite_delete"/>
+                <Scope name="internal_org_guest_mgt_user_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_guest_mgt_invite_validate"/>
+                <Scope name="internal_org_guest_mgt_invite_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_guest_mgt_invite_list"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_organizationDiscovery" displayName="Organization Discovery" type="organization">
+        <Scopes>
+            <Update>
+                <Scope name="internal_org_organization_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_organization_delete"/>
+                <Scope name="internal_org_config_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_organization_create"/>
+                <Scope name="internal_org_config_mgt_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_organization_view"/>
+                <Scope name="internal_org_config_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_gettingStarted" displayName="Getting Started" type="organization">
+        <Scopes>
+            <Update>
+                <Scope name="internal_org_application_mgt_update"/>
+            </Update>
+            <Delete/>
+            <Create>
+                <Scope name="internal_org_application_mgt_create"/>
+                <Scope name="internal_org_idp_create"/>
+                <Scope name="internal_org_user_mgt_create"/>
+                <Scope name="internal_org_group_mgt_create"/>
             </Create>
             <Read>
                 <Scope name="internal_org_application_mgt_view"/>
