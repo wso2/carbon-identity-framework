@@ -155,14 +155,16 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                     .getAPIResourceManager().getAPIResourceById(authorizedAPI.getAPIId(), tenantDomain);
             authorizedAPI.setAPIIdentifier(apiResource.getIdentifier());
             authorizedAPI.setAPIName(apiResource.getName());
-            // Get Scope data from OSGi service.
-            List<Scope> scopeList = new ArrayList<>();
-            for (Scope scope : authorizedAPI.getScopes()) {
-                Scope scopeWithMetadata = ApplicationManagementServiceComponentHolder.getInstance()
-                        .getAPIResourceManager().getScopeByName(scope.getName(), tenantDomain);
-                scopeList.add(scopeWithMetadata);
+            if (authorizedAPI.getScopes() != null) {
+                // Get Scope data from OSGi service.
+                List<Scope> scopeList = new ArrayList<>();
+                for (Scope scope : authorizedAPI.getScopes()) {
+                    Scope scopeWithMetadata = ApplicationManagementServiceComponentHolder.getInstance()
+                            .getAPIResourceManager().getScopeByName(scope.getName(), tenantDomain);
+                    scopeList.add(scopeWithMetadata);
+                }
+                authorizedAPI.setScopes(scopeList);
             }
-            authorizedAPI.setScopes(scopeList);
             return authorizedAPI;
         } catch (APIResourceMgtException e) {
             throw buildServerException("Error while retrieving authorized API.", e);
