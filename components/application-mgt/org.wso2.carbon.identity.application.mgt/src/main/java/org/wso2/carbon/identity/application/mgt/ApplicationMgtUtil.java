@@ -1119,7 +1119,12 @@ public class ApplicationMgtUtil {
 
         String accessUrl = IdentityUtil.getProperty(CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS);
         if (StringUtils.isNotBlank(accessUrl)) {
-            accessUrl = accessUrl.replace(TENANT_DOMAIN_PLACEHOLDER, tenantDomain);
+            if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) &&
+                    !IdentityTenantUtil.isSuperTenantRequiredInUrl()) {
+                accessUrl = accessUrl.replace("/t/" + TENANT_DOMAIN_PLACEHOLDER, StringUtils.EMPTY);
+            } else {
+                accessUrl = accessUrl.replace(TENANT_DOMAIN_PLACEHOLDER, tenantDomain);
+            }
             return accessUrl;
         }
         return null;
@@ -1135,7 +1140,12 @@ public class ApplicationMgtUtil {
 
         String accessUrl = IdentityUtil.getProperty(MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS);
         if (StringUtils.isNotBlank(accessUrl)) {
-            accessUrl = accessUrl.replace(TENANT_DOMAIN_PLACEHOLDER, tenantDomain);
+            if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) &&
+                    !IdentityTenantUtil.isSuperTenantRequiredInUrl()) {
+                accessUrl = accessUrl.replace("/t/" + TENANT_DOMAIN_PLACEHOLDER, StringUtils.EMPTY);
+            } else {
+                accessUrl = accessUrl.replace(TENANT_DOMAIN_PLACEHOLDER, tenantDomain);
+            }
             return accessUrl;
         }
         return null;
