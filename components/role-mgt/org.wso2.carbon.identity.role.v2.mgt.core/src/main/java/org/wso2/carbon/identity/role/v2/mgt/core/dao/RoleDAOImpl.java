@@ -171,6 +171,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SCOPE_BY_ROLES_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_MSSQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_MAIN_ROLE_IDS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
@@ -3239,24 +3240,34 @@ public class RoleDAOImpl implements RoleDAO {
     private void deleteSharedHybridRoles(String roleId, int mainTenantId, Connection connection)
             throws IdentityRoleManagementException {
 
-        try (NamedPreparedStatement selectStatement = new NamedPreparedStatement(
-                connection, GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL)) {
-            selectStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
-            selectStatement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
-            List<Map.Entry<Integer, Integer>> idsToDelete = new ArrayList<>();
-            try (ResultSet resultSet = selectStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    idsToDelete.add(new AbstractMap.SimpleEntry<>(
-                                    resultSet.getInt(1), resultSet.getInt(2)));
-                }
+        try {
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            String getSharedHybridRoleWithMainRoleSQL = GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
+            if (RoleConstants.MICROSOFT.equals(databaseProductName)) {
+                getSharedHybridRoleWithMainRoleSQL = GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_MSSQL;
             }
-            try (NamedPreparedStatement deleteStatement = new NamedPreparedStatement(connection, DELETE_SHARED_ROLE)) {
-                for (Map.Entry<Integer, Integer> idPair : idsToDelete) {
-                    deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_ID, idPair.getKey());
-                    deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, idPair.getValue());
-                    deleteStatement.addBatch();
+            try (NamedPreparedStatement selectStatement =
+                         new NamedPreparedStatement(connection, getSharedHybridRoleWithMainRoleSQL)) {
+                selectStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
+                selectStatement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
+
+                List<Map.Entry<Integer, Integer>> idsToDelete = new ArrayList<>();
+                try (ResultSet resultSet = selectStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        idsToDelete.add(new AbstractMap.SimpleEntry<>(
+                                resultSet.getInt(1), resultSet.getInt(2)));
+                    }
                 }
-                deleteStatement.executeBatch();
+
+                try (NamedPreparedStatement deleteStatement = new NamedPreparedStatement(connection,
+                        DELETE_SHARED_ROLE)) {
+                    for (Map.Entry<Integer, Integer> idPair : idsToDelete) {
+                        deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_ID, idPair.getKey());
+                        deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, idPair.getValue());
+                        deleteStatement.addBatch();
+                    }
+                    deleteStatement.executeBatch();
+                }
             }
         } catch (SQLException e) {
             String errorMessage = "Error while deleting shared roles of role id : " + roleId;
