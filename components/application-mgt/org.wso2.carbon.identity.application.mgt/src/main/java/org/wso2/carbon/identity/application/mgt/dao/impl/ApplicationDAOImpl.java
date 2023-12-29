@@ -161,6 +161,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getConsoleAccessUrlFromServerConfig;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
@@ -1940,6 +1942,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
                             basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
                 }
+                String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
+                if (ApplicationMgtUtil.isConsole(serviceProvider.getApplicationName())) {
+                    String consoleAccessUrl = getConsoleAccessUrlFromServerConfig(tenantDomain);
+                    if (StringUtils.isNotBlank(consoleAccessUrl)) {
+                        serviceProvider.setAccessUrl(consoleAccessUrl);
+                    }
+                }
+                if (ApplicationMgtUtil.isMyAccount(serviceProvider.getApplicationName())) {
+                    String myAccountAccessUrl = getMyAccountAccessUrlFromServerConfig(tenantDomain);
+                    if (StringUtils.isNotBlank(myAccountAccessUrl)) {
+                        serviceProvider.setAccessUrl(myAccountAccessUrl);
+                    }
+                }
 
                 serviceProvider.setDiscoverable(getBooleanValue(basicAppDataResultSet.getString(ApplicationTableColumns
                         .IS_DISCOVERABLE)));
@@ -2475,6 +2490,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 if (ApplicationMgtUtil.isConsoleOrMyAccount(serviceProvider.getApplicationName())) {
                     serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
                             rs.getString(ApplicationTableColumns.ACCESS_URL)));
+                }
+                String tenantDomain = IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID));
+                if (ApplicationMgtUtil.isConsole(serviceProvider.getApplicationName())) {
+                    String consoleAccessUrl = getConsoleAccessUrlFromServerConfig(tenantDomain);
+                    if (StringUtils.isNotBlank(consoleAccessUrl)) {
+                        serviceProvider.setAccessUrl(consoleAccessUrl);
+                    }
+                }
+                if (ApplicationMgtUtil.isMyAccount(serviceProvider.getApplicationName())) {
+                    String myAccountAccessUrl = getMyAccountAccessUrlFromServerConfig(tenantDomain);
+                    if (StringUtils.isNotBlank(myAccountAccessUrl)) {
+                        serviceProvider.setAccessUrl(myAccountAccessUrl);
+                    }
                 }
 
                 serviceProvider.setDiscoverable(getBooleanValue(rs.getString(ApplicationTableColumns.IS_DISCOVERABLE)));
@@ -5887,6 +5915,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementException(
                     "Error occurred when resolving origin of the access URL with placeholders", e);
         }
+        String tenantDomain =
+                IdentityTenantUtil.getTenantDomain(appNameResultSet.getInt(ApplicationTableColumns.TENANT_ID));
+        if (ApplicationMgtUtil.isConsole(basicInfo.getApplicationName())) {
+            String consoleAccessUrl = getConsoleAccessUrlFromServerConfig(tenantDomain);
+            if (StringUtils.isNotBlank(consoleAccessUrl)) {
+                basicInfo.setAccessUrl(consoleAccessUrl);
+            }
+        }
+        if (ApplicationMgtUtil.isMyAccount(basicInfo.getApplicationName())) {
+            String myAccountAccessUrl = getMyAccountAccessUrlFromServerConfig(tenantDomain);
+            if (StringUtils.isNotBlank(myAccountAccessUrl)) {
+                basicInfo.setAccessUrl(myAccountAccessUrl);
+            }
+        }
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
@@ -5929,6 +5971,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
                     "Error occurred when resolving origin of the access URL with placeholders", e);
+        }
+        String tenantDomain =
+                IdentityTenantUtil.getTenantDomain(appNameResultSet.getInt(ApplicationTableColumns.TENANT_ID));
+        if (ApplicationMgtUtil.isConsole(basicInfo.getApplicationName())) {
+            String consoleAccessUrl = getConsoleAccessUrlFromServerConfig(tenantDomain);
+            if (StringUtils.isNotBlank(consoleAccessUrl)) {
+                basicInfo.setAccessUrl(consoleAccessUrl);
+            }
+        }
+        if (ApplicationMgtUtil.isMyAccount(basicInfo.getApplicationName())) {
+            String myAccountAccessUrl = getMyAccountAccessUrlFromServerConfig(tenantDomain);
+            if (StringUtils.isNotBlank(myAccountAccessUrl)) {
+                basicInfo.setAccessUrl(myAccountAccessUrl);
+            }
         }
 
         String inboundAuthKey = appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY);
