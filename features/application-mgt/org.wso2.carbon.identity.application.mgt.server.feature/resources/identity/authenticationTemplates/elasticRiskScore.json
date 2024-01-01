@@ -33,7 +33,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://is.docs.wso2.com/en/latest/learn/configuring-risk-based-adaptive-authentication/",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/elk-risk-based-template/",
   "code": [
     "// Define conditional authentication by risk score value calculated from ELK analytics.",
     "",

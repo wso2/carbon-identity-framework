@@ -270,6 +270,9 @@
   "oauth.jarm.response_mode.fragment_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FragmentJwtResponseModeProvider",
   "oauth.jarm.response_mode.form_post_jwt.class": "org.wso2.carbon.identity.oauth2.responsemode.provider.jarm.impl.FormPostJwtResponseModeProvider",
 
+  "oauth.drop_unregistered_scopes": true,
+  "oauth.allowed_scopes": ["^device_.*"],
+
   "rest_api_authentication.add_realm_user_to_error": false,
 
   "saml.entity_id": "${carbon.host}",
@@ -732,6 +735,7 @@
   "oauth.jwks_endpoint.read_timeout": "1s",
   "oauth.jwks_endpoint.size_limit_bytes": "51200",
   "oauth.jwks_endpoint.add_previous_version_kid" : false,
+  "oauth.global_scope_validators.role_based_scope_issuer.enable": false,
 
   "authentication.adaptive.event_publisher.authentication_type": "basic",
   "authentication.adaptive.async_executer_pool_size": "5",
@@ -1062,6 +1066,7 @@
   "console.ui.legacy_mode.rolesV1": false,
   "console.ui.legacy_mode.roleMapping": false,
   "console.ui.legacy_mode.secretsManagement": false,
+  "console.ui.legacy_mode.saasApplications": false,
   "console.ui.isXacmlConnectorEnabled": false,
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
@@ -1317,9 +1322,14 @@
   "console.console_settings.scopes.read": ["internal_application_mgt_view", "internal_user_mgt_list", "internal_role_mgt_view", "internal_guest_mgt_invite_list", "internal_idp_view"],
   "console.console_settings.scopes.update": ["internal_application_mgt_update", "internal_user_mgt_update"],
   "console.console_settings.scopes.delete": ["internal_guest_mgt_invite_delete"],
+  "console.guest_user.enabled": true,
+  "console.guest_user.scopes.create": ["internal_guest_mgt_invite_add"],
+  "console.guest_user.scopes.read": ["internal_guest_mgt_invite_list"],
+  "console.guest_user.scopes.update": ["internal_guest_mgt_invite_update"],
+  "console.guest_user.scopes.delete": ["internal_guest_mgt_invite_delete", "internal_guest_mgt_user_delete"],
   "console.ui.is_default_dialect_editing_enabled": false,
   "console.ui.is_header_avatar_label_allowed": true,
-  "console.get_profile_info_from_id_token": true,
+  "console.get_profile_info_from_id_token": false,
   "console.super_tenant_proxy_name": "",
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",

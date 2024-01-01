@@ -36,7 +36,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+ACR-Based+Adaptive+Authentication",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/acr-based-adaptive-auth/",
   "code": [
     "// Define conditional authentication by passing one or many Authentication Context Class References ",
     "// as comma separated values.",

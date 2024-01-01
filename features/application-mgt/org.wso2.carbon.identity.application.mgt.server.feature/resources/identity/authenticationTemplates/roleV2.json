@@ -1,7 +1,7 @@
 {
   "category": "AdaptiveMFA",
-  "name": "Role-Based-V2",
-  "title": "Role-V2-Based 2FA Template",
+  "name": "Role-Based",
+  "title": "Role-Based 2FA Template",
   "summary": "Prompts 2FA to the users who belongs to any of the given set of roles which are associated to the application.",
   "preRequisites": [
     "Change the rolesList parameter to an array of roles of which users need to enforce 2FA.",
@@ -30,7 +30,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://is.docs.wso2.com/en/latest/guides/authentication/conditional-auth/role-based-template/",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/role-based-template/",
   "code": [
     "// This script will step up authentication for any user belonging",
     "// to one of the given roles",
