@@ -67,6 +67,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -4004,6 +4005,8 @@ public class FrameworkUtils {
         if (scriptEngineName != null) {
             if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
                 return new JsOpenJdkNashornGraphBuilderFactory();
+            } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.GRAAL_JS, scriptEngineName)) {
+                return new JsGraalGraphBuilderFactory();
             }
         }
         // Config is not set. Hence going with class for name approach.
