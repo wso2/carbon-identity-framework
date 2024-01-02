@@ -34,6 +34,7 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -188,11 +189,17 @@ public class IdentityManagementEndpointUtil {
         try {
             if (StringUtils.isNotEmpty(tenantDomain)) {
                 ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
+                String myAccountAccessUrl;
                 try {
-                    String myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
-                            My_ACCOUNT_APPLICATION_NAME);
+                    if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME == true) {
+                        myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
+                                My_ACCOUNT_APPLICATION_NAME);
+                    } else {
+                        myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(tenantDomain,
+                                My_ACCOUNT_APPLICATION_NAME);
+                    }
                     if (StringUtils.isNotEmpty(myAccountAccessUrl)) {
-                        return replaceUserTenantHintPlaceholder(myAccountAccessUrl, tenantDomain);
+                        return myAccountAccessUrl;
                     }
                 } catch (ApplicationDataRetrievalClientException e) {
                     // Falling back to building the url.
