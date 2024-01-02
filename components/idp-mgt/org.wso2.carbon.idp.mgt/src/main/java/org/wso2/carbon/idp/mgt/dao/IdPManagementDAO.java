@@ -3152,7 +3152,7 @@ public class IdPManagementDAO {
             attributeSyncMethod.setValue(IdPManagementConstants.PRESERVE_LOCAL_ATTRIBUTE_SYNC);
         }
 
-        if (justInTimeProvisioningConfig != null && justInTimeProvisioningConfig.isProvisioningEnabled()) {
+        if (justInTimeProvisioningConfig != null) {
             passwordProvisioningProperty
                     .setValue(String.valueOf(justInTimeProvisioningConfig.isPasswordProvisioningEnabled()));
             modifyUserNameProperty.setValue(String.valueOf(justInTimeProvisioningConfig.isModifyUserNameAllowed()));
