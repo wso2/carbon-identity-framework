@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import java.io.Serializable;
 
-import javax.script.ScriptEngine;
-
 /**
  * Serializable javascript function.
  * This is required since the next javascript execution may happen on a different node than current node, when user

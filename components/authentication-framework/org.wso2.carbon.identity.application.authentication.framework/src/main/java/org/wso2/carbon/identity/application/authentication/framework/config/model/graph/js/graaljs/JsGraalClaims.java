@@ -44,10 +44,6 @@ public class JsGraalClaims extends JsClaims implements ProxyObject {
 
     private final transient Map<String, String> localClaimUriToValueReadCache = new HashMap<>();
     private static final Log LOG = LogFactory.getLog(JsNashornClaims.class);
-    private String idp;
-    private boolean isRemoteClaimRequest;
-    private int step;
-    protected transient AuthenticatedUser authenticatedUser;
 
     public JsGraalClaims(AuthenticationContext context, int step, String idp, boolean isRemoteClaimRequest) {
 

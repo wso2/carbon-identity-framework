@@ -54,6 +54,43 @@ public class GraalSerializableJsFunction implements BaseSerializableJsFunction<C
         this.isPolyglotFunction = true;
     }
 
+    public String getSource() {
+
+        return source;
+    }
+
+    public void setSource(String source) {
+
+        this.source = source;
+    }
+
+    @Override
+    public boolean isFunction() {
+
+        return isHostFunction;
+    }
+
+    @Override
+    public void setFunction(boolean function) {
+
+    }
+
+    public Object apply(Context polyglotContext, Object... params) {
+
+        if (isPolyglotFunction) {
+            try {
+                polyglotContext.eval(Source.newBuilder("js", " var curFunc = " + getSource(), "src.js").build());
+                return polyglotContext.getBindings("js").getMember("curFunc").execute(params);
+            } catch (IOException e) {
+                log.error("Error when building the from function source", e);
+            } catch (PolyglotException e) {
+                log.error("Error when executing function", e);
+            }
+        }
+
+        return null;
+    }
+
     /**
      * This will return the converted NashornSerializableJsFunction if the given  ScriptObjectMirror is a function.
      *
@@ -87,43 +124,6 @@ public class GraalSerializableJsFunction implements BaseSerializableJsFunction<C
         }
         return null;
 
-    }
-
-    public Object apply(Context polyglotContext, Object... params) {
-
-        if (isPolyglotFunction) {
-            try {
-                polyglotContext.eval(Source.newBuilder("js", " var curFunc = " + getSource(), "src.js").build());
-                return polyglotContext.getBindings("js").getMember("curFunc").execute(params);
-            } catch (IOException e) {
-                log.error("Error when building the from function source", e);
-            } catch (PolyglotException e) {
-                log.error("Error when executing function", e);
-            }
-        }
-
-        return null;
-    }
-
-    public String getSource() {
-
-        return source;
-    }
-
-    @Override
-    public boolean isFunction() {
-
-        return isHostFunction;
-    }
-
-    @Override
-    public void setFunction(boolean function) {
-
-    }
-
-    public void setSource(String source) {
-
-        this.source = source;
     }
 
     public String getName() {
