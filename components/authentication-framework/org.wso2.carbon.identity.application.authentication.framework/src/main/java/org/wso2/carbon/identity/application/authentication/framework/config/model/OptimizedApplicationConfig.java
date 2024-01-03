@@ -49,7 +49,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
  */
 public class OptimizedApplicationConfig implements Serializable {
 
-    private static final long serialVersionUID = -6197084910144813736L;
+    private static final long serialVersionUID = -6197084910144813735L;
 
     private String serviceProviderResourceId;
     private List<OptimizedAuthStep> optimizedAuthSteps;
@@ -89,12 +89,12 @@ public class OptimizedApplicationConfig implements Serializable {
         private class OptimizedFederatedIdP implements Serializable {
 
             private String idpResourceId;
-            private String defaultAuthenticatorName;
+            private String selectedAuthenticatorName;
 
-            private OptimizedFederatedIdP(String idpResourceId, String defaultAuthenticatorName) {
+            private OptimizedFederatedIdP(String idpResourceId, String selectedAuthenticatorName) {
 
                 this.idpResourceId = idpResourceId;
-                this.defaultAuthenticatorName = defaultAuthenticatorName;
+                this.selectedAuthenticatorName = selectedAuthenticatorName;
             }
 
             /**
@@ -108,13 +108,13 @@ public class OptimizedApplicationConfig implements Serializable {
             }
 
             /**
-             * This method is used to get default authenticator name of optimized federated Idp.
+             * This method is used to get selected authenticator name of optimized federated Idp.
              *
              * @return Subject step.
              */
-            public String getDefaultAuthenticatorName() {
+            public String getSelectedAuthenticatorName() {
 
-                return defaultAuthenticatorName;
+                return selectedAuthenticatorName;
             }
         }
 
@@ -384,7 +384,7 @@ public class OptimizedApplicationConfig implements Serializable {
                                     optimizedFederatedIdP.getIdpResourceId(), tenantDomain));
                 }
                 if (StringUtils.equals(idPByResourceId.getDefaultAuthenticatorConfig().getName(),
-                        optimizedFederatedIdP.getDefaultAuthenticatorName())) {
+                        optimizedFederatedIdP.getSelectedAuthenticatorName())) {
                     idPList.add(idPByResourceId);
                 } else {
                     /**
@@ -396,7 +396,7 @@ public class OptimizedApplicationConfig implements Serializable {
                     for (FederatedAuthenticatorConfig fedAuthConfig :
                             idPByResourceId.getFederatedAuthenticatorConfigs()) {
                         if (StringUtils.equals(fedAuthConfig.getName(),
-                                optimizedFederatedIdP.getDefaultAuthenticatorName())) {
+                                optimizedFederatedIdP.getSelectedAuthenticatorName())) {
                             clonedIdP.setDefaultAuthenticatorConfig(fedAuthConfig);
                             break;
                         }
