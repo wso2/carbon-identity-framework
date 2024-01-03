@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import com.google.gson.Gson;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -147,7 +146,11 @@ import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
@@ -3679,11 +3682,23 @@ public class FrameworkUtils {
      * @param idP Identity Provider.
      * @return Clone of IDP.
      */
-    public static IdentityProvider createIdPClone(IdentityProvider idP) {
+    public static IdentityProvider createIdPClone(IdentityProvider idP) throws FrameworkException {
 
-        Gson gson = new Gson();
-        IdentityProvider clonedIdentityProvider = gson.fromJson(gson.toJson(idP), IdentityProvider.class);
-        return clonedIdentityProvider;
+        ObjectOutputStream objOutPutStream;
+        ObjectInputStream objInputStream;
+        IdentityProvider newObject;
+        try {
+            ByteArrayOutputStream byteArrayOutPutStream = new ByteArrayOutputStream();
+            objOutPutStream = new ObjectOutputStream(byteArrayOutPutStream);
+            objOutPutStream.writeObject(idP);
+
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutPutStream.toByteArray());
+            objInputStream = new ObjectInputStream(byteArrayInputStream);
+            newObject = (IdentityProvider) objInputStream.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            throw new FrameworkException("Error deep cloning IDP object.", e);
+        }
+        return newObject;
     }
 
     /**
@@ -3692,10 +3707,22 @@ public class FrameworkUtils {
      * @param serviceProvider Service Provider.
      * @return Clone of Application.
      */
-    public static ServiceProvider createSPClone(ServiceProvider serviceProvider) {
+    public static ServiceProvider createSPClone(ServiceProvider serviceProvider) throws FrameworkException {
 
-        Gson gson = new Gson();
-        ServiceProvider clonedServiceProvider = gson.fromJson(gson.toJson(serviceProvider), ServiceProvider.class);
-        return clonedServiceProvider;
+        ObjectOutputStream objOutPutStream;
+        ObjectInputStream objInputStream;
+        ServiceProvider newObject;
+        try {
+            ByteArrayOutputStream byteArrayOutPutStream = new ByteArrayOutputStream();
+            objOutPutStream = new ObjectOutputStream(byteArrayOutPutStream);
+            objOutPutStream.writeObject(serviceProvider);
+
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutPutStream.toByteArray());
+            objInputStream = new ObjectInputStream(byteArrayInputStream);
+            newObject = (ServiceProvider) objInputStream.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            throw new FrameworkException("Error deep cloning application object.", e);
+        }
+        return newObject;
     }
 }
