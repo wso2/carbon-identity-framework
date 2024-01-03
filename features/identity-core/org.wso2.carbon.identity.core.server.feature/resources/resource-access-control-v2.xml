@@ -787,6 +787,23 @@
         <Scopes>internal_keystore_update</Scopes>
     </Resource>
 
+    <!-- Shared Application Management API -->
+    <Resource context="(.*)/api/server/v1/applications/(.*)/share" secured="true" http-method="GET">
+        <Scopes>internal_shared_application_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/(.*)/shared-apps" secured="true" http-method="GET">
+        <Scopes>internal_shared_application_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/(.*)/share" secured="true" http-method="POST">
+        <Scopes>internal_shared_application_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/(.*)/shared-apps" secured="true" http-method="DELETE">
+        <Scopes>internal_shared_application_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/applications/(.*)/share/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_shared_application_delete</Scopes>
+    </Resource>
+
     <!-- [Organization] Application Management API -->
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="PATCH, PUT">
         <Scopes>internal_org_application_mgt_update</Scopes>
