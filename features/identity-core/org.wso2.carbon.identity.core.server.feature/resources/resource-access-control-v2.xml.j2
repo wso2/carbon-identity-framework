@@ -686,6 +686,11 @@
             <Scopes>internal_user_association_delete</Scopes>
         </Resource>
 
+        <!-- [Organization] User Offline Onboard Management API -->
+        <Resource context="(.*)/o/api/users/v1/offline-invite-link(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_offline_invite</Scopes>
+        </Resource>
+
         <!-- User Offline Onboard Management API -->
         <Resource context="(.*)/api/users/v1/offline-invite-link(.*)" secured="true" http-method="POST">
             <Scopes>internal_offline_invite</Scopes>
