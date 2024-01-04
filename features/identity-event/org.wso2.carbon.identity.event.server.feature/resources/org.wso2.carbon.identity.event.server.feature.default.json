@@ -173,7 +173,10 @@
     "POST_SET_USER_CLAIM",
     "POST_UPDATE_USER_LIST_OF_ROLE_EVENT",
     "PRE_DELETE_ROLE_EVENT",
-    "POST_SET_PERMISSIONS_FOR_ROLE_EVENT"
+    "POST_SET_PERMISSIONS_FOR_ROLE_EVENT",
+    "POST_UPDATE_USER_LIST_OF_ROLE_V2_EVENT",
+    "PRE_DELETE_ROLE_V2_EVENT",
+    "POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT"
   ],
   "identity_mgt.events.schemes.userOperationDataDASPublisher.module_index": "29",
   "identity_mgt.events.schemes.userOperationDataDASPublisher.properties.enable": false,
