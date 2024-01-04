@@ -132,6 +132,8 @@ public class APIResourceManagementConfigBuilder {
                                 .name(scope.getAttributeValue(new QName(APIResourceConfigBuilderConstants.NAME)))
                                 .displayName(scope.getAttributeValue(
                                         new QName(APIResourceConfigBuilderConstants.DISPLAY_NAME)))
+                                .description(scope.getAttributeValue(
+                                        new QName(APIResourceConfigBuilderConstants.DESCRIPTION)))
                                 .build();
                         scopeList.add(scopeObj);
                     }
