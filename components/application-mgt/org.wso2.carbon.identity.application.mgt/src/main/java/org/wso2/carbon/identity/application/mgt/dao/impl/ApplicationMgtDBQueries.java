@@ -485,7 +485,7 @@ public class ApplicationMgtDBQueries {
             "API_ID = ?";
 
     public static final String DELETE_AUTHORIZED_SCOPE = "DELETE FROM AUTHORIZED_SCOPE WHERE " +
-            "APP_ID = ? AND API_ID = ? AND SCOPE_NAME = ? AND TENANT_ID = ?";
+            "APP_ID = ? AND API_ID = ? AND SCOPE_NAME = ? AND (TENANT_ID = ? OR TENANT_ID = 0)";
 
     public static final String ADD_APPLICATION_ASSOC_ROLES_HEAD = "INSERT INTO APP_ROLE_ASSOCIATION " +
             "(APP_ID, ROLE_ID) VALUES ";

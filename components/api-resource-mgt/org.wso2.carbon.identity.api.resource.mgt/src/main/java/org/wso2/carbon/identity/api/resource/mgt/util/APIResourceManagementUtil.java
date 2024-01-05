@@ -79,20 +79,40 @@ public class APIResourceManagementUtil {
 
     /**
      * Fetch the configuration from the XML file and register the system API in the given tenant.
-     *
-     * @param tenantDomain tenant domain.
      */
-    public static void addSystemAPIs(String tenantDomain) {
+    public static void addSystemAPIs() {
 
-        LOG.debug("Registering System APIs in tenant domain: " + tenantDomain);
-        Map<String, APIResource> configs = APIResourceManagementConfigBuilder.getInstance()
-                .getAPIResourceMgtConfigurations();
-        for (APIResource apiResource : configs.values()) {
-            // Skip registering tenant management API in non-super tenant domains.
-            if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)
-                    && APIResourceManagementConstants.TENANT_MGT_API_NAME.equalsIgnoreCase(apiResource.getName())) {
-                continue;
+        try {
+            String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+            Map<String, APIResource> configs = APIResourceManagementConfigBuilder.getInstance()
+                    .getAPIResourceMgtConfigurations();
+            if (!isSystemAPIExist(tenantDomain)) {
+                LOG.debug("Registering system API resources in the server.");
+                registerAPIResources(new ArrayList<>(configs.values()), tenantDomain);
+            } else {
+                LOG.debug("System APIs are already registered in the server. Applying the latest configurations.");
+                List<APIResource> systemAPIs = getSystemAPIs(tenantDomain);
+                for (APIResource systemAPI : systemAPIs) {
+                    if (configs.containsKey(systemAPI.getIdentifier())) {
+                        configs.remove(systemAPI.getIdentifier());
+                    } else {
+                        String apiId = APIResourceManagerImpl.getInstance().getAPIResourceByIdentifier(
+                                systemAPI.getIdentifier(), tenantDomain).getId();
+                        APIResourceManagerImpl.getInstance().deleteAPIResourceById(apiId, tenantDomain);
+                    }
+                }
+                registerAPIResources(new ArrayList<>(configs.values()), tenantDomain);
             }
+
+            LOG.debug("System APIs successfully registered in tenant domain: " + tenantDomain);
+        } catch (APIResourceMgtException e) {
+            LOG.error("Error while registering system API resources in the server.", e);
+        }
+    }
+
+    private static void registerAPIResources(List<APIResource> apiResources, String tenantDomain) {
+
+        for (APIResource apiResource : apiResources) {
             if (apiResource != null) {
                 try {
                     APIResourceManagerImpl.getInstance().addAPIResource(apiResource, tenantDomain);
@@ -101,7 +121,6 @@ public class APIResourceManagementUtil {
                 }
             }
         }
-        LOG.debug("System APIs successfully registered in tenant domain: " + tenantDomain);
     }
 
     /**
@@ -178,5 +197,10 @@ public class APIResourceManagementUtil {
         return !APIResourceManagerImpl.getInstance()
                 .getAPIResources(null, null, 1, APIResourceManagementConstants.TENANT_ADMIN_API_FILTER,
                         APIResourceManagementConstants.ASC, tenantDomain).getAPIResources().isEmpty();
+    }
+
+    public static boolean isSystemAPI(String type) {
+
+        return !"BUSINESS".equalsIgnoreCase(type);
     }
 }

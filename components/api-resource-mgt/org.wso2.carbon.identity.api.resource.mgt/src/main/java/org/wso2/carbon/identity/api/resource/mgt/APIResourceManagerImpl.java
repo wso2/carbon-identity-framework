@@ -109,7 +109,13 @@ public class APIResourceManagerImpl implements APIResourceManager {
                 throw APIResourceManagementUtil.handleClientException(
                         APIResourceManagementConstants.ErrorMessages.ERROR_CODE_CREATION_RESTRICTED);
             }
-            return CACHE_BACKED_DAO.addAPIResource(apiResource, IdentityTenantUtil.getTenantId(tenantDomain));
+
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            // If the API resource is a system API, set the tenant id to 0 since they are not tenant specific.
+            if (APIResourceManagementUtil.isSystemAPI(apiResource.getType())) {
+                tenantId = 0;
+            }
+            return CACHE_BACKED_DAO.addAPIResource(apiResource, tenantId);
         } catch (OrganizationManagementException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_API_RESOURCE, e);

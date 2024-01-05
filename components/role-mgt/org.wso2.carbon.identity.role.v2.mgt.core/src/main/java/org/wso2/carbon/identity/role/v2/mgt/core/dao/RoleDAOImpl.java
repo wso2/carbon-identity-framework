@@ -1797,10 +1797,13 @@ public class RoleDAOImpl implements RoleDAO {
         checkPermissionsAlreadyAdded(roleId, permissions, tenantDomain, connection);
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_SCOPE_SQL)) {
             for (Permission permission : permissions) {
+                int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+                if (permission.getName().startsWith("internal_") || permission.getName().startsWith("console:")) {
+                    tenantId = 0;
+                }
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
                 statement.setString(RoleConstants.RoleTableColumns.SCOPE_NAME, permission.getName());
-                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID,
-                        IdentityTenantUtil.getTenantId(tenantDomain));
+                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
                 statement.addBatch();
             }
             statement.executeBatch();
