@@ -67,7 +67,7 @@ public class GraalSerializableJsFunction implements BaseSerializableJsFunction<C
     @Override
     public boolean isFunction() {
 
-        return isHostFunction;
+        return isPolyglotFunction;
     }
 
     @Override
