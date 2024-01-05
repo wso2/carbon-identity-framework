@@ -77,6 +77,7 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
 
         Context context =
                 Context.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE).allowHostAccess(HostAccess.ALL)
+                        .option("engine.WarnInterpreterOnly", "false")
                         .build();
 
         Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);

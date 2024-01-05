@@ -74,20 +74,21 @@ public class GraalSerializer implements JsSerializer<Context> {
                 return valueObj.asDate();
             } else if (valueObj.isBoolean()) {
                 return valueObj.asBoolean();
+            } else if (valueObj.isDuration()) {
+                return valueObj.asDuration();
+            } else if (valueObj.isTime()) {
+                return valueObj.asTime();
+            } else if (valueObj.isTimeZone()) {
+                return valueObj.asTimeZone();
+            } else if (valueObj.isNull()) {
+                return null;
             } else if (valueObj.hasArrayElements()) {
                 int arraySize = (int) valueObj.getArraySize();
                 List<Serializable> arrayItems = new ArrayList<>(arraySize);
                 for (int key = 0; key < arraySize; key++) {
-                    Object serializedObj = (valueObj.getArrayElement(key));
-                    if (serializedObj instanceof Serializable) {
-                        arrayItems.add((Serializable) serializedObj);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Serialized the value of array item as : " + serializedObj);
-                        }
-                    } else {
-                        log.warn(String.format("Non serializable array item: %s. and will not be persisted.",
-                                serializedObj));
-                    }
+                    Object arrayObj = valueObj.getArrayElement(key);
+                    Object serializedObj = toJsSerializableInternal(arrayObj);
+                    arrayItems.add((Serializable) serializedObj);
                 }
                 return arrayItems;
             } else if (valueObj.hasMembers()) {
@@ -105,20 +106,11 @@ public class GraalSerializer implements JsSerializer<Context> {
                     }
                 });
                 return serializedMap;
-            } else if (valueObj.isDuration()) {
-                return valueObj.asDuration();
-            } else if (valueObj.isTime()) {
-                return valueObj.asTime();
-            } else if (valueObj.isTimeZone()) {
-                return valueObj.asTimeZone();
-            } else if (valueObj.isNull()) {
-                return null;
             } else {
                 return Collections.EMPTY_MAP;
             }
         }
         return value;
-
     }
 
     @Override
