@@ -74,17 +74,20 @@
     </APIResourceCollection>
     <APIResourceCollection name="apiResources" displayName="API Resources" type="tenant">
         <Scopes>
+            <Feature>
+                <Scope name="console:apiResources"/>
+            </Feature>
             <Update>
-                <Scope name="internal_application_mgt_update"/>
+                <Scope name="internal_api_resource_update"/>
             </Update>
             <Create>
-                <Scope name="internal_application_mgt_create"/>
+                <Scope name="internal_api_resource_create"/>
             </Create>
             <Read>
-                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_api_resource_view"/>
             </Read>
             <Delete>
-                <Scope name="internal_application_mgt_update"/>
+                <Scope name="internal_api_resource_delete"/>
             </Delete>
         </Scopes>
     </APIResourceCollection>
@@ -106,6 +109,8 @@
                 <Scope name="internal_cors_origins_view"/>
                 <Scope name="internal_application_mgt_view"/>
                 <Scope name="internal_claim_meta_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
                 <Scope name="internal_idp_view"/>
             </Read>
         </Scopes>
@@ -121,6 +126,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="approvals" displayName="Approvals" type="tenant">
         <Scopes>
+            <Feature>
+                <Scope name="console:workflowApprovals"/>
+            </Feature>
             <Update>
                 <Scope name="internal_humantask_view"/>
             </Update>
@@ -157,7 +165,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="branding" displayName="Branding" type="tenant">
         <Scopes>
-            <Feature/>
+            <Feature>
+                <Scope name="console:applications"/>
+            </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
             </Update>
@@ -206,6 +216,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="consoleSettings" displayName="Console Settings" type="tenant">
         <Scopes>
+            <Feature>
+                <Scope name="console:settings"/>
+            </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
                 <Scope name="internal_user_mgt_update"/>
@@ -243,6 +256,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="emailTemplates" displayName="Email Templates" type="tenant">
         <Scopes>
+            <Feature>
+                <Scope name="console:emailTemplates"/>
+            </Feature>
             <Update>
                 <Scope name="internal_event_config_update"/>
             </Update>
@@ -259,6 +275,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="eventPublishing" displayName="Event Publishing" type="tenant">
         <Scopes>
+            <Feature>
+                <Scope name="console:eventPublishing"/>
+            </Feature>
             <Update>
                 <Scope name="internal_event_config_update"/>
             </Update>
@@ -328,6 +347,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="gettingStarted" displayName="Getting Started" type="tenant">
         <Scopes>
+            <Feature>
+                <Scope name="console:home"/>
+            </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
             </Update>
@@ -376,7 +398,7 @@
     <APIResourceCollection name="identityVerificationProviders" displayName="Identity Verification Providers" type="tenant">
         <Scopes>
             <Feature>
-                <Scope name="console:idps"/>
+                <Scope name="console:idvps"/>
             </Feature>
             <Update>
                 <Scope name="internal_idvp_update"/>
@@ -412,12 +434,14 @@
     </APIResourceCollection>
     <APIResourceCollection name="loginAndRegistration" displayName="Login And Registration" type="tenant">
         <Scopes>
-            <Feature/>
-            <Update/>
+            <Feature>
+                <Scope name="console:loginAndRegistration"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_governance_update"/>
+            </Update>
             <Delete/>
-            <Create>
-                <Scope name="internal_idvp_add"/>
-            </Create>
+            <Create/>
             <Read>
                 <Scope name="internal_governance_view"/>
             </Read>
@@ -433,6 +457,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="notificationChannels" displayName="Notification Channels" type="tenant">
         <Scopes>
+            <Feature>
+                <Scope name="console:notificationChannels"/>
+            </Feature>
             <Update>
                 <Scope name="internal_config_mgt_update"/>
             </Update>
@@ -527,6 +554,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="server" displayName="Server" type="tenant">
         <Scopes>
+            <Feature>
+                <Scope name="console:server"/>
+            </Feature>
             <Update>
                 <Scope name="internal_governance_update"/>
             </Update>
@@ -649,6 +679,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="userStores" displayName="User Stores" type="tenant">
         <Scopes>
+            <Feature>
+                <Scope name="console:userstores"/>
+            </Feature>
             <Update>
                 <Scope name="internal_userstore_update"/>
             </Update>
@@ -666,6 +699,9 @@
 <!--    Organization API Resource Collections-->
     <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization">
         <Scopes>
+            <Feature>
+                <Scope name="console:settings"/>
+            </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
                 <Scope name="internal_org_user_mgt_update"/>
@@ -687,7 +723,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="org_identityProviders" displayName="Identity Providers" type="organization">
         <Scopes>
-            <Feature/>
+            <Feature>
+                <Scope name="console:idps"/>
+            </Feature>
             <Update>
                 <Scope name="internal_org_idp_update"/>
             </Update>
@@ -707,6 +745,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="org_users" displayName="Users" type="organization">
         <Scopes>
+            <Feature>
+                <Scope name="console:users"/>
+            </Feature>
             <Update>
                 <Scope name="internal_org_user_mgt_update"/>
                 <Scope name="internal_org_session_delete"/>
@@ -730,7 +771,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="org_organizations" displayName="Organizations" type="organization">
         <Scopes>
-            <Feature/>
+            <Feature>
+                <Scope name="console:organizations"/>
+            </Feature>
             <Update>
                 <Scope name="internal_org_organization_update"/>
             </Update>
@@ -747,7 +790,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="org_groups" displayName="Groups" type="organization">
         <Scopes>
-            <Feature/>
+            <Feature>
+                <Scope name="console:groups"/>
+            </Feature>
             <Update>
                 <Scope name="internal_org_group_mgt_update"/>
             </Update>
@@ -767,7 +812,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="org_roles" displayName="Roles" type="organization">
         <Scopes>
-            <Feature/>
+            <Feature>
+                <Scope name="console:roles"/>
+            </Feature>
             <Update>
                 <Scope name="internal_org_role_mgt_update"/>
             </Update>
@@ -786,7 +833,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="org_applications" displayName="Applications" type="organization">
         <Scopes>
-            <Feature/>
+            <Feature>
+                <Scope name="console:applications"/>
+            </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
             </Update>
@@ -806,6 +855,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="org_emailTemplates" displayName="Email Templates" type="organization">
         <Scopes>
+            <Feature>
+                <Scope name="console:emailTemplates"/>
+            </Feature>
             <Update>
                 <Scope name="internal_org_event_config_update"/>
             </Update>
@@ -836,7 +888,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="org_branding" displayName="Branding" type="organization">
         <Scopes>
-            <Feature/>
+            <Feature>
+                <Scope name="console:applications"/>
+            </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
             </Update>
@@ -848,6 +902,25 @@
             </Create>
             <Read>
                 <Scope name="internal_org_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_notificationChannels" displayName="Notification Channels" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:notificationChannels"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_config_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_config_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_config_mgt_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_config_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -906,6 +979,9 @@
     </APIResourceCollection>
     <APIResourceCollection name="org_gettingStarted" displayName="Getting Started" type="organization">
         <Scopes>
+            <Feature>
+                <Scope name="console:home"/>
+            </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
             </Update>
