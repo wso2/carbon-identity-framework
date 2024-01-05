@@ -586,6 +586,7 @@ public class RoleDAOTest extends PowerMockTestCase {
         doReturn(false).when(roleDAO, "isExistingRoleName", anyString(), anyString());
         doReturn(groupIdsMap).when(roleDAO, "getGroupIDsByNames", anyCollection(), anyString());
         doReturn("roleID").when(roleDAO, "getRoleIDByName", anyString(), anyString());
+        doReturn(1).when(roleDAO, "getRoleAudienceRefId", anyString());
         doReturn(roleName).when(roleDAO, "getRoleNameByID", anyString(), anyString());
         when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
 
@@ -635,9 +636,11 @@ public class RoleDAOTest extends PowerMockTestCase {
                 + "(1,'PRIMARY',-1234), (2,'SYSTEM',-1234), (3,'INTERNAL',-1234), (4,'APPLICATION',-1234), "
                 + "(5,'WORKFLOW',-1234), (6,'PRIMARY',1), (7,'SYSTEM',1), (8,'INTERNAL',1), (9,'APPLICATION',1), "
                 + "(10,'WORKFLOW',1)";
-
+        String roleAudienceSQL = "INSERT INTO UM_HYBRID_ROLE_AUDIENCE (UM_ID, UM_AUDIENCE,UM_AUDIENCE_ID) VALUES " +
+                "(1, 'organization', 'test_org_id')";
         try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
             connection.createStatement().executeUpdate(domainDataSQL);
+            connection.createStatement().executeUpdate(roleAudienceSQL);
         } catch (SQLException e) {
             String errorMessage = "Error while Adding test data for UM_DOMAIN table";
             throw new Exception(errorMessage, e);
