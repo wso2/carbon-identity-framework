@@ -2262,10 +2262,7 @@
         <Resource context="(.*)/registry/atom(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET"/>
         <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST, PUT"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
-        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST, PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET, DELETE, POST, PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET, DELETE"/>
