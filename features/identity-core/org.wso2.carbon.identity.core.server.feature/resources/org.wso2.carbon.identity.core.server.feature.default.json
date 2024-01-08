@@ -1148,6 +1148,7 @@
   "console.branding.scopes.update": ["internal_application_mgt_update"],
   "console.branding.scopes.delete": ["internal_application_mgt_update"],
   "console.certificates.enabled": true,
+  "console.certificates.scopes.feature": ["console:certificates"],
   "console.certificates.scopes.create": ["internal_keystore_update"],
   "console.certificates.scopes.read": ["internal_keystore_view"],
   "console.certificates.scopes.update": ["internal_keystore_update"],
@@ -1295,6 +1296,7 @@
       "internal_session_view"
   ],
   "console.secrets_management.enabled": true,
+  "console.secrets_management.scopes.feature": [ "console:secretsManagement" ],
   "console.secrets_management.scopes.create": [ "internal_secret_mgt_add" ],
   "console.secrets_management.scopes.read": [ "internal_secret_mgt_view" ],
   "console.secrets_management.scopes.update": [ "internal_secret_mgt_update" ],

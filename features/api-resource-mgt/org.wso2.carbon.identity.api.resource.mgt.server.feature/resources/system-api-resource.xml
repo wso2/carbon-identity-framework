@@ -934,6 +934,22 @@
             <Scope displayName="Getting Started Feature" name="console:home"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Secret Management Feature" identifier="console:secretsManagement"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Secret Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Secret Management Feature" name="console:secretsManagement"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Certificate Management Feature" identifier="console:certificates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Certificate Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Certificate Feature" name="console:certificates"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/api/users/v1/offline-invite-link/"
                  requiresAuthorization="true"
                  description="API to generate user onboard offline invite link" type="TENANT_ADMIN">
