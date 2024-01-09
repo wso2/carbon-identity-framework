@@ -595,4 +595,12 @@ public class IdentityConstants {
         public static final String ROLE_MANDATORY_SCOPES_CONFIG_ELEMENT = "MandatoryScopes";
         public static final String ROLE_SCOPE_CONFIG_ELEMENT = "Scope";
     }
+
+    /**
+     * Common constants related to API Response.
+     */
+    public static class APIResponse {
+
+        public static final String SET_ACCOUNT_LOCK_AUTH_FAILURE_REASON = "APIResponse.SetAccountLockAuthFailureReason";
+    }
 }

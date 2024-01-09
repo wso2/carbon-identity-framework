@@ -968,6 +968,13 @@
             <Scope displayName="Certificate Feature" name="console:certificates"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
+                 requiresAuthorization="true"
+                 description="API to generate user onboard offline invite link" type="ORGANIZATION_ADMIN">
+        <Scopes>
+            <Scope displayName="Offline invite link" name="internal_org_offline_invite"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/api/users/v1/offline-invite-link/"
                  requiresAuthorization="true"
                  description="API to generate user onboard offline invite link" type="TENANT_ADMIN">
