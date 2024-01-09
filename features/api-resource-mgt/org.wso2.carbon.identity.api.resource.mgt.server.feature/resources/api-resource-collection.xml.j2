@@ -132,15 +132,24 @@
             </Update>
             <Delete>
                 <Scope name="internal_application_mgt_delete"/>
+                <Scope name="internal_shared_application_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_application_mgt_create"/>
+                <Scope name="internal_shared_application_create"/>
             </Create>
             <Read>
                 <Scope name="internal_cors_origins_view"/>
                 <Scope name="internal_application_mgt_view"/>
                 <Scope name="internal_claim_meta_view"/>
                 <Scope name="internal_idp_view"/>
+                <Scope name="internal_oidc_scope_mgt_view"/>
+                <Scope name="internal_organization_view"/>
+                <Scope name="internal_api_resource_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_shared_application_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
