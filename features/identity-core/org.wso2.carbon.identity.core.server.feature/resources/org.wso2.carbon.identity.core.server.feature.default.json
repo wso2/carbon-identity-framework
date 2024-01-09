@@ -1269,6 +1269,17 @@
       "internal_identity_mgt_create",
       "internal_identity_mgt_delete"
   ],
+  "console.user_v1_roles.enabled": true,
+  "console.user_v1_roles.scopes.feature": ["console:roles"],
+  "console.user_v1_roles.scopes.create": ["internal_role_mgt_create"],
+  "console.user_v1_roles.scopes.read": [
+      "internal_user_mgt_view",
+      "internal_role_mgt_view",
+      "internal_userstore_view",
+      "internal_group_mgt_view"
+  ],
+  "console.user_v1_roles.scopes.update": ["internal_role_mgt_update"],
+  "console.user_v1_roles.scopes.delete": ["internal_role_mgt_delete"],
   "console.user_roles.enabled": true,
   "console.user_roles.scopes.feature": ["console:roles"],
   "console.user_roles.scopes.create": ["internal_role_mgt_create"],
