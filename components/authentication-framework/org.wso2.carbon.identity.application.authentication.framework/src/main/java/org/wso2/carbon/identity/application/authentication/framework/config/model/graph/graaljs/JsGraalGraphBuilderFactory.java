@@ -18,16 +18,15 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -37,6 +36,12 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Factory to create a Javascript based sequence builder.
+ * This factory is there to reuse of GraalJS Polyglot Context and any related expensive objects.
+ * <p>
+ * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing GraalJS engine.
+ */
 public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Context> {
 
     private static final Log LOG = LogFactory.getLog(JsGraalGraphBuilderFactory.class);
@@ -77,8 +82,7 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
 
         Context context =
                 Context.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE).allowHostAccess(HostAccess.ALL)
-                        .option("engine.WarnInterpreterOnly", "false")
-                        .build();
+                        .option("engine.WarnInterpreterOnly", "false").build();
 
         Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
         JsLogger jsLogger = new JsLogger();

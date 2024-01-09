@@ -23,11 +23,11 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 
 import java.util.Map;
 
-import javax.script.ScriptEngine;
-
 /**
  * Interface for Factory to create a Javascript based sequence builder.
  * This factory is there to reuse of script engine and any related expensive objects.
+ *
+ * @param <T> Type of the Javascript Engine
  */
 public interface JsBaseGraphBuilderFactory<T> {
 

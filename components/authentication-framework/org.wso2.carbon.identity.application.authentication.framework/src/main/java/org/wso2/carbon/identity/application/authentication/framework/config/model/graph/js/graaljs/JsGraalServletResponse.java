@@ -33,9 +33,22 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Javascript wrapper for Java level HttpServletResponse.
+ * This wrapper uses GraalJS polyglot context.
+ * This provides controlled access to HttpServletResponse object via provided javascript native syntax.
+ * e.g
+ * response.headers.["Set-Cookie"] = ['crsftoken=xxxxxssometokenxxxxx']
+ * <p>
+ * instead of
+ * context.getResponse().addCookie(cookie);
+ * <p>
+ * Also, it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime
+ * HttpServletResponse.
+ */
 public class JsGraalServletResponse extends JsServletResponse implements ProxyObject {
 
-    Log LOG = LogFactory.getLog(JsGraalServletResponse.class);
+    Log log = LogFactory.getLog(JsGraalServletResponse.class);
 
     public JsGraalServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
@@ -80,7 +93,7 @@ public class JsGraalServletResponse extends JsServletResponse implements ProxyOb
     @Override
     public void putMember(String key, Value value) {
 
-        LOG.warn("Unsupported operation. Servlet Response is read only. Can't set parameter " + key + " to value: " +
+        log.warn("Unsupported operation. Servlet Response is read only. Can't set parameter " + key + " to value: " +
                 value);
     }
 

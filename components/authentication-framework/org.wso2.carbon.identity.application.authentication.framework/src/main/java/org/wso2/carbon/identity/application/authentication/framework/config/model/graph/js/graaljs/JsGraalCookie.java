@@ -30,6 +30,14 @@ import java.util.Arrays;
 
 import javax.servlet.http.Cookie;
 
+/**
+ * Javascript wrapper for Java level Cookie.
+ * This wrapper uses GraalJS polyglot context.
+ * This provides controlled access to Cookie object via provided javascript native syntax.
+ * e.g
+ * var commonAuthIdDomain = context.request.cookies.commonAuthId.domain
+ * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime Cookie.
+ */
 public class JsGraalCookie extends JsCookie implements ProxyObject {
 
     protected static final Log LOG = LogFactory.getLog(JsGraalCookie.class);

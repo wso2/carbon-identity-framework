@@ -36,6 +36,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Represents a authentication step.
+ * This wrapper uses GraalJS polyglot context.
+ */
 public class JsGraalStep extends AbstractJSContextMemberObject implements ProxyObject {
 
     protected static final Log LOG = LogFactory.getLog(JsGraalStep.class);

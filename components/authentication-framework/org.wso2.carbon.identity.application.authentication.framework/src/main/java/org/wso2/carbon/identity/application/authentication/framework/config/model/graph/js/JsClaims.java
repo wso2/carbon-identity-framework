@@ -52,6 +52,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Represent the user's claim for Javascript Execution. This contains the common methods all script engines.
+ */
 public class JsClaims extends AbstractJSContextMemberObject {
 
     protected static final Log LOG = LogFactory.getLog(JsClaims.class);

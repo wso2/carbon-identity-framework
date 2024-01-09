@@ -28,6 +28,21 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Tra
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
+/**
+ * Javascript wrapper for Java level AuthenticationContext.
+ * This wrapper uses GraalJS polyglot context.
+ * This provides controlled access to AuthenticationContext object via provided javascript native syntax.
+ * e.g
+ * var requestedAcr = context.requestedAcr
+ * <p>
+ * instead of
+ * var requestedAcr = context.getRequestedAcr()
+ * <p>
+ * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime
+ * AuthenticationContext.
+ *
+ * @see AuthenticationContext
+ */
 public class JsGraalAuthenticationContext extends JsAuthenticationContext implements ProxyObject {
 
     public JsGraalAuthenticationContext(AuthenticationContext wrapped) {
