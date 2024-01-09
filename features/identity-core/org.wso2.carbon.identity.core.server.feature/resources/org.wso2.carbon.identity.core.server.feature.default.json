@@ -469,7 +469,7 @@
   "identity_mgt.user_claim_update.otp.use_lowercase_in_otp": true,
   "identity_mgt.user_claim_update.otp.use_numeric_in_otp": true,
   "identity_mgt.user_claim_update.otp.otp_length": "6",
-  "identity_mgt.user_claim_update.use_verify_claim": true,
+  "identity_mgt.user_claim_update.use_verify_claim": false,
   "identity_mgt.user_claim_update.uniqueness.enable": false,
   "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
