@@ -2619,12 +2619,11 @@ public class RoleDAOImpl implements RoleDAO {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         int refId;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_AUDIENCE_REF_BY_ID_SQL)) {
 
-            statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_VALUE, roleId);
+            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     refId = resultSet.getInt(1);
@@ -2784,12 +2783,11 @@ public class RoleDAOImpl implements RoleDAO {
 
         boolean isExist = false;
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_ID_EXIST_SQL)) {
 
-            statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_VALUE, roleId);
+            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     isExist = resultSet.getInt(1) > 0;
