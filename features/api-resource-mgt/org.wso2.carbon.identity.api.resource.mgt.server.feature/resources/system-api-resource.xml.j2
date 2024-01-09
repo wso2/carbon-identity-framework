@@ -44,6 +44,15 @@
             <Scope displayName="Delete API Resource" name="internal_api_resource_delete"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Shared Application Management API" identifier="/api/server/v1/applications/share"
+                 requiresAuthorization="true"
+                 description="API representation of the Shared Application Management API" type="TENANT_ADMIN">
+        <Scopes>
+            <Scope displayName="Create Shared Application" name="internal_shared_application_create"/>
+            <Scope displayName="View Shared Application" name="internal_shared_application_view"/>
+            <Scope displayName="Delete Shared Application" name="internal_shared_application_delete"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Application Management API" identifier="/api/server/v1/applications"
                  requiresAuthorization="true"
                  description="API representation of the Application Management API" type="TENANT_ADMIN">

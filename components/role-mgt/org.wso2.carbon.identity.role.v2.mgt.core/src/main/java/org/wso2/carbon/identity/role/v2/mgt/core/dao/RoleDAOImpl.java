@@ -171,7 +171,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SCOPE_BY_ROLES_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_MSSQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_MAIN_ROLE_IDS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
@@ -3241,13 +3240,8 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         try {
-            String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            String getSharedHybridRoleWithMainRoleSQL = GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
-            if (RoleConstants.MICROSOFT.equals(databaseProductName)) {
-                getSharedHybridRoleWithMainRoleSQL = GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_MSSQL;
-            }
             try (NamedPreparedStatement selectStatement =
-                         new NamedPreparedStatement(connection, getSharedHybridRoleWithMainRoleSQL)) {
+                         new NamedPreparedStatement(connection, GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL)) {
                 selectStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
                 selectStatement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
 
