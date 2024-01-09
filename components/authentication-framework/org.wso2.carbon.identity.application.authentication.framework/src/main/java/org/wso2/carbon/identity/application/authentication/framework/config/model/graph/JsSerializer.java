@@ -22,6 +22,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 
 /**
  * Interface for serializer class supports Multiple JS Engines.
+ *
+ * @param <T> Js Engine.
  */
 public interface JsSerializer<T> {
 

@@ -26,6 +26,11 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Javascript wrapper for Java level HashMap of HTTP headers.
+ * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.
+ * Also, it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
+ */
 public class JsGraalHeaders implements ProxyObject {
 
     private final Map wrapped;

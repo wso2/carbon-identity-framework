@@ -17,6 +17,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Factory to create a Javascript Object Wrappers for GraalJS execution.
+ * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing GraalJS engine.
+ */
 public class JsGraalWrapperFactory implements JsWrapperBaseFactory {
 
     @Override

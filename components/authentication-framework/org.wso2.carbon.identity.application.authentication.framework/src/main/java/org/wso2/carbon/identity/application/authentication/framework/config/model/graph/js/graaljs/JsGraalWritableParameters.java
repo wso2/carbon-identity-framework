@@ -23,6 +23,10 @@ import org.graalvm.polyglot.Value;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Parameters that can be modified from the authentication script.
+ * This wrapper uses GraalJS polyglot context.
+ */
 public class JsGraalWritableParameters extends JsGraalParameters {
 
     public JsGraalWritableParameters(Map wrapped) {

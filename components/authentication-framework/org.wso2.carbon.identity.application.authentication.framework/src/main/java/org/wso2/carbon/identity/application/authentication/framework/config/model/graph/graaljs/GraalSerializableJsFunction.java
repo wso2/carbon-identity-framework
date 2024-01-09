@@ -29,6 +29,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import java.io.IOException;
 import java.util.function.Function;
 
+/**
+ * Javascript function wrapper. This allows serialization of a javascript defined function.
+ * Since Nashorn is deprecated in JDK 11 and onwards. We replaced it with GraalJS classes.
+ */
 public class GraalSerializableJsFunction implements BaseSerializableJsFunction<Context> {
 
     private static final Log log = LogFactory.getLog(GraalSerializableJsFunction.class);

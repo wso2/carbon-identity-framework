@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import org.apache.abdera.model.Base;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,7 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -77,6 +73,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
             "var $ARG=null;var $ENV=null;var $EXEC=null;" +
             "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;" +
             "Object.defineProperty(this, 'engine', {});";
+
     /**
      * Returns the built graph.
      *

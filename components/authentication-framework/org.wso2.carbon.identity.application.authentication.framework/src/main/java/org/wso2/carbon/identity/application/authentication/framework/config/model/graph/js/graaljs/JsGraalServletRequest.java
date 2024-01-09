@@ -36,6 +36,19 @@ import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * Javascript wrapper for Java level HTTPServletRequest.
+ * This wrapper uses GraalJS polyglot context.
+ * This provides controlled access to HTTPServletRequest object via provided javascript native syntax.
+ * e.g
+ * var redirect_uri = context.request.params.redirect_uri
+ * <p>
+ * instead of
+ * var userName = context.getRequest().getParameter("redirect_uri)
+ * <p>
+ * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime
+ * HTTPServletRequest.
+ */
 public class JsGraalServletRequest extends JsServletRequest implements ProxyObject {
 
     protected static final Log LOG = LogFactory.getLog(JsGraalServletRequest.class);

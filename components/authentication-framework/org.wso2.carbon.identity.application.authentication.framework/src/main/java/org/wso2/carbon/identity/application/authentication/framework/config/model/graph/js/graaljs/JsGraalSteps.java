@@ -28,6 +28,10 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 
 import java.util.Optional;
 
+/**
+ * Returns when context.steps[<step_number] is called
+ * This wrapper uses GraalJS polyglot context.
+ */
 public class JsGraalSteps extends AbstractJSContextMemberObject implements ProxyArray {
 
     private static final Log LOG = LogFactory.getLog(JsGraalSteps.class);

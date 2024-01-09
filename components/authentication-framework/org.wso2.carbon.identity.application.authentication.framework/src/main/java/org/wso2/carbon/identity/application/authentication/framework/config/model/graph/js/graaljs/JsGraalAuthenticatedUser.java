@@ -27,6 +27,21 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
+/**
+ * Javascript wrapper for Java level AuthenticatedUser.
+ * This wrapper uses GraalJS polyglot context.
+ * This provides controlled access to AuthenticatedUser object via provided javascript native syntax.
+ * e.g
+ * var userName = context.lastAuthenticatedUser.username
+ * <p>
+ * instead of
+ * var userName = context.getLastAuthenticatedUser().getUserName()
+ * <p>
+ * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime
+ * AuthenticatedUser.
+ *
+ * @see AuthenticatedUser
+ */
 public class JsGraalAuthenticatedUser extends JsAuthenticatedUser implements ProxyObject {
 
     public JsGraalAuthenticatedUser(AuthenticationContext context, AuthenticatedUser wrappedUser, int step,
