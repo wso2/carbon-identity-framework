@@ -195,7 +195,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             handleUserProvisioning(username, userStoreManager, userStoreDomain, attributes, tenantDomain);
             handleV2Roles(username, userStoreManager, realm, roleIdList, tenantDomain);
-            PermissionUpdateUtil.updatePermissionTree(tenantId);
 
         } catch (org.wso2.carbon.user.api.UserStoreException | FederatedAssociationManagerException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
