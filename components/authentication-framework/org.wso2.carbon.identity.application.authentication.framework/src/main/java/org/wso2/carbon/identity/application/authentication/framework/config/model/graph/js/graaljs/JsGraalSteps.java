@@ -69,7 +69,7 @@ public class JsGraalSteps extends AbstractJSContextMemberObject implements Proxy
 
     @Override
     public void set(long index, Value value) {
-        //Steps can n ot be set withs script
+        //Steps can not be set with script.
     }
 
     @Override

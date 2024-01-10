@@ -141,7 +141,7 @@ public class JsOpenJdkNashornAuthenticationContext extends JsAuthenticationConte
         }
     }
 
-    private boolean hasTransientValueInParameters(String key) {
+    protected boolean hasTransientValueInParameters(String key) {
 
         TransientObjectWrapper transientObjectWrapper = (TransientObjectWrapper) getWrapped().getParameter(key);
         return transientObjectWrapper != null && transientObjectWrapper.getWrapped() != null;
