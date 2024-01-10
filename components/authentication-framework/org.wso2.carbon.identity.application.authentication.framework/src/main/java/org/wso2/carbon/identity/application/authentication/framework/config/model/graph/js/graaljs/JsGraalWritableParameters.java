@@ -57,4 +57,10 @@ public class JsGraalWritableParameters extends JsGraalParameters {
         getWrapped().put(key, value.as(List.class));
     }
 
+    @Override
+    public boolean hasMember(String name) {
+
+        return getWrapped().containsKey(name);
+    }
+
 }

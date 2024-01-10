@@ -87,7 +87,7 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
         }
     }
 
-    private boolean hasTransientValueInParameters(String key) {
+    protected boolean hasTransientValueInParameters(String key) {
 
         TransientObjectWrapper transientObjectWrapper = (TransientObjectWrapper) getWrapped().getParameter(key);
         return transientObjectWrapper != null && transientObjectWrapper.getWrapped() != null;

@@ -78,19 +78,6 @@ public class JsGraalServletResponse extends JsServletResponse implements ProxyOb
     }
 
     @Override
-    public boolean hasMember(String name) {
-
-        if (getResponse() == null) {
-            //Transient Object is null, hence no member access is possible.
-            return false;
-        }
-        if (FrameworkConstants.JSAttributes.JS_HEADERS.equals(name)) {
-            return true;
-        }
-        return super.hasMember(name);
-    }
-
-    @Override
     public void putMember(String key, Value value) {
 
         log.warn("Unsupported operation. Servlet Response is read only. Can't set parameter " + key + " to value: " +

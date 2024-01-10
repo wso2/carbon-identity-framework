@@ -94,6 +94,21 @@ public class JsGraalAuthenticationContext extends JsAuthenticationContext implem
     }
 
     @Override
+    public boolean hasMember(String name) {
+
+        switch (name) {
+            case FrameworkConstants.JSAttributes.JS_CURRENT_STEP:
+            case FrameworkConstants.JSAttributes.JS_RETRY_STEP:
+                return true;
+            case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
+                return getCurrentSubjectIdentifierStep() != null;
+            default:
+                return super.hasMember(name);
+
+        }
+    }
+
+    @Override
     public void putMember(String key, Value value) {
 
         if (FrameworkConstants.JSAttributes.JS_SELECTED_ACR.equals(key)) {

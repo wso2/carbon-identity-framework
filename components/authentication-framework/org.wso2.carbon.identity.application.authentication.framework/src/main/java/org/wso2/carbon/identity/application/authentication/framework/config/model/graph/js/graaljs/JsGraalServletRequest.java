@@ -108,16 +108,10 @@ public class JsGraalServletRequest extends JsServletRequest implements ProxyObje
             return false;
         }
 
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-            case FrameworkConstants.JSAttributes.JS_COOKIES:
-            case FrameworkConstants.JSAttributes.JS_REQUEST_IP:
-                return true;
-            case FrameworkConstants.JSAttributes.JS_PARAMS:
-                return getRequest().getParameterMap() != null;
-            default:
-                return super.hasMember(name);
+        if (name.equals(FrameworkConstants.JSAttributes.JS_REQUEST_IP)) {
+            return true;
         }
+        return super.hasMember(name);
     }
 
     @Override

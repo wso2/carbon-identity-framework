@@ -58,6 +58,17 @@ public class JsGraalCookie extends JsCookie implements ProxyObject {
         return ProxyArray.fromArray(Arrays.stream(cookieProperties).filter(this::hasMember).toArray());
     }
 
+    @Override
+    public boolean hasMember(String name) {
+
+        switch (name) {
+            case FrameworkConstants.JSAttributes.JS_COOKIE_SECURE:
+            case FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY:
+                return true;
+        }
+        return super.hasMember(name);
+    }
+
     public void putMember(String key, Value value) {
 
         LOG.warn("Unsupported operation. Cookie is read only. Can't remove parameter " + key);
