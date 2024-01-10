@@ -2541,7 +2541,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                      GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL)) {
-            statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
+            statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, removeInternalDomain(roleName));
             statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
             statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
