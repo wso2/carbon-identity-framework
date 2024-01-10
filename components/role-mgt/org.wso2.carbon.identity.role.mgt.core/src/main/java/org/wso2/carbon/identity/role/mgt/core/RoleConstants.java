@@ -57,6 +57,7 @@ public class RoleConstants {
     // Domain names
     public static final String APPLICATION_DOMAIN = "Application";
     public static final String INTERNAL_DOMAIN = "Internal";
+    public static final String ORGANIZATION = "organization";
 
     /**
      * Grouping of constants related to database table names.
@@ -77,6 +78,10 @@ public class RoleConstants {
         public static final String ATTR_VALUE = "ATTR_VALUE";
         public static final String ROLE_NAME = "ROLE_NAME";
         public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
+        public static final String UM_AUDIENCE = "UM_AUDIENCE";
+        public static final String UM_AUDIENCE_ID = "UM_AUDIENCE_ID";
+        public static final String UM_AUDIENCE_REF_ID = "UM_AUDIENCE_REF_ID";
+        public static final String AUDIENCE_REF_ID = "AUDIENCE_REF_ID";
         public static final String USER_NOT_FOUND_ERROR_MESSAGE = "A user doesn't exist with name: %s " +
                 "in the tenantDomain: %s";
 

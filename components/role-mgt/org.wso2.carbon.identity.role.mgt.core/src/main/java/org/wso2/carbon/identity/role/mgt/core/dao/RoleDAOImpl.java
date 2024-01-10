@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
@@ -92,12 +93,14 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MARIADB;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MY_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.ORACLE;
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.ORGANIZATION;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.POSTGRE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_ROLE_WITH_UUID_SQL;
-import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_SCIM_ROLE_ID_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_ROLE_AUDIENCE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_ROLE_WITH_AUDIENCE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_SCIM_ROLE_ID_WITH_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.ADD_USER_TO_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.COUNT_ROLES_BY_TENANT_DB2;
@@ -123,6 +126,7 @@ import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_UUID_MYSQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_UUID_ORACLE;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_WITH_UUID_POSTGRESQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
@@ -161,14 +165,16 @@ public class RoleDAOImpl implements RoleDAO {
         // Remove internal domain before persisting in order to maintain the backward compatibility.
         roleName = removeInternalDomain(roleName);
         String roleID = UUID.randomUUID().toString();
-
+        // Assign organization audience for role v1.
+        int audienceRefId = getRoleAudienceRefId(tenantDomain);
         if (!isExistingRoleName(roleName, tenantDomain)) {
             try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
                 try {
                     try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                            ADD_ROLE_WITH_UUID_SQL, RoleTableColumns.UM_ID)) {
+                            ADD_ROLE_WITH_AUDIENCE_SQL, RoleTableColumns.UM_ID)) {
                         statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                         statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
+                        statement.setInt(RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                         statement.setString(RoleTableColumns.UM_UUID, roleID);
                         statement.executeUpdate();
                     }
@@ -238,13 +244,15 @@ public class RoleDAOImpl implements RoleDAO {
             log.debug("Adding the roleID: " + roleId + " for the role: " + roleName + " in the tenantDomain: "
                     + tenantDomain);
         }
-
+        int audienceRefId = getRoleAudienceRefId(tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_SCIM_ROLE_ID_SQL)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    ADD_SCIM_ROLE_ID_WITH_AUDIENCE_SQL)) {
                 statement.setInt(RoleTableColumns.TENANT_ID, tenantId);
                 statement.setString(RoleTableColumns.ROLE_NAME, roleName);
                 statement.setString(RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
                 statement.setString(RoleTableColumns.ATTR_VALUE, roleId);
+                statement.setInt(RoleTableColumns.AUDIENCE_REF_ID, audienceRefId);
                 statement.executeUpdate();
 
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -1730,5 +1738,124 @@ public class RoleDAOImpl implements RoleDAO {
         }
 
         return propValue;
+    }
+
+    /**
+     * Get role audience ref id.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return audience ref id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private int getRoleAudienceRefId(String tenantDomain) throws IdentityRoleManagementException {
+
+        int id = -1;
+        String orgId = getOrganizationIdByTenantDomain(tenantDomain);
+        if (StringUtils.isBlank(orgId)) {
+            return id;
+        }
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_AUDIENCE_SQL)) {
+
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, ORGANIZATION);
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, orgId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    id = resultSet.getInt(1);
+                }
+                // Create new audience.
+                if (id == -1) {
+                    createRoleAudience(ORGANIZATION, orgId);
+                    return getRoleAudienceRefId(ORGANIZATION, orgId, connection);
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while resolving the role audiences for the given audience: " + ORGANIZATION
+                            + " and audienceId : " + orgId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return id;
+    }
+
+    /**
+     * Get role audience ref id.
+     *
+     * @param audience   Audience.
+     * @param audienceId Audience ID.
+     * @return audience ref id.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private int getRoleAudienceRefId(String audience, String audienceId, Connection connection)
+            throws IdentityRoleManagementException {
+
+        int id = -1;
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_AUDIENCE_SQL)) {
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
+            statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    id = resultSet.getInt(1);
+                }
+                // Create new audience.
+                if (id == -1) {
+                    createRoleAudience(audience, audienceId);
+                    return getRoleAudienceRefId(audience, audienceId, connection);
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while resolving the role audiences for the given audience: " + audience
+                            + " and audienceId : " + audienceId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return id;
+    }
+
+    /**
+     * Create role audience.
+     *
+     * @param audience   Audience.
+     * @param audienceId Audience ID.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private void createRoleAudience(String audience, String audienceId)
+            throws IdentityRoleManagementException {
+
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_AUDIENCE_SQL)) {
+                statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
+                statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
+                statement.executeUpdate();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                String errorMessage = "Error while adding role audiences for the given audience: " + audience
+                        + " and audienceId : " + audienceId;
+                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while adding role audiences for the given audience: " + audience
+                    + " and audienceId : " + audienceId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+    }
+
+    /**
+     * Get organization ID by tenantDomain.
+     *
+     * @param tenantDomain tenantDomain.
+     * @throws IdentityRoleManagementException Error occurred while retrieving organization id.
+     */
+    private String getOrganizationIdByTenantDomain(String tenantDomain) throws IdentityRoleManagementException {
+
+        try {
+            return RoleManagementServiceComponentHolder.getInstance().getOrganizationManager()
+                    .resolveOrganizationId(tenantDomain);
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while retrieving the organization id for the given tenantDomain: "
+                    + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
     }
 }

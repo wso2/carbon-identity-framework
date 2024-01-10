@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.role.mgt.core.internal;
 
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -32,6 +33,7 @@ public class RoleManagementServiceComponentHolder {
     private RealmService realmService;
 
     private IdentityEventService identityEventService;
+    private OrganizationManager organizationManager;
 
     private RoleManagementServiceComponentHolder() {
 
@@ -70,5 +72,25 @@ public class RoleManagementServiceComponentHolder {
     public void setIdentityEventService(IdentityEventService identityEventService) {
 
         this.identityEventService = identityEventService;
+    }
+
+    /**
+     * Get {@link OrganizationManager}.
+     *
+     * @return organization manager instance {@link OrganizationManager}.
+     */
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    /**
+     * Set {@link OrganizationManager}.
+     *
+     * @param organizationManager Instance of {@link OrganizationManager}.
+     */
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
     }
 }
