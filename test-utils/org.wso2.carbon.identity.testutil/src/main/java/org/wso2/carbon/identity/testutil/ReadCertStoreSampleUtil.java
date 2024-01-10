@@ -41,6 +41,9 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
+
 public class ReadCertStoreSampleUtil {
 
     private static final String PRIVATE_KEY =
@@ -101,8 +104,10 @@ public class ReadCertStoreSampleUtil {
 
     public static KeyStore createKeyStore(Class clazz) throws Exception {
        clazz.getResource("");
-        File file = new File(clazz.getResource("/repository/resources/security/wso2carbon.jks").getFile());
-        KeyStore keyStore = KeyStore.getInstance("JKS");
+        File file = new File(clazz.getResource(KeystoreUtils.getKeyStoreFileLocation(
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).getFile());
+        KeyStore keyStore = KeyStore.getInstance(KeystoreUtils.getKeyStoreFileExtension(
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME));
         if (file.exists()) {
             // if exists, load
             keyStore.load(new FileInputStream(file), "wso2carbon".toCharArray());
@@ -117,7 +122,8 @@ public class ReadCertStoreSampleUtil {
     public static KeyPair getSampleKeyPair() throws CertificateException,
             NoSuchAlgorithmException, IOException, InvalidKeyException, KeyStoreException,
             NoSuchProviderException, SignatureException {
-        KeyStore keyStore = KeyStore.getInstance("JKS");
+        KeyStore keyStore = KeyStore.getInstance(KeystoreUtils.getKeyStoreFileExtension(
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME));
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "SHA256WithRSA");
         SecureRandom random = SecureRandom.getInstance("RSA", "SHA256WithRSA");
         keyGen.initialize(1024, random);
