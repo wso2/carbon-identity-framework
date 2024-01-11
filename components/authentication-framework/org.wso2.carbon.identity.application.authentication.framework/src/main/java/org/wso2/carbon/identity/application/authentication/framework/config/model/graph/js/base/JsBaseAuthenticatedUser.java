@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
 
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 /**
@@ -29,4 +30,5 @@ public interface JsBaseAuthenticatedUser {
      * @return Wrapped Authenticated User
      */
     AuthenticatedUser getWrapped();
+    AuthenticationContext getContext();
 }
