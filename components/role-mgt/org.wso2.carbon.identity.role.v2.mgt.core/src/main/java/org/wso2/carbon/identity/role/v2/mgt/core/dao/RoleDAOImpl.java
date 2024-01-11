@@ -166,6 +166,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_GROUP_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_IDP_GROUPS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_USER_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_NAMES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
@@ -2502,7 +2503,7 @@ public class RoleDAOImpl implements RoleDAO {
         String roleName = null;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(
-                     connection, IS_ROLE_ID_EXIST_FROM_UM_HYBRID_ROLE_SQL)) {
+                     connection, GET_ROLE_NAME_BY_ID_SQL)) {
 
             statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
@@ -2786,7 +2787,8 @@ public class RoleDAOImpl implements RoleDAO {
         boolean isExist = false;
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_ID_EXIST_SQL)) {
+             NamedPreparedStatement statement = new NamedPreparedStatement(
+                     connection, IS_ROLE_ID_EXIST_FROM_UM_HYBRID_ROLE_SQL)) {
 
             statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
