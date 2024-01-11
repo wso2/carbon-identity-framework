@@ -2553,4 +2553,11 @@
             <Enabled>false</Enabled>
         </Username>
     </InputValidation>
+
+    <!-- Configuration settings for the API responses. -->
+    <APIResponse>
+        <!-- When set to true, this enables sending a specific authentication failure message in the API response
+         when an account is locked. -->
+        <SetAccountLockAuthFailureReason>false</SetAccountLockAuthFailureReason>
+    </APIResponse>
 </Server>
