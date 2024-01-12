@@ -387,12 +387,15 @@
             <Update>
                 <Scope name="internal_user_mgt_update"/>
                 <Scope name="internal_session_delete"/>
+                <Scope name="internal_group_mgt_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_user_mgt_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_user_mgt_create"/>
+                <Scope name="internal_bulk_mgt_create"/>
+                <Scope name="internal_offline_invite"/>
             </Create>
             <Read>
                 <Scope name="internal_userstore_view"/>
