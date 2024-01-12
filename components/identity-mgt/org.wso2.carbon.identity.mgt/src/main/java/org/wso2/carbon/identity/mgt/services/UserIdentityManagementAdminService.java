@@ -86,7 +86,7 @@ public class UserIdentityManagementAdminService {
             UserStoreManager userStoreManager = IdentityMgtServiceComponent.getRealmService().
                     getTenantUserRealm(CarbonContext.getThreadLocalCarbonContext().getTenantId()).getUserStoreManager();
             if (isSuperAdmin(userName)) {
-                throw new org.wso2.carbon.user.core.UserStoreException("You do not have the required privilege to " +
+                throw new IdentityMgtServiceException("You do not have the required privilege to " +
                         "delete superAdmin user");
             }
             userStoreManager.deleteUser(userName);
@@ -110,7 +110,7 @@ public class UserIdentityManagementAdminService {
         try {
 
             if (isSuperAdmin(userName)) {
-                throw new org.wso2.carbon.user.core.UserStoreException("You do not have the required privilege to " +
+                throw new IdentityMgtServiceException("You do not have the required privilege to " +
                         "lock superAdmin user");
             }
 
@@ -170,7 +170,7 @@ public class UserIdentityManagementAdminService {
 
         try {
             if (isSuperAdmin(userName)) {
-                throw new org.wso2.carbon.user.core.UserStoreException("You do not have the required privilege to " +
+                throw new IdentityMgtServiceException("You do not have the required privilege to " +
                         "disable superAdmin user");
             }
             UserStoreManager userStoreManager = getUserStore(userName);
@@ -270,7 +270,7 @@ public class UserIdentityManagementAdminService {
             throws IdentityMgtServiceException {
         try {
             if (isSuperAdmin(userName)) {
-                throw new org.wso2.carbon.user.core.UserStoreException("You do not have the required privilege to " +
+                throw new IdentityMgtServiceException("You do not have the required privilege to " +
                         "update superAdmin user");
             }
             UserStoreManager userStoreManager = getUserStore(userName);
