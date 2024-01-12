@@ -493,31 +493,13 @@
     <Resource context="(.*)/scim2/Schemas(.*)" secured="true" http-method="all"/>
 
     <!-- [Organization] SCIM2 Bulk API -->
-    <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="GET">
-        <Scopes>internal_org_bulk_mgt_view</Scopes>
-    </Resource>
     <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_bulk_mgt_create</Scopes>
     </Resource>
-    <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="PATCH, PUT">
-        <Scopes>internal_org_bulk_mgt_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_org_bulk_mgt_delete</Scopes>
-    </Resource>
 
     <!-- SCIM2 Bulk API -->
-    <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="GET">
-        <Scopes>internal_bulk_mgt_view</Scopes>
-    </Resource>
     <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="POST">
         <Scopes>internal_bulk_mgt_create</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="PATCH, PUT">
-        <Scopes>internal_bulk_mgt_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_bulk_mgt_delete</Scopes>
     </Resource>
 
     <!-- [Organization] Authentication Data APIs -->

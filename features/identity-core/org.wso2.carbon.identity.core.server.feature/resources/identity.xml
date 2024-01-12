@@ -1731,28 +1731,7 @@
         <Resource context="(.*)/scim2/Schemas(.*)" secured="true" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="GET">
-            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
-            <Scopes>internal_user_mgt_create</Scopes>
-            <Scopes>internal_user_mgt_view</Scopes>
-            <Scopes>internal_user_mgt_list</Scopes>
-            <Scopes>internal_user_mgt_delete</Scopes>
-        </Resource>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="POST">
-            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
-            <Scopes>internal_user_mgt_create</Scopes>
-            <Scopes>internal_user_mgt_view</Scopes>
-            <Scopes>internal_user_mgt_list</Scopes>
-            <Scopes>internal_user_mgt_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="PATCH, PUT">
-            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
-            <Scopes>internal_user_mgt_create</Scopes>
-            <Scopes>internal_user_mgt_view</Scopes>
-            <Scopes>internal_user_mgt_list</Scopes>
-            <Scopes>internal_user_mgt_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
             <Scopes>internal_user_mgt_create</Scopes>
             <Scopes>internal_user_mgt_view</Scopes>
