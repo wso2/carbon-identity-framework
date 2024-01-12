@@ -45,17 +45,8 @@
         <Resource context="/" secured="false" http-method="GET"/>
 
         <!-- Code Management API -->
-        <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="GET">
-            <Scopes>internal_code_mgt_view</Scopes>
-        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
             <Scopes>internal_code_mgt_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="PATCH, PUT">
-            <Scopes>internal_code_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_code_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/user/v1.0/introspect-code(.*)" secured="true" http-method="POST">
@@ -160,27 +151,27 @@
         <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
             <Scopes>internal_secret_type_mgt_add</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="PUT">
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="PUT">
             <Scopes>internal_secret_type_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="GET">
             <Scopes>internal_secret_type_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="DELETE">
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_secret_type_mgt_delete</Scopes>
         </Resource>
 
         <!-- Secret Management API -->
-        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
             <Scopes>internal_secret_mgt_add</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="PUT">
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="PATCH, PUT">
             <Scopes>internal_secret_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="GET">
             <Scopes>internal_secret_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="DELETE">
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_secret_mgt_delete</Scopes>
         </Resource>
 
@@ -346,11 +337,11 @@
         </Resource>
 
         <!-- Identity Register API -->
-        <Resource context="(.*)/identity/register(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_register_delete</Scopes>
+        <Resource context="(.*)/identity/register(.*)" secured="true" http-method="all">
+            <Scopes>internal_dcr_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="POST">
-            <Scopes>internal_register_create</Scopes>
+        <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="all">
+            <Scopes>internal_dcr_create</Scopes>
         </Resource>
 
         <!-- OAuth2 Introspection API -->
@@ -524,31 +515,13 @@
         <Resource context="(.*)/scim2/Schemas(.*)" secured="true" http-method="all"/>
 
         <!-- [Organization] SCIM2 Bulk API -->
-        <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="GET">
-            <Scopes>internal_org_bulk_mgt_view</Scopes>
-        </Resource>
         <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_bulk_mgt_create</Scopes>
         </Resource>
-        <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="PATCH, PUT">
-            <Scopes>internal_org_bulk_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_org_bulk_mgt_delete</Scopes>
-        </Resource>
 
         <!-- SCIM2 Bulk API -->
-        <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="GET">
-            <Scopes>internal_bulk_mgt_view</Scopes>
-        </Resource>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="POST">
             <Scopes>internal_bulk_mgt_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="PATCH, PUT">
-            <Scopes>internal_bulk_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_bulk_mgt_delete</Scopes>
         </Resource>
 
         <!-- [Organization] Authentication Data APIs -->
