@@ -2100,14 +2100,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             appNameResultSet = getAppNamesStmt.executeQuery();
 
-            if (filterString.contains("SP_INBOUND_AUTH")) {
-                while (appNameResultSet.next()) {
-                    appInfo.add(buildApplicationBasicInfoWithInboundConfig(appNameResultSet));
-                }
-            } else {
-                while (appNameResultSet.next()) {
-                    appInfo.add(buildApplicationBasicInfo(appNameResultSet));
-                }
+            while (appNameResultSet.next()) {
+                appInfo.add(buildApplicationBasicInfo(appNameResultSet));
             }
 
         } catch (SQLException e) {

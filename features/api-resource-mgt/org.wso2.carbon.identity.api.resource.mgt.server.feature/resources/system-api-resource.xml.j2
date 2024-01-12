@@ -816,6 +816,14 @@
             <Scope displayName="Attribute Feature" name="console:attributes"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Store Management Feature" identifier="console:userstores"
+                 requiresAuthorization="true"
+                 description="Resource representation of the User Store Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="User Store Feature" name="console:userstores"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Group Management Feature" identifier="console:groups"
                  requiresAuthorization="true"
                  description="Resource representation of the Group Management Feature"
@@ -832,12 +840,28 @@
             <Scope displayName="Identity Provider Feature" name="console:idps"/>
         </Scopes>
     </APIResource>
+    <APIResource name="API Resource Management Feature" identifier="console:apiResources"
+                 requiresAuthorization="true"
+                 description="Resource representation of the API Resource Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="API Resource Feature" name="console:apiResources"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="OIDC Scope Management Feature" identifier="console:scopes:oidc"
                  requiresAuthorization="true"
                  description="Resource representation of the OIDC Scope Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="OIDC Scope Feature" name="console:scopes:oidc"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Login And Registration Management Feature" identifier="console:loginAndRegistration"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Login And Registration Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Login And Registration Feature" name="console:loginAndRegistration"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Management Feature" identifier="console:organizations"
@@ -870,6 +894,93 @@
                  type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="User Feature" name="console:users"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Server Management Feature" identifier="console:server"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Server Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Server Feature" name="console:server"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Approval Management Feature" identifier="console:workflowApprovals"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Workflow Approval Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Workflow Approval Feature" name="console:workflowApprovals"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Notification Channel Management Feature" identifier="console:notificationChannels"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Notification Channel Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Notification Channel Feature" name="console:notificationChannels"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Verification Provider Management Feature" identifier="console:idvps"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Identity Verification Provider Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Identity Verification Provider Feature" name="console:idvps"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Event Publishing Management Feature" identifier="console:eventPublishing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Event Publishing Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Event Publishing Feature" name="console:eventPublishing"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Email Template Management Feature" identifier="console:emailTemplates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Email Template Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Email Template Feature" name="console:emailTemplates"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Console Setting Management Feature" identifier="console:settings"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Console Setting Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Console Setting Feature" name="console:settings"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Getting Started Feature" identifier="console:home"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Getting Started Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Getting Started Feature" name="console:home"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Secrets Management Feature" identifier="console:secretsManagement"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Secrets Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Secretes Management Feature" name="console:secretsManagement"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Certificate Management Feature" identifier="console:certificates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Certificate Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Certificate Feature" name="console:certificates"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
+                 requiresAuthorization="true"
+                 description="API to generate user onboard offline invite link" type="ORGANIZATION_ADMIN">
+        <Scopes>
+            <Scope displayName="Offline invite link" name="internal_org_offline_invite"/>
         </Scopes>
     </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/api/users/v1/offline-invite-link/"
