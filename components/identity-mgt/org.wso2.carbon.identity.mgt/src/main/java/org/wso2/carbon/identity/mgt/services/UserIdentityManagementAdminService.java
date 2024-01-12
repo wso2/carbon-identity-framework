@@ -85,8 +85,7 @@ public class UserIdentityManagementAdminService {
         try {
             UserStoreManager userStoreManager = IdentityMgtServiceComponent.getRealmService().
                     getTenantUserRealm(CarbonContext.getThreadLocalCarbonContext().getTenantId()).getUserStoreManager();
-            if (isAttemptToUpdateSuperAdmin(userName)) {
-                log.warn("An attempt to delete admin user.");
+            if (isSuperAdmin(userName)) {
                 throw new org.wso2.carbon.user.core.UserStoreException("You do not have the required privilege to " +
                         "delete superAdmin user");
             }
@@ -110,8 +109,7 @@ public class UserIdentityManagementAdminService {
 
         try {
 
-            if (isAttemptToUpdateSuperAdmin(userName)) {
-                log.warn("An attempt to lock admin user.");
+            if (isSuperAdmin(userName)) {
                 throw new org.wso2.carbon.user.core.UserStoreException("You do not have the required privilege to " +
                         "lock superAdmin user");
             }
@@ -171,8 +169,7 @@ public class UserIdentityManagementAdminService {
     public void disableUserAccount(String userName, String notificationType) throws IdentityMgtServiceException {
 
         try {
-            if (isAttemptToUpdateSuperAdmin(userName)) {
-                log.warn("An attempt to disable admin user.");
+            if (isSuperAdmin(userName)) {
                 throw new org.wso2.carbon.user.core.UserStoreException("You do not have the required privilege to " +
                         "disable superAdmin user");
             }
@@ -272,8 +269,7 @@ public class UserIdentityManagementAdminService {
     public void resetUserPassword(String userName, String newPassword)
             throws IdentityMgtServiceException {
         try {
-            if (isAttemptToUpdateSuperAdmin(userName)) {
-                log.warn("An attempt to update admin user.");
+            if (isSuperAdmin(userName)) {
                 throw new org.wso2.carbon.user.core.UserStoreException("You do not have the required privilege to " +
                         "update superAdmin user");
             }
@@ -658,7 +654,7 @@ public class UserIdentityManagementAdminService {
      * @param userName Username
      * @return boolean
      */
-    private boolean isAttemptToUpdateSuperAdmin(String userName) throws org.wso2.carbon.user.core.UserStoreException {
+    private boolean isSuperAdmin(String userName) throws org.wso2.carbon.user.core.UserStoreException {
 
         String loggedInUserName = CarbonContext.getThreadLocalCarbonContext().getUsername();
         if (loggedInUserName != null) {
