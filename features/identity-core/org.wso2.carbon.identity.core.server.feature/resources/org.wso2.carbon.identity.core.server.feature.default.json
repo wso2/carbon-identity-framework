@@ -1179,7 +1179,11 @@
   "console.governance_connectors.enabled": true,
   "console.governance_connectors.scopes.create": [],
   "console.governance_connectors.scopes.read": ["internal_governance_view"],
-  "console.governance_connectors.scopes.update": ["internal_governance_update"],
+  "console.governance_connectors.scopes.update": [
+    "internal_governance_update",
+    "internal_validation_rule_mgt_update",
+    "internal_config_update"
+  ],
   "console.governance_connectors.scopes.delete": [],
   "console.general_configurations.enabled": true,
   "console.general_configurations.scopes.create": [],
@@ -1226,7 +1230,11 @@
   "console.insights.enabled": false,
   "console.login_and_registration.enabled": true,
   "console.login_and_registration.scopes.read": ["internal_governance_view"],
-  "console.login_and_registration.scopes.update": ["internal_governance_update"],
+  "console.login_and_registration.scopes.update": [
+    "internal_governance_update",
+    "internal_validation_rule_mgt_update",
+    "internal_config_update"
+  ],
   "console.logs.enabled": false,
   "console.my_account.enabled": false,
   "console.oidc_scopes.enabled": true,
@@ -1315,11 +1323,21 @@
   "console.organizations.scopes.update": ["internal_organization_update"],
   "console.organizations.scopes.delete": ["internal_organization_delete"],
   "console.organization_discovery.enabled": true,
-  "console.organization_discovery.scopes.feature": ["console:organization_discovery"],
-  "console.organization_discovery.scopes.create": ["internal_organization_create", "internal_config_mgt_add"],
-  "console.organization_discovery.scopes.read": ["internal_organization_view", "internal_config_mgt_view"],
-  "console.organization_discovery.scopes.update": ["internal_organization_update"],
-  "console.organization_discovery.scopes.delete": ["internal_organization_delete", "internal_config_mgt_delete"],
+  "console.organization_discovery.scopes.feature": ["console:organizationDiscovery"],
+  "console.organization_discovery.scopes.create": [
+    "internal_organization_discovery_update",
+    "internal_organization_config_add"
+  ],
+  "console.organization_discovery.scopes.read": [
+    "internal_organization_discovery_view",
+    "internal_organization_config_view",
+    "internal_organization_view"
+  ],
+  "console.organization_discovery.scopes.update": ["internal_organization_discovery_update"],
+  "console.organization_discovery.scopes.delete": [
+    "internal_organization_discovery_delete",
+    "internal_organization_config_delete"
+  ],
   "console.console_settings.enabled": true,
   "console.console_settings.scopes.create": ["internal_role_mgt_create"],
   "console.console_settings.scopes.read": [

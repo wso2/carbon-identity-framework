@@ -459,6 +459,8 @@
             </Create>
             <Read>
                 <Scope name="internal_governance_view"/>
+                <Scope name="internal_validation_rule_mgt_update"/>
+                <Scope name="internal_config_update"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -516,12 +518,15 @@
             </Update>
             <Delete>
                 <Scope name="internal_organization_delete"/>
+                <Scope name="internal_organization_config_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_organization_create"/>
+                <Scope name="internal_organization_config_add"/>
             </Create>
             <Read>
                 <Scope name="internal_organization_view"/>
+                <Scope name="internal_organization_config_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -531,19 +536,20 @@
                 <Scope name="console:organizationDiscovery"/>
             </Feature>
             <Update>
-                <Scope name="internal_organization_update"/>
+                <Scope name="internal_organization_discovery_update"/>
             </Update>
             <Delete>
-                <Scope name="internal_organization_delete"/>
-                <Scope name="internal_config_mgt_delete"/>
+                <Scope name="internal_organization_discovery_delete"/>
+                <Scope name="internal_organization_config_delete"/>
             </Delete>
             <Create>
-                <Scope name="internal_organization_create"/>
-                <Scope name="internal_config_mgt_add"/>
+                <Scope name="internal_organization_discovery_update"/>
+                <Scope name="internal_organization_config_add"/>
             </Create>
             <Read>
+                <Scope name="internal_organization_discovery_view"/>
                 <Scope name="internal_organization_view"/>
-                <Scope name="internal_config_mgt_view"/>
+                <Scope name="internal_organization_config_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
