@@ -169,6 +169,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_NAMES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_TENANT_DOMAIN_BY_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SCOPE_BY_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
@@ -450,6 +451,45 @@ public class RoleDAOImpl implements RoleDAO {
             role.setPermissions(getPermissions(roleId, tenantDomain));
         }
         return role;
+    }
+
+    @Override
+    public Role getRole(String roleId) throws IdentityRoleManagementException {
+
+        String tenantDomain = getRoleTenantDomainById(roleId);
+        return getRole(roleId, tenantDomain);
+    }
+
+    private String getRoleTenantDomainById(String roleId) throws IdentityRoleManagementException {
+
+        String tenantId = null;
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_TENANT_DOMAIN_BY_ID)) {
+            statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
+            int count = 0;
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    // Handle multiple matching roles.
+                    count++;
+                    if (count > 1) {
+                        String message = "Invalid scenario. Multiple roles found for the given role ID: " + roleId;
+                        log.warn(message);
+                    }
+                    tenantId = resultSet.getString(1);
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while resolving the tenant domain for the given role ID: " + roleId;
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    errorMessage, e);
+        }
+        if (tenantId == null) {
+            String errorMessage = "A role doesn't exist with id: " + roleId;
+            throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(), errorMessage);
+        }
+
+        return IdentityTenantUtil.getTenantDomain(Integer.parseInt(tenantId));
     }
 
     @Override

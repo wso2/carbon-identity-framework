@@ -244,6 +244,9 @@ public class SQLQueries {
     public static final String GET_ROLE_NAME_BY_ID_SQL = "SELECT UM_ROLE_NAME FROM UM_HYBRID_ROLE WHERE "
             + "UM_TENANT_ID=:UM_TENANT_ID; AND UM_UUID=:UM_UUID;";
 
+    public static final String GET_ROLE_TENANT_DOMAIN_BY_ID = "SELECT UM_TENANT_ID FROM UM_HYBRID_ROLE WHERE "
+            + " UM_UUID=:UM_UUID;";
+
     public static final String IS_ROLE_ID_EXIST_SQL = "SELECT COUNT(ID) FROM IDN_SCIM_GROUP WHERE "
             + "TENANT_ID=:TENANT_ID; AND ATTR_NAME=:ATTR_NAME; AND ATTR_VALUE=:ATTR_VALUE;";
 
