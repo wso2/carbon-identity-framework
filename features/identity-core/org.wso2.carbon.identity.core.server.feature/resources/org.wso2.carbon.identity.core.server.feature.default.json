@@ -438,8 +438,6 @@
   "identity_mgt.user_onboarding.password_generator": "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator",
   "identity_mgt.user_onboarding.disable_random_value_for_credentials": false,
 
-  "console.user_onboarding.scopes.feature": ["console:loginAndRegistration"],
-
   "identity_mgt.tenant_registration.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
 
   "identity_mgt.user_self_registration.allow_self_registration": false,
@@ -1077,7 +1075,7 @@
   "console.session.params.checkSessionInterval": 3,
   "console.product_version.configs.productVersion": "BETA",
   "console.user_onboarding.enabled": true,
-  "console.user_onboarding.scopes.feature": [],
+  "console.user_onboarding.scopes.feature": ["console:loginAndRegistration"],
   "console.user_onboarding.scopes.read": ["internal_governance_view"],
   "console.user_onboarding.scopes.update": ["internal_governance_update"],
   "console.account_security.enabled": true,
