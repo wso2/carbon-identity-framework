@@ -112,7 +112,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
 
             if (StringUtils.isBlank(apiResource.getIdentifier())) {
                 throw APIResourceManagementUtil.handleClientException(
-                        APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_API_RESOURCE);
+                        APIResourceManagementConstants.ErrorMessages.ERROR_CODE_INVALID_IDENTIFIER_VALUE);
             }
 
             // Check whether the API resource already exists. This is being handled in the service layer since the

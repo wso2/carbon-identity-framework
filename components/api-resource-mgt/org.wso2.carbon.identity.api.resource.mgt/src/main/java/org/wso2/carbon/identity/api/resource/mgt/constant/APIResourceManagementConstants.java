@@ -109,6 +109,8 @@ public class APIResourceManagementConstants {
                 "Invalid filter value used for filtering."),
         ERROR_CODE_CREATION_RESTRICTED("60006", "API resource creation is restricted.",
                 "API resource creation is restricted in organizations."),
+        ERROR_CODE_INVALID_IDENTIFIER_VALUE("60007", "Unable to add API resources.",
+                "Invalid identifier value provided."),
 
         // Server errors.
         ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES("65001", "Error while retrieving API resources.",
