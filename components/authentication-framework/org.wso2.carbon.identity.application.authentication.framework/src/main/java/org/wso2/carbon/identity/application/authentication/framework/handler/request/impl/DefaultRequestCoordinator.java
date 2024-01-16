@@ -334,7 +334,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     context.setCurrentAuthenticator(null);
                 }
 
-
                 /*
                 If
                  Request specify to restart the flow again from first step by passing `restart_flow`.
