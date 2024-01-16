@@ -110,6 +110,13 @@ public class APIResourceManagerImpl implements APIResourceManager {
                         APIResourceManagementConstants.ErrorMessages.ERROR_CODE_CREATION_RESTRICTED);
             }
 
+            // Check whether the API resource already exists. This is being handled in the service layer since the
+            // system APIs are registered in the database in a tenant-agnostic manner.
+            if (getAPIResourceByIdentifier(apiResource.getIdentifier(), tenantDomain) != null) {
+                throw APIResourceManagementUtil.handleClientException(APIResourceManagementConstants
+                        .ErrorMessages.ERROR_CODE_API_RESOURCE_ALREADY_EXISTS, tenantDomain);
+            }
+
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             // If the API resource is a system API, set the tenant id to 0 since they are not tenant specific.
             if (APIResourceManagementUtil.isSystemAPI(apiResource.getType())) {

@@ -54,11 +54,6 @@ public class SQLConstants {
     public static final String API_RESOURCE_PROPERTY_NAME_COLUMN_NAME = "PROPERTY_NAME";
     public static final String API_RESOURCE_PROPERTY_VALUE_COLUMN_NAME = "PROPERTY_VALUE";
 
-    // Database constraint names.
-    public static final String API_RESOURCE_UNIQUE_CONSTRAINT = "identifier_unique";
-    public static final String SCOPE_UNIQUE_CONSTRAINT = "scope_unique";
-    public static final String DB2_SQL_ERROR_CODE_UNIQUE_CONSTRAINT = "-803";
-
     // Placeholders.
     public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
 
