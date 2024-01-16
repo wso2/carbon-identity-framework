@@ -40,6 +40,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.NotImplementedException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -105,7 +106,7 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
 
         return rolesAssociatedWithApp.stream()
                 .filter(role -> userRoleIds.contains(role.getId()))
-                .map(RoleV2::getName)
+                .map(role -> appendInternalDomain(role.getName()))
                 .toArray(String[]::new);
     }
 
@@ -118,7 +119,7 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
 
         return rolesAssociatedWithApp.stream()
                 .filter(role -> federatedUserRoleIds.contains(role.getId()))
-                .map(RoleV2::getName)
+                .map(role -> appendInternalDomain(role.getName()))
                 .toArray(String[]::new);
     }
 
@@ -380,5 +381,19 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
         } catch (IdentityRoleManagementException e) {
             throw RoleResolverUtils.handleServerException(ERROR_CODE_RETRIEVING_APP_ROLES, e);
         }
+    }
+
+    /**
+     * Append internal domain if there is no domain appended already.
+     *
+     * @param roleName Role name.
+     * @return Domain appended role name.
+     */
+    private String appendInternalDomain(String roleName) {
+
+        if (!roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            return UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + roleName;
+        }
+        return roleName;
     }
 }

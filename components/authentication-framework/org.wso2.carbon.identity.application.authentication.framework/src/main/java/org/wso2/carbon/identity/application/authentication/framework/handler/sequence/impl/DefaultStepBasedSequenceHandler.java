@@ -335,12 +335,18 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     // Get the mapped user roles according to the mapping in the IDP configuration.
                     // If no mapping is provided, return all IDP roles as they are.
                     List<String> identityProviderMappedUserRolesUnmappedInclusive;
+                    // Get the only mapped user roles will be used for scope validation.
+                    List<String> identityProviderMappedUserRolesForScopeValidation;
                     if (MapUtils.isEmpty(externalIdPConfig.getRoleMappings())) {
                         identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
                                 externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, false);
+                        identityProviderMappedUserRolesForScopeValidation = getIdentityProvideMappedUserRoles(
+                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, true);
                     } else {
                         identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
                                 externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
+                        identityProviderMappedUserRolesForScopeValidation =
+                                identityProviderMappedUserRolesUnmappedInclusive;
                     }
 
                     String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
@@ -365,7 +371,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         idpClaimValues = (Map<String, String>) context
                                 .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
                     }
-
+                    // Adding identity provider mapped user roles to be used in the federated user role resolver
+                    // for scope validation.
+                    mappedAttrs.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, String.join(" ",
+                            identityProviderMappedUserRolesForScopeValidation));
                 }
 
                 if (stepConfig.isSubjectIdentifierStep()) {
