@@ -3378,6 +3378,11 @@
     -->
     <EnableFederatedUserAssociation>{{user.association.enable_for_federated_users}}</EnableFederatedUserAssociation>
 
+    <!--
+    This property restricts unnecessary user local search during federated authentication flow
+    -->
+    <SkipLocalUserSearchForAuthenticationFlowHandlers>{{authentication.skip_local_user_search_for_authentication_flow_handlers}}</SkipLocalUserSearchForAuthenticationFlowHandlers>
+
     <TenantContext>
         <TenantQualifiedUrls>
             <Enable>{{tenant_context.enable_tenant_qualified_urls}}</Enable>

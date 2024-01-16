@@ -68,7 +68,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;
@@ -189,6 +191,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
@@ -196,6 +199,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORG_WISE_MULTI_ATTRIBUTE_SEPARATOR_ATTRIBUTE_NAME;
@@ -2839,6 +2843,16 @@ public class FrameworkUtils {
     }
 
     /**
+     * Get the server config for skip user local search during federated authentication flow
+     *
+     * @return isSkipLocalUserSearchForAuthenticationFlowHandlersEnabled value
+     */
+    public static boolean isSkipLocalUserSearchForAuthenticationFlowHandlersEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS));
+    }
+
+    /**
      * Check whether the specified table exists in the Identity database.
      *
      * @param tableName name of the table.
@@ -3082,6 +3096,93 @@ public class FrameworkUtils {
         } catch (IdentityException e) {
             throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
         }
+    }
+
+    /**
+     * Check if all the authenticators inside the IdP are flow handlers.
+     *
+     * @param authenticatorConfigList
+     * @return boolean
+     */
+    public static boolean isAllFlowHandlers(List<AuthenticatorConfig> authenticatorConfigList) {
+
+        for (AuthenticatorConfig config : authenticatorConfigList) {
+            if (!(config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * By looping over all the IdPs, check if at lease one IdP has enabled the JIT provisioning.
+     *
+     * @param context
+     * @return
+     * @throws PostAuthenticationFailedException Post Authentication failed exception.
+     */
+    public static boolean isJITProvisioningEnabled(AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
+            StepConfig stepConfig = entry.getValue();
+            AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
+            if (authenticatorConfig == null) {
+                //May have skipped from the script
+                //ex: Different authentication sequences evaluated by the script
+                continue;
+            }
+            ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
+
+            if (authenticator instanceof FederatedApplicationAuthenticator) {
+                ExternalIdPConfig externalIdPConfig;
+                String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
+                externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
+                context.setExternalIdP(externalIdPConfig);
+
+                if (externalIdPConfig != null && externalIdPConfig.isProvisioningEnabled()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * To get the external IDP Config.
+     *
+     * @param externalIdPConfigName Name of the external IDP Config.
+     * @param context               Authentication Context.
+     * @return relevant external IDP config.
+     * @throws PostAuthenticationFailedException Post AuthenticationFailedException.
+     */
+    private static ExternalIdPConfig getExternalIdpConfig(String externalIdPConfigName, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        ExternalIdPConfig externalIdPConfig = null;
+        try {
+            externalIdPConfig = ConfigurationFacade.getInstance()
+                    .getIdPConfigByName(externalIdPConfigName, context.getTenantDomain());
+        } catch (IdentityProviderManagementException e) {
+            handleExceptions(String.format(ERROR_WHILE_GETTING_IDP_BY_NAME.getMessage(), externalIdPConfigName,
+                    context.getTenantDomain()), ERROR_WHILE_GETTING_IDP_BY_NAME.getCode(), e);
+        }
+        return externalIdPConfig;
+    }
+
+    /**
+     * To handle exceptions.
+     *
+     * @param errorMessage Error Message
+     * @param errorCode    Error Code.
+     * @param e            Exception that is thrown during a failure.
+     * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
+     */
+    private static void handleExceptions(String errorMessage, String errorCode, Exception e)
+            throws PostAuthenticationFailedException {
+
+        throw new PostAuthenticationFailedException(errorCode, errorMessage, e);
     }
 
     /**
