@@ -56,13 +56,10 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
                 prepStmt = dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE);
                 for (Scope scope : scopes) {
-                    if (scope.getName().startsWith("internal_") || scope.getName().startsWith("console:")) {
-                        tenantId = 0;
-                    }
                     prepStmt.setString(1, applicationId);
                     prepStmt.setString(2, apiId);
                     prepStmt.setString(3, scope.getName());
-                    prepStmt.setInt(4, tenantId);
+                    prepStmt.setObject(4, isSystemScope(scope.getName()) ? null : tenantId);
                     prepStmt.addBatch();
                     prepStmt.clearParameters();
                 }
@@ -133,7 +130,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                             ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE);
                     prepStmt.setString(1, appId);
                     prepStmt.setString(2, apiId);
-                    prepStmt.setInt(4, tenantId);
+                    prepStmt.setObject(4, tenantId == 0 ? null : tenantId);
                     for (String scope : addedScopes) {
                         prepStmt.setString(3, scope);
                         prepStmt.addBatch();
@@ -248,5 +245,10 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while getting authorized API.", e);
         }
+    }
+
+    private boolean isSystemScope(String scope) {
+
+        return scope.startsWith("internal_") || scope.startsWith("console:");
     }
 }

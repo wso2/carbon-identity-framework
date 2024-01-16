@@ -133,7 +133,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 prepStmt.setString(3, apiResource.getName());
                 prepStmt.setString(4, apiResource.getIdentifier());
                 prepStmt.setString(5, apiResource.getDescription());
-                prepStmt.setInt(6, tenantId);
+                prepStmt.setObject(6, tenantId == 0 ? null : tenantId);
                 prepStmt.setBoolean(7, apiResource.isAuthorizationRequired());
                 prepStmt.executeUpdate();
                 prepStmt.clearParameters();
@@ -847,7 +847,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                     prepStmt.setString(3, scope.getDisplayName());
                     prepStmt.setString(4, scope.getDescription());
                     prepStmt.setString(5, apiId);
-                    prepStmt.setInt(6, tenantId);
+                    prepStmt.setObject(6, tenantId == 0 ? null : tenantId);
                     prepStmt.addBatch();
                 }
                 prepStmt.executeBatch();

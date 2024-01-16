@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtServerException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
@@ -202,5 +203,13 @@ public class APIResourceManagementUtil {
     public static boolean isSystemAPI(String type) {
 
         return !"BUSINESS".equalsIgnoreCase(type);
+    }
+
+    public Object getTenantId(String tenantDomain) {
+
+        if (tenantDomain == null) {
+            return null;
+        }
+        return IdentityTenantUtil.getTenantId(tenantDomain);
     }
 }
