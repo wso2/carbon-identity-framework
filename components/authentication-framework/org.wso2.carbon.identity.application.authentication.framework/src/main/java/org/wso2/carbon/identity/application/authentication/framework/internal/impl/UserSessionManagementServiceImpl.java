@@ -344,8 +344,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         try {
             RoleManagementService roleManagementServiceV2 = FrameworkServiceDataHolder.getInstance()
                     .getRoleManagementServiceV2();
-            Role role = roleManagementServiceV2.getRole(roleId,
-                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            Role role = roleManagementServiceV2.getRole(roleId);
             String associatedApplication = role.getAudienceName();
             Iterator<String> iterator = sessionIdList.iterator();
             while (iterator.hasNext()) {
