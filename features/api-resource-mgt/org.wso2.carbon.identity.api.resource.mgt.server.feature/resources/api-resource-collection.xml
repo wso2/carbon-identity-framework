@@ -99,10 +99,12 @@
             </Create>
             <Update>
                 <Scope name="internal_claim_meta_update"/>
+                <Scope name="internal_governance_update"/>
             </Update>
             <Read>
                 <Scope name="internal_userstore_view"/>
                 <Scope name="internal_claim_meta_view"/>
+                <Scope name="internal_governance_view"/>
             </Read>
             <Delete>
                 <Scope name="internal_claim_meta_delete"/>
