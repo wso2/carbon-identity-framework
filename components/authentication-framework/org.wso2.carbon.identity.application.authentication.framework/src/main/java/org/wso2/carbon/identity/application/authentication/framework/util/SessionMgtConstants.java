@@ -148,7 +148,10 @@ public class SessionMgtConstants {
                 "Data validation has failed, %s."),
         ERROR_CODE_INVALID_SESSION_ID("USM-10011",
                 "Invalid Session",
-                "Session cannot be found for the given session ID.");
+                "Session cannot be found for the given session ID."),
+        ERROR_CODE_UNABLE_TO_GET_ROLE("USM-10012",
+                "Unable to retrieve role information",
+                "Server encountered an error while retrieving role information of roleId, %s.");
 
         private final String code;
         private final String message;

@@ -78,6 +78,19 @@ public interface UserSessionManagementService {
     }
 
     /**
+     * Terminate active sessions of the given user ID mapped to the application associated to the given roleId.
+     *
+     * @param userId Unique ID of the user.
+     * @param roleId Unique ID of the role.
+     * @return Whether the sessions termination is success or not. In default method, false is returned.
+     * @throws SessionManagementException if the session termination fails.
+     */
+    default boolean terminateSessionsByUserId(String userId, String roleId) throws SessionManagementException {
+
+        return false;
+    }
+
+    /**
      * Get a specific session of the given user ID.
      *
      * @param userId    Unique ID of the user.

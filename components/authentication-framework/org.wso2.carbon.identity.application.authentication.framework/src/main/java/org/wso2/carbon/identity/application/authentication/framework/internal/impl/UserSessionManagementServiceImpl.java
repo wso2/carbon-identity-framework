@@ -40,6 +40,9 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Sessio
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.user.profile.mgt.AssociatedAccountDTO;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -54,6 +57,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -264,6 +268,12 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
 
+        return terminateSessionsByUserId(userId, null);
+    }
+
+    @Override
+    public boolean terminateSessionsByUserId(String userId, String roleId) throws SessionManagementException {
+
         List<String> sessionIdList = null;
 
         if (StringUtils.isBlank(userId)) {
@@ -288,6 +298,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
         }
         sessionIdList = getSessionIdListByUserId(userIdToSearch);
+
+        if (StringUtils.isNotEmpty(roleId)) {
+            sessionIdList = filterSessionIdListByRole(sessionIdList, roleId);
+        }
 
         boolean isSessionPreservingAtPasswordUpdateEnabled =
                 Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
@@ -315,6 +329,43 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
         }
         return true;
+    }
+
+    /**
+     * Filter out the session IDs that are only applicable for the given role.
+     *
+     * @param sessionIdList List of session IDs.
+     * @param roleId        Role ID.
+     * @return List of filtered session IDs.
+     */
+    private List<String> filterSessionIdListByRole(List<String> sessionIdList, String roleId)
+            throws SessionManagementServerException {
+
+        try {
+            RoleManagementService roleManagementServiceV2 = FrameworkServiceDataHolder.getInstance()
+                    .getRoleManagementServiceV2();
+            Role role = roleManagementServiceV2.getRole(roleId,
+                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            String associatedApplication = role.getAudienceName();
+            Iterator<String> iterator = sessionIdList.iterator();
+            while (iterator.hasNext()) {
+                String sessionId = iterator.next();
+                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
+                        FrameworkUtils.getLoginTenantDomainFromContext());
+                if (sessionContext != null) {
+                    sessionContext.getAuthenticatedIdPsOfApp().keySet().forEach(application -> {
+                        if (!associatedApplication.equals(application)) {
+                            iterator.remove();
+                        }
+                    });
+                }
+            }
+            return sessionIdList;
+        } catch (IdentityRoleManagementException e) {
+            String errorMessage = "Error occurred while retrieving role of id : " + roleId;
+            throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_ROLE,
+                    errorMessage, e);
+        }
     }
 
     @Override
