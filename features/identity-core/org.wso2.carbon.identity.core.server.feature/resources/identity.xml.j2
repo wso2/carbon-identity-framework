@@ -3502,6 +3502,12 @@
             </HTTPProxy>
             <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
             <AddPreviousVersionKID>{{oauth.jwks_endpoint.add_previous_version_kid}}</AddPreviousVersionKID>
+            <!-- Configuration for allowing users to to enable x5t#s256 parameter in JWKS endpoint -->
+            {% if oauth.jwks_endpoint.enable_x5t_in_response is defined %}
+            <EnableX5TInResponse>{{oauth.jwks_endpoint.enable_x5t_in_response}}</EnableX5TInResponse>
+            {% else %}
+            <EnableX5TInResponse>true</EnableX5TInResponse>
+            {% endif %}
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
