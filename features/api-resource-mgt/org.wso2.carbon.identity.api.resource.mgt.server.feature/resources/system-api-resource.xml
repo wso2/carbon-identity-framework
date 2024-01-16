@@ -863,6 +863,14 @@
             <Scope displayName="Organization Feature" name="console:organizations"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Organization Discovery Management Feature" identifier="console:organizationDiscovery"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Organization Discovery Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Organization Discovery Feature" name="console:organizationDiscovery"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Role Management Feature" identifier="console:roles"
                  requiresAuthorization="true"
                  description="Resource representation of the Role Management Feature"

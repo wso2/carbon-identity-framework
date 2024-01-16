@@ -146,9 +146,14 @@
             <Read>
                 <Scope name="internal_application_mgt_view"/>
                 <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
                 <Scope name="internal_role_mgt_view"/>
                 <Scope name="internal_guest_mgt_invite_list"/>
                 <Scope name="internal_idp_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_session_view"/>
+                <Scope name="internal_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -187,6 +192,7 @@
             </Create>
             <Read>
                 <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
                 <Scope name="internal_role_mgt_view"/>
                 <Scope name="internal_group_mgt_view"/>
                 <Scope name="internal_userstore_view"/>
@@ -270,6 +276,8 @@
             <Create/>
             <Read>
                 <Scope name="internal_governance_view"/>
+                <Scope name="internal_validation_rule_mgt_update"/>
+                <Scope name="internal_config_update"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -279,16 +287,16 @@
                 <Scope name="console:notificationChannels"/>
             </Feature>
             <Update>
-                <Scope name="internal_config_mgt_update"/>
+                <Scope name="internal_notification_senders_update"/>
             </Update>
             <Delete>
-                <Scope name="internal_config_mgt_delete"/>
+                <Scope name="internal_notification_senders_delete"/>
             </Delete>
             <Create>
-                <Scope name="internal_config_mgt_add"/>
+                <Scope name="internal_notification_senders_create"/>
             </Create>
             <Read>
-                <Scope name="internal_config_mgt_view"/>
+                <Scope name="internal_notification_senders_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -322,15 +330,38 @@
             </Update>
             <Delete>
                 <Scope name="internal_organization_delete"/>
-                <Scope name="internal_config_mgt_delete"/>
+                <Scope name="internal_organization_config_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_organization_create"/>
-                <Scope name="internal_config_mgt_add"/>
+                <Scope name="internal_organization_config_add"/>
             </Create>
             <Read>
                 <Scope name="internal_organization_view"/>
-                <Scope name="internal_config_mgt_view"/>
+                <Scope name="internal_organization_config_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="organizationDiscovery" displayName="Organization Discovery" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:organizationDiscovery"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_organization_discovery_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_organization_discovery_delete"/>
+                <Scope name="internal_organization_config_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_organization_discovery_update"/>
+                <Scope name="internal_organization_config_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_organization_discovery_view"/>
+                <Scope name="internal_organization_view"/>
+                <Scope name="internal_organization_config_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -363,19 +394,19 @@
             </Update>
             <Delete>
                 <Scope name="internal_role_mgt_delete"/>
-                <Scope name="internal_application_mgt_view"/>
-                <Scope name="internal_userstore_view"/>
-                <Scope name="internal_group_mgt_view"/>
             </Delete>
             <Create>
                 <Scope name="internal_role_mgt_create"/>
-                <Scope name="internal_application_mgt_view"/>
             </Create>
             <Read>
                 <Scope name="internal_user_mgt_view"/>
                 <Scope name="internal_role_mgt_view"/>
                 <Scope name="internal_userstore_view"/>
                 <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_api_resource_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -448,9 +479,14 @@
             <Read>
                 <Scope name="internal_org_application_mgt_view"/>
                 <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_role_mgt_view"/>
                 <Scope name="internal_org_guest_mgt_invite_list"/>
                 <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_session_view"/>
+                <Scope name="internal_org_governance_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -541,6 +577,7 @@
             </Create>
             <Read>
                 <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
                 <Scope name="internal_org_role_mgt_view"/>
                 <Scope name="internal_org_group_mgt_view"/>
                 <Scope name="internal_org_userstore_view"/>
@@ -558,13 +595,16 @@
             <Delete/>
             <Create>
                 <Scope name="internal_org_role_mgt_create"/>
-                <Scope name="internal_org_application_mgt_view"/>
             </Create>
             <Read>
                 <Scope name="internal_org_user_mgt_view"/>
                 <Scope name="internal_org_role_mgt_view"/>
                 <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_api_resource_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
