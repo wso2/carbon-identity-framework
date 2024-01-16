@@ -365,7 +365,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         idpClaimValues = (Map<String, String>) context
                                 .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
                     }
-
+                    // Adding identity provider mapped user roles to be used in the federated user role resolver
+                    // for scope validation.
+                    mappedAttrs.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, String.join(" ",
+                            identityProviderMappedUserRolesUnmappedInclusive));
                 }
 
                 if (stepConfig.isSubjectIdentifierStep()) {
