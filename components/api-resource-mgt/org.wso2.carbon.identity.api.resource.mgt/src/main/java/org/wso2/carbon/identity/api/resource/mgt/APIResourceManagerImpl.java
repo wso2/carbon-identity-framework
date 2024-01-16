@@ -110,6 +110,11 @@ public class APIResourceManagerImpl implements APIResourceManager {
                         APIResourceManagementConstants.ErrorMessages.ERROR_CODE_CREATION_RESTRICTED);
             }
 
+            if (StringUtils.isBlank(apiResource.getIdentifier())) {
+                throw APIResourceManagementUtil.handleClientException(
+                        APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_API_RESOURCE);
+            }
+
             // Check whether the API resource already exists. This is being handled in the service layer since the
             // system APIs are registered in the database in a tenant-agnostic manner.
             if (getAPIResourceByIdentifier(apiResource.getIdentifier(), tenantDomain) != null) {
