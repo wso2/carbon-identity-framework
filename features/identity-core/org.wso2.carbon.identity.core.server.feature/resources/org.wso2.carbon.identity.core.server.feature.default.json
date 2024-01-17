@@ -1286,7 +1286,9 @@
       "internal_user_mgt_view",
       "internal_role_mgt_view",
       "internal_userstore_view",
-      "internal_group_mgt_view"
+      "internal_group_mgt_view",
+      "internal_permission_mgt_view",
+      "internal_user_mgt_list"
   ],
   "console.user_v1_roles.scopes.update": ["internal_role_mgt_update"],
   "console.user_v1_roles.scopes.delete": ["internal_role_mgt_delete"],
