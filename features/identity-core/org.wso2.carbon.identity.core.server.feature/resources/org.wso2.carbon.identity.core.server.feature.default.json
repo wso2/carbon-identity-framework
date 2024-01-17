@@ -1501,5 +1501,7 @@
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
   "client_attestation.apple_attestation_revocation_check_enabled": false,
 
-  "api_response.set_account_lock_auth_failure_reason": false
+  "api_response.set_account_lock_auth_failure_reason": false,
+  
+  "super_tenant.alias_in_public_url": ""
 }
