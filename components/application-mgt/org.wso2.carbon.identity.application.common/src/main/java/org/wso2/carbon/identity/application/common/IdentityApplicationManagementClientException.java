@@ -89,6 +89,32 @@ public class IdentityApplicationManagementClientException extends IdentityApplic
 
         super(errorCode, message, cause);
     }
+    
+    /**
+     * Constructs a new exception with the specified error code, message and description.
+     *
+     * @param errorCode   Error code.
+     * @param message     Error message.
+     * @param description Error description.
+     */
+    public IdentityApplicationManagementClientException(String errorCode, String message, String description) {
+        
+        super(errorCode, message, description);
+    }
+    
+    /**
+     * Constructs a new exception with the specified error code, message, description and cause.
+     *
+     * @param errorCode   Error code
+     * @param message     Detailed message
+     * @param cause       Cause as {@link Throwable}
+     * @param description Error description.
+     */
+    public IdentityApplicationManagementClientException(String errorCode, String message, String description,
+                                                        Throwable cause) {
+        
+        super(errorCode, message, description, cause);
+    }
 
     public String[] getMessages() {
 

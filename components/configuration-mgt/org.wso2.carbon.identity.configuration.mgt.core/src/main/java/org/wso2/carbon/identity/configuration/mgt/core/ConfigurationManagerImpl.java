@@ -161,12 +161,24 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     /**
      * {@inheritDoc}
      */
+    public Resources getResourcesByType(int tenantId, String resourceTypeName) throws ConfigurationManagementException {
+
+        return retrieveResourcesByType(tenantId, resourceTypeName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public Resources getResourcesByType(String resourceTypeName) throws ConfigurationManagementException {
+
+        return retrieveResourcesByType(getTenantId(), resourceTypeName);
+    }
+
+    private Resources retrieveResourcesByType(int tenantId, String resourceTypeName) throws ConfigurationManagementException {
 
         validateResourcesRetrieveRequest(resourceTypeName);
         ResourceType resourceType = getResourceType(resourceTypeName);
-        List<Resource> resourceList = this.getConfigurationDAO()
-                .getResourcesByType(getTenantId(), resourceType.getId());
+        List<Resource> resourceList = this.getConfigurationDAO().getResourcesByType(tenantId, resourceType.getId());
         if (resourceList == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No resource found for the resourceTypeName: " + resourceTypeName);

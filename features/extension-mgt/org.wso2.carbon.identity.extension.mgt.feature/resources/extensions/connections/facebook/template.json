@@ -19,6 +19,7 @@
             "certificates": []
         },
         "alias": "https://localhost:9444/oauth2/token",
+        "idpIssuerName": "",
         "claims": {
             "userIdClaim": {
                 "uri": "email"

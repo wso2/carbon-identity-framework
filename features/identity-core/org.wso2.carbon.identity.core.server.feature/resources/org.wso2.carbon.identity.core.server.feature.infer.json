@@ -212,5 +212,48 @@
         }
       ]
     }
+  },
+  "server.legacy_mode": {
+    "true": {
+      "oauth.enable_sha256": false,
+      "oauth.jwk_thumbprint_enable_sha256": false,
+      "use_client_id_as_sub_claim_for_app_tokens": false,
+      "remove_username_from_introspection_response_for_app_tokens": false,
+      "legacy_authz_runtime.enable": true,
+      "tenant_context.enable_tenant_qualified_urls": "false",
+      "tenant_context.enable_tenanted_sessions": "false",
+      "session.nonce.cookie.default_whitelist_authenticators": [],
+      "identity_mgt.callback_url": "[http://localhost:9443].*[/authenticationendpoint/login.do]*",
+      "authentication.endpoint.consent_page_redirect_params.allow": true,
+      "user_account_association.enable_sha256": false,
+      "identity_util.enable_sha256": false,
+      "cert_thumbprint.enable_sha256": false,
+      "saml.metadata.sp_enable_sha256": false,
+      "saml.metadata.idp_enable_sha256": false,
+      "saml.enable_saml_idp_init_logout_response_signing": false,
+      "sts.signature_algorithm": "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+      "sts.digest_algorithm": "http://www.w3.org/2000/09/xmldsig#sha1",
+      "passive_sts.enable_logout_wreply_validation": false,
+      "oauth.oidc.allow_additional_params_from_post_logout_redirect_uri": true,
+      "oauth.grant_type.client_credentials.skip_oidc_claims": false,
+      "oauth.grant_type.client_credentials.allow_public_client": "true",
+      "signature_util.enable_sha256_algo": false,
+      "tenant_mgt.signing_alg": "MD5withRSA",
+      "identity_mgt.recovery.enable_v1_api": true,
+      "identity_mgt.password_reset_sms.sms_otp_regex": "[a-zA-Z0-9]{6}",
+      "event.default_listener.mutual_tls_authenticator.priority": 158,
+      "idp_role_management.return_manually_added_local_roles": false,
+      "oauth.revoked_token_headers_in_response.enable": true,
+      "console.ui.legacy_mode.apiResources": false,
+      "console.ui.legacy_mode.applicationListSystemApps": true,
+      "console.ui.legacy_mode.applicationOIDCSubjectIdentifier": true,
+      "console.ui.legacy_mode.applicationRequestPathAuthentication": true,
+      "console.ui.legacy_mode.applicationSystemAppsSettings": true,
+      "console.ui.legacy_mode.approvals": true,
+      "console.ui.legacy_mode.certificates": true,
+      "console.ui.legacy_mode.loginAndRegistrationEmailDomainDiscovery": true,
+      "console.ui.legacy_mode.organizations": false,
+      "console.ui.legacy_mode.saasApplications": true
+    }
   }
 }

@@ -100,6 +100,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -125,6 +126,7 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -144,7 +146,11 @@ import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
@@ -656,6 +662,9 @@ public class FrameworkUtils {
             }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             request.setAttribute(FrameworkConstants.IS_SENT_TO_RETRY, true);
+            if (status != null) {
+                request.setAttribute(FrameworkConstants.REQ_ATTR_RETRY_STATUS, status);
+            }
             if (context != null) {
                 if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
                     uriBuilder.addParameter(USER_TENANT_DOMAIN_HINT, context.getUserTenantDomain());
@@ -1512,12 +1521,14 @@ public class FrameworkUtils {
 
         Map<String, String> remoteToLocalClaimMap = new HashMap<String, String>();
 
-        for (Entry<ClaimMapping, String> entry : claimMappings.entrySet()) {
-            ClaimMapping claimMapping = entry.getKey();
-            if (useLocalDialectAsKey) {
-                remoteToLocalClaimMap.put(claimMapping.getLocalClaim().getClaimUri(), entry.getValue());
-            } else {
-                remoteToLocalClaimMap.put(claimMapping.getRemoteClaim().getClaimUri(), entry.getValue());
+        if (claimMappings != null) {
+            for (Entry<ClaimMapping, String> entry : claimMappings.entrySet()) {
+                ClaimMapping claimMapping = entry.getKey();
+                if (useLocalDialectAsKey) {
+                    remoteToLocalClaimMap.put(claimMapping.getLocalClaim().getClaimUri(), entry.getValue());
+                } else {
+                    remoteToLocalClaimMap.put(claimMapping.getRemoteClaim().getClaimUri(), entry.getValue());
+                }
             }
         }
         return remoteToLocalClaimMap;
@@ -2347,6 +2358,71 @@ public class FrameworkUtils {
     }
 
     /**
+     * Get the roles assigned to the federated user.
+     *
+     * @param externalIdPConfig     External IDP Config.
+     * @param extAttributesValueMap Attributes map.
+     * @param idpGroupClaimUri      IDP group claim URI.
+     * @param tenantDomain          Tenant domain.
+     * @return List of roles assigned to the federated user.
+     * @throws FrameworkException If an error occurred while getting the roles assigned to the federated user.
+     */
+    public static List<String> getAssignedRolesFromIdPGroups(ExternalIdPConfig externalIdPConfig,
+                                                             Map<String, String> extAttributesValueMap,
+                                                             String idpGroupClaimUri, String tenantDomain)
+            throws FrameworkException {
+
+        if (idpGroupClaimUri == null) {
+            // Since idpGroupClaimUri is not defined cannot do role assignment.
+            if (log.isDebugEnabled()) {
+                log.debug("Group claim uri is not configured for the external IDP: " + externalIdPConfig.getIdPName()
+                        + ", in Domain: " + externalIdPConfig.getDomain() + ".");
+            }
+            return new ArrayList<>();
+        }
+        String idpGroupAttrValue = null;
+        if (extAttributesValueMap != null) {
+            idpGroupAttrValue = extAttributesValueMap.get(idpGroupClaimUri);
+        }
+        List<String> idpGroupValues;
+        String federatedIDPGroupClaimAttributeSeparator;
+        if (idpGroupAttrValue != null) {
+            if (IdentityUtil.getProperty(FrameworkConstants.FEDERATED_IDP_GROUP_CLAIM_VALUE_SEPARATOR) != null) {
+                federatedIDPGroupClaimAttributeSeparator = IdentityUtil.getProperty(FrameworkConstants
+                        .FEDERATED_IDP_GROUP_CLAIM_VALUE_SEPARATOR);
+                if (log.isDebugEnabled()) {
+                    log.debug("The IDP side group claim value separator is configured as : "
+                            + federatedIDPGroupClaimAttributeSeparator);
+                }
+            } else {
+                federatedIDPGroupClaimAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+            }
+
+            idpGroupValues = Arrays.asList(idpGroupAttrValue.split(federatedIDPGroupClaimAttributeSeparator));
+        } else {
+            // No identity provider group values found.
+            if (log.isDebugEnabled()) {
+                log.debug("No group attribute value has received from the external IDP: "
+                        + externalIdPConfig.getIdPName() + ", in Domain: " + externalIdPConfig.getDomain() + ".");
+            }
+            return new ArrayList<>();
+        }
+        IdPGroup[] possibleIDPGroups = externalIdPConfig.getIdentityProvider().getIdPGroupConfig();
+        List<String> idpGroupIds =  new ArrayList<>();
+        for (IdPGroup idpGroup : possibleIDPGroups) {
+            if (idpGroup.getIdpGroupId() != null && idpGroupValues.contains(idpGroup.getIdpGroupName())) {
+                idpGroupIds.add(idpGroup.getIdpGroupId());
+            }
+        }
+        try {
+            return FrameworkServiceDataHolder.getInstance().getRoleManagementServiceV2()
+                    .getRoleIdListOfIdpGroups(idpGroupIds, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            throw new FrameworkException("Error while getting role ids of idp groups.", e);
+        }
+    }
+
+    /**
      * To get the role claim uri of an IDP.
      *
      * @param externalIdPConfig Relevant external IDP Config.
@@ -2370,6 +2446,22 @@ public class FrameworkUtils {
             }
         }
         return idpRoleClaimUri;
+    }
+
+    /**
+     * Returns the group claim uri of an IDP.
+     *
+     * @param externalIdPConfig Relevant external IDP Config.
+     * @return IDP group claim URI.
+     */
+    public static String getIdpGroupClaimUri(ExternalIdPConfig externalIdPConfig) {
+
+        return Arrays.stream(externalIdPConfig.getClaimMappings())
+                .filter(claimMap ->
+                        FrameworkConstants.GROUPS_CLAIM.equals(claimMap.getLocalClaim().getClaimUri()))
+                .map(claimMap -> claimMap.getRemoteClaim().getClaimUri())
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -2574,6 +2666,19 @@ public class FrameworkUtils {
         }
         return userNamePrvisioningUrl;
     }
+
+    /**
+     * This method determines whether username pattern validation should be skipped for JIT provisioning users based
+     * on the configuration file.
+     *
+     * @return boolean Whether to skip username validation or not.
+     */
+    public static boolean isSkipUsernamePatternValidation() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty("JITProvisioning.SkipUsernamePatternValidation"));
+    }
+
 
     /**
      * This method is to provide flag about Adaptive authentication is availability.
@@ -3558,5 +3663,66 @@ public class FrameworkUtils {
                 return null;
             }
         }
+    }
+
+    /**
+     * This method will check whether the authentication flow is API based or not.
+     *
+     * @param request Http servlet request.
+     * @return True if the authentication flow is API based.
+     */
+    public static boolean isAPIBasedAuthenticationFlow(HttpServletRequest request) {
+
+        return Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.IS_API_BASED_AUTH_FLOW));
+    }
+
+    /**
+     * Create a shallow copy of the input Identity Provider.
+     *
+     * @param idP Identity Provider.
+     * @return Clone of IDP.
+     */
+    public static IdentityProvider createIdPClone(IdentityProvider idP) throws FrameworkException {
+
+        ObjectOutputStream objOutPutStream;
+        ObjectInputStream objInputStream;
+        IdentityProvider newObject;
+        try {
+            ByteArrayOutputStream byteArrayOutPutStream = new ByteArrayOutputStream();
+            objOutPutStream = new ObjectOutputStream(byteArrayOutPutStream);
+            objOutPutStream.writeObject(idP);
+
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutPutStream.toByteArray());
+            objInputStream = new ObjectInputStream(byteArrayInputStream);
+            newObject = (IdentityProvider) objInputStream.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            throw new FrameworkException("Error deep cloning IDP object.", e);
+        }
+        return newObject;
+    }
+
+    /**
+     * Create a shallow copy of the input Service Provider.
+     *
+     * @param serviceProvider Service Provider.
+     * @return Clone of Application.
+     */
+    public static ServiceProvider createSPClone(ServiceProvider serviceProvider) throws FrameworkException {
+
+        ObjectOutputStream objOutPutStream;
+        ObjectInputStream objInputStream;
+        ServiceProvider newObject;
+        try {
+            ByteArrayOutputStream byteArrayOutPutStream = new ByteArrayOutputStream();
+            objOutPutStream = new ObjectOutputStream(byteArrayOutPutStream);
+            objOutPutStream.writeObject(serviceProvider);
+
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutPutStream.toByteArray());
+            objInputStream = new ObjectInputStream(byteArrayInputStream);
+            newObject = (ServiceProvider) objInputStream.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            throw new FrameworkException("Error deep cloning application object.", e);
+        }
+        return newObject;
     }
 }

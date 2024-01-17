@@ -15,5 +15,11 @@
     "displayName": "User Attributes",
     "order": 3,
     "icon": "./images/user-attributes-template.png"
+  },
+
+  "PasskeyEnrollment": {
+    "displayName": "Passkey Enrollment",
+    "order": 4,
+    "icon": "./images/passkey-enrollment-template.png"
   }
 }

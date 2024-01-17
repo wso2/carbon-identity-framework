@@ -1206,24 +1206,22 @@ public class ApplicationBean {
         serviceProvider.setImageUrl(imageUrl);
 
         String logoutReturnUrl = request.getParameter(LOGOUT_RETURN_URL);
-        if (StringUtils.isNotBlank(logoutReturnUrl)) {
-            boolean logoutReturnUrlDefined = false;
-            if (serviceProvider.getSpProperties() != null) {
-                for (ServiceProviderProperty property : serviceProvider.getSpProperties()) {
-                    if (property.getName() != null && LOGOUT_RETURN_URL.equals(property.getName())) {
-                        property.setValue(logoutReturnUrl);
-                        logoutReturnUrlDefined = true;
-                        break;
-                    }
+        boolean logoutReturnUrlDefined = false;
+        if (serviceProvider.getSpProperties() != null) {
+            for (ServiceProviderProperty property : serviceProvider.getSpProperties()) {
+                if (property.getName() != null && LOGOUT_RETURN_URL.equals(property.getName())) {
+                    property.setValue(logoutReturnUrl);
+                    logoutReturnUrlDefined = true;
+                    break;
                 }
             }
-            if (!logoutReturnUrlDefined) {
-                ServiceProviderProperty property = new ServiceProviderProperty();
-                property.setName(LOGOUT_RETURN_URL);
-                property.setDisplayName("Logout Return URL");
-                property.setValue(logoutReturnUrl);
-                serviceProvider.addSpProperties(property);
-            }
+        }
+        if (!logoutReturnUrlDefined) {
+            ServiceProviderProperty property = new ServiceProviderProperty();
+            property.setName(LOGOUT_RETURN_URL);
+            property.setDisplayName("Logout Return URL");
+            property.setValue(logoutReturnUrl);
+            serviceProvider.addSpProperties(property);
         }
 
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
@@ -1449,6 +1447,8 @@ public class ApplicationBean {
                 }
             }
             authStep.setLocalAuthenticatorConfigs(new LocalAuthenticatorConfig[]{localAuthenticator});
+            authStep.setSubjectStep(true);
+            authStep.setAttributeStep(true);
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
                     new AuthenticationStep[]{authStep});
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationScriptConfig(null);

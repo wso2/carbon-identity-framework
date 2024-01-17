@@ -30,7 +30,7 @@ import java.util.Map;
 public interface StepBasedSequenceHandler extends SequenceHandler {
 
     /**
-     * Method to call JIT Provisioning.
+     * Method to call JIT Provisioning with v1 roles.
      *
      * @param subjectIdentifier     Relevant Subject Identifier
      * @param context               Authentication Context
@@ -40,4 +40,17 @@ public interface StepBasedSequenceHandler extends SequenceHandler {
      */
     default void callJitProvisioning(String subjectIdentifier, AuthenticationContext context, List<String> mappedRoles,
             Map<String, String> extAttributesValueMap) throws FrameworkException { }
+
+    /**
+     * Method to call JIT Provisioning with v2 roles.
+     *
+     * @param subjectIdentifier Relevant Subject Identifier.
+     * @param context Authentication Context.
+     * @param assignedRoleIdList Assigned Role id List.
+     * @param extAttributesValueMap Attributes Value Map.
+     * @throws FrameworkException If an error occurred while calling JIT provisioning with v2 roles.
+     */
+    default void callJitProvisioningWithV2Roles(String subjectIdentifier, AuthenticationContext context,
+                                                List<String> assignedRoleIdList,
+                                                Map<String, String> extAttributesValueMap) throws FrameworkException { }
 }

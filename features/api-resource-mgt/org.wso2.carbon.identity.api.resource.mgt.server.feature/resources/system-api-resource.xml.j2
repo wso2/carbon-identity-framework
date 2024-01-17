@@ -29,23 +29,14 @@
     {% endfor %}
     <APIResource name="Admin Advisory Management API"
                  identifier="/api/server/v1/admin-advisory-management/banner" requiresAuthorization="true"
-                 description="API representation of the Admin Advisory Management API">
+                 description="API representation of the Admin Advisory Management API" type="SYSTEM">
         <Scopes>
             <Scope displayName="Modify Admin Advisory" name="internal_admin_advisory_mgt_update"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Admin Advisory Management API"
-                 identifier="/o/api/server/v1/admin-advisory-management/banner" requiresAuthorization="true"
-                 description="API representation of the Admin Advisory Management API"
-                 type="SYSTEM_ORG">
-        <Scopes>
-            <Scope displayName="Modify Admin Advisory"
-                   name="internal_org_admin_advisory_mgt_update"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="API Resource Management API" identifier="/api/server/v1/api-resources"
                  requiresAuthorization="true"
-                 description="API representation of the API Resource Management API">
+                 description="API representation of the API Resource Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Create API Resource" name="internal_api_resource_create"/>
             <Scope displayName="View API Resource" name="internal_api_resource_view"/>
@@ -53,9 +44,18 @@
             <Scope displayName="Delete API Resource" name="internal_api_resource_delete"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Shared Application Management API" identifier="/api/server/v1/applications/share"
+                 requiresAuthorization="true"
+                 description="API representation of the Shared Application Management API" type="TENANT_ADMIN">
+        <Scopes>
+            <Scope displayName="Create Shared Application" name="internal_shared_application_create"/>
+            <Scope displayName="View Shared Application" name="internal_shared_application_view"/>
+            <Scope displayName="Delete Shared Application" name="internal_shared_application_delete"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Application Management API" identifier="/api/server/v1/applications"
                  requiresAuthorization="true"
-                 description="API representation of the Application Management API">
+                 description="API representation of the Application Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Create Application" name="internal_application_mgt_create"/>
             <Scope displayName="Update Application" name="internal_application_mgt_update"/>
@@ -66,7 +66,7 @@
     <APIResource name="Application Management API"
                  identifier="/o/api/server/v1/applications" requiresAuthorization="true"
                  description="API representation of the Application Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Application" name="internal_org_application_mgt_view"/>
             <Scope displayName="Update Application" name="internal_org_application_mgt_update"/>
@@ -74,7 +74,7 @@
     </APIResource>
     <APIResource name="Authenticators Management API" identifier="/api/server/v1/authenticators"
                  requiresAuthorization="true"
-                 description="API representation of the Authenticators Management API">
+                 description="API representation of the Authenticators Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Authenticators" name="internal_authenticator_view"/>
         </Scopes>
@@ -82,7 +82,7 @@
     <APIResource name="Authenticators Management API"
                  identifier="/o/api/server/v1/authenticators" requiresAuthorization="true"
                  description="API representation of the Authenticators Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Authenticators"
                    name="internal_org_authenticator_view"/>
@@ -90,7 +90,7 @@
     </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
-                 description="API representation of the Branding Preference Management API">
+                 description="API representation of the Branding Preference Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Update Branding Preference"
                    name="internal_branding_preference_update"/>
@@ -99,7 +99,7 @@
     <APIResource name="Branding Preference Management API"
                  identifier="/o/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="Update Branding Preference"
                    name="internal_org_branding_preference_update"/>
@@ -107,7 +107,7 @@
     </APIResource>
     <APIResource name="Challenges Management API" identifier="/api/server/v1/challenges(.*)"
                  requiresAuthorization="true"
-                 description="API representation of the Challenges Management API">
+                 description="API representation of the Challenges Management API" type="OTHER">
         <Scopes>
             <Scope displayName="View Challenge" name="internal_challenge_mgt_view"/>
             <Scope displayName="Create Challenge" name="internal_challenge_mgt_create"/>
@@ -117,7 +117,7 @@
     </APIResource>
     <APIResource name="User Challenges Management API" identifier="/api/users/v1/(.*)/challenge(.*)"
                  requiresAuthorization="true"
-                 description="API representation of the User Challenges Management API">
+                 description="API representation of the User Challenges Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View User Challenge" name="internal_user_challenge_mgt_view"/>
             <Scope displayName="Create User Challenge" name="internal_user_challenge_mgt_create"/>
@@ -126,7 +126,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Claim Management API" identifier="/api/server/v1/claim-dialects"
-                 requiresAuthorization="true" description="API representation of the Claim Management API">
+                 requiresAuthorization="true" description="API representation of the Claim Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Create Claim" name="internal_claim_meta_create"/>
             <Scope displayName="View Claim" name="internal_claim_meta_view"/>
@@ -137,7 +137,7 @@
     <APIResource name="Claim Management API"
                  identifier="/o/api/server/v1/claim-dialects" requiresAuthorization="true"
                  description="API representation of the Claim Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="Create Claim" name="internal_org_claim_meta_create"/>
             <Scope displayName="View Claim" name="internal_org_claim_meta_view"/>
@@ -146,7 +146,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Configuration Management API" identifier="/api/server/v1/configs"
-                 requiresAuthorization="true" description="API representation of the Config Management API">
+                 requiresAuthorization="true" description="API representation of the Config Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Config" name="internal_config_view"/>
             <Scope displayName="Create Config" name="internal_config_create"/>
@@ -156,7 +156,7 @@
     </APIResource>
     <APIResource name="Configuration Management API" identifier="/o/api/server/v1/configs"
                  requiresAuthorization="true" description="API representation of the Config Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Config" name="internal_org_config_view"/>
             <Scope displayName="Create Config" name="internal_org_config_create"/>
@@ -165,21 +165,21 @@
         </Scopes>
     </APIResource>
     <APIResource name="CORS Management API" identifier="/api/server/v1/cors/origins"
-                 requiresAuthorization="true" description="API representation of the CORS Management API">
+                 requiresAuthorization="true" description="API representation of the CORS Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View CORS Origins" name="internal_cors_origins_view"/>
         </Scopes>
     </APIResource>
     <APIResource name="CORS Management API" identifier="/o/api/server/v1/cors/origins"
                  requiresAuthorization="true" description="API representation of the CORS Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View CORS Origins" name="internal_org_cors_origins_view"/>
         </Scopes>
     </APIResource>
     <APIResource name="Expired Password Identification Management API"
                  identifier="/api/server/v1/expired-password-identification" requiresAuthorization="true"
-                 description="API representation of the Expired Password Identification Management API">
+                 description="API representation of the Expired Password Identification Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Expired Password" name="internal_expired_password_view"/>
         </Scopes>
@@ -187,14 +187,14 @@
     <APIResource name="Expired Password Identification Management API"
                  identifier="/o/api/server/v1/expired-password-identification" requiresAuthorization="true"
                  description="API representation of the Expired Password Identification Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Expired Password" name="internal_org_expired_password_view"/>
         </Scopes>
     </APIResource>
     <APIResource name="Extension Management API" identifier="/api/server/v1/extensions"
                  requiresAuthorization="true"
-                 description="API representation of the Extension Management API">
+                 description="API representation of the Extension Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Extensions" name="internal_extensions_view"/>
         </Scopes>
@@ -203,14 +203,14 @@
                  identifier="/o/api/server/v1/extensions"
                  requiresAuthorization="true"
                  description="API representation of the Extension Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Extensions" name="internal_org_extensions_view"/>
         </Scopes>
     </APIResource>
     <APIResource name="Remote Fetch Management API" identifier="/api/server/v1/remote-fetch"
                  requiresAuthorization="true"
-                 description="API representation of the Remote Fetch Management API">
+                 description="API representation of the Remote Fetch Management API" type="OTHER">
         <Scopes>
             <Scope displayName="View Remote Fetch" name="internal_remote_fetch_view"/>
             <Scope displayName="Create Remote Fetch" name="internal_remote_fetch_create"/>
@@ -220,7 +220,7 @@
     </APIResource>
     <APIResource name="Identity Governance Management API"
                  identifier="/api/server/v1/identity-governance" requiresAuthorization="true"
-                 description="API representation of the Identity Governance Management API">
+                 description="API representation of the Identity Governance Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Identity Governance" name="internal_governance_view"/>
             <Scope displayName="Update Identity Governance"
@@ -230,7 +230,7 @@
     <APIResource name="Identity Governance Management API"
                  identifier="/o/api/server/v1/identity-governance" requiresAuthorization="true"
                  description="API representation of the Identity Governance Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Identity Governance"
                    name="internal_org_governance_view"/>
@@ -240,7 +240,7 @@
     </APIResource>
     <APIResource name="Idle Account Identification Management API"
                  identifier="/api/idle-account-identification/v1/inactive-users" requiresAuthorization="true"
-                 description="API representation of the Idle Account Identification Management API">
+                 description="API representation of the Idle Account Identification Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="List Idle Accounts" name="internal_idle_account_list"/>
         </Scopes>
@@ -249,14 +249,14 @@
                  identifier="/o/api/idle-account-identification/v1/inactive-users"
                  requiresAuthorization="true"
                  description="API representation of the Idle Account Identification Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="List Idle Accounts" name="internal_org_idle_account_list"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Provider Management API"
                  identifier="/api/server/v1/identity-providers" requiresAuthorization="true"
-                 description="API representation of the Identity Provider Management API">
+                 description="API representation of the Identity Provider Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Identity Provider" name="internal_idp_view"/>
             <Scope displayName="Create Identity Provider" name="internal_idp_create"/>
@@ -267,7 +267,7 @@
     <APIResource name="Identity Provider Management API"
                  identifier="/o/api/server/v1/identity-providers" requiresAuthorization="true"
                  description="API representation of the Identity Provider Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Identity Provider" name="internal_org_idp_view"/>
             <Scope displayName="Create Identity Provider"
@@ -280,7 +280,7 @@
     </APIResource>
     <APIResource name="Identity Verifier Management API" identifier="/api/server/v1/idv-providers"
                  requiresAuthorization="true"
-                 description="API representation of the Identity Verifier Management API">
+                 description="API representation of the Identity Verifier Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Identity Verifier Provider" name="internal_idvp_view"/>
             <Scope displayName="Add Identity Verifier Provider" name="internal_idvp_add"/>
@@ -289,7 +289,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Validation Rules API" identifier="/api/server/v1/validation-rules"
-                 requiresAuthorization="true" description="API representation of the Validation Rules API">
+                 requiresAuthorization="true" description="API representation of the Validation Rules API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Update Validation Rule" name="internal_validation_rule_mgt_update"/>
         </Scopes>
@@ -298,21 +298,21 @@
                  identifier="/o/api/server/v1/validation-rules"
                  requiresAuthorization="true"
                  description="API representation of the Validation Rules API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="Update Validation Rule" name="internal_org_validation_rule_mgt_update"/>
         </Scopes>
     </APIResource>
     <APIResource name="Keystore Management API" identifier="/api/server/v1/keystores/certs"
-                 requiresAuthorization="true" description="API representation of the Keystore Management API">
+                 requiresAuthorization="true" description="API representation of the Keystore Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Keystore" name="internal_keystore_view"/>
             <Scope displayName="Update Keystore" name="internal_keystore_update"/>
         </Scopes>
     </APIResource>
     <APIResource name="Notification Sender Management API"
-                 identifier="/api/server/v1/notification-senders/email" requiresAuthorization="true"
-                 description="API representation of the Notification Sender Management API">
+                 identifier="/api/server/v1/notification-senders" requiresAuthorization="true"
+                 description="API representation of the Notification Sender Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Notification Senders" name="internal_notification_senders_view"/>
             <Scope displayName="Create Notification Senders"
@@ -323,9 +323,22 @@
                    name="internal_notification_senders_delete"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Notification Sender Management API"
+                 identifier="/o/api/server/v1/notification-senders" requiresAuthorization="true"
+                 description="API representation of the Notification Sender Management API" type="ORGANIZATION_ADMIN">
+        <Scopes>
+            <Scope displayName="View Notification Senders" name="internal_org_notification_senders_view"/>
+            <Scope displayName="Create Notification Senders"
+                   name="internal_org_notification_senders_create"/>
+            <Scope displayName="Update Notification Senders"
+                   name="internal_org_notification_senders_update"/>
+            <Scope displayName="Delete Notification Senders"
+                   name="internal_org_notification_senders_delete"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="OIDC Scope Management API" identifier="/api/server/v1/oidc/scopes"
                  requiresAuthorization="true"
-                 description="API representation of the OIDC Scope Management API">
+                 description="API representation of the OIDC Scope Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View OIDC Scopes" name="internal_oidc_scope_mgt_view"/>
             <Scope displayName="Create OIDC Scopes" name="internal_oidc_scope_mgt_create"/>
@@ -334,7 +347,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Tenant Management API" identifier="/api/server/v1/tenants"
-                 requiresAuthorization="true" description="API representation of the Tenant Management API">
+                 requiresAuthorization="true" description="API representation of the Tenant Management API" type="SYSTEM">
         <Scopes>
             <Scope displayName="List Tenants" name="internal_list_tenants"/>
             <Scope displayName="Modify Tenants" name="internal_modify_tenants"/>
@@ -343,7 +356,7 @@
     <APIResource name="Organization Discovery API"
                  identifier="/api/server/v1/organizations/discovery"
                  requiresAuthorization="true"
-                 description="API representation of the Organization Discovery API">
+                 description="API representation of the Organization Discovery API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Organization Discovery"
                    name="internal_organization_discovery_view"/>
@@ -357,19 +370,15 @@
                  identifier="/o/api/server/v1/organizations/discovery"
                  requiresAuthorization="true"
                  description="API representation of the Organization Discovery API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Organization Discovery"
                    name="internal_org_organization_discovery_view"/>
-            <Scope displayName="Update Organization Discovery"
-                   name="internal_org_organization_discovery_update"/>
-            <Scope displayName="Delete Organization Discovery"
-                   name="internal_org_organization_discovery_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Management API" identifier="/api/server/v1/organizations"
                  requiresAuthorization="true"
-                 description="API representation of the Organization Management API">
+                 description="API representation of the Organization Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Organizations" name="internal_organization_view"/>
             <Scope displayName="Create Organizations" name="internal_organization_create"/>
@@ -381,7 +390,7 @@
                  identifier="/o/api/server/v1/organizations"
                  requiresAuthorization="true"
                  description="API representation of the Organization Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Organizations" name="internal_org_organization_view"/>
             <Scope displayName="Create Organizations" name="internal_org_organization_create"/>
@@ -389,81 +398,33 @@
             <Scope displayName="Delete Organizations" name="internal_org_organization_delete"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Organization Role Management API"
-                 identifier="/api/server/v1/organizations/(.*)/roles"
-                 requiresAuthorization="true"
-                 description="API representation of the Organization Role Management API">
-        <Scopes>
-            <Scope displayName="View Organization Roles" name="internal_organization_role_view"/>
-            <Scope displayName="Create Organization Roles" name="internal_organization_role_create"/>
-            <Scope displayName="Update Organization Roles" name="internal_organization_role_update"/>
-            <Scope displayName="Delete Organization Roles" name="internal_organization_role_delete"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Organization Role Management API"
-                 identifier="/o/api/server/v1/organizations/(.*)/roles"
-                 requiresAuthorization="true"
-                 description="API representation of the Organization Role Management API"
-                 type="SYSTEM_ORG">
-        <Scopes>
-            <Scope displayName="View Organization Roles" name="internal_org_organization_role_view"/>
-            <Scope displayName="Create Organization Roles"
-                   name="internal_org_organization_role_create"/>
-            <Scope displayName="Update Organization Roles"
-                   name="internal_org_organization_role_update"/>
-            <Scope displayName="Delete Organization Roles"
-                   name="internal_org_organization_role_delete"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Organization Config Discovery Management API"
                  identifier="/api/server/v1/organization-configs/discovery" requiresAuthorization="true"
-                 description="API representation of the Organization Config Management API">
+                 description="API representation of the Organization Config Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Organization Configs" name="internal_organization_config_view"/>
             <Scope displayName="Add Organization Configs" name="internal_organization_config_add"/>
             <Scope displayName="Delete Organization Configs" name="internal_organization_config_delete"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Organization Config Discovery Management API"
-                 identifier="/o/api/server/v1/organization-configs/discovery" requiresAuthorization="true"
-                 description="API representation of the Organization Config Management API"
-                 type="SYSTEM_ORG">
-        <Scopes>
-            <Scope displayName="View Organization Configs"
-                   name="internal_org_organization_config_view"/>
-            <Scope displayName="Add Organization Configs"
-                   name="internal_org_organization_config_add"/>
-            <Scope displayName="Delete Organization Configs"
-                   name="internal_org_organization_config_delete"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Self Service API"
                  identifier="/api/server/v1/self-service" requiresAuthorization="true"
-                 description="API representation of the Self Service API">
+                 description="API representation of the Self Service API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Self Service" name="internal_self_service_view"/>
             <Scope displayName="Update Self Service" name="internal_self_service_update"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Self Service API"
-                 identifier="/o/api/server/v1/self-service" requiresAuthorization="true"
-                 description="API representation of the Self Service API"
-                 type="SYSTEM_ORG">
-        <Scopes>
-            <Scope displayName="View Self Service" name="internal_org_self_service_view"/>
-            <Scope displayName="Update Self Service" name="internal_org_self_service_update"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Permission Management API"
                  identifier="/api/server/v1/permission-management/permissions" requiresAuthorization="true"
-                 description="API representation of the Permission Management API">
+                 description="API representation of the Permission Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Permissions" name="internal_permission_mgt_view"/>
         </Scopes>
     </APIResource>
     <APIResource name="Script Library Management API" identifier="/api/server/v1/script-libraries"
                  requiresAuthorization="true"
-                 description="API representation of the Script Library Management API">
+                 description="API representation of the Script Library Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Create Functional Library" name="internal_functional_lib_create"/>
             <Scope displayName="View Functional Library" name="internal_functional_lib_view"/>
@@ -473,7 +434,7 @@
     </APIResource>
     <APIResource name="Secret Type Management API" identifier="/api/server/v1/secret-type"
                  requiresAuthorization="true"
-                 description="API representation of the Secret Type Management API">
+                 description="API representation of the Secret Type Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Add Secret Type" name="internal_secret_type_mgt_add"/>
             <Scope displayName="Update Secret Type" name="internal_secret_type_mgt_update"/>
@@ -482,7 +443,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Secret Management API" identifier="/api/server/v1/secrets"
-                 requiresAuthorization="true" description="API representation of the Secret Management API">
+                 requiresAuthorization="true" description="API representation of the Secret Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Add Secret" name="internal_secret_mgt_add"/>
             <Scope displayName="Update Secret" name="internal_secret_mgt_update"/>
@@ -492,7 +453,7 @@
     </APIResource>
     <APIResource name="Userstore Management API" identifier="/api/server/v1/userstore"
                  requiresAuthorization="true"
-                 description="API representation of the Userstore Management API">
+                 description="API representation of the Userstore Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Create Userstore" name="internal_userstore_create"/>
             <Scope displayName="View Userstore" name="internal_userstore_view"/>
@@ -504,7 +465,7 @@
                  identifier="/o/api/server/v1/userstore"
                  requiresAuthorization="true"
                  description="API representation of the Userstore Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="Create Userstore" name="internal_org_userstore_create"/>
             <Scope displayName="View Userstore" name="internal_org_userstore_view"/>
@@ -512,15 +473,9 @@
             <Scope displayName="Update Userstore" name="internal_org_userstore_update"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Workflow Management API" identifier="/api/server/v1/workflow-engines"
-                 requiresAuthorization="true" description="API representation of the Workflow Management API">
-        <Scopes>
-            <Scope displayName="View Workflow" name="internal_workflow_view"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Association Management API"
                  identifier="/api/users/v1/(.*)/(.*)associations" requiresAuthorization="true"
-                 description="API representation of the Association Management API">
+                 description="API representation of the Association Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View User Associations" name="internal_user_association_view"/>
             <Scope displayName="Delete User Associations" name="internal_user_association_delete"/>
@@ -528,7 +483,7 @@
     </APIResource>
     <APIResource name="Authorized Application Management V1/V2 API"
                  identifier="/api/users/v(.*)/(.*)/authorized-apps" requiresAuthorization="true"
-                 description="API representation of the Authorized Application Management V2 API">
+                 description="API representation of the Authorized Application Management V2 API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Authorized Applications"
                    name="internal_user_authorizedapp_view"/>
@@ -539,7 +494,7 @@
     <APIResource name="Functionality Management API"
                  identifier="/api/users/v1/(.*)/user-functionality/(.*)"
                  requiresAuthorization="true"
-                 description="API representation of the Functionality Management API">
+                 description="API representation of the Functionality Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View User Functionality" name="internal_user_fucntionality_view"/>
             <Scope displayName="Create User Functionality" name="internal_user_fucntionality_create"/>
@@ -547,7 +502,7 @@
     </APIResource>
     <APIResource name="IDV Claim Management API" identifier="/api/users/v1/(.*)/idv"
                  requiresAuthorization="true"
-                 description="API representation of the IDV Claim Management API">
+                 description="API representation of the IDV Claim Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Verify IDV Claim" name="internal_idv_claim_verify"/>
             <Scope displayName="View IDV Claim" name="internal_idv_claim_view"/>
@@ -559,7 +514,7 @@
                  identifier="/o/api/users/v1/(.*)/idv"
                  requiresAuthorization="true"
                  description="API representation of the IDV Claim Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="Verify IDV Claim" name="internal_org_idv_claim_verify"/>
             <Scope displayName="View IDV Claim" name="internal_org_idv_claim_view"/>
@@ -568,7 +523,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Session Management API" identifier="/api/users/v1/(.*)sessions"
-                 requiresAuthorization="true" description="API representation of the Session Management API">
+                 requiresAuthorization="true" description="API representation of the Session Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Sessions" name="internal_session_view"/>
             <Scope displayName="Delete Sessions" name="internal_session_delete"/>
@@ -578,7 +533,7 @@
                  identifier="/o/api/users/v1/(.*)sessions"
                  requiresAuthorization="true"
                  description="API representation of the Session Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Sessions" name="internal_org_session_view"/>
             <Scope displayName="Delete Sessions" name="internal_org_session_delete"/>
@@ -586,13 +541,13 @@
     </APIResource>
     <APIResource name="Account Recovery V1/V2 API" identifier="/api/users/v1/recovery"
                  requiresAuthorization="true"
-                 description="API representation of the Account Recovery V1/V2 API">
+                 description="API representation of the Account Recovery V1/V2 API" type="TENANT_USER">
         <Scopes>
             <Scope displayName="Create User Recovery" name="internal_user_recovery_create"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Groups API" identifier="/scim2/Groups" requiresAuthorization="true"
-                 description="API representation of the SCIM2 Groups API">
+                 description="API representation of the SCIM2 Groups API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Group" name="internal_group_mgt_view"/>
             <Scope displayName="Create Group" name="internal_group_mgt_create"/>
@@ -602,7 +557,7 @@
     </APIResource>
     <APIResource name="SCIM2 Groups API" identifier="/o/scim2/Groups"
                  requiresAuthorization="true"
-                 description="API representation of the SCIM2 Groups API" type="SYSTEM_ORG">
+                 description="API representation of the SCIM2 Groups API" type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Group" name="internal_org_group_mgt_view"/>
             <Scope displayName="Create Group" name="internal_org_group_mgt_create"/>
@@ -611,7 +566,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Users API" identifier="/scim2/Users" requiresAuthorization="true"
-                 description="API representation of the SCIM2 Users API">
+                 description="API representation of the SCIM2 Users API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View User" name="internal_user_mgt_view"/>
             <Scope displayName="List Users" name="internal_user_mgt_list"/>
@@ -622,7 +577,7 @@
     </APIResource>
     <APIResource name="SCIM2 Users API" identifier="/o/scim2/Users"
                  requiresAuthorization="true"
-                 description="API representation of the SCIM2 Users API" type="SYSTEM_ORG">
+                 description="API representation of the SCIM2 Users API" type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View User" name="internal_org_user_mgt_view"/>
             <Scope displayName="List User" name="internal_org_user_mgt_list"/>
@@ -632,7 +587,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Roles API" identifier="/scim2/Roles" requiresAuthorization="true"
-                 description="API representation of the SCIM2 Roles API">
+                 description="API representation of the SCIM2 Roles API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Role" name="internal_role_mgt_view"/>
             <Scope displayName="Create Role" name="internal_role_mgt_create"/>
@@ -642,14 +597,14 @@
     </APIResource>
     <APIResource name="SCIM2 Roles API" identifier="/o/scim2/Roles"
                  requiresAuthorization="true"
-                 description="API representation of the SCIM2 Roles API" type="SYSTEM_ORG">
+                 description="API representation of the SCIM2 Roles API" type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Role" name="internal_org_role_mgt_view"/>
             <Scope displayName="Update Role" name="internal_org_role_mgt_update"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true"
-                 description="API representation of the SCIM2 Bulk API">
+                 description="API representation of the SCIM2 Bulk API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Create Bulk Resource" name="internal_bulk_mgt_create"/>
             <Scope displayName="View Bulk Resource" name="internal_bulk_mgt_view"/>
@@ -659,7 +614,7 @@
     </APIResource>
     <APIResource name="SCIM2 Bulk API" identifier="/o/scim2/Bulk"
                  requiresAuthorization="true"
-                 description="API representation of the SCIM2 Bulk API" type="SYSTEM_ORG">
+                 description="API representation of the SCIM2 Bulk API" type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="Create Bulk Resource"
                    name="internal_org_bulk_mgt_create"/>
@@ -672,7 +627,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Code Management API" identifier="/api/identity/user/v1.0/(.*)-code"
-                 requiresAuthorization="true" description="API representation of the Code Management API">
+                 requiresAuthorization="true" description="API representation of the Code Management API" type="TENANT_USER">
         <Scopes>
             <Scope displayName="View Code" name="internal_code_mgt_view"/>
             <Scope displayName="Create Code" name="internal_code_mgt_create"/>
@@ -682,7 +637,7 @@
     </APIResource>
     <APIResource name="User Personal Identification API"
                  identifier="/api/identity/user/v1.0/pi-info" requiresAuthorization="true"
-                 description="API representation of the User Personal Identification API">
+                 description="API representation of the User Personal Identification API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Personal Identification Information"
                    name="internal_pi_info_view"/>
@@ -690,7 +645,7 @@
     </APIResource>
     <APIResource name="Identity Configuration Management API" identifier="/api/identity/config-mgt/v1.0"
                  requiresAuthorization="true"
-                 description="API representation of the Configuration Management API">
+                 description="API representation of the Configuration Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="List Configuration" name="internal_config_mgt_list"/>
             <Scope displayName="View Configuration" name="internal_config_mgt_view"/>
@@ -700,7 +655,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Consent Management API" identifier="/api/identity/consent-mgt/v1.0/consents"
-                 requiresAuthorization="true" description="API representation of the Consent Management API">
+                 requiresAuthorization="true" description="API representation of the Consent Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Add Consent" name="internal_consent_mgt_add"/>
             <Scope displayName="Delete Consent" name="internal_consent_mgt_delete"/>
@@ -709,14 +664,14 @@
     <APIResource name="Consent Management API"
                  identifier="/o/api/identity/consent-mgt/v1.0/consents" requiresAuthorization="true"
                  description="API representation of the Consent Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="Add Consent" name="internal_org_consent_mgt_add"/>
             <Scope displayName="Delete Consent" name="internal_org_consent_mgt_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Recovery API" identifier="/api/identity/recovery"
-                 requiresAuthorization="true" description="API representation of the Identity Recovery API">
+                 requiresAuthorization="true" description="API representation of the Identity Recovery API" type="TENANT_USER">
         <Scopes>
             <Scope displayName="View Recovery" name="internal_recovery_view"/>
             <Scope displayName="Create Recovery" name="internal_recovery_create"/>
@@ -727,7 +682,7 @@
     <APIResource name="Identity Recovery API" identifier="/o/api/identity/recovery"
                  requiresAuthorization="true"
                  description="API representation of the Identity Recovery API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_USER">
         <Scopes>
             <Scope displayName="View Recovery" name="internal_org_recovery_view"/>
             <Scope displayName="Create Recovery" name="internal_org_recovery_create"/>
@@ -737,7 +692,7 @@
     </APIResource>
     <APIResource name="OAuth DCR API" identifier="/api/identity/oauth2/dcr/v1.1/register"
                  requiresAuthorization="true"
-                 description="API representation of the OAuth DCR (Dynamic Client Registration) API">
+                 description="API representation of the OAuth DCR (Dynamic Client Registration) API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View DCR" name="internal_dcr_view"/>
             <Scope displayName="Create DCR" name="internal_dcr_create"/>
@@ -747,7 +702,7 @@
     </APIResource>
     <APIResource name="OAuth2.0 Scope Management API" identifier="/api/identity/oauth2/v1.0/scopes"
                  requiresAuthorization="true"
-                 description="API representation of the OAuth2.0 Scope Management API">
+                 description="API representation of the OAuth2.0 Scope Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View OAuth Scope" name="internal_oauth_scope_view"/>
             <Scope displayName="Create OAuth Scope" name="internal_oauth_scope_create"/>
@@ -757,7 +712,7 @@
     </APIResource>
     <APIResource name="Email Template Management API"
                  identifier="/api/server/v1/email/template-types" requiresAuthorization="true"
-                 description="API representation of the Email Template Management API">
+                 description="API representation of the Email Template Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Email Template" name="internal_email_mgt_view"/>
             <Scope displayName="Create Email Template" name="internal_email_mgt_create"/>
@@ -768,7 +723,7 @@
     <APIResource name="Email Template Management API"
                  identifier="/o/api/server/v1/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Email Template" name="internal_org_email_mgt_view"/>
             <Scope displayName="Create Email Template" name="internal_org_email_mgt_create"/>
@@ -778,13 +733,13 @@
     </APIResource>
     <APIResource name="Entitlement Management API" identifier="/api/identity/entitlement/"
                  requiresAuthorization="true"
-                 description="API representation of the Entitlement Management API">
+                 description="API representation of the Entitlement Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Manage PEP (Policy Enforcement Point)" name="internal_manage_pep"/>
         </Scopes>
     </APIResource>
     <APIResource name="Media Management API" identifier="/api/identity/media/v1.0/user/"
-                 requiresAuthorization="true" description="API representation of the Media Management API">
+                 requiresAuthorization="true" description="API representation of the Media Management API" type="OTHER">
         <Scopes>
             <Scope displayName="Create Media" name="internal_media_mgt_create"/>
             <Scope displayName="View Media" name="internal_media_mgt_view"/>
@@ -793,7 +748,7 @@
     </APIResource>
     <APIResource name="Guest Invitation Management API"
                  identifier="/api/server/v1/guests/invitation" requiresAuthorization="true"
-                 description="API representation of the Guest Invitation Management API">
+                 description="API representation of the Guest Invitation Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="List Guest Invitations" name="internal_guest_mgt_invite_list"/>
             <Scope displayName="Add Guest Invitations" name="internal_guest_mgt_invite_add"/>
@@ -803,7 +758,7 @@
     <APIResource name="Guest Invitation Management API"
                  identifier="/o/api/server/v1/guests/invitation" requiresAuthorization="true"
                  description="API representation of the Guest Invitation Management API"
-                 type="SYSTEM_ORG">
+                 type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="List Guest Invitations" name="internal_org_guest_mgt_invite_list"/>
             <Scope displayName="Add Guest Invitations" name="internal_org_guest_mgt_invite_add"/>
@@ -813,20 +768,20 @@
     </APIResource>
     <APIResource name="OAuth2 Introspection API" identifier="/oauth2/introspect"
                  requiresAuthorization="true"
-                 description="API representation of the OAuth2 Introspection API">
+                 description="API representation of the OAuth2 Introspection API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="OAuth2 Introspection" name="internal_oauth2_introspect"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Register API" identifier="/identity/register"
-                 requiresAuthorization="true" description="API representation of the Identity Register API">
+                 requiresAuthorization="true" description="API representation of the Identity Register API" type="OTHER">
         <Scopes>
             <Scope displayName="Create Identity Register" name="internal_register_create"/>
             <Scope displayName="Delete Identity Register" name="internal_register_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Management API" identifier="/api/identity/user/v1.0"
-                 requiresAuthorization="true" description="API representation of the User Management API">
+                 requiresAuthorization="true" description="API representation of the User Management API" type="OTHER">
         <Scopes>
             <Scope displayName="Update User" name="internal_user_update"/>
         </Scopes>
@@ -834,22 +789,13 @@
     <APIResource name="User Management API" identifier="/o/api/identity/user/v1.0"
                  requiresAuthorization="true"
                  description="API representation of the User Management API"
-                 type="SYSTEM_ORG">
+                 type="OTHER">
         <Scopes>
             <Scope displayName="Update User" name="internal_org_user_update"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Event Configuration API" identifier="/api/event-configurations/v1/events"
-                 requiresAuthorization="true"
-                 description="API representation of the Event Configuration API"
-                 type="SYSTEM">
-        <Scopes>
-            <Scope displayName="View Event Configuration" name="internal_event_config_view"/>
-            <Scope displayName="Update Event Configuration" name="internal_event_config_update"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Me API" identifier="/me/" requiresAuthorization="false"
-                 description="API representation of the Me API">
+                 description="API representation of the Me API" type="OTHER">
         <Scopes>
             <Scope displayName="User Login" name="internal_login"/>
         </Scopes>
@@ -857,7 +803,7 @@
     <APIResource name="Application Management Feature" identifier="console:applications"
                  requiresAuthorization="true"
                  description="Resource representation of the Application Management Feature"
-                 type="SYSTEM_FEATURE">
+                 type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="Application Feature" name="console:applications"/>
         </Scopes>
@@ -865,15 +811,23 @@
     <APIResource name="Attribute Management Feature" identifier="console:attributes"
                  requiresAuthorization="true"
                  description="Resource representation of the Attribute Management Feature"
-                 type="SYSTEM_FEATURE">
+                 type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="Attribute Feature" name="console:attributes"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Store Management Feature" identifier="console:userstores"
+                 requiresAuthorization="true"
+                 description="Resource representation of the User Store Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="User Store Feature" name="console:userstores"/>
         </Scopes>
     </APIResource>
     <APIResource name="Group Management Feature" identifier="console:groups"
                  requiresAuthorization="true"
                  description="Resource representation of the Group Management Feature"
-                 type="SYSTEM_FEATURE">
+                 type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="Group Feature" name="console:groups"/>
         </Scopes>
@@ -881,31 +835,55 @@
     <APIResource name="Identity Provider Management Feature" identifier="console:idps"
                  requiresAuthorization="true"
                  description="Resource representation of the Identity Provider Management Feature"
-                 type="SYSTEM_FEATURE">
+                 type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="Identity Provider Feature" name="console:idps"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="API Resource Management Feature" identifier="console:apiResources"
+                 requiresAuthorization="true"
+                 description="Resource representation of the API Resource Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="API Resource Feature" name="console:apiResources"/>
         </Scopes>
     </APIResource>
     <APIResource name="OIDC Scope Management Feature" identifier="console:scopes:oidc"
                  requiresAuthorization="true"
                  description="Resource representation of the OIDC Scope Management Feature"
-                 type="SYSTEM_FEATURE">
+                 type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="OIDC Scope Feature" name="console:scopes:oidc"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Login And Registration Management Feature" identifier="console:loginAndRegistration"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Login And Registration Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Login And Registration Feature" name="console:loginAndRegistration"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Management Feature" identifier="console:organizations"
                  requiresAuthorization="true"
                  description="Resource representation of the Organization Management Feature"
-                 type="SYSTEM_FEATURE">
+                 type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="Organization Feature" name="console:organizations"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Organization Discovery Management Feature" identifier="console:organizationDiscovery"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Organization Discovery Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Organization Discovery Feature" name="console:organizationDiscovery"/>
         </Scopes>
     </APIResource>
     <APIResource name="Role Management Feature" identifier="console:roles"
                  requiresAuthorization="true"
                  description="Resource representation of the Role Management Feature"
-                 type="SYSTEM_FEATURE">
+                 type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="Role Feature" name="console:roles"/>
         </Scopes>
@@ -913,9 +891,103 @@
     <APIResource name="User Management Feature" identifier="console:users"
                  requiresAuthorization="true"
                  description="Resource representation of the User Management Feature"
-                 type="SYSTEM_FEATURE">
+                 type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="User Feature" name="console:users"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Server Management Feature" identifier="console:server"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Server Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Server Feature" name="console:server"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Workflow Approval Management Feature" identifier="console:workflowApprovals"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Workflow Approval Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Workflow Approval Feature" name="console:workflowApprovals"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Notification Channel Management Feature" identifier="console:notificationChannels"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Notification Channel Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Notification Channel Feature" name="console:notificationChannels"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Verification Provider Management Feature" identifier="console:idvps"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Identity Verification Provider Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Identity Verification Provider Feature" name="console:idvps"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Event Publishing Management Feature" identifier="console:eventPublishing"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Event Publishing Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Event Publishing Feature" name="console:eventPublishing"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Email Template Management Feature" identifier="console:emailTemplates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Email Template Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Email Template Feature" name="console:emailTemplates"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Console Setting Management Feature" identifier="console:settings"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Console Setting Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Console Setting Feature" name="console:settings"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Getting Started Feature" identifier="console:home"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Getting Started Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Getting Started Feature" name="console:home"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Secrets Management Feature" identifier="console:secretsManagement"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Secrets Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Secretes Management Feature" name="console:secretsManagement"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Certificate Management Feature" identifier="console:certificates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Certificate Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Certificate Feature" name="console:certificates"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
+                 requiresAuthorization="true"
+                 description="API to generate user onboard offline invite link" type="ORGANIZATION_ADMIN">
+        <Scopes>
+            <Scope displayName="Offline invite link" name="internal_org_offline_invite"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Offline User Onboard API" identifier="/api/users/v1/offline-invite-link/"
+                 requiresAuthorization="true"
+                 description="API to generate user onboard offline invite link" type="TENANT_ADMIN">
+        <Scopes>
+            <Scope displayName="Offline invite link" name="internal_offline_invite"/>
         </Scopes>
     </APIResource>
 </APIResources>

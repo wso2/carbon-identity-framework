@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.dao;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.GroupBasicInfo;
@@ -68,6 +69,25 @@ public interface RoleDAO {
             throws IdentityRoleManagementException;
 
     /**
+     * Retrieve available roles.
+     *
+     * @param limit              Limit value.
+     * @param offset             Offset value.
+     * @param sortBy             SortBy value.
+     * @param sortOrder          Sort order value.
+     * @param tenantDomain       Tenant domain.
+     * @param requiredAttributes Required attributes.
+     * @return List of roles.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default List<Role> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
+                                 List<String> requiredAttributes) throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getRoles method is not implemented");
+
+    }
+
+    /**
      * Retrieve available roles matching the provided filter.
      *
      * @param expressionNodes List of expressionNodes.
@@ -84,6 +104,26 @@ public interface RoleDAO {
             throws IdentityRoleManagementException;
 
     /**
+     * Retrieve available roles matching the provided filter.
+     *
+     * @param expressionNodes    List of expressionNodes.
+     * @param limit              Limit value.
+     * @param offset             Offset value.
+     * @param sortBy             SortBy value.
+     * @param sortOrder          Sort order value.
+     * @param tenantDomain       Tenant domain.
+     * @param requiredAttributes Required attributes.
+     * @return List of roles.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default List<Role> getRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset, String sortBy,
+                                 String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getRoles method is not implemented");
+    }
+
+    /**
      * Retrieve the given role.
      *
      * @param roleId       Role ID.
@@ -92,6 +132,15 @@ public interface RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     Role getRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Retrieve the given role.
+     *
+     * @param roleId       Role ID.
+     * @return The role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    Role getRole(String roleId) throws IdentityRoleManagementException;
 
     /**
      * Get permission list of the given role.

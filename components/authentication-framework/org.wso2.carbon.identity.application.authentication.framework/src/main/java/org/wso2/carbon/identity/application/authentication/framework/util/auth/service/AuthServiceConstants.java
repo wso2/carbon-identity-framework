@@ -72,6 +72,18 @@ public class AuthServiceConstants {
         ERROR_UNABLE_TO_FIND_APPLICATION("60005",
                 "Unable to find application.",
                 "Unable to find application for clientId %s in tenant domain %s"),
+        ERROR_AUTHENTICATOR_NOT_SUPPORTED("60006",
+                "Authenticator not supported.",
+                "Configured authenticator %s is not supported."),
+        ERROR_API_BASED_AUTH_NOT_ENABLED("60007",
+                "App native authentication is not enabled for the application.",
+                "App native authentication is not enabled for this application with id %s"),
+        ERROR_AUTHENTICATION_FLOW_TIMEOUT("60008",
+                "Authentication flow time out.",
+                "Authentication flow has timed out as it took too long to complete."),
+        ERROR_AUTHENTICATION_CONTEXT_NULL("60009",
+                "Invalid flow identifier.",
+                "The provided flowId is invalid."),
         // Server Error starting from 650xx.
         /* The 65001 ERROR_UNABLE_TO_PROCEED is used as the default server error
          therefor be cautious if that is being changed.*/
@@ -86,10 +98,7 @@ public class AuthServiceConstants {
                 "Unknown authentication flow status: %s"),
         ERROR_RETRIEVING_APPLICATION("65004",
                 "Unable to retrieve application.",
-                "Server encountered an error while retrieving application for clientId %s in tenant domain %s"),
-        ERROR_AUTHENTICATOR_NOT_SUPPORTED("65005",
-                "Authenticator not supported.",
-                "Configured authenticator %s is not supported.");
+                "Server encountered an error while retrieving application for clientId %s in tenant domain %s");
         private final String code;
         private final String message;
         private final String description;

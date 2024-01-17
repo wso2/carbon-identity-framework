@@ -43,6 +43,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -246,6 +247,11 @@ public class JsOpenJdkNashornClaims extends AbstractJSContextMemberObject implem
             claimUriMap.put(claimUri, String.valueOf(claimValue));
             ((AbstractUserStoreManager) userRealm.getUserStoreManager())
                     .setUserClaimValuesWithID(authenticatedUser.getUserId(), claimUriMap, null);
+        } catch (UserStoreClientException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Error when setting claim : %s of user: %s to value: %s. Error Message: %s",
+                        claimUri, authenticatedUser, String.valueOf(claimValue), e.getMessage()));
+            }
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when setting claim : %s of user: %s to value: %s", claimUri,
                     authenticatedUser, String.valueOf(claimValue)), e);

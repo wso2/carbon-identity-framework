@@ -1,0 +1,47 @@
+{
+  "category": "UserAttributes",
+  "name": "Update Office365 role",
+  "title": "Office365-Based Authentication Template",
+  "summary": "Office365 integration of WSO2 IS require role based, on-demand user provisioning. Therefore assign a given role specific to office365 for successfully authenticated users if not already assigned, in order to trigger the role based user provisioning.",
+  "preRequisites": [
+    "Create a new role specific for Office365.",
+    "Change the assigningRoles parameter to a single element array with the role specific to office365.",
+    "Modify the 1st factor authentication option from defaults as required."
+  ],
+  "parametersDescription": {
+    "roleToBeAssigned": "A single element array with a given role specific for Office365."
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator."
+  },
+  "authenticationSteps": 1,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "https://is.docs.wso2.com/en/latest/guides/authentication/conditional-auth/",
+  "code": [
+    "// This script will assign the below Office365 specific role to any user if not already assigned",
+    "var roleToBeAssigned = ['Internal/office365Role'];",
+    "",
+    "var onLoginRequest = function(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            // Extracting authenticated subject from the first step",
+    "            var user = context.currentKnownSubject;",
+    "            // Checking if the user is already assigned to the given Office365 specific role",
+    "            var hasRole = hasAnyOfTheRolesV2(context, roleToBeAssigned);",
+    "            if (!hasRole) {",
+    "                Log.info('Assigning role: ' + roleToBeAssigned.toString() + ' for the user:' + user.username);",
+    "                assignUserRolesV2(context, roleToBeAssigned);",
+    "            }",
+    "        }",
+    "    });",
+    "};"
+  ],
+  "runtime": "new"
+}

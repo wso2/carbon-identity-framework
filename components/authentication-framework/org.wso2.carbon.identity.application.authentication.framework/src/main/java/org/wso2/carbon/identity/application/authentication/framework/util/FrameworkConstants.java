@@ -179,6 +179,8 @@ public abstract class FrameworkConstants {
 
     public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
             "FederatedIDPRoleClaimValueAttributeSeparator";
+    public static final String FEDERATED_IDP_GROUP_CLAIM_VALUE_SEPARATOR =
+            "FederatedIDPGroupClaimValueAttributeSeparator";
 
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
@@ -217,6 +219,7 @@ public abstract class FrameworkConstants {
     public static final String ORACLE = "Oracle";
 
     public static final String SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.ScriptEngine";
+    public static final String THREAD_LOCAL_SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.LimitScriptEngineCreation";
     public static final String OPENJDK_NASHORN = "openjdkNashorn";
     public static final String NASHORN = "nashorn";
 
@@ -238,8 +241,12 @@ public abstract class FrameworkConstants {
     public static final String IS_USER_RESOLVED = "isUserResolved";
     public static final String ERROR_STATUS_AUTH_CONTEXT_NULL = "authentication.context.null";
     public static final String ERROR_DESCRIPTION_AUTH_CONTEXT_NULL = "authentication.context.null.description";
+    public static final String ERROR_STATUS_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout";
+    public static final String ERROR_DESCRIPTION_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout.description";
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
+    public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
+    public static final String IDP_MAPPED_USER_ROLES = "identityProviderMappedUserRoles";
 
     private FrameworkConstants() {
 
@@ -588,6 +595,7 @@ public abstract class FrameworkConstants {
         public static final String FORCE_AUTH_PARAM = "forceAuth";
         public static final String SUBJECT_IDENTIFIER_PARAM = "markAsSubjectIdentifierStep";
         public static final String SUBJECT_ATTRIBUTE_PARAM = "markAsSubjectAttributeStep";
+        public static final String SKIP_PROMPT = "skipPrompt";
     }
 
     /**

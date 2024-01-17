@@ -23,7 +23,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Adaptive+Authentication+Scenarios",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/",
   "code": [
     "// This script will assign the below Office365 specific role to any user if not already assigned",
     "var roleToBeAssigned = ['Internal/office365Role'];",
@@ -42,5 +42,6 @@
     "        }",
     "    });",
     "};"
-  ]
+  ],
+  "runtime": "legacy"
 }

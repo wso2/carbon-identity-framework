@@ -70,6 +70,10 @@
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
     </OpenID>
 
+    <IdentityUtil>
+        <EnableSHA256>true</EnableSHA256>
+    </IdentityUtil>
+
     <OAuth>
         <OAuth1RequestTokenUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/request-token</OAuth1RequestTokenUrl>
         <OAuth1AuthorizeUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/authorize-url</OAuth1AuthorizeUrl>
@@ -290,9 +294,6 @@
     </AuthenticationPolicy>
 
     <EventListeners>
-        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
-                       name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
-                       orderId="10" enable="true"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.IdentityMgtEventListener"
                        orderId="50" enable="false"/>

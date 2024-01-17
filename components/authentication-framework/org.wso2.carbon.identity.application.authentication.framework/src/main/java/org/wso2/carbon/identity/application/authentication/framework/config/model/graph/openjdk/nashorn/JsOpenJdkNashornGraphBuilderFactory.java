@@ -34,9 +34,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.OpenJdkSelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -58,16 +61,17 @@ public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFa
     // Suppress the Nashorn deprecation warnings in jdk 11
     @SuppressWarnings("removal")
     private NashornScriptEngineFactory factory;
-
+    private boolean useThreadLocalScriptEngine = false;
 
     public void init() {
 
         factory = new NashornScriptEngineFactory();
         classFilter = new OpenJdkNashornRestrictedClassFilter();
+        setUseThreadLocalScriptEngine();
     }
 
     public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
-        throws FrameworkException {
+            throws FrameworkException {
 
         Map<String, Object> map = (Map<String, Object>) context.getProperty(JS_BINDING_CURRENT_CONTEXT);
         Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -96,17 +100,27 @@ public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFa
 
     public ScriptEngine createEngine(AuthenticationContext authenticationContext) {
 
-        ScriptEngine engine = factory.getScriptEngine(NASHORN_ARGS, getClassLoader(), classFilter);
-        Bindings bindings = engine.createBindings();
-        engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
-        engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
+        ScriptEngine engine;
+        Bindings globalBindings;
+        if (useThreadLocalScriptEngine) {
+            Optional<ScriptEngine> optionalScriptEngine =
+                    new OpenJdkNashornThreadLocalScriptEngineHolder().getScriptEngine();
+            engine = optionalScriptEngine.orElseThrow(
+                    () -> new IdentityRuntimeException("Script engine is not available"));
+            globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
+        } else {
+            engine = factory.getScriptEngine(NASHORN_ARGS, getClassLoader(), classFilter);
+            globalBindings = engine.createBindings();
+            engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
+            engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
+        }
         OpenJdkSelectAcrFromFunction selectAcrFromFunction = new OpenJdkSelectAcrFromFunction();
 //        todo move to functions registry
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-            (SelectOneFunction) selectAcrFromFunction::evaluate);
+        globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
+                (SelectOneFunction) selectAcrFromFunction::evaluate);
 
         JsLogger jsLogger = new JsLogger();
-        bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
+        globalBindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
         return engine;
     }
 
@@ -140,5 +154,11 @@ public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFa
     public JsBaseGraphBuilder getCurrentBuilder() {
 
         return JsOpenJdkNashornGraphBuilder.getCurrentBuilder();
+    }
+
+    private void setUseThreadLocalScriptEngine() {
+
+        useThreadLocalScriptEngine =
+                Boolean.parseBoolean(IdentityUtil.getProperty(FrameworkConstants.THREAD_LOCAL_SCRIPT_ENGINE_CONFIG));
     }
 }

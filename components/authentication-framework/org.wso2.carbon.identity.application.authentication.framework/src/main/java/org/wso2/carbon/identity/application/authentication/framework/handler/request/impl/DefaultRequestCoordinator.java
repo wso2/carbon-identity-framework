@@ -146,11 +146,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         return (AuthenticationRequestCacheEntry) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_REQUEST);
     }
 
-    private boolean isAPIBasedAuthenticationFlow(HttpServletRequest request) {
-
-        return Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.IS_API_BASED_AUTH_FLOW));
-    }
-
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
@@ -317,7 +312,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         (FrameworkUtils.getCurrentStandardNano() > context.getExpiryTime())) {
                     log.error("Redirecting to retry page as the authentication context has expired.");
                     FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
-                            "authentication.flow.timeout", "authentication.flow.timeout.description");
+                            FrameworkConstants.ERROR_STATUS_AUTH_FLOW_TIMEOUT,
+                            FrameworkConstants.ERROR_DESCRIPTION_AUTH_FLOW_TIMEOUT);
                     return;
                 }
 
@@ -730,7 +726,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         buildOutboundQueryString(request, context);
 
         String redirectUrl = request.getParameter(REDIRECT_URI);
-        if (isAPIBasedAuthenticationFlow(request)) {
+        if (FrameworkUtils.isAPIBasedAuthenticationFlow(request)) {
             context.setProperty(REDIRECT_URL, redirectUrl);
             context.setProperty(IS_API_BASED, TRUE);
         }
@@ -849,7 +845,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         .getValue());
             }
             sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
-        } else if (isAPIBasedAuthenticationFlow(request)) {
+        } else if (FrameworkUtils.isAPIBasedAuthenticationFlow(request)) {
             /* If it's an API based authentication flow, the sha256 hashed value
              of the session identifier can be passed as a query param as well.*/
             String hashedSessionId = request.getParameter(FrameworkConstants.RequestParams.SESSION_ID);

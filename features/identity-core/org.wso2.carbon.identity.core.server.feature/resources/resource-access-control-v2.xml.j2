@@ -45,17 +45,8 @@
         <Resource context="/" secured="false" http-method="GET"/>
 
         <!-- Code Management API -->
-        <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="GET">
-            <Scopes>internal_code_mgt_view</Scopes>
-        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
             <Scopes>internal_code_mgt_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="PATCH, PUT">
-            <Scopes>internal_code_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_code_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/user/v1.0/introspect-code(.*)" secured="true" http-method="POST">
@@ -128,6 +119,20 @@
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
+        <!-- [Organization]  Notification Sender Management API -->
+        <Resource context="(.*)/o/api/server/v1/notification-senders/(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_notification_senders_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/notification-senders/(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_org_notification_senders_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/notification-senders/(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_notification_senders_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/notification-senders/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_notification_senders_delete</Scopes>
+        </Resource>
+
         <!-- Notification Sender Management API -->
         <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="POST">
             <Scopes>internal_notification_senders_create</Scopes>
@@ -146,27 +151,27 @@
         <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
             <Scopes>internal_secret_type_mgt_add</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="PUT">
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="PUT">
             <Scopes>internal_secret_type_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="GET">
             <Scopes>internal_secret_type_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="DELETE">
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_secret_type_mgt_delete</Scopes>
         </Resource>
 
         <!-- Secret Management API -->
-        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
             <Scopes>internal_secret_mgt_add</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="PUT">
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="PATCH, PUT">
             <Scopes>internal_secret_mgt_update</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="GET">
             <Scopes>internal_secret_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/secrets(.*)" secured="true" http-method="DELETE">
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_secret_mgt_delete</Scopes>
         </Resource>
 
@@ -332,11 +337,11 @@
         </Resource>
 
         <!-- Identity Register API -->
-        <Resource context="(.*)/identity/register(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_register_delete</Scopes>
+        <Resource context="(.*)/identity/register(.*)" secured="true" http-method="all">
+            <Scopes>internal_dcr_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="POST">
-            <Scopes>internal_register_create</Scopes>
+        <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="all">
+            <Scopes>internal_dcr_create</Scopes>
         </Resource>
 
         <!-- OAuth2 Introspection API -->
@@ -510,31 +515,13 @@
         <Resource context="(.*)/scim2/Schemas(.*)" secured="true" http-method="all"/>
 
         <!-- [Organization] SCIM2 Bulk API -->
-        <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="GET">
-            <Scopes>internal_org_bulk_mgt_view</Scopes>
-        </Resource>
         <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_bulk_mgt_create</Scopes>
         </Resource>
-        <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="PATCH, PUT">
-            <Scopes>internal_org_bulk_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_org_bulk_mgt_delete</Scopes>
-        </Resource>
 
         <!-- SCIM2 Bulk API -->
-        <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="GET">
-            <Scopes>internal_bulk_mgt_view</Scopes>
-        </Resource>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="POST">
             <Scopes>internal_bulk_mgt_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="PATCH, PUT">
-            <Scopes>internal_bulk_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_bulk_mgt_delete</Scopes>
         </Resource>
 
         <!-- [Organization] Authentication Data APIs -->
@@ -672,6 +659,16 @@
             <Scopes>internal_user_association_delete</Scopes>
         </Resource>
 
+        <!-- [Organization] User Offline Onboard Management API -->
+        <Resource context="(.*)/o/api/users/v1/offline-invite-link(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_offline_invite</Scopes>
+        </Resource>
+
+        <!-- User Offline Onboard Management API -->
+        <Resource context="(.*)/api/users/v1/offline-invite-link(.*)" secured="true" http-method="POST">
+            <Scopes>internal_offline_invite</Scopes>
+        </Resource>
+
         <!-- Challenge Management API -->
         <Resource context="(.*)/api/server/v1/challenges(.*)" secured="true" http-method="GET">
             <Scopes>internal_challenge_mgt_view</Scopes>
@@ -790,6 +787,23 @@
             <Scopes>internal_keystore_update</Scopes>
         </Resource>
 
+        <!-- Shared Application Management API -->
+        <Resource context="(.*)/api/server/v1/applications/(.*)/share" secured="true" http-method="GET">
+            <Scopes>internal_shared_application_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/(.*)/shared-apps" secured="true" http-method="GET">
+            <Scopes>internal_shared_application_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/(.*)/share" secured="true" http-method="POST">
+            <Scopes>internal_shared_application_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/(.*)/shared-apps" secured="true" http-method="DELETE">
+            <Scopes>internal_shared_application_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications/(.*)/share/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_shared_application_delete</Scopes>
+        </Resource>
+
         <!-- [Organization] Application Management API -->
         <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="PATCH, PUT">
             <Scopes>internal_org_application_mgt_update</Scopes>
@@ -812,7 +826,7 @@
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
 
-        <!-- [Organization] Admin Application Management API -->
+        <!-- Admin Application Management API -->
         <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
             <Scopes>internal_organization_admin</Scopes>
         </Resource>
@@ -889,10 +903,10 @@
         </Resource>
 
         <!-- [Organization] Session Management API -->
-        <Resource context="(.*)/api/users/v1/(.*)/sessions(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/o/api/users/v1/(.*)/sessions(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_session_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/(.*)/sessions(.*)" secured="true" http-method="DELETE">
+        <Resource context="(.*)/o/api/users/v1/(.*)/sessions(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_org_session_delete</Scopes>
         </Resource>
 
@@ -1053,63 +1067,8 @@
             <Scopes>internal_config_update</Scopes>
         </Resource>
 
-        <!-- [Organization] Organization Role Management API -->
-        <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles" secured="true" http-method="GET">
-            <Scopes>internal_org_organization_role_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="GET">
-            <Scopes>internal_org_organization_role_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="POST">
-            <Scopes>internal_org_organization_role_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PATCH">
-            <Scopes>internal_org_organization_role_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PUT">
-            <Scopes>internal_org_organization_role_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_org_organization_role_delete</Scopes>
-        </Resource>
-
-        <!-- Organization Role Management API -->
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles" secured="true" http-method="GET">
-            <Scopes>internal_organization_role_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="GET">
-            <Scopes>internal_organization_role_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="POST">
-            <Scopes>internal_organization_role_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PATCH">
-            <Scopes>internal_organization_role_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="PUT">
-            <Scopes>internal_organization_role_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/roles/(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_organization_role_delete</Scopes>
-        </Resource>
-
         <!-- [Organization] Organization Discovery API -->
-        <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="POST">
-            <Scopes>internal_org_organization_discovery_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/discovery" secured="true" http-method="GET">
-            <Scopes>internal_org_organization_discovery_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="GET">
-            <Scopes>internal_org_organization_discovery_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="PUT">
-            <Scopes>internal_org_organization_discovery_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/(.*)/discovery" secured="true" http-method="DELETE">
-            <Scopes>internal_org_organization_discovery_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/organizations/check-discovery" secured="true" http-method="POST">
+        <Resource context="(.*)/o/api/server/v1/organizations/check-discovery" secured="true" http-method="POST">
             <Scopes>internal_org_organization_discovery_view</Scopes>
         </Resource>
 
@@ -1179,17 +1138,6 @@
             <Scopes>internal_organization_view</Scopes>
         </Resource>
 
-        <!-- [Organization] Organization Config Management API -->
-        <Resource context="(.*)/o/api/server/v1/organization-configs/discovery" secured="true" http-method="GET">
-            <Scopes>internal_org_organization_config_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/organization-configs/discovery" secured="true" http-method="POST">
-            <Scopes>internal_org_organization_config_add</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
-            <Scopes>internal_org_organization_config_delete</Scopes>
-        </Resource>
-
         <!-- Organization Config Management API -->
         <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="GET">
             <Scopes>internal_organization_config_view</Scopes>
@@ -1199,14 +1147,6 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
             <Scopes>internal_organization_config_delete</Scopes>
-        </Resource>
-
-        <!-- [Organization] Organization Self Service API -->
-        <Resource context="(.*)/o/api/server/v1/self-service/(.*)" secured="true" http-method="GET">
-            <Scopes>internal_org_self_service_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/self-service/(.*)" secured="true" http-method="PATCH">
-            <Scopes>internal_org_self_service_update</Scopes>
         </Resource>
 
         <!-- Organization Self Service API -->
@@ -1288,11 +1228,6 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/remote-fetch(.*)" secured="true" http-method="GET">
             <Scopes>internal_remote_fetch_view</Scopes>
-        </Resource>
-
-        <!-- Workflow Management API -->
-        <Resource context="(.*)/api/server/v1/workflow-engines(.*)" secured="true" http-method="GET">
-            <Scopes>internal_workflow_view</Scopes>
         </Resource>
 
         <!-- Authorized Application Management V1/V2 API -->
@@ -1429,14 +1364,6 @@
         <Resource context="(.*)/registry/atom(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET"/>
-        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST"/>
-        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
-        <Resource context="^(?!.*/t/).*/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true"
-                  http-method="DELETE"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST"/>
-        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="POST"/>

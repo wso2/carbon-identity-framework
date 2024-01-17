@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.APIResourceProperty;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.sql.Connection;
@@ -516,6 +517,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     public List<APIResource> getScopeMetadata(List<String> scopeNames, Integer tenantId)
             throws APIResourceMgtException {
 
+        if (CollectionUtils.isEmpty(scopeNames)) {
+            return new ArrayList<>();
+        }
         String query = SQLConstants.GET_SCOPE_METADATA;
         String placeholders = String.join(",", Collections.nCopies(scopeNames.size(), "?"));
         query = query.replace(SQLConstants.SCOPE_LIST_PLACEHOLDER, placeholders);
@@ -586,6 +590,12 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
             if (filterAttributeValue != null) {
                 for (Map.Entry<Integer, String> entry : filterAttributeValue.entrySet()) {
+                    // PostgreSQL requires the value to be sent as integer for SERIAL datatype columns.
+                    if (databaseName.contains(IdentityCoreConstants.POSTGRE_SQL)
+                            && isValueOfCursorKey(entry.getKey(), filterQueryBuilder)) {
+                        prepStmt.setInt(entry.getKey(), Integer.parseInt(entry.getValue()));
+                        continue;
+                    }
                     prepStmt.setString(entry.getKey(), entry.getValue());
                 }
             }
@@ -608,6 +618,18 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
         }
         return apiResources;
+    }
+
+    /**
+     * Check whether the value of the key belongs to the CURSOR_KEY column.
+     *
+     * @param key                   Key of the filter.
+     * @param filterQueryBuilder    Filter query builder.
+     */
+    private boolean isValueOfCursorKey(int key, FilterQueryBuilder filterQueryBuilder) {
+
+        String filterForKey = filterQueryBuilder.getFilterQuery().split("AND")[key - 1];
+        return filterForKey.contains(SQLConstants.CURSOR_KEY_COLUMN_NAME);
     }
 
     /**
@@ -737,6 +759,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             sqlStmtTail = SQLConstants.GET_API_RESOURCES_TAIL_MSSQL;
 
             return String.format(sqlStmtHead, limit) + filterQuery + String.format(sqlStmtTail, tenantId, sortOrder);
+        } else if (databaseName.contains(SQLConstants.ORACLE)) {
+            sqlStmtTail = SQLConstants.GET_API_RESOURCES_TAIL_ORACLE;
         }
 
         return sqlStmtHead + filterQuery + String.format(sqlStmtTail, tenantId, sortOrder, limit);

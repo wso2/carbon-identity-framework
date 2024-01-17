@@ -22,6 +22,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
@@ -35,6 +36,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -48,6 +50,7 @@ import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceIm
 import org.wso2.carbon.identity.application.mgt.DiscoverableApplicationManager;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
+import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.internal.impl.DiscoverableApplicationManagerImpl;
 import org.wso2.carbon.identity.application.mgt.listener.AdminRolePermissionsUpdateListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationClaimMgtListener;
@@ -301,6 +304,9 @@ public class ApplicationManagementServiceComponent {
                     try {
                         String templateJsonString = FileUtils.readFileToString(jsonFile);
                         JSONObject templateObj = new JSONObject(templateJsonString);
+                        if (templateObj.has(ApplicationConstants.RUN_TIME) && isExcludeFromTemplates(templateObj)) {
+                            continue;
+                        }
                         if (templateObj.has(ApplicationConstants.TEMPLATE_CATEGORY)) {
                             String category = templateObj.getString(ApplicationConstants.TEMPLATE_CATEGORY);
                             if (!categoriesObj.has(category)) {
@@ -335,6 +341,22 @@ public class ApplicationManagementServiceComponent {
         }
         ApplicationManagementServiceComponentHolder.getInstance().setAuthenticationTemplatesJson(categoriesObj
                 .toString());
+    }
+
+    private static boolean isExcludeFromTemplates(JSONObject templateObj) {
+
+        String runtime = templateObj.getString(ApplicationConstants.RUN_TIME);
+
+        if (StringUtils.isBlank(runtime) || StringUtils.equalsIgnoreCase(ApplicationConstants.RUN_TIME_ANY, runtime)) {
+            return false;
+        }
+        if (StringUtils.equalsIgnoreCase(ApplicationConstants.RUN_TIME_NEW, runtime)) {
+            return CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
+        }
+        if (StringUtils.equalsIgnoreCase(ApplicationConstants.RUN_TIME_LEGACY, runtime)) {
+            return !CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
+        }
+        return false;
     }
 
     private JSONObject parseCategoryMetadata(File categoryMetadataFile) {
@@ -482,6 +504,27 @@ public class ApplicationManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("SAMLSSOServiceProviderManager unset in to bundle");
         }
+    }
+
+    @Reference(
+            name = "application.mgt.inbound.config.service",
+            service = ApplicationInboundAuthConfigHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationInboundAuthConfigService"
+    )
+    protected void setApplicationInboundAuthConfigService(ApplicationInboundAuthConfigHandler
+                                                                  applicationInboundAuthConfigHandler) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().addApplicationInboundAuthConfigHandler(
+                applicationInboundAuthConfigHandler);
+    }
+
+    protected void unsetApplicationInboundAuthConfigService(ApplicationInboundAuthConfigHandler
+                                                                    applicationInboundAuthConfigHandler) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().removeApplicationInboundConfigHandler(
+                applicationInboundAuthConfigHandler);
     }
 
     @Reference(

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>5.25.541-SNAPSHOT</version>
+        <version>5.25.671-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -45,8 +45,6 @@
         <module>org.wso2.carbon.idp.mgt.stub</module>
         <module>org.wso2.carbon.directory.server.manager.stub</module>
         <module>org.wso2.carbon.user.mgt.stub</module>
-        <module>org.wso2.carbon.user.mgt.workflow.stub</module>
-        <module>org.wso2.carbon.identity.workflow.mgt.stub</module>
         <module>org.wso2.carbon.identity.user.store.count.stub</module>
         <module>org.wso2.carbon.identity.governance.stub</module>
         <module>org.wso2.carbon.identity.functions.library.mgt.stub</module>

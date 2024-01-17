@@ -25,8 +25,12 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
+import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
+import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
@@ -77,42 +81,43 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     }
 
     @Override
-    public boolean preAddRole(String roleName, List<String> userList, List<String> groupList,
-                              List<Permission> permissions, String audience, String audienceId, String tenantDomain)
+    public void preAddRole(String roleName, List<String> userList, List<String> groupList,
+                           List<Permission> permissions, String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
         if (APPLICATION.equalsIgnoreCase(audience)) {
             validateApplicationRoleAudience(audienceId, tenantDomain);
             validatePermissionsForApplication(permissions, audienceId, tenantDomain);
         }
-        return true;
     }
 
     @Override
-    public boolean postAddRole(RoleBasicInfo roleBasicInfo, String roleName, List<String> userList,
-                               List<String> groupList, List<Permission> permissions, String audience,
-                               String audienceId, String tenantDomain) throws IdentityRoleManagementException {
+    public void postAddRole(RoleBasicInfo roleBasicInfo, String roleName, List<String> userList,
+                            List<String> groupList, List<Permission> permissions, String audience,
+                            String audienceId, String tenantDomain) throws IdentityRoleManagementException {
 
         if (APPLICATION.equalsIgnoreCase(audience)) {
             // Set audience name by application name.
             roleBasicInfo.setAudienceName(getApplicationName(audienceId, tenantDomain));
-            // Clear cache of the application.
-            ServiceProviderResourceIdCacheKey resourceIdKey = new ServiceProviderResourceIdCacheKey(audienceId);
-            ServiceProviderByResourceIdCache.getInstance().clearCacheEntry(resourceIdKey, tenantDomain);
+            clearApplicationCaches(audienceId, tenantDomain);
         }
-        return true;
     }
 
     @Override
-    public boolean preGetRoles(Integer limit, Integer offset, String sortBy, String sortOrder,
-                               String tenantDomain) throws IdentityRoleManagementException {
+    public void preGetRoles(Integer limit, Integer offset, String sortBy, String sortOrder,
+                            String tenantDomain) throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean postGetRoles(List<RoleBasicInfo> roleBasicInfoList, Integer limit, Integer offset,
-                                String sortBy, String sortOrder, String tenantDomain)
+    public void preGetRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
+                            List<String> requiredAttributes) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, Integer limit, Integer offset,
+                             String sortBy, String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException {
 
         Iterator<RoleBasicInfo> iterator = roleBasicInfoList.iterator();
@@ -126,19 +131,42 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                 roleBasicInfo.setAudienceName(applicationName);
             }
         }
-        return true;
     }
 
     @Override
-    public boolean preGetRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
-                               String tenantDomain) throws IdentityRoleManagementException {
+    public void postGetRoles(List<Role> roleInfoList, Integer limit, Integer offset,
+                             String sortBy, String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
 
-        return true;
+        Iterator<Role> iterator = roleInfoList.iterator();
+        while (iterator.hasNext()) {
+            Role roleInfo = iterator.next();
+            if (APPLICATION.equalsIgnoreCase(roleInfo.getAudience())) {
+                String applicationName = getApplicationName(roleInfo.getAudienceId(), tenantDomain);
+                if (applicationName == null) {
+                    iterator.remove();
+                }
+                roleInfo.setAudienceName(applicationName);
+            }
+        }
     }
 
     @Override
-    public boolean postGetRoles(List<RoleBasicInfo> roleBasicInfoList, String filter, Integer limit, Integer offset,
-                                String sortBy, String sortOrder, String tenantDomain)
+    public void preGetRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
+                            String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void preGetRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
+                            String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetRoles(List<RoleBasicInfo> roleBasicInfoList, String filter, Integer limit, Integer offset,
+                             String sortBy, String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException {
 
         for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
@@ -146,56 +174,49 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                 roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
             }
         }
-        return true;
     }
 
     @Override
-    public boolean preGetRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+    public void postGetRoles(List<Role> roleInfoList, String filter, Integer limit, Integer offset,
+                             String sortBy, String sortOrder, String tenantDomain, List<String> requiredAttributes)
+            throws IdentityRoleManagementException {
 
-        return true;
+        for (Role roleInfo : roleInfoList) {
+            if (APPLICATION.equalsIgnoreCase(roleInfo.getAudience())) {
+                roleInfo.setAudienceName(getApplicationName(roleInfo.getAudienceId(), tenantDomain));
+            }
+        }
     }
 
     @Override
-    public boolean postGetRole(Role role, String roleID, String tenantDomain) throws IdentityRoleManagementException {
+    public void preGetRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetRole(Role role, String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
         if (APPLICATION.equalsIgnoreCase(role.getAudience())) {
             role.setAudienceName(getApplicationName(role.getAudienceId(), tenantDomain));
         }
-        return true;
     }
 
     @Override
-    public boolean preGetRoleBasicInfo(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+    public void preGetRoleBasicInfo(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean postGetRoleBasicInfo(RoleBasicInfo roleBasicInfo, String roleID, String tenantDomain)
+    public void postGetRoleBasicInfo(RoleBasicInfo roleBasicInfo, String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
         if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
             roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
         }
-        return true;
     }
 
     @Override
-    public boolean preUpdateRoleName(String roleID, String newRoleName, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean postUpdateRoleName(String roleID, String newRoleName, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean preDeleteRole(String roleID, String tenantDomain)
+    public void preUpdateRoleName(String roleID, String newRoleName, String tenantDomain)
             throws IdentityRoleManagementException {
 
         try {
@@ -203,165 +224,169 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                     .getRole(roleID, tenantDomain);
             List<AssociatedApplication> associatedApplications = role.getAssociatedApplications();
             for (AssociatedApplication application : associatedApplications) {
-                ServiceProviderResourceIdCacheKey resourceIdKey = new
-                        ServiceProviderResourceIdCacheKey(application.getId());
-                ServiceProviderByResourceIdCache.getInstance().clearCacheEntry(resourceIdKey, tenantDomain);
+                clearApplicationCaches(application.getId(), tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            throw new IdentityRoleManagementException(
+                    String.format("Error occurred while updating the name of role : %s in tenant domain : %s",
+                            roleID, tenantDomain), e);
+        }
+
+    }
+
+    @Override
+    public void postUpdateRoleName(String roleID, String newRoleName, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void preDeleteRole(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        try {
+            Role role = ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2()
+                    .getRole(roleID, tenantDomain);
+            List<AssociatedApplication> associatedApplications = role.getAssociatedApplications();
+            for (AssociatedApplication application : associatedApplications) {
+                clearApplicationCaches(application.getId(), tenantDomain);
             }
         } catch (IdentityRoleManagementException e) {
             throw new IdentityRoleManagementException(
                     String.format("Error occurred while deleting role : %s and tenant domain : %s",
                             roleID, tenantDomain), e);
         }
-        return true;
     }
 
     @Override
-    public boolean postDeleteRole(String roleID, String tenantDomain)
+    public void postDeleteRole(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean preGetUserListOfRole(String roleID, String tenantDomain)
+    public void preGetUserListOfRole(String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean postGetUserListOfRole(List<UserBasicInfo> userBasicInfoList, String roleID, String tenantDomain)
+    public void postGetUserListOfRole(List<UserBasicInfo> userBasicInfoList, String roleID, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean preUpdateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
-                                           String tenantDomain) throws IdentityRoleManagementException {
+    public void preUpdateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
+                                        String tenantDomain) throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean postUpdateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
+    public void postUpdateUserListOfRole(String roleID, List<String> newUserIDList, List<String> deletedUserIDList,
+                                         String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void preGetGroupListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetGroupListOfRole(List<GroupBasicInfo> groupBasicInfoList, String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void preUpdateGroupListOfRole(String roleID, List<String> newGroupIDList,
+                                         List<String> deletedGroupIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postUpdateGroupListOfRole(String roleID, List<String> newGroupIDList,
+                                          List<String> deletedGroupIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void preGetIdpGroupListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetIdpGroupListOfRole(List<IdpGroup> idpGroups, String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void preUpdateIdpGroupListOfRole(String roleID, List<IdpGroup> newGroupIDList,
+                                            List<IdpGroup> deletedGroupIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postUpdateIdpGroupListOfRole(String roleID, List<IdpGroup> newGroupIDList,
+                                             List<IdpGroup> deletedGroupIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void preGetPermissionListOfRole(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetPermissionListOfRole(List<Permission> permissionListOfRole, String roleID,
                                             String tenantDomain) throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean preGetGroupListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean postGetGroupListOfRole(List<GroupBasicInfo> groupBasicInfoList, String roleID, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean preUpdateGroupListOfRole(String roleID, List<String> newGroupIDList,
-                                            List<String> deletedGroupIDList, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean postUpdateGroupListOfRole(String roleID, List<String> newGroupIDList,
-                                             List<String> deletedGroupIDList, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean preGetIdpGroupListOfRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean postGetIdpGroupListOfRole(List<IdpGroup> idpGroups, String roleID, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean preUpdateIdpGroupListOfRole(String roleID, List<IdpGroup> newGroupIDList,
-                                               List<IdpGroup> deletedGroupIDList, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean postUpdateIdpGroupListOfRole(String roleID, List<IdpGroup> newGroupIDList,
-                                                List<IdpGroup> deletedGroupIDList, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean preGetPermissionListOfRole(String roleID, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean postGetPermissionListOfRole(List<Permission> permissionListOfRole, String roleID,
-                                               String tenantDomain) throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean preUpdatePermissionsForRole(String roleID, List<Permission> addedPermissions,
-                                               List<Permission> deletedPermissions, String audience, String audienceId,
-                                               String tenantDomain)
+    public void preUpdatePermissionsForRole(String roleID, List<Permission> addedPermissions,
+                                            List<Permission> deletedPermissions, String audience, String audienceId,
+                                            String tenantDomain)
             throws IdentityRoleManagementException {
 
         if (APPLICATION.equalsIgnoreCase(audience)) {
             validatePermissionsForApplication(addedPermissions, audienceId, tenantDomain);
         }
-        return true;
+
     }
 
     @Override
-    public boolean postUpdatePermissionsForRole(String roleID, List<Permission> addedPermissions,
-                                                List<Permission> deletedPermissions, String tenantDomain)
+    public void postUpdatePermissionsForRole(String roleID, List<Permission> addedPermissions,
+                                             List<Permission> deletedPermissions, String audience, String audienceId,
+                                             String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean preGetRolesCount(String tenantDomain) throws IdentityRoleManagementException {
+    public void preGetRolesCount(String tenantDomain) throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean postGetRolesCount(int count, String tenantDomain) throws IdentityRoleManagementException {
+    public void postGetRolesCount(int count, String tenantDomain) throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean preGetRoleListOfUser(String userId, String tenantDomain) throws IdentityRoleManagementException {
+    public void preGetRoleListOfUser(String userId, String tenantDomain) throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean postGetRoleListOfUser(List<RoleBasicInfo> roleBasicInfoList, String userId, String tenantDomain)
+    public void postGetRoleListOfUser(List<RoleBasicInfo> roleBasicInfoList, String userId, String tenantDomain)
             throws IdentityRoleManagementException {
 
         for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
@@ -369,18 +394,35 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                 roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
             }
         }
-        return true;
+
     }
 
     @Override
-    public boolean preGetRoleListOfGroups(List<String> groupIds, String tenantDomain)
+    public void preGetRoleListOfGroups(List<String> groupIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean postGetRoleListOfGroups(List<RoleBasicInfo> roleBasicInfoList, List<String> groupIds,
+    public void postGetRoleListOfGroups(List<RoleBasicInfo> roleBasicInfoList, List<String> groupIds,
+                                        String tenantDomain) throws IdentityRoleManagementException {
+
+        for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
+            if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
+                roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
+            }
+        }
+
+    }
+
+    @Override
+    public void preGetRoleListOfIdpGroups(List<String> groupIds, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetRoleListOfIdpGroups(List<RoleBasicInfo> roleBasicInfoList, List<String> groupIds,
                                            String tenantDomain) throws IdentityRoleManagementException {
 
         for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
@@ -388,88 +430,61 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                 roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
             }
         }
-        return true;
+
     }
 
     @Override
-    public boolean preGetRoleListOfIdpGroups(List<String> groupIds, String tenantDomain)
+    public void preGetRoleIdListOfUser(String userId, String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetRoleIdListOfUser(List<String> roleIds, String userId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean postGetRoleListOfIdpGroups(List<RoleBasicInfo> roleBasicInfoList, List<String> groupIds,
-                                              String tenantDomain) throws IdentityRoleManagementException {
-
-        for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
-            if (APPLICATION.equalsIgnoreCase(roleBasicInfo.getAudience())) {
-                roleBasicInfo.setAudienceName(getApplicationName(roleBasicInfo.getAudienceId(), tenantDomain));
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public boolean preGetRoleIdListOfUser(String userId, String tenantDomain) throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean postGetRoleIdListOfUser(List<String> roleIds, String userId, String tenantDomain)
+    public void preGetRoleIdListOfGroups(List<String> groupIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean preGetRoleIdListOfGroups(List<String> groupIds, String tenantDomain)
+    public void postGetRoleIdListOfGroups(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean postGetRoleIdListOfGroups(List<String> roleIds, String tenantDomain)
+    public void preGetRoleIdListOfIdpGroups(List<String> groupIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean preGetRoleIdListOfIdpGroups(List<String> groupIds, String tenantDomain)
+    public void postGetRoleIdListOfIdpGroups(List<String> roleIds, List<String> groupIds,
+                                             String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void preDeleteRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
     }
 
     @Override
-    public boolean postGetRoleIdListOfIdpGroups(List<String> roleIds, List<String> groupIds,
-                                                String tenantDomain) throws IdentityRoleManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean preDeleteRolesByApplication(String applicationId, String tenantDomain)
+    public void postDeleteRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return true;
-    }
-
-    @Override
-    public boolean postDeleteRolesByApplication(String applicationId, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        return true;
     }
 
     /**
      * Validate application role audience.
      *
      * @param applicationId Application ID.
-     * @param tenantDomain Tenant domain.
+     * @param tenantDomain  Tenant domain.
      * @throws IdentityRoleManagementException Error occurred while validating application role audience.
      */
     private void validateApplicationRoleAudience(String applicationId, String tenantDomain)
@@ -498,9 +513,9 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     /**
      * Validate permissions for application audience.
      *
-     * @param permissions Permissions.
+     * @param permissions   Permissions.
      * @param applicationId Application ID.
-     * @param tenantDomain Tenant domain.
+     * @param tenantDomain  Tenant domain.
      * @throws IdentityRoleManagementException Error occurred while validating permissions.
      */
     private void validatePermissionsForApplication(List<Permission> permissions, String applicationId,
@@ -520,7 +535,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     /**
      * Get authorized scopes by app ID.
      *
-     * @param appId App ID.
+     * @param appId        App ID.
      * @param tenantDomain Tenant domain.
      * @throws IdentityRoleManagementException Error occurred while retrieving authorized scopes by app ID.
      */
@@ -549,7 +564,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
      * Get application name.
      *
      * @param applicationID Application ID.
-     * @param tenantDomain Tenant domain.
+     * @param tenantDomain  Tenant domain.
      * @return Application name.
      * @throws IdentityRoleManagementException Error occurred while retrieving application name.
      */
@@ -559,11 +574,59 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
         try {
             ApplicationBasicInfo appBasicInfo = ApplicationManagementService.getInstance()
                     .getApplicationBasicInfoByResourceId(applicationID, tenantDomain);
-            return  (appBasicInfo != null) ? appBasicInfo.getApplicationName() : null;
+            return (appBasicInfo != null) ? appBasicInfo.getApplicationName() : null;
         } catch (IdentityApplicationManagementException e) {
             String errorMessage = "Error while retrieving the application name for the given id: " + applicationID;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
+    }
+
+    /**
+     * Get application basic information.
+     *
+     * @param applicationID Application ID.
+     * @param tenantDomain  Tenant domain.
+     * @return Basic information of the application.
+     * @throws IdentityRoleManagementServerException When an error occurred while retrieving application basic 
+     *                                               information.
+     */
+    private ApplicationBasicInfo getApplicationBasicInfo(String applicationID, String tenantDomain) 
+            throws IdentityRoleManagementServerException {
+
+        try {
+            return ApplicationManagementService.getInstance()
+                    .getApplicationBasicInfoByResourceId(applicationID, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            String errorMessage = "Error while retrieving the basic information for the given app id: " + applicationID;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+    }
+
+    /**
+     * Clears the ServiceProviderByIDCache, ServiceProviderByResourceIdCache and IdentityServiceProviderCache.
+     * 
+     * @param appId Application ID.
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityRoleManagementException When an error occurred while retrieving the basic information of the 
+     *                                         application, or if the basic info of the application is null.
+     */
+    private void clearApplicationCaches(String appId, String tenantDomain) throws IdentityRoleManagementException {
+
+        ApplicationBasicInfo appBasicInfo = getApplicationBasicInfo(appId, tenantDomain);
+        if (appBasicInfo == null) {
+            throw new IdentityRoleManagementClientException(UNEXPECTED_SERVER_ERROR.getCode(), "Error while " +
+                    "retrieving the application information for the given application id: " + appId);
+        }
+        
+        ServiceProviderResourceIdCacheKey resourceIdKey = new ServiceProviderResourceIdCacheKey(appId);
+        ServiceProviderByResourceIdCache.getInstance().clearCacheEntry(resourceIdKey, tenantDomain);
+        
+        ServiceProviderIDCacheKey appIdKey = new ServiceProviderIDCacheKey(appBasicInfo.getApplicationId());
+        ServiceProviderByIDCache.getInstance().clearCacheEntry(appIdKey, tenantDomain);
+        
+        IdentityServiceProviderCacheKey appNameKey = new IdentityServiceProviderCacheKey(
+                appBasicInfo.getApplicationName());
+        IdentityServiceProviderCache.getInstance().clearCacheEntry(appNameKey, tenantDomain);
     }
 
     @Override

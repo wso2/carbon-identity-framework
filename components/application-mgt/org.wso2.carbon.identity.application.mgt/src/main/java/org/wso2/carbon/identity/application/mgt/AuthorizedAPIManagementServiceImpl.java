@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.AuthorizedAPIDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.AuthorizedAPIDAOImpl;
+import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedAuthorizedAPIDAOImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
@@ -44,7 +45,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
  */
 public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManagementService {
 
-    private final AuthorizedAPIDAO authorizedAPIDAO = new AuthorizedAPIDAOImpl();
+    private final AuthorizedAPIDAO authorizedAPIDAO = new CacheBackedAuthorizedAPIDAOImpl(new AuthorizedAPIDAOImpl());
 
     @Override
     public void addAuthorizedAPI(String applicationId, AuthorizedAPI authorizedAPI, String tenantDomain)
@@ -89,6 +90,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                         .getAPIResourceManager().getAPIResourceById(authorizedAPI.getAPIId(), tenantDomain);
                 authorizedAPI.setAPIIdentifier(apiResource.getIdentifier());
                 authorizedAPI.setAPIName(apiResource.getName());
+                authorizedAPI.setType(apiResource.getType());
                 // Get Scope data from OSGi service.
                 List<Scope> scopeList = new ArrayList<>();
                 if (authorizedAPI.getScopes() != null) {
@@ -153,14 +155,16 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                     .getAPIResourceManager().getAPIResourceById(authorizedAPI.getAPIId(), tenantDomain);
             authorizedAPI.setAPIIdentifier(apiResource.getIdentifier());
             authorizedAPI.setAPIName(apiResource.getName());
-            // Get Scope data from OSGi service.
-            List<Scope> scopeList = new ArrayList<>();
-            for (Scope scope : authorizedAPI.getScopes()) {
-                Scope scopeWithMetadata = ApplicationManagementServiceComponentHolder.getInstance()
-                        .getAPIResourceManager().getScopeByName(scope.getName(), tenantDomain);
-                scopeList.add(scopeWithMetadata);
+            if (authorizedAPI.getScopes() != null) {
+                // Get Scope data from OSGi service.
+                List<Scope> scopeList = new ArrayList<>();
+                for (Scope scope : authorizedAPI.getScopes()) {
+                    Scope scopeWithMetadata = ApplicationManagementServiceComponentHolder.getInstance()
+                            .getAPIResourceManager().getScopeByName(scope.getName(), tenantDomain);
+                    scopeList.add(scopeWithMetadata);
+                }
+                authorizedAPI.setScopes(scopeList);
             }
-            authorizedAPI.setScopes(scopeList);
             return authorizedAPI;
         } catch (APIResourceMgtException e) {
             throw buildServerException("Error while retrieving authorized API.", e);

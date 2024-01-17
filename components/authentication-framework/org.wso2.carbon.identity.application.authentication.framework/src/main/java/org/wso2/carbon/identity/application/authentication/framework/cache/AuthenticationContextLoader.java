@@ -50,6 +50,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.createSPClone;
+
 /**
  * This class is used to optimize the Authentication Context before storing it and again loaded it with objects.
  */
@@ -236,6 +238,7 @@ public class AuthenticationContextLoader {
             throws SessionDataStorageOptimizationException {
 
         ServiceProvider serviceProvider;
+        ServiceProvider clonedSP;
         ApplicationManagementServiceImpl applicationManager = (ApplicationManagementServiceImpl)
                 FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
         try {
@@ -252,7 +255,8 @@ public class AuthenticationContextLoader {
                                         "Service Provider by the resource ID: %s tenant domain: %s",
                                 optimizedApplicationConfig.getServiceProviderResourceId(), tenantDomain));
             }
-            serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
+            clonedSP = createSPClone(serviceProvider);
+            clonedSP.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
                     optimizedApplicationConfig.getAuthenticationSteps(tenantDomain));
         } catch (IdentityApplicationManagementClientException e) {
             throw new SessionDataStorageOptimizationClientException(
@@ -269,7 +273,7 @@ public class AuthenticationContextLoader {
                     String.format("Error occurred while retrieving the service provider by resource id: %s tenant " +
                             "domain: %s", optimizedApplicationConfig.getServiceProviderResourceId(), tenantDomain), e);
         }
-        return serviceProvider;
+        return clonedSP;
     }
 
     private IdentityProvider getIdPByIdPName(String idPName, String tenantDomain)

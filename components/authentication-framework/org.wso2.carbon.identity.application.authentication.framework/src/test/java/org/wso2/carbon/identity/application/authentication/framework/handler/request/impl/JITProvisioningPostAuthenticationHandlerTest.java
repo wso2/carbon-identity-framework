@@ -26,6 +26,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
@@ -99,6 +100,7 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         mockStatic(ConfigurationFacade.class);
         ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
 
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
         PowerMockito.when(ConfigurationFacade.getInstance()).thenReturn(configurationFacade);
         IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
         ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
@@ -170,6 +172,8 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         when(mockUserStoreManager.getUserClaimValues(anyString(),
                 eq(new String[]{FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI}),
                 eq(UserCoreConstants.DEFAULT_PROFILE))).thenReturn(mockClaimValues);
+        when(mockUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(mockUserStoreManager);
+        when(mockUserStoreManager.isExistingUser(anyString())).thenReturn(false);
         when(mockClaimValues.get(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI)).thenReturn("false");
 
         // Need to mock getIdPConfigByName with a null parameter.

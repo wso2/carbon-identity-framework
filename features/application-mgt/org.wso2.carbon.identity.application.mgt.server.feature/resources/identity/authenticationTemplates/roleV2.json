@@ -1,0 +1,56 @@
+{
+  "category": "AdaptiveMFA",
+  "name": "Role-Based",
+  "title": "Role-Based 2FA Template",
+  "summary": "Prompts 2FA to the users who belongs to any of the given set of roles which are associated to the application.",
+  "preRequisites": [
+    "Change the rolesList parameter to an array of roles of which users need to enforce 2FA.",
+    "Modify the 1st and 2nd factor authentication option(s) from defaults as required."
+  ],
+  "parametersDescription": {
+    "rolesToStepUp": "An array of roles of which users need to enforce 2FA."
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator.",
+    "Step 2": "Either of TOTP or FIDO"
+  },
+  "authenticationSteps":2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp",
+        "FIDOAuthenticator"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/role-based-template/",
+  "code": [
+    "// This script will step up authentication for any user belonging",
+    "// to one of the given roles",
+    "// If the user has any of the below roles, authentication will be stepped up",
+    "var rolesToStepUp = ['admin', 'manager'];",
+    "",
+    "var onLoginRequest = function(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            // Extracting authenticated subject from the first step",
+    "            var user = context.currentKnownSubject;",
+    "            // Checking if the user is assigned to one of the given roles",
+    "            var hasRole = hasAnyOfTheRolesV2(context, rolesToStepUp);",
+    "            if (hasRole) {",
+    "                Log.info(user.username + ' Has one of Roles: ' + rolesToStepUp.toString());",
+    "                executeStep(2);",
+    "            }",
+    "        }",
+    "    });",
+    "};"
+  ],
+  "runtime": "new"
+}

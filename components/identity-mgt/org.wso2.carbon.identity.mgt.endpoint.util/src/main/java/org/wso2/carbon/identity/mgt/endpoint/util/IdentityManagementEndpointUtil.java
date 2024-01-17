@@ -34,8 +34,10 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
@@ -187,9 +189,15 @@ public class IdentityManagementEndpointUtil {
         try {
             if (StringUtils.isNotEmpty(tenantDomain)) {
                 ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
+                String myAccountAccessUrl;
                 try {
-                    String myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
-                            My_ACCOUNT_APPLICATION_NAME);
+                    if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME == true) {
+                        myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
+                                My_ACCOUNT_APPLICATION_NAME);
+                    } else {
+                        myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(tenantDomain,
+                                My_ACCOUNT_APPLICATION_NAME);
+                    }
                     if (StringUtils.isNotEmpty(myAccountAccessUrl)) {
                         return replaceUserTenantHintPlaceholder(myAccountAccessUrl, tenantDomain);
                     }
@@ -778,6 +786,12 @@ public class IdentityManagementEndpointUtil {
                 if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                     basePath = ServiceURLBuilder.create().addPath(context).setTenant(tenantDomain).build()
                             .getAbsoluteInternalURL();
+                    if (basePath != null && basePath.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                    /* Resolving tenant domain from organization ID is not provided by an API. Hence, the retrieval
+                       client will have to assume organization ID is same as tenant domain. */
+                    basePath = basePath.replace(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX,
+                                FrameworkConstants.TENANT_CONTEXT_PREFIX);
+                    }
                 } else {
                     serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
                     if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME

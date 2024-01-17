@@ -161,6 +161,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getConsoleAccessUrlFromServerConfig;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
@@ -394,9 +396,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement storeAppPrepStmt = null;
         ResultSet results = null;
         try {
+            String templatedAccessUrl = application.getAccessUrl();
             if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
-                application.setAccessUrl(
-                        ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(application.getAccessUrl()));
+                templatedAccessUrl = ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(templatedAccessUrl);
             }
             String resourceId = generateApplicationResourceId(application);
             String dbProductName = connection.getMetaData().getDatabaseProductName();
@@ -418,7 +420,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAppPrepStmt.setString(9, "0");
             storeAppPrepStmt.setString(10, resourceId);
             storeAppPrepStmt.setString(11, application.getImageUrl());
-            storeAppPrepStmt.setString(12, application.getAccessUrl());
+            storeAppPrepStmt.setString(12, templatedAccessUrl);
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -474,7 +476,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 log.debug("Application Stored successfully with applicationId: " + applicationId +
                         " and applicationResourceId: " + resourceId);
             }
-
+            application.setApplicationResourceId(resourceId);
             return new ApplicationCreateResult(resourceId, applicationId);
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
@@ -990,10 +992,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             sql = ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO;
         }
 
+        String templatedAccessUrl = serviceProvider.getAccessUrl();
         if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
             try {
-                serviceProvider.setAccessUrl(
-                        ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(serviceProvider.getAccessUrl()));
+                templatedAccessUrl = ApplicationMgtUtil.replaceUrlOriginWithPlaceholders(templatedAccessUrl);
             } catch (URLBuilderException e) {
                 throw new IdentityApplicationManagementException(
                         "Error occurred when replacing origin of the access URL with placeholders", e);
@@ -1006,7 +1008,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statement.setString(ApplicationTableColumns.IS_SAAS_APP, isSaasApp ? "1" : "0");
             statement.setString(ApplicationTableColumns.IS_DISCOVERABLE, isDiscoverable ? "1" : "0");
             statement.setString(ApplicationTableColumns.IMAGE_URL, serviceProvider.getImageUrl());
-            statement.setString(ApplicationTableColumns.ACCESS_URL, serviceProvider.getAccessUrl());
+            statement.setString(ApplicationTableColumns.ACCESS_URL, templatedAccessUrl);
             if (isValidUserForOwnerUpdate) {
                 User owner = serviceProvider.getOwner();
                 statement.setString(ApplicationTableColumns.USERNAME, owner.getUserName());
@@ -1940,6 +1942,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
                             basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
                 }
+                String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
+                if (ApplicationMgtUtil.isConsole(serviceProvider.getApplicationName())) {
+                    String consoleAccessUrl = getConsoleAccessUrlFromServerConfig(tenantDomain);
+                    if (StringUtils.isNotBlank(consoleAccessUrl)) {
+                        serviceProvider.setAccessUrl(consoleAccessUrl);
+                    }
+                }
+                if (ApplicationMgtUtil.isMyAccount(serviceProvider.getApplicationName())) {
+                    String myAccountAccessUrl = getMyAccountAccessUrlFromServerConfig(tenantDomain);
+                    if (StringUtils.isNotBlank(myAccountAccessUrl)) {
+                        serviceProvider.setAccessUrl(myAccountAccessUrl);
+                    }
+                }
 
                 serviceProvider.setDiscoverable(getBooleanValue(basicAppDataResultSet.getString(ApplicationTableColumns
                         .IS_DISCOVERABLE)));
@@ -2061,7 +2076,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 sqlQuery = String.format(
                         ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER_DB2SQL, filterString);
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterValues, offset + 1, offset + limit);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterValues, offset, offset + limit);
             } else if (databaseProductName.contains("INFORMIX")) {
                 sqlQuery = String.format(
                         ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_FILTER_INFORMIX, filterString);
@@ -2085,14 +2100,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             appNameResultSet = getAppNamesStmt.executeQuery();
 
-            if (filterString.contains("SP_INBOUND_AUTH")) {
-                while (appNameResultSet.next()) {
-                    appInfo.add(buildApplicationBasicInfoWithInboundConfig(appNameResultSet));
-                }
-            } else {
-                while (appNameResultSet.next()) {
-                    appInfo.add(buildApplicationBasicInfo(appNameResultSet));
-                }
+            while (appNameResultSet.next()) {
+                appInfo.add(buildApplicationBasicInfo(appNameResultSet));
             }
 
         } catch (SQLException e) {
@@ -2475,6 +2484,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 if (ApplicationMgtUtil.isConsoleOrMyAccount(serviceProvider.getApplicationName())) {
                     serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
                             rs.getString(ApplicationTableColumns.ACCESS_URL)));
+                }
+                String tenantDomain = IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID));
+                if (ApplicationMgtUtil.isConsole(serviceProvider.getApplicationName())) {
+                    String consoleAccessUrl = getConsoleAccessUrlFromServerConfig(tenantDomain);
+                    if (StringUtils.isNotBlank(consoleAccessUrl)) {
+                        serviceProvider.setAccessUrl(consoleAccessUrl);
+                    }
+                }
+                if (ApplicationMgtUtil.isMyAccount(serviceProvider.getApplicationName())) {
+                    String myAccountAccessUrl = getMyAccountAccessUrlFromServerConfig(tenantDomain);
+                    if (StringUtils.isNotBlank(myAccountAccessUrl)) {
+                        serviceProvider.setAccessUrl(myAccountAccessUrl);
+                    }
                 }
 
                 serviceProvider.setDiscoverable(getBooleanValue(rs.getString(ApplicationTableColumns.IS_DISCOVERABLE)));
@@ -3813,7 +3835,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             } else if (databaseProductName.contains("DB2")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_DB2SQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                populateListAppNamesQueryValues(tenantID, offset + 1, offset + limit, getAppNamesStmt);
+                populateListAppNamesQueryValues(tenantID, offset, offset + limit, getAppNamesStmt);
             } else if (databaseProductName.contains("INFORMIX")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_INFORMIX;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
@@ -5060,7 +5082,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty androidPackageName = new ServiceProviderProperty();
         androidPackageName.setName(ANDROID_PACKAGE_NAME_PROPERTY_NAME);
         androidPackageName.setDisplayName(ANDROID_PACKAGE_NAME_DISPLAY_NAME);
-        androidPackageName.setValue(String.valueOf(clientAttestationMetaData.getAndroidPackageName()));
+        if (StringUtils.isNotBlank(clientAttestationMetaData.getAndroidPackageName())) {
+            androidPackageName.setValue(String.valueOf(clientAttestationMetaData.getAndroidPackageName()));
+        }
         return androidPackageName;
     }
 
@@ -5070,7 +5094,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty appleAppId = new ServiceProviderProperty();
         appleAppId.setName(APPLE_APP_ID_PROPERTY_NAME);
         appleAppId.setDisplayName(APPLE_APP_ID_DISPLAY_NAME);
-        appleAppId.setValue(String.valueOf(clientAttestationMetaData.getAppleAppId()));
+        if (StringUtils.isNotBlank(clientAttestationMetaData.getAppleAppId())) {
+            appleAppId.setValue(String.valueOf(clientAttestationMetaData.getAppleAppId()));
+        }
         return appleAppId;
     }
 
@@ -5883,6 +5909,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementException(
                     "Error occurred when resolving origin of the access URL with placeholders", e);
         }
+        String tenantDomain =
+                IdentityTenantUtil.getTenantDomain(appNameResultSet.getInt(ApplicationTableColumns.TENANT_ID));
+        if (ApplicationMgtUtil.isConsole(basicInfo.getApplicationName())) {
+            String consoleAccessUrl = getConsoleAccessUrlFromServerConfig(tenantDomain);
+            if (StringUtils.isNotBlank(consoleAccessUrl)) {
+                basicInfo.setAccessUrl(consoleAccessUrl);
+            }
+        }
+        if (ApplicationMgtUtil.isMyAccount(basicInfo.getApplicationName())) {
+            String myAccountAccessUrl = getMyAccountAccessUrlFromServerConfig(tenantDomain);
+            if (StringUtils.isNotBlank(myAccountAccessUrl)) {
+                basicInfo.setAccessUrl(myAccountAccessUrl);
+            }
+        }
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
@@ -5925,6 +5965,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
                     "Error occurred when resolving origin of the access URL with placeholders", e);
+        }
+        String tenantDomain =
+                IdentityTenantUtil.getTenantDomain(appNameResultSet.getInt(ApplicationTableColumns.TENANT_ID));
+        if (ApplicationMgtUtil.isConsole(basicInfo.getApplicationName())) {
+            String consoleAccessUrl = getConsoleAccessUrlFromServerConfig(tenantDomain);
+            if (StringUtils.isNotBlank(consoleAccessUrl)) {
+                basicInfo.setAccessUrl(consoleAccessUrl);
+            }
+        }
+        if (ApplicationMgtUtil.isMyAccount(basicInfo.getApplicationName())) {
+            String myAccountAccessUrl = getMyAccountAccessUrlFromServerConfig(tenantDomain);
+            if (StringUtils.isNotBlank(myAccountAccessUrl)) {
+                basicInfo.setAccessUrl(myAccountAccessUrl);
+            }
         }
 
         String inboundAuthKey = appNameResultSet.getString(ApplicationInboundTableColumns.INBOUND_AUTH_KEY);
