@@ -1044,6 +1044,9 @@
     <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="PATCH, PUT">
         <Scopes>internal_config_update</Scopes>
     </Resource>
+    <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_config_delete</Scopes>
+    </Resource>
 
     <!-- [Organization] Organization Discovery API -->
     <Resource context="(.*)/o/api/server/v1/organizations/check-discovery" secured="true" http-method="POST">
