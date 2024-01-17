@@ -81,13 +81,10 @@ public class IdentityEventUtils {
             throw new IllegalArgumentException("Prefix and Properties should not be null to get sub properties");
         }
 
-        int i = 1;
         Properties subProperties = new Properties();
-        while (properties.getProperty(prefix + "." + i) != null) {
-            // Remove from original properties to hold property schema. ie need to get the set of properties which
-            // remains after consuming all required specific properties
-            subProperties.put(prefix + "." + i, properties.remove(prefix + "." + i++));
-        }
+//      Remove from original properties to hold property schema. ie need to get the set of properties which
+//      remains after consuming all required specific properties
+        subProperties.putAll(getPropertiesWithPrefix(prefix, properties));
         return subProperties;
     }
 
