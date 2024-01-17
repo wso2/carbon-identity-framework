@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
@@ -59,18 +61,18 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                     prepStmt.setString(1, applicationId);
                     prepStmt.setString(2, apiId);
                     prepStmt.setString(3, scope.getName());
-                    prepStmt.setObject(4, isSystemScope(scope.getName()) ? null : tenantId);
+                    prepStmt.setObject(4, APIResourceManagementUtil.isSystemAPIByAPIId(apiId)
+                            ? null : tenantId);
                     prepStmt.addBatch();
                     prepStmt.clearParameters();
                 }
                 prepStmt.executeBatch();
-
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
             } catch (SQLException e) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
                 throw e;
             }
-        } catch (SQLException e) {
+        } catch (SQLException | APIResourceMgtException e) {
             throw new IdentityApplicationManagementException("Error while adding authorized API.", e);
         }
     }
@@ -245,10 +247,5 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while getting authorized API.", e);
         }
-    }
-
-    private boolean isSystemScope(String scope) {
-
-        return scope.startsWith("internal_") || scope.startsWith("console:");
     }
 }

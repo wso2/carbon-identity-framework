@@ -202,7 +202,14 @@ public class APIResourceManagementUtil {
 
     public static boolean isSystemAPI(String type) {
 
-        return !"BUSINESS".equalsIgnoreCase(type);
+        return !APIResourceManagementConstants.BUSINESS_TYPE.equalsIgnoreCase(type)
+                && !APIResourceManagementConstants.SYSTEM_TYPE.equalsIgnoreCase(type);
+    }
+
+    public static boolean isSystemAPIByAPIId(String apiId) throws APIResourceMgtException {
+
+        return isSystemAPI(APIResourceManagerImpl.getInstance().getAPIResourceById(apiId,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME).getType());
     }
 
     public Object getTenantId(String tenantDomain) {
