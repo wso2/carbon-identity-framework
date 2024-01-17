@@ -63,7 +63,7 @@ public class CookieBuilder {
 
         if (path.startsWith("/t/"+ MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
             StringUtils.replace(path, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME,
-                    IdentityTenantUtil.getCarbonSuperReplaceNameInUrls());
+                    IdentityTenantUtil.getSuperTenantAliasInPublicUrl());
         }
         this.path = path;
         return this;

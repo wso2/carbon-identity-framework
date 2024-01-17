@@ -465,12 +465,12 @@ public class IdentityTenantUtil {
     }
 
     /**
-     * Checks if it is required to specify carbon.super in tenant qualified URLs.
+     * Checks if it is required to specify carbon.super in tenant qualified in public URLs.
      *
      * @return true if it is mandatory, false otherwise.
      */
-    public static String getCarbonSuperReplaceNameInUrls() {
+    public static String getSuperTenantAliasInPublicUrl() {
 
-        return IdentityUtil.getProperty(IdentityCoreConstants.CARBON_SUPER_REPLACE_NAME_IN_URLS);
+        return IdentityUtil.getProperty(IdentityCoreConstants.SUPER_TENANT_ALIAS_IN_PUBLIC_URL);
     }
 }

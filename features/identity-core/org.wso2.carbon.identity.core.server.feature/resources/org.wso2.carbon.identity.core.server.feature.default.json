@@ -1385,5 +1385,6 @@
   "organization_management.self_service.user_store_name_for_system_user": "PRIMARY",
   "client_attestation.allowed_window": "60000",
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
-  "client_attestation.apple_attestation_revocation_check_enabled": false
+  "client_attestation.apple_attestation_revocation_check_enabled": false,
+  "super_tenant.alias_in_public_url": ""
 }

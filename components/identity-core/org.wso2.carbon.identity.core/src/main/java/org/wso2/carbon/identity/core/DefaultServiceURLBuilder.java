@@ -91,24 +91,26 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String recoveryEndpointPath = fetchRecoveryEndpointPath();
         int proxyPort = fetchPort();
         int transportPort = fetchTransportPort();
-        String tenantDomain = resolveTenantDomainForUrlBuilder();
+        String tenantDomain = StringUtils.isNotBlank(tenant) ? tenant : resolveTenantDomain();
+        String tenantDomainForPublicUrl = resolveTenantDomainForUrlBuilder(tenantDomain);
         String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(PROXY_CONTEXT_PATH);
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         String urlPath = getResolvedUrlPath(tenantDomain);
-        String relativePublicUrl = fetchRelativePublicUrl(proxyContextPath, urlPath, resolvedFragment);
+        String urlPathForPublicUrl = getResolvedUrlPath(tenantDomainForPublicUrl);
+        String relativePublicUrl = fetchRelativePublicUrl(proxyContextPath, urlPathForPublicUrl, resolvedFragment);
         String relativeInternalUrl = fetchRelativeInternalUrl(urlPath, resolvedFragment);
         String absoluteInternalUrl = fetchAbsoluteInternalUrl(protocol, internalHostName, transportPort,
                 relativeInternalUrl);
         String absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol, proxyHostName,
                 proxyPort);
-        if (StringUtils.isNotBlank(urlPath)) {
+        if (StringUtils.isNotBlank(urlPathForPublicUrl)) {
             if (authenticationEndpointHostName != null && authenticationEndpointPath != null &&
-                    urlPath.contains(authenticationEndpointPath)) {
+                    urlPathForPublicUrl.contains(authenticationEndpointPath)) {
                 absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
                         authenticationEndpointHostName, proxyPort);
             }
             if (recoveryEndpointHostName != null && recoveryEndpointPath != null &&
-                    urlPath.contains(recoveryEndpointPath)) {
+                    urlPathForPublicUrl.contains(recoveryEndpointPath)) {
                 absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
                         recoveryEndpointHostName, proxyPort);
             }
@@ -490,12 +492,12 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
     }
 
-    private String resolveTenantDomainForUrlBuilder() {
+    private String resolveTenantDomainForUrlBuilder(String tenantDomain) {
 
-        String tenantDomain = StringUtils.isNotBlank(tenant) ? tenant : resolveTenantDomain();
+        // If the "SuperTenantAliasInPublicUrl" is not null, use it as the domain name for carbon.super in public urls.
         if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) &&
-                StringUtils.isNotBlank(IdentityTenantUtil.getCarbonSuperReplaceNameInUrls())) {
-            return IdentityTenantUtil.getCarbonSuperReplaceNameInUrls();
+                StringUtils.isNotBlank(IdentityTenantUtil.getSuperTenantAliasInPublicUrl())) {
+            return IdentityTenantUtil.getSuperTenantAliasInPublicUrl();
         }
         return tenantDomain;
     }
