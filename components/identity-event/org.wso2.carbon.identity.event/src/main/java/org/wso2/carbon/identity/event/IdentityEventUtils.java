@@ -82,8 +82,8 @@ public class IdentityEventUtils {
         }
 
         Properties subProperties = new Properties();
-//      Remove from original properties to hold property schema. ie need to get the set of properties which
-//      remains after consuming all required specific properties
+        // Remove from original properties to hold property schema. ie need to get the set of properties which
+        // remains after consuming all required specific properties
         subProperties.putAll(getPropertiesWithPrefix(prefix, properties));
         return subProperties;
     }
