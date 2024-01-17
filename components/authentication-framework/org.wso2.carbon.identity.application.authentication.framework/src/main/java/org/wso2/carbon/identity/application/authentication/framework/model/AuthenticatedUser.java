@@ -332,6 +332,11 @@ public class AuthenticatedUser extends User {
         return this.userId;
     }
 
+    public boolean isAuthenticatedUserIdExists() {
+
+        return this.userId != null;
+    }
+
     public void setUserId(String userId) {
 
         this.userId = userId;
