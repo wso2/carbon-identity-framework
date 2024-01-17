@@ -360,6 +360,10 @@ public class FrameworkServiceComponent {
             FrameworkServiceDataHolder.getInstance().setSessionSerializer(new JavaSessionSerializer());
         }
 
+        // Set skip local user search for authentication flow handlers enabled.
+        FrameworkServiceDataHolder.getInstance().setSkipLocalUserSearchForAuthenticationFlowHandlersEnabled
+                (FrameworkUtils.isSkipLocalUserSearchForAuthenticationFlowHandlersEnabled());
+
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
                 ApplicationAuthenticationService(), null);
         // Note : DO NOT add any activation related code below this point,
