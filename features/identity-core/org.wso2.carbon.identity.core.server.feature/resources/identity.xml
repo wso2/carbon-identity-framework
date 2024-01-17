@@ -2314,7 +2314,7 @@
     <!--
     This property restricts unnecessary user local search during federated authentication flow.
     -->
-    <SkipLocalUserSearchForAuthenticationFlowHandlers>false</SkipLocalUserSearchForAuthenticationFlowHandlers>
+    <SkipLocalUserSearchForAuthenticationFlowHandlers>true</SkipLocalUserSearchForAuthenticationFlowHandlers>
 
     <TenantContext>
         <TenantQualifiedUrls>
