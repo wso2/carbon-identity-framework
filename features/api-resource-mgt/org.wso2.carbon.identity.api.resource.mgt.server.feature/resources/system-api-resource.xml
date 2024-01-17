@@ -1001,7 +1001,8 @@
                  description="Resource representation of the Branding Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
-            <Scope displayName="Branding Feature" name="console:branding"/>
+            <Scope displayName="Branding Feature" name="console:branding"
+                    description="Manage branding from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Attribute Management Feature" identifier="console:attributes"
