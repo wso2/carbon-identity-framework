@@ -332,7 +332,7 @@ public class AuthenticatedUser extends User {
         return this.userId;
     }
 
-    public boolean isAuthenticatedUserIdExists() {
+    public boolean isUserIdExists() {
 
         return this.userId != null;
     }

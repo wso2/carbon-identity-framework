@@ -859,7 +859,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 if (FrameworkServiceDataHolder.getInstance()
                         .isSkipLocalUserSearchForAuthenticationFlowHandlersEnabled() &&
                         FrameworkUtils.isAllFlowHandlers(authenticatedIdPData.getAuthenticators()) &&
-                        !FrameworkUtils.isJITProvisioningEnabled(context) && !user.isAuthenticatedUserIdExists()) {
+                        !FrameworkUtils.isJITProvisioningEnabled(context) && !user.isUserIdExists()) {
                     continue;
                 }
                 String userId = user.getUserId();
