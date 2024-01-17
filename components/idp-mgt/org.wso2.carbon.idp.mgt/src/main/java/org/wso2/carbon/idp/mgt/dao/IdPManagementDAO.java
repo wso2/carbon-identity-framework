@@ -1126,8 +1126,6 @@ public class IdPManagementDAO {
 
                 if (isEmailOTPAuthenticator(authnConfig.getName())) {
                     // This is to support backward compatibility.
-                    // If the authenticator is EmailOTP, then we need to set the value of OnlyNumericCharactersForOtp
-                    // property to AlphanumericCharactersForOtp property.
                     updateEmailOTPCharTypeProperty(authnConfig, true);
                 }
                 federatedAuthenticatorConfigs.add(authnConfig);
@@ -1204,6 +1202,7 @@ public class IdPManagementDAO {
         Property alphaNumericCharactersForOtp = new Property();
         Property onlyNumericCharactersForOtp = new Property();
         onlyNumericCharactersForOtp.setName(EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY);
+        alphaNumericCharactersForOtp.setName(EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY);
 
         ArrayList<Property> emailOTPProperties = new ArrayList<Property>();
         for (Property property : emailOTPAuthenticator.getProperties()) {
@@ -1218,17 +1217,39 @@ public class IdPManagementDAO {
             emailOTPProperties.add(property);
         }
 
-        if (onlyNumericCharactersForOtp.getValue() != null && isReadIDP) {
-            boolean useNumericCharactersForOtpValue = Boolean.parseBoolean(onlyNumericCharactersForOtp.getValue());
-            alphaNumericCharactersForOtp.setValue(String.valueOf(!useNumericCharactersForOtpValue));
-        } else if (alphaNumericCharactersForOtp.getValue() != null && !isReadIDP) {
-            boolean alphaNumericCharactersForOtpValue = Boolean.parseBoolean(alphaNumericCharactersForOtp.getValue());
-            onlyNumericCharactersForOtp.setValue(String.valueOf(!alphaNumericCharactersForOtpValue));
-            // add the OnlyNumericCharactersForOtp property to the list only when updating.
+        if (isReadIDP) {
+            /* 
+            If the operation is read IDP configs, read value of onlyNumericCharactersForOtp and 
+            set the value of alphaNumericCharactersForOtp accordingly.
+            */
+            if (StringUtils.isNotBlank(onlyNumericCharactersForOtp.getValue())) {
+                boolean useNumericCharactersForOtpValue = Boolean.parseBoolean(onlyNumericCharactersForOtp.getValue());
+                alphaNumericCharactersForOtp.setValue(String.valueOf(!useNumericCharactersForOtpValue));
+            } else {
+                // Default case for email OTP char type.
+                onlyNumericCharactersForOtp.setValue("true");
+                alphaNumericCharactersForOtp.setValue("false");
+            }
+        } else {
+            /*
+            If the operation is update IDP configs, read value of alphaNumericCharactersForOtp and
+            set the value of onlyNumericCharactersForOtp accordingly.
+            */
+            if (StringUtils.isNotBlank(alphaNumericCharactersForOtp.getValue())) {
+                boolean alphaNumericCharactersForOtpValue = Boolean.parseBoolean(alphaNumericCharactersForOtp.getValue());
+                onlyNumericCharactersForOtp.setValue(String.valueOf(!alphaNumericCharactersForOtpValue));
+            } else {
+                // Default case for email OTP char type.
+                onlyNumericCharactersForOtp.setValue("true");
+                alphaNumericCharactersForOtp.setValue("false");
+            }
+            // Add the OnlyNumericCharactersForOtp property to the list only when updating.
             emailOTPProperties.add(onlyNumericCharactersForOtp);
         }
+
+        // Add alphaNumericCharactersForOtp property to emailOTPAuthenticator property list.
         emailOTPProperties.add(alphaNumericCharactersForOtp);
-        emailOTPAuthenticator.setProperties(emailOTPProperties.toArray(new Property[emailOTPProperties.size()]));
+        emailOTPAuthenticator.setProperties(emailOTPProperties.toArray(new Property[0]));
     }
 
     /**
