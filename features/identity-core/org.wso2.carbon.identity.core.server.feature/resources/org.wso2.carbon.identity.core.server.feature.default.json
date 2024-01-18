@@ -1120,7 +1120,7 @@
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": true,
-  "console.approvals.enabled": true,
+  "console.approvals.enabled": false,
   "console.approvals.scopes.feature": ["console:workflowApprovals"],
   "console.approvals.scopes.create": ["internal_humantask_view"],
   "console.approvals.scopes.read": ["internal_humantask_view"],
