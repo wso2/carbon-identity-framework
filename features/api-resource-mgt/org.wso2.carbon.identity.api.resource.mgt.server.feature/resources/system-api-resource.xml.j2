@@ -120,16 +120,6 @@
                    description="Update branding preferences on user interfaces of the organization"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Challenges Management API" identifier="/api/server/v1/challenges(.*)"
-                 requiresAuthorization="true"
-                 description="API representation of the Challenges Management API" type="OTHER">
-        <Scopes>
-            <Scope displayName="View Challenge" name="internal_challenge_mgt_view"/>
-            <Scope displayName="Create Challenge" name="internal_challenge_mgt_create"/>
-            <Scope displayName="Update Challenge" name="internal_challenge_mgt_update"/>
-            <Scope displayName="Delete Challenge" name="internal_challenge_mgt_delete"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="User Challenges Management API" identifier="/api/users/v1/(.*)/challenge(.*)"
                  requiresAuthorization="true"
                  description="API representation of the User Challenges Management API" type="TENANT_ADMIN">
@@ -247,16 +237,6 @@
         <Scopes>
             <Scope displayName="View Extensions" name="internal_org_extensions_view" 
                     description="View registered extension resources in the organization"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Remote Fetch Management API" identifier="/api/server/v1/remote-fetch"
-                 requiresAuthorization="true"
-                 description="API representation of the Remote Fetch Management API" type="OTHER">
-        <Scopes>
-            <Scope displayName="View Remote Fetch" name="internal_remote_fetch_view"/>
-            <Scope displayName="Create Remote Fetch" name="internal_remote_fetch_create"/>
-            <Scope displayName="Update Remote Fetch" name="internal_remote_fetch_update"/>
-            <Scope displayName="Delete Remote Fetch" name="internal_remote_fetch_delete"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Governance Management API"
@@ -920,17 +900,6 @@
                     description="Manage PEP (Policy Enforcement Point) in the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Media Management API" identifier="/api/identity/media/v1.0/user/"
-                 requiresAuthorization="true" description="API representation of the Media Management API" type="OTHER">
-        <Scopes>
-            <Scope displayName="Create Media" name="internal_media_mgt_create" 
-                    description="Create media"/>
-            <Scope displayName="View Media" name="internal_media_mgt_view" 
-                    description="View media"/>
-            <Scope displayName="Delete Media" name="internal_media_mgt_delete" 
-                    description="Delete media"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Guest Invitation Management API"
                  identifier="/api/server/v1/guests/invitation" requiresAuthorization="true"
                  description="API representation of the Guest Invitation Management API" type="TENANT_ADMIN">
@@ -961,39 +930,16 @@
                  description="API representation of the OAuth2 Introspection API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="OAuth2 Introspection" name="internal_oauth2_introspect" 
-                    description="Instrospect tokens"/>
+                    description="Introspect tokens"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Register API" identifier="/identity/register"
-                 requiresAuthorization="true" description="API representation of the Identity Register API" type="OTHER">
+                 requiresAuthorization="true" description="API representation of the Identity Register API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="Create Identity Register" name="internal_register_create" 
                     description="Create identity register"/>
             <Scope displayName="Delete Identity Register" name="internal_register_delete" 
-                    description="Dreate identity register"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="User Management API" identifier="/api/identity/user/v1.0"
-                 requiresAuthorization="true" description="API representation of the User Management API" type="OTHER">
-        <Scopes>
-            <Scope displayName="Update User" name="internal_user_update" 
-                    description="Update user in the organization (root)"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="User Management API" identifier="/o/api/identity/user/v1.0"
-                 requiresAuthorization="true"
-                 description="API representation of the User Management API"
-                 type="OTHER">
-        <Scopes>
-            <Scope displayName="Update User" name="internal_org_user_update" 
-                    description="Update user in the organization"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Me API" identifier="/me/" requiresAuthorization="false"
-                 description="API representation of the Me API" type="OTHER">
-        <Scopes>
-            <Scope displayName="User Login" name="internal_login" 
-                    description="Manage your user account"/>
+                    description="Delete identity register"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management Feature" identifier="console:applications"
