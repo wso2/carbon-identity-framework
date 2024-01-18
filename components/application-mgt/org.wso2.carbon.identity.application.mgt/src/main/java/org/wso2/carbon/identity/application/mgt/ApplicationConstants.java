@@ -164,7 +164,7 @@ public class ApplicationConstants {
         public static final String APP_ID = "APP_ID";
         public static final String API_ID = "API_ID";
         public static final String POLICY_ID = "POLICY_ID";
-        public static final String SCOPE_NAME = "SCOPE_NAME";
+        public static final String SCOPE_NAME = "SCOPE.NAME";
         public static final String MAIN_APP_ID = "MAIN_APP_ID";
 
         private ApplicationTableColumns() {

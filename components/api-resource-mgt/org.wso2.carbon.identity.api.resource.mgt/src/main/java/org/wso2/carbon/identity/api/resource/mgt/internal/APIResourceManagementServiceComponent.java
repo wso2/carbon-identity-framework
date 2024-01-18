@@ -30,13 +30,9 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
-import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
-import org.wso2.carbon.identity.api.resource.mgt.listener.APIResourceManagementListener;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
-import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 /**
  * Service component for the API resource management.
@@ -55,10 +51,8 @@ public class APIResourceManagementServiceComponent {
         try {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.registerService(APIResourceManager.class, APIResourceManagerImpl.getInstance(), null);
-            bundleCtx.registerService(TenantMgtListener.class, new APIResourceManagementListener(),
-                    null);
             // Register system APIs in the super tenant.
-            registerSystemAPIsInSuperTenant();
+            APIResourceManagementUtil.addSystemAPIs();
             LOG.debug("API resource management bundle is activated");
         } catch (Throwable e) {
             LOG.error("Error while initializing API resource management component.", e);
@@ -109,17 +103,5 @@ public class APIResourceManagementServiceComponent {
     protected void unsetOrganizationManager(OrganizationManager organizationManager) {
         /* reference Organization Management service to guarantee that this component will wait until organization
         management service is started */
-    }
-
-    private void registerSystemAPIsInSuperTenant() {
-
-        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-        try {
-            if (!APIResourceManagementUtil.isSystemAPIExist(tenantDomain)) {
-                APIResourceManagementUtil.addSystemAPIs(tenantDomain);
-            }
-        } catch (APIResourceMgtException e) {
-            LOG.error("Error while registering system API resources in the tenant: " + tenantDomain);
-        }
     }
 }
