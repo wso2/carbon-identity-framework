@@ -372,9 +372,9 @@
                  description="API representation of the Notification Sender Management API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Notification Senders" name="internal_notification_senders_view" 
-                    description="View new notification senders for the organization (root)"/>
+                    description="View notification senders for the organization (root)"/>
             <Scope displayName="Create Notification Senders" name="internal_notification_senders_create" 
-                    description="Create notification senders for the organization (root)"/>
+                    description="Create new notification senders for the organization (root)"/>
             <Scope displayName="Update Notification Senders" name="internal_notification_senders_update" 
                     description="Update notification senders for the organization (root)"/>
             <Scope displayName="Delete Notification Senders" name="internal_notification_senders_delete" 
@@ -386,13 +386,13 @@
                  description="API representation of the Notification Sender Management API" type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Notification Senders" name="internal_org_notification_senders_view" 
-                    description="View new notification senders for organization"/>
+                    description="View notification senders for organization"/>
             <Scope displayName="Create Notification Senders" name="internal_org_notification_senders_create" 
                     description="Create new notification senders for organization"/>
             <Scope displayName="Update Notification Senders" name="internal_org_notification_senders_update" 
-                    description="Update new notification senders for organization"/>
+                    description="Update notification senders for organization"/>
             <Scope displayName="Delete Notification Senders" name="internal_org_notification_senders_delete" 
-                    description="Delete new notification senders for organization"/>
+                    description="Delete notification senders for organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="OIDC Scope Management API" identifier="/api/server/v1/oidc/scopes"
@@ -423,12 +423,12 @@
                  requiresAuthorization="true"
                  description="API representation of the Organization Discovery API" type="TENANT_ADMIN">
         <Scopes>
-            <Scope displayName="View Organization Discovery" name="internal_organization_discovery_view" 
-                    description="View discovery attributes of the organization (root)"/>
-            <Scope displayName="Update Organization Discovery" name="internal_organization_discovery_update" 
-                    description="Update discovery attributes of the organization (root)"/>
-            <Scope displayName="Delete Organization Discovery" name="internal_organization_discovery_delete" 
-                    description="Delete discovery attributes of the organization (root)"/>
+            <Scope displayName="View Organization Discovery" name="internal_organization_discovery_view"
+                    description="View discovery attributes of organizations within the root organization"/>
+            <Scope displayName="Update Organization Discovery" name="internal_organization_discovery_update"
+                    description="Update discovery attributes of organizations within the root organization"/>
+            <Scope displayName="Delete Organization Discovery" name="internal_organization_discovery_delete"
+                    description="Delete discovery attributes of organizations within the root organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Discovery API"
@@ -776,7 +776,7 @@
             <Scope displayName="View Code" name="internal_code_mgt_view" 
                     description="View code in the organization (root)"/>
             <Scope displayName="Create Code" name="internal_code_mgt_create" 
-                    description="Crate new code in the organization (root)"/>
+                    description="Create new code in the organization (root)"/>
             <Scope displayName="Update Code" name="internal_code_mgt_update" 
                     description="Update code in the organization (root)"/>
             <Scope displayName="Delete Code" name="internal_code_mgt_delete" 
@@ -848,11 +848,11 @@
             <Scope displayName="View Recovery" name="internal_org_recovery_view" 
                     description="View recovery in the organization"/>
             <Scope displayName="Create Recovery" name="internal_org_recovery_create" 
-                    description="Create new recovery in  the organization"/>
+                    description="Create new recovery in the organization"/>
             <Scope displayName="Update Recovery" name="internal_org_recovery_update" 
-                    description="Update recovery in  the organization"/>
+                    description="Update recovery in the organization"/>
             <Scope displayName="Delete Recovery" name="internal_org_recovery_delete" 
-                    description="Delete recovery in  the organization"/>
+                    description="Delete recovery in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="OAuth DCR API" identifier="/api/identity/oauth2/dcr/v1.1/register"
@@ -993,7 +993,7 @@
                  description="API representation of the Me API" type="OTHER">
         <Scopes>
             <Scope displayName="User Login" name="internal_login" 
-                    description="Manage the your user account"/>
+                    description="Manage your user account"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management Feature" identifier="console:applications"
