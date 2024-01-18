@@ -415,11 +415,11 @@
                  description="API representation of the Organization Discovery API" type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Organization Discovery" name="internal_organization_discovery_view" 
-                    description="View discovery attributes of organizations within the root organization"/>
+                    description="View discovery attributes of organizations under the root organization"/>
             <Scope displayName="Update Organization Discovery" name="internal_organization_discovery_update" 
-                    description="Update discovery attributes of organizations within the root organization"/>
+                    description="Update discovery attributes of organizations under the root organization"/>
             <Scope displayName="Delete Organization Discovery" name="internal_organization_discovery_delete" 
-                    description="Delete discovery attributes of organizations within the root organization"/>
+                    description="Delete discovery attributes of organizations under the root organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Discovery API"
