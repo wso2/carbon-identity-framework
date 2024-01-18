@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
 
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ import java.util.Map;
  * Holds the messages related to an authenticator which requires to populate {@Code AuthenticatorData}
  * during an authentication flow. This contains messages related details specific to authentication flow.
  */
-public class AuthenticatorMessage {
+public class AuthenticatorMessage implements Serializable {
 
     private FrameworkConstants.AuthenticatorMessageType type;
     private String code;
