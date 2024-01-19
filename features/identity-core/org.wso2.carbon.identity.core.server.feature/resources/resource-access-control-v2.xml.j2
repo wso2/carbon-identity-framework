@@ -566,9 +566,11 @@
             <Scopes>internal_user_mgt_create</Scopes>
         </Resource>
 
-        <!-- Organization User Me APIs
-        <Resource context="(.*)/o/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
-        <Resource context="(.*)/o/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/> -->
+        <!-- Approval Tasks -->
+        <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true"
+                  http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
+            <Scopes>internal_humantask_view</Scopes>
+        </Resource>
 
         <!-- Me APIs -->
         <Resource context="(.*)/api/server/v1/configs/home-realm-identifiers" secured="true" http-method="GET">
@@ -584,11 +586,6 @@
             <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v2/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
-            <Scopes>internal_login</Scopes>
-        </Resource>
-        <!-- Approval Tasks -->
-        <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true"
-                  http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/me/associations(.*)" secured="true" http-method="GET, POST, DELETE">
