@@ -187,14 +187,6 @@
                     description="View allowed CORS origins for the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="CORS Management API" identifier="/o/api/server/v1/cors/origins"
-                 requiresAuthorization="true" description="API representation of the CORS Management API"
-                 type="ORGANIZATION_ADMIN">
-        <Scopes>
-            <Scope displayName="View CORS Origins" name="internal_org_cors_origins_view" 
-                    description="View allowed CORS origins for the organization"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Expired Password Identification Management API"
                  identifier="/api/server/v1/expired-password-identification" requiresAuthorization="true"
                  description="API representation of the Expired Password Identification Management API" type="TENANT_ADMIN">
@@ -317,16 +309,6 @@
         <Scopes>
             <Scope displayName="Update Validation Rule" name="internal_validation_rule_mgt_update" 
                     description="Manage field input validation for the organization (root)"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Validation Rules API"
-                 identifier="/o/api/server/v1/validation-rules"
-                 requiresAuthorization="true"
-                 description="API representation of the Validation Rules API"
-                 type="ORGANIZATION_ADMIN">
-        <Scopes>
-            <Scope displayName="Update Validation Rule" name="internal_org_validation_rule_mgt_update" 
-                    description="Manage field input validation for the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Keystore Management API" identifier="/api/server/v1/keystores/certs"
@@ -588,22 +570,6 @@
                     description="Add user verification claim data in the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="IDV Claim Management API"
-                 identifier="/o/api/users/v1/(.*)/idv"
-                 requiresAuthorization="true"
-                 description="API representation of the IDV Claim Management API"
-                 type="ORGANIZATION_ADMIN">
-        <Scopes>
-            <Scope displayName="Verify IDV Claim" name="internal_org_idv_claim_verify" 
-                    description="Verify users in the organization with verification required attributes"/>
-            <Scope displayName="View IDV Claim" name="internal_org_idv_claim_view" 
-                    description="View user verification details in the organization"/>
-            <Scope displayName="Update IDV Claim" name="internal_org_idv_claim_update" 
-                    description="Update user verification details in the organization"/>
-            <Scope displayName="Add IDV Claim" name="internal_org_idv_claim_add" 
-                    description="Add user verification claim data in the organization"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Session Management API" identifier="/api/users/v1/(.*)sessions"
                  requiresAuthorization="true" description="API representation of the Session Management API" type="TENANT_ADMIN">
         <Scopes>
@@ -785,17 +751,6 @@
                     description="Add new consent in the organization (root)"/>
             <Scope displayName="Delete Consent" name="internal_consent_mgt_delete" 
                     description="Delete consent in the organization (root)"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Consent Management API"
-                 identifier="/o/api/identity/consent-mgt/v1.0/consents" requiresAuthorization="true"
-                 description="API representation of the Consent Management API"
-                 type="ORGANIZATION_ADMIN">
-        <Scopes>
-            <Scope displayName="Add Consent" name="internal_org_consent_mgt_add" 
-                    description="Add new consent in organization"/>
-            <Scope displayName="Delete Consent" name="internal_org_consent_mgt_delete" 
-                    description="Delete consent in organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Recovery API" identifier="/api/identity/recovery"
