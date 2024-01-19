@@ -153,8 +153,9 @@
                    description="Delete claims and dialects in the organization"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Configuration Management API" identifier="/api/server/v1/configs"
-                 requiresAuthorization="true" description="API representation of the Config Management API" type="TENANT_ADMIN">
+    <APIResource name="Server Configuration Management API" identifier="/api/server/v1/configs"
+                 requiresAuthorization="true" description="API representation of the Server Config Management API"
+                 type="TENANT_ADMIN">
         <Scopes>
             <Scope displayName="View Config" name="internal_config_view" 
                     description="View server configurations of the organization (root)"/>
@@ -166,8 +167,8 @@
                     description="Restore default server configurations of the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Configuration Management API" identifier="/o/api/server/v1/configs"
-                 requiresAuthorization="true" description="API representation of the Config Management API"
+    <APIResource name="Server Configuration Management API" identifier="/o/api/server/v1/configs"
+                 requiresAuthorization="true" description="API representation of the Server Config Management API"
                  type="ORGANIZATION_ADMIN">
         <Scopes>
             <Scope displayName="View Config" name="internal_org_config_view" 
