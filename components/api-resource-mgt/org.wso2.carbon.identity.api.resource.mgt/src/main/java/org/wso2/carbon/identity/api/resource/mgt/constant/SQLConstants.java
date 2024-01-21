@@ -54,11 +54,6 @@ public class SQLConstants {
     public static final String API_RESOURCE_PROPERTY_NAME_COLUMN_NAME = "PROPERTY_NAME";
     public static final String API_RESOURCE_PROPERTY_VALUE_COLUMN_NAME = "PROPERTY_VALUE";
 
-    // Database constraint names.
-    public static final String API_RESOURCE_UNIQUE_CONSTRAINT = "identifier_unique";
-    public static final String SCOPE_UNIQUE_CONSTRAINT = "scope_unique";
-    public static final String DB2_SQL_ERROR_CODE_UNIQUE_CONSTRAINT = "-803";
-
     // Placeholders.
     public static final String SCOPE_LIST_PLACEHOLDER = "_SCOPE_LIST_";
 
@@ -68,11 +63,11 @@ public class SQLConstants {
     public static final String GET_API_RESOURCES_MSSQL = "SELECT TOP(%d) ID, CURSOR_KEY, NAME, IDENTIFIER, " +
             "DESCRIPTION, TENANT_ID, TYPE, REQUIRES_AUTHORIZATION FROM API_RESOURCE WHERE ";
     public static final String GET_API_RESOURCES_TAIL =
-            " TENANT_ID = %d ORDER BY CURSOR_KEY %s LIMIT %d";
+            " (TENANT_ID = %d OR TENANT_ID IS NULL) ORDER BY CURSOR_KEY %s LIMIT %d";
     public static final String GET_API_RESOURCES_TAIL_MSSQL =
-            " TENANT_ID = %d ORDER BY CURSOR_KEY %s";
+            " (TENANT_ID = %d OR TENANT_ID IS NULL) ORDER BY CURSOR_KEY %s";
     public static final String GET_API_RESOURCES_TAIL_ORACLE =
-            " TENANT_ID = %d ORDER BY CURSOR_KEY %s FETCH FIRST %d ROWS ONLY";
+            " (TENANT_ID = %d OR TENANT_ID IS NULL) ORDER BY CURSOR_KEY %s FETCH FIRST %d ROWS ONLY";
     public static final String GET_API_RESOURCES_WITH_PROPERTIES_SELECTION = "SELECT" +
             " AR.ID AS API_RESOURCE_ID," +
             " AR.CURSOR_KEY AS CURSOR_KEY," +
@@ -102,7 +97,7 @@ public class SQLConstants {
     public static final String GET_API_RESOURCES_WITH_PROPERTIES_JOIN = ") AR" +
             " LEFT JOIN API_RESOURCE_PROPERTY ARP ON AR.ID = ARP.API_ID ORDER BY CURSOR_KEY %s";
     public static final String GET_API_RESOURCES_COUNT = "SELECT COUNT(DISTINCT(ID)) FROM API_RESOURCE WHERE ";
-    public static final String GET_API_RESOURCES_COUNT_TAIL = " TENANT_ID = ?";
+    public static final String GET_API_RESOURCES_COUNT_TAIL = " (TENANT_ID = ? OR TENANT_ID IS NULL)";
     public static final String GET_API_RESOURCE_BY_ID = "SELECT" +
             " AR.ID AS API_RESOURCE_ID," +
             " AR.NAME AS API_RESOURCE_NAME," +
@@ -115,9 +110,10 @@ public class SQLConstants {
             " S.NAME AS SCOPE_QUALIFIED_NAME," +
             " S.DISPLAY_NAME AS SCOPE_DISPLAY_NAME," +
             " S.DESCRIPTION AS SCOPE_DESCRIPTION" +
-            " FROM API_RESOURCE AR LEFT JOIN SCOPE S ON AR.ID = S.API_ID WHERE AR.ID = ? AND AR.TENANT_ID = ?";
+            " FROM API_RESOURCE AR LEFT JOIN SCOPE S ON AR.ID = S.API_ID WHERE AR.ID = ? AND (AR.TENANT_ID = ?" +
+            " OR AR.TENANT_ID IS NULL)";
     public static final String GET_SCOPES_BY_API_ID = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, TENANT_ID "
-            + "FROM SCOPE WHERE API_ID = ? AND TENANT_ID = ?";
+            + "FROM SCOPE WHERE API_ID = ? AND (TENANT_ID = ? OR TENANT_ID IS NULL)";
     public static final String GET_API_RESOURCE_BY_IDENTIFIER = "SELECT" +
             " AR.ID AS API_RESOURCE_ID," +
             " AR.NAME AS API_RESOURCE_NAME," +
@@ -130,25 +126,28 @@ public class SQLConstants {
             " S.NAME AS SCOPE_QUALIFIED_NAME," +
             " S.DISPLAY_NAME AS SCOPE_DISPLAY_NAME," +
             " S.DESCRIPTION AS SCOPE_DESCRIPTION" +
-            " FROM API_RESOURCE AR LEFT JOIN SCOPE S ON AR.ID = S.API_ID WHERE AR.IDENTIFIER = ? AND AR.TENANT_ID = ?";
+            " FROM API_RESOURCE AR LEFT JOIN SCOPE S ON AR.ID = S.API_ID WHERE AR.IDENTIFIER = ? AND" +
+            " (AR.TENANT_ID = ? OR AR.TENANT_ID IS NULL)";
     public static final String IS_API_RESOURCE_EXIST_BY_IDENTIFIER = "SELECT ID FROM API_RESOURCE WHERE " +
-            "IDENTIFIER = ? AND TENANT_ID = ?";
+            "IDENTIFIER = ? AND (TENANT_ID = ? OR TENANT_ID IS NULL)";
     public static final String ADD_API_RESOURCE = "INSERT INTO API_RESOURCE (ID, TYPE, "
             + "NAME, IDENTIFIER, DESCRIPTION, TENANT_ID, REQUIRES_AUTHORIZATION) VALUES (?, ?, ?, ?, ?, ?, ?)";
     public static final String ADD_SCOPE = "INSERT INTO SCOPE (ID, "
             + "NAME, DISPLAY_NAME, DESCRIPTION, API_ID, TENANT_ID) VALUES (?, ?, ?, ?, ?, ?)";
-    public static final String DELETE_API_RESOURCE = "DELETE FROM API_RESOURCE WHERE ID = ? AND TENANT_ID = ?";
-    public static final String DELETE_SCOPES_BY_API = "DELETE FROM SCOPE WHERE API_ID = ? AND TENANT_ID = ?";
+    public static final String DELETE_API_RESOURCE = "DELETE FROM API_RESOURCE WHERE ID = ? AND ( TENANT_ID = ? " +
+            "OR TENANT_ID IS NULL)";
+    public static final String DELETE_SCOPES_BY_API = "DELETE FROM SCOPE WHERE API_ID = ? AND ( TENANT_ID = ? " +
+            "OR TENANT_ID IS NULL)";
     public static final String UPDATE_API_RESOURCE = "UPDATE API_RESOURCE SET NAME = ?, DESCRIPTION = ?" +
             " WHERE ID = ?";
     public static final String IS_SCOPE_EXIST_BY_ID = "SELECT ID FROM SCOPE WHERE ID = ? AND TENANT_ID = ?";
     public static final String GET_SCOPE_BY_NAME = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, TENANT_ID "
-            + "FROM SCOPE WHERE NAME = ? AND TENANT_ID = ?";
+            + "FROM SCOPE WHERE NAME = ? AND (TENANT_ID = ? OR TENANT_ID IS NULL)";
     public static final String GET_SCOPE_BY_NAME_API_ID = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, " +
-            "TENANT_ID FROM SCOPE WHERE NAME = ? AND API_ID = ? AND TENANT_ID = ?";
+            "TENANT_ID FROM SCOPE WHERE NAME = ? AND API_ID = ? AND (TENANT_ID = ? OR TENANT_ID IS NULL)";
     public static final String GET_SCOPES_BY_TENANT_ID = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, " +
             "TENANT_ID FROM SCOPE WHERE ";
-    public static final String GET_SCOPES_BY_TENANT_ID_TAIL = " TENANT_ID = ?";
+    public static final String GET_SCOPES_BY_TENANT_ID_TAIL = " (TENANT_ID = ? OR TENANT_ID IS NULL)";
     public static final String DELETE_SCOPE_BY_NAME = "DELETE FROM SCOPE WHERE NAME = ? AND TENANT_ID = ?";
     public static final String GET_API_RESOURCE_PROPERTIES_BY_API_ID = "SELECT ID, NAME, VALUE FROM " +
             "API_RESOURCE_PROPERTY WHERE API_ID = ?";
@@ -156,10 +155,10 @@ public class SQLConstants {
             "API_RESOURCE_PROPERTY WHERE API_ID = ?";
     public static final String GET_API_RESOURCE_PROPERTIES_BY_API_IDENTIFIER = "SELECT ARP.ID, ARP.NAME, ARP.VALUE " +
             "FROM API_RESOURCE AR JOIN API_RESOURCE_PROPERTY ARP ON AR.ID = ARP.API_ID WHERE AR.IDENTIFIER = ? " +
-            "AND AR.TENANT_ID = ?";
+            "AND (AR.TENANT_ID = ? OR AR.TENANT_ID IS NULL)";
     public static final String GET_API_RESOURCE_PROPERTIES_BY_API_IDENTIFIER_H2 = "SELECT ARP.ID, ARP.NAME, " +
             "ARP.`VALUE` FROM API_RESOURCE AR JOIN API_RESOURCE_PROPERTY ARP ON AR.ID = ARP.API_ID WHERE " +
-            "AR.IDENTIFIER = ? AND AR.TENANT_ID = ?";
+            "AR.IDENTIFIER = ? AND (AR.TENANT_ID = ? OR AR.TENANT_ID IS NULL)";
     public static final String ADD_API_RESOURCE_PROPERTY = "INSERT INTO API_RESOURCE_PROPERTY (API_ID, NAME, VALUE) " +
             "VALUES (?, ?, ?)";
     public static final String ADD_API_RESOURCE_PROPERTY_H2 = "INSERT INTO API_RESOURCE_PROPERTY (API_ID, NAME, " +
@@ -170,6 +169,6 @@ public class SQLConstants {
             " S.NAME AS SCOPE_QUALIFIED_NAME," +
             " S.DISPLAY_NAME AS SCOPE_DISPLAY_NAME," +
             " S.DESCRIPTION AS SCOPE_DESCRIPTION" +
-            " FROM API_RESOURCE AR LEFT JOIN SCOPE S ON AR.ID = S.API_ID WHERE S.TENANT_ID = ?" +
-            " AND S.NAME IN (" + SCOPE_LIST_PLACEHOLDER + ")";
+            " FROM API_RESOURCE AR LEFT JOIN SCOPE S ON AR.ID = S.API_ID WHERE (S.TENANT_ID = ? " +
+            "OR S.TENANT_ID IS NULL) AND S.NAME IN (" + SCOPE_LIST_PLACEHOLDER + ")";
 }

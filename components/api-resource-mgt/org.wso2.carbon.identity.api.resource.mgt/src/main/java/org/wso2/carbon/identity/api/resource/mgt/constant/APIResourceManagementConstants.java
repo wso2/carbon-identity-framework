@@ -46,7 +46,8 @@ public class APIResourceManagementConstants {
     public static final String BEFORE = "before";
     public static final String AFTER = "after";
     public static final String PROPERTIES = "properties";
-    public static final String TENANT_MGT_API_NAME = "Tenant Management API";
+    public static final String BUSINESS_TYPE = "BUSINESS";
+    public static final String SYSTEM_TYPE = "SYSTEM";
     public static final String EQ = "eq";
     public static final String CO = "co";
     public static final String SW = "sw";
@@ -88,8 +89,7 @@ public class APIResourceManagementConstants {
         public static final String DESCRIPTION = "description";
         public static final String REQUIRES_AUTHORIZATION = "requiresAuthorization";
         public static final String TYPE = "type";
-        public static final String SYSTEM_TYPE = "SYSTEM";
-        public static final String SYSTEM_ORG_TYPE = "SYSTEM_ORG";
+        public static final String TENANT_ADMIN_TYPE = "TENANT_ADMIN";
     }
 
     /**
@@ -110,6 +110,8 @@ public class APIResourceManagementConstants {
                 "Invalid filter value used for filtering."),
         ERROR_CODE_CREATION_RESTRICTED("60006", "API resource creation is restricted.",
                 "API resource creation is restricted in organizations."),
+        ERROR_CODE_INVALID_IDENTIFIER_VALUE("60007", "Unable to add API resources.",
+                "Invalid identifier value provided."),
 
         // Server errors.
         ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES("65001", "Error while retrieving API resources.",

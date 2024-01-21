@@ -179,9 +179,6 @@
 
     <!-- [Organization] Validation Rules API -->
     <Resource context="(.*)/o/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
-    <Resource context="(.*)/o/api/server/v1/validation-rules(.*)" secured="true" http-method="PUT">
-        <Scopes>internal_org_validation_rule_mgt_update</Scopes>
-    </Resource>
 
     <!-- Validation Rules API -->
     <Resource context="(.*)/api/server/v1/validation-rules(.*)" secured="false" http-method="GET"/>
@@ -201,39 +198,6 @@
     </Resource>
     <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="GET">
         <Scopes>internal_idvp_view</Scopes>
-    </Resource>
-
-    <!-- [Organization] Consent Management API -->
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/receipts/(.*)" secured="true" http-method="all"/>
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="POST">
-        <Scopes>internal_org_consent_mgt_add</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="GET"/>
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purposes(.+)" secured="true" http-method="DELETE">
-        <Scopes>internal_org_consent_mgt_delete</Scopes>
-    </Resource>
-
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true"
-              http-method="POST">
-        <Scopes>internal_org_consent_mgt_add</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true"
-              http-method="GET"/>
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/pii-categories(.+)" secured="true"
-              http-method="DELETE">
-        <Scopes>internal_org_consent_mgt_delete</Scopes>
-    </Resource>
-
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true"
-              http-method="POST">
-        <Scopes>internalv_consent_mgt_add</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true"
-              http-method="GET"/>
-    <Resource context="(.*)/o/api/identity/consent-mgt/v1.0/consents/purpose-categories(.+)" secured="true"
-              http-method="DELETE">
-        <Scopes>internal_org_consent_mgt_delete</Scopes>
     </Resource>
 
     <!-- Consent Management API -->
@@ -544,9 +508,11 @@
         <Scopes>internal_user_mgt_create</Scopes>
     </Resource>
 
-    <!-- Organization User Me APIs
-    <Resource context="(.*)/o/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
-    <Resource context="(.*)/o/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/> -->
+    <!-- Approval Tasks -->
+    <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true"
+              http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
+        <Scopes>internal_humantask_view</Scopes>
+    </Resource>
 
     <!-- Me APIs -->
     <Resource context="(.*)/api/server/v1/configs/home-realm-identifiers" secured="true" http-method="GET">
@@ -562,11 +528,6 @@
         <Scopes>internal_login</Scopes>
     </Resource>
     <Resource context="(.*)/api/users/v2/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
-        <Scopes>internal_login</Scopes>
-    </Resource>
-    <!-- Approval Tasks -->
-    <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true"
-              http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
         <Scopes>internal_login</Scopes>
     </Resource>
     <Resource context="(.*)/api/users/v1/me/associations(.*)" secured="true" http-method="GET, POST, DELETE">
@@ -899,20 +860,6 @@
         <Scopes>internal_session_delete</Scopes>
     </Resource>
 
-    <!-- [Organization] IDV Claim Management API -->
-    <Resource context="(.*)/o/api/users/v1/(.*)/idv(.*)" secured="true" http-method="GET">
-        <Scopes>internal_org_idv_claim_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/users/v1/(.*)/idv(.*)" secured="true" http-method="POST">
-        <Scopes>internal_org_idv_claim_add</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/users/v1/(.*)/idv(.*)" secured="true" http-method="PUT">
-        <Scopes>internal_org_idv_claim_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/users/v1/(.*)/idv/verify" secured="true" http-method="POST">
-        <Scopes>internal_org_idv_claim_verify</Scopes>
-    </Resource>
-
     <!-- IDV Claim Management API -->
     <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="GET">
         <Scopes>internal_idv_claim_view</Scopes>
@@ -1019,14 +966,6 @@
         <Scopes>internal_media_mgt_delete</Scopes>
     </Resource>
 
-    <!-- [Organization] CORS Management API -->
-    <Resource context="(.*)/o/api/server/v1/cors/origins" secured="true" http-method="GET">
-        <Scopes>internal_org_cors_origins_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/server/v1/cors/origins/(.*)" secured="true" http-method="GET">
-        <Scopes>internal_org_cors_origins_view</Scopes>
-    </Resource>
-
     <!-- CORS Management API -->
     <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET">
         <Scopes>internal_cors_origins_view</Scopes>
@@ -1043,6 +982,9 @@
     <!-- Configuration Management API -->
     <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="PATCH, PUT">
         <Scopes>internal_config_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/configs(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_config_delete</Scopes>
     </Resource>
 
     <!-- [Organization] Organization Discovery API -->

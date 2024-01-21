@@ -155,7 +155,7 @@ public class APIResourceManagementConfigBuilder {
             return null;
         }
 
-        String type = APIResourceConfigBuilderConstants.SYSTEM_TYPE;
+        String type = APIResourceConfigBuilderConstants.TENANT_ADMIN_TYPE;
         if (element.getAttributeValue(new QName(APIResourceConfigBuilderConstants.TYPE)) != null) {
             type = element.getAttributeValue(new QName(APIResourceConfigBuilderConstants.TYPE));
         }

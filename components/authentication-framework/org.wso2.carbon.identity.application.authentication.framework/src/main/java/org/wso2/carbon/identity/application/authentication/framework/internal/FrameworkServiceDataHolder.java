@@ -98,6 +98,12 @@ public class FrameworkServiceDataHolder {
     private FunctionLibraryManagementService functionLibraryManagementService = null;
     private String requireCode = "";
     private boolean userSessionMappingEnabled;
+
+    /*
+    This property restricts unnecessary user local search during federated authentication flow for authentication
+    flow handlers like identifier first.
+     */
+    private boolean skipLocalUserSearchForAuthenticationFlowHandlersEnabled;
     private FederatedAssociationManager federatedAssociationManager;
     private ServerSessionManagementService serverSessionManagementService;
     private MultiAttributeLoginService multiAttributeLoginService;
@@ -560,6 +566,16 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
+     * Is skip local user search for authentication flow handlers enabled.
+     *
+     * @return return true if skip local user search for authentication flow handlers enabled.
+     */
+    public boolean isSkipLocalUserSearchForAuthenticationFlowHandlersEnabled() {
+
+        return this.skipLocalUserSearchForAuthenticationFlowHandlersEnabled;
+    }
+
+    /**
      * Set user session mapping enabled.
      *
      * @param userSessionMappingEnabled
@@ -575,6 +591,26 @@ public class FrameworkServiceDataHolder {
         }
 
         this.userSessionMappingEnabled = userSessionMappingEnabled;
+    }
+
+    /**
+     * Get the server config for skip user local search during federated authentication flow
+     *
+     * @param skipLocalUserSearchForAuthenticationFlowHandlersEnabled
+     */
+    public void setSkipLocalUserSearchForAuthenticationFlowHandlersEnabled
+    (boolean skipLocalUserSearchForAuthenticationFlowHandlersEnabled) {
+
+        if (log.isDebugEnabled()) {
+            if (skipLocalUserSearchForAuthenticationFlowHandlersEnabled) {
+                log.debug("Skip Local User Search For Authentication Flow Handlers enabled for server.");
+            } else {
+                log.debug("Skip Local User Search For Authentication Flow Handlers not enabled for server.");
+            }
+        }
+
+        this.skipLocalUserSearchForAuthenticationFlowHandlersEnabled =
+                skipLocalUserSearchForAuthenticationFlowHandlersEnabled;
     }
 
     public FederatedAssociationManager getFederatedAssociationManager() {

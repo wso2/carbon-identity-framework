@@ -2311,6 +2311,11 @@
     -->
     <EnableFederatedUserAssociation>false</EnableFederatedUserAssociation>
 
+    <!--
+    This property restricts unnecessary user local search during federated authentication flow.
+    -->
+    <SkipLocalUserSearchForAuthenticationFlowHandlers>true</SkipLocalUserSearchForAuthenticationFlowHandlers>
+
     <TenantContext>
         <TenantQualifiedUrls>
             <Enable>false</Enable>

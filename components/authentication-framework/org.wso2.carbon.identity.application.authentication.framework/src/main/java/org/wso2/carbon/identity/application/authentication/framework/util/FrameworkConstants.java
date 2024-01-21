@@ -354,6 +354,8 @@ public abstract class FrameworkConstants {
          */
         public static final String USER_SESSION_MAPPING_ENABLED =
                 "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
+        public static final String SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS =
+                "SkipLocalUserSearchForAuthenticationFlowHandlers";
 
         /**
          * Configuration used for session data storage optimization.
