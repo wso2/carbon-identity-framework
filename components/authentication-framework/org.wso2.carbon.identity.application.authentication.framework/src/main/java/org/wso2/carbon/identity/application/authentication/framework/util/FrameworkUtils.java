@@ -2442,7 +2442,7 @@ public class FrameworkUtils {
     public static List<String> getUnmappedIDPGroups(ExternalIdPConfig externalIdPConfig,
                                                     Map<String, String> remoteClaims, String idpGroupClaimUri) {
 
-        if (StringUtils.isBlank(idpGroupClaimUri)) {
+        if (StringUtils.isBlank(idpGroupClaimUri) || MapUtils.isEmpty(remoteClaims) || externalIdPConfig == null) {
             return Collections.emptyList();
         }
         IdentityProvider identityProvider = externalIdPConfig.getIdentityProvider();
