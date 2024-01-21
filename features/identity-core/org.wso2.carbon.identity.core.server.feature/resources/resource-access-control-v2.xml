@@ -22,26 +22,26 @@
     <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
     <Resource context="/" secured="false" http-method="GET"/>
 
-    <!-- Code Management API -->
+    <!-- User Code Management API -->
     <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
-        <Scopes>internal_code_mgt_create</Scopes>
+        <Scopes>internal_user_code_mgt_create</Scopes>
     </Resource>
 
     <Resource context="(.*)/api/identity/user/v1.0/introspect-code(.*)" secured="true" http-method="POST">
-        <Scopes>internal_code_mgt_view</Scopes>
+        <Scopes>internal_user_code_mgt_view</Scopes>
     </Resource>
 
     <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="GET">
-        <Scopes>internal_code_mgt_view</Scopes>
+        <Scopes>internal_user_code_mgt_view</Scopes>
     </Resource>
     <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="POST">
-        <Scopes>internal_code_mgt_create</Scopes>
+        <Scopes>internal_user_code_mgt_create</Scopes>
     </Resource>
     <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="PATCH, PUT">
-        <Scopes>internal_code_mgt_update</Scopes>
+        <Scopes>internal_user_code_mgt_update</Scopes>
     </Resource>
     <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all">
-        <Scopes>internal_code_mgt_delete</Scopes>
+        <Scopes>internal_user_code_mgt_delete</Scopes>
     </Resource>
 
     <!-- User Personal Identification API -->
@@ -458,12 +458,12 @@
 
     <!-- [Organization] SCIM2 Bulk API -->
     <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
-        <Scopes>internal_org_bulk_mgt_create</Scopes>
+        <Scopes>internal_org_bulk_resource_create</Scopes>
     </Resource>
 
     <!-- SCIM2 Bulk API -->
     <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="POST">
-        <Scopes>internal_bulk_mgt_create</Scopes>
+        <Scopes>internal_bulk_resource_create</Scopes>
     </Resource>
 
     <!-- [Organization] Authentication Data APIs -->

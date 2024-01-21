@@ -684,13 +684,13 @@
     <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true"
                  description="API representation of the SCIM2 Bulk API" type="TENANT_ADMIN">
         <Scopes>
-            <Scope displayName="Create Bulk Resource" name="internal_bulk_mgt_create" 
+            <Scope displayName="Create Bulk Resource" name="internal_bulk_resource_create"
                     description="Create new SCIM resources in bulk in the organization (root)"/>
-            <Scope displayName="View Bulk Resource" name="internal_bulk_mgt_view" 
+            <Scope displayName="View Bulk Resource" name="internal_bulk_resource_view"
                     description="View SCIM resources in bulk in the organization (root)"/>
-            <Scope displayName="Update Bulk Resource" name="internal_bulk_mgt_update" 
+            <Scope displayName="Update Bulk Resource" name="internal_bulk_resource_update"
                     description="Update SCIM resources in bulk in the organization (root)"/>
-            <Scope displayName="Delete Bulk Resource" name="internal_bulk_mgt_delete" 
+            <Scope displayName="Delete Bulk Resource" name="internal_bulk_resource_delete"
                     description="Delete SCIM resources in bulk in the organization (root)"/>
         </Scopes>
     </APIResource>
@@ -698,27 +698,27 @@
                  requiresAuthorization="true"
                  description="API representation of the SCIM2 Bulk API" type="ORGANIZATION_ADMIN">
         <Scopes>
-            <Scope displayName="Create Bulk Resource" name="internal_org_bulk_mgt_create" 
+            <Scope displayName="Create Bulk Resource" name="internal_org_bulk_resource_create"
                         description="Create new SCIM resources in bulk in the organization"/>
-            <Scope displayName="View Bulk Resource" name="internal_org_bulk_mgt_view" 
+            <Scope displayName="View Bulk Resource" name="internal_org_bulk_resource_view"
                         description="View SCIM resources in bulk in the organization"/>
-            <Scope displayName="Update Bulk Resource" name="internal_org_bulk_mgt_update" 
+            <Scope displayName="Update Bulk Resource" name="internal_org_bulk_resource_update"
                         description="Update SCIM resources in bulk in the organization"/>
-            <Scope displayName="Delete Bulk Resource" name="internal_org_bulk_mgt_delete" 
+            <Scope displayName="Delete Bulk Resource" name="internal_org_bulk_resource_delete"
                         description="Delete SCIM resources in bulk in the organization"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Code Management API" identifier="/api/identity/user/v1.0/(.*)-code"
-                 requiresAuthorization="true" description="API representation of the Code Management API" type="TENANT_USER">
+    <APIResource name="User Code Management API" identifier="/api/identity/user/v1.0/(.*)-code"
+                 requiresAuthorization="true" description="API representation of the User Related Code Management API" type="TENANT_USER">
         <Scopes>
-            <Scope displayName="View Code" name="internal_code_mgt_view" 
-                    description="View code in the organization (root)"/>
-            <Scope displayName="Create Code" name="internal_code_mgt_create" 
-                    description="Create new code in the organization (root)"/>
-            <Scope displayName="Update Code" name="internal_code_mgt_update" 
-                    description="Update code in the organization (root)"/>
-            <Scope displayName="Delete Code" name="internal_code_mgt_delete" 
-                    description="Delete code in the organization (root)"/>
+            <Scope displayName="View User Code" name="internal_user_code_mgt_view"
+                    description="View user related code in the organization (root)"/>
+            <Scope displayName="Create User Code" name="internal_user_code_mgt_create"
+                    description="Create user related new code in the organization (root)"/>
+            <Scope displayName="Update User Code" name="internal_user_code_mgt_update"
+                    description="Update user related code in the organization (root)"/>
+            <Scope displayName="Delete User Code" name="internal_user_code_mgt_delete"
+                    description="Delete user related code in the organization (root)"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Personal Identification API"
@@ -885,7 +885,7 @@
         <Scopes>
             <Scope displayName="Create Identity Register" name="internal_register_create" 
                     description="Create identity register"/>
-            <Scope displayName="Delete Identity Register" name="internal_register_delete" 
+            <Scope displayName="Delete Identity Register" name="internal_register_delete"
                     description="Delete identity register"/>
         </Scopes>
     </APIResource>
