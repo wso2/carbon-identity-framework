@@ -3609,6 +3609,14 @@
     <FederatedIDPGroupClaimValueAttributeSeparator>{{federated.idp.group_claim_value_attribute_separator}}</FederatedIDPGroupClaimValueAttributeSeparator>
     {% endif %}
 
+    {% if federated.idp.use_idp_role_claim_as_idp_group_claim is defined %}
+    <!--
+    This allows to use idp role claim uri as the idp group claim uri. This is only recommended to handle the migration
+    from idp role to local role mapping implementation to idp group to local role assignment implementation.
+    -->
+    <UseIDPRoleClaimAsIDPGroupClaim>{{federated.idp.use_idp_role_claim_as_idp_group_claim}}</UseIDPRoleClaimAsIDPGroupClaim>
+    {% endif %}
+
      {% if system_applications.fidp_role_based_authz_enabled_apps is defined %}
      <!-- Following applications can use federated user role based authorization -->
      <FIdPRoleBasedAuthzApplications>

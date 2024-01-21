@@ -22,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -39,9 +38,6 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -118,53 +114,5 @@ public class DefaultClaimHandlerTest {
 
         when(applicationRolesResolver.getRoles(eq(authenticatedUser), eq(applicationId))).thenReturn(
                 mappedApplicationRoles);
-
-        String applicationRoles =
-                defaultClaimHandler.getApplicationRolesForFederatedUser(stepConfig, authenticationContext,
-                        idPClaimMappings);
-
-        Assert.assertEquals(applicationRoles, String.join(",", mappedApplicationRoles));
-    }
-
-    @Test
-    public void testHandleApplicationRolesForLocalUser() throws Exception {
-
-        DefaultClaimHandler defaultClaimHandler = new DefaultClaimHandler();
-
-        StepConfig stepConfig = new StepConfig();
-        stepConfig.setSubjectAttributeStep(true);
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        stepConfig.setAuthenticatedUser(authenticatedUser);
-
-        ServiceProvider serviceProvider = new ServiceProvider();
-        serviceProvider.setApplicationResourceId(applicationId);
-
-        Map<String, String> localClaims = new HashMap<String, String>();
-
-        Map<String, String> requestedLocalClaims = new HashMap<String, String>() {{
-            put(FrameworkConstants.APP_ROLES_CLAIM, "applicationRoles");
-        }};
-
-        when(authenticationContext.getSequenceConfig()).thenReturn(sequenceConfig);
-        when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
-        when(applicationConfig.getServiceProvider()).thenReturn(serviceProvider);
-        when(applicationConfig.getRequestedClaimMappings()).thenReturn(requestedLocalClaims);
-
-        mockStatic(FrameworkServiceDataHolder.class);
-        when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
-        when(frameworkServiceDataHolder.getHighestPriorityApplicationRolesResolver()).thenReturn(
-                applicationRolesResolver);
-
-        mockStatic(FrameworkUtils.class);
-        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
-
-        when(applicationRolesResolver.getRoles(eq(authenticatedUser), eq(applicationId))).thenReturn(
-                mappedApplicationRoles);
-
-        defaultClaimHandler.handleApplicationRolesForLocalUser(stepConfig, authenticationContext, localClaims,
-                String.join(FrameworkUtils.getMultiAttributeSeparator(), mappedApplicationRoles));
-
-        Assert.assertEquals(localClaims.get(FrameworkConstants.APP_ROLES_CLAIM),
-                String.join(",", mappedApplicationRoles));
     }
 }

@@ -885,13 +885,13 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         try {
             if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                 // This block handle the JIT provisioning in legacy authz runtime with v1 roles.
-                String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
+                String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(stepConfig, context);
                 if (claimMapping != null) {
                     //Ex. Standard dialects like OIDC.
                     idpRoleClaimUri = claimMapping.get(IdentityUtil.getLocalGroupsClaimURI());
                 } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
                     //Ex. SAML custom claims.
-                    idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
+                    idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(stepConfig, context);
                 }
 
                 /*
@@ -912,7 +912,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 localClaimValues);
             } else {
                 // This block handle the JIT provisioning in new authz runtime with v2 roles.
-                String idpGroupsClaimUri = FrameworkUtils.getIdpGroupClaimUri(externalIdPConfig);
+                String idpGroupsClaimUri = FrameworkUtils.getIdpGroupClaimUri(stepConfig, context);
                 List<String> assignedRoleIdList = FrameworkUtils.getAssignedRolesFromIdPGroups(externalIdPConfig,
                         originalExternalAttributeValueMap, idpGroupsClaimUri, context.getTenantDomain());
                 boolean sendManuallyAddedLocalRoles = false;

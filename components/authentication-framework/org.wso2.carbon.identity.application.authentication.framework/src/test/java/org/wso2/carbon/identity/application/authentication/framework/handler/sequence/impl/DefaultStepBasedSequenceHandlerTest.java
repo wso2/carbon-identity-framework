@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -264,18 +263,6 @@ public class DefaultStepBasedSequenceHandlerTest {
         };
     }
 
-    /*
-        Get User Role Claim URI from IDP Mapped Role Claim URI
-     */
-    @Test(dataProvider = "idpRoleClaimUriProvider")
-    public void testGetIdpRoleClaimUri(String idpRoleClaimUri,
-                                       String expectedRoleClaimUri) throws Exception {
-
-        ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
-        when(externalIdPConfig.getRoleClaimUri()).thenReturn(idpRoleClaimUri);
-        assertEquals(stepBasedSequenceHandler.getIdpRoleClaimUri(externalIdPConfig), expectedRoleClaimUri);
-    }
-
     @DataProvider(name = "idpClaimMappingProvider")
     public Object[][] getIdpClaimMappingsProvider() {
 
@@ -306,19 +293,6 @@ public class DefaultStepBasedSequenceHandlerTest {
                         null, null
                 }
         };
-    }
-
-    @Test(dataProvider = "idpClaimMappingProvider")
-    public void testGetIdpRoleClaimUriFromClaimMappings(Object claimMappings,
-                                                        String expectedRoleClaimUri) throws Exception {
-
-        Util.mockIdentityUtil();
-        ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
-        when(externalIdPConfig.getClaimMappings()).thenReturn((ClaimMapping[]) claimMappings);
-
-        String roleClaim = stepBasedSequenceHandler.getIdpRoleClaimUri(externalIdPConfig);
-        assertEquals(roleClaim, expectedRoleClaimUri);
-
     }
 
     @Test
@@ -451,37 +425,6 @@ public class DefaultStepBasedSequenceHandlerTest {
                         Arrays.asList(localRoles[0], localRoles[1])
                 }
         };
-    }
-
-    @Test(dataProvider = "idpMappedUserRoleDataProvider")
-    public void testGetIdentityProviderMappedUserRoles(Map<String, String> attributeValueMap,
-                                                       String idpRoleClaimUri,
-                                                       boolean excludeUnmapped,
-                                                       String multiAttributeSeparator,
-                                                       Map<String, String> idpToLocalRoleMappings,
-                                                       List<String> expected) throws Exception {
-
-        mockStatic(FrameworkUtils.class);
-        when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(multiAttributeSeparator);
-        ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
-        when(externalIdPConfig.getRoleMappings()).thenReturn(idpToLocalRoleMappings);
-        when(FrameworkUtils.getIdentityProvideMappedUserRoles(externalIdPConfig,
-                attributeValueMap, idpRoleClaimUri, excludeUnmapped)).thenCallRealMethod();
-
-        List<String> mappedUserRoles = stepBasedSequenceHandler.getIdentityProvideMappedUserRoles(externalIdPConfig,
-                attributeValueMap, idpRoleClaimUri, excludeUnmapped);
-
-        if (CollectionUtils.isEmpty(mappedUserRoles)) {
-            mappedUserRoles = Collections.emptyList();
-        }
-
-        if (CollectionUtils.isEmpty(expected)) {
-            expected = Collections.emptyList();
-        }
-
-        Collections.sort(mappedUserRoles);
-        Collections.sort(expected);
-        assertEquals(mappedUserRoles, expected);
     }
 
     @Test

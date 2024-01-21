@@ -69,9 +69,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
-    private static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
-            + ".ReturnOnlyMappedLocalRoles";
-    private static boolean returnOnlyMappedLocalRoles = false;
     private static boolean allowSPRequestedFedClaimsOnly = true;
 
     public static DefaultStepBasedSequenceHandler getInstance() {
@@ -88,10 +85,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     }
 
     static {
-        if (IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP) != null) {
-            returnOnlyMappedLocalRoles = Boolean
-                    .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
-        }
         if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY))) {
             allowSPRequestedFedClaimsOnly =
                     Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY));
@@ -330,36 +323,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                     subjectAttributesFoundInStep = true;
 
-                    String idpRoleClaimUri = getIdpRoleClaimUri(stepConfig, context);
-
-                    // Get the mapped user roles according to the mapping in the IDP configuration.
-                    // If no mapping is provided, return all IDP roles as they are.
-                    List<String> identityProviderMappedUserRolesUnmappedInclusive;
-                    // Get the only mapped user roles will be used for scope validation.
-                    List<String> identityProviderMappedUserRolesForScopeValidation;
-                    if (MapUtils.isEmpty(externalIdPConfig.getRoleMappings())) {
-                        identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
-                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, false);
-                        identityProviderMappedUserRolesForScopeValidation = getIdentityProvideMappedUserRoles(
-                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, true);
-                    } else {
-                        identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
-                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
-                        identityProviderMappedUserRolesForScopeValidation =
-                                identityProviderMappedUserRolesUnmappedInclusive;
-                    }
-
-                    String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
-                            identityProviderMappedUserRolesUnmappedInclusive);
-                    if (StringUtils.isNotBlank(idpRoleClaimUri)
-                            && StringUtils.isNotBlank(serviceProviderMappedUserRoles)) {
-                        extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
-                    }
-
-                    if (returnOnlyMappedLocalRoles && StringUtils.isBlank(serviceProviderMappedUserRoles)) {
-                        extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
-                    }
-
                     if (mappedAttrs == null || mappedAttrs.isEmpty()) {
                         // do claim handling
                         mappedAttrs = handleClaimMappings(stepConfig, context,
@@ -371,10 +334,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         idpClaimValues = (Map<String, String>) context
                                 .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
                     }
-                    // Adding identity provider mapped user roles to be used in the federated user role resolver
-                    // for scope validation.
-                    mappedAttrs.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, String.join(" ",
-                            identityProviderMappedUserRolesForScopeValidation));
                 }
 
                 if (stepConfig.isSubjectIdentifierStep()) {
@@ -511,48 +470,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     protected String getSpRoleClaimUri(ApplicationConfig appConfig) throws FrameworkException {
 
         return DefaultSequenceHandlerUtils.getSpRoleClaimUri(appConfig);
-    }
-
-    /**
-     * @param externalIdPConfig
-     * @return
-     */
-    protected String getIdpRoleClaimUri(ExternalIdPConfig externalIdPConfig) throws FrameworkException {
-        return FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
-    }
-
-    /**
-     * Get the Role Claim Uri in IDPs dialect.
-     *
-     * @param stepConfig Relevant stepConfig.
-     * @param context Relevant AuthenticationContext.
-     * @return Role Claim Uri as String.
-     * @throws FrameworkException
-     */
-    protected String getIdpRoleClaimUri(StepConfig stepConfig, AuthenticationContext context)
-            throws FrameworkException {
-
-        String idpRoleClaimUri = getIdpRoleClaimUri(context.getExternalIdP());
-        return FrameworkUtils.getMappedIdpRoleClaimUri(idpRoleClaimUri, stepConfig, context);
-    }
-
-    /**
-     * Map the external IDP roles to local roles.
-     * If excludeUnmapped is true exclude unmapped roles.
-     * Otherwise include unmapped roles as well.
-     *
-     * @param externalIdPConfig
-     * @param extAttributesValueMap
-     * @param idpRoleClaimUri
-     * @param excludeUnmapped
-     * @return ArrayList<string>
-     */
-    protected List<String> getIdentityProvideMappedUserRoles(ExternalIdPConfig externalIdPConfig,
-                                                             Map<String, String> extAttributesValueMap,
-                                                             String idpRoleClaimUri,
-                                                             Boolean excludeUnmapped) throws FrameworkException {
-        return FrameworkUtils.getIdentityProvideMappedUserRoles(externalIdPConfig, extAttributesValueMap,
-                idpRoleClaimUri, excludeUnmapped);
     }
 
     /**
