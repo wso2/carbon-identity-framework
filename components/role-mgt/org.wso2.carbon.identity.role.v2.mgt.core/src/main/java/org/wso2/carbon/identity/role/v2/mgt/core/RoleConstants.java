@@ -67,6 +67,9 @@ public class RoleConstants {
     public static final String ORGANIZATION = "organization";
     public static final String SYSTEM = "system";
 
+    public static final String INTERNAL_SCOPE_PREFIX = "internal_";
+    public static final String INTERNAL_ORG_SCOPE_PREFIX = "internal_org_";
+
     /**
      * Grouping of constants related to database table names.
      */
