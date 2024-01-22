@@ -735,6 +735,7 @@
   "oauth.jwks_endpoint.read_timeout": "1s",
   "oauth.jwks_endpoint.size_limit_bytes": "51200",
   "oauth.jwks_endpoint.add_previous_version_kid" : false,
+  "oauth.jwks_endpoint.is_thumbprint_hexify_required": false,
   "oauth.global_scope_validators.role_based_scope_issuer.enable": false,
 
   "authentication.adaptive.event_publisher.authentication_type": "basic",
@@ -1120,7 +1121,7 @@
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": true,
-  "console.approvals.enabled": true,
+  "console.approvals.enabled": false,
   "console.approvals.scopes.feature": ["console:workflowApprovals"],
   "console.approvals.scopes.create": ["internal_humantask_view"],
   "console.approvals.scopes.read": ["internal_humantask_view"],
@@ -1142,12 +1143,12 @@
     "internal_claim_meta_view",
     "internal_userstore_view",
     "internal_role_mgt_view"],
-  "console.branding.scopes.feature": ["console:applications"],
+  "console.branding.scopes.feature": ["console:branding"],
   "console.branding.disabled_features": ["branding.hostnameUrlBranding"],
-  "console.branding.scopes.create": ["internal_application_mgt_create"],
+  "console.branding.scopes.create": ["internal_branding_preference_update"],
   "console.branding.scopes.read": ["internal_application_mgt_view"],
-  "console.branding.scopes.update": ["internal_application_mgt_update"],
-  "console.branding.scopes.delete": ["internal_application_mgt_update"],
+  "console.branding.scopes.update": ["internal_branding_preference_update"],
+  "console.branding.scopes.delete": ["internal_branding_preference_update"],
   "console.certificates.enabled": true,
   "console.certificates.scopes.feature": ["console:certificates"],
   "console.certificates.scopes.create": ["internal_keystore_update"],
@@ -1286,7 +1287,9 @@
       "internal_user_mgt_view",
       "internal_role_mgt_view",
       "internal_userstore_view",
-      "internal_group_mgt_view"
+      "internal_group_mgt_view",
+      "internal_permission_mgt_view",
+      "internal_user_mgt_list"
   ],
   "console.user_v1_roles.scopes.update": ["internal_role_mgt_update"],
   "console.user_v1_roles.scopes.delete": ["internal_role_mgt_delete"],
@@ -1449,6 +1452,7 @@
   "cors.tag_requests": false,
   "audit.log.contextual_param.params": [],
   "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
+  "authentication.skip_local_user_search_for_authentication_flow_handlers": true,
   "axis2.transport_sender.local.name": "local",
   "axis2.transport_sender.local.class": "org.apache.axis2.transport.local.LocalTransportSender",
   "axis2.transport_sender.http.name": "http",
@@ -1500,5 +1504,7 @@
   "client_attestation.apple_attestation_root_certificate_path": "${carbon.home}/repository/resources/identity/apple/attestation/apple_attestation_root_ca.pem",
   "client_attestation.apple_attestation_revocation_check_enabled": false,
 
-  "api_response.set_account_lock_auth_failure_reason": false
+  "api_response.set_account_lock_auth_failure_reason": false,
+  
+  "super_tenant.alias_in_public_url": ""
 }

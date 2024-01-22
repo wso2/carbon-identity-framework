@@ -70,6 +70,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -278,10 +279,8 @@ public class IdentityProviderManager implements IdpManager {
             KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
             if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 // derive key store name
-                String ksName = tenantDomain.trim().replace(".", "-");
-                // derive JKS name
-                String jksName = ksName + ".jks";
-                KeyStore keyStore = keyStoreManager.getKeyStore(jksName);
+                String fileName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
+                KeyStore keyStore = keyStoreManager.getKeyStore(fileName);
                 cert = (X509Certificate) keyStore.getCertificate(tenantDomain);
             } else {
                 cert = keyStoreManager.getDefaultPrimaryCertificate();

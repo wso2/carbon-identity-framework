@@ -98,6 +98,8 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEX
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.H2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INFORMIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_DOMAIN;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_ORG_SCOPE_PREFIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_SCOPE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MARIADB;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MY_SQL;
@@ -530,16 +532,14 @@ public class RoleDAOImpl implements RoleDAO {
     private List<String> getPermissionListOfRolesByIds(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         List<String> permissions = new ArrayList<>();
         String query = GET_SCOPE_BY_ROLES_SQL + String.join(", ",
                 Collections.nCopies(roleIds.size(), "?")) + ")";
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
 
-            statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
             for (int i = 0; i < roleIds.size(); i++) {
-                statement.setString(i + 2, roleIds.get(i));
+                statement.setString(i + 1, roleIds.get(i));
             }
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -1619,7 +1619,10 @@ public class RoleDAOImpl implements RoleDAO {
             if (StringUtils.isNotEmpty(mainRoleId) && mainTenantId != -1) {
                 String mainTenantDomain = IdentityTenantUtil.getTenantDomain(mainTenantId);
                 if (StringUtils.isNotEmpty(mainRoleId) && StringUtils.isNotEmpty(mainTenantDomain)) {
-                    return getPermissions(mainRoleId, mainTenantDomain);
+                    List<Permission> permissions = getPermissions(mainRoleId, mainTenantDomain);
+                    return permissions.stream()
+                            .filter(permission -> isValidSubOrgPermission(permission.getName()))
+                            .collect(Collectors.toList());
                 }
             }
         } catch (SQLException | IdentityRoleManagementException e) {
@@ -1628,6 +1631,17 @@ public class RoleDAOImpl implements RoleDAO {
                     String.format(errorMessage, roleId, tenantDomain), e);
         }
         return null;
+    }
+
+    /**
+     * Check permission is a valid sub organization permission.
+     *
+     * @param permission Permission.
+     * @return is valid sub organization permission.
+     */
+    private boolean isValidSubOrgPermission(String permission) {
+
+        return permission.startsWith(INTERNAL_ORG_SCOPE_PREFIX) || !permission.startsWith(INTERNAL_SCOPE_PREFIX);
     }
 
     /**

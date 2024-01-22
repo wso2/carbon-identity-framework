@@ -1151,6 +1151,15 @@
                 <Enable>{{oauth.global_scope_validators.role_based_scope_issuer.enable}}</Enable>
             </RoleBasedScopeIssuer>
         </GlobalScopeValidators>
+        {% if oauth.use_legacy_scopes_as_alias_for_new_scopes is defined %}
+        <!--
+        Configuration to maintain backward compatibility for the internal scopes used for the system API access control.
+        Prior to IS 7.0.0, some of the internal scopes were used as shared scopes for multiple APIs for the access control.
+        With the introduction of new authorization runtime with IS 7.0.0, new internal scopes were introduced for some of the APIs
+        which previously used shared scopes. This configuration will allow to use the legacy scopes as alias for the new scopes.
+        -->
+        <UseLegacyScopesAsAliasForNewScopes>{{oauth.use_legacy_scopes_as_alias_for_new_scopes}}</UseLegacyScopesAsAliasForNewScopes>
+        {% endif %}
     </OAuth>
 
     <RestApiAuthentication>
@@ -3378,6 +3387,11 @@
     -->
     <EnableFederatedUserAssociation>{{user.association.enable_for_federated_users}}</EnableFederatedUserAssociation>
 
+    <!--
+    This property restricts unnecessary user local search during federated authentication flow
+    -->
+    <SkipLocalUserSearchForAuthenticationFlowHandlers>{{authentication.skip_local_user_search_for_authentication_flow_handlers}}</SkipLocalUserSearchForAuthenticationFlowHandlers>
+
     <TenantContext>
         <TenantQualifiedUrls>
             <Enable>{{tenant_context.enable_tenant_qualified_urls}}</Enable>
@@ -3508,6 +3522,7 @@
             {% else %}
             <EnableX5TInResponse>true</EnableX5TInResponse>
             {% endif %}
+            <IsThumbprintHexifyRequired>{{oauth.jwks_endpoint.is_thumbprint_hexify_required}}</IsThumbprintHexifyRequired>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
@@ -3978,5 +3993,7 @@
          when an account is locked. -->
         <SetAccountLockAuthFailureReason>{{api_response.set_account_lock_auth_failure_reason}}</SetAccountLockAuthFailureReason>
     </APIResponse>
+
+    <SuperTenantAliasInPublicUrl>{{super_tenant.alias_in_public_url}}</SuperTenantAliasInPublicUrl>
 
 </Server>
