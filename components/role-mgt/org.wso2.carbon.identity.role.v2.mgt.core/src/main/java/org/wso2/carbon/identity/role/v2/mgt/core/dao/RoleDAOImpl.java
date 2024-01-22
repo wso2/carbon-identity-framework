@@ -98,6 +98,8 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEX
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.H2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INFORMIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_DOMAIN;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_ORG_SCOPE_PREFIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_SCOPE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MARIADB;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MY_SQL;
@@ -1617,7 +1619,10 @@ public class RoleDAOImpl implements RoleDAO {
             if (StringUtils.isNotEmpty(mainRoleId) && mainTenantId != -1) {
                 String mainTenantDomain = IdentityTenantUtil.getTenantDomain(mainTenantId);
                 if (StringUtils.isNotEmpty(mainRoleId) && StringUtils.isNotEmpty(mainTenantDomain)) {
-                    return getPermissions(mainRoleId, mainTenantDomain);
+                    List<Permission> permissions = getPermissions(mainRoleId, mainTenantDomain);
+                    return permissions.stream()
+                            .filter(permission -> isValidSubOrgPermission(permission.getName()))
+                            .collect(Collectors.toList());
                 }
             }
         } catch (SQLException | IdentityRoleManagementException e) {
@@ -1626,6 +1631,17 @@ public class RoleDAOImpl implements RoleDAO {
                     String.format(errorMessage, roleId, tenantDomain), e);
         }
         return null;
+    }
+
+    /**
+     * Check permission is a valid sub organization permission.
+     *
+     * @param permission Permission.
+     * @return is valid sub organization permission.
+     */
+    private boolean isValidSubOrgPermission(String permission) {
+
+        return permission.startsWith(INTERNAL_ORG_SCOPE_PREFIX) || !permission.startsWith(INTERNAL_SCOPE_PREFIX);
     }
 
     /**
