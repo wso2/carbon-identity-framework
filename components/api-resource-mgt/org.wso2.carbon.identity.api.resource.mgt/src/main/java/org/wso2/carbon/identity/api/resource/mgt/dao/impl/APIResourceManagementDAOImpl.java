@@ -998,6 +998,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                             ++count;
                             break;
                         }
+                        case APIResourceManagementConstants.NE: {
+                            notEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
+                            ++count;
+                            break;
+                        }
                         case APIResourceManagementConstants.SW: {
                             startWithFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
                             ++count;
@@ -1054,6 +1059,14 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                                     FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " = ? AND ";
+        filter.append(attributeName).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(count, value);
+    }
+
+    private void notEqualFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
+                                    FilterQueryBuilder filterQueryBuilder) {
+
+        String filterString = " <> ? AND ";
         filter.append(attributeName).append(filterString);
         filterQueryBuilder.setFilterAttributeValue(count, value);
     }
