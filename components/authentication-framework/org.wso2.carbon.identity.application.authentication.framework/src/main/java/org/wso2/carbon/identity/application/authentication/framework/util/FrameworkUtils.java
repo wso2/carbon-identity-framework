@@ -2437,7 +2437,7 @@ public class FrameworkUtils {
      * @param externalIdPConfig External IDP Config.
      * @param remoteClaims      Remote claims.
      * @param idpGroupClaimUri  IDP group claim URI.
-     * @return Unmapped IDP groups
+     * @return Unmapped IDP groups.
      */
     public static List<String> getUnmappedIDPGroups(ExternalIdPConfig externalIdPConfig,
                                                     Map<String, String> remoteClaims, String idpGroupClaimUri) {
