@@ -1202,7 +1202,7 @@
       "internal_group_mgt_create"
   ],
   "console.getting_started.scopes.update": ["internal_application_mgt_update"],
-  "console.getting_started.scopes.read": ["internal_application_mgt_view"],
+  "console.getting_started.scopes.read": [],
   "console.groups.enabled": true,
   "console.groups.scopes.feature": ["console:groups"],
   "console.groups.scopes.create": ["internal_group_mgt_create"],
