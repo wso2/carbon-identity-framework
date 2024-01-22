@@ -30,6 +30,7 @@ import org.wso2.carbon.security.SecurityConstants;
 import org.wso2.carbon.security.keystore.service.CertData;
 import org.wso2.carbon.security.keystore.service.CertDataDetail;
 import org.wso2.carbon.security.keystore.service.KeyStoreData;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.nio.file.Paths;
 import java.security.KeyStore;
@@ -216,7 +217,7 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
                     return keyStoreName;
                 }
             } else {
-                String tenantKeyStoreName = tenantDomain.trim().replace(".", "-") + ".jks";
+                String tenantKeyStoreName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
                 if (StringUtils.equals(keyStoreName, tenantKeyStoreName)) {
                     return keyStoreName;
                 }
