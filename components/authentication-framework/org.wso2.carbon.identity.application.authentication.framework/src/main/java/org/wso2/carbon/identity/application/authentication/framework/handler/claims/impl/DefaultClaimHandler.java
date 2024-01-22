@@ -335,11 +335,11 @@ public class DefaultClaimHandler implements ClaimHandler {
             if (CollectionUtils.isNotEmpty(federatedUserRolesUnmappedExclusive)) {
                 // Adding identity provider mapped user roles to be used in the federated user role resolver
                 // for scope validation.
-                spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, String.join(
-                        String.join(FrameworkUtils.getMultiAttributeSeparator(), federatedUserRolesUnmappedExclusive)));
+                spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES,
+                        String.join(FrameworkUtils.getMultiAttributeSeparator(), federatedUserRolesUnmappedExclusive));
                 spFilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM,
-                        String.join(String.join(FrameworkUtils.getMultiAttributeSeparator(),
-                                federatedUserRolesUnmappedExclusive)));
+                        String.join(FrameworkUtils.getMultiAttributeSeparator(),
+                                federatedUserRolesUnmappedExclusive));
 
             } else {
                 spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, StringUtils.EMPTY);
