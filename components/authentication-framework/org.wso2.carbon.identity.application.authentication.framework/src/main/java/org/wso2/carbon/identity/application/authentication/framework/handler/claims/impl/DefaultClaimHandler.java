@@ -197,9 +197,30 @@ public class DefaultClaimHandler implements ClaimHandler {
         // This handle the sp mapped roles.
         String serviceProviderMappedUserRoles;
 
-        boolean useIdpRoleLocalRoleMapping = CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME && !isAppRoleResolverExists();
-
-        if (useIdpRoleLocalRoleMapping) {
+        boolean useAppAssociatedRoles = isAppRoleResolverExists() || !CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
+        if (useAppAssociatedRoles) {
+            // This handles the idp group to local role assignments in the new authz flow.
+            String idpGroupClaimUri = FrameworkUtils.getIdpGroupClaimUri(stepConfig, context);
+            boolean idpGroupsExists = isIdpGroupsExistForIDP(context.getExternalIdP().getIdentityProvider());
+            if (idpGroupsExists) {
+                federatedUserRolesUnmappedExclusive = getAppAssociatedRolesOfFederatedUser(stepConfig, context);
+                if (returnOnlyMappedLocalRoles) {
+                    federatedUserRolesUnmappedInclusive = federatedUserRolesUnmappedExclusive;
+                } else {
+                    List<String> unmappedIDPGroups = FrameworkUtils.getUnmappedIDPGroups(externalIdPConfig,
+                            remoteClaims, idpGroupClaimUri);
+                    Set<String> federatedUserRolesUnmappedInclusiveSet =
+                            new HashSet<>(federatedUserRolesUnmappedExclusive);
+                    federatedUserRolesUnmappedInclusiveSet.addAll(unmappedIDPGroups);
+                    federatedUserRolesUnmappedInclusive = new ArrayList<>(federatedUserRolesUnmappedInclusiveSet);
+                }
+            } else {
+                federatedUserRolesUnmappedInclusive = FrameworkUtils.getUnmappedIDPGroups(externalIdPConfig,
+                        remoteClaims, idpGroupClaimUri);
+            }
+            serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
+                    federatedUserRolesUnmappedInclusive);
+        } else {
             // This handles the idp role to local role mappings in legacy authz flow.
             String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(stepConfig, context);
 
@@ -222,28 +243,6 @@ public class DefaultClaimHandler implements ClaimHandler {
             if (returnOnlyMappedLocalRoles && StringUtils.isBlank(serviceProviderMappedUserRoles)) {
                 remoteClaims.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
             }
-        } else {
-            // This handles the idp group to local role assignments in the new authz flow.
-            String idpGroupClaimUri = FrameworkUtils.getIdpGroupClaimUri(stepConfig, context);
-            boolean idpGroupsExists = isIdpGroupsExistForIDP(context.getExternalIdP().getIdentityProvider());
-            if (idpGroupsExists) {
-                federatedUserRolesUnmappedExclusive = getAppAssociatedRolesOfFederatedUser(stepConfig, context);
-                if (returnOnlyMappedLocalRoles) {
-                    federatedUserRolesUnmappedInclusive = federatedUserRolesUnmappedExclusive;
-                } else {
-                    List<String> unmappedIDPGroups = FrameworkUtils.getUnmappedIDPGroups(externalIdPConfig,
-                            remoteClaims, idpGroupClaimUri);
-                    Set<String> federatedUserRolesUnmappedInclusiveSet =
-                            new HashSet<>(federatedUserRolesUnmappedExclusive);
-                    federatedUserRolesUnmappedInclusiveSet.addAll(unmappedIDPGroups);
-                    federatedUserRolesUnmappedInclusive = new ArrayList<>(federatedUserRolesUnmappedInclusiveSet);
-                }
-            } else {
-                federatedUserRolesUnmappedInclusive = FrameworkUtils.getUnmappedIDPGroups(externalIdPConfig,
-                        remoteClaims, idpGroupClaimUri);
-            }
-            serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
-                    federatedUserRolesUnmappedInclusive);
         }
 
         Map<String, String> localUnfilteredClaims = new HashMap<>();
@@ -282,7 +281,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         // Insert the runtime claims from the context. The priority is for runtime claims.
         localUnfilteredClaims.putAll(context.getRuntimeClaims());
 
-        if (!useIdpRoleLocalRoleMapping) {
+        if (useAppAssociatedRoles) {
             localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM, serviceProviderMappedUserRoles);
         }
 
@@ -331,7 +330,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm);
         addMultiAttributeSeparatorToRequestedClaims(null, userStore, spFilteredClaims, realm);
 
-        if (!useIdpRoleLocalRoleMapping) {
+        if (useAppAssociatedRoles) {
             if (CollectionUtils.isNotEmpty(federatedUserRolesUnmappedExclusive)) {
                 // Adding identity provider mapped user roles to be used in the federated user role resolver
                 // for scope validation.
@@ -340,11 +339,9 @@ public class DefaultClaimHandler implements ClaimHandler {
                 spFilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM,
                         String.join(FrameworkUtils.getMultiAttributeSeparator(),
                                 federatedUserRolesUnmappedExclusive));
-
             } else {
                 spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, StringUtils.EMPTY);
             }
-
         }
         return spFilteredClaims;
     }
@@ -722,16 +719,31 @@ public class DefaultClaimHandler implements ClaimHandler {
         // Retrieve all non-null user claim values against local claim uris.
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig, userStore);
 
-        boolean useIdpRoleLocalRoleMapping = CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME && !isAppRoleResolverExists();
-        if (!useIdpRoleLocalRoleMapping) {
-            // This handles the idp role to local role mappings in legacy authz flow.
+        boolean useAppAssociatedRoles = isAppRoleResolverExists() || !CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
+        boolean isRoleClaimRequested = (requestedClaimMappings.get(FrameworkConstants.ROLES_CLAIM) != null);
+        boolean isAppRoleClaimRequested = (requestedClaimMappings.get(FrameworkConstants.APP_ROLES_CLAIM) != null);
+        if (useAppAssociatedRoles && (isRoleClaimRequested || isAppRoleClaimRequested)) {
+            // Handle the role claim and app role claim for app associated roles.
             String rolesClaimURI = getLocalGroupsClaimURI();
             List<String> appAssociatedRoles = getAppAssociatedRolesOfLocalUser(stepConfig, context);
             if (CollectionUtils.isNotEmpty(appAssociatedRoles)) {
-                allLocalClaims.put(rolesClaimURI, String.join(FrameworkUtils.getMultiAttributeSeparator(),
-                        appAssociatedRoles));
+                if (isRoleClaimRequested) {
+                    allLocalClaims.put(rolesClaimURI, String.join(FrameworkUtils.getMultiAttributeSeparator(),
+                            appAssociatedRoles));
+                }
+                if (isAppRoleClaimRequested) {
+                    allLocalClaims.put(FrameworkConstants.APP_ROLES_CLAIM, String.join(FrameworkUtils
+                            .getMultiAttributeSeparator(), appAssociatedRoles));
+                }
             } else {
-                allLocalClaims.put(rolesClaimURI, StringUtils.EMPTY);
+                if (isRoleClaimRequested) {
+                    allLocalClaims.put(rolesClaimURI, String.join(FrameworkUtils.getMultiAttributeSeparator(),
+                            StringUtils.EMPTY));
+                }
+                if (isAppRoleClaimRequested) {
+                    allLocalClaims.put(FrameworkConstants.APP_ROLES_CLAIM, String.join(FrameworkUtils
+                            .getMultiAttributeSeparator(), StringUtils.EMPTY));
+                }
             }
         }
 
@@ -766,7 +778,6 @@ public class DefaultClaimHandler implements ClaimHandler {
                 setSubjectClaimForLocalClaims(authenticatedUser, userStore, allSPMappedClaims, null, context);
             }
         }
-
 
         if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(context.getRequestType())) {
             spRequestedClaims = allSPMappedClaims;
