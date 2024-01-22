@@ -2402,6 +2402,7 @@
             <HTTPSizeLimit>51200</HTTPSizeLimit>
             <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
             <AddPreviousVersionKID>false</AddPreviousVersionKID>
+            <IsThumbprintHexifyRequired>false</IsThumbprintHexifyRequired>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
