@@ -1035,7 +1035,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             // Filter the role name list of the user associated with the application.
             List<String> userRoleNameListOfApp = appAssociatedRoles.stream()
                     .filter(role -> userRoleIdList.contains(role.getId()))
-                    .map(RoleV2::getName)
+                    .map(role -> appendInternalDomain(role.getName()))
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(userRoleNameListOfApp)) {
                 if (log.isDebugEnabled()) {
@@ -1331,5 +1331,19 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             handleExceptions(ErrorMessages.ERROR_WHILE_CHECKING_USERNAME_EXISTENCE.getMessage(),
                     "error.user.existence", e);
         }
+    }
+
+    /**
+     * Append internal domain if there is no domain appended already.
+     *
+     * @param roleName Role name.
+     * @return Domain appended role name.
+     */
+    private String appendInternalDomain(String roleName) {
+
+        if (!roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            return UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + roleName;
+        }
+        return roleName;
     }
 }
