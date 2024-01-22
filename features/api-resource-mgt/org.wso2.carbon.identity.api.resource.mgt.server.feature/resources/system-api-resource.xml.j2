@@ -857,18 +857,6 @@
         </Scopes>
     </APIResource>
     <APIResource name="Guest Invitation Management API"
-                 identifier="/api/server/v1/guests/invitation" requiresAuthorization="true"
-                 description="API representation of the Guest Invitation Management API" type="TENANT_ADMIN">
-        <Scopes>
-            <Scope displayName="List Guest Invitations" name="internal_guest_mgt_invite_list" 
-                    description="List invitations from the organization (root)"/>
-            <Scope displayName="Add Guest Invitations" name="internal_guest_mgt_invite_add" 
-                    description="Invite users from the organization (root) to the organization"/>
-            <Scope displayName="Delete Guest Invitations" name="internal_guest_mgt_invite_delete" 
-                    description="Delete invitations from the organization (root)"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Guest Invitation Management API"
                  identifier="/o/api/server/v1/guests/invitation" requiresAuthorization="true"
                  description="API representation of the Guest Invitation Management API"
                  type="ORGANIZATION_ADMIN">

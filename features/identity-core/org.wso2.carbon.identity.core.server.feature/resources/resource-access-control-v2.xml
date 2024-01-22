@@ -1092,21 +1092,6 @@
         <Scopes>internal_org_guest_mgt_invite_delete</Scopes>
     </Resource>
 
-    <!-- Guest Invitation Management API -->
-    <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
-    <Resource context="(.*)/api/server/v1/guests/invite" secured="true" http-method="POST">
-        <Scopes>internal_guest_mgt_invite_add</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
-        <Scopes>internal_guest_mgt_invite_list</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/guests/invitations(.*)" secured="true" http-method="GET">
-        <Scopes>internal_guest_mgt_invite_list</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/guests/invitations/(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_guest_mgt_invite_delete</Scopes>
-    </Resource>
-
     <!-- API Resource Management API -->
     <Resource context="(.*)/api/server/v1/api-resources(.*)" secured="true" http-method="POST">
         <Scopes>internal_api_resource_create</Scopes>
