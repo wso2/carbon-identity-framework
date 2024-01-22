@@ -280,7 +280,7 @@
 
     <!-- Identity Register API -->
     <Resource context="(.*)/identity/register(.*)" secured="true" http-method="all">
-        <Scopes>internal_dcr_delete</Scopes>
+        <Scopes>internal_dcr_create</Scopes>
     </Resource>
     <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="all">
         <Scopes>internal_dcr_create</Scopes>
