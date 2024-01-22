@@ -684,17 +684,8 @@
         </Resource>
 
         <!-- [Organization] Claim Management API -->
-        <Resource context="(.*)/o/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
-            <Scopes>internal_org_claim_meta_create</Scopes>
-        </Resource>
         <Resource context="(.*)/o/api/server/v1/claim-dialects(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_claim_meta_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/claim-dialects/(.*)" secured="true" http-method="PUT">
-            <Scopes>internal_org_claim_meta_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/claim-dialects/(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_org_claim_meta_delete</Scopes>
         </Resource>
 
         <!-- Claim Management API -->
@@ -715,14 +706,8 @@
         <Resource context="(.*)/o/api/server/v1/email/template-types(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_email_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/o/api/server/v1/email/template-types(.*)" secured="true" http-method="POST">
-            <Scopes>internal_org_email_mgt_create</Scopes>
-        </Resource>
         <Resource context="(.*)/o/api/server/v1/email/template-types/(.*)" secured="true" http-method="PUT">
             <Scopes>internal_org_email_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/email/template-types/(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_org_email_mgt_delete</Scopes>
         </Resource>
 
         <!-- Email Template Management API -->
@@ -800,9 +785,6 @@
         <Resource context="(.*)/o/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_governance_view</Scopes>
         </Resource>
-        <Resource context="(.*)/o/api/server/v1/identity-governance/(.*)" secured="true" http-method="PATCH">
-            <Scopes>internal_org_governance_update</Scopes>
-        </Resource>
 
         <!-- Identity Governance Management API -->
         <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
@@ -830,19 +812,7 @@
         </Resource>
 
         <!-- [Organization] Userstore Management API -->
-        <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="POST">
-            <Scopes>internal_org_userstore_create</Scopes>
-        </Resource>
         <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="GET">
-            <Scopes>internal_org_userstore_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="PUT, PATCH">
-            <Scopes>internal_org_userstore_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/userstores/(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_org_userstore_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/server/v1/userstores/test-connection" secured="true" http-method="POST">
             <Scopes>internal_org_userstore_view</Scopes>
         </Resource>
 
