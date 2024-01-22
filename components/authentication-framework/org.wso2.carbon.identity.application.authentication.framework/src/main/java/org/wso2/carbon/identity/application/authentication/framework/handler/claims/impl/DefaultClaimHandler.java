@@ -580,7 +580,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         // Retrieve all non-null user claim values against local claim uris.
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig, userStore);
 
-        if (requestedClaimMappings.get(FrameworkConstants.APP_ROLES_CLAIM) != null) {
+        if (requestedClaimMappings.get(FrameworkConstants.APP_ROLES_CLAIM) != null
+                || requestedClaimMappings.get(FrameworkConstants.ROLES_CLAIM) != null) {
             String applicationRoles = getApplicationRoles(authenticatedUser, context);
 
             handleApplicationRolesForLocalUser(stepConfig, context, allLocalClaims, applicationRoles);
