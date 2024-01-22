@@ -846,7 +846,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
      * @param sessionContextKey of the authenticated session
      */
     private void storeSessionData(AuthenticationContext context, String sessionContextKey)
-            throws UserSessionException {
+            throws UserSessionException, PostAuthenticationFailedException {
 
         String subject = context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
         String inboundAuth = context.getCallerPath().substring(1);
@@ -856,6 +856,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             AuthenticatedUser user = authenticatedIdPData.getUser();
 
             try {
+                if (FrameworkServiceDataHolder.getInstance()
+                        .isSkipLocalUserSearchForAuthenticationFlowHandlersEnabled() &&
+                        FrameworkUtils.isAllFlowHandlers(authenticatedIdPData.getAuthenticators()) &&
+                        !FrameworkUtils.isJITProvisioningEnabled(context) && !user.isUserIdExists()) {
+                    continue;
+                }
                 String userId = user.getUserId();
 
                 try {

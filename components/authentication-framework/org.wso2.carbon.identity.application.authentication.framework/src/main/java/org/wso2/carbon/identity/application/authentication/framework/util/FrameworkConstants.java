@@ -246,6 +246,7 @@ public abstract class FrameworkConstants {
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
     public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
+    public static final String IDP_MAPPED_USER_ROLES = "identityProviderMappedUserRoles";
 
     private FrameworkConstants() {
 
@@ -351,6 +352,8 @@ public abstract class FrameworkConstants {
          */
         public static final String USER_SESSION_MAPPING_ENABLED =
                 "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
+        public static final String SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS =
+                "SkipLocalUserSearchForAuthenticationFlowHandlers";
 
         /**
          * Configuration used for session data storage optimization.

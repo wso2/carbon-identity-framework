@@ -135,7 +135,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.DELETE_SH
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ASSOCIATED_APPS_BY_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ASSOCIATED_APP_IDS_BY_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIENCE_BY_ID_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIENCE_REF_BY_ID_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIENCE_REF_BY_ID_FROM_UM_HYBRID_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_IDP_GROUPS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL;
@@ -169,6 +169,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_NAMES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_TENANT_DOMAIN_BY_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SCOPE_BY_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
@@ -178,7 +179,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARE
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_FROM_UM_HYBRID_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_SHARED_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.REMOVE_GROUP_FROM_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.REMOVE_USER_FROM_ROLE_SQL;
@@ -453,6 +454,45 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     @Override
+    public Role getRole(String roleId) throws IdentityRoleManagementException {
+
+        String tenantDomain = getRoleTenantDomainById(roleId);
+        return getRole(roleId, tenantDomain);
+    }
+
+    private String getRoleTenantDomainById(String roleId) throws IdentityRoleManagementException {
+
+        String tenantId = null;
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_TENANT_DOMAIN_BY_ID)) {
+            statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
+            int count = 0;
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    // Handle multiple matching roles.
+                    count++;
+                    if (count > 1) {
+                        String message = "Invalid scenario. Multiple roles found for the given role ID: " + roleId;
+                        log.warn(message);
+                    }
+                    tenantId = resultSet.getString(1);
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage =
+                    "Error while resolving the tenant domain for the given role ID: " + roleId;
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    errorMessage, e);
+        }
+        if (tenantId == null) {
+            String errorMessage = "A role doesn't exist with id: " + roleId;
+            throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(), errorMessage);
+        }
+
+        return IdentityTenantUtil.getTenantDomain(Integer.parseInt(tenantId));
+    }
+
+    @Override
     public RoleBasicInfo getRoleBasicInfoById(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -490,16 +530,14 @@ public class RoleDAOImpl implements RoleDAO {
     private List<String> getPermissionListOfRolesByIds(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         List<String> permissions = new ArrayList<>();
         String query = GET_SCOPE_BY_ROLES_SQL + String.join(", ",
                 Collections.nCopies(roleIds.size(), "?")) + ")";
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
 
-            statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
             for (int i = 0; i < roleIds.size(); i++) {
-                statement.setString(i + 2, roleIds.get(i));
+                statement.setString(i + 1, roleIds.get(i));
             }
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -2541,7 +2579,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                      GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL)) {
-            statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
+            statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, removeInternalDomain(roleName));
             statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
             statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
@@ -2619,12 +2657,12 @@ public class RoleDAOImpl implements RoleDAO {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         int refId;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_AUDIENCE_REF_BY_ID_SQL)) {
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(
+                     connection, GET_AUDIENCE_REF_BY_ID_FROM_UM_HYBRID_ROLE_SQL)) {
 
-            statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_VALUE, roleId);
+            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     refId = resultSet.getInt(1);
@@ -2784,12 +2822,12 @@ public class RoleDAOImpl implements RoleDAO {
 
         boolean isExist = false;
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_ID_EXIST_SQL)) {
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(
+                     connection, IS_ROLE_ID_EXIST_FROM_UM_HYBRID_ROLE_SQL)) {
 
-            statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantId);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
-            statement.setString(RoleConstants.RoleTableColumns.ATTR_VALUE, roleId);
+            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     isExist = resultSet.getInt(1) > 0;

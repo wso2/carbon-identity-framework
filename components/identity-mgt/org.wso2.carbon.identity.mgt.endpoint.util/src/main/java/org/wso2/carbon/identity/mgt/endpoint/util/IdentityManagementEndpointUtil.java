@@ -199,7 +199,7 @@ public class IdentityManagementEndpointUtil {
                                 My_ACCOUNT_APPLICATION_NAME);
                     }
                     if (StringUtils.isNotEmpty(myAccountAccessUrl)) {
-                        return myAccountAccessUrl;
+                        return replaceUserTenantHintPlaceholder(myAccountAccessUrl, tenantDomain);
                     }
                 } catch (ApplicationDataRetrievalClientException e) {
                     // Falling back to building the url.

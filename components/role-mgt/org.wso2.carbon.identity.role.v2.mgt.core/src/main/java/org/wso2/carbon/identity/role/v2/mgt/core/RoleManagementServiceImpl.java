@@ -288,6 +288,12 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public Role getRole(String roleId) throws IdentityRoleManagementException {
+
+        return roleDAO.getRole(roleId);
+    }
+
+    @Override
     public RoleBasicInfo getRoleBasicInfoById(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 

@@ -132,6 +132,15 @@ public interface RoleManagementService {
     Role getRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Retrieve the given role.
+     *
+     * @param roleId       Role ID.
+     * @return The role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    Role getRole(String roleId) throws IdentityRoleManagementException;
+
+    /**
      * Get role basic info by id.
      *
      * @param roleId       Role ID.

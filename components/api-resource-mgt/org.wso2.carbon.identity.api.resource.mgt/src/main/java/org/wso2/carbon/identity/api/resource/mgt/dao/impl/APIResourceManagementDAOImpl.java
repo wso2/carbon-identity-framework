@@ -133,7 +133,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 prepStmt.setString(3, apiResource.getName());
                 prepStmt.setString(4, apiResource.getIdentifier());
                 prepStmt.setString(5, apiResource.getDescription());
-                prepStmt.setInt(6, tenantId);
+                prepStmt.setObject(6, tenantId == 0 ? null : tenantId);
                 prepStmt.setBoolean(7, apiResource.isAuthorizationRequired());
                 prepStmt.executeUpdate();
                 prepStmt.clearParameters();
@@ -149,21 +149,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
 
                 return getAPIResourceById(generatedAPIId, tenantId);
-            } catch (SQLException e) {
+            } catch (SQLException | APIResourceMgtException e) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-                if (e.getMessage().toLowerCase().contains(SQLConstants.API_RESOURCE_UNIQUE_CONSTRAINT.toLowerCase())) {
-                    throw APIResourceManagementUtil.handleClientException(
-                            APIResourceManagementConstants.ErrorMessages.ERROR_CODE_API_RESOURCE_ALREADY_EXISTS,
-                            String.valueOf(tenantId));
-                }
-                // Handle the DB2 database unique constraint violation error.
-                if (dbConnection.getMetaData().getDatabaseProductName().contains("DB2")) {
-                    if (e.getMessage().contains(SQLConstants.DB2_SQL_ERROR_CODE_UNIQUE_CONSTRAINT)) {
-                        throw APIResourceManagementUtil.handleClientException(
-                                APIResourceManagementConstants.ErrorMessages.ERROR_CODE_API_RESOURCE_ALREADY_EXISTS,
-                                String.valueOf(tenantId));
-                    }
-                }
                 throw e;
             }
         } catch (SQLException e) {
@@ -291,7 +278,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 }
 
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
-            } catch (SQLException e) {
+            } catch (SQLException | APIResourceMgtException e) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
                 throw e;
             }
@@ -330,8 +317,18 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     @Override
     public boolean isScopeExistByName(String name, Integer tenantId) throws APIResourceMgtException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement preparedStatement = dbConnection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME)) {
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+            return isScopeExists(dbConnection, name, tenantId);
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_CHECKING_EXISTENCE_OF_SCOPE, e);
+        }
+    }
+
+    private boolean isScopeExists(Connection connection, String name, Integer tenantId)
+            throws APIResourceMgtServerException {
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME)) {
             preparedStatement.setString(1, name);
             preparedStatement.setInt(2, tenantId);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -623,8 +620,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     /**
      * Check whether the value of the key belongs to the CURSOR_KEY column.
      *
-     * @param key                   Key of the filter.
-     * @param filterQueryBuilder    Filter query builder.
+     * @param key                Key of the filter.
+     * @param filterQueryBuilder Filter query builder.
      */
     private boolean isValueOfCursorKey(int key, FilterQueryBuilder filterQueryBuilder) {
 
@@ -749,7 +746,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
      * @return SQL statement to retrieve API resources.
      */
     private String buildGetAPIResourcesSqlStatement(String databaseName, Integer tenantId, String filterQuery,
-                                                 String sortOrder, Integer limit) {
+                                                    String sortOrder, Integer limit) {
 
         String sqlStmtHead = SQLConstants.GET_API_RESOURCES;
         String sqlStmtTail = SQLConstants.GET_API_RESOURCES_TAIL;
@@ -839,35 +836,24 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         }
 
         try {
-            try {
-                PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.ADD_SCOPE);
-                for (Scope scope : scopes) {
-                    prepStmt.setString(1, UUID.randomUUID().toString());
-                    prepStmt.setString(2, scope.getName());
-                    prepStmt.setString(3, scope.getDisplayName());
-                    prepStmt.setString(4, scope.getDescription());
-                    prepStmt.setString(5, apiId);
-                    prepStmt.setInt(6, tenantId);
-                    prepStmt.addBatch();
-                }
-                prepStmt.executeBatch();
-            } catch (SQLException e) {
-                if (e.getMessage().toLowerCase().contains(SQLConstants.SCOPE_UNIQUE_CONSTRAINT.toLowerCase())) {
+            PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.ADD_SCOPE);
+            for (Scope scope : scopes) {
+
+                if (isScopeExists(dbConnection, scope.getName(), tenantId)) {
                     throw APIResourceManagementUtil.handleClientException(
                             APIResourceManagementConstants.ErrorMessages.ERROR_CODE_SCOPE_ALREADY_EXISTS,
                             String.valueOf(tenantId));
                 }
-                // Handle DB2 database unique constraint violation error.
-                if (dbConnection.getMetaData().getDatabaseProductName().contains(SQLConstants.DB2)) {
-                    if (e.getNextException().getMessage().toLowerCase().contains(
-                            SQLConstants.DB2_SQL_ERROR_CODE_UNIQUE_CONSTRAINT)) {
-                        throw APIResourceManagementUtil.handleClientException(
-                                APIResourceManagementConstants.ErrorMessages.ERROR_CODE_SCOPE_ALREADY_EXISTS,
-                                String.valueOf(tenantId));
-                    }
-                }
-                throw e;
+
+                prepStmt.setString(1, UUID.randomUUID().toString());
+                prepStmt.setString(2, scope.getName());
+                prepStmt.setString(3, scope.getDisplayName());
+                prepStmt.setString(4, scope.getDescription());
+                prepStmt.setString(5, apiId);
+                prepStmt.setObject(6, tenantId == 0 ? null : tenantId);
+                prepStmt.addBatch();
             }
+            prepStmt.executeBatch();
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_SCOPES, e);
@@ -883,7 +869,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
      * @throws APIResourceMgtException If an error occurs while retrieving API resource properties.
      */
     private List<APIResourceProperty> getAPIResourcePropertiesByAPIId(Connection dbConnection, String apiId)
-                throws APIResourceMgtException {
+            throws APIResourceMgtException {
 
         List<APIResourceProperty> properties = new ArrayList<>();
         try {

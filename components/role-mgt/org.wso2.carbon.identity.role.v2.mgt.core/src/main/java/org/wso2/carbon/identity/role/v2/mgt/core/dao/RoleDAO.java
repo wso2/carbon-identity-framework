@@ -134,6 +134,15 @@ public interface RoleDAO {
     Role getRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Retrieve the given role.
+     *
+     * @param roleId       Role ID.
+     * @return The role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    Role getRole(String roleId) throws IdentityRoleManagementException;
+
+    /**
      * Get permission list of the given role.
      *
      * @param roleId       Role ID.
