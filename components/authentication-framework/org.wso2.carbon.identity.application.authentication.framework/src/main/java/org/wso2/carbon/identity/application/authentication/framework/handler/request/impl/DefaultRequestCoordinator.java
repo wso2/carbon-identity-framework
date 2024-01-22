@@ -399,7 +399,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 String message = "Requested client: " + request.getRemoteAddr() + ", URI :" + request.getMethod() +
                         ":" + request.getRequestURI() + ", User-Agent: " + userAgent + " , Referer: " + referer;
 
-                log.error("Context does not exist. Probably due to invalidated cache. " + message);
+                log.warn("Context does not exist. Probably due to invalidated cache. " + message);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
                         FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL,
                         FrameworkConstants.ERROR_DESCRIPTION_AUTH_CONTEXT_NULL);
