@@ -2619,4 +2619,14 @@
          when an account is locked. -->
         <SetAccountLockAuthFailureReason>false</SetAccountLockAuthFailureReason>
     </APIResponse>
+
+    <CacheInvalidator>
+        <ActiveMQ>
+            <BrokerURL>failover:tcp://localhost:61616</BrokerURL>
+            <Enabled>false</Enabled>
+            <TopicName>ISCacheInvalidation</TopicName>
+            <ProducerName>producer1</ProducerName>
+            <HybridMode>false</HybridMode>
+        </ActiveMQ>
+    </CacheInvalidator>
 </Server>
