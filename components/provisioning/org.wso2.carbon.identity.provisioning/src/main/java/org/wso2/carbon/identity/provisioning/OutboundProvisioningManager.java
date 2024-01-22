@@ -469,8 +469,7 @@ public class OutboundProvisioningManager {
 
                 String[] provisionByRoleList = new String[0];
 
-                if (provisioningIdp.getProvisioningRole() != null && StringUtils.isNotBlank(provisioningIdp
-                        .getProvisioningRole())) {
+                if (StringUtils.isNotBlank(provisioningIdp.getProvisioningRole())) {
                     provisionByRoleList = provisioningIdp.getProvisioningRole().trim().split("\\s*,[,\\s]*");
                 }
 
