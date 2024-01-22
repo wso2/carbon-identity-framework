@@ -551,18 +551,6 @@
                 <PublicClientAllowed>{{oauth.grant_type.organization_switch.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
-            {% if oauth.grant_type.organization_switch_cc.enable is sameas true %}
-            <SupportedGrantType>
-                <GrantTypeName>organization_switch_cc</GrantTypeName>
-                <GrantTypeHandlerImplClass>{{oauth.grant_type.organization_switch_cc.grant_handler}}</GrantTypeHandlerImplClass>
-                {% if oauth.grant_type.organization_switch_cc.grant_validator is defined %}
-                <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch_cc.grant_validator}}</GrantTypeValidatorImplClass>
-                {% endif %}
-                <IsRefreshTokenAllowed>{{oauth.grant_type.organization_switch_cc.allow_refresh_tokens}}</IsRefreshTokenAllowed>
-                <IdTokenAllowed>false</IdTokenAllowed>
-                <PublicClientAllowed>{{oauth.grant_type.organization_switch_cc.allow_public_client}}</PublicClientAllowed>
-            </SupportedGrantType>
-            {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
             <SupportedGrantType>
                 <GrantTypeName>urn:ietf:params:oauth:grant-type:token-exchange</GrantTypeName>
