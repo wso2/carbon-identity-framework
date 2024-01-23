@@ -311,7 +311,9 @@
         <!-- OAuth2 Introspection API -->
         <Resource context="(.*)/oauth2/introspect(.*)" secured="{{resource_access_control.introspect.secured}}"
                   http-method="all">
-            <Scopes>internal_oauth2_introspect</Scopes>
+            {% for scope in resource_access_control.introspect.scopes %}
+            <Scopes>{{scope}}</Scopes>
+            {% endfor %}
         </Resource>
 
         <!-- Entitlement Management API -->
@@ -514,21 +516,46 @@
         <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
 
         <!-- SCIM2 Me API (To create or Delete need to subscribe to SCIM2 Users API) -->
-        <Resource context="(.*)/scim2/Me" secured="true" http-method="GET">
+        {% if resource_access_control.scim2_me_get_method.keep_resource is sameas true %}
+        <Resource
+                context="(.*)/scim2/Me"
+                secured="{{resource_access_control.scim2_me_get_method.secured}}"
+                http-method="GET">
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/scim2/Me" secured="true" http-method="DELETE">
-            <Scopes>internal_user_mgt_delete</Scopes>
+        {% endif %}
+        {% if resource_access_control.scim2_me_delete_method.keep_resource is sameas true %}
+        <Resource
+                context="(.*)/scim2/Me"
+                secured="{{resource_access_control.scim2_me_delete_method.secured}}"
+                http-method="DELETE">
+            <Scopes>{{resource_access_control.scim2_me_delete_method.scope}}</Scopes>
         </Resource>
-        <Resource context="(.*)/scim2/Me" secured="true" http-method="PUT">
+        {% endif %}
+        {% if resource_access_control.scim2_me_put_method.keep_resource is sameas true %}
+        <Resource
+                context="(.*)/scim2/Me"
+                secured="{{resource_access_control.scim2_me_put_method.secured}}"
+                http-method="PUT">
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/scim2/Me" secured="true" http-method="PATCH">
+        {% endif %}
+        {% if resource_access_control.scim2_me_patch_method.keep_resource is sameas true %}
+        <Resource
+                context="(.*)/scim2/Me"
+                secured="{{resource_access_control.scim2_me_patch_method.secured}}"
+                http-method="PATCH">
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/scim2/Me" secured="true" http-method="POST">
-            <Scopes>internal_user_mgt_create</Scopes>
+        {% endif %}
+        {% if resource_access_control.scim2_me_post_method.keep_resource is sameas true %}
+        <Resource
+                context="(.*)/scim2/Me"
+                secured="{{resource_access_control.scim2_me_post_method.secured}}"
+                http-method="POST">
+            <Scopes>{{resource_access_control.scim2_me_post_method.scope}}</Scopes>
         </Resource>
+        {% endif %}
 
         <!-- Approval Tasks -->
         <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true"
