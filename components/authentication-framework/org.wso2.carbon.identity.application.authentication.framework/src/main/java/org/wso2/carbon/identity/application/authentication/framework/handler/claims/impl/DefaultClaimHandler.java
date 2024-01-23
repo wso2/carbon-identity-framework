@@ -580,13 +580,16 @@ public class DefaultClaimHandler implements ClaimHandler {
         // Retrieve all non-null user claim values against local claim uris.
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig, userStore);
 
-        String applicationRoles = getApplicationRoles(authenticatedUser, context);
+        if (requestedClaimMappings.get(FrameworkConstants.APP_ROLES_CLAIM) != null
+                || requestedClaimMappings.get(FrameworkConstants.ROLES_CLAIM) != null) {
+            String applicationRoles = getApplicationRoles(authenticatedUser, context);
 
-        handleApplicationRolesForLocalUser(stepConfig, context, allLocalClaims, applicationRoles);
+            handleApplicationRolesForLocalUser(stepConfig, context, allLocalClaims, applicationRoles);
 
-        if (!CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
-            // Handle app associated roles in roles claim in Role V2 runtime.
-            handleRoleAppAssoication(allLocalClaims, applicationRoles);
+            if (!CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+                // Handle app associated roles in roles claim in Role V2 runtime.
+                handleRoleAppAssoication(allLocalClaims, applicationRoles);
+            }
         }
 
         // Insert the runtime claims from the context. The priority is for runtime claims.
