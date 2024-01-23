@@ -1298,8 +1298,7 @@
       "internal_group_mgt_view",
       "internal_application_mgt_view",
       "internal_user_mgt_list",
-      "internal_idp_view",
-      "internal_api_resource_view"
+      "internal_idp_view"
   ],
   "console.user_roles.scopes.update": ["internal_role_mgt_update"],
   "console.user_roles.scopes.delete": ["internal_role_mgt_delete"],
