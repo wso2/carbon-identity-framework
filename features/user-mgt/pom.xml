@@ -29,6 +29,7 @@
 
     <modules>
         <module>org.wso2.carbon.user.mgt.ui.feature</module>
+        <module>org.wso2.carbon.role.mgt.ui.feature</module>
         <module>org.wso2.carbon.user.mgt.server.feature</module>
         <module>org.wso2.carbon.user.mgt.feature</module>
         <module>org.wso2.carbon.identity.user.profile.ui.feature</module>
