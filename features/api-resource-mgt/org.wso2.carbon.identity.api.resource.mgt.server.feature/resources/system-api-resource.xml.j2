@@ -446,16 +446,6 @@
                     description="Delete discovery configurations of the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Self Service API"
-                 identifier="/api/server/v1/self-service" requiresAuthorization="true"
-                 description="API representation of the Self Service API" type="TENANT_ADMIN">
-        <Scopes>
-            <Scope displayName="View Self Service" name="internal_self_service_view" 
-                    description="View self service functionalities of the organization (root)"/>
-            <Scope displayName="Update Self Service" name="internal_self_service_update" 
-                    description="Update self service functionalities of the organization (root)"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Permission Management API"
                  identifier="/api/server/v1/permission-management/permissions" requiresAuthorization="true"
                  description="API representation of the Permission Management API" type="TENANT_ADMIN">

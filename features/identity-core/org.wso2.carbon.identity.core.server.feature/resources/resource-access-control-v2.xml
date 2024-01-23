@@ -1069,14 +1069,6 @@
         <Scopes>internal_organization_config_delete</Scopes>
     </Resource>
 
-    <!-- Organization Self Service API -->
-    <Resource context="(.*)/api/server/v1/self-service/(.*)" secured="true" http-method="GET">
-        <Scopes>internal_self_service_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/self-service/(.*)" secured="true" http-method="PATCH">
-        <Scopes>internal_self_service_update</Scopes>
-    </Resource>
-
     <!-- [Organization] Guest Invitation Management API -->
     <Resource context="(.*)/o/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
     <Resource context="(.*)/o/api/server/v1/guests/invite" secured="true" http-method="POST">
