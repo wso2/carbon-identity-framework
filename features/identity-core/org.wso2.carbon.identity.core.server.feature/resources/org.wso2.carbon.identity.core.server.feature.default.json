@@ -178,11 +178,6 @@
   "oauth.grant_type.organization_switch.grant_handler": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchGrant",
   "oauth.grant_type.organization_switch.grant_validator": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchGrantValidator",
   "oauth.grant_type.organization_switch.allow_public_client": true,
-  "oauth.grant_type.organization_switch_cc.enable": true,
-  "oauth.grant_type.organization_switch_cc.grant_handler": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchCCGrant",
-  "oauth.grant_type.organization_switch_cc.grant_validator": "org.wso2.carbon.identity.oauth2.grant.organizationswitch.OrganizationSwitchGrantValidator",
-  "oauth.grant_type.organization_switch_cc.allow_refresh_tokens": false,
-  "oauth.grant_type.organization_switch_cc.allow_public_client": false,
   "oauth.par.expiry_time": "60s",
   "oauth.grant_type.token_exchange.grant_handler": "org.wso2.carbon.identity.oauth2.grant.token.exchange.TokenExchangeGrantHandler",
   "oauth.grant_type.token_exchange.grant_validator": "org.wso2.carbon.identity.oauth2.grant.token.exchange.TokenExchangeGrantValidator",
@@ -1110,7 +1105,6 @@
   "console.applications.scopes.feature": ["console:applications"],
   "console.applications.scopes.create": ["internal_application_mgt_create"],
   "console.applications.scopes.read": [
-      "internal_cors_origins_view",
       "internal_application_mgt_view",
       "internal_claim_meta_view",
       "internal_role_mgt_view",
@@ -1207,7 +1201,7 @@
       "internal_group_mgt_create"
   ],
   "console.getting_started.scopes.update": ["internal_application_mgt_update"],
-  "console.getting_started.scopes.read": ["internal_application_mgt_view"],
+  "console.getting_started.scopes.read": [],
   "console.groups.enabled": true,
   "console.groups.scopes.feature": ["console:groups"],
   "console.groups.scopes.create": ["internal_group_mgt_create"],
@@ -1303,8 +1297,7 @@
       "internal_group_mgt_view",
       "internal_application_mgt_view",
       "internal_user_mgt_list",
-      "internal_idp_view",
-      "internal_api_resource_view"
+      "internal_idp_view"
   ],
   "console.user_roles.scopes.update": ["internal_role_mgt_update"],
   "console.user_roles.scopes.delete": ["internal_role_mgt_delete"],
@@ -1380,13 +1373,11 @@
     "internal_userstore_view",
     "internal_role_mgt_view",
     "internal_group_mgt_view",
-    "internal_guest_mgt_invite_list",
     "internal_idp_view",
     "internal_session_view",
     "internal_governance_view"
   ],
   "console.console_settings.scopes.update": ["internal_application_mgt_update", "internal_user_mgt_update"],
-  "console.console_settings.scopes.delete": ["internal_guest_mgt_invite_delete"],
   "console.guest_user.enabled": true,
   "console.guest_user.scopes.create": ["internal_guest_mgt_invite_add"],
   "console.guest_user.scopes.read": ["internal_guest_mgt_invite_list"],
