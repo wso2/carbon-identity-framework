@@ -3978,4 +3978,13 @@
 
     <SuperTenantAliasInPublicUrl>{{super_tenant.alias_in_public_url}}</SuperTenantAliasInPublicUrl>
 
+    <!-- Configuration settings for Home Realm Discovery -->
+    <HomeRealmDiscovery>
+        <!-- Config to enable/ disable case specific error messages in home realm discovery -->
+        {% if home_realm_discovery.enable_case_specific_error_messages is defined %}
+        <EnableCaseSpecificErrorMessages>{{ home_realm_discovery.enable_case_specific_error_messages }}</EnableCaseSpecificErrorMessages>
+        {% else %}
+        <EnableCaseSpecificErrorMessages>false</EnableCaseSpecificErrorMessages>
+        {% endif %}
+    </HomeRealmDiscovery>
 </Server>

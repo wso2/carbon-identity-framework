@@ -531,6 +531,10 @@ public class DefaultStepHandler implements StepHandler {
             LOG.debug("Home realm discovered: " + homeRealm);
         }
 
+        String errorMsg = "domain.unknown";
+        boolean enableCaseSpecificErrorMessagesInHomeRealmDiscovery = Boolean.parseBoolean(IdentityUtil.getProperty(
+                FrameworkConstants.Config.ENABLE_CASE_SPECIFIC_ERROR_MESSAGES_IN_HOME_REALM_DISCOVERY));
+
         // try to find an IdP with the retrieved realm
         ExternalIdPConfig externalIdPConfig = null;
         try {
@@ -573,13 +577,14 @@ public class DefaultStepHandler implements StepHandler {
                     return;
                 }
             }
+            if (enableCaseSpecificErrorMessagesInHomeRealmDiscovery) {
+                errorMsg = "idp.not.assigned.to.sp";
+            }
         }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("An IdP was not found for the sent domain. Sending to the domain page");
         }
-
-        String errorMsg = "domain.unknown";
 
         try {
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
