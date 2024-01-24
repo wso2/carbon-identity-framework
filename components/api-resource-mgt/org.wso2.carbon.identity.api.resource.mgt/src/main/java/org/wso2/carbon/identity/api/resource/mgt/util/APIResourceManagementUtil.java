@@ -133,57 +133,13 @@ public class APIResourceManagementUtil {
      */
     public static List<APIResource> getSystemAPIs(String tenantDomain) throws APIResourceMgtException {
 
-        List<APIResource> systemAPIs = new ArrayList<>();
         // Get APIs with SYSTEM type.
         int systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.SYSTEM_API_FILTER, APIResourceManagementConstants.ASC,
+                APIResourceManagementConstants.NON_BUSINESS_API_FILTER, APIResourceManagementConstants.ASC,
                 tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.SYSTEM_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with TENANT type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.TENANT_ADMIN_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.TENANT_ADMIN_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with TENANT type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.TENANT_USER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.TENANT_USER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with ORGANIZATION type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.ORGANIZATION_ADMIN_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.ORGANIZATION_ADMIN_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with ORGANIZATION type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.ORGANIZATION_USER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.ORGANIZATION_USER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with ME type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.OTHER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.OTHER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with CONSOLE_FEATURE type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.CONSOLE_FEATURE_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.CONSOLE_FEATURE_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        return systemAPIs;
+        return new ArrayList<>(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
+                        APIResourceManagementConstants.NON_BUSINESS_API_FILTER, APIResourceManagementConstants.ASC,
+                        tenantDomain).getAPIResources());
     }
 
     /**
@@ -196,7 +152,7 @@ public class APIResourceManagementUtil {
     public static boolean isSystemAPIExist(String tenantDomain) throws APIResourceMgtException {
 
         return !APIResourceManagerImpl.getInstance()
-                .getAPIResources(null, null, 1, APIResourceManagementConstants.TENANT_ADMIN_API_FILTER,
+                .getAPIResources(null, null, 1, APIResourceManagementConstants.TENANT_API_FILTER,
                         APIResourceManagementConstants.ASC, tenantDomain).getAPIResources().isEmpty();
     }
 

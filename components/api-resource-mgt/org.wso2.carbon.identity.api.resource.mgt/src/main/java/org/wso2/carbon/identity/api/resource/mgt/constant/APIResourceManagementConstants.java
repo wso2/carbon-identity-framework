@@ -33,14 +33,9 @@ public class APIResourceManagementConstants {
     public static final String RBAC_AUTHORIZATION = "RBAC";
     public static final String NO_POLICY = "NO POLICY";
     public static final String ASC = "ASC";
-    public static final String SYSTEM_API_FILTER = "type eq SYSTEM";
-    public static final String TENANT_ADMIN_API_FILTER = "type eq TENANT_ADMIN";
-    public static final String TENANT_USER_API_FILTER = "type eq TENANT_USER";
-    public static final String ORGANIZATION_ADMIN_API_FILTER = "type eq ORGANIZATION_ADMIN";
-    public static final String ORGANIZATION_USER_API_FILTER = "type eq ORGANIZATION_USER";
-    public static final String OTHER_API_FILTER = "type eq OTHER";
-    public static final String ME_API_FILTER = "name eq Me API and type eq OTHER";
-    public static final String CONSOLE_FEATURE_API_FILTER = "type eq CONSOLE_FEATURE";
+    public static final String NON_BUSINESS_API_FILTER = "type ne BUSINESS";
+    public static final String TENANT_API_FILTER = "type eq TENANT";
+    public static final String ME_API_FILTER = "name eq Me API";
     public static final String INTERNAL_SCOPE_FILTER = "name sw internal_";
     public static final String CONSOLE_SCOPE_FILTER = "name sw console:";
     public static final String BEFORE = "before";
@@ -49,6 +44,7 @@ public class APIResourceManagementConstants {
     public static final String BUSINESS_TYPE = "BUSINESS";
     public static final String SYSTEM_TYPE = "SYSTEM";
     public static final String EQ = "eq";
+    public static final String NE = "ne";
     public static final String CO = "co";
     public static final String SW = "sw";
     public static final String EW = "ew";
