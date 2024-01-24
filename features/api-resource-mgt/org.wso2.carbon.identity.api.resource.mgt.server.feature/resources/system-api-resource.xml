@@ -739,10 +739,6 @@
                     description="View recovery in the organization (root)"/>
             <Scope displayName="Create Recovery" name="internal_recovery_create" 
                     description="Create new recovery in the organization (root)"/>
-            <Scope displayName="Update Recovery" name="internal_recovery_update" 
-                    description="Update recovery in the organization (root)"/>
-            <Scope displayName="Delete Recovery" name="internal_recovery_delete" 
-                    description="Delete recovery in the organization (root)"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Recovery API" identifier="/o/api/identity/recovery"
@@ -754,10 +750,6 @@
                     description="View recovery in the organization"/>
             <Scope displayName="Create Recovery" name="internal_org_recovery_create" 
                     description="Create new recovery in the organization"/>
-            <Scope displayName="Update Recovery" name="internal_org_recovery_update" 
-                    description="Update recovery in the organization"/>
-            <Scope displayName="Delete Recovery" name="internal_org_recovery_delete" 
-                    description="Delete recovery in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="OAuth DCR API" identifier="/api/identity/oauth2/dcr/v1.1/register"

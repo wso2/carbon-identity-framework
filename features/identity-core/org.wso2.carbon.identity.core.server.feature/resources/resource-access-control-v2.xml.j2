@@ -262,12 +262,6 @@
         <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="POST">
             <Scopes>internal_org_recovery_create</Scopes>
         </Resource>
-        <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="PATCH, PUT">
-            <Scopes>internal_org_recovery_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_org_recovery_delete</Scopes>
-        </Resource>
 
         <!-- Identity Recovery API -->
         <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="GET">
@@ -275,12 +269,6 @@
         </Resource>
         <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="POST">
             <Scopes>internal_recovery_create</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="PATCH, PUT">
-            <Scopes>internal_recovery_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="DELETE">
-            <Scopes>internal_recovery_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
