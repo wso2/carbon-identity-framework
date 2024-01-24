@@ -104,6 +104,8 @@
         <!--<SPNameRegex>^[a-zA-Z0-9._-]*$</SPNameRegex>-->
     <!--</ServiceProviders>-->
 
+    <ChallengeQuestionsConnectorEnabled>false</ChallengeQuestionsConnectorEnabled>
+
     <OpenID>
         <!--
             Default values for OpenIDServerUrl and OpenIDUSerPattern are built in following format
