@@ -66,6 +66,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APPLICATION_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedOutboundProvisioningEnabled;
 
 /**
@@ -340,6 +342,13 @@ public class OutboundProvisioningManager {
             if (provisioningEntity.getEntityName() == null) {
                 setProvisioningEntityName(provisioningEntity);
             }
+
+            // Any provisioning request coming via Console, considered as coming from the resident SP.
+            if (StringUtils.equals(CONSOLE_APPLICATION_NAME, serviceProviderIdentifier)) {
+                serviceProviderIdentifier = LOCAL_SP;
+                inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
+            }
+
             // get details about the service provider.any in-bound provisioning request via
             // the SOAP based API (or the management console) - or SCIM API with HTTP Basic
             // Authentication is considered as coming from the local service provider.
