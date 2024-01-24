@@ -101,7 +101,7 @@
 
 <%
 
-    String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
+    String BUNDLE = "org.wso2.carbon.role.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     String prevPage = request.getParameter("prevPage");
@@ -137,9 +137,9 @@
 %>
 
 
-<fmt:bundle basename="org.wso2.carbon.userstore.ui.i18n.Resources">
+<fmt:bundle basename="org.wso2.carbon.role.ui.i18n.Resources">
     <carbon:breadcrumb label="add.remove.permissions"
-                       resourceBundle="org.wso2.carbon.userstore.ui.i18n.Resources"
+                       resourceBundle="org.wso2.carbon.role.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
 
     <div id="middle">

@@ -36,7 +36,7 @@
         return;
     }
 
-    String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
+    String BUNDLE = "org.wso2.carbon.role.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     String forwardTo = "role-mgt.jsp?ordinal=1";

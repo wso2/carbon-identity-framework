@@ -47,13 +47,13 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.Set" %>
-<script type="text/javascript" src="../userstore/extensions/js/vui.js"></script>
+
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
-    String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
+    String BUNDLE = "org.wso2.carbon.role.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     boolean error = false;
@@ -343,9 +343,9 @@
         domainNames = list.toArray(new String[list.size()]);
     }
 %>
-<fmt:bundle basename="org.wso2.carbon.userstore.ui.i18n.Resources">
+<fmt:bundle basename="org.wso2.carbon.role.ui.i18n.Resources">
 <carbon:breadcrumb label="roles"
-		resourceBundle="org.wso2.carbon.userstore.ui.i18n.Resources"
+		resourceBundle="org.wso2.carbon.role.ui.i18n.Resources"
 		topPage="false" request="<%=request%>" />
 
     <script type="text/javascript">
