@@ -1550,20 +1550,6 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="PATCH, PUT">
-            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
-            <Scopes>internal_identity_mgt_view</Scopes>
-            <Scopes>internal_identity_mgt_update</Scopes>
-            <Scopes>internal_identity_mgt_create</Scopes>
-            <Scopes>internal_identity_mgt_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
-            <Scopes>internal_identity_mgt_view</Scopes>
-            <Scopes>internal_identity_mgt_update</Scopes>
-            <Scopes>internal_identity_mgt_create</Scopes>
-            <Scopes>internal_identity_mgt_delete</Scopes>
-        </Resource>
         <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
         <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="POST">
@@ -2402,6 +2388,7 @@
             <HTTPSizeLimit>51200</HTTPSizeLimit>
             <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
             <AddPreviousVersionKID>false</AddPreviousVersionKID>
+            <IsThumbprintHexifyRequired>false</IsThumbprintHexifyRequired>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 

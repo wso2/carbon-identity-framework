@@ -22,26 +22,26 @@
     <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
     <Resource context="/" secured="false" http-method="GET"/>
 
-    <!-- Code Management API -->
+    <!-- User Code Management API -->
     <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="POST">
-        <Scopes>internal_code_mgt_create</Scopes>
+        <Scopes>internal_user_code_mgt_create</Scopes>
     </Resource>
 
     <Resource context="(.*)/api/identity/user/v1.0/introspect-code(.*)" secured="true" http-method="POST">
-        <Scopes>internal_code_mgt_view</Scopes>
+        <Scopes>internal_user_code_mgt_view</Scopes>
     </Resource>
 
     <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="GET">
-        <Scopes>internal_code_mgt_view</Scopes>
+        <Scopes>internal_user_code_mgt_view</Scopes>
     </Resource>
     <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="POST">
-        <Scopes>internal_code_mgt_create</Scopes>
+        <Scopes>internal_user_code_mgt_create</Scopes>
     </Resource>
     <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="PATCH, PUT">
-        <Scopes>internal_code_mgt_update</Scopes>
+        <Scopes>internal_user_code_mgt_update</Scopes>
     </Resource>
     <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all">
-        <Scopes>internal_code_mgt_delete</Scopes>
+        <Scopes>internal_user_code_mgt_delete</Scopes>
     </Resource>
 
     <!-- User Personal Identification API -->
@@ -240,12 +240,6 @@
     <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="POST">
         <Scopes>internal_org_recovery_create</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="PATCH, PUT">
-        <Scopes>internal_org_recovery_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/identity/recovery/(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_org_recovery_delete</Scopes>
-    </Resource>
 
     <!-- Identity Recovery API -->
     <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="GET">
@@ -253,12 +247,6 @@
     </Resource>
     <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="POST">
         <Scopes>internal_recovery_create</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="PATCH, PUT">
-        <Scopes>internal_recovery_update</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_recovery_delete</Scopes>
     </Resource>
 
     <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
@@ -280,7 +268,7 @@
 
     <!-- Identity Register API -->
     <Resource context="(.*)/identity/register(.*)" secured="true" http-method="all">
-        <Scopes>internal_dcr_delete</Scopes>
+        <Scopes>internal_dcr_create</Scopes>
     </Resource>
     <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="all">
         <Scopes>internal_dcr_create</Scopes>
@@ -458,12 +446,12 @@
 
     <!-- [Organization] SCIM2 Bulk API -->
     <Resource context="(.*)/o/scim2/Bulk(.*)" secured="true" http-method="POST">
-        <Scopes>internal_org_bulk_mgt_create</Scopes>
+        <Scopes>internal_org_bulk_resource_create</Scopes>
     </Resource>
 
     <!-- SCIM2 Bulk API -->
     <Resource context="(.*)/scim2/Bulk(.*)" secured="true" http-method="POST">
-        <Scopes>internal_bulk_mgt_create</Scopes>
+        <Scopes>internal_bulk_resource_create</Scopes>
     </Resource>
 
     <!-- [Organization] Authentication Data APIs -->
@@ -1069,14 +1057,6 @@
         <Scopes>internal_organization_config_delete</Scopes>
     </Resource>
 
-    <!-- Organization Self Service API -->
-    <Resource context="(.*)/api/server/v1/self-service/(.*)" secured="true" http-method="GET">
-        <Scopes>internal_self_service_view</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/self-service/(.*)" secured="true" http-method="PATCH">
-        <Scopes>internal_self_service_update</Scopes>
-    </Resource>
-
     <!-- [Organization] Guest Invitation Management API -->
     <Resource context="(.*)/o/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
     <Resource context="(.*)/o/api/server/v1/guests/invite" secured="true" http-method="POST">
@@ -1090,21 +1070,6 @@
     </Resource>
     <Resource context="(.*)/o/api/server/v1/guests/invitations/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_org_guest_mgt_invite_delete</Scopes>
-    </Resource>
-
-    <!-- Guest Invitation Management API -->
-    <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
-    <Resource context="(.*)/api/server/v1/guests/invite" secured="true" http-method="POST">
-        <Scopes>internal_guest_mgt_invite_add</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/guests/invitation/introspect" secured="true" http-method="POST">
-        <Scopes>internal_guest_mgt_invite_list</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/guests/invitations(.*)" secured="true" http-method="GET">
-        <Scopes>internal_guest_mgt_invite_list</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/guests/invitations/(.*)" secured="true" http-method="DELETE">
-        <Scopes>internal_guest_mgt_invite_delete</Scopes>
     </Resource>
 
     <!-- API Resource Management API -->

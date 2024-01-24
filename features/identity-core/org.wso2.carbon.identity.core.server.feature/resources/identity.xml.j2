@@ -551,18 +551,6 @@
                 <PublicClientAllowed>{{oauth.grant_type.organization_switch.allow_public_client}}</PublicClientAllowed>
             </SupportedGrantType>
             {% endif %}
-            {% if oauth.grant_type.organization_switch_cc.enable is sameas true %}
-            <SupportedGrantType>
-                <GrantTypeName>organization_switch_cc</GrantTypeName>
-                <GrantTypeHandlerImplClass>{{oauth.grant_type.organization_switch_cc.grant_handler}}</GrantTypeHandlerImplClass>
-                {% if oauth.grant_type.organization_switch_cc.grant_validator is defined %}
-                <GrantTypeValidatorImplClass>{{oauth.grant_type.organization_switch_cc.grant_validator}}</GrantTypeValidatorImplClass>
-                {% endif %}
-                <IsRefreshTokenAllowed>{{oauth.grant_type.organization_switch_cc.allow_refresh_tokens}}</IsRefreshTokenAllowed>
-                <IdTokenAllowed>false</IdTokenAllowed>
-                <PublicClientAllowed>{{oauth.grant_type.organization_switch_cc.allow_public_client}}</PublicClientAllowed>
-            </SupportedGrantType>
-            {% endif %}
             {% if oauth.grant_type.token_exchange.enable is sameas true %}
             <SupportedGrantType>
                 <GrantTypeName>urn:ietf:params:oauth:grant-type:token-exchange</GrantTypeName>
@@ -2540,20 +2528,6 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="PATCH, PUT">
-            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
-            <Scopes>internal_identity_mgt_view</Scopes>
-            <Scopes>internal_identity_mgt_update</Scopes>
-            <Scopes>internal_identity_mgt_create</Scopes>
-            <Scopes>internal_identity_mgt_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
-            <Scopes>internal_identity_mgt_view</Scopes>
-            <Scopes>internal_identity_mgt_update</Scopes>
-            <Scopes>internal_identity_mgt_create</Scopes>
-            <Scopes>internal_identity_mgt_delete</Scopes>
-        </Resource>
         <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
         <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="POST">
@@ -3516,6 +3490,7 @@
             </HTTPProxy>
             <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
             <AddPreviousVersionKID>{{oauth.jwks_endpoint.add_previous_version_kid}}</AddPreviousVersionKID>
+            <IsThumbprintHexifyRequired>{{oauth.jwks_endpoint.is_thumbprint_hexify_required}}</IsThumbprintHexifyRequired>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
