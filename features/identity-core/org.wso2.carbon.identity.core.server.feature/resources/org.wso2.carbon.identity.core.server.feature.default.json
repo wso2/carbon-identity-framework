@@ -662,6 +662,7 @@
   "resource_access_control.default_access_allow": false,
   "resource_access_control.introspect.secured": true,
   "resource_access_control.introspect.permissions": ["/permission/admin/manage/identity/applicationmgt/view"],
+  "resource_access_control.introspect.scopes": ["internal_oauth2_introspect"],
   "resource_access_control.scim2_me_get_method.secured": true,
   "resource_access_control.scim2_me_get_method.permission": "/permission/admin/login",
   "resource_access_control.scim2_me_get_method.keep_resource": true,
