@@ -143,7 +143,8 @@
                             org.wso2.carbon.identity.claim.metadata.mgt.stub.*;version="${carbon.identity.package.import.version.range}";resolution:=optional,
                         </Import-Package>
                          <Export-Package>
-                            org.wso2.carbon.role.mgt.ui.*;version="${carbon.identity.package.export.version}"
+                             org.wso2.carbon.role.mgt.ui.*;version="${carbon.identity.package.export.version}",
+                             org.wso2.carbon.role.ui.*,
                          </Export-Package>
                          <DynamicImport-Package>*</DynamicImport-Package>
                          <Carbon-Component>UIBundle</Carbon-Component>
