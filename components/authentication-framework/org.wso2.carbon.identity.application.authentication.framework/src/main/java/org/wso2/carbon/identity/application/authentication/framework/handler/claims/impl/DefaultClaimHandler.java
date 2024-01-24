@@ -340,7 +340,16 @@ public class DefaultClaimHandler implements ClaimHandler {
                         String.join(FrameworkUtils.getMultiAttributeSeparator(),
                                 federatedUserRolesUnmappedExclusive));
             } else {
-                spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, StringUtils.EMPTY);
+                // If current authenticator is OrganizationAuthenticator, then get the roles claim from
+                // the user attributes, and set it to the identity provider mapped user roles claim.
+                if (stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator()
+                        .getName().equals(FrameworkConstants.ORGANIZATION_AUTHENTICATOR)) {
+                    // Get roles claim from the user attributes.
+                    String rolesClaim = remoteClaims.get(localToIdPClaimMap.get(FrameworkConstants.ROLES_CLAIM));
+                    spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, rolesClaim);
+                } else {
+                    spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES, StringUtils.EMPTY);
+                }
             }
         }
         return spFilteredClaims;
