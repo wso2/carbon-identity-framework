@@ -131,7 +131,11 @@
         {% endif %}
     </ServiceProviders>
 
-     <ChallengeQuestionsConnectorEnabled>{{connector.challenge_questions.enable}}</ChallengeQuestionsConnectorEnabled>
+    <Connectors>
+        <ChallengeQuestions>
+            <Enabled>{{connector.challenge_questions.enable}}</Enabled>
+        </ChallengeQuestions>
+    </Connectors>
 
     <OpenID>
         <!--
