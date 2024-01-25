@@ -553,7 +553,8 @@ public class DefaultStepHandler implements StepHandler {
 
             if (authenticatedStepIdps.containsKey(idpName)
                     && !(context.isForceAuthenticate() || stepConfig.isForced())
-                    && !context.isReAuthenticate()) {
+                    && !context.isReAuthenticate()
+                    && !FrameworkConstants.ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER.equals(homeRealm)) {
                 // skip the step if this is a normal request
                 AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(idpName);
                 populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatedStepIdps
