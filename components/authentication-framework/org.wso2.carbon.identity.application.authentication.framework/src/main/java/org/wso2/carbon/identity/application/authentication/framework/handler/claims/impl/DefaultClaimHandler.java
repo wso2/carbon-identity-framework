@@ -327,11 +327,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
         }
 
-        //Add multi Attributes separator with claims.it can be defined in user-mgt.xml file
-        UserRealm realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm);
-        addMultiAttributeSeparatorToRequestedClaims(null, userStore, spFilteredClaims, realm);
-
+        // Handle the IDP mapped user roles claim and app role claim.
         if (useAppAssociatedRoles) {
             if (CollectionUtils.isNotEmpty(federatedUserRolesUnmappedExclusive)) {
                 // Adding identity provider mapped user roles to be used in the federated user role resolver
@@ -354,6 +350,12 @@ public class DefaultClaimHandler implements ClaimHandler {
                 }
             }
         }
+
+        //Add multi Attributes separator with claims.it can be defined in user-mgt.xml file
+        UserRealm realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm);
+        addMultiAttributeSeparatorToRequestedClaims(null, userStore, spFilteredClaims, realm);
+
         return spFilteredClaims;
     }
 
