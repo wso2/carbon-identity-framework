@@ -282,7 +282,9 @@ public class DefaultClaimHandler implements ClaimHandler {
         localUnfilteredClaims.putAll(context.getRuntimeClaims());
 
         if (useAppAssociatedRoles) {
-            localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM, serviceProviderMappedUserRoles);
+            localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM,
+                    StringUtils.isNotEmpty(serviceProviderMappedUserRoles) ?
+                            serviceProviderMappedUserRoles : StringUtils.EMPTY);
         }
 
         // claim mapping from local service provider to remote service provider.
