@@ -1838,7 +1838,7 @@
         <!--Carbon identity version-->
         <identity.framework.version>${project.version}</identity.framework.version>
         <carbon.identity.package.export.version>${project.version}</carbon.identity.package.export.version>
-        <carbon.identity.package.import.version.range>[5.14.0, 6.0.0)</carbon.identity.package.import.version.range>
+        <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
 
         <org.wso2.carbon.identity.organization.management.core.version>1.0.90
         </org.wso2.carbon.identity.organization.management.core.version>
