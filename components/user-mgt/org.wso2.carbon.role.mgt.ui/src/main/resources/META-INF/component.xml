@@ -48,11 +48,11 @@
     </menus>
 
     <servlets>
-        <servlet id="UserAndRoleMgt">
-            <servlet-name>userandrolemgtservice</servlet-name>
-            <url-pattern>/userandrolemgtservice</url-pattern>
+        <servlet id="RoleMgt">
+            <servlet-name>rolemgtservice</servlet-name>
+            <url-pattern>/rolemgtservice</url-pattern>
             <display-name>RoleManagement</display-name>
-            <servlet-class>org.wso2.carbon.role.mgt.ui.servlet.UserAndRoleManagementServlet</servlet-class>
+            <servlet-class>org.wso2.carbon.role.mgt.ui.servlet.RoleManagementServlet</servlet-class>
         </servlet>
     </servlets>
 
