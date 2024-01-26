@@ -948,11 +948,14 @@
         </Resource>
 
         <!-- Tenant Management API -->
-        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST, HEAD">
+        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="GET, HEAD">
             <Scopes>internal_list_tenants</Scopes>
         </Resource>
+        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="POST">
+            <Scopes>internal_create_tenants</Scopes>
+        </Resource>
         <Resource context="/api/server/v1/channel-verified-tenants(.*)" secured="true" http-method="POST">
-            <Scopes>internal_list_tenants</Scopes>
+            <Scopes>internal_create_tenants</Scopes>
         </Resource>
         <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
             <Scopes>internal_modify_tenants</Scopes>
