@@ -793,6 +793,14 @@
 				<ReadOnly />
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/iProovEnrolled</ClaimURI>
+				<DisplayName>iProov Enrolled</DisplayName>
+				<AttributeID>iproovEnrolled</AttributeID>
+				<Description>Claim to store whether user is already enrolled with iProov</Description>
+				<SupportedByDefault/>
+				<ReadOnly/>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/preferredMFAOption</ClaimURI>
 				<DisplayName>PreferredMFAOption</DisplayName>
 				<!-- If user store based identity store is used, a proper mapped attribute
