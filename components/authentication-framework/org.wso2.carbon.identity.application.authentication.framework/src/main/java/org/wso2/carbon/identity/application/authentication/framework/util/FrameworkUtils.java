@@ -30,10 +30,13 @@ import org.apache.http.client.utils.URIBuilder;
 import org.json.JSONObject;
 import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.claim.mgt.ClaimManagementException;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.core.util.CryptoException;
+import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
@@ -113,6 +116,7 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -3825,5 +3829,79 @@ public class FrameworkUtils {
             throw new FrameworkException("Error deep cloning application object.", e);
         }
         return newObject;
+    }
+
+    /**
+     * Get claim properties of a claim in a given tenant.
+     *
+     * @param tenantDomain The tenant domain.
+     * @param claimURI     Claim URI.
+     * @return Properties of the claim.
+     */
+    private static Map<String, String> getClaimProperties(String tenantDomain, String claimURI) {
+
+        try {
+            List<LocalClaim> localClaims = FrameworkServiceDataHolder.getInstance()
+                    .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+            if (localClaims == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Returned claim list from ClaimManagementService is null");
+                }
+                return Collections.emptyMap();
+            }
+            for (LocalClaim localClaim : localClaims) {
+                if (StringUtils.equalsIgnoreCase(claimURI, localClaim.getClaimURI())) {
+                    return localClaim.getClaimProperties();
+                }
+            }
+        } catch (ClaimMetadataException e) {
+            log.error("Error while retrieving local claim meta data.", e);
+        }
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Encrypt the given plain text.
+     *
+     * @param plainText The plaintext value to be encrypted and base64 encoded
+     * @return Base64 encoded string
+     * @throws CryptoException On error during encryption
+     */
+    public static String encrypt(String plainText) throws CryptoException {
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        // Get custom key from server configuration.
+        String customKey = null;
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            customKey = ServerConfiguration.getInstance().getFirstProperty(FrameworkConstants.TOTP_KEY);
+        }
+        return CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(
+                plainText.getBytes(StandardCharsets.UTF_8), customKey);
+    }
+
+    /**
+     * Process the claimValue of the given claimURI and encrypt if required.
+     *
+     * @param claimURI     Claim URI.
+     * @param claimValue   Claim value.
+     * @param tenantDomain The tenant domain.
+     * @return Processed claim value.
+     * @throws FrameworkException On error during encryption process.
+     */
+    public static String getProcessedClaimValue(String claimURI, String claimValue, String tenantDomain)
+            throws FrameworkException {
+
+        Map<String, String> claimProperties = getClaimProperties(tenantDomain, claimURI);
+        try {
+            if (claimProperties.containsKey(FrameworkConstants.ENABLE_ENCRYPTION)) {
+                return claimValue;
+            }
+            if (StringUtils.isBlank(claimValue)) {
+                return claimValue;
+            }
+            return encrypt(claimValue);
+        } catch (CryptoException e) {
+            throw new FrameworkException("Error occurred while encrypting claim value of: " + claimURI, e);
+        }
     }
 }

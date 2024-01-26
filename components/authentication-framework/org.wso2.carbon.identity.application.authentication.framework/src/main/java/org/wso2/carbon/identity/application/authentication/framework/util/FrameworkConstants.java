@@ -136,6 +136,8 @@ public abstract class FrameworkConstants {
     public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
     public static final String ALLOW_LOGIN_TO_IDP = "JITProvisioning.AllowLoginToIDP";
     public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
+    public static final String ENABLE_ENCRYPTION = "EnableEncryption";
+    public static final String TOTP_KEY = "CryptoService.TotpSecret";
     public static final String IDP_RESOURCE_ID = "IDPResourceID";
     public static final String ENABLE_JIT_PROVISION_ENHANCE_FEATURE = "JITProvisioning.EnableEnhancedFeature";
     public static final String ERROR_CODE_INVALID_ATTRIBUTE_UPDATE = "SUO-10000";
