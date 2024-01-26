@@ -69,6 +69,7 @@ import java.util.concurrent.Executors;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APPLICATION_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.ASK_PASSWORD_CLAIM;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.GROUP_CLAIM_URI;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.SELF_SIGNUP_ROLE;
 import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedOutboundProvisioningEnabled;
 
@@ -678,7 +679,7 @@ public class OutboundProvisioningManager {
         List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
         if (roleListOfUser != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false), roleListOfUser);
+                    GROUP_CLAIM_URI, null, null, false), roleListOfUser);
         }
 
         String domainAwareName = userName;
@@ -726,7 +727,7 @@ public class OutboundProvisioningManager {
         }
 
         updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
-                IdentityProvisioningConstants.GROUP_CLAIM_URI);
+                GROUP_CLAIM_URI);
         updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
                 IdentityProvisioningConstants.NEW_GROUP_CLAIM_URI);
         updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
@@ -826,8 +827,7 @@ public class OutboundProvisioningManager {
      * @return
      */
     protected List<String> getGroupNames(Map<ClaimMapping, List<String>> attributeMap) {
-        return ProvisioningUtil.getClaimValues(attributeMap,
-                                               IdentityProvisioningConstants.GROUP_CLAIM_URI, null);
+        return ProvisioningUtil.getClaimValues(attributeMap, GROUP_CLAIM_URI, null);
     }
 
     /**
@@ -875,7 +875,7 @@ public class OutboundProvisioningManager {
                 return true;
             }
             List<String> newRoleListOfUser = provisioningEntity.getAttributes().get(ClaimMapping.build
-                        (IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false));
+                        (GROUP_CLAIM_URI, null, null, false));
 
             if (userHasProvisioningRoles(newRoleListOfUser, provisioningRoleList, userName)) {
                 return true;
@@ -1035,8 +1035,7 @@ public class OutboundProvisioningManager {
 
             if (ProvisioningOperation.PUT.equals(provisioningOperation)) {
                 String oldGroupName = provisionedEntityName;
-                String currentGroupName = ProvisioningUtil
-                        .getAttributeValue(provisioningEntity, IdentityProvisioningConstants.GROUP_CLAIM_URI);
+                String currentGroupName = ProvisioningUtil.getAttributeValue(provisioningEntity, GROUP_CLAIM_URI);
                 if (!oldGroupName.equals(currentGroupName)) {
                     attributeList.put(org.wso2.carbon.identity.application.common.model.ClaimMapping
                                               .build(IdentityProvisioningConstants.OLD_GROUP_NAME_CLAIM_URI,
@@ -1049,8 +1048,7 @@ public class OutboundProvisioningManager {
                 }
             } else if (ProvisioningOperation.PATCH.equals(provisioningOperation)) {
                 String oldGroupName = provisionedEntityName;
-                String currentGroupName = ProvisioningUtil
-                        .getAttributeValue(provisioningEntity, IdentityProvisioningConstants.GROUP_CLAIM_URI);
+                String currentGroupName = ProvisioningUtil.getAttributeValue(provisioningEntity, GROUP_CLAIM_URI);
                 if (currentGroupName == null) {
                     currentGroupName = oldGroupName;
                 }
@@ -1133,36 +1131,34 @@ public class OutboundProvisioningManager {
      */
     private boolean needToWaitForUserProvisioning(ProvisioningEntity provisioningEntity) {
 
-        if (!ProvisioningEntityType.USER.equals(provisioningEntity.getEntityType()) ||
-                !provisioningEntity.getOperation().equals(ProvisioningOperation.POST)) {
-            return false;
-        }
+        if (ProvisioningEntityType.USER.equals(provisioningEntity.getEntityType()) &&
+                provisioningEntity.getOperation().equals(ProvisioningOperation.POST)) {
 
-        // Need to wait in the self registration flow.
-        Map<ClaimMapping, List<String>> attributes = provisioningEntity.getAttributes();
-        if (attributes != null) {
-            for (ClaimMapping claimMapping : attributes.keySet()) {
-                if (IdentityProvisioningConstants.GROUP_CLAIM_URI.equalsIgnoreCase(
-                        claimMapping.getLocalClaim().getClaimUri())) {
-                    List<String> claimList = attributes.get(claimMapping);
-                    if (claimList != null && claimList.contains(SELF_SIGNUP_ROLE)) {
-                        return true;
+            // Need to wait in the self registration flow.
+            Map<ClaimMapping, List<String>> attributes = provisioningEntity.getAttributes();
+            if (attributes != null) {
+                for (Entry<ClaimMapping, List<String>> entry : attributes.entrySet()) {
+                    if (entry.getKey().getLocalClaim() != null &&
+                            StringUtils.equals(GROUP_CLAIM_URI, entry.getKey().getLocalClaim().getClaimUri())) {
+                        List<String> claimList = entry.getValue();
+                        if (claimList != null && claimList.contains(SELF_SIGNUP_ROLE)) {
+                            return true;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
-        }
 
-        // Need to wait in the ask password(user-invitation) flow.
-        Map<String, String> inboundAttributes = provisioningEntity.getInboundAttributes();
-        if (inboundAttributes != null) {
-            for (String claimUri : inboundAttributes.keySet()) {
-                if (ASK_PASSWORD_CLAIM.equalsIgnoreCase(claimUri)) {
-                    String claimValue = inboundAttributes.get(claimUri);
-                    if (claimValue != null && claimValue.equalsIgnoreCase("true")) {
-                        return true;
+            // Need to wait in the ask password(user-invitation) flow.
+            Map<String, String> inboundAttributes = provisioningEntity.getInboundAttributes();
+            if (inboundAttributes != null) {
+                for (Entry<String, String> entry : inboundAttributes.entrySet()) {
+                    if (StringUtils.equals(ASK_PASSWORD_CLAIM, entry.getKey())) {
+                        if (StringUtils.equalsIgnoreCase(entry.getValue(), "true")) {
+                            return true;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
