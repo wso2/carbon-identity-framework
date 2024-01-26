@@ -358,8 +358,10 @@
     <APIResource name="Tenant Management API" identifier="/api/server/v1/tenants"
                  requiresAuthorization="true" description="API representation of the Tenant Management API" type="SYSTEM">
         <Scopes>
-            <Scope displayName="List Tenants" name="internal_list_tenants" 
-                    description="Create/retrieve the organizations (root) and check domain availability"/>
+            <Scope displayName="Create Tenants" name="internal_create_tenants"
+                   description="Create the organizations (root)"/>
+            <Scope displayName="List Tenants" name="internal_list_tenants"
+                   description="Retrieve the organizations (root) and check domain availability"/>
             <Scope displayName="Modify Tenants" name="internal_modify_tenants" 
                     description="Activate/deactivate the organization (root) and delete its meta data"/>
         </Scopes>
