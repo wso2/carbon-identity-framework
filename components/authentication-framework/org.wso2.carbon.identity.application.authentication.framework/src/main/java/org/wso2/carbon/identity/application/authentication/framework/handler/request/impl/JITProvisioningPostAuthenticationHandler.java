@@ -99,6 +99,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_REALM_IN_POST_AUTHENTICATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_TRYING_TO_GET_CLAIMS_WHILE_TRYING_TO_PASSWORD_PROVISION;
@@ -856,9 +857,21 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         If TOTP is enabled for federated users, the initial federated user login will be identified with the following
         check and will set the secret key claim for the federated user who is going to be provisioned.
          */
-        if (context.getProperty(FrameworkConstants.SECRET_KEY_CLAIM_URL) != null) {
-            localClaimValues.put(FrameworkConstants.SECRET_KEY_CLAIM_URL,
-                    context.getProperty(FrameworkConstants.SECRET_KEY_CLAIM_URL).toString());
+        String totpSecretKeyClaimUrl = FrameworkConstants.SECRET_KEY_CLAIM_URL;
+        try {
+            if (context.getProperty(totpSecretKeyClaimUrl) != null) {
+                String totpSecretKeyClaimValue = context.getProperty(totpSecretKeyClaimUrl).toString();
+                /*
+                The secret key sent through the context will be a decrypted value. Therefore, it is required to encrypt
+                the secret key before storing it in the user store.
+                 */
+                totpSecretKeyClaimValue = FrameworkUtils.getProcessedClaimValue(totpSecretKeyClaimUrl,
+                        totpSecretKeyClaimValue, context.getTenantDomain());
+                localClaimValues.put(totpSecretKeyClaimUrl, totpSecretKeyClaimValue);
+            }
+        } catch (FrameworkException e) {
+            handleExceptions(String.format(ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY.getMessage(), username),
+                    ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY.getCode(), e);
         }
 
         // Remove role claim from local claims as roles are specifically handled.
