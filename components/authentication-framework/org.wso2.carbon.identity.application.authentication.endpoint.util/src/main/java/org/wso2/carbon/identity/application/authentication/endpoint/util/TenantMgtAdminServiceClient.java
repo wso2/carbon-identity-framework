@@ -67,7 +67,7 @@ public class TenantMgtAdminServiceClient {
      * Default keystore type of the client
      */
     @Deprecated
-    private static String keyStoreType = KeystoreUtils.getKeyStoreFileExtension(
+    private static String keyStoreType = KeystoreUtils.getKeyStoreFileType(
             MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     /**
      * Default truststore type of the client
