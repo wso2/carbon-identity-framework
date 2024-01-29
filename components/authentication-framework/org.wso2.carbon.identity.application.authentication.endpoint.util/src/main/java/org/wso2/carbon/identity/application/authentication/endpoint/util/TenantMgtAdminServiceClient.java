@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import javax.net.ssl.HostnameVerifier;
@@ -65,7 +66,9 @@ public class TenantMgtAdminServiceClient {
     /**
      * Default keystore type of the client
      */
-    private static String keyStoreType = KeystoreUtils.StoreFileType.defaultFileType();
+    @Deprecated
+    private static String keyStoreType = KeystoreUtils.getKeyStoreFileExtension(
+            MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     /**
      * Default truststore type of the client
      */
@@ -291,10 +294,12 @@ public class TenantMgtAdminServiceClient {
         return response;
     }
 
+    @Deprecated
     public static String getKeyStoreType() {
         return keyStoreType;
     }
 
+    @Deprecated
     public static void setKeyStoreType(String keyStoreType) {
         TenantMgtAdminServiceClient.keyStoreType = keyStoreType;
     }
