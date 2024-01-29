@@ -19,9 +19,9 @@
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
-<%@ page import="org.wso2.carbon.security.mgt.stub.keystore.xsd.CertData" %>
-<%@ page import="org.wso2.carbon.security.mgt.stub.keystore.xsd.PaginatedCertData" %>
-<%@page import="org.wso2.carbon.security.mgt.stub.keystore.xsd.PaginatedKeyStoreData" %>
+<%@ page import="org.wso2.carbon.core.keystore.service.xsd.CertData" %>
+<%@ page import="org.wso2.carbon.core.keystore.service.xsd.PaginatedCertData" %>
+<%@page import="org.wso2.carbon.core.keystore.service.xsd.PaginatedKeyStoreData" %>
 <%@page import="org.wso2.carbon.security.ui.SecurityUIConstants" %>
 <%@page import="org.wso2.carbon.security.ui.Util" %>
 <%@page import="org.wso2.carbon.security.ui.client.KeyStoreAdminClient" %>

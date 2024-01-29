@@ -25,6 +25,8 @@ import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.core.keystore.service.xsd.KeyStoreData;
+import org.wso2.carbon.core.keystore.service.xsd.PaginatedKeyStoreData;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.security.mgt.stub.keystore.AddKeyStore;
 import org.wso2.carbon.security.mgt.stub.keystore.AddTrustStore;
@@ -41,8 +43,6 @@ import org.wso2.carbon.security.mgt.stub.keystore.GetStoreEntriesResponse;
 import org.wso2.carbon.security.mgt.stub.keystore.ImportCertToStore;
 import org.wso2.carbon.security.mgt.stub.keystore.KeyStoreAdminServiceStub;
 import org.wso2.carbon.security.mgt.stub.keystore.RemoveCertFromStore;
-import org.wso2.carbon.security.mgt.stub.keystore.xsd.KeyStoreData;
-import org.wso2.carbon.security.mgt.stub.keystore.xsd.PaginatedKeyStoreData;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
