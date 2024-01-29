@@ -71,8 +71,6 @@ public class AuthorizedAPIManagementListener extends AbstractApplicationMgtListe
             }
             if (isConsole(appName)) {
                 authorizeSystemAPIToConsole(tenantDomain);
-            } else {
-                authorizeMeAPIToMyAccount(tenantDomain);
             }
 
         } catch (OrganizationManagementException e) {
@@ -155,61 +153,6 @@ public class AuthorizedAPIManagementListener extends AbstractApplicationMgtListe
             LOG.debug("System APIs are authorized for the Console application in " + tenantDomain);
         } catch (Throwable e) {
             LOG.error("Error while authorizing system APIs to the Console application.", e);
-        }
-    }
-
-    /**
-     * Authorize Me API to the My Account application.
-     *
-     * @param tenantDomain Tenant domain.
-     */
-    private void authorizeMeAPIToMyAccount(String tenantDomain) {
-
-        try {
-            ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
-            ApplicationBasicInfo applicationBasicInfo = applicationManagementService.getApplicationBasicInfoByName(
-                    ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME, tenantDomain);
-            if (applicationBasicInfo == null) {
-                LOG.error("Error while authorizing Me API to the My Account. My Account application not found in " +
-                        "tenant: " + tenantDomain);
-                return;
-            }
-            AuthorizedAPIManagementService authorizedAPIManagementService = new AuthorizedAPIManagementServiceImpl();
-            List<AuthorizedAPI> authorizedAPIs = authorizedAPIManagementService.getAuthorizedAPIs(
-                    applicationBasicInfo.getApplicationResourceId(), tenantDomain);
-            // Return if the Me API is already authorized for the My Account application.
-            if (!authorizedAPIs.isEmpty()) {
-                LOG.debug("Me API is already authorized for the My Account application in tenant: "
-                        + tenantDomain);
-                return;
-            }
-
-            // Fetch the Me API.
-            List<APIResource> apiResources = ApplicationManagementServiceComponentHolder.getInstance()
-                    .getAPIResourceManager().getAPIResources(null, null, 1,
-                            APIResourceManagementConstants.ME_API_FILTER, APIResourceManagementConstants.ASC,
-                            tenantDomain)
-                    .getAPIResources();
-            if (apiResources.isEmpty()) {
-                LOG.error("Error while authorizing Me API to the My Account. Me API not found in tenant: "
-                        + tenantDomain);
-                return;
-            }
-            for (APIResource apiResource : apiResources) {
-                List<Scope> scopes = ApplicationManagementServiceComponentHolder.getInstance()
-                        .getAPIResourceManager().getAPIScopesById(apiResource.getId(), tenantDomain);
-                AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
-                        .apiId(apiResource.getId())
-                        .appId(applicationBasicInfo.getApplicationResourceId())
-                        .scopes(scopes)
-                        .policyId(APIResourceManagementConstants.NO_POLICY)
-                        .build();
-                authorizedAPIManagementService.addAuthorizedAPI(applicationBasicInfo.getApplicationResourceId(),
-                        authorizedAPI, tenantDomain);
-            }
-            LOG.debug("Me API is authorized for the My Account application in " + tenantDomain);
-        } catch (Throwable e) {
-            LOG.error("Error while authorizing Me API to the My Account application.", e);
         }
     }
 
