@@ -57,18 +57,18 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 prepStmt.execute();
 
                 prepStmt = dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE);
+                boolean isSystemAPI = APIResourceManagementUtil.isSystemAPIByAPIId(apiId);
                 for (Scope scope : scopes) {
                     prepStmt.setString(1, applicationId);
                     prepStmt.setString(2, apiId);
                     prepStmt.setString(3, scope.getName());
-                    prepStmt.setObject(4, APIResourceManagementUtil.isSystemAPIByAPIId(apiId)
-                            ? null : tenantId);
+                    prepStmt.setObject(4, isSystemAPI ? null : tenantId);
                     prepStmt.addBatch();
                     prepStmt.clearParameters();
                 }
                 prepStmt.executeBatch();
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
-            } catch (SQLException e) {
+            } catch (SQLException | APIResourceMgtException e) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
                 throw e;
             }
