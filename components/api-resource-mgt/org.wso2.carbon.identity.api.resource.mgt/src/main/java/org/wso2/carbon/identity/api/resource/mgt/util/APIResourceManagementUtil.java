@@ -164,8 +164,9 @@ public class APIResourceManagementUtil {
 
     public static boolean isSystemAPIByAPIId(String apiId) throws APIResourceMgtException {
 
-        return isSystemAPI(APIResourceManagerImpl.getInstance().getAPIResourceById(apiId,
-                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME).getType());
+        APIResource apiResource = APIResourceManagerImpl.getInstance().getAPIResourceById(apiId,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        return apiResource != null && isSystemAPI(apiResource.getType());
     }
 
     public Object getTenantId(String tenantDomain) {
