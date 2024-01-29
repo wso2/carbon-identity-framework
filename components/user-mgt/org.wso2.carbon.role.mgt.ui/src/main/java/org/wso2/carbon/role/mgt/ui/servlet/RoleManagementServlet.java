@@ -51,9 +51,9 @@ import java.util.Map;
  * Service to get Users and Roles
  *
  */
-public class UserAndRoleManagementServlet extends HttpServlet {
+public class RoleManagementServlet extends HttpServlet {
 
-    private static final Log log                        = LogFactory.getLog(UserAndRoleManagementServlet.class);
+    private static final Log log                        = LogFactory.getLog(RoleManagementServlet.class);
     private static final String PERMISSION_VIEWTASKS    = "/permission/admin/manage/humantask/viewtasks";
     private static final String USERS                   = "users";
     private static final String CATEGORY                = "category";
