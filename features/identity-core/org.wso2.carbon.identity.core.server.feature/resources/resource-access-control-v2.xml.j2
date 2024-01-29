@@ -773,6 +773,16 @@
             <Scopes>internal_org_application_mgt_view</Scopes>
         </Resource>
 
+        <!-- Application API resources Management API -->
+        <Resource context="(.*)/api/server/v1/applications/(.*)/authorized-apis(.*)" secured="true" http-method="POST, DELETE">
+            <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+
+        <!-- Admin Application Management API -->
+        <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_organization_admin</Scopes>
+        </Resource>
+
         <!-- Application Management API -->
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Scopes>internal_application_mgt_create</Scopes>
@@ -787,10 +797,6 @@
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
 
-        <!-- Admin Application Management API -->
-        <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
-            <Scopes>internal_organization_admin</Scopes>
-        </Resource>
         <!-- Should this go to applications mgt API -->
         <Resource context="(.*)/api/server/v1/organizations/(.*)/share" secured="true" http-method="POST">
             <Scopes>internal_application_mgt_update</Scopes>
