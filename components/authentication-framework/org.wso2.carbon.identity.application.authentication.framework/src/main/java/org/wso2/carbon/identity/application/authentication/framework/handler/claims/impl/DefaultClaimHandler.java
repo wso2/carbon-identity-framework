@@ -369,6 +369,7 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @param idpRoleClaimUri       IDP role claim URI.
      * @param excludeUnmapped       Whether to exclude unmapped roles.
      * @return ArrayList<string> List of identity provider mapped user roles.
+     * @throws FrameworkException If an error occurred while getting identity provider mapped user roles.
      */
     protected List<String> getIdentityProviderMappedUserRoles(ExternalIdPConfig externalIdPConfig,
                                                               Map<String, String> extAttributesValueMap,
@@ -668,13 +669,14 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     /**
-     * @param sequenceConfig
+     * @param sequenceConfig         Sequence config.
      * @param locallyMappedUserRoles String of user roles mapped according to Service Provider role mappings
      *                               seperated by the multi attribute separator
-     * @return
+     * @return String of user roles mapped according to Service Provider role mappings.
      */
     protected String getServiceProviderMappedUserRoles(SequenceConfig sequenceConfig,
-                                                       List<String> locallyMappedUserRoles) throws FrameworkException {
+                                                       List<String> locallyMappedUserRoles) {
+
         return DefaultSequenceHandlerUtils.getServiceProviderMappedUserRoles(sequenceConfig, locallyMappedUserRoles);
     }
 
