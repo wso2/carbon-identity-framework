@@ -82,7 +82,6 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -1290,8 +1289,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             UserRealm realm = getUserRealm(context.getTenantDomain());
             UserStoreManager userStoreManager = getUserStoreManager(context.getExternalIdP()
                     .getProvisioningUserStoreId(), realm, username);
-            String sanitizedUserName = UserCoreUtil.removeDomainFromName(
-                    MultitenantUtils.getTenantAwareUsername(username));
+            String sanitizedUserName = UserCoreUtil.removeDomainFromName(username);
             if (userStoreManager.isExistingUser(sanitizedUserName)) {
                 // Logging the error because the thrown exception is handled in the UI.
                 log.error(ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode() + " - "
