@@ -2754,7 +2754,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         List<ApplicationInboundAuthConfigHandler> applicationInboundAuthConfigHandlers =
                 ApplicationManagementServiceComponentHolder.getInstance().getApplicationInboundAuthConfigHandler();
         for (ApplicationInboundAuthConfigHandler handler : applicationInboundAuthConfigHandlers) {
-            if (handler.canHandle(inboundProtocolConfigurationDTO.getProtocolName())) {
+            if (handler.canHandle(inboundProtocolConfigurationDTO.fetchProtocolName())) {
                 addedInbound = handler.handleConfigUpdate(serviceProvider,
                         inboundProtocolConfigurationDTO);
                 break;
