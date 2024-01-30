@@ -20,14 +20,12 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.ap
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.util.RoleResolverUtils;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -80,14 +78,32 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
         if (authenticatedUser == null) {
             throw RoleResolverUtils.handleClientException(ERROR_CODE_USER_NULL);
         }
-        if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
-            return new String[0];
-        }
         if (authenticatedUser.isFederatedUser()) {
-            return getAppAssociatedRolesForFederatedUser(authenticatedUser, applicationId);
+            return getAppAssociatedRolesForFederatedUser(authenticatedUser, applicationId, null);
         }
         return getAppAssociatedRolesForLocalUser(authenticatedUser, applicationId);
     }
+
+    @Override
+    public String[] getAppAssociatedRolesOfFederatedUser(AuthenticatedUser authenticatedUser, String applicationId,
+                                                         String idpGroupClaimURI) throws ApplicationRolesException {
+
+        if (authenticatedUser == null) {
+            throw RoleResolverUtils.handleClientException(ERROR_CODE_USER_NULL);
+        }
+        return getAppAssociatedRolesForFederatedUser(authenticatedUser, applicationId, idpGroupClaimURI);
+    }
+
+    @Override
+    public String[] getAppAssociatedRolesOfLocalUser(AuthenticatedUser authenticatedUser, String applicationId)
+            throws ApplicationRolesException {
+
+        if (authenticatedUser == null) {
+            throw RoleResolverUtils.handleClientException(ERROR_CODE_USER_NULL);
+        }
+        return getAppAssociatedRolesForLocalUser(authenticatedUser, applicationId);
+    }
+
 
     /**
      * Get app associated roles for local user for given app.
@@ -110,10 +126,20 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
                 .toArray(String[]::new);
     }
 
-    private String[] getAppAssociatedRolesForFederatedUser(AuthenticatedUser authenticatedUser, String applicationId)
-            throws ApplicationRolesException {
 
-        Set<String> federatedUserRoleIds = getAllRolesOfFederatedUser(authenticatedUser);
+    /**
+     * Get app associated roles for federated user for given app.
+     *
+     * @param authenticatedUser Authenticated user.
+     * @param applicationId     Application ID.
+     * @param idpGroupClaimURI  IDP group claim URI.
+     * @return App associated roles for federated user.
+     * @throws ApplicationRolesException If an error occurred while getting app associated roles for federated user.
+     */
+    private String[] getAppAssociatedRolesForFederatedUser(AuthenticatedUser authenticatedUser, String applicationId,
+                                                           String idpGroupClaimURI) throws ApplicationRolesException {
+
+        Set<String> federatedUserRoleIds = getAllRolesOfFederatedUser(authenticatedUser, idpGroupClaimURI);
         List<RoleV2> rolesAssociatedWithApp = getRolesAssociatedWithApplication(applicationId,
                 authenticatedUser.getTenantDomain());
 
@@ -152,7 +178,7 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
      * @return All the roles assigned to the federated user.
      * @throws ApplicationRolesException If an error occurred while getting all roles of a federated user.
      */
-    private Set<String> getAllRolesOfFederatedUser(AuthenticatedUser authenticatedUser)
+    private Set<String> getAllRolesOfFederatedUser(AuthenticatedUser authenticatedUser, String idpGroupClaimURI)
             throws ApplicationRolesException {
 
         String tenantDomain = authenticatedUser.getTenantDomain();
@@ -162,7 +188,8 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
             return Collections.emptySet();
         }
         IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
-        List<String> idpGroupNamesOfUser = getFederatedIdPGroupNamesOfUser(authenticatedUser, identityProvider);
+        List<String> idpGroupNamesOfUser = getFederatedIdPGroupNamesOfUser(authenticatedUser, identityProvider,
+                idpGroupClaimURI);
         if (CollectionUtils.isEmpty(idpGroupNamesOfUser)) {
             return Collections.emptySet();
         }
@@ -265,18 +292,14 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
      * @return Federated user IDP groups.
      */
     private List<String> getFederatedIdPGroupNamesOfUser(AuthenticatedUser authenticatedUser,
-                                                         IdentityProvider federatedIdP) {
+                                                         IdentityProvider federatedIdP, String idpGroupClaimURI) {
 
         if (federatedIdP != null) {
-            String idpGroupsClaimUri = Arrays.stream(federatedIdP.getClaimConfig().getClaimMappings())
-                    .filter(claimMapping ->
-                            FrameworkConstants.GROUPS_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri()))
-                    .map(claimMapping -> claimMapping.getRemoteClaim().getClaimUri())
-                    .findFirst()
-                    .orElse(null);
-
-            if (idpGroupsClaimUri != null) {
-                String[] idpGroups = getIdPUserGroups(authenticatedUser, idpGroupsClaimUri);
+            if (StringUtils.isEmpty(idpGroupClaimURI)) {
+                idpGroupClaimURI = FrameworkUtils.getIdpGroupClaimUri(federatedIdP.getClaimConfig().getClaimMappings());
+            }
+            if (idpGroupClaimURI != null) {
+                String[] idpGroups = getIdPUserGroups(authenticatedUser, idpGroupClaimURI);
                 if (idpGroups != null && idpGroups.length > 0) {
                     return Arrays.asList(idpGroups);
                 }
@@ -346,17 +369,19 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
      * Get the IdP groups of the federated authenticated user.
      *
      * @param authenticatedUser Authenticated federated user.
+     * @param idpGroupClaimUri  IDP group claim URI.
      * @return IdP groups of the authenticated user.
      */
-    private String[] getIdPUserGroups(AuthenticatedUser authenticatedUser, String idpAppRoleClaimUri) {
+    private String[] getIdPUserGroups(AuthenticatedUser authenticatedUser, String idpGroupClaimUri) {
 
+        String idpGroupClaimValueSeparator = FrameworkUtils.getIdpGroupClaimValueSeparator();
         Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
             ClaimMapping claimMapping = entry.getKey();
-            if (idpAppRoleClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
+            if (idpGroupClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
                 String idPGroupsClaim = entry.getValue();
                 if (StringUtils.isNotBlank(idPGroupsClaim)) {
-                    return idPGroupsClaim.split(Pattern.quote(FrameworkUtils.getMultiAttributeSeparator()));
+                    return idPGroupsClaim.split(Pattern.quote(idpGroupClaimValueSeparator));
                 }
                 return null;
             }

@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.P
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultSequenceHandlerUtils;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -87,8 +88,10 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -898,13 +901,13 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         try {
             if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                 // This block handle the JIT provisioning in legacy authz runtime with v1 roles.
-                String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
+                String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(stepConfig, context);
                 if (claimMapping != null) {
                     //Ex. Standard dialects like OIDC.
                     idpRoleClaimUri = claimMapping.get(IdentityUtil.getLocalGroupsClaimURI());
                 } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
                     //Ex. SAML custom claims.
-                    idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
+                    idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(stepConfig, context);
                 }
 
                 /*
@@ -925,7 +928,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 localClaimValues);
             } else {
                 // This block handle the JIT provisioning in new authz runtime with v2 roles.
-                String idpGroupsClaimUri = FrameworkUtils.getIdpGroupClaimUri(externalIdPConfig);
+                String idpGroupsClaimUri = FrameworkUtils.getIdpGroupClaimUri(stepConfig, context);
                 List<String> assignedRoleIdList = FrameworkUtils.getAssignedRolesFromIdPGroups(externalIdPConfig,
                         originalExternalAttributeValueMap, idpGroupsClaimUri, context.getTenantDomain());
                 boolean sendManuallyAddedLocalRoles = false;
@@ -938,7 +941,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         .callJitProvisioningWithV2Roles(username, context, assignedRoleIdList, localClaimValues);
                 if (sendManuallyAddedLocalRoles) {
                     // Handle role claim for manually added roles of JIT provisioned user.
-                    handleRoleClaim(username, context);
+                    handleRoleClaim(username, context, stepConfig);
                 }
             }
         } catch (FrameworkException e) {
@@ -1004,11 +1007,12 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @param context  Authentication Context.
      * @throws PostAuthenticationFailedException If an error occurred while handling the role claim.
      */
-    private void handleRoleClaim(String username, AuthenticationContext context)
+    private void handleRoleClaim(String username, AuthenticationContext context, StepConfig stepConfig)
             throws PostAuthenticationFailedException {
 
         try {
             String tenantDomain = context.getTenantDomain();
+            SequenceConfig sequenceConfig = context.getSequenceConfig();
             RoleManagementService roleManagementService = FrameworkServiceDataHolder.getInstance()
                     .getRoleManagementServiceV2();
 
@@ -1044,7 +1048,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             // Filter the role name list of the user associated with the application.
             List<String> userRoleNameListOfApp = appAssociatedRoles.stream()
                     .filter(role -> userRoleIdList.contains(role.getId()))
-                    .map(RoleV2::getName)
+                    .map(role -> appendInternalDomain(role.getName()))
                     .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(userRoleNameListOfApp)) {
                 if (log.isDebugEnabled()) {
@@ -1055,14 +1059,38 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 return;
             }
 
-            Map<String, String> roleClaimMap = new HashMap<>();
+            boolean excludeUnmappedRoles = false;
+            if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
+                excludeUnmappedRoles = Boolean
+                        .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+            }
+            List<String> federatedUserRolesUnmappedInclusive = new ArrayList<>();
+            if (!excludeUnmappedRoles) {
+                String idpGroupClaimUri = FrameworkUtils.getIdpGroupClaimUri(stepConfig, context);
+                Map<String, String> originalExternalAttributeValueMap = (Map<String, String>) context.getProperty(
+                        FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
+                List<String> unmappedIDPGroups = FrameworkUtils.getUnmappedIDPGroups(context.getExternalIdP(),
+                        originalExternalAttributeValueMap, idpGroupClaimUri);
+                Set<String> userRolesUnmappedInclusiveSet = new HashSet<>(userRoleNameListOfApp);
+                userRolesUnmappedInclusiveSet.addAll(unmappedIDPGroups);
+                federatedUserRolesUnmappedInclusive = new ArrayList<>(userRolesUnmappedInclusiveSet);
+            } else {
+                federatedUserRolesUnmappedInclusive = userRoleNameListOfApp;
+            }
+
+            String serviceProviderMappedUserRoles = DefaultSequenceHandlerUtils
+                    .getServiceProviderMappedUserRoles(sequenceConfig, federatedUserRolesUnmappedInclusive);
+
+            Map<String, String> claimMap = new HashMap<>();
+            // Add the mapped roles to the claim map to be used in scope validation.
+            claimMap.put(FrameworkConstants.IDP_MAPPED_USER_ROLES,
+                    String.join(FrameworkUtils.getMultiAttributeSeparator(), userRoleNameListOfApp));
             String roleClaimMapping = getRoleClaimMapping(context);
             if (StringUtils.isNotEmpty(roleClaimMapping)) {
-                roleClaimMap.put(roleClaimMapping,
-                        String.join(FrameworkUtils.getMultiAttributeSeparator(), userRoleNameListOfApp));
+                claimMap.put(roleClaimMapping, serviceProviderMappedUserRoles);
                 AuthenticatedUser authenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
                 Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
-                userAttributes.putAll(FrameworkUtils.buildClaimMappings(roleClaimMap));
+                userAttributes.putAll(FrameworkUtils.buildClaimMappings(claimMap));
                 authenticatedUser.setUserAttributes(userAttributes);
                 context.getSequenceConfig().setAuthenticatedUser(authenticatedUser);
             }
@@ -1316,5 +1344,19 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             handleExceptions(ErrorMessages.ERROR_WHILE_CHECKING_USERNAME_EXISTENCE.getMessage(),
                     "error.user.existence", e);
         }
+    }
+
+    /**
+     * Append internal domain if there is no domain appended already.
+     *
+     * @param roleName Role name.
+     * @return Domain appended role name.
+     */
+    private String appendInternalDomain(String roleName) {
+
+        if (!roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            return UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + roleName;
+        }
+        return roleName;
     }
 }

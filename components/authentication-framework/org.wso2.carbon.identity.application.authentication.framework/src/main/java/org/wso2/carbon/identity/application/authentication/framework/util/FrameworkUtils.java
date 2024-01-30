@@ -74,6 +74,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;
@@ -183,6 +185,8 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.script.ScriptEngine;
 import javax.servlet.http.Cookie;
@@ -203,6 +207,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
@@ -2431,6 +2436,109 @@ public class FrameworkUtils {
     }
 
     /**
+     * Get the unmapped IDP groups from the IDP group attribute value.
+     *
+     * @param externalIdPConfig External IDP Config.
+     * @param remoteClaims      Remote claims.
+     * @param idpGroupClaimUri  IDP group claim URI.
+     * @return Unmapped IDP groups.
+     */
+    public static List<String> getUnmappedIDPGroups(ExternalIdPConfig externalIdPConfig,
+                                                    Map<String, String> remoteClaims, String idpGroupClaimUri) {
+
+        if (StringUtils.isBlank(idpGroupClaimUri) || MapUtils.isEmpty(remoteClaims) || externalIdPConfig == null) {
+            return Collections.emptyList();
+        }
+        IdentityProvider identityProvider = externalIdPConfig.getIdentityProvider();
+        if (identityProvider == null) {
+            return Collections.emptyList();
+        }
+        IdPGroup[] possibleIdPGroups = identityProvider.getIdPGroupConfig();
+        if (ArrayUtils.isEmpty(possibleIdPGroups)) {
+            return Collections.emptyList();
+        }
+        String idpGroupValueAttr = remoteClaims.get(idpGroupClaimUri);
+        if (StringUtils.isBlank(idpGroupValueAttr)) {
+            return Collections.emptyList();
+        }
+
+        String idpGroupValueSeparator = getIdpGroupClaimValueSeparator();
+        String[] idpGroupValues = idpGroupValueAttr.split(Pattern.quote(idpGroupValueSeparator));
+        List<String> possibleIdPGroupNames = Arrays.stream(possibleIdPGroups)
+                .map(IdPGroup::getIdpGroupName)
+                .collect(Collectors.toList());
+        return Arrays.stream(idpGroupValues)
+                .filter(idpGroup -> !possibleIdPGroupNames.contains(idpGroup))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get app associated roles of local user.
+     *
+     * @param authenticatedUser Authenticated user.
+     * @param applicationId     Application ID.
+     * @return List of app associated roles of local user.
+     * @throws FrameworkException If an error occurred while getting app associated roles of local user.
+     */
+    public static List<String> getAppAssociatedRolesOfLocalUser(AuthenticatedUser authenticatedUser,
+                                                                String applicationId) throws FrameworkException {
+
+        ApplicationRolesResolver appRolesResolver = FrameworkServiceDataHolder.getInstance()
+                .getHighestPriorityApplicationRolesResolver();
+        if (appRolesResolver == null) {
+            log.debug("No app associated roles resolver found.");
+            // Return empty list if no app associated roles resolver is available.
+            return new ArrayList<>();
+        }
+        String[] appAssociatedRolesOfUser;
+        try {
+            appAssociatedRolesOfUser = appRolesResolver.getAppAssociatedRolesOfLocalUser(authenticatedUser,
+                    applicationId);
+            if (appAssociatedRolesOfUser == null) {
+                return new ArrayList<>();
+            }
+            return Arrays.asList(appAssociatedRolesOfUser);
+        } catch (ApplicationRolesException e) {
+            throw new FrameworkException("Error while retrieving app associated roles for user: " +
+                    authenticatedUser.getLoggableUserId() + " and application: " + applicationId, e);
+        }
+    }
+
+    /**
+     * Get app associated roles of federated user.
+     *
+     * @param authenticatedUser Authenticated user.
+     * @param applicationId     Application ID.
+     * @param idpGroupClaimUri  IDP group claim URI.
+     * @return List of app associated roles of federated user.
+     * @throws FrameworkException If an error occurred while getting app associated roles of federated user.
+     */
+    public static List<String> getAppAssociatedRolesOfFederatedUser(AuthenticatedUser authenticatedUser,
+                                                                    String applicationId, String idpGroupClaimUri)
+            throws FrameworkException {
+
+        ApplicationRolesResolver appRolesResolver = FrameworkServiceDataHolder.getInstance()
+                .getHighestPriorityApplicationRolesResolver();
+        if (appRolesResolver == null) {
+            log.debug("No app associated roles resolver found.");
+            // Return empty list if no app associated roles resolver is available.
+            return new ArrayList<>();
+        }
+        String[] appAssociatedRolesOfFedUser;
+        try {
+            appAssociatedRolesOfFedUser = appRolesResolver.getAppAssociatedRolesOfFederatedUser(authenticatedUser,
+                    applicationId, idpGroupClaimUri);
+            if (appAssociatedRolesOfFedUser == null) {
+                return new ArrayList<>();
+            }
+            return Arrays.asList(appAssociatedRolesOfFedUser);
+        } catch (ApplicationRolesException e) {
+            throw new FrameworkException("Error while retrieving app associated roles for user: " +
+                    authenticatedUser.getLoggableUserId() + " and application: " + applicationId, e);
+        }
+    }
+
+    /**
      * To get the role claim uri of an IDP.
      *
      * @param externalIdPConfig Relevant external IDP Config.
@@ -2457,6 +2565,21 @@ public class FrameworkUtils {
     }
 
     /**
+     * Get the Role Claim Uri in IDPs dialect.
+     *
+     * @param stepConfig Relevant stepConfig.
+     * @param context Relevant AuthenticationContext.
+     * @return Role Claim Uri as String.
+     * @throws FrameworkException
+     */
+    public static String getIdpRoleClaimUri(StepConfig stepConfig, AuthenticationContext context)
+            throws FrameworkException {
+
+        String idpRoleClaimUri = getIdpRoleClaimUri(context.getExternalIdP());
+        return FrameworkUtils.getMappedIdpRoleClaimUri(idpRoleClaimUri, stepConfig, context);
+    }
+
+    /**
      * Returns the group claim uri of an IDP.
      *
      * @param externalIdPConfig Relevant external IDP Config.
@@ -2464,12 +2587,47 @@ public class FrameworkUtils {
      */
     public static String getIdpGroupClaimUri(ExternalIdPConfig externalIdPConfig) {
 
-        return Arrays.stream(externalIdPConfig.getClaimMappings())
+        return getIdpGroupClaimUri(externalIdPConfig.getClaimMappings());
+    }
+
+    /**
+     * Returns the group claim uri of an IDP.
+     *
+     * @param claimMappings Claim mappings.
+     * @return IDP group claim URI.
+     */
+    public static String getIdpGroupClaimUri(ClaimMapping[] claimMappings) {
+
+        return Arrays.stream(claimMappings)
                 .filter(claimMap ->
                         FrameworkConstants.GROUPS_CLAIM.equals(claimMap.getLocalClaim().getClaimUri()))
                 .map(claimMap -> claimMap.getRemoteClaim().getClaimUri())
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Returns IDP group claim uri.
+     * If USE_LOCAL_ROLE_CLAIM_FOR_IDP_GROUP_CLAIM_MAPPING is true, returns the IDP role claim uri.
+     *
+     * @param stepConfig Step config.
+     * @param context    Authentication context.
+     * @return IDP group claim uri.
+     * @throws FrameworkException If an error occurred while getting the IDP group claim uri.
+     */
+    public static String getIdpGroupClaimUri(StepConfig stepConfig, AuthenticationContext context)
+            throws FrameworkException {
+
+        boolean useLocalRoleClaimForIDPGroupMapping = Boolean.parseBoolean(
+                IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM));
+        if (useLocalRoleClaimForIDPGroupMapping) {
+            return getIdpRoleClaimUri(stepConfig, context);
+        }
+        ClaimMapping[] claimMappings = context.getExternalIdP().getClaimMappings();
+        if (claimMappings != null) {
+            return getIdpGroupClaimUri(claimMappings);
+        }
+        return null;
     }
 
     /**
@@ -2548,6 +2706,25 @@ public class FrameworkUtils {
             }
         }
         return getLocalGroupsClaimURI();
+    }
+
+    /**
+     * Returns the separator used to separate the values of the IDP group claim.
+     *
+     * @return IDP group claim value separator.
+     */
+    public static String getIdpGroupClaimValueSeparator() {
+
+        boolean useLocalRoleIdpRoleMapping = Boolean.parseBoolean(
+                IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM));
+        if (IdentityUtil.getProperty(FrameworkConstants.FEDERATED_IDP_GROUP_CLAIM_VALUE_SEPARATOR) != null
+                && !useLocalRoleIdpRoleMapping) {
+            return IdentityUtil.getProperty(FrameworkConstants.FEDERATED_IDP_GROUP_CLAIM_VALUE_SEPARATOR);
+        } else if (IdentityUtil.getProperty(FrameworkConstants.FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR) != null
+                && useLocalRoleIdpRoleMapping) {
+            return IdentityUtil.getProperty(FrameworkConstants.FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR);
+        }
+        return FrameworkUtils.getMultiAttributeSeparator();
     }
 
     /**

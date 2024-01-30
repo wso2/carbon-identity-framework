@@ -52,5 +52,8 @@ public interface StepBasedSequenceHandler extends SequenceHandler {
      */
     default void callJitProvisioningWithV2Roles(String subjectIdentifier, AuthenticationContext context,
                                                 List<String> assignedRoleIdList,
-                                                Map<String, String> extAttributesValueMap) throws FrameworkException { }
+                                                Map<String, String> extAttributesValueMap) throws FrameworkException {
+
+        throw new FrameworkException("Operation is not supported.");
+    }
 }
