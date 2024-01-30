@@ -27,7 +27,7 @@
             <region>region1</region>
             <order>1</order>
             <style-class>manage</style-class>
-            <icon>../role/images/user-store.gif</icon>
+            <icon>../rolemgt/images/user-store.gif</icon>
 
             <at-least>/permission/admin/manage/identity/userroleuimgt/create</at-least>
             <at-least>/permission/admin/login</at-least>
@@ -38,11 +38,11 @@
             <i18n-key>list</i18n-key>
             <i18n-bundle>org.wso2.carbon.role.ui.i18n.Resources</i18n-bundle>
             <parent-menu>role_mgt_menu</parent-menu>
-            <link>../role/role-mgt.jsp</link>
+            <link>../rolemgt/role-mgt.jsp</link>
             <region>region1</region>
             <order>2</order>
             <style-class>manage</style-class>
-            <icon>../role/images/list.gif</icon>
+            <icon>../rolemgt/images/list.gif</icon>
             <require-permission>/permission/admin/login</require-permission>
         </menu>
     </menus>
