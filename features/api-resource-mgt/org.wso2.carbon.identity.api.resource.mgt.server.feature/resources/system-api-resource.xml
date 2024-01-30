@@ -111,20 +111,6 @@
                    description="Update branding preferences on user interfaces of the organization"/>
         </Scopes>
     </APIResource>
-    <APIResource name="User Challenges Management API" identifier="/api/users/v1/(.*)/challenge(.*)"
-                 requiresAuthorization="true"
-                 description="API representation of the User Challenges Management API" type="TENANT">
-        <Scopes>
-            <Scope displayName="View User Challenge" name="internal_user_challenge_mgt_view"
-                   description="View challenges and answers of users"/>
-            <Scope displayName="Create User Challenge" name="internal_user_challenge_mgt_create"
-                   description="Answer to collections of new challenges"/>
-            <Scope displayName="Update User Challenge" name="internal_user_challenge_mgt_update"
-                   description="Answer new challenge question combinations over existing answers"/>
-            <Scope displayName="Delete User Challenge" name="internal_user_challenge_mgt_delete"
-                   description="Remove challenge question answers"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Claim Management API" identifier="/api/server/v1/claim-dialects"
                  requiresAuthorization="true" description="API representation of the Claim Management API" type="TENANT">
         <Scopes>
