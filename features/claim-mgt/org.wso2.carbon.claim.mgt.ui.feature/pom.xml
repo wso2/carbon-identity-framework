@@ -63,6 +63,7 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
+                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.claim.mgt.ui</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.claim.mgt.stub</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.claim.metadata.mgt.stub</bundleDef>
                             </bundles>
