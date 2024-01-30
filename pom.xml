@@ -1853,7 +1853,7 @@
         <orbit.version.infinispan>5.1.2.wso2v1</orbit.version.infinispan>
         <version.org.wso2.orbit.javax.xml.bind>2.3.1.wso2v1</version.org.wso2.orbit.javax.xml.bind>
         <version.org.wso2.orbit.javax.activation>1.1.1.wso2v1</version.org.wso2.orbit.javax.activation>
-        <ua_parser.version>1.5.2.wso2v1</ua_parser.version>
+        <ua_parser.version>1.6.1.wso2v1</ua_parser.version>
         <ua_parser.version.range>[1.3.0, 2.0.0)</ua_parser.version.range>
         <apache.common.collection.version>3.2.0.wso2v1</apache.common.collection.version>
         <apache.common.collections4.version>4.4.wso2v1</apache.common.collections4.version>
@@ -1961,10 +1961,10 @@
         <kaptcha.wso2.version>2.3.0.wso2v1</kaptcha.wso2.version>
         <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
-        <com.fasterxml.jackson.version>2.13.0</com.fasterxml.jackson.version>
-        <com.fasterxml.jackson.annotation.version>2.13.0</com.fasterxml.jackson.annotation.version>
-        <com.fasterxml.jackson.databind.version>2.14.0-rc2</com.fasterxml.jackson.databind.version>
-        <com.fasterxml.jackson.jaxrs-json-provider-version>2.13.0</com.fasterxml.jackson.jaxrs-json-provider-version>
+        <com.fasterxml.jackson.version>2.16.1</com.fasterxml.jackson.version>
+        <com.fasterxml.jackson.annotation.version>2.16.1</com.fasterxml.jackson.annotation.version>
+        <com.fasterxml.jackson.databind.version>2.16.1</com.fasterxml.jackson.databind.version>
+        <com.fasterxml.jackson.jaxrs-json-provider-version>2.16.1</com.fasterxml.jackson.jaxrs-json-provider-version>
 
         <apache.wink.version>1.1.3-incubating</apache.wink.version>
         <msf4j.version>2.7.0</msf4j.version>
@@ -1975,7 +1975,7 @@
         <tomcat-util.version>3.3.2</tomcat-util.version>
         <json-smart.version>2.4.7</json-smart.version>
         <cxf-bundle.wso2.version>2.7.16.wso2v1</cxf-bundle.wso2.version>
-        <org.apache.cxf.version>3.4.5</org.apache.cxf.version>
+        <org.apache.cxf.version>3.6.2</org.apache.cxf.version>
         <opencsv.wso2.version>1.8.wso2v1</opencsv.wso2.version>
         <orbit.version.poi>5.2.3.wso2v1</orbit.version.poi>
         <javax.activation.import.pkg.version>[0.0.0, 1.0.0)</javax.activation.import.pkg.version>
