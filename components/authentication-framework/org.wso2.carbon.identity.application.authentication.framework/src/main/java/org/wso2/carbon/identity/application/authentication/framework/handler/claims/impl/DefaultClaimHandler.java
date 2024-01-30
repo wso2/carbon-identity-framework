@@ -387,7 +387,7 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @return App associated roles of the local user.
      * @throws FrameworkException If an error occurred while getting app associated roles.
      */
-    private List<String> getAppAssociatedRolesOfLocalUser(StepConfig stepConfig, AuthenticationContext context)
+    protected List<String> getAppAssociatedRolesOfLocalUser(StepConfig stepConfig, AuthenticationContext context)
             throws FrameworkException {
 
         AuthenticatedUser authenticatedUser = stepConfig.getAuthenticatedUser();
@@ -407,7 +407,7 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @return App associated roles of the federated user.
      * @throws FrameworkException If an error occurred while getting app associated roles.
      */
-    private List<String> getAppAssociatedRolesOfFederatedUser(StepConfig stepConfig, AuthenticationContext context)
+    protected List<String> getAppAssociatedRolesOfFederatedUser(StepConfig stepConfig, AuthenticationContext context)
             throws FrameworkException {
 
         AuthenticatedUser authenticatedUser = stepConfig.getAuthenticatedUser();
