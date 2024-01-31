@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSContextMemberObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -63,7 +64,8 @@ public class JsGraalSteps extends AbstractJSContextMemberObject implements Proxy
         if (getContext() == null) {
             return null;
         } else {
-            return new JsGraalStep(getContext(), (int) index, getAuthenticatedIdPOfStep((int) index));
+            return new JsGraalStep(getContext(), (int) index, getAuthenticatedIdPOfStep((int) index),
+                    getAuthenticatedAuthenticatorOfStep((int) index));
         }
     }
 
@@ -80,6 +82,20 @@ public class JsGraalSteps extends AbstractJSContextMemberObject implements Proxy
         } else {
             return getContext().getSequenceConfig().getStepMap().size();
         }
+    }
+
+    private String getAuthenticatedAuthenticatorOfStep(int step) {
+
+        if (getContext().getSequenceConfig() == null) {
+            //Sequence config is not yet initialized.
+            return null;
+        }
+
+        Optional<StepConfig> optionalStepConfig = getContext().getSequenceConfig().getStepMap().values().stream()
+                .filter(stepConfig -> stepConfig.getOrder() == step).findFirst();
+        AuthenticatorConfig authenticatorConfig =
+                optionalStepConfig.map(StepConfig::getAuthenticatedAutenticator).orElse(null);
+        return authenticatorConfig != null ? authenticatorConfig.getName() : null;
     }
 
 }
