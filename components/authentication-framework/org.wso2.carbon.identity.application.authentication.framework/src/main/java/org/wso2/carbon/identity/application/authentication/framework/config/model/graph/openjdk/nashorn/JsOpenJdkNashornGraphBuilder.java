@@ -424,7 +424,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
      * @param stepOptions   Options provided from the script for the step.
      * @param stepConfigMap StepConfigs of each step as a map.
      */
-    private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions,
+    protected void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions,
                                    Map<Integer, StepConfig> stepConfigMap) {
 
         stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
