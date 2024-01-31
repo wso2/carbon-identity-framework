@@ -177,20 +177,20 @@
                     description="View allowed CORS origins for the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Expired Password Identification Management API"
+    <APIResource name="Password Expired User Identification API"
                  identifier="/api/server/v1/expired-password-identification" requiresAuthorization="true"
-                 description="API representation of the Expired Password Identification Management API" type="TENANT">
+                 description="API representation of the Password Expired User Identification API" type="TENANT">
         <Scopes>
-            <Scope displayName="View Expired Password" name="internal_expired_password_view" 
+            <Scope displayName="View Password Expired Users" name="internal_password_expired_user_view"
                     description="View password expired users in the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Expired Password Identification Management API"
+    <APIResource name="Password Expired User Identification API"
                  identifier="/o/api/server/v1/expired-password-identification" requiresAuthorization="true"
-                 description="API representation of the Expired Password Identification Management API"
+                 description="API representation of the Password Expired User Identification API"
                  type="ORGANIZATION">
         <Scopes>
-            <Scope displayName="View Expired Password" name="internal_org_expired_password_view" 
+            <Scope displayName="View Password Expired Users" name="internal_org_password_expired_user_view"
                     description="View password expired users in the organization"/>
         </Scopes>
     </APIResource>
