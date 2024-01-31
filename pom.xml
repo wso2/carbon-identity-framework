@@ -2122,9 +2122,9 @@
 
         <h2database.version>2.2.224</h2database.version>
 
-        <graalvm.version>20.2.0</graalvm.version>
+        <graalvm.version>22.3.4</graalvm.version>
         <!-- ICU version must be reflecting graalvm version -->
-        <icu.version>68.1</icu.version>
+        <icu.version>71.1</icu.version>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>
