@@ -49,10 +49,12 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Translate the authentication graph config to runtime model.
@@ -140,19 +142,31 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
             context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
                     FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction(),
                     FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
-            context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE, script,
-                    FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
 
-            Value onLoginRequestFn = bindings.getMember(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST);
-            if (onLoginRequestFn == null) {
-                log.error("Could not find the entry function " +
-                        FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST + " \n" + script);
-                result.setBuildSuccessful(false);
-                result.setErrorReason("Error in executing the Javascript. " +
-                        FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST + " function is not defined.");
-                return this;
+            String identifier = UUID.randomUUID().toString();
+            JSExecutionMonitorData scriptExecutionData;
+
+            try {
+                startScriptExecutionMonitor(identifier, authenticationContext);
+                context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE, script,
+                        FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+
+                Value onLoginRequestFn = bindings.getMember(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST);
+                if (onLoginRequestFn == null) {
+                    log.error("Could not find the entry function " +
+                            FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST + " \n" + script);
+                    result.setBuildSuccessful(false);
+                    result.setErrorReason("Error in executing the Javascript. " +
+                            FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST + " function is not defined.");
+                    return this;
+                }
+                onLoginRequestFn.executeVoid(new JsGraalAuthenticationContext(authenticationContext));
+            } finally {
+                scriptExecutionData = endScriptExecutionMonitor(identifier);
             }
-            onLoginRequestFn.executeVoid(new JsGraalAuthenticationContext(authenticationContext));
+            if (scriptExecutionData != null) {
+                storeAuthScriptExecutionMonitorData(authenticationContext, scriptExecutionData);
+            }
             JsGraalGraphBuilderFactory.persistCurrentContext(authenticationContext, context);
         } catch (PolyglotException e) {
             result.setBuildSuccessful(false);
@@ -405,6 +419,56 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
         }
     }
 
+    /**
+     * Handle options within executeStepInAsyncEvent function. This method will update step configs through context.
+     *
+     * @param options       Map of authenticator options.
+     * @param stepConfig    Current stepConfig.
+     * @param stepConfigMap Map of stepConfigs get from the context object.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void handleOptionsAsyncEvent(Map<String, Object> options, StepConfig stepConfig,
+                                           Map<Integer, StepConfig> stepConfigMap) {
+
+        Object authenticationOptionsObj = options.get(FrameworkConstants.JSAttributes.AUTHENTICATION_OPTIONS);
+        if (authenticationOptionsObj instanceof List) {
+            List<Map<String, String>> authenticationOptionsList = (List<Map<String, String>>) authenticationOptionsObj;
+            authenticationOptionsObj = IntStream.range(0, authenticationOptionsList.size())
+                    .boxed()
+                    .collect(Collectors.toMap(
+                            String::valueOf,
+                            authenticationOptionsList::get
+                                             ));
+        }
+
+        if (authenticationOptionsObj instanceof Map) {
+            filterOptions((Map<String, Map<String, String>>) authenticationOptionsObj, stepConfig);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticator options not provided or invalid, hence proceeding without filtering");
+            }
+        }
+
+        Object authenticatorParams = options.get(FrameworkConstants.JSAttributes.AUTHENTICATOR_PARAMS);
+        if (authenticatorParams instanceof Map) {
+            authenticatorParamsOptions((Map<String, Object>) authenticatorParams, stepConfig);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticator params not provided or invalid, hence proceeding without setting params");
+            }
+        }
+
+        Object stepOptions = options.get(FrameworkConstants.JSAttributes.STEP_OPTIONS);
+        if (stepOptions instanceof Map) {
+            handleStepOptions(stepConfig, (Map<String, String>) stepOptions, stepConfigMap);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Step options not provided or invalid, hence proceeding without handling");
+            }
+        }
+    }
+
     public static void sendErrorAsync(String url, Map<String, Object> parameterMap) {
 
         FailNode newNode = createFailNode(url, parameterMap, true);
@@ -487,6 +551,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
                 JSExecutionMonitorData scriptExecutionData =
                         retrieveAuthScriptExecutionMonitorData(authenticationContext);
                 try {
+                    startScriptExecutionMonitor(identifier, authenticationContext, scriptExecutionData);
                     result = jsFunction.apply(context, params);
                 } finally {
                     scriptExecutionData = endScriptExecutionMonitor(identifier);

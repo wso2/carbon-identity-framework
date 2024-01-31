@@ -62,6 +62,16 @@ public class GraalSerializer implements JsSerializer<Context> {
             } else {
                 return value;
             }
+        } else if (value instanceof Map) {
+            // Polyglot Map is not serializable. Hence, converting to HashMap.
+            Map<String, Object> map = new HashMap<>();
+            ((Map<String, Object>) value).forEach((k, v) -> map.put(k, toJsSerializableInternal(v)));
+            return map;
+        } else if (value instanceof List) {
+            // Polyglot List is not serializable. Hence, converting to ArrayList.
+            List<Object> list = new ArrayList<>();
+            ((List<Object>) value).forEach(v -> list.add(toJsSerializableInternal(v)));
+            return list;
         } else if (value instanceof Value) {
             Value valueObj = (Value) value;
             if (valueObj.canExecute()) {
@@ -133,12 +143,12 @@ public class GraalSerializer implements JsSerializer<Context> {
                 log.error("could not recreate JS Object", e);
             }
         } else if (value instanceof Map) {
-            Value deserializedValue = context.eval(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE, "[]");
+            Map<String, Object> deserializedMap = new HashMap<>();
             for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
                 Object deserializedObj = fromJsSerializableInternal(entry.getValue(), context);
-                deserializedValue.putMember(entry.getKey(), deserializedObj);
+                deserializedMap.put(entry.getKey(), deserializedObj);
             }
-            return deserializedValue;
+            return deserializedMap;
         } else if (value instanceof List) {
             Value deserializedValue = context.eval(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE, "[]");
             List<?> valueList = (List<?>) value;
