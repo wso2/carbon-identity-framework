@@ -47,7 +47,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 @Test
-public class JsAuthenticationContextTest {
+public class JsNashornAuthenticationContextTest {
 
     public static final String TEST_IDP = "testIdP";
     private static final String LAST_ATTEMPTED_USER_USERNAME = "lastAttemptedUsername";
