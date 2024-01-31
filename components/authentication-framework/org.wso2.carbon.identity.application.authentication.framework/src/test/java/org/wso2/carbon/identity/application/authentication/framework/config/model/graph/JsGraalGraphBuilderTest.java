@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,8 @@ import org.wso2.carbon.identity.application.authentication.framework.FederatedAp
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -49,14 +51,10 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-/**
- * Tests for graph builder with Javascript.
- */
 @Test
-public class JsGraphBuilderTest extends AbstractFrameworkTest {
+public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
 
-    private JsGraphBuilderFactory jsGraphBuilderFactory;
-
+    private JsGraalGraphBuilderFactory jsGraphBuilderFactory;
     @Mock
     private LocalApplicationAuthenticator localApplicationAuthenticator;
 
@@ -68,9 +66,9 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
 
     @BeforeTest
     public void setUp() {
+
         initMocks(this);
-        jsGraphBuilderFactory = new JsGraphBuilderFactory();
-        jsGraphBuilderFactory.init();
+        jsGraphBuilderFactory = new JsGraalGraphBuilderFactory();
         JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
         FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
     }
@@ -88,7 +86,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         AuthenticationContext context = getAuthenticationContext(sp1);
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
-        JsNashornGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsGraalGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.executeStep(2);
 
         AuthenticationGraph graph = jsGraphBuilder.build();
@@ -103,7 +101,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
         stepConfigMap.put(2, new StepConfig());
-        JsNashornGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsGraalGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.executeStep(1);
         jsGraphBuilder.executeStep(2);
 
@@ -119,8 +117,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     @Test
     public void testCreateJavascript() throws Exception {
 
-        String script = "var onLoginRequest = function(context) { executeStep(1, { onSuccess : function(context) {"
-            + "executeStep(2);}})};";
+        String script = "var onLoginRequest = function(context) { executeStep(1, { onSuccess : function(context) {" +
+                "executeStep(2);}})};";
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -129,7 +127,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         stepConfigMap.put(1, new StepConfig());
         stepConfigMap.put(2, new StepConfig());
 
-        JsNashornGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsGraalGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.createWith(script);
 
         AuthenticationGraph graph = jsGraphBuilder.build();
@@ -142,9 +140,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     }
 
     @Test(dataProvider = "filterOptionsDataProvider")
-    public void testFilterOptions(Map<String, Map<String, String>> options, StepConfig stepConfig, int
-        expectedStepsAfterFilter)
-        throws Exception {
+    public void testFilterOptions(Map<String, Map<String, String>> options, StepConfig stepConfig,
+                                  int expectedStepsAfterFilter) throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -152,7 +149,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, stepConfig);
 
-        JsNashornGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsGraalGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.filterOptions(options, stepConfig);
         assertEquals(stepConfig.getAuthenticatorList().size(), expectedStepsAfterFilter,
                 "Authentication options after filtering mismatches expected. " + options);
@@ -228,8 +225,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         singleOptionConfig.put("0", Collections.singletonMap("authenticator", "basic"));
 
         StepConfig stepWithMultipleOptions = new StepConfig();
-        stepWithMultipleOptions.setAuthenticatorList(new ArrayList<>(Arrays.asList(basicAuthConfig, totpAuthConfig,
-            oidcAuthConfig, twitterAuthConfig)));
+        stepWithMultipleOptions.setAuthenticatorList(
+                new ArrayList<>(Arrays.asList(basicAuthConfig, totpAuthConfig, oidcAuthConfig, twitterAuthConfig)));
 
         Map<String, String> oidcOption = new HashMap<>();
         oidcOption.put("idp", "customIdp1");
@@ -260,14 +257,12 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         Map<String, Map<String, String>> singleInvalidOptionConfig = new HashMap<>();
         singleInvalidOptionConfig.put("0", invalidOption);
 
-        return new Object[][]{
-            {singleOptionConfig, duplicateStepConfig(stepWithSingleOption), 1},
-            {singleOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 1},
-            {multipleOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 3},
-            {multipleAndInvalidOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2},
-            {singleInvalidOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 4},
-            {idpOnlyOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2},
-        };
+        return new Object[][]{{singleOptionConfig, duplicateStepConfig(stepWithSingleOption), 1},
+                {singleOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 1},
+                {multipleOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 3},
+                {multipleAndInvalidOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2},
+                {singleInvalidOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 4},
+                {idpOnlyOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2},};
     }
 
     private StepConfig duplicateStepConfig(StepConfig stepConfig) {
@@ -278,8 +273,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     }
 
     @Test(dataProvider = "filterParamsDataProvider", alwaysRun = true)
-    public void testParamsOptions(Map<String, Object> options, StepConfig stepConfig,
-                                  String authenticatorName, String key, String value) throws Exception {
+    public void testParamsOptions(Map<String, Object> options, StepConfig stepConfig, String authenticatorName,
+                                  String key, String value) throws Exception {
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
         AuthenticationContext context = getAuthenticationContext(sp1);
@@ -287,10 +282,9 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, stepConfig);
 
-        JsNashornGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
+        JsGraalGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
         jsGraphBuilder.authenticatorParamsOptions(options, stepConfig);
-        assertEquals(context.getAuthenticatorParams(authenticatorName).get(key), value,
-                "Params are not set expected");
+        assertEquals(context.getAuthenticatorParams(authenticatorName).get(key), value, "Params are not set expected");
     }
 
     @DataProvider
@@ -354,14 +348,14 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         singleParamConfig.put("local", params);
 
         StepConfig stepWithMultipleOptions = new StepConfig();
-        stepWithMultipleOptions.setAuthenticatorList(new ArrayList<>(Arrays.asList(basicAuthConfig, totpAuthConfig,
-                twitterAuthConfig)));
+        stepWithMultipleOptions.setAuthenticatorList(
+                new ArrayList<>(Arrays.asList(basicAuthConfig, totpAuthConfig, twitterAuthConfig)));
 
         Map<String, Object> localParams = new HashMap<>();
         localParams.put("BasicAuthenticator", Collections.singletonMap("foo", "xyz"));
         localParams.put("TOTPAuthenticator", Collections.singletonMap("domain", "localhost"));
 
-        Map<String, Object>  federatedParams = new HashMap<>();
+        Map<String, Object> federatedParams = new HashMap<>();
         federatedParams.put("customIdp2", Collections.singletonMap("foo", "user"));
 
         Map<String, Object> multiParamConfig = new HashMap<>();
@@ -375,7 +369,7 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
                 {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "BasicAuthenticator", "domain", null},
                 {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TwitterAuthenticator", "foo", "user"},
                 {multiParamConfig, duplicateStepConfig(stepWithMultipleOptions), "TOTPAuthenticator", "domain",
-                        "localhost"}
-        };
+                        "localhost"}};
     }
+
 }
