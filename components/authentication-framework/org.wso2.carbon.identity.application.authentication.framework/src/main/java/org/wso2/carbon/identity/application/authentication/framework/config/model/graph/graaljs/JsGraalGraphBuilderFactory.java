@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraalSelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.HashMap;
@@ -85,6 +86,8 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
                         .option("engine.WarnInterpreterOnly", "false").build();
 
         Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
+        GraalSelectAcrFromFunction selectAcrFromFunction = new GraalSelectAcrFromFunction();
+        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM, selectAcrFromFunction);
         JsLogger jsLogger = new JsLogger();
         bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
         return context;

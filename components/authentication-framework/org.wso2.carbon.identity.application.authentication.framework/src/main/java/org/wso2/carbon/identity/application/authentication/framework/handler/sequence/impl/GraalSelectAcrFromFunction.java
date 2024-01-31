@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2017, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
@@ -33,7 +32,7 @@ import java.util.TreeMap;
 /**
  * Select the preferred acr value from the available list.
  */
-public class SelectAcrFromFunction implements SelectOneFunction {
+public class GraalSelectAcrFromFunction implements SelectOneFunction {
 
     private static final Log log = LogFactory.getLog(SelectAcrFromFunction.class);
 
@@ -56,21 +55,12 @@ public class SelectAcrFromFunction implements SelectOneFunction {
     private String[] extractPossibleOutcomes(JsBaseAuthenticationContext context, Object possibleOutcomesObj) {
 
         String[] possibleOutcomes;
-        if (possibleOutcomesObj instanceof String[]) {
-            possibleOutcomes = (String[]) possibleOutcomesObj;
-        } else if (possibleOutcomesObj instanceof ScriptObjectMirror) {
-            if (((ScriptObjectMirror) possibleOutcomesObj).isArray()) {
-                possibleOutcomes = ((ScriptObjectMirror) possibleOutcomesObj).to(String[].class);
-            } else {
-                log.error("Invalid argument provided for possible outcomes for " + FrameworkConstants.JSAttributes
-                        .JS_FUNC_SELECT_ACR_FROM + " function in service provider: " + context.getWrapped()
-                        .getServiceProviderName() + ". Expected array of strings.");
-                possibleOutcomes = new String[0];
-            }
+        if (possibleOutcomesObj instanceof List) {
+            possibleOutcomes = ((List<List>) possibleOutcomesObj).toArray(new String[0]);
         } else {
-            log.error("Invalid argument provided for possible outcomes for " + FrameworkConstants.JSAttributes
-                    .JS_FUNC_SELECT_ACR_FROM + " function in service provider: " + context.getWrapped()
-                    .getServiceProviderName() + ". Expected array of strings.");
+            log.error("Invalid argument provided for possible outcomes for " +
+                    FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM + " function in service provider: " +
+                    context.getWrapped().getServiceProviderName() + ". Expected array of strings.");
             possibleOutcomes = new String[0];
         }
         return possibleOutcomes;
@@ -78,8 +68,8 @@ public class SelectAcrFromFunction implements SelectOneFunction {
 
     private String selectBestOutcome(List<String> acrListRequested, String[] possibleOutcomes) {
 
-        Map<Integer, String> acrRequestedWithPriority = new TreeMap<>(Collections.reverseOrder(
-                (Comparator<Integer>) (o1, o2) -> o2.compareTo(o1)));
+        Map<Integer, String> acrRequestedWithPriority =
+                new TreeMap<>(Collections.reverseOrder((o1, o2) -> o2.compareTo(o1)));
         String acrSelected = null;
 
         for (String acrChecked : acrListRequested) {
@@ -87,8 +77,9 @@ public class SelectAcrFromFunction implements SelectOneFunction {
                 String outcomeToTest = possibleOutcomes[x];
                 if (outcomeToTest.equals(acrChecked)) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Reassigning Best Match for the outcome : " + outcomeToTest + " with priority : " +
-                                x + 1);
+                        log.debug(
+                                "Reassigning Best Match for the outcome : " + outcomeToTest + " with priority : " + x +
+                                        1);
                     }
                     acrRequestedWithPriority.put(x + 1, acrChecked);
                     break;
