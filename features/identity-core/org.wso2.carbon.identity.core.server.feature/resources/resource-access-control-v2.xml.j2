@@ -1153,25 +1153,38 @@
             <Scopes>internal_event_config_update</Scopes>
         </Resource>
 
-        <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
-        <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
-            <Scopes>internal_identity_mgt_view</Scopes>
-            <Scopes>internal_identity_mgt_update</Scopes>
-            <Scopes>internal_identity_mgt_create</Scopes>
-            <Scopes>internal_identity_mgt_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
-            <Scopes>internal_identity_mgt_view</Scopes>
-            <Scopes>internal_identity_mgt_update</Scopes>
-            <Scopes>internal_identity_mgt_create</Scopes>
-            <Scopes>internal_identity_mgt_delete</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/users/v2/(.*)" secured="true" http-method="all">
-            <Scopes>internal_identity_mgt_view</Scopes>
-            <Scopes>internal_identity_mgt_update</Scopes>
-            <Scopes>internal_identity_mgt_create</Scopes>
-            <Scopes>internal_identity_mgt_delete</Scopes>
-        </Resource>
+         <!-- File Upload API **** -->
+         <Resource context="(.*)/fileupload/service(.*)" secured="true" http-method="all">
+             <Scope>internal_application_mgt_create</Scope>
+         </Resource>
+         <Resource context="(.*)/fileupload/entitlement-policy(.*)" secured="true" http-method="all">
+             <Scope>internal_manage_pap</Scope>
+         </Resource>
+         <Resource context="(.*)/fileupload/resource(.*)" secured="true" http-method="all">
+             <Scope>/permission/admin/manage</Scope>
+         </Resource>
+
+         <!-- [Organization] Idle Account Identification Management API -->
+         <Resource context="(.*)/o/api/idle-account-identification/v1/inactive-users(.*)" secured="true" http-method="GET">
+             <Scopes>internal_org_idle_account_list</Scopes>
+         </Resource>
+
+         <!-- Idle Account Identification Management API -->
+         <Resource context="(.*)/api/idle-account-identification/v1/inactive-users(.*)" secured="true" http-method="GET">
+             <Scopes>internal_idle_account_list</Scopes>
+         </Resource>
+
+         <!-- [Organization] Expired Password Identification Management API -->
+         <Resource context="(.*)/o/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true"
+                          http-method="GET">
+             <Scopes>internal_org_expired_password_view</Scopes>
+         </Resource>
+
+         <!-- Expired Password Identification Management API -->
+         <Resource context="(.*)/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true"
+                          http-method="GET">
+             <Scopes>internal_expired_password_view</Scopes>
+         </Resource>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
@@ -1225,40 +1238,6 @@
         <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/duoauthenticationendpoint(.*)" secured="false" http-method="all"/>
-
-        <!-- File Upload API **** -->
-        <Resource context="(.*)/fileupload/service(.*)" secured="true" http-method="all">
-            <Scope>internal_application_mgt_create</Scope>
-        </Resource>
-        <Resource context="(.*)/fileupload/entitlement-policy(.*)" secured="true" http-method="all">
-            <Scope>internal_manage_pap</Scope>
-        </Resource>
-        <Resource context="(.*)/fileupload/resource(.*)" secured="true" http-method="all">
-            <Scope>/permission/admin/manage</Scope>
-        </Resource>
-
-        <!-- [Organization] Idle Account Identification Management API -->
-        <Resource context="(.*)/o/api/idle-account-identification/v1/inactive-users(.*)" secured="true" http-method="GET">
-            <Scopes>internal_org_idle_account_list</Scopes>
-        </Resource>
-
-        <!-- Idle Account Identification Management API -->
-        <Resource context="(.*)/api/idle-account-identification/v1/inactive-users(.*)" secured="true" http-method="GET">
-            <Scopes>internal_idle_account_list</Scopes>
-        </Resource>
-
-        <!-- [Organization] Expired Password Identification Management API -->
-        <Resource context="(.*)/o/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true"
-                  http-method="GET">
-            <Scopes>internal_org_expired_password_view</Scopes>
-        </Resource>
-
-        <!-- Expired Password Identification Management API -->
-        <Resource context="(.*)/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true"
-                  http-method="GET">
-            <Scopes>internal_expired_password_view</Scopes>
-        </Resource>
-
         <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/longwaitstatus(.*)" secured="false" http-method="GET"/>
@@ -1278,4 +1257,24 @@
         <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
+
+        <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
+        <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v2/(.*)" secured="true" http-method="all">
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
 </ResourceAccessControl>
