@@ -779,10 +779,22 @@
 
         <!-- Configs related to OAuth2 token persistence -->
         <TokenPersistence>
-            <Enable>true</Enable>
+            <Enable>{{oauth.token_persistence.enable}}</Enable>
             <PoolSize>0</PoolSize>
             <RetryCount>{{oauth.token_generation.retry_count_on_persistence_failures}}</RetryCount>
         </TokenPersistence>
+
+        <!--
+            Config related to OAuth2 authorization code persistence.
+            Prior to IS 7.0.0, this was handled by the config <TokenPersistence>.<Enable>.
+       -->
+        <EnableAuthCodePersistence>true</EnableAuthCodePersistence>
+
+        <!--
+            Config to enable revoked token headers : "RevokedAccessToken", "RevokedRefreshToken" in OAuth2 revoke
+            endpoint response.
+        -->
+        <EnableRevokeTokenHeadersInResponse>{{oauth.revoked_token_headers_in_response.enable}}</EnableRevokeTokenHeadersInResponse>
 
         <!--
             Configuration provides the ability to renew the access token and the refresh token(where applicable) per each token request

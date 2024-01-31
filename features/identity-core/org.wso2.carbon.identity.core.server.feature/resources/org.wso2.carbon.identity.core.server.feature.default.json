@@ -74,7 +74,8 @@
   "oauth.token_validation.validation_response_signing_algorithm": "SHA256withRSA",
   "oauth.token.validation.validation_response_jwt_validity": "15m",
   "oauth.token_generation.retry_count_on_persistence_failures": "5",
-
+  "oauth.token_persistence.enable": true,
+  "oauth.revoked_token_headers_in_response.enable": false,
   "oauth.access_token.generate_with_sp_tenant_domain": true,
 
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",

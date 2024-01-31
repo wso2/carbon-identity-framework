@@ -53,6 +53,10 @@ public class SQLQueries {
     public static final String SQL_SELECT_INFO_OF_USER_ID =
             "SELECT USER_ID FROM IDN_AUTH_USER WHERE USER_ID = ?";
 
+    public static final String SQL_SELECT_USER_FROM_USER_ID =
+            "SELECT IDN_AUTH_USER.USER_NAME, IDN_AUTH_USER.TENANT_ID, IDN_AUTH_USER.DOMAIN_NAME, IDP.NAME " +
+                    "FROM IDN_AUTH_USER, IDP WHERE IDN_AUTH_USER.IDP_ID = IDP.ID AND IDN_AUTH_USER.USER_ID = ?";
+
     /**
      * Queries to retrieve session ID.
      */
