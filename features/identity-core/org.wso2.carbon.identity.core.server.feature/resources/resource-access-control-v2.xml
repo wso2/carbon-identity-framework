@@ -1131,16 +1131,16 @@
         <Scopes>internal_idle_account_list</Scopes>
     </Resource>
 
-    <!-- [Organization] Expired Password Identification Management API -->
+    <!-- [Organization] Password Expired User Identification API -->
     <Resource context="(.*)/o/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true"
               http-method="GET">
-        <Scopes>internal_org_expired_password_view</Scopes>
+        <Scopes>internal_org_password_expired_user_view</Scopes>
     </Resource>
 
-    <!-- Expired Password Identification Management API -->
+    <!-- Password Expired User Identification API -->
     <Resource context="(.*)/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true"
               http-method="GET">
-        <Scopes>internal_expired_password_view</Scopes>
+        <Scopes>internal_password_expired_user_view</Scopes>
     </Resource>
 
     <Resource context="/carbon(.*)" secured="false" http-method="all"/>
