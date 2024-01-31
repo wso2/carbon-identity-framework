@@ -34,7 +34,7 @@
         <url>https://github.com/wso2/carbon-identity-framework.git</url>
         <developerConnection>scm:git:https://github.com/wso2/carbon-identity-framework.git</developerConnection>
         <connection>scm:git:https://github.com/wso2/carbon-identity-framework.git</connection>
-        <tag>v5.25.683-SNAPSHOT</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <modules>
