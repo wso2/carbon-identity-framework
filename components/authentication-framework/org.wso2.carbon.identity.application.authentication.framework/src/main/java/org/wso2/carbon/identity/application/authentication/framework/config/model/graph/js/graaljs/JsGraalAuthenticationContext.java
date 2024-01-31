@@ -71,7 +71,8 @@ public class JsGraalAuthenticationContext extends JsAuthenticationContext implem
             case FrameworkConstants.JSAttributes.JS_STEPS:
                 return new JsGraalSteps(getWrapped());
             case FrameworkConstants.JSAttributes.JS_CURRENT_STEP:
-                return new JsGraalStep(getContext(), getContext().getCurrentStep(), getAuthenticatedIdPOfCurrentStep());
+                return new JsGraalStep(getContext(), getContext().getCurrentStep(), getAuthenticatedIdPOfCurrentStep(),
+                        getAuthenticatedAuthenticatorOfCurrentStep());
             case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
                 StepConfig stepConfig = getCurrentSubjectIdentifierStep();
                 if (stepConfig != null) {
@@ -135,6 +136,22 @@ public class JsGraalAuthenticationContext extends JsAuthenticationContext implem
         } else {
             return null;
         }
+    }
+
+    protected String getAuthenticatedAuthenticatorOfCurrentStep() {
+
+        if (getContext().getSequenceConfig() == null) {
+            //Sequence config is not yet initialized
+            return null;
+        }
+
+        StepConfig stepConfig = getContext().getSequenceConfig().getStepMap()
+                .get(getContext().getCurrentStep());
+        if (stepConfig != null) {
+            return stepConfig.getAuthenticatedAutenticator().getName();
+        }
+        return null;
+
     }
 
 }

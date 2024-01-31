@@ -42,20 +42,23 @@ import java.util.Optional;
  */
 public class JsGraalStep extends AbstractJSContextMemberObject implements ProxyObject {
 
-    protected static final Log LOG = LogFactory.getLog(JsGraalStep.class);
+    private static final Log LOG = LogFactory.getLog(JsGraalStep.class);
 
-    protected int step;
-    protected String authenticatedIdp;
+    private final int step;
+    private final String authenticatedIdp;
+    private final String authenticatedAuthenticator;
 
-    public JsGraalStep(int step, String authenticatedIdp) {
+    public JsGraalStep(int step, String authenticatedIdp, String authenticatedAuthenticator) {
 
         this.step = step;
         this.authenticatedIdp = authenticatedIdp;
+        this.authenticatedAuthenticator = authenticatedAuthenticator;
     }
 
-    public JsGraalStep(AuthenticationContext context, int step, String authenticatedIdp) {
+    public JsGraalStep(AuthenticationContext context, int step, String authenticatedIdp,
+                       String authenticatedAuthenticator) {
 
-        this(step, authenticatedIdp);
+        this(step, authenticatedIdp, authenticatedAuthenticator);
         initializeContext(context);
     }
 
@@ -67,6 +70,8 @@ public class JsGraalStep extends AbstractJSContextMemberObject implements ProxyO
                 return new JsGraalAuthenticatedUser(getContext(), getSubject(), step, authenticatedIdp);
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
                 return authenticatedIdp;
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATOR:
+                return authenticatedAuthenticator;
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATION_OPTIONS:
                 return getOptions();
             default:
@@ -79,6 +84,7 @@ public class JsGraalStep extends AbstractJSContextMemberObject implements ProxyO
 
         return ProxyArray.fromArray(FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT,
                 FrameworkConstants.JSAttributes.JS_AUTHENTICATION_OPTIONS,
+                FrameworkConstants.JSAttributes.JS_AUTHENTICATOR,
                 FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP);
     }
 
@@ -100,6 +106,7 @@ public class JsGraalStep extends AbstractJSContextMemberObject implements ProxyO
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATION_OPTIONS:
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATOR:
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
                 return true;
             default:
