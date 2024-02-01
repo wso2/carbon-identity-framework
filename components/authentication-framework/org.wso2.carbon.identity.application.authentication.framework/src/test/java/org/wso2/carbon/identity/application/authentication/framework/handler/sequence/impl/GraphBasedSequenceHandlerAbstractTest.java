@@ -20,19 +20,30 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Parameters;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -55,6 +66,7 @@ import javax.servlet.http.HttpServletRequest;
 import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
 public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest {
@@ -68,13 +80,42 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     protected static final String TEST_USER_1_ID = "4b4414e1-916b-4475-aaee-6b0751c29ff6";
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
     protected UIBasedConfigurationLoader configurationLoader;
-    protected JsGraphBuilderFactory graphBuilderFactory;
+    protected JsBaseGraphBuilderFactory graphBuilderFactory;
+
+    @BeforeTest
+    public void setUpExecutionSupervisor() {
+
+        initMocks(this);
+        JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 500000L);
+        FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
+    }
+
+    @AfterTest
+    public void tearDownExecutionSupervisor() {
+
+        FrameworkServiceDataHolder.getInstance().getJsExecutionSupervisor().shutdown();
+    }
 
     @BeforeClass
-    protected void setupSuite() {
+    @Parameters({"scriptEngine"})
+    protected void setupSuite(String scriptEngine) throws NoSuchFieldException, IllegalAccessException {
 
         configurationLoader = new UIBasedConfigurationLoader();
-        graphBuilderFactory = new JsGraphBuilderFactory();
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
+
+        if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.NASHORN)) {
+            graphBuilderFactory = new JsGraphBuilderFactory();
+        } else if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.GRAALJS)) {
+            graphBuilderFactory = new JsGraalGraphBuilderFactory();
+        }
+
+        Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperBaseFactory");
+        wrapperFactory.setAccessible(true);
+        if (graphBuilderFactory instanceof JsGraphBuilderFactory) {
+            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsWrapperFactory());
+        } else if (graphBuilderFactory instanceof  JsGraalGraphBuilderFactory) {
+            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsGraalWrapperFactory());
+        }
 
         JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);

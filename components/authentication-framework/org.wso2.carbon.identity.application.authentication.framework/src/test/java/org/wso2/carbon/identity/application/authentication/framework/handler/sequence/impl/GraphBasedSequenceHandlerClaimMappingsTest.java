@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -29,9 +31,10 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.realm.UserStoreModel;
+import org.wso2.carbon.identity.core.IdentityClaimManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
@@ -39,13 +42,18 @@ import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 
 /**
  * Tests the claim handling in the Javascript.
  */
 @Test
+@PowerMockIgnore({"javax.xml.*", "org.mockito.*", "org.apache.*", "org.w3c.*", })
+@PrepareForTest({IdentityClaimManager.class})
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
 @WithCarbonHome
 @WithRealmService(injectToSingletons =
@@ -72,7 +80,21 @@ public class GraphBasedSequenceHandlerClaimMappingsTest extends GraphBasedSequen
 
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
-        UserCoreUtil.setDomainInThreadLocal("test_domain");
+        Claim[] supportedClaims = new Claim[3];
+        Claim firstNameClaim = new Claim();
+        firstNameClaim.setClaimUri("http://wso2.org/claims/givenname");
+        supportedClaims[0] = firstNameClaim;
+        Claim lastNameClaim = new Claim();
+        lastNameClaim.setClaimUri("http://wso2.org/claims/lastname");
+        supportedClaims[1] = lastNameClaim;
+        Claim displayNameClaim = new Claim();
+        displayNameClaim.setClaimUri("http://wso2.org/claims/displayName");
+        supportedClaims[2] = displayNameClaim;
+
+        mockStatic(IdentityClaimManager.class);
+        IdentityClaimManager identityClaimManager = mock(IdentityClaimManager.class);
+        when(IdentityClaimManager.getInstance()).thenReturn(identityClaimManager);
+        when(identityClaimManager.getAllSupportedClaims(any())).thenReturn(supportedClaims);
 
         RealmService currentRealmService = FrameworkServiceDataHolder.getInstance().getRealmService();
 

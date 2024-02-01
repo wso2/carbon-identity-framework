@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.AsyncProces
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -104,7 +104,7 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
             AsyncProcess asyncProcess = new AsyncProcess((ctx, r) -> {
                 r.accept(ctx, Collections.emptyMap(), "onSuccess");
             });
-            JsNashornGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+            JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
         }
     }
 }

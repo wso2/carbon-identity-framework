@@ -262,7 +262,7 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
                 {multipleOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 3},
                 {multipleAndInvalidOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2},
                 {singleInvalidOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 4},
-                {idpOnlyOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2},};
+                {idpOnlyOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2}, };
     }
 
     private StepConfig duplicateStepConfig(StepConfig stepConfig) {
