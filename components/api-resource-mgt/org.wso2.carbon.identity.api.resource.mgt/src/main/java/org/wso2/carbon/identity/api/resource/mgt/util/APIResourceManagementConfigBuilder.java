@@ -45,12 +45,13 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 /**
- * Config builder class for organization management related configs in organization-mgt.xml file.
+ * Config builder class for system API resource configs in system-api-resource.xml file.
  */
 public class APIResourceManagementConfigBuilder {
 
     private static final Log LOG = LogFactory.getLog(APIResourceManagementConfigBuilder.class);
     private static final Map<String, APIResource> apiResourceMgtConfigurations = new HashMap<>();
+    private static final Map<String, APIResource> duplicateAPIResourceConfigs = new HashMap<>();
     private static final APIResourceManagementConfigBuilder apiResourceManagementConfigBuilder =
             new APIResourceManagementConfigBuilder();
 
@@ -67,13 +68,23 @@ public class APIResourceManagementConfigBuilder {
     }
 
     /**
-     * Get organization management related configs.
+     * Get system API resource configs.
      *
-     * @return Map of org mgt configs.
+     * @return Map of API resource configs.
      */
     public Map<String, APIResource> getAPIResourceMgtConfigurations() {
 
         return apiResourceMgtConfigurations;
+    }
+
+    /**
+     * Get duplicate system API resource configs.
+     *
+     * @return Map of duplicate API resource configs.
+     */
+    public Map<String, APIResource> getDuplicateAPIResourceConfigs() {
+
+        return duplicateAPIResourceConfigs;
     }
 
     /**
@@ -140,6 +151,17 @@ public class APIResourceManagementConfigBuilder {
                     apiResourceObj.setScopes(scopeList);
                 }
             }
+            /* If an API resource with the same identifier already exists in the config map, add the second one
+            to the duplicate list. During API resource registration, diff will be applied as a patch to the existing
+            API resource. API resource in the duplicate config map will be considered as the original API resource.
+            */
+            if (apiResourceMgtConfigurations.containsKey(apiResourceObj.getIdentifier())) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("API resource with duplicate identifier: " + apiResourceObj.getIdentifier() + " found.");
+                }
+                duplicateAPIResourceConfigs.put(apiResourceObj.getIdentifier(), apiResourceObj);
+                continue;
+            }
             apiResourceMgtConfigurations.put(apiResourceObj.getIdentifier(), apiResourceObj);
         }
     }
@@ -148,13 +170,6 @@ public class APIResourceManagementConfigBuilder {
 
         String apiResourceIdentifier = element.getAttributeValue(
                 new QName(APIResourceConfigBuilderConstants.IDENTIFIER));
-        if (apiResourceMgtConfigurations.containsKey(apiResourceIdentifier)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("API resource with identifier: " + apiResourceIdentifier + " already exists.");
-            }
-            return null;
-        }
-
         String type = APIResourceConfigBuilderConstants.TENANT_ADMIN_TYPE;
         if (element.getAttributeValue(new QName(APIResourceConfigBuilderConstants.TYPE)) != null) {
             type = element.getAttributeValue(new QName(APIResourceConfigBuilderConstants.TYPE));

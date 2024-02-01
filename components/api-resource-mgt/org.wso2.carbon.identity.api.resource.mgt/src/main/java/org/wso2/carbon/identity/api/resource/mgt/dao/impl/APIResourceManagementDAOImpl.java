@@ -433,7 +433,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                         resultSet.getString(SQLConstants.ID_COLUMN_NAME),
                         resultSet.getString(SQLConstants.NAME_COLUMN_NAME),
                         resultSet.getString(SQLConstants.DISPLAY_NAME_COLUMN_NAME),
-                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME)
+                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME),
+                        resultSet.getString("API_ID"),
+                        resultSet.getString(SQLConstants.TENANT_ID_COLUMN_NAME)
                 ));
             }
             return scopesList;

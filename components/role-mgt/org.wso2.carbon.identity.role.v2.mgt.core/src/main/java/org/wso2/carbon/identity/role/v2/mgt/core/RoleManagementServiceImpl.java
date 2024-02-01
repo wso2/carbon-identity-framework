@@ -605,7 +605,20 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public List<String> getPermissionListOfRoles(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return roleDAO.getPermissionListOfRoles(roleIds, tenantDomain);
+        List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
+                .getRoleManagementListenerList();
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.preGetPermissionListOfRoles(roleIds, tenantDomain);
+            }
+        }
+        List<String> permissionListOfRoles = roleDAO.getPermissionListOfRoles(roleIds, tenantDomain);
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.postGetPermissionListOfRoles(permissionListOfRoles, roleIds, tenantDomain);
+            }
+        }
+        return permissionListOfRoles;
     }
 
     @Override

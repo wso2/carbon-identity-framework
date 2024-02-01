@@ -264,11 +264,13 @@
                             version="${org.wso2.carbon.identity.organization.management.core.version.range}",
                             org.wso2.carbon.identity.api.resource.mgt.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.api.resource.mgt.util; version="${carbon.identity.package.import.version.range}",
+                            *;resolution:=optional
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.application.mgt.internal,
                             org.wso2.carbon.identity.application.mgt.*; version="${carbon.identity.package.export.version}"
                         </Export-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>

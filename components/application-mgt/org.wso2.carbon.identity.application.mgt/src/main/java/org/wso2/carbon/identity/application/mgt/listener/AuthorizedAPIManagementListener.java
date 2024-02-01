@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,153 +18,172 @@
 
 package org.wso2.carbon.identity.application.mgt.listener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
-import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.APIResource;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
-import org.wso2.carbon.identity.application.common.model.Scope;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
-import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
-import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
-import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 
 import java.util.List;
 
 /**
- * Authorized API Management listener class.`
+ * Authorized API management listener.
  */
-public class AuthorizedAPIManagementListener extends AbstractApplicationMgtListener {
-
-    private static final Log LOG = LogFactory.getLog(AuthorizedAPIManagementListener.class);
-
-    @Override
-    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
-            throws IdentityApplicationManagementException {
-
-        if (!isEnable()) {
-            LOG.debug("Authorized API Management related AuthorizedAPIManagementListener is not enabled.");
-            return true;
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Authorized API Management related AuthorizedAPIManagementListener fired for tenant " +
-                    "creation for Tenant: " + tenantDomain);
-        }
-
-        String appName = serviceProvider.getApplicationName();
-        // Return if the application is not console or my account.
-        if (!isConsole(appName) && !isMyAccount(appName)) {
-            return true;
-        }
-
-        try {
-            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
-                return true;
-            }
-            if (isConsole(appName)) {
-                authorizeSystemAPIToConsole(tenantDomain);
-            }
-
-        } catch (OrganizationManagementException e) {
-            LOG.error("Error while registering system API resources in tenant: " + tenantDomain);
-        }
-        return true;
-    }
+public interface AuthorizedAPIManagementListener {
 
     /**
-     * Check whether the application is Console.
+     * Get the execution order identifier for this listener.
      *
-     * @param name Application name.
-     * @return True if the application is Console.
+     * @return The execution order identifier integer value.
      */
-    private boolean isConsole(String name) {
-
-        return ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(name);
-    }
+    int getExecutionOrderId();
 
     /**
-     * Check whether the application is My Account.
+     * Get the default order identifier for this listener.
      *
-     * @param name Application name.
-     * @return True if the application is My Account.
+     * @return default order id
      */
-    private boolean isMyAccount(String name) {
-
-        return ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(name);
-    }
+    int getDefaultOrderId();
 
     /**
-     * Authorize system APIs to the Console application.
+     * Check whether the listener is enabled or not
      *
-     * @param tenantDomain Tenant domain.
+     * @return true if enabled
      */
-    private void authorizeSystemAPIToConsole(String tenantDomain) {
+    boolean isEnable();
 
-        try {
-            ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
-            ApplicationBasicInfo applicationBasicInfo = applicationManagementService.getApplicationBasicInfoByName(
-                    ApplicationConstants.CONSOLE_APPLICATION_NAME, tenantDomain);
-            if (applicationBasicInfo == null) {
-                LOG.error("Error while authorizing system API to the Console. Console application not found in tenant: "
-                        + tenantDomain);
-                return;
-            }
-            AuthorizedAPIManagementService authorizedAPIManagementService = new AuthorizedAPIManagementServiceImpl();
-            List<AuthorizedAPI> authorizedAPIs = authorizedAPIManagementService.getAuthorizedAPIs(
-                    applicationBasicInfo.getApplicationResourceId(), tenantDomain);
-            // Return if the system APIs are already authorized for the console application.
-            if (!authorizedAPIs.isEmpty()) {
-                LOG.debug("System APIs are already authorized for the Console application in tenant: "
-                        + tenantDomain);
-                return;
-            }
+    /**
+     * Invoked before adding an authorized API to the application.
+     *
+     * @param appId         ID of the application.
+     * @param authorizedAPI Authorized API being added.
+     * @param tenantDomain  Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void preAddAuthorizedAPI(String appId, AuthorizedAPI authorizedAPI, String tenantDomain)
+            throws IdentityApplicationManagementException;
 
-            // Fetch all system APIs.
-            List<APIResource> apiResources = APIResourceManagementUtil.getSystemAPIs(tenantDomain);
-            if (apiResources.isEmpty()) {
-                LOG.error("Error while authorizing system APIs to the Console. System APIs not found in tenant: "
-                        + tenantDomain);
-                return;
-            }
-            for (APIResource apiResource : apiResources) {
-                String policyId = APIResourceManagementConstants.RBAC_AUTHORIZATION;
-                if (APIResourceManagementConstants.ME_API.equals(apiResource.getName())) {
-                    policyId = APIResourceManagementConstants.NO_POLICY;
-                }
-                List<Scope> scopes = ApplicationManagementServiceComponentHolder.getInstance()
-                        .getAPIResourceManager().getAPIScopesById(apiResource.getId(), tenantDomain);
-                AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
-                        .apiId(apiResource.getId())
-                        .appId(applicationBasicInfo.getApplicationResourceId())
-                        .scopes(scopes)
-                        .policyId(policyId)
-                        .build();
-                authorizedAPIManagementService.addAuthorizedAPI(applicationBasicInfo.getApplicationResourceId(),
-                        authorizedAPI, tenantDomain);
-            }
-            LOG.debug("System APIs are authorized for the Console application in " + tenantDomain);
-        } catch (Throwable e) {
-            LOG.error("Error while authorizing system APIs to the Console application.", e);
-        }
-    }
+    /**
+     * Invoked after adding an authorized API to the application.
+     *
+     * @param appId         ID of the application.
+     * @param authorizedAPI Authorized API being added.
+     * @param tenantDomain  Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void postAddAuthorizedAPI(String appId, AuthorizedAPI authorizedAPI, String tenantDomain)
+            throws IdentityApplicationManagementException;
 
-    @Override
-    public int getDefaultOrderId() {
+    /**
+     * Invoked before deleting an authorized API from the application.
+     *
+     * @param appId        ID of the application.
+     * @param apiId        ID of the Authorized API.
+     * @param tenantDomain Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void preDeleteAuthorizedAPI(String appId, String apiId, String tenantDomain)
+            throws IdentityApplicationManagementException;
 
-        return 211;
-    }
+    /**
+     * Invoked after deleting an authorized API from the application.
+     *
+     * @param appId        ID of the application.
+     * @param apiId        ID of the Authorized API.
+     * @param tenantDomain Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void postDeleteAuthorizedAPI(String appId, String apiId, String tenantDomain)
+            throws IdentityApplicationManagementException;
 
-    @Override
-    public boolean isEnable() {
+    /**
+     * Invoked before retrieving authorized APIs of the application.
+     *
+     * @param appId        ID of the application.
+     * @param tenantDomain Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void preGetAuthorizedAPIs(String appId, String tenantDomain)
+            throws IdentityApplicationManagementException;
 
-        return true;
-    }
+    /**
+     * Invoked after retrieving authorized APIs of the application.
+     *
+     * @param authorizedAPIList List of authorized APIs.
+     * @param appId             ID of the application.
+     * @param tenantDomain      Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void postGetAuthorizedAPIs(List<AuthorizedAPI> authorizedAPIList, String appId, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Invoked before patching the authorized API of the application.
+     *
+     * @param appId         ID of the application.
+     * @param apiId         ID of the Authorized API.
+     * @param addedScopes   Added scopes.
+     * @param removedScopes Removed scopes.
+     * @param tenantDomain  Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void prePatchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
+                               List<String> removedScopes, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Invoked after patching the authorized API of the application.
+     *
+     * @param appId         ID of the application.
+     * @param apiId         ID of the Authorized API.
+     * @param addedScopes   Added scopes.
+     * @param removedScopes Removed scopes.
+     * @param tenantDomain  Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void postPatchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
+                                List<String> removedScopes, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Invoked before retrieving authorized scopes of the application.
+     *
+     * @param appId        ID of the application.
+     * @param tenantDomain Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void preGetAuthorizedScopes(String appId, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Invoked after retrieving authorized scopes of the application.
+     *
+     * @param authorizedScopesList List of authorized scopes.
+     * @param appId                ID of the application.
+     * @param tenantDomain         Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void postGetAuthorizedScopes(List<AuthorizedScopes> authorizedScopesList, String appId,
+                                 String tenantDomain) throws IdentityApplicationManagementException;
+
+    /**
+     * Invoked before retrieving an authorized API of the application by ID.
+     *
+     * @param appId        ID of the application.
+     * @param apiId        ID of the Authorized API.
+     * @param tenantDomain Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    void preGetAuthorizedAPI(String appId, String apiId, String tenantDomain)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Invoked after retrieving an authorized API of the application by ID.
+     *
+     * @param authorizedAPI Authorized API.
+     * @param appId         ID of the application.
+     * @param apiId         ID of the Authorized API.
+     * @param tenantDomain  Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs.
+     */
+    AuthorizedAPI postGetAuthorizedAPI(AuthorizedAPI authorizedAPI, String appId, String apiId, String tenantDomain)
+            throws IdentityApplicationManagementException;
 }

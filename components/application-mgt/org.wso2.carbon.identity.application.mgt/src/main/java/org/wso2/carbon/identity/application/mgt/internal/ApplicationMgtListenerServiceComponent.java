@@ -24,6 +24,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagementListener;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ public class ApplicationMgtListenerServiceComponent {
     private static List<ApplicationMgtListener> applicationMgtListeners = new ArrayList<>();
     private static List<ApplicationResourceManagementListener> applicationResourceMgtListeners = new ArrayList<>();
     private static List<ApplicationValidator> applicationValidators = new ArrayList<>();
+    private static List<AuthorizedAPIManagementListener> authorizedAPIManagementListeners = new ArrayList<>();
 
     @Reference(
             name = "application.mgt.event.listener.service",
@@ -124,4 +126,30 @@ public class ApplicationMgtListenerServiceComponent {
 
     private static Comparator<ApplicationValidator> applicationValidatorComparator =
             Comparator.comparingInt(ApplicationValidator::getOrderId);
+
+    private static Comparator<AuthorizedAPIManagementListener> authorizedAPIManagementListenerComparator =
+            Comparator.comparingInt(AuthorizedAPIManagementListener::getExecutionOrderId);
+
+    @Reference(
+            name = "authorized.api.mgt.listener",
+            service = AuthorizedAPIManagementListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAuthorizedAPIManagementListener"
+    )
+    protected synchronized void setAuthorizedAPIManagementListener(AuthorizedAPIManagementListener listener) {
+
+        authorizedAPIManagementListeners.add(listener);
+        authorizedAPIManagementListeners.sort(authorizedAPIManagementListenerComparator);
+    }
+
+    protected synchronized void unsetAuthorizedAPIManagementListener(AuthorizedAPIManagementListener listener) {
+
+        authorizedAPIManagementListeners.remove(listener);
+    }
+
+    public static Collection<AuthorizedAPIManagementListener> getAuthorizedAPIManagementListeners() {
+
+        return authorizedAPIManagementListeners;
+    }
 }
