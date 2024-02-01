@@ -1047,7 +1047,10 @@
   "console.ui.i18n_configs.showLanguageSwitcher": false,
   "console.ui.i18n_configs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
-  "console.ui.hiddenAuthenticators": [],
+  "console.ui.hiddenAuthenticators": [
+    "BasicAuthRequestPathAuthenticator",
+    "OAuthRequestPathAuthenticator"
+  ],
   "console.ui.hiddenConnectionTemplates": [ "swe-idp" ],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
