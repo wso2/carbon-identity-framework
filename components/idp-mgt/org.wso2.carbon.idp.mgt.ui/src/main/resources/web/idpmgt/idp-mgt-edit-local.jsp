@@ -27,6 +27,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityGovernanceAdminClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
@@ -228,6 +229,8 @@
             }
         }
     }
+
+    boolean enableBanner = Boolean.parseBoolean(IdentityUtil.getProperty("EnableResidentIdpBanner");
 
     session.setAttribute("returnToPath", "../idpmgt/idp-mgt-edit-local.jsp");
     session.setAttribute("cancelLink", "../idpmgt/idp-mgt-edit-local.jsp");
@@ -459,6 +462,11 @@ function removeDefaultAuthSeq() {
         </h2>
         <div id="workArea">
 
+                <%if (enableBanner) { %>
+                    <div style="background-color: #fff5e8; text-align: justify; padding: 10px">
+                        <fmt:message key="idp.local.banner.content"/>
+                    </div>
+                <% } %>
                 <div class="sectionSeperator "><fmt:message key='resident.realm.config'/></div>
                 <div class="sectionSub">
                             <form id="idp-mgt-edit-local-form" name="idp-mgt-edit-local-form" method="post"
