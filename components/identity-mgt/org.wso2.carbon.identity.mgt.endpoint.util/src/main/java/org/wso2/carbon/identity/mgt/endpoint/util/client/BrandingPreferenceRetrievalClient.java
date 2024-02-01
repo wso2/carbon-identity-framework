@@ -86,9 +86,6 @@ public class BrandingPreferenceRetrievalClient {
                 uri = uriBuilder.build().toString();
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Preferences endpoint URI for tenant " + tenant
-                            + " was constructed with params - type : "
-                            + type + ", name :" + name + ", locale :" + locale);
                     log.debug("Preferences endpoint URI with params for tenant " + tenant + " : " + uri);
                 }
             } catch (URISyntaxException e) {
