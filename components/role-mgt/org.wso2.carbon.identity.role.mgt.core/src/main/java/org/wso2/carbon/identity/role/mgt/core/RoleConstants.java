@@ -107,7 +107,8 @@ public class RoleConstants {
         ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR("55001"),
 
         UNEXPECTED_SERVER_ERROR("65001"),
-        SORTING_NOT_IMPLEMENTED("65002");
+        SORTING_NOT_IMPLEMENTED("65002"),
+        UNSUPPORTED_USER_STORE_MANAGER("65003");;
 
         private final String code;
         private static final String ROLE_MANAGEMENT_ERROR_CODE_PREFIX = "RMA-";

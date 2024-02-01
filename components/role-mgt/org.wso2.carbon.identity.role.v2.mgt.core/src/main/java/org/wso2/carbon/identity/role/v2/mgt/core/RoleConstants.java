@@ -139,7 +139,7 @@ public class RoleConstants {
 
         UNEXPECTED_SERVER_ERROR("65001"),
         SORTING_NOT_IMPLEMENTED("65002"),
-        UNSUPPORTED_USER_STORE_MANAGER("65003"),;
+        UNSUPPORTED_USER_STORE_MANAGER("65003");
 
         private final String code;
         public static final String ROLE_MANAGEMENT_ERROR_CODE_PREFIX = "RMA-";
