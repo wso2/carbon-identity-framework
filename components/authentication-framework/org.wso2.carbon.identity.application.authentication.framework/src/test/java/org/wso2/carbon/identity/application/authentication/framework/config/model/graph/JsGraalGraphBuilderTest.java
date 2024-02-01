@@ -44,8 +44,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -262,7 +262,7 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
                 {multipleOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 3},
                 {multipleAndInvalidOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2},
                 {singleInvalidOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 4},
-                {idpOnlyOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2},};
+                {idpOnlyOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 2}, };
     }
 
     private StepConfig duplicateStepConfig(StepConfig stepConfig) {
