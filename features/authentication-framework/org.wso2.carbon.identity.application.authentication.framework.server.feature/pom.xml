@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework-feature</artifactId>
-        <version>7.0.23</version>
+        <version>7.0.24-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
