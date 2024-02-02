@@ -3303,12 +3303,15 @@
         <Resource context="/duoauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/fileupload/service(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+            <Scopes>internal_application_mgt_create</Scopes>
         </Resource>
         <Resource context="(.*)/fileupload/entitlement-policy(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/entitlement/pap/policy/create</Permissions>
+            <Scope>internal_manage_pap</Scope>
         </Resource>
         <Resource context="(.*)/fileupload/resource(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage</Permissions>
+            <Scopes>internal_registry_resource_upload</Scopes>
         </Resource>
         <Resource context="(.*)/api/idle-account-identification/v1/inactive-users(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
