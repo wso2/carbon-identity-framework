@@ -126,6 +126,7 @@ public abstract class FrameworkConstants {
     public static final String POST_AUTH_MISSING_CLAIMS_ERROR_CODE = "postAuthMissingClaimsErrorCode";
 
     public static final String REQUEST_PARAM_SP = "sp";
+    public static final String REQUEST_PARAM_SP_UUID = "spId";
     public static final String REQUEST_PARAM_ERROR_KEY = "errorKey";
     public static final String REQUEST_PARAM_AUTH_FLOW_ID = "authFlowId";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
