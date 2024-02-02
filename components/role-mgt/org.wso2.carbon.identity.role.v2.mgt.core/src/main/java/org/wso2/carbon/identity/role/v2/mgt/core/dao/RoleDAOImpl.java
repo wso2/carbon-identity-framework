@@ -2243,23 +2243,21 @@ public class RoleDAOImpl implements RoleDAO {
 
         RealmService realmService = RoleManagementServiceComponentHolder.getInstance().getRealmService();
         String propValue = null;
-        if (realmService != null) {
-            try {
-                if (IdentityUtil.getPrimaryDomainName().equals(userStoreDomain)) {
-                    propValue = realmService.getTenantUserRealm(tenantId).getRealmConfiguration()
+        try {
+            if (IdentityUtil.getPrimaryDomainName().equals(userStoreDomain)) {
+                propValue = realmService.getTenantUserRealm(tenantId).getRealmConfiguration()
+                        .getUserStoreProperty(property);
+            } else {
+                UserStoreManager userStoreManager = realmService.getTenantUserRealm(tenantId).getUserStoreManager();
+                if (userStoreManager instanceof AbstractUserStoreManager) {
+                    propValue = ((AbstractUserStoreManager) userStoreManager)
+                            .getSecondaryUserStoreManager(userStoreDomain).getRealmConfiguration()
                             .getUserStoreProperty(property);
-                } else {
-                    UserStoreManager userStoreManager = realmService.getTenantUserRealm(tenantId).getUserStoreManager();
-                    if (userStoreManager instanceof AbstractUserStoreManager) {
-                        propValue = ((AbstractUserStoreManager) userStoreManager)
-                                .getSecondaryUserStoreManager(userStoreDomain).getRealmConfiguration()
-                                .getUserStoreProperty(property);
-                    }
                 }
-            } catch (UserStoreException e) {
-                log.error(String.format("Error while retrieving property %s for user store %s in tenantId %s. " +
-                        "Returning null.", property, userStoreDomain, tenantId), e);
             }
+        } catch (UserStoreException e) {
+            log.error(String.format("Error while retrieving property %s for user store %s in tenantId %s. " +
+                    "Returning null.", property, userStoreDomain, tenantId), e);
         }
         if (log.isDebugEnabled()) {
             log.debug(String.format("User store property %s is set to %s for user store %s in tenantId %s",
