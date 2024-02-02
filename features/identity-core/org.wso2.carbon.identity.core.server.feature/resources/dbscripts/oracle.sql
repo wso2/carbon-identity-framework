@@ -1630,6 +1630,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('73f6d9ca-62f4-4566-bab9-2a930ae51ba8', 'BRANDING_PREFERENCES', 'A resource type to keep the tenant branding preferences')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('8469a176-3e6c-438a-ba01-71e9077072fa', 'APPLICATION_BRANDING_PREFERENCES', 'A resource type to keep the application branding preferences')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('899c69b2-8bf7-46b5-9666-f7f99f90d6cc', 'fido-config', 'A resource type to store FIDO authenticator related preferences')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('7f24050f-3e3d-4a00-b10f-fd5450d6523e', 'input-validation-configurations', 'A resource type to store input validation related configurations')
