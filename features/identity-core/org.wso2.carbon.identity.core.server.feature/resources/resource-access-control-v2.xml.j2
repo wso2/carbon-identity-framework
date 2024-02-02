@@ -1165,15 +1165,19 @@
             <Scopes>internal_event_config_update</Scopes>
         </Resource>
 
-         <!-- File Upload API **** -->
+         <!-- File Upload API -->
+         <!-- The file upload API is used in the carbon management console and depends on the legacy permission model. -->
          <Resource context="(.*)/fileupload/service(.*)" secured="true" http-method="all">
+             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
              <Scope>internal_application_mgt_create</Scope>
          </Resource>
          <Resource context="(.*)/fileupload/entitlement-policy(.*)" secured="true" http-method="all">
+             <Permissions>/permission/admin/manage/identity/entitlement/pap/policy/create</Permissions>
              <Scope>internal_manage_pap</Scope>
          </Resource>
          <Resource context="(.*)/fileupload/resource(.*)" secured="true" http-method="all">
-             <Scope>/permission/admin/manage</Scope>
+             <Permissions>/permission/admin/manage</Permissions>
+             <Scopes>internal_registry_resource_upload</Scopes>
          </Resource>
 
          <!-- [Organization] Idle Account Identification Management API -->
