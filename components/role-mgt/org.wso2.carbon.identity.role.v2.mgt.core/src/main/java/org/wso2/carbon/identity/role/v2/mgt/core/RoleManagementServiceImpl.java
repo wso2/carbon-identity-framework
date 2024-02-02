@@ -353,10 +353,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     @Override
     public void deleteRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
-        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
-                .getInstance();
-        roleManagementEventPublisherProxy.publishPreDeleteRoleWithException(roleId, tenantDomain);
-        doPreValidateRoleDeletion(roleId, tenantDomain);
         List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
                 .getRoleManagementListenerList();
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
@@ -364,6 +360,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 roleManagementListener.preDeleteRole(roleId, tenantDomain);
             }
         }
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreDeleteRoleWithException(roleId, tenantDomain);
+        doPreValidateRoleDeletion(roleId, tenantDomain);
         roleDAO.deleteRole(roleId, tenantDomain);
         roleManagementEventPublisherProxy.publishPostDeleteRole(roleId, tenantDomain);
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
