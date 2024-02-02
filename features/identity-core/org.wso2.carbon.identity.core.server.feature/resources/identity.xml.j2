@@ -1793,6 +1793,7 @@
         {% if authentication.jit_provisioning.allow_idp_login is defined %}
             <AllowLoginToIDP>{{authentication.jit_provisioning.allow_idp_login}}</AllowLoginToIDP>
         {% endif %}
+        <AllowEmailUsernameWhenEmailAsUsernameNotEnabled>{{authentication.jit_provisioning.allow_email_username_when_email_as_username_not_enabled}}</AllowEmailUsernameWhenEmailAsUsernameNotEnabled>
     </JITProvisioning>
 
     <!--Application management service configurations-->
