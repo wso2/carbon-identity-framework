@@ -1006,7 +1006,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     .append(FrameworkConstants.REQUEST_PARAM_SP).append("=")
                     .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&")
                     .append(FrameworkConstants.REQUEST_PARAM_SP_UUID).append("=")
-                    .append(context.getServiceProviderResourceId()).append("&")
+                    .append(URLEncoder.encode(context.getServiceProviderResourceId())).append("&")
                     .append("&isSaaSApp=")
                     .append(context.getSequenceConfig().getApplicationConfig().isSaaSApp());
         } catch (UnsupportedEncodingException e) {
