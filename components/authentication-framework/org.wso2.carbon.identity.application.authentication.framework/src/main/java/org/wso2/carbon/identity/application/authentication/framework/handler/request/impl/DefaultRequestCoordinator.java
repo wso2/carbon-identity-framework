@@ -1021,10 +1021,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     .append("&relyingParty=").append(URLEncoder.encode(context.getRelyingParty(), "UTF-8"))
                     .append("&type=").append(context.getRequestType()).append("&")
                     .append(FrameworkConstants.REQUEST_PARAM_SP).append("=")
-                    .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&")
-                    .append(FrameworkConstants.REQUEST_PARAM_SP_UUID).append("=")
-                    .append(URLEncoder.encode(context.getServiceProviderResourceId())).append("&")
-                    .append("&isSaaSApp=")
+                    .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&");
+            if (context.getServiceProviderResourceId() != null) {
+                outboundQueryStringBuilder.append(FrameworkConstants.REQUEST_PARAM_SP_UUID).append("=")
+                        .append(URLEncoder.encode(context.getServiceProviderResourceId(), "UTF-8")).append("&");
+            }
+            outboundQueryStringBuilder.append("&isSaaSApp=")
                     .append(context.getSequenceConfig().getApplicationConfig().isSaaSApp());
         } catch (UnsupportedEncodingException e) {
             throw new FrameworkException("Error while URL Encoding", e);
