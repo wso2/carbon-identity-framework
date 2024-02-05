@@ -230,7 +230,7 @@
         }
     }
 
-    boolean enableBanner = Boolean.parseBoolean(IdentityUtil.getProperty("EnableResidentIdpBanner");
+    boolean enableBanner = Boolean.parseBoolean(IdentityUtil.getProperty("EnableResidentIdpBanner"));
 
     session.setAttribute("returnToPath", "../idpmgt/idp-mgt-edit-local.jsp");
     session.setAttribute("cancelLink", "../idpmgt/idp-mgt-edit-local.jsp");
