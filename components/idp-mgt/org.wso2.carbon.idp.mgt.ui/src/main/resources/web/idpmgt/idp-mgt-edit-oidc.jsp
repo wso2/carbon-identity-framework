@@ -43,6 +43,7 @@
     boolean isOIDCEnabled = Boolean.parseBoolean(request.getParameter("isOIDCEnabled"));
     boolean isOIDCDefault = Boolean.parseBoolean(request.getParameter("isOIDCDefault"));
     boolean isOIDCBasicAuthEnabled = false;
+    boolean isOIDCPKCEEnabled = false;
     String clientId = null;
     String clientSecret = null;
     String authzUrl = null;
@@ -186,6 +187,10 @@
     if (isOIDCBasicAuthEnabled) {
         oidcBasicAuthEnabledChecked = "checked=\'checked\'";
     }
+    String oidcPKCEEnabledChecked = StringUtils.EMPTY;
+        if (isOIDCPKCEEnabled) {
+            oidcPKCEEnabledChecked = "checked=\'checked\'";
+        }
     if (scopes == null) {
         scopes = StringUtils.EMPTY;
     }
