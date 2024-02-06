@@ -783,6 +783,9 @@
     </Resource>
 
     <!-- Userstore Management API -->
+    <Resource context="(.*)/api/server/v1/userstores/test-connection" secured="true" http-method="POST">
+        <Scopes>internal_userstore_view</Scopes>
+    </Resource>
     <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="POST">
         <Scopes>internal_userstore_create</Scopes>
     </Resource>
@@ -794,9 +797,6 @@
     </Resource>
     <Resource context="(.*)/api/server/v1/userstores/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_userstore_delete</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/server/v1/userstores/test-connection" secured="true" http-method="POST">
-        <Scopes>internal_userstore_view</Scopes>
     </Resource>
 
     <!-- [Organization] Session Management API -->
