@@ -418,6 +418,26 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="residentOutboundProvisioning" displayName="Resident Application Outbound Provisioning" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:residentOutboundProvisioning"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_application_mgt_update"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_application_mgt_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="secretsManagement" displayName="Secrets Management" type="tenant">
         <Scopes>
             <Feature>
