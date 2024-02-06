@@ -1023,6 +1023,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
      */
     private void removeSimilarPermissions(List<Permission> arr1, List<Permission> arr2) {
 
+        if (arr1 == null || arr2 == null) {
+            return;
+        }
+
         List<Permission> common = new ArrayList<>(arr1);
         common.retainAll(arr2);
 

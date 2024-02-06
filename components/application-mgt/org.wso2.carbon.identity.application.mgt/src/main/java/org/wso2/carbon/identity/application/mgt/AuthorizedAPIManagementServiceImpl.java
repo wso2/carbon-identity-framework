@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
@@ -26,6 +27,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.AuthorizedAPIDAO;
@@ -33,12 +35,17 @@ import org.wso2.carbon.identity.application.mgt.dao.impl.AuthorizedAPIDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedAuthorizedAPIDAOImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 
 /**
  * Authorized API management service implementation.
@@ -115,6 +122,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
 
         authorizedAPIDAO.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        updateRolesWithRemovedScopes(appId, removedScopes, tenantDomain);
     }
 
     @Override
@@ -180,5 +188,39 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
     private IdentityApplicationManagementServerException buildServerException(String message, Throwable ex) {
 
         return new IdentityApplicationManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), message, ex);
+    }
+
+    private void updateRolesWithRemovedScopes(String appId, List<String> removedScopes, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (CollectionUtils.isEmpty(removedScopes) || !isApplicationAudience(appId, tenantDomain)) {
+            return;
+        }
+
+        List<Permission> removedPermissions = removedScopes.stream().map(Permission::new).collect(Collectors.toList());
+        List<RoleV2> roles = ApplicationManagementService.getInstance().getAssociatedRolesOfApplication(appId,
+                tenantDomain);
+        try {
+            for (RoleV2 role : roles) {
+                getRoleManagementServiceV2().updatePermissionListOfRole(role.getId(), null, removedPermissions,
+                        tenantDomain);
+            }
+        } catch (IdentityRoleManagementException e) {
+            throw new IdentityApplicationManagementException("Error while updating permission list of roles " +
+                    "associated with the application ID: " + appId, e);
+        }
+    }
+
+    private boolean isApplicationAudience(String appId, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        String audience = ApplicationManagementService.getInstance().getAllowedAudienceForRoleAssociation(appId,
+                tenantDomain);
+        return APPLICATION.equalsIgnoreCase(audience);
+    }
+
+    private static RoleManagementService getRoleManagementServiceV2() {
+
+        return ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2();
     }
 }
