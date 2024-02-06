@@ -1264,7 +1264,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(facebookAuthnConfig);
         }
 
-        Property[] properties = new Property[8];
+        Property[] properties = new Property[11];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
         property.setValue(paramMap.get("fbClientId"));
@@ -1348,7 +1348,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(oidcAuthnConfig);
         }
 
-        Property[] properties = new Property[11];
+        Property[] properties = new Property[12];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
@@ -1429,7 +1429,7 @@ public class IdPManagementUIUtil {
                         paramMap.get(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED_PARAM_NAME))) {
             property.setValue(PROPERTY_TRUE);
         }
-        properties[10] = property;
+        properties[11] = property;
 
         oidcAuthnConfig.setProperties(properties);
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
