@@ -77,7 +77,6 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -210,7 +209,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
                     }
-                    isUsernameExists(context, username);
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
                     handleConsents(request, stepConfig, context.getTenantDomain());
@@ -335,9 +333,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 username, request);
                         // Set the property to make sure the request is a returning one.
                         context.setProperty(FrameworkConstants.PASSWORD_PROVISION_REDIRECTION_TRIGGERED, true);
-                        if (!externalIdPConfig.isModifyUserNameAllowed()) {
-                            isUsernameExists(context, username);
-                        }
                         return PostAuthnHandlerFlowStatus.INCOMPLETE;
                     }
                     if (StringUtils.isEmpty(associatedLocalUser) && externalIdPConfig.isAssociateLocalUserEnabled()) {
@@ -412,9 +407,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             StringUtils.equals(UserCoreUtil.removeDomainFromName(username),
                                     localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
                         username = UserCoreUtil.addTenantDomainToEntry(username, context.getTenantDomain());
-                    }
-                    if (StringUtils.isEmpty(associatedLocalUser)) {
-                        isUsernameExists(context, username);
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
                             stepConfig);
@@ -1192,36 +1184,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
         }
         return null;
-    }
-
-    /**
-     * This method throws a PostAuthenticationFailedException if the provided username is already existing in the
-     * system.
-     *
-     * @param context   AuthenticationContext.
-     * @param username  Username of the federated user.
-     * @throws PostAuthenticationFailedException if the provided username already exists.
-     */
-    private void isUsernameExists(AuthenticationContext context, String username)
-            throws PostAuthenticationFailedException {
-
-        try {
-            UserRealm realm = getUserRealm(context.getTenantDomain());
-            UserStoreManager userStoreManager = getUserStoreManager(context.getExternalIdP()
-                    .getProvisioningUserStoreId(), realm, username);
-            String sanitizedUserName = UserCoreUtil.removeDomainFromName(
-                    MultitenantUtils.getTenantAwareUsername(username));
-            if (userStoreManager.isExistingUser(sanitizedUserName)) {
-                // Logging the error because the thrown exception is handled in the UI.
-                log.error(ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode() + " - "
-                        + ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage());
-                handleExceptions(ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage(),
-                        ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode(), null);
-            }
-        } catch (UserStoreException e) {
-            handleExceptions(ErrorMessages.ERROR_WHILE_CHECKING_USERNAME_EXISTENCE.getMessage(),
-                    "error.user.existence", e);
-        }
     }
 
     /**

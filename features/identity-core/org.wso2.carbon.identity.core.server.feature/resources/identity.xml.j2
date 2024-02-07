@@ -1793,9 +1793,7 @@
         {% if authentication.jit_provisioning.allow_idp_login is defined %}
             <AllowLoginToIDP>{{authentication.jit_provisioning.allow_idp_login}}</AllowLoginToIDP>
         {% endif %}
-        {% if authentication.jit_provisioning.allow_email_username_when_email_as_username_not_enabled is defined %}
-        <AllowEmailUsernameWhenEmailAsUsernameNotEnabled>{{authentication.jit_provisioning.allow_email_username_when_email_as_username_not_enabled}}</AllowEmailUsernameWhenEmailAsUsernameNotEnabled>
-        {% endif %}
+        <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
     </JITProvisioning>
 
     <!--Application management service configurations-->
