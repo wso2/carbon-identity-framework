@@ -1047,7 +1047,10 @@
   "console.ui.i18n_configs.showLanguageSwitcher": false,
   "console.ui.i18n_configs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
-  "console.ui.hiddenAuthenticators": [],
+  "console.ui.hiddenAuthenticators": [
+    "BasicAuthRequestPathAuthenticator",
+    "OAuthRequestPathAuthenticator"
+  ],
   "console.ui.hiddenConnectionTemplates": [ "swe-idp" ],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
@@ -1367,6 +1370,13 @@
     "internal_organization_discovery_delete",
     "internal_organization_config_delete"
   ],
+  "console.resident_outbound_provisioning.enabled": true,
+  "console.resident_outbound_provisioning.scopes.feature": ["console:residentOutboundProvisioning"],
+  "console.resident_outbound_provisioning.scopes.read": [
+    "internal_idp_view",
+    "internal_application_mgt_view"
+  ],
+  "console.resident_outbound_provisioning.scopes.update": ["internal_application_mgt_update"],
   "console.console_settings.enabled": true,
   "console.console_settings.scopes.feature": ["console:settings"],
   "console.console_settings.scopes.create": ["internal_role_mgt_create"],
