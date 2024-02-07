@@ -169,7 +169,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Password Expired User Identification API"
-                 identifier="/api/server/v1/expired-password-identification" requiresAuthorization="true"
+                 identifier="/api/server/v1/password-expired-users" requiresAuthorization="true"
                  description="API representation of the Password Expired User Identification API" type="TENANT">
         <Scopes>
             <Scope displayName="View Password Expired Users" name="internal_password_expired_user_view"
@@ -177,7 +177,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Password Expired User Identification API"
-                 identifier="/o/api/server/v1/expired-password-identification" requiresAuthorization="true"
+                 identifier="/o/api/server/v1/password-expired-users" requiresAuthorization="true"
                  description="API representation of the Password Expired User Identification API"
                  type="ORGANIZATION">
         <Scopes>

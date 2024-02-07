@@ -1192,13 +1192,13 @@
          </Resource>
 
          <!-- [Organization] Password Expired User Identification API -->
-         <Resource context="(.*)/o/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true"
+         <Resource context="(.*)/o/api/server/v1/password-expired-users(.*)" secured="true"
                           http-method="GET">
              <Scopes>internal_org_password_expired_user_view</Scopes>
          </Resource>
 
          <!-- Password Expired User Identification API -->
-         <Resource context="(.*)/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true"
+         <Resource context="(.*)/api/server/v1/password-expired-users(.*)" secured="true"
                           http-method="GET">
              <Scopes>internal_password_expired_user_view</Scopes>
          </Resource>
