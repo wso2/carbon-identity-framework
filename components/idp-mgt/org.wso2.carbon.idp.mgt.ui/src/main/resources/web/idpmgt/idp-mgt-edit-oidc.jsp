@@ -43,6 +43,7 @@
     boolean isOIDCEnabled = Boolean.parseBoolean(request.getParameter("isOIDCEnabled"));
     boolean isOIDCDefault = Boolean.parseBoolean(request.getParameter("isOIDCDefault"));
     boolean isOIDCBasicAuthEnabled = false;
+    boolean isOIDCPKCEEnabled = false;
     String clientId = null;
     String clientSecret = null;
     String authzUrl = null;
@@ -51,7 +52,6 @@
     String userInfoEndpoint = null;
     String logoutUrlOIDC = null;
     boolean isOIDCUserIdInClaims = false;
-    String scopes = StringUtils.EMPTY;
     String oidcQueryParam = StringUtils.EMPTY;
     
     Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>)session.getAttribute(
@@ -132,6 +132,11 @@
                     if (basicAuthEnabledProp != null) {
                         isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
                     }
+                    Property pkceEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.IS_PKCE_ENABLED);
+                    if (pkceEnabledProp != null) {
+                        isOIDCPKCEEnabled = Boolean.parseBoolean(pkceEnabledProp.getValue());
+                    }
                 }
             }
         }
@@ -182,6 +187,10 @@
     if (isOIDCBasicAuthEnabled) {
         oidcBasicAuthEnabledChecked = "checked=\'checked\'";
     }
+    String oidcPKCEEnabledChecked = StringUtils.EMPTY;
+        if (isOIDCPKCEEnabled) {
+            oidcPKCEEnabledChecked = "checked=\'checked\'";
+        }
     if (scopes == null) {
         scopes = StringUtils.EMPTY;
     }
@@ -191,7 +200,7 @@
     if (StringUtils.isBlank(scopes) && !oidcQueryParam.toLowerCase().contains("scope=")) {
        scopes = "openid";
     }
-    
+
 %>
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
 
@@ -375,6 +384,18 @@
                                type="checkbox" <%=oidcBasicAuthEnabledChecked%> />
                         <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='oidc.enable.basicauth.help'/>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftCol-med labelField"><fmt:message key='oidc.enable.pkce'/>:</td>
+                <td>
+                    <div class="sectionCheckbox">
+                        <input id="oidcPKCEEnabled" name="oidcPKCEEnabled"
+                               type="checkbox" <%=oidcPKCEEnabledChecked%> />
+                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='oidc.enable.pkce.help'/>
                         </span>
                     </div>
                 </td>

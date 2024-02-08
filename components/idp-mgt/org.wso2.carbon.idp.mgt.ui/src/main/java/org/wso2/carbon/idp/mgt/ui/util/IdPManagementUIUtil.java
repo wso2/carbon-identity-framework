@@ -84,6 +84,12 @@ public class IdPManagementUIUtil {
 
     public static final String IDP_LIST_UNIQUE_ID = "idpUniqueIdMap";
 
+    public static final String CHECKBOX_ON = "on";
+
+    public static final String PROPERTY_TRUE = "true";
+
+    public static final String PROPERTY_FALSE = "false";
+
     /**
      * Validates an URI.
      *
@@ -1258,7 +1264,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(facebookAuthnConfig);
         }
 
-        Property[] properties = new Property[8];
+        Property[] properties = new Property[11];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
         property.setValue(paramMap.get("fbClientId"));
@@ -1342,7 +1348,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(oidcAuthnConfig);
         }
 
-        Property[] properties = new Property[11];
+        Property[] properties = new Property[12];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
@@ -1414,6 +1420,16 @@ public class IdPManagementUIUtil {
             property.setValue("false");
         }
         properties[10] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED);
+        property.setValue(PROPERTY_FALSE);
+        if (paramMap.get(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED_PARAM_NAME) != null
+                && CHECKBOX_ON.equals(
+                        paramMap.get(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED_PARAM_NAME))) {
+            property.setValue(PROPERTY_TRUE);
+        }
+        properties[11] = property;
 
         oidcAuthnConfig.setProperties(properties);
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();

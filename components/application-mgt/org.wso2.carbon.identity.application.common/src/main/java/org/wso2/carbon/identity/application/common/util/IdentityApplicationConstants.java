@@ -225,7 +225,9 @@ public class IdentityApplicationConstants {
             public static final String OIDC_LOGOUT_URL = "OIDCLogoutEPUrl";
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
             public static final String IS_BASIC_AUTH_ENABLED = "IsBasicAuthEnabled";
+            public static final String IS_PKCE_ENABLED = "IsPKCEEnabled";
             public static final String QUERY_PARAMS = "commonAuthQueryParams";
+            public static final Object IS_PKCE_ENABLED_PARAM_NAME = "oidcPKCEEnabled";
         }
 
         /**
