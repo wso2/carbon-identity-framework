@@ -206,10 +206,13 @@ public class IdPManagementServiceComponent {
             setIdentityProviderMgtListenerService(new IdPMgtValidationListener());
 
             CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
-            if (dao.getIdPByName(null,
-                    IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
-                    IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME),
-                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME) == null) {
+            try {
+                dao.getIdPByName(null,
+                        IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
+                        IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME),
+                        MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            } catch (IdentityProviderManagementException e) {
+                // If the resident IDP is not in the database, add it.
                 addSuperTenantIdp();
             }
             bundleCtx.registerService(IdpManager.class, IdentityProviderManager.getInstance(), null);
