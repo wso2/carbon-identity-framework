@@ -34,51 +34,21 @@ import java.util.stream.Collectors;
 /**
  * Console authorized API listener.
  */
-public class ConsoleAuthorizedAPIListener implements AuthorizedAPIManagementListener {
+public class ConsoleAuthorizedAPIListener extends AbstractAuthorizedAPIManagementListener {
 
     @Override
     public int getExecutionOrderId() {
-        return 0;
+        return 1;
     }
 
     @Override
     public int getDefaultOrderId() {
-        return 0;
+        return 1;
     }
 
     @Override
     public boolean isEnable() {
-        return false;
-    }
-
-    @Override
-    public void preAddAuthorizedAPI(String appId, AuthorizedAPI authorizedAPI, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-    }
-
-    @Override
-    public void postAddAuthorizedAPI(String appId, AuthorizedAPI authorizedAPI, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-    }
-
-    @Override
-    public void preDeleteAuthorizedAPI(String appId, String apiId, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-    }
-
-    @Override
-    public void postDeleteAuthorizedAPI(String appId, String apiId, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-    }
-
-    @Override
-    public void preGetAuthorizedAPIs(String appId, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
+        return true;
     }
 
     @Override
@@ -107,24 +77,6 @@ public class ConsoleAuthorizedAPIListener implements AuthorizedAPIManagementList
     }
 
     @Override
-    public void prePatchAuthorizedAPI(String appId, String apiId, List<String> addedScopes, List<String> removedScopes,
-                                      String tenantDomain) throws IdentityApplicationManagementException {
-
-    }
-
-    @Override
-    public void postPatchAuthorizedAPI(String appId, String apiId, List<String> addedScopes, List<String> removedScopes,
-                                       String tenantDomain) throws IdentityApplicationManagementException {
-
-    }
-
-    @Override
-    public void preGetAuthorizedScopes(String appId, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-    }
-
-    @Override
     public void postGetAuthorizedScopes(List<AuthorizedScopes> authorizedScopesList, String appId, String tenantDomain)
             throws IdentityApplicationManagementException {
 
@@ -142,12 +94,6 @@ public class ConsoleAuthorizedAPIListener implements AuthorizedAPIManagementList
     }
 
     @Override
-    public void preGetAuthorizedAPI(String appId, String apiId, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-    }
-
-    @Override
     public AuthorizedAPI postGetAuthorizedAPI(AuthorizedAPI authorizedAPI, String appId, String apiId,
                                               String tenantDomain) throws IdentityApplicationManagementException {
 
@@ -155,7 +101,7 @@ public class ConsoleAuthorizedAPIListener implements AuthorizedAPIManagementList
             try {
                 APIResource apiResource = ApplicationManagementServiceComponentHolder.getInstance()
                         .getAPIResourceManager().getAPIResourceById(apiId, tenantDomain);
-                AuthorizedAPI authorizedAPI1 =  new AuthorizedAPI.AuthorizedAPIBuilder()
+                AuthorizedAPI authorizedAPI1 = new AuthorizedAPI.AuthorizedAPIBuilder()
                         .appId(appId)
                         .apiId(apiResource.getId())
                         .scopes(apiResource.getScopes())
