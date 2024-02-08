@@ -279,8 +279,6 @@
                             org.osgi.service.http; version="${osgi.service.http.imp.pkg.version.range}",
                             org.osgi.util.tracker; version="${osgi.util.tracker.imp.pkg.version.range}",
 
-                            org.graalvm.polyglot.*; version="${graalvm.version.range}",
-
                             org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
 
                             org.wso2.carbon.registry.core.*; version="${carbon.kernel.registry.imp.pkg.version}",
