@@ -223,8 +223,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
                     .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
 
-            if (StringUtils.isEmpty(associatedUserName)) {
-                // If a local user is using the same username, association is not allowed unless enabled through config
+            if (StringUtils.isBlank(associatedUserName)) {
+                // If a local user is using the same username, association is not allowed unless enabled through config.
                 if (isAssociationToExistingUserAllowed()) {
                     // Associate User
                     associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
