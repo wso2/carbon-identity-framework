@@ -4,6 +4,7 @@
   "authentication.map_federated_users_to_local": false,
   "authentication.enable_scope_based_claim_filtering": true,
   "authentication.allow_sp_requested_fed_claims_only": true,
+  "authentication.endpoint.enable_custom_claim_mappings": true,
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
