@@ -72,7 +72,7 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
         Map<String, Object> persistableMap = new HashMap<>();
         engineBindings.getMemberKeys().forEach((key) -> {
             Value binding = engineBindings.getMember(key);
-            if (!binding.isHostObject()) {
+            if (!(binding.isHostObject() && (binding.canExecute() || !binding.hasArrayElements()))) {
                 persistableMap.put(key, GraalSerializer.getInstance().toJsSerializable(binding));
             }
         });
