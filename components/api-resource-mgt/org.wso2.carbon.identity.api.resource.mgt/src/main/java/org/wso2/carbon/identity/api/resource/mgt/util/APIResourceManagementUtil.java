@@ -128,8 +128,23 @@ public class APIResourceManagementUtil {
                     if (addedScopes.isEmpty()) {
                         continue;
                     }
+
+                    APIResource updatedAPIResourceFromDB = new APIResource.APIResourceBuilder()
+                            .id(apiResourceFromDB.getId())
+                            .name(apiResourceFromDB.getName())
+                            .description(apiResourceFromDB.getDescription())
+                            .identifier(apiResourceFromDB.getIdentifier())
+                            // Set the type as the updated API resource type.
+                            .type(updatedAPIResource.getType())
+                            .tenantId(apiResourceFromDB.getTenantId())
+                            .requiresAuthorization(apiResourceFromDB.isAuthorizationRequired())
+                            .scopes(updatedAPIResource.getScopes())
+                            .subscribedApplications(apiResourceFromDB.getSubscribedApplications())
+                            .properties(apiResourceFromDB.getProperties())
+                            .build();
+
                     // If there are scopes which are not in the existing API resource, update the API resource.
-                    APIResourceManagerImpl.getInstance().updateAPIResource(apiResourceFromDB, addedScopes,
+                    APIResourceManagerImpl.getInstance().updateAPIResource(updatedAPIResourceFromDB, addedScopes,
                             new ArrayList<>(), tenantDomain);
                 }
             }
