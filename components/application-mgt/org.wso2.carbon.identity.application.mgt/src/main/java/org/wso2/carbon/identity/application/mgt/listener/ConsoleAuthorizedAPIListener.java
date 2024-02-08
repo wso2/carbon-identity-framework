@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
@@ -49,6 +50,37 @@ public class ConsoleAuthorizedAPIListener extends AbstractAuthorizedAPIManagemen
     @Override
     public boolean isEnable() {
         return true;
+    }
+
+    @Override
+    public void preAddAuthorizedAPI(String appId, AuthorizedAPI authorizedAPI, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (appId.equals(getConsoleAppId(tenantDomain))) {
+            throw new IdentityApplicationManagementClientException("Adding authorized APIs to the console application" +
+                    " is not allowed");
+        }
+
+    }
+
+    @Override
+    public void preDeleteAuthorizedAPI(String appId, String apiId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (appId.equals(getConsoleAppId(tenantDomain))) {
+            throw new IdentityApplicationManagementClientException("Deleting authorized APIs from the console " +
+                    "application is not allowed");
+        }
+    }
+
+    @Override
+    public void prePatchAuthorizedAPI(String appId, String apiId, List<String> addedScopes, List<String> removedScopes,
+                                      String tenantDomain) throws IdentityApplicationManagementException {
+
+        if (appId.equals(getConsoleAppId(tenantDomain))) {
+            throw new IdentityApplicationManagementClientException("Patching authorized APIs of the console " +
+                    "application is not allowed");
+        }
     }
 
     @Override
