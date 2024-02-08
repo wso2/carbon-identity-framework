@@ -1637,6 +1637,11 @@
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${org.javassist.version}</version>
+            </dependency>
             <!-- Common test utility -->
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -1713,11 +1718,11 @@
                 <artifactId>cxf-rt-rs-service-description</artifactId>
                 <version>${apache.cxf-rt-rs-service-description.version}</version>
             </dependency>
-        <dependency>
-            <groupId>org.codehaus.jettison</groupId>
-            <artifactId>jettison</artifactId>
-            <version>${codehaus.jettison.version}</version>
-        </dependency>
+            <dependency>
+                <groupId>org.codehaus.jettison</groupId>
+                <artifactId>jettison</artifactId>
+                <version>${codehaus.jettison.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-web</artifactId>
@@ -2037,6 +2042,7 @@
 
         <account.lock.service.imp.pkg.version.range>[1.4.23, 2.0.0)</account.lock.service.imp.pkg.version.range>
         <openjdk.nashorn.version>15.3</openjdk.nashorn.version>
+        <org.javassist.version>3.24.0-GA</org.javassist.version>
     </properties>
 
     <build>
