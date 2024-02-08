@@ -17,55 +17,69 @@
 */
 package org.wso2.carbon.identity.entitlement.pap.store;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.PDPConstants;
+import org.wso2.carbon.identity.entitlement.dao.RegistryPAPPolicyStore;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
+import org.wso2.carbon.identity.entitlement.dao.PAPPolicyStoreModule;
 import org.wso2.carbon.registry.core.Resource;
 
 public class PAPPolicyStoreManager {
 
-    private static final Log log = LogFactory.getLog(PAPPolicyStoreManager.class);
-    private PAPPolicyStore store;
-    private PAPPolicyStoreReader storeReader;
+    private final PAPPolicyStoreModule store;
+
+    private final PAPPolicyStoreReader storeReader;
+
 
     public PAPPolicyStoreManager() {
-        store = new PAPPolicyStore();
+        store = new RegistryPAPPolicyStore();
         storeReader = new PAPPolicyStoreReader(store);
     }
 
+
     public void addOrUpdatePolicy(PolicyDTO policy) throws EntitlementException {
-        store.addOrUpdatePolicy(policy, PDPConstants.ENTITLEMENT_POLICY_PAP);
+        store.addOrUpdatePolicy(policy, true);
     }
+
 
     public void removePolicy(String policyId) throws EntitlementException {
         store.removePolicy(policyId);
     }
 
+
+    public void removePolicyByVersion(String policyId, int version) throws EntitlementException {
+        store.removePolicy(policyId, version);
+    }
+
+
     public String[] getPolicyIds() throws EntitlementException {
         return store.getAllPolicyIds();
     }
+
 
     public PolicyDTO getPolicy(String policyId) throws EntitlementException {
         return storeReader.readPolicyDTO(policyId);
     }
 
+
     public boolean isExistPolicy(String policyId) {
         return storeReader.isExistPolicy(policyId);
     }
+
 
     public PolicyDTO getLightPolicy(String policyId) throws EntitlementException {
         return storeReader.readLightPolicyDTO(policyId);
     }
 
+
     public PolicyDTO getMetaDataPolicy(String policyId) throws EntitlementException {
         return storeReader.readMetaDataPolicyDTO(policyId);
     }
 
+
     public PolicyDTO getPolicy(Resource resource) throws EntitlementException {
         return storeReader.readPolicyDTO(resource);
     }
+
 
     public PolicyDTO[] getAllLightPolicyDTOs() throws EntitlementException {
         return storeReader.readAllLightPolicyDTOs();

@@ -1,12 +1,12 @@
 /*
- *  Copyright (c) WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -15,14 +15,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.entitlement;
+package org.wso2.carbon.identity.entitlement.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.entitlement.EntitlementException;
+import org.wso2.carbon.identity.entitlement.PDPConstants;
+import org.wso2.carbon.identity.entitlement.StatusHolderComparator;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
-import org.wso2.carbon.identity.entitlement.dto.PublisherPropertyDTO;
 import org.wso2.carbon.identity.entitlement.dto.StatusHolder;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.registry.core.Registry;
@@ -40,16 +42,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * TODO
+ * This implementation handles the status data
  */
-public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
+public class RegistryPAPStatusDataHandler implements PAPStatusDataHandlerModule {
 
     private static final String ENTITLEMENT_POLICY_STATUS = "/repository/identity/entitlement/status/policy/";
     private static final String ENTITLEMENT_PUBLISHER_STATUS = "/repository/identity/entitlement/status/publisher/";
-    private static final int SEARCH_BY_USER = 0;
-    private static final int SEARCH_BY_POLICY = 1;
-    private static Log log = LogFactory.getLog(SimplePAPStatusDataHandler.class);
-    private int DEFAULT_MAX_RECODES = 50;
+    private static final Log log = LogFactory.getLog(RegistryPAPStatusDataHandler.class);
     private int maxRecodes;
 
     @Override
@@ -63,41 +62,40 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
             }
         }
         if (maxRecodes == 0) {
-            maxRecodes = DEFAULT_MAX_RECODES;
+            maxRecodes = PDPConstants.DEFAULT_MAX_NO_OF_STATUS_RECORDS;
         }
     }
 
     @Override
-    public void handle(String about, String key, List<StatusHolder> statusHolder)
-            throws EntitlementException {
+    public void handle(String about, String key, List<StatusHolder> statusHolder) throws EntitlementException {
 
+        String path;
         if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
-            String path = ENTITLEMENT_POLICY_STATUS + key;
-            // policy would be deleted.
+            path = ENTITLEMENT_POLICY_STATUS + key;
+            // policy gets deleted.
             for (StatusHolder holder : statusHolder) {
                 if (EntitlementConstants.StatusTypes.DELETE_POLICY.equals(holder.getType())) {
                     deletedPersistedData(path);
                     return;
                 }
             }
-            persistStatus(path, statusHolder, false);
         } else {
-            String path = ENTITLEMENT_PUBLISHER_STATUS + key;
-            // subscriber would be deleted.
+            path = ENTITLEMENT_PUBLISHER_STATUS + key;
+            // subscriber gets deleted.
             for (StatusHolder holder : statusHolder) {
                 if (EntitlementConstants.StatusTypes.DELETE_POLICY.equals(holder.getType())) {
                     deletedPersistedData(path);
                     return;
                 }
             }
-            persistStatus(path, statusHolder, false);
         }
+        persistStatus(path, statusHolder, false);
     }
 
 
     @Override
     public void handle(String about, StatusHolder statusHolder) throws EntitlementException {
-        List<StatusHolder> list = new ArrayList<StatusHolder>();
+        List<StatusHolder> list = new ArrayList<>();
         list.add(statusHolder);
         handle(about, statusHolder.getKey(), list);
     }
@@ -110,51 +108,46 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
         if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
             String path = ENTITLEMENT_POLICY_STATUS + key;
             List<StatusHolder> holders = readStatus(path, EntitlementConstants.Status.ABOUT_POLICY);
-            List<StatusHolder> filteredHolders = new ArrayList<StatusHolder>();
-            if (holders != null) {
-                searchString = searchString.replace("*", ".*");
-                Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
-                for (StatusHolder holder : holders) {
-                    String id = holder.getUser();
-                    Matcher matcher = pattern.matcher(id);
-                    if (!matcher.matches()) {
-                        continue;
-                    }
-                    if (type != null && type.equals(holder.getType())) {
-                        filteredHolders.add(holder);
-                    } else if (type == null) {
-                        filteredHolders.add(holder);
-                    }
+            List<StatusHolder> filteredHolders = new ArrayList<>();
+            searchString = searchString.replace("*", ".*");
+            Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
+            for (StatusHolder holder : holders) {
+                String id = holder.getUser();
+                Matcher matcher = pattern.matcher(id);
+                if (!matcher.matches()) {
+                    continue;
                 }
-            }
-            return filteredHolders.toArray(new StatusHolder[filteredHolders.size()]);
-        } else {
-            List<StatusHolder> filteredHolders = new ArrayList<StatusHolder>();
-            String path = ENTITLEMENT_PUBLISHER_STATUS + key;
-            List<StatusHolder> holders = readStatus(path, EntitlementConstants.Status.ABOUT_SUBSCRIBER);
-            if (holders != null) {
-                searchString = searchString.replace("*", ".*");
-                Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
-                for (StatusHolder holder : holders) {
-                    String id = holder.getTarget();
-                    Matcher matcher = pattern.matcher(id);
-                    if (!matcher.matches()) {
-                        continue;
-                    }
+                if (type != null && type.equals(holder.getType())) {
+                    filteredHolders.add(holder);
+                } else if (type == null) {
                     filteredHolders.add(holder);
                 }
             }
-            return filteredHolders.toArray(new StatusHolder[filteredHolders.size()]);
+            return filteredHolders.toArray(new StatusHolder[0]);
+        } else {
+            List<StatusHolder> filteredHolders = new ArrayList<>();
+            String path = ENTITLEMENT_PUBLISHER_STATUS + key;
+            List<StatusHolder> holders = readStatus(path, EntitlementConstants.Status.ABOUT_SUBSCRIBER);
+            searchString = searchString.replace("*", ".*");
+            Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
+            for (StatusHolder holder : holders) {
+                String id = holder.getTarget();
+                Matcher matcher = pattern.matcher(id);
+                if (!matcher.matches()) {
+                    continue;
+                }
+                filteredHolders.add(holder);
+            }
+            return filteredHolders.toArray(new StatusHolder[0]);
         }
     }
 
     private synchronized void deletedPersistedData(String path) throws EntitlementException {
 
-        Registry registry = null;
+        Registry registry;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         try {
-            registry = EntitlementServiceComponent.getRegistryService().
-                    getGovernanceSystemRegistry(tenantId);
+            registry = EntitlementServiceComponent.getRegistryService().getGovernanceSystemRegistry(tenantId);
             if (registry.resourceExists(path)) {
                 registry.delete(path);
             }
@@ -167,15 +160,14 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
     private synchronized void persistStatus(String path, List<StatusHolder> statusHolders, boolean isNew)
             throws EntitlementException {
 
-        Resource resource = null;
-        Registry registry = null;
+        Resource resource;
+        Registry registry;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         try {
-            registry = EntitlementServiceComponent.getRegistryService().
-                    getGovernanceSystemRegistry(tenantId);
-            boolean useLastStatusOnly = Boolean.parseBoolean(
-                    IdentityUtil.getProperty(EntitlementConstants.PROP_USE_LAST_STATUS_ONLY));
+            registry = EntitlementServiceComponent.getRegistryService().getGovernanceSystemRegistry(tenantId);
+            boolean useLastStatusOnly =
+                    Boolean.parseBoolean(IdentityUtil.getProperty(EntitlementConstants.PROP_USE_LAST_STATUS_ONLY));
             if (registry.resourceExists(path) && !isNew && !useLastStatusOnly) {
                 resource = registry.get(path);
                 String[] versions = registry.getVersions(path);
@@ -184,7 +176,7 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
                     for (String version : versions) {
                         long versionInt = 0;
                         String[] versionStrings = version.split(RegistryConstants.VERSION_SEPARATOR);
-                        if (versionStrings != null && versionStrings.length == 2) {
+                        if (versionStrings.length == 2) {
                             try {
                                 versionInt = Long.parseLong(versionStrings[1]);
                             } catch (Exception e) {
@@ -200,9 +192,9 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
                 resource = registry.newResource();
             }
 
-            if (resource != null && statusHolders != null && statusHolders.size() > 0) {
+            if (resource != null && statusHolders != null && !statusHolders.isEmpty()) {
                 resource.setVersionableChange(false);
-                populateStatusProperties(statusHolders.toArray(new StatusHolder[statusHolders.size()]), resource);
+                populateStatusProperties(statusHolders.toArray(new StatusHolder[0]), resource);
                 registry.put(path, resource);
             }
         } catch (RegistryException e) {
@@ -215,11 +207,10 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
     private synchronized List<StatusHolder> readStatus(String path, String about) throws EntitlementException {
 
         Resource resource = null;
-        Registry registry = null;
+        Registry registry;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         try {
-            registry = EntitlementServiceComponent.getRegistryService().
-                    getGovernanceSystemRegistry(tenantId);
+            registry = EntitlementServiceComponent.getRegistryService().getGovernanceSystemRegistry(tenantId);
             if (registry.resourceExists(path)) {
                 resource = registry.get(path);
             }
@@ -228,18 +219,16 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
             throw new EntitlementException("Error while persisting policy status", e);
         }
 
-        List<StatusHolder> statusHolders = new ArrayList<StatusHolder>();
+        List<StatusHolder> statusHolders = new ArrayList<>();
         if (resource != null && resource.getProperties() != null) {
             Properties properties = resource.getProperties();
             for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-                PublisherPropertyDTO dto = new PublisherPropertyDTO();
-                dto.setId((String) entry.getKey());
                 Object value = entry.getValue();
                 if (value instanceof ArrayList) {
                     List list = (ArrayList) entry.getValue();
-                    if (list != null && list.size() > 0 && list.get(0) != null) {
+                    if (!list.isEmpty() && list.get(0) != null) {
                         StatusHolder statusHolder = new StatusHolder(about);
-                        if (list.size() > 0 && list.get(0) != null) {
+                        if (list.get(0) != null) {
                             statusHolder.setType((String) list.get(0));
                         }
                         if (list.size() > 1 && list.get(1) != null) {
@@ -276,17 +265,14 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
                 }
             }
         }
-        if (statusHolders.size() > 0) {
-            StatusHolder[] array = statusHolders.toArray(new StatusHolder[statusHolders.size()]);
-            java.util.Arrays.sort(array, new StatusHolderComparator());
+        if (!statusHolders.isEmpty()) {
+            StatusHolder[] array = statusHolders.toArray(new StatusHolder[0]);
+            Arrays.sort(array, new StatusHolderComparator());
             if (statusHolders.size() > maxRecodes) {
-                statusHolders = new ArrayList<StatusHolder>();
-                for (int i = 0; i < maxRecodes; i++) {
-                    statusHolders.add(array[i]);
-                }
+                statusHolders = new ArrayList<>(Arrays.asList(array).subList(0, maxRecodes));
                 persistStatus(path, statusHolders, true);
             } else {
-                statusHolders = new ArrayList<StatusHolder>(Arrays.asList(array));
+                statusHolders = new ArrayList<>(Arrays.asList(array));
             }
         }
 
@@ -295,14 +281,14 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
 
 
     /**
-     * @param statusHolders
-     * @param resource
+     * @param statusHolders status holders
+     * @param resource      resource
      */
     private void populateStatusProperties(StatusHolder[] statusHolders, Resource resource) {
         if (statusHolders != null) {
             for (StatusHolder statusHolder : statusHolders) {
                 if (statusHolder != null) {
-                    List<String> list = new ArrayList<String>();
+                    List<String> list = new ArrayList<>();
                     list.add(statusHolder.getType());
                     list.add(statusHolder.getTimeInstance());
                     list.add(statusHolder.getUser());

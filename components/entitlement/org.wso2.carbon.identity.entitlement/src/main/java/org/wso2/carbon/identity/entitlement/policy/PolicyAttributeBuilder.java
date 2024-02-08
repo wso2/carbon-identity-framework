@@ -29,13 +29,14 @@ import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
 
 /**
- * This class phrase the xml representation of policy and build the policy meta data such as
+ * This class phrase the xml representation of policy and build the policy metadata such as
  * resource names, subject names action names and environment names, attribute ids and data types.
  */
 public class PolicyAttributeBuilder {
@@ -64,9 +65,9 @@ public class PolicyAttributeBuilder {
     }
 
     /**
-     * This creates properties object which contains the policy meta data.
+     * This creates properties object which contains the policy metadata.
      *
-     * @return properties object which contains the policy meta data
+     * @return properties object which contains the policy metadata
      * @throws EntitlementException throws
      */
     public Properties getPolicyMetaDataFromPolicy() throws EntitlementException {
@@ -125,6 +126,30 @@ public class PolicyAttributeBuilder {
 
         return attributeDTOs.toArray(new AttributeDTO[attributeDTOs.size()]);
     }
+
+    public AttributeDTO[] getPolicyMetaData(Properties properties) {
+
+        List<AttributeDTO> attributeDTOs = new ArrayList<AttributeDTO>();
+        if (properties != null && !properties.isEmpty()) {
+            for (int attributeElementNo = 0; attributeElementNo < properties.size(); ) {
+
+                String[] attributeData = Collections.singletonList(properties.get(PDPConstants.POLICY_META_DATA +
+                        attributeElementNo)).toString().split(PDPConstants.ATTRIBUTE_SEPARATOR);
+                if (attributeData.length == PDPConstants.POLICY_META_DATA_ARRAY_LENGTH) {
+                    AttributeDTO attributeDTO = new AttributeDTO();
+                    attributeDTO.setCategory(attributeData[0]);
+                    attributeDTO.setAttributeValue(attributeData[1]);
+                    attributeDTO.setAttributeId(attributeData[2]);
+                    attributeDTO.setAttributeDataType(attributeData[3]);
+                    attributeDTOs.add(attributeDTO);
+                }
+                attributeElementNo++;
+            }
+        }
+
+        return attributeDTOs.toArray(new AttributeDTO[0]);
+    }
+
 
     /**
      * This creates the OMElement from the policy xml and create the the meta data for hole policy

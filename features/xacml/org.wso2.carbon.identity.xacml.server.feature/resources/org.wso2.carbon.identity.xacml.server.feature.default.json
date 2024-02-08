@@ -15,10 +15,11 @@
   "identity.entitlement.policy_point.pdp.registry_level_policy_cache_clear": false,
   "identity.entitlement.policy_point.pdp.reference_max_policy_entries": "3000",
   "identity.entitlement.policy_point.pdp.policy_finders": [
-    "org.wso2.carbon.identity.entitlement.policy.store.RegistryPolicyStoreManageModule"
+    "org.wso2.carbon.identity.entitlement.dao.RegistryPDPPolicyStore",
+    "org.wso2.carbon.identity.entitlement.dao.PDPPolicyStore"
   ],
-  "identity.entitlement.policy_point.pdp.policy_store_module": "org.wso2.carbon.identity.entitlement.policy.store.RegistryPolicyStoreManageModule",
-  "identity.entitlement.policy_point.pdp.policy_data_store_module": "org.wso2.carbon.identity.entitlement.policy.store.DefaultPolicyDataStore",
+  "identity.entitlement.policy_point.pdp.policy_store_module": "org.wso2.carbon.identity.entitlement.dao.RegistryPDPPolicyStore",
+  "identity.entitlement.policy_point.pdp.policy_data_store_module": "org.wso2.carbon.identity.entitlement.dao.DefaultPolicyDataStore",
   "identity.entitlement.policy_point.pap.enabled": true,
   "identity.entitlement.policy_point.pap.policy_add_start_enable": true,
   "identity.entitlement.policy_point.pap.items_per_page": "10",
@@ -28,9 +29,9 @@
   "identity.entitlement.policy_point.pap.policy_publisher_modules": [
     "org.wso2.carbon.identity.entitlement.policy.publisher.CarbonBasicPolicyPublisherModule"
   ],
-  "identity.entitlement.policy_point.pap.policy_version_module": "org.wso2.carbon.identity.entitlement.policy.version.DefaultPolicyVersionManager",
+  "identity.entitlement.policy_point.pap.policy_version_module": "org.wso2.carbon.identity.entitlement.dao.DefaultPolicyVersionManager",
   "identity.entitlement.policy_point.pap.status_data_handlers": [
-    "org.wso2.carbon.identity.entitlement.SimplePAPStatusDataHandler"
+    "org.wso2.carbon.identity.entitlement.dao.SimplePAPStatusDataHandler"
   ],
   "identity.entitlement.policy_point.pip.attribute_designators": [
     "org.wso2.carbon.identity.entitlement.pip.DefaultAttributeFinder",

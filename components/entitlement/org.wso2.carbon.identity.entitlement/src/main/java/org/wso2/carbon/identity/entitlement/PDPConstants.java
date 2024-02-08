@@ -53,6 +53,10 @@ public class PDPConstants {
 
     public static final String POLICY_SET_REFERENCE = "policySetIdReferences";
 
+    public static final String POLICY_ID_REFERENCE = "PolicyIdReference";
+
+    public static final String POLICY_SET_ID_REFERENCE = "PolicySetIdReference";
+
     public static final String APPLY_ELEMENT = "Apply";
 
     public static final String MATCH_ELEMENT = "Match";
@@ -78,16 +82,16 @@ public class PDPConstants {
     public static final String ALL_OF = "AllOf";
 
     public static final String RESOURCE_CATEGORY_URI = "urn:oasis:names:tc:xacml:3.0:" +
-                                                       "attribute-category:resource";
+            "attribute-category:resource";
 
     public static final String SUBJECT_CATEGORY_URI = "urn:oasis:names:tc:xacml:1.0:" +
-                                                      "subject-category:access-subject";
+            "subject-category:access-subject";
 
     public static final String ACTION_CATEGORY_URI = "urn:oasis:names:tc:xacml:3.0:" +
-                                                     "attribute-category:action";
+            "attribute-category:action";
 
     public static final String ENVIRONMENT_CATEGORY_URI = "urn:oasis:names:tc:xacml:3.0:" +
-                                                          "attribute-category:environment";
+            "attribute-category:environment";
 
     public static final String TARGET_ELEMENT = "Target";
 
@@ -124,11 +128,11 @@ public class PDPConstants {
 
     public static final String SUBJECT_ID_ROLE = "http://wso2.org/claims/roles";
 
-    public static  final String SERVICE_PROVIDER_NAME = "http://wso2.org/identity/sp/sp-name";
+    public static final String SERVICE_PROVIDER_NAME = "http://wso2.org/identity/sp/sp-name";
 
-    public static  final String SERVICE_PROVIDER_TENANT_DOMAIN = "http://wso2.org/identity/sp/sp-tenant-domain";
+    public static final String SERVICE_PROVIDER_TENANT_DOMAIN = "http://wso2.org/identity/sp/sp-tenant-domain";
 
-    public  static  final String SERVICE_PROVIDER = "http://wso2.org/identity/sp";
+    public static final String SERVICE_PROVIDER = "http://wso2.org/identity/sp";
 
     public static final String RULE_EFFECT_PERMIT = "Permit";
 
@@ -199,15 +203,15 @@ public class PDPConstants {
     public static final String SEARCH_WARNING_MESSAGE2 = "No Attributes are defined";
 
     public static final String SEARCH_WARNING_MESSAGE3 = "Attribute Selector Element is contained " +
-                                                         "with Xpath expression";
+            "with Xpath expression";
 
     public static final String SEARCH_WARNING_MESSAGE4 = "Apply Element is not contained within Condition Element";
 
     public static final String SEARCH_ERROR = "Search_Error";
 
     public static final String SEARCH_ERROR_MESSAGE = "Therefore Advance Search can not be proceeded. " +
-                                                      "Please de-active this policy, If policy is not" +
-                                                      " relevant for the search";
+            "Please de-active this policy, If policy is not" +
+            " relevant for the search";
 
     public static final String XACML_3_POLICY_XMLNS = "urn:oasis:names:tc:xacml:3.0:core:schema:wd-17";
 
@@ -288,4 +292,13 @@ public class PDPConstants {
     public static final String USER_CATEGORY = "http://wso2.org/identity/user";
 
     public static final String USER_TYPE_ID = USER_CATEGORY + "/user-type";
+
+    public static final String GLOBAL_POLICY_COMBINING_ALGORITHM = "globalPolicyCombiningAlgorithm";
+
+    public static final int DEFAULT_MAX_NO_OF_STATUS_RECORDS = 50;
+
+    public static final int DEFAULT_MAX_POLICY_VERSION = 5;
+
+    public static final int DEFAULT_MAX_NO_OF_IN_MEMORY_POLICIES = 5;
+
 }

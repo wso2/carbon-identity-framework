@@ -37,14 +37,14 @@ import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.PolicyOrderComparator;
 import org.wso2.carbon.identity.entitlement.cache.PolicyStatus;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
+import org.wso2.carbon.identity.entitlement.dao.PolicyDataStoreModule;
+import org.wso2.carbon.identity.entitlement.dao.RegistryPolicyDataStore;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
 import org.wso2.carbon.identity.entitlement.policy.PolicyReader;
 import org.wso2.carbon.identity.entitlement.policy.collection.PolicyCollection;
 import org.wso2.carbon.identity.entitlement.policy.collection.SimplePolicyCollection;
-import org.wso2.carbon.identity.entitlement.policy.store.DefaultPolicyDataStore;
-import org.wso2.carbon.identity.entitlement.policy.store.PolicyDataStore;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -145,13 +145,13 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
 
             // here we can get policy data store by using EntitlementAdminEngine. But we are not
             // use it here.  As we need not to have a dependant on EntitlementAdminEngine
-            PolicyDataStore policyDataStore;
-            Map<PolicyDataStore, Properties> dataStoreModules = EntitlementServiceComponent.
+            PolicyDataStoreModule policyDataStore;
+            Map<PolicyDataStoreModule, Properties> dataStoreModules = EntitlementServiceComponent.
                     getEntitlementConfig().getPolicyDataStore();
             if (dataStoreModules != null && dataStoreModules.size() > 0) {
                 policyDataStore = dataStoreModules.entrySet().iterator().next().getKey();
             } else {
-                policyDataStore = new DefaultPolicyDataStore();
+                policyDataStore = new RegistryPolicyDataStore();
             }
             policyCombiningAlgorithm = policyDataStore.getGlobalPolicyAlgorithm();
 
