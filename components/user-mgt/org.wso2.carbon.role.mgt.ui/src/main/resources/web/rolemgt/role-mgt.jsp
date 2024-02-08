@@ -386,8 +386,9 @@
 
         <div id="workArea">
 
-            <div style="background-color: #fff5e8; text-align: justify; padding: 10px">
-                    <fmt:message key="role.banner.content"/>
+            <div style="background-color: #fff5e8; text-align: justify; padding: 10px; margin-bottom: 5px">
+                <img src="images/warning.gif" class="editor_warn_img" width="16" height="16" style="float: left; margin-right: 5px">
+                <fmt:message key="role.banner.content"/>
             </div>
 
             <form name="filterForm" method="post" action="role-mgt.jsp">

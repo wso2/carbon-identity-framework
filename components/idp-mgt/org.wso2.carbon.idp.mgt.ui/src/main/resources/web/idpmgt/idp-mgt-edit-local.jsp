@@ -460,7 +460,8 @@ function removeDefaultAuthSeq() {
         </h2>
         <div id="workArea">
 
-                <div style="background-color: #fff5e8; text-align: justify; padding: 10px">
+                <div style="background-color: #fff5e8; text-align: justify; padding: 10px; margin-bottom: 5px">
+                    <img src="images/warning.gif" class="editor_warn_img" width="16" height="16" style="float: left; margin-right: 5px">
                     <fmt:message key="idp.local.banner.content"/>
                 </div>
                 <div class="sectionSeperator "><fmt:message key='resident.realm.config'/></div>
