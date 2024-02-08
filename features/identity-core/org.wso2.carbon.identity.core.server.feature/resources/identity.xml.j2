@@ -4057,15 +4057,19 @@
     <AllowLegacyRoleClaimBehaviour>{{legacy_claims.allow_legacy_role_claim_behaviour}}</AllowLegacyRoleClaimBehaviour>
     {% endif %}
 
-    {% if cache_invalidator.active_mq.broker_url is defined %}
+    {% if cache_invalidator.mb.enabled is defined %}
     <CacheInvalidator>
-        <ActiveMQ>
-           <BrokerURL>{{cache_invalidator.active_mq.broker_url}}</BrokerURL>
-           <Enabled>{{cache_invalidator.active_mq.enabled}}</Enabled>
-           <TopicName>{{cache_invalidator.active_mq.topic_name}}</TopicName>
-           <ProducerName>{{cache_invalidator.active_mq.producer_name}}</ProducerName>
-           <HybridMode>{{cache_invalidator.active_mq.hybrid_mode_enabled}}</HybridMode>
-        </ActiveMQ>
+        <MB>
+            <Enabled>{{cache_invalidator.mb.enabled}}</Enabled>
+            <Type>{{cache_invalidator.mb.broker_type}}</Type>
+            <InitialNamingFactory>{{cache_invalidator.mb.initial_naming_factory}}</InitialNamingFactory>
+            <ProviderURL>{{cache_invalidator.mb.provider_url}}</ProviderURL>
+            <TopicName>{{cache_invalidator.mb.topic_name}}</TopicName>
+            <ProducerName>{{cache_invalidator.mb.producer_name}}</ProducerName>
+            <Username>{{cache_invalidator.mb.username}}</Username>
+            <Password>{{cache_invalidator.mb.password}}</Password>
+            <HybridMode>{{cache_invalidator.mb.hybrid_mode_enabled}}</HybridMode>
+        </MB>
     </CacheInvalidator>
     {% endif %}
 

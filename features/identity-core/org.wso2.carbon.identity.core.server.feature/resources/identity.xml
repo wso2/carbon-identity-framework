@@ -2621,12 +2621,14 @@
     </APIResponse>
 
     <CacheInvalidator>
-        <ActiveMQ>
-            <BrokerURL>failover:tcp://localhost:61616</BrokerURL>
+        <MB>
             <Enabled>false</Enabled>
+            <Type>jms</Type>
+            <InitialNamingFactory>org.apache.activemq.jndi.ActiveMQInitialContextFactory</InitialNamingFactory>
+            <ProviderURL>failover:tcp://localhost:61616</ProviderURL>
             <TopicName>ISCacheInvalidation</TopicName>
             <ProducerName>producer1</ProducerName>
             <HybridMode>false</HybridMode>
-        </ActiveMQ>
+        </MB>
     </CacheInvalidator>
 </Server>
