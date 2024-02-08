@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,7 +60,10 @@ public class SessionContext implements Serializable {
 
     public Map<String, AuthenticatedIdPData> getAuthenticatedIdPsOfApp(String app) {
 
-        return authenticatedIdPsOfApp.get(app);
+        if (authenticatedIdPsOfApp != null) {
+            return authenticatedIdPsOfApp.get(app);
+        }
+        return new HashMap<>();
     }
 
     public void setAuthenticatedIdPsOfApp(String app, Map<String, AuthenticatedIdPData> authenticatedIdPsOfApp) {
