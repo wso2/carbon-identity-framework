@@ -93,10 +93,10 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             listener.preDeleteAuthorizedAPI(appId, apiId, tenantDomain);
         }
         authorizedAPIDAO.deleteAuthorizedAPI(appId, apiId, IdentityTenantUtil.getTenantId(tenantDomain));
-        publisherProxy.publishPostDeleteAuthorizedAPIForApplication(appId, apiId, tenantDomain);
         for (AuthorizedAPIManagementListener listener : listeners) {
             listener.postDeleteAuthorizedAPI(appId, apiId, tenantDomain);
         }
+        publisherProxy.publishPostDeleteAuthorizedAPIForApplication(appId, apiId, tenantDomain);
     }
 
     @Override
@@ -163,12 +163,12 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
         }
         authorizedAPIDAO.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes,
                 IdentityTenantUtil.getTenantId(tenantDomain));
-        publisherProxy.publishPostUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
-                tenantDomain);
         updateRolesWithRemovedScopes(appId, removedScopes, tenantDomain);
         for (AuthorizedAPIManagementListener listener : listeners) {
             listener.postPatchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, tenantDomain);
         }
+        publisherProxy.publishPostUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
+                tenantDomain);
     }
 
     @Override
