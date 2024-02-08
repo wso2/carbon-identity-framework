@@ -1808,16 +1808,16 @@
                 <artifactId>truffle-api</artifactId>
                 <version>${graalvm.version}</version>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>com.ibm.icu</groupId>-->
-<!--                <artifactId>icu4j</artifactId>-->
-<!--                <version>${icu.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--            <groupId>org.graalvm.regex</groupId>-->
-<!--            <artifactId>regex</artifactId>-->
-<!--            <version>${graalvm.version}</version>-->
-<!--            </dependency>-->
+            <dependency>
+                <groupId>org.graalvm.regex</groupId>
+                <artifactId>regex</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ibm.icu</groupId>
+                <artifactId>icu4j</artifactId>
+                <version>${icu.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -2000,6 +2000,8 @@
         <commons-collections4.wso2.osgi.version.range>[4.1.0,5.0.0)</commons-collections4.wso2.osgi.version.range>
         <import.package.version.commons.logging>[1.2.0,2.0.0)</import.package.version.commons.logging>
 
+        <!-- Neethi -->
+
         <neethi.osgi.version>2.0.4.wso2v5</neethi.osgi.version>
         <neethi.osgi.version.range>[2.0.4.wso2v4,3.0.0)</neethi.osgi.version.range>
         <libthrift.wso2.version>0.16.0.wso2v1</libthrift.wso2.version>
@@ -2123,6 +2125,7 @@
         <h2database.version>2.2.224</h2database.version>
 
         <graalvm.version>22.3.4</graalvm.version>
+        <graalvm.version.range>[22.3.0,23.0.0)</graalvm.version.range>
         <!-- ICU version must be reflecting graalvm version -->
         <icu.version>71.1</icu.version>
 

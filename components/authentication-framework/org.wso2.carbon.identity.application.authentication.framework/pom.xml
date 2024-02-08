@@ -143,6 +143,14 @@
             <groupId>org.graalvm.truffle</groupId>
             <artifactId>truffle-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.graalvm.regex</groupId>
+            <artifactId>regex</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.testng</groupId>
@@ -270,6 +278,8 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.osgi.service.http; version="${osgi.service.http.imp.pkg.version.range}",
                             org.osgi.util.tracker; version="${osgi.util.tracker.imp.pkg.version.range}",
+
+                            org.graalvm.polyglot.*; version="${graalvm.version.range}",
 
                             org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
 
