@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Authorized API management listener.
  */
-public class AbstractAuthorizedAPIManagementListener implements AuthorizedAPIManagementListener {
+public abstract class AbstractAuthorizedAPIManagementListener implements AuthorizedAPIManagementListener {
 
     @Override
     public int getExecutionOrderId() {
