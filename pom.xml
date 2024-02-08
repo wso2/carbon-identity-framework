@@ -1927,7 +1927,7 @@
         <joda.version>2.9.4</joda.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
-        <commons-codec.version>1.14.0.wso2v1</commons-codec.version>
+        <commons-codec.version>1.16.0.wso2v1</commons-codec.version>
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
 
         <httpcore.version>4.3.3.wso2v1</httpcore.version>
