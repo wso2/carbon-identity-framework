@@ -230,8 +230,6 @@
         }
     }
 
-    boolean enableBanner = Boolean.parseBoolean(IdentityUtil.getProperty("EnableResidentIdpBanner"));
-
     session.setAttribute("returnToPath", "../idpmgt/idp-mgt-edit-local.jsp");
     session.setAttribute("cancelLink", "../idpmgt/idp-mgt-edit-local.jsp");
     session.setAttribute("backLink", "../idpmgt/idp-mgt-edit-local.jsp");
@@ -462,11 +460,9 @@ function removeDefaultAuthSeq() {
         </h2>
         <div id="workArea">
 
-                <%if (enableBanner) { %>
-                    <div style="background-color: #fff5e8; text-align: justify; padding: 10px">
-                        <fmt:message key="idp.local.banner.content"/>
-                    </div>
-                <% } %>
+                <div style="background-color: #fff5e8; text-align: justify; padding: 10px">
+                    <fmt:message key="idp.local.banner.content"/>
+                </div>
                 <div class="sectionSeperator "><fmt:message key='resident.realm.config'/></div>
                 <div class="sectionSub">
                             <form id="idp-mgt-edit-local-form" name="idp-mgt-edit-local-form" method="post"
