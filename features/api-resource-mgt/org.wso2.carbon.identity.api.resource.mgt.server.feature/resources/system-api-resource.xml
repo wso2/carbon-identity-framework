@@ -269,20 +269,6 @@
                     description="Delete identity provider connectors in the organization"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Identity Verifier Management API" identifier="/api/server/v1/idv-providers"
-                 requiresAuthorization="true"
-                 description="API representation of the Identity Verifier Management API" type="TENANT">
-        <Scopes>
-            <Scope displayName="View Identity Verifier Provider" name="internal_idvp_view" 
-                    description="View identity verification providers"/>
-            <Scope displayName="Add Identity Verifier Provider" name="internal_idvp_add" 
-                    description="Add new identity verification providers"/>
-            <Scope displayName="Update Identity Verifier Provider" name="internal_idvp_update" 
-                    description="Update identity verification providers"/>
-            <Scope displayName="Delete Identity Verifier Provider" name="internal_idvp_delete" 
-                    description="Delete identity verification providers"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Validation Rules API" identifier="/api/server/v1/validation-rules"
                  requiresAuthorization="true" description="API representation of the Validation Rules API" type="TENANT">
         <Scopes>
@@ -519,20 +505,6 @@
                     description="Check user account lock/unlock status in the organization (root)"/>
             <Scope displayName="Create User Functionality" name="internal_user_fucntionality_create" 
                     description="Lock/unlock user accounts in the organization (root)"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="IDV Claim Management API" identifier="/api/users/v1/(.*)/idv"
-                 requiresAuthorization="true"
-                 description="API representation of the IDV Claim Management API" type="TENANT">
-        <Scopes>
-            <Scope displayName="Verify IDV Claim" name="internal_idv_claim_verify" 
-                    description="Verify a user in the organization (root) with the configured verification required attributes"/>
-            <Scope displayName="View IDV Claim" name="internal_idv_claim_view" 
-                    description="View user verification details in the organization (root)"/>
-            <Scope displayName="Update IDV Claim" name="internal_idv_claim_update" 
-                    description="Update user verification details in the organization (root)"/>
-            <Scope displayName="Add IDV Claim" name="internal_idv_claim_add" 
-                    description="Add user verification claim data in the organization (root)"/>
         </Scopes>
     </APIResource>
     <APIResource name="Session Management API" identifier="/api/users/v1/(.*)sessions"
