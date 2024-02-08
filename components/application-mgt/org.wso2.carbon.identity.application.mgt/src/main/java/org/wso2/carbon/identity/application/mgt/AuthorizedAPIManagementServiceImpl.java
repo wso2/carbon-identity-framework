@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.mgt.dao.AuthorizedAPIDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.AuthorizedAPIDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedAuthorizedAPIDAOImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.application.mgt.publisher.ApplicationAuthorizedAPIManagementEventPublisherProxy;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
@@ -72,7 +73,11 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
     public void deleteAuthorizedAPI(String appId, String apiId, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
+                ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
+        publisherProxy.publishPreDeleteAuthorizedAPIForApplication(appId, apiId, tenantDomain);
         authorizedAPIDAO.deleteAuthorizedAPI(appId, apiId, IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostDeleteAuthorizedAPIForApplication(appId, apiId, tenantDomain);
     }
 
     @Override
@@ -120,8 +125,14 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                                    List<String> removedScopes, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
+                ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
+        publisherProxy.publishPreUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
+                tenantDomain);
         authorizedAPIDAO.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
+                tenantDomain);
         updateRolesWithRemovedScopes(appId, removedScopes, tenantDomain);
     }
 
