@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,7 +64,7 @@ public class SessionContext implements Serializable {
         if (authenticatedIdPsOfApp != null) {
             return authenticatedIdPsOfApp.get(app);
         }
-        return null;
+        return new HashMap<>();
     }
 
     public void setAuthenticatedIdPsOfApp(String app, Map<String, AuthenticatedIdPData> authenticatedIdPsOfApp) {
