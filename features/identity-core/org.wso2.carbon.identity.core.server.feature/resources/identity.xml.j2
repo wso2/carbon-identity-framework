@@ -2052,18 +2052,6 @@
                        enable="{{event.default_listener.basic_user_info_provider.enable}}">
         </EventListener>
 
-        <EventListener id="system_api_resource_management_listener" type="org.wso2.carbon.identity.core.AbstractIdentityTenantMgtListener"
-                       name="org.wso2.carbon.identity.api.resource.mgt.listener.APIResourceManagementListener"
-                       orderId="{{event.default_listener.system_api_resource_management_listener.priority}}"
-                       enable="{{event.default_listener.system_api_resource_management_listener.enable}}">
-        </EventListener>
-
-        <EventListener id="system_api_authorization_management_listener" type="org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener"
-                       name="org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagementListener"
-                       orderId="{{event.default_listener.system_api_authorization_management_listener.priority}}"
-                       enable="{{event.default_listener.system_api_authorization_management_listener.enable}}">
-        </EventListener>
-
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"

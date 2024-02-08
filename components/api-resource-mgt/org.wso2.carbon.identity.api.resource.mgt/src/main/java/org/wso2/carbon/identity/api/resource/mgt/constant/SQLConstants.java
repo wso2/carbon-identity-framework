@@ -50,6 +50,7 @@ public class SQLConstants {
     public static final String SCOPE_QUALIFIED_NAME_COLUMN_NAME = "SCOPE_QUALIFIED_NAME";
     public static final String SCOPE_DISPLAY_NAME_COLUMN_NAME = "SCOPE_DISPLAY_NAME";
     public static final String SCOPE_DESCRIPTION_COLUMN_NAME = "SCOPE_DESCRIPTION";
+    public static final String SCOPE_API_ID_COLUMN_NAME = "API_ID";
     public static final String API_RESOURCE_PROPERTY_ID_COLUMN_NAME = "PROPERTY_ID";
     public static final String API_RESOURCE_PROPERTY_NAME_COLUMN_NAME = "PROPERTY_NAME";
     public static final String API_RESOURCE_PROPERTY_VALUE_COLUMN_NAME = "PROPERTY_VALUE";
@@ -138,7 +139,7 @@ public class SQLConstants {
             "OR TENANT_ID IS NULL)";
     public static final String DELETE_SCOPES_BY_API = "DELETE FROM SCOPE WHERE API_ID = ? AND ( TENANT_ID = ? " +
             "OR TENANT_ID IS NULL)";
-    public static final String UPDATE_API_RESOURCE = "UPDATE API_RESOURCE SET NAME = ?, DESCRIPTION = ?" +
+    public static final String UPDATE_API_RESOURCE = "UPDATE API_RESOURCE SET NAME = ?, DESCRIPTION = ?, TYPE = ?" +
             " WHERE ID = ?";
     public static final String IS_SCOPE_EXIST_BY_ID = "SELECT ID FROM SCOPE WHERE ID = ? AND TENANT_ID = ?";
     public static final String GET_SCOPE_BY_NAME = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, TENANT_ID "

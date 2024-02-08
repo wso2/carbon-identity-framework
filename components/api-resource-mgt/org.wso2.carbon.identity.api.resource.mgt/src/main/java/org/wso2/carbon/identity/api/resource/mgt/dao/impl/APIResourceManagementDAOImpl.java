@@ -269,7 +269,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             try {
                 preparedStatement.setString(1, apiResource.getName());
                 preparedStatement.setString(2, apiResource.getDescription());
-                preparedStatement.setString(3, apiResource.getId());
+                preparedStatement.setString(3, apiResource.getType());
+                preparedStatement.setString(4, apiResource.getId());
                 preparedStatement.executeUpdate();
 
                 if (CollectionUtils.isNotEmpty(addedScopes)) {
@@ -433,7 +434,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                         resultSet.getString(SQLConstants.ID_COLUMN_NAME),
                         resultSet.getString(SQLConstants.NAME_COLUMN_NAME),
                         resultSet.getString(SQLConstants.DISPLAY_NAME_COLUMN_NAME),
-                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME)
+                        resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME),
+                        resultSet.getString(SQLConstants.SCOPE_API_ID_COLUMN_NAME),
+                        resultSet.getString(SQLConstants.TENANT_ID_COLUMN_NAME)
                 ));
             }
             return scopesList;
