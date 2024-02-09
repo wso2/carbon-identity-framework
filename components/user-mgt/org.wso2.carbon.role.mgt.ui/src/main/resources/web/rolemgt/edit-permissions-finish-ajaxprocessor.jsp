@@ -25,7 +25,7 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.role.mgt.ui.Util" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.core.util.CryptoException" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementUIException" %>
 

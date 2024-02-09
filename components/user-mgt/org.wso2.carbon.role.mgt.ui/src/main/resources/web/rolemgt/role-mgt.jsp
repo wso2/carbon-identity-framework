@@ -29,12 +29,12 @@
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.FlaggedName" %>
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo" %>
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserStoreInfo" %>
-<%@ page import="org.wso2.carbon.role.mgt.ui.PaginatedNamesBean" %>
-<%@ page import="org.wso2.carbon.role.mgt.ui.UserAdminClient" %>
-<%@ page import="org.wso2.carbon.role.mgt.ui.UserAdminUIConstants" %>
-<%@ page import="org.wso2.carbon.role.mgt.ui.UserManagementWorkflowServiceClient" %>
-<%@ page import="org.wso2.carbon.role.mgt.ui.UserStoreCountClient" %>
-<%@ page import="org.wso2.carbon.role.mgt.ui.Util" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.PaginatedNamesBean" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementWorkflowServiceClient" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserStoreCountClient" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 
 <%@ page import="java.text.MessageFormat" %>
@@ -385,6 +385,11 @@
         <h2><fmt:message key="roles"/></h2>
 
         <div id="workArea">
+
+            <div style="background-color: #fff5e8; text-align: justify; padding: 10px; margin-bottom: 5px">
+                <img src="images/warning.gif" class="editor_warn_img" width="16" height="16" style="float: left; margin-right: 5px">
+                <fmt:message key="role.banner.content"/>
+            </div>
 
             <form name="filterForm" method="post" action="role-mgt.jsp">
                 <table class="styledLeft noBorders">

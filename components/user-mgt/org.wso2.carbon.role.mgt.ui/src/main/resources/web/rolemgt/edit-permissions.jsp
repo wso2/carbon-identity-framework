@@ -21,14 +21,14 @@
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UIPermissionNode" %>
-<%@ page import="org.wso2.carbon.role.mgt.ui.UserAdminClient" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="javax.servlet.jsp.JspWriter" %>
 <%@ page import="java.io.IOException" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.role.mgt.ui.UserManagementUIException" %>
-<%@ page import="org.wso2.carbon.role.mgt.ui.Util" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementUIException" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
 
