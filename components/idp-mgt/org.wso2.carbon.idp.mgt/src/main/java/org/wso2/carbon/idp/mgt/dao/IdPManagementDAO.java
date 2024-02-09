@@ -2918,7 +2918,11 @@ public class IdPManagementDAO {
     public IdentityProvider getIDPbyResourceId(Connection dbConnection, String resourceId, int tenantId,
                                        String tenantDomain) throws IdentityProviderManagementException {
 
-        return getIDP(dbConnection, null, -1, resourceId, tenantId, tenantDomain);
+        IdentityProvider idp = getIDP(dbConnection, null, -1, resourceId, tenantId, tenantDomain);
+        if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idp.getIdentityProviderName())) {
+            fillResidentIdpProperties(idp, tenantDomain);
+        }
+        return idp;
     }
 
     /**
