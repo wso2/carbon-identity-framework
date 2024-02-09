@@ -21,12 +21,9 @@ package org.wso2.carbon.identity.application.mgt.listener;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
-import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
@@ -35,12 +32,9 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 
 /**
  * Admin role listener to populate organization admin role and console application Administrator role permissions.
@@ -119,55 +113,6 @@ public class AdminRoleListener extends AbstractRoleManagementListener {
         }
     }
 
-    private String getConsoleAdministratorRoleId(RoleManagementService roleManagementService, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        try {
-            ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
-            String consoleAppId = applicationManagementService.getApplicationResourceIDByInboundKey(
-                    ApplicationConstants.CONSOLE_APPLICATION_CLIENT_ID,
-                    ApplicationConstants.CONSOLE_APPLICATION_INBOUND_TYPE, tenantDomain);
-            return roleManagementService.getRoleIdByName(RoleConstants.ADMINISTRATOR,
-                    RoleConstants.APPLICATION, consoleAppId, tenantDomain);
-        } catch (IdentityApplicationManagementException e) {
-            throw new IdentityRoleManagementException("Error while retrieving Console application for tenant " +
-                    "domain : " + tenantDomain, e);
-        } catch (IdentityRoleManagementException e) {
-            // Handle Console application role not being available during the startup.
-            if (e.getMessage().contains(RoleConstants.ADMINISTRATOR) &&
-                    e.getMessage().contains("A role doesn't exist")) {
-                return null;
-            }
-            throw new IdentityRoleManagementException("Error while retrieving role id for console Administrator role " +
-                    "in tenant domain : " + tenantDomain, e);
-        }
-    }
-
-    private String getOrgAdminRoleId(String tenantDomain) throws IdentityRoleManagementException {
-
-        try {
-            String orgId = ApplicationManagementServiceComponentHolder.getInstance().getOrganizationManager()
-                    .resolveOrganizationId(tenantDomain);
-            if (StringUtils.isBlank(orgId)) {
-                throw new IdentityRoleManagementException("Error while retrieving organization id from tenant " +
-                        "domain : " + tenantDomain);
-            }
-            String adminRoleName = getOrgAdminRoleName();
-            return ApplicationManagementServiceComponentHolder.getInstance()
-                    .getRoleManagementServiceV2().getRoleIdByName(UserCoreUtil.removeDomainFromName(adminRoleName),
-                            ORGANIZATION, orgId, tenantDomain);
-        } catch (IdentityRoleManagementException e) {
-            if (e.getMessage().contains("A role doesn't exist")) {
-                return null;
-            }
-            throw new IdentityRoleManagementException("Error while retrieving role id for admin role in " +
-                    "tenant domain : " + tenantDomain, e);
-        } catch (OrganizationManagementException e) {
-            throw new IdentityRoleManagementException("Error while retrieving organization id from tenant " +
-                    "domain : " + tenantDomain, e);
-        }
-    }
-
     private static String getOrgAdminRoleName() throws IdentityRoleManagementException {
 
         org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext()
@@ -194,16 +139,11 @@ public class AdminRoleListener extends AbstractRoleManagementListener {
 
         RoleManagementService roleManagementService = ApplicationManagementServiceComponentHolder.getInstance()
                 .getRoleManagementServiceV2();
-        String consoleAdminRoleId = getConsoleAdministratorRoleId(roleManagementService, tenantDomain);
-        String adminRoleId = getOrgAdminRoleId(tenantDomain);
-        if (roleId.equals(consoleAdminRoleId) || roleId.equals(adminRoleId)) {
-            return true;
-        }
         RoleBasicInfo role = roleManagementService.getRoleBasicInfoById(roleId, tenantDomain);
         if (StringUtils.equals(getOrgAdminRoleName(), (role.getName()))) {
-            return role.getAudienceId().equals(tenantDomain);
+            return role.getAudience().equals(RoleConstants.ORGANIZATION);
         } else if (RoleConstants.ADMINISTRATOR.equals(role.getName())) {
-            return role.getAudienceName().equals("Console");
+            return role.getAudienceName().equals(ApplicationConstants.CONSOLE_APPLICATION_NAME);
         }
         return false;
     }
