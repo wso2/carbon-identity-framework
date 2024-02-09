@@ -2211,7 +2211,8 @@ public class IdPManagementDAO {
         return idp;
     }
 
-    private String resolveAbsoluteURL(String defaultUrlContext, String urlFromConfig, String tenantDomain) throws IdentityProviderManagementServerException {
+    private String resolveAbsoluteURL(String defaultUrlContext, String urlFromConfig, String tenantDomain)
+            throws IdentityProviderManagementServerException {
 
         if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(urlFromConfig)) {
             if (log.isDebugEnabled()) {
@@ -2458,6 +2459,10 @@ public class IdPManagementDAO {
     private void fillResidentIdpProperties(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
 
+        if (identityProvider == null) {
+            return;
+        }
+
         String openIdUrl;
         String oauth1RequestTokenUrl;
         String oauth1AuthorizeUrl;
@@ -2581,11 +2586,6 @@ public class IdPManagementDAO {
             }
         } catch (URISyntaxException e) {
             log.error("SCIM 2.0 Groups endpoint is malformed");
-        }
-
-        if (identityProvider == null) {
-            String message = "Could not find Resident Identity Provider for tenant " + tenantDomain;
-            throw new IdentityProviderManagementException(message);
         }
 
         int tenantId;
