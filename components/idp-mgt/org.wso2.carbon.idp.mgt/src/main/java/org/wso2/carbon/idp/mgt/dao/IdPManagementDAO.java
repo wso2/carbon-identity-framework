@@ -2901,8 +2901,12 @@ public class IdPManagementDAO {
     public IdentityProvider getIDPbyId(Connection dbConnection, int idpId, int tenantId,
                                        String tenantDomain) throws IdentityProviderManagementException {
 
-        return getIDP(dbConnection, null, idpId, null, tenantId, tenantDomain);
-
+        IdentityProvider idp = getIDP(dbConnection, null, idpId, null, tenantId, tenantDomain);
+        if (idp != null
+                && IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idp.getIdentityProviderName())) {
+            fillResidentIdpProperties(idp, tenantDomain);
+        }
+        return idp;
     }
 
     /**
@@ -3396,6 +3400,7 @@ public class IdPManagementDAO {
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
+                    fillResidentIdpProperties(federatedIdp, tenantDomain);
                 }
                 federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
 
@@ -3558,6 +3563,7 @@ public class IdPManagementDAO {
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
+                    fillResidentIdpProperties(federatedIdp, tenantDomain);
                 }
                 federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
 
