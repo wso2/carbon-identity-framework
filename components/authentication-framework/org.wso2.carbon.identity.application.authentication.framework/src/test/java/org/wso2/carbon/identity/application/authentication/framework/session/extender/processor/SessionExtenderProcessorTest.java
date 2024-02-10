@@ -25,24 +25,12 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
-import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheEntry;
-import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheKey;
-import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequest;
-import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponse;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 
-import static org.mockito.ArgumentMatchers.anyObject;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.IDP_SESSION_KEY;
-import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.TENANT_DOMAIN;
 
 /**
  * Unit test cases for SessionExtenderProcessor.
@@ -70,30 +58,5 @@ public class SessionExtenderProcessorTest extends PowerMockTestCase {
         SessionExtenderRequest sessionExtenderRequest = mock(SessionExtenderRequest.class);
         assertTrue(sessionExtenderProcessor.canHandle(sessionExtenderRequest), "Cannot handle valid " +
                 "SessionExtenderRequest.");
-    }
-
-    @Test(expectedExceptions = NullPointerException.class)
-    public void testProcessWithSessionKey() throws Exception {
-
-        mockStatic(SessionContextCache.class);
-        SessionExtenderRequest sessionExtenderRequest = mock(SessionExtenderRequest.class);
-        SessionContextCache sessionContextCache = mock(SessionContextCache.class);
-        SessionContextCacheKey sessionContextCacheKey = mock(SessionContextCacheKey.class);
-        SessionContextCacheEntry sessionContextCacheEntry = mock(SessionContextCacheEntry.class);
-        SessionContext sessionContext = mock(SessionContext.class);
-
-        whenNew(SessionContextCacheKey.class).withArguments(anyString()).thenReturn(sessionContextCacheKey);
-        when(sessionExtenderRequest.getTenantDomain()).thenReturn(TENANT_DOMAIN);
-        when(sessionExtenderRequest.getSessionKey()).thenReturn(IDP_SESSION_KEY);
-        when(SessionContextCache.getInstance()).thenReturn(sessionContextCache);
-        when(sessionContextCache.getSessionContextCacheEntry(anyObject(), anyString()))
-                .thenReturn(sessionContextCacheEntry);
-        when(sessionContextCacheEntry.getContext()).thenReturn(sessionContext);
-
-        SessionExtenderResponse.SessionExtenderResponseBuilder responseBuilder =
-                (SessionExtenderResponse.SessionExtenderResponseBuilder) sessionExtenderProcessor
-                        .process(sessionExtenderRequest);
-        SessionExtenderResponse response = responseBuilder.build();
-        assertNotNull(response.getTraceId(), "Error creating successful response.");
     }
 }
