@@ -285,6 +285,11 @@ public class DefaultClaimHandler implements ClaimHandler {
             localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM,
                     StringUtils.isNotEmpty(serviceProviderMappedUserRoles) ?
                             serviceProviderMappedUserRoles : StringUtils.EMPTY);
+            if (CollectionUtils.isNotEmpty(federatedUserRolesUnmappedExclusive)) {
+                localUnfilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM,
+                        String.join(FrameworkUtils.getMultiAttributeSeparator(),
+                                federatedUserRolesUnmappedExclusive));
+            }
         }
 
         // claim mapping from local service provider to remote service provider.
@@ -295,6 +300,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         // <code>spUnfilteredClaims</code> and <code>spFilteredClaims</code>
         filterSPClaims(spRequestedClaimMappings, localUnfilteredClaims, spUnfilteredClaims, spFilteredClaims,
                        localToSPClaimMappings);
+
+        localUnfilteredClaims.remove(FrameworkConstants.APP_ROLES_CLAIM);
 
         if (stepConfig.isSubjectAttributeStep()) {
             if (MapUtils.isNotEmpty(localUnfilteredClaimsForNullValues)) {
@@ -334,9 +341,6 @@ public class DefaultClaimHandler implements ClaimHandler {
                 // for scope validation.
                 spFilteredClaims.put(FrameworkConstants.IDP_MAPPED_USER_ROLES,
                         String.join(FrameworkUtils.getMultiAttributeSeparator(), federatedUserRolesUnmappedExclusive));
-                spFilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM,
-                        String.join(FrameworkUtils.getMultiAttributeSeparator(),
-                                federatedUserRolesUnmappedExclusive));
             } else {
                 // If current authenticator is OrganizationAuthenticator, then get the roles claim from
                 // the user attributes, and set it to the identity provider mapped user roles claim.
