@@ -1058,7 +1058,7 @@
   "console.ui.administrator_role_display_name": "Administrator",
   "console.ui.legacy_mode.apiResources": true,
   "console.ui.legacy_mode.applicationListSystemApps": false,
-  "console.ui.legacy_mode.applicationOIDCSubjectIdentifier": false,
+  "console.ui.legacy_mode.applicationOIDCSubjectIdentifier": true,
   "console.ui.legacy_mode.applicationRequestPathAuthentication": false,
   "console.ui.legacy_mode.applicationSystemAppsSettings": false,
   "console.ui.legacy_mode.approvals": false,
