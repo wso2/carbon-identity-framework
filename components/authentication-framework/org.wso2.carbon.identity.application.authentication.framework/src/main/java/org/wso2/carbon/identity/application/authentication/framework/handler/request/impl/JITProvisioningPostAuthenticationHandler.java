@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -52,11 +53,12 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
-import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -84,6 +86,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -887,6 +890,15 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
         }
 
+        /*
+         Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from
+         the returned list.
+         */
+        boolean excludeUnmappedRoles = false;
+        if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
+            excludeUnmappedRoles = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+        }
         try {
             if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                 // This block handle the JIT provisioning in legacy authz runtime with v1 roles.
@@ -899,15 +911,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(stepConfig, context);
                 }
 
-                /*
-                 Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from
-                 the returned list.
-                 */
-                boolean excludeUnmappedRoles = false;
-                if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
-                    excludeUnmappedRoles = Boolean
-                            .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
-                }
                 List<String> identityProviderMappedUserRolesUnmappedExclusive = FrameworkUtils
                         .getIdentityProvideMappedUserRoles(externalIdPConfig, originalExternalAttributeValueMap,
                                 idpRoleClaimUri, excludeUnmappedRoles);
@@ -920,6 +923,34 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 String idpGroupsClaimUri = FrameworkUtils.getIdpGroupClaimUri(stepConfig, context);
                 List<String> assignedRoleIdList = FrameworkUtils.getAssignedRolesFromIdPGroups(externalIdPConfig,
                         originalExternalAttributeValueMap, idpGroupsClaimUri, context.getTenantDomain());
+
+                /*
+                 This block adds unmapped IDP groups as roles when `SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP` is set to
+                 false. This is not a recommended flow with the new authz runtime and it is only supported for
+                 backward compatibility for sending unmapped roles capability in previous IDP role to local role
+                 mapping implementation.
+                 */
+                if (!excludeUnmappedRoles) {
+                    List<String> unmappedIDPGroups = FrameworkUtils.getUnmappedIDPGroups(externalIdPConfig,
+                            originalExternalAttributeValueMap, idpGroupsClaimUri);
+                    if (CollectionUtils.isNotEmpty(unmappedIDPGroups)) {
+                        String applicationId = context.getSequenceConfig().getApplicationConfig().getServiceProvider()
+                                .getApplicationResourceId();
+                        // Get the roles assigned to the application.
+                        List<RoleV2> appAssociatedRoles = getRolesAssociatedWithApplication(applicationId,
+                                context.getTenantDomain());
+                        List<String> unmappedRoleIds = appAssociatedRoles.stream()
+                                .filter(role -> unmappedIDPGroups.contains(role.getName()))
+                                .map(RoleV2::getId)
+                                .collect(Collectors.toList());
+                        for (String roleId : unmappedRoleIds) {
+                            if (!assignedRoleIdList.contains(roleId)) {
+                                assignedRoleIdList.add(roleId);
+                            }
+                        }
+                    }
+                }
+
                 FrameworkUtils.getStepBasedSequenceHandler()
                         .callJitProvisioningWithV2Roles(username, context, assignedRoleIdList, localClaimValues);
             }
@@ -1159,41 +1190,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return userStoreDomain;
     }
 
-    private String getRoleClaimMapping(AuthenticationContext context) throws FrameworkException {
-
-        String spStandardDialect = (String) context.getProperty(FrameworkConstants.SP_STANDARD_DIALECT);
-        Map<String, String> spClaimMappings = context.getSequenceConfig().getApplicationConfig().
-                getClaimMappings();
-        Map<String, String> localToSPClaimMappings = null;
-
-        if (spStandardDialect != null) {
-            try {
-                localToSPClaimMappings = ClaimMetadataHandler.getInstance()
-                        .getMappingsMapFromOtherDialectToCarbon(spStandardDialect, null, context.getTenantDomain(),
-                                true);
-            } catch (ClaimMetadataException e) {
-                throw new FrameworkException("Error occurred while getting claim mappings from " +
-                        spStandardDialect + " dialect to " +
-                        ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
-                        context.getTenantDomain() + " to handle federated claims", e);
-            }
-        } else if (!spClaimMappings.isEmpty()) {
-            localToSPClaimMappings = FrameworkUtils.getLocalToSPClaimMappings(spClaimMappings);
-        } else {
-            // no standard dialect and no custom claim mappings
-            throw new FrameworkException("Authenticator Error! Authenticator does not have a " +
-                    "standard dialect and no custom claim mappings defined for IdP");
-        }
-        if (localToSPClaimMappings != null) {
-            for (Map.Entry<String, String> entry : localToSPClaimMappings.entrySet()) {
-                if (entry.getKey().equals(IdentityUtil.getLocalGroupsClaimURI())) {
-                    return entry.getValue();
-                }
-            }
-        }
-        return null;
-    }
-
     /**
      * This method throws a PostAuthenticationFailedException if the provided username is already existing in the
      * system.
@@ -1225,16 +1221,22 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     }
 
     /**
-     * Append internal domain if there is no domain appended already.
+     * Get roles associated with the application.
      *
-     * @param roleName Role name.
-     * @return Domain appended role name.
+     * @param applicationId Application ID.
+     * @param tenantDomain  Tenant domain.
+     * @return Roles associated with the application.
+     * @throws FrameworkException If an error occurred while getting roles associated with the application.
      */
-    private String appendInternalDomain(String roleName) {
+    private List<RoleV2> getRolesAssociatedWithApplication(String applicationId, String tenantDomain)
+            throws FrameworkException {
 
-        if (!roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
-            return UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + roleName;
+        try {
+            return FrameworkServiceDataHolder.getInstance().getApplicationManagementService()
+                    .getAssociatedRolesOfApplication(applicationId, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            throw new FrameworkException("Error while retrieving app associated roles for application: "
+                    + applicationId, e);
         }
-        return roleName;
     }
 }
