@@ -35,6 +35,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -74,6 +75,7 @@ public class AuthenticationEndpointUtil {
     private static final String QUERY_STRING_INITIATOR = "?";
     private static final String PADDING_CHAR = "=";
     private static final String UNDERSCORE = "_";
+    private static String serverHost;
     private static final String TENANT_DOMAIN_PLACEHOLDER = "${tenantDomain}";
     private static final String SUPER_TENANT = "carbon.super";
 
@@ -254,6 +256,25 @@ public class AuthenticationEndpointUtil {
      */
     public static boolean isValidURL(String urlString) {
 
+        return validateURL(urlString);
+    }
+
+    /**
+     * This method is to validate a multiOptionURI. This method validate absolute URLs.
+     * default value of multiOptionURL is /authenticationendpoint/
+     * @param urlString URL String.
+     * @return true if valid URL, false otherwise.
+     */
+    public static boolean isValidMultiOptionURI(String urlString) {
+
+        if (validateURL(urlString)) {
+            return validateCallbackURL(urlString);
+        }
+        return false;
+    }
+
+    private static boolean validateURL(String urlString) {
+
         if (StringUtils.isBlank(urlString)) {
             String errorMsg = "Invalid URL.";
             if (log.isDebugEnabled()) {
@@ -279,6 +300,52 @@ public class AuthenticationEndpointUtil {
             return false;
         }
         return true;
+    }
+
+    private static boolean validateCallbackURL(String callbackURL) {
+
+        String multiOptionURIHost;
+        String authenticationEndpointURL = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+        try {
+            if (isURLRelative(callbackURL)) {
+                return !callbackURL.startsWith("//"); // Check for protocol-relative URLs.
+            } else {
+                multiOptionURIHost = new URL(callbackURL).getHost();
+                /*
+                  If the multiOptionURI is an absolute URL, then the host of the multiOptionURI should be
+                  either host of the server or host of the externalized authenticationEndpointURL.
+                 */
+                if (multiOptionURIHost.equals(getServerHost()) || (!isURLRelative(authenticationEndpointURL) &&
+                        multiOptionURIHost.equals(new URL(authenticationEndpointURL).getHost()))) {
+                    return true;
+                } else {
+                    log.error("No valid host found for the multiOptionURI. Host: " + multiOptionURIHost + " is " +
+                            "not allowed.");
+                    return false;
+                }
+            }
+        } catch (MalformedURLException | URISyntaxException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+            return false;
+        }
+    }
+
+    private static String getServerHost() {
+
+        try {
+            if (StringUtils.isEmpty(serverHost)) {
+                String urlString = buildAbsoluteURL("/");
+                serverHost = new URL(urlString).getHost();
+            }
+        } catch (MalformedURLException | URLBuilderException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+        }
+
+        return serverHost;
     }
 
     private static boolean isURLRelative(String uriString) throws URISyntaxException {
