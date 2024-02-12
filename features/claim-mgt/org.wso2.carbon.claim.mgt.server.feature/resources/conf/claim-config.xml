@@ -1610,6 +1610,13 @@
 				<MappedLocalClaim>http://wso2.org/claims/emailaddress</MappedLocalClaim>
 			</Claim>
 			<Claim>
+				<ClaimURI>userid</ClaimURI>
+				<DisplayName>user Id</DisplayName>
+				<AttributeID>uid</AttributeID>
+				<Description>User Id</Description>
+				<MappedLocalClaim>http://wso2.org/claims/userid</MappedLocalClaim>
+			</Claim>
+			<Claim>
 				<ClaimURI>email_verified</ClaimURI>
 				<DisplayName>Email Verified</DisplayName>
 				<AttributeID>emailVerified</AttributeID>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -3432,6 +3432,10 @@ public class RoleDAOImpl implements RoleDAO {
                             equalFilterBuilder(value, attributeName, filter, filterQueryBuilder);
                             break;
                         }
+                        case RoleConstants.NE: {
+                            notEqualFilterBuilder(value, attributeName, filter, filterQueryBuilder);
+                            break;
+                        }
                         case RoleConstants.SW: {
                             startWithFilterBuilder(value, attributeName, filter, filterQueryBuilder);
                             break;
@@ -3480,6 +3484,14 @@ public class RoleDAOImpl implements RoleDAO {
                                     FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " =:" + attributeName + "; AND ";
+        filter.append(attributeName).append(filterString);
+        filterQueryBuilder.setFilterAttributeValue(attributeName, value);
+    }
+
+    private void notEqualFilterBuilder(String value, String attributeName, StringBuilder filter,
+                                    FilterQueryBuilder filterQueryBuilder) {
+
+        String filterString = " !=:" + attributeName + "; AND ";
         filter.append(attributeName).append(filterString);
         filterQueryBuilder.setFilterAttributeValue(attributeName, value);
     }

@@ -512,6 +512,17 @@ public class AuthenticatedUser extends User {
         this.userResidentOrganization = userResidentOrganization;
     }
 
+    /**
+     * Returns whether this user's identity is managed by an organization or not. A user who has been federated login
+     * from an internal organization is considered as an organization user.
+     *
+     * @return isOrganizationUser
+     */
+    public boolean isOrganizationUser() {
+
+        return this.isFederatedUser && StringUtils.isNotBlank(this.getUserResidentOrganization());
+    }
+
     @Override
     public boolean equals(Object o) {
 

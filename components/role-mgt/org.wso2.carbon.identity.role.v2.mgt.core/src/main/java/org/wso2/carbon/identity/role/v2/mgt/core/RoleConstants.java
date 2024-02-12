@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -159,6 +159,7 @@ public class RoleConstants {
     public static final String AUDIENCE = "audience";
     public static final String AUDIENCE_ID = "audienceId";
     public static final String EQ = "eq";
+    public static final String NE = "ne";
     public static final String CO = "co";
     public static final String SW = "sw";
     public static final String EW = "ew";

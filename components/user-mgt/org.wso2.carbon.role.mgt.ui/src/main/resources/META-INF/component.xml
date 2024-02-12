@@ -52,7 +52,7 @@
             <servlet-name>rolemgtservice</servlet-name>
             <url-pattern>/rolemgtservice</url-pattern>
             <display-name>RoleManagement</display-name>
-            <servlet-class>org.wso2.carbon.role.mgt.ui.servlet.RoleManagementServlet</servlet-class>
+            <servlet-class>org.wso2.carbon.user.mgt.ui.servlet.UserAndRoleManagementServlet</servlet-class>
         </servlet>
     </servlets>
 

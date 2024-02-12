@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.mockito.Mock;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -49,6 +50,7 @@ import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
@@ -66,8 +68,10 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.lang.Boolean.FALSE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -82,6 +86,8 @@ public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
 
     private String tenantDomain;
     private APIResourceManager apiResourceManager;
+    @Mock
+    private IdentityEventService identityEventService;
     private ApplicationManagementService applicationManagementService;
     private AuthorizedAPIManagementService authorizedAPIManagementService;
 
@@ -93,6 +99,9 @@ public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
         applicationManagementService = ApplicationManagementServiceImpl.getInstance();
         authorizedAPIManagementService = new AuthorizedAPIManagementServiceImpl();
         tenantDomain = "test_tenant_domain";
+        identityEventService = mock(IdentityEventService.class);
+        doNothing().when(identityEventService).handleEvent(any());
+        ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }
 
     @DataProvider

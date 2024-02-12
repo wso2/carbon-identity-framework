@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.listener;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
@@ -522,6 +523,9 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                                                    String tenantDomain)
             throws IdentityRoleManagementException {
 
+        if (CollectionUtils.isEmpty(permissions)) {
+            return;
+        }
         List<String> authorizedScopes = getAuthorizedScopes(applicationId, tenantDomain);
         for (Permission permission : permissions) {
             if (!authorizedScopes.contains(permission.getName())) {

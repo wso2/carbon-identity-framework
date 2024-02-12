@@ -253,6 +253,12 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT = "POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
 
         public static final String POST_APP_USER_ATTRIBUTE_UPDATE = "POST_APP_USER_ATTRIBUTE_UPDATE";
+
+        // Application Authorized API
+        public static final String PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT = "PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT = "POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String PRE_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT = "PRE_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT = "POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
     }
 
     /**
@@ -378,6 +384,11 @@ public class IdentityEventConstants {
 
         public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
         public static final String REQUIRED_ATTRIBUTES = "requiredAttributes";
+
+        // Application Authorized API
+        public static final String API_ID = "API_ID";
+        public static final String ADDED_SCOPES = "ADDED_SCOPES";
+        public static final String DELETED_SCOPES = "DELETED_SCOPES";
     }
 
     public class ErrorMessage {

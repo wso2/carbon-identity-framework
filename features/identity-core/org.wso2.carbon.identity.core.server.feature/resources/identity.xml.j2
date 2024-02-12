@@ -1729,14 +1729,20 @@
         to returns all the unmapped roles.
     -->
 
-    {% if idp_role_management.return_only_mapped_local_roles is defined %}
-        <FederatedRoleManagement>
-            <ReturnOnlyMappedLocalRoles>{{idp_role_management.return_only_mapped_local_roles}}</ReturnOnlyMappedLocalRoles>
-            {% if idp_role_management.return_manually_added_local_roles is defined %}
-            <ReturnManuallyAddedLocalRoles>{{idp_role_management.return_manually_added_local_roles}}</ReturnManuallyAddedLocalRoles>
-            {% endif %}
-        </FederatedRoleManagement>
-    {% endif %}
+    <FederatedRoleManagement>
+        {% if idp_role_management.return_only_mapped_local_roles is defined %}
+        <!--
+            This configuration is used to send only the mapped local roles.
+            The default value of the configuration is set to true.
+            Disabling this configuration is only recommended for the backward compatibility with the previous behaviour
+            of IDP role to local role mappings if needed.
+        -->
+        <ReturnOnlyMappedLocalRoles>{{idp_role_management.return_only_mapped_local_roles}}</ReturnOnlyMappedLocalRoles>
+        {% endif %}
+        {% if idp_role_management.return_manually_added_local_roles is defined %}
+        <ReturnManuallyAddedLocalRoles>{{idp_role_management.return_manually_added_local_roles}}</ReturnManuallyAddedLocalRoles>
+        {% endif %}
+    </FederatedRoleManagement>
 
     <EnableAskPasswordAdminUI>{{identity_mgt.user_onboarding.ask_password_from_user}}</EnableAskPasswordAdminUI>
 
@@ -2051,18 +2057,6 @@
                        name="org.wso2.carbon.identity.user.export.core.internal.service.impl.BasicUserInformationProvider"
                        orderId="{{event.default_listener.basic_user_info_provider.priority}}"
                        enable="{{event.default_listener.basic_user_info_provider.enable}}">
-        </EventListener>
-
-        <EventListener id="system_api_resource_management_listener" type="org.wso2.carbon.identity.core.AbstractIdentityTenantMgtListener"
-                       name="org.wso2.carbon.identity.api.resource.mgt.listener.APIResourceManagementListener"
-                       orderId="{{event.default_listener.system_api_resource_management_listener.priority}}"
-                       enable="{{event.default_listener.system_api_resource_management_listener.enable}}">
-        </EventListener>
-
-        <EventListener id="system_api_authorization_management_listener" type="org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener"
-                       name="org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagementListener"
-                       orderId="{{event.default_listener.system_api_authorization_management_listener.priority}}"
-                       enable="{{event.default_listener.system_api_authorization_management_listener.enable}}">
         </EventListener>
 
         <!-- Custom Event Listeners -->
@@ -3318,7 +3312,7 @@
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
             <Scopes>internal_user_mgt_list</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/expired-password-identification/password-expired-users(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/password-expired-users(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
             <Scopes>internal_user_mgt_list</Scopes>
         </Resource>

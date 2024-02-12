@@ -605,7 +605,20 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public List<String> getPermissionListOfRoles(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return roleDAO.getPermissionListOfRoles(roleIds, tenantDomain);
+        List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
+                .getRoleManagementListenerList();
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.preGetPermissionListOfRoles(roleIds, tenantDomain);
+            }
+        }
+        List<String> permissionListOfRoles = roleDAO.getPermissionListOfRoles(roleIds, tenantDomain);
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.postGetPermissionListOfRoles(permissionListOfRoles, roleIds, tenantDomain);
+            }
+        }
+        return permissionListOfRoles;
     }
 
     @Override
@@ -1022,6 +1035,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
      * @param arr2 Array of permissions.
      */
     private void removeSimilarPermissions(List<Permission> arr1, List<Permission> arr2) {
+
+        if (arr1 == null || arr2 == null) {
+            return;
+        }
 
         List<Permission> common = new ArrayList<>(arr1);
         common.retainAll(arr2);

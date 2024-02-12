@@ -4,6 +4,7 @@
   "authentication.map_federated_users_to_local": false,
   "authentication.enable_scope_based_claim_filtering": true,
   "authentication.allow_sp_requested_fed_claims_only": true,
+  "authentication.endpoint.enable_custom_claim_mappings": true,
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
@@ -488,7 +489,7 @@
   "sso_login.recaptcha.max_attempts": "3",
 
   "sp_role_management.return_only_mapped_local_roles": false,
-  "idp_role_management.return_only_mapped_local_roles": false,
+  "idp_role_management.return_only_mapped_local_roles": true,
   "idp_role_management.return_manually_added_local_roles": true,
   "outbound_provisioning_management.reset_provisioning_entities_on_config_update": true,
 
@@ -1057,7 +1058,7 @@
   "console.ui.administrator_role_display_name": "Administrator",
   "console.ui.legacy_mode.apiResources": true,
   "console.ui.legacy_mode.applicationListSystemApps": false,
-  "console.ui.legacy_mode.applicationOIDCSubjectIdentifier": false,
+  "console.ui.legacy_mode.applicationOIDCSubjectIdentifier": true,
   "console.ui.legacy_mode.applicationRequestPathAuthentication": false,
   "console.ui.legacy_mode.applicationSystemAppsSettings": false,
   "console.ui.legacy_mode.approvals": false,
@@ -1119,6 +1120,7 @@
   ],
   "console.applications.scopes.update": ["internal_application_mgt_update"],
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
+  "console.applications.disabled_features": ["applications.loginFlow.legacyEditor"],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": true,
   "console.approvals.enabled": false,

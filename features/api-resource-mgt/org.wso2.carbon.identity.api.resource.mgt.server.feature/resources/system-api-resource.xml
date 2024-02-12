@@ -169,7 +169,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Password Expired User Identification API"
-                 identifier="/api/server/v1/expired-password-identification" requiresAuthorization="true"
+                 identifier="/api/server/v1/password-expired-users" requiresAuthorization="true"
                  description="API representation of the Password Expired User Identification API" type="TENANT">
         <Scopes>
             <Scope displayName="View Password Expired Users" name="internal_password_expired_user_view"
@@ -177,7 +177,7 @@
         </Scopes>
     </APIResource>
     <APIResource name="Password Expired User Identification API"
-                 identifier="/o/api/server/v1/expired-password-identification" requiresAuthorization="true"
+                 identifier="/o/api/server/v1/password-expired-users" requiresAuthorization="true"
                  description="API representation of the Password Expired User Identification API"
                  type="ORGANIZATION">
         <Scopes>
@@ -267,20 +267,6 @@
                     description="Update identity provider connectors in the organization"/>
             <Scope displayName="Delete Identity Provider" name="internal_org_idp_delete" 
                     description="Delete identity provider connectors in the organization"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Identity Verifier Management API" identifier="/api/server/v1/idv-providers"
-                 requiresAuthorization="true"
-                 description="API representation of the Identity Verifier Management API" type="TENANT">
-        <Scopes>
-            <Scope displayName="View Identity Verifier Provider" name="internal_idvp_view" 
-                    description="View identity verification providers"/>
-            <Scope displayName="Add Identity Verifier Provider" name="internal_idvp_add" 
-                    description="Add new identity verification providers"/>
-            <Scope displayName="Update Identity Verifier Provider" name="internal_idvp_update" 
-                    description="Update identity verification providers"/>
-            <Scope displayName="Delete Identity Verifier Provider" name="internal_idvp_delete" 
-                    description="Delete identity verification providers"/>
         </Scopes>
     </APIResource>
     <APIResource name="Validation Rules API" identifier="/api/server/v1/validation-rules"
@@ -519,20 +505,6 @@
                     description="Check user account lock/unlock status in the organization (root)"/>
             <Scope displayName="Create User Functionality" name="internal_user_fucntionality_create" 
                     description="Lock/unlock user accounts in the organization (root)"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="IDV Claim Management API" identifier="/api/users/v1/(.*)/idv"
-                 requiresAuthorization="true"
-                 description="API representation of the IDV Claim Management API" type="TENANT">
-        <Scopes>
-            <Scope displayName="Verify IDV Claim" name="internal_idv_claim_verify" 
-                    description="Verify a user in the organization (root) with the configured verification required attributes"/>
-            <Scope displayName="View IDV Claim" name="internal_idv_claim_view" 
-                    description="View user verification details in the organization (root)"/>
-            <Scope displayName="Update IDV Claim" name="internal_idv_claim_update" 
-                    description="Update user verification details in the organization (root)"/>
-            <Scope displayName="Add IDV Claim" name="internal_idv_claim_add" 
-                    description="Add user verification claim data in the organization (root)"/>
         </Scopes>
     </APIResource>
     <APIResource name="Session Management API" identifier="/api/users/v1/(.*)sessions"
@@ -817,6 +789,15 @@
                     description="Manage applications from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Application Management Feature" identifier="console:org:applications"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Application Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Application Feature" name="console:org:applications"
+                   description="Manage applications in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Management Feature" identifier="console:branding"
                  requiresAuthorization="true"
                  description="Resource representation of the Branding Management Feature"
@@ -824,6 +805,15 @@
         <Scopes>
             <Scope displayName="Branding Feature" name="console:branding"
                     description="Manage branding from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Branding Management Feature" identifier="console:org:branding"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Branding Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Branding Feature" name="console:org:branding"
+                   description="Manage branding in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Attribute Management Feature" identifier="console:attributes"
@@ -853,6 +843,15 @@
                     description="Manage groups from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Group Management Feature" identifier="console:org:groups"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Group Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Group Feature" name="console:org:groups"
+                   description="Manage groups in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Identity Provider Management Feature" identifier="console:idps"
                  requiresAuthorization="true"
                  description="Resource representation of the Identity Provider Management Feature"
@@ -860,6 +859,15 @@
         <Scopes>
             <Scope displayName="Identity Provider Feature" name="console:idps" 
                     description="Manage identity providers from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Provider Management Feature" identifier="console:org:idps"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Identity Provider Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Identity Provider Feature" name="console:org:idps"
+                   description="Manage identity providers in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="API Resource Management Feature" identifier="console:apiResources"
@@ -898,6 +906,15 @@
                     description="Manage organizations from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Organization Management Feature" identifier="console:org:organizations"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Organization Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Organization Feature" name="console:org:organizations"
+                   description="Manage organizations in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Organization Discovery Management Feature" identifier="console:organizationDiscovery"
                  requiresAuthorization="true"
                  description="Resource representation of the Organization Discovery Management Feature"
@@ -921,8 +938,17 @@
                  description="Resource representation of the Role Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
-            <Scope displayName="Role Feature" name="console:roles" 
+            <Scope displayName="Role Feature" name="console:roles"
                     description="Manage roles from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Role Management Feature" identifier="console:org:roles"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Role Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Role Feature" name="console:org:roles"
+                   description="Manage roles in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Management Feature" identifier="console:users"
@@ -932,6 +958,15 @@
         <Scopes>
             <Scope displayName="User Feature" name="console:users" 
                     description="Manage users from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Management Feature" identifier="console:org:users"
+                 requiresAuthorization="true"
+                 description="Resource representation of the User Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="User Feature" name="console:org:users"
+                   description="Manage users in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Server Management Feature" identifier="console:server"
@@ -988,6 +1023,15 @@
                     description="Manage email templates from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Email Template Management Feature" identifier="console:org:emailTemplates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Email Template Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Email Template Feature" name="console:org:emailTemplates"
+                   description="Manage email templates in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Console Setting Management Feature" identifier="console:settings"
                  requiresAuthorization="true"
                  description="Resource representation of the Console Setting Management Feature"
@@ -997,6 +1041,15 @@
                     description="Manage console setting from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Console Setting Management Feature" identifier="console:org:settings"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Console Setting Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Console Setting Feature" name="console:org:settings"
+                   description="Manage console setting in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Getting Started Feature" identifier="console:home"
                  requiresAuthorization="true"
                  description="Resource representation of the Getting Started Feature"
@@ -1004,6 +1057,15 @@
         <Scopes>
             <Scope displayName="Getting Started Feature" name="console:home" 
                     description="Manage home settings from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Getting Started Feature" identifier="console:org:home"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Getting Started Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="Getting Started Feature" name="console:org:home"
+                   description="Manage home settings in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Secret Management Feature" identifier="console:secretsManagement"

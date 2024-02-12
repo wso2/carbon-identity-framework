@@ -646,4 +646,10 @@ public interface RoleManagementListener {
     void postDeleteRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException;
 
+    default void preGetPermissionListOfRoles(List<String> roleIds, String tenantDomain)
+            throws IdentityRoleManagementException {}
+
+    default void postGetPermissionListOfRoles(List<String> permissions, List<String> roleIds, String tenantDomain)
+            throws IdentityRoleManagementException {}
+
 }

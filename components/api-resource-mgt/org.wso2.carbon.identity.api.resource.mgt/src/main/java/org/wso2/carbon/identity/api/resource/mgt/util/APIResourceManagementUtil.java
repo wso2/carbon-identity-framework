@@ -27,12 +27,15 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtServerException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for API Resource Management.
@@ -87,22 +90,63 @@ public class APIResourceManagementUtil {
             String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
             Map<String, APIResource> configs = APIResourceManagementConfigBuilder.getInstance()
                     .getAPIResourceMgtConfigurations();
+            Map<String, APIResource> duplicateConfigs = APIResourceManagementConfigBuilder.getInstance()
+                    .getDuplicateAPIResourceConfigs();
             if (!isSystemAPIExist(tenantDomain)) {
                 LOG.debug("Registering system API resources in the server.");
                 registerAPIResources(new ArrayList<>(configs.values()), tenantDomain);
             } else {
                 LOG.debug("System APIs are already registered in the server. Applying the latest configurations.");
+                // Remove the existing system APIs from the configs.
+                // Existing system APIs will be evaluated using the identifier.
+                HashMap<String, APIResource> tempConfigs = new HashMap<>(configs);
                 List<APIResource> systemAPIs = getSystemAPIs(tenantDomain);
                 for (APIResource systemAPI : systemAPIs) {
-                    if (configs.containsKey(systemAPI.getIdentifier())) {
-                        configs.remove(systemAPI.getIdentifier());
+                    if (tempConfigs.containsKey(systemAPI.getIdentifier())) {
+                        tempConfigs.remove(systemAPI.getIdentifier());
                     } else {
                         String apiId = APIResourceManagerImpl.getInstance().getAPIResourceByIdentifier(
                                 systemAPI.getIdentifier(), tenantDomain).getId();
                         APIResourceManagerImpl.getInstance().deleteAPIResourceById(apiId, tenantDomain);
                     }
                 }
-                registerAPIResources(new ArrayList<>(configs.values()), tenantDomain);
+                // Register the new system APIs.
+                registerAPIResources(new ArrayList<>(tempConfigs.values()), tenantDomain);
+
+                // Handle duplicate system APIs.
+                for (APIResource oldAPIResource : duplicateConfigs.values()) {
+                    // Get the existing API resource from the DB.
+                    APIResource apiResourceFromDB = APIResourceManagerImpl.getInstance().getAPIResourceByIdentifier(
+                            oldAPIResource.getIdentifier(), tenantDomain);
+                    // Get the updated API resource from the configs.
+                    APIResource updatedAPIResource = configs.get(oldAPIResource.getIdentifier());
+                    // Get the scopes which are not in the existing API resource.
+                    List<Scope> addedScopes = updatedAPIResource.getScopes().stream()
+                            .filter(scope1 -> apiResourceFromDB.getScopes().stream()
+                                    .noneMatch(scope2 -> scope2.getName().equals(scope1.getName())))
+                            .collect(Collectors.toList());
+                    if (addedScopes.isEmpty()) {
+                        continue;
+                    }
+
+                    APIResource updatedAPIResourceFromDB = new APIResource.APIResourceBuilder()
+                            .id(apiResourceFromDB.getId())
+                            .name(apiResourceFromDB.getName())
+                            .description(apiResourceFromDB.getDescription())
+                            .identifier(apiResourceFromDB.getIdentifier())
+                            // Set the type as the updated API resource type.
+                            .type(updatedAPIResource.getType())
+                            .tenantId(apiResourceFromDB.getTenantId())
+                            .requiresAuthorization(apiResourceFromDB.isAuthorizationRequired())
+                            .scopes(updatedAPIResource.getScopes())
+                            .subscribedApplications(apiResourceFromDB.getSubscribedApplications())
+                            .properties(apiResourceFromDB.getProperties())
+                            .build();
+
+                    // If there are scopes which are not in the existing API resource, update the API resource.
+                    APIResourceManagerImpl.getInstance().updateAPIResource(updatedAPIResourceFromDB, addedScopes,
+                            new ArrayList<>(), tenantDomain);
+                }
             }
 
             LOG.debug("System APIs successfully registered in tenant domain: " + tenantDomain);

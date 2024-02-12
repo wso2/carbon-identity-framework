@@ -31,6 +31,7 @@ import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -412,7 +413,7 @@ public class IdentityTenantUtil {
      */
     public static boolean isTenantQualifiedUrlsEnabled() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS));
+        return IdentityCoreServiceDataHolder.getInstance().isTenantQualifiedUrlsEnabled();
     }
 
 
@@ -422,7 +423,7 @@ public class IdentityTenantUtil {
      */
     public static boolean isTenantedSessionsEnabled() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANTED_SESSIONS));
+        return IdentityCoreServiceDataHolder.getInstance().isTenantedSessionsEnabled();
     }
 
     /**

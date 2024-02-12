@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtServiceImpl;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEventImpl;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -182,6 +183,13 @@ public class IdentityCoreServiceComponent {
 
             defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
                     defaultKeyProviderService, null);
+
+            IdentityCoreServiceDataHolder.getInstance()
+                    .setTenantQualifiedUrlsEnabled(Boolean.parseBoolean(IdentityUtil.getProperty(
+                            IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS)));
+            IdentityCoreServiceDataHolder.getInstance()
+                    .setTenantedSessionsEnabled(Boolean.parseBoolean(IdentityUtil.getProperty(
+                            IdentityCoreConstants.ENABLE_TENANTED_SESSIONS)));
 
             // Register initialize service To guarantee the activation order. Component which is referring this
             // service will wait until this component activated.
