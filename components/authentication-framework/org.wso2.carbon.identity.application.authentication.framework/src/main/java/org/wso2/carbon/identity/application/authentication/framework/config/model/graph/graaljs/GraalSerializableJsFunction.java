@@ -96,7 +96,7 @@ public class GraalSerializableJsFunction implements BaseSerializableJsFunction<C
     }
 
     /**
-     * This will return the converted NashornSerializableJsFunction if the given  ScriptObjectMirror is a function.
+     * This will return the converted GraalSerializableJsFunction if the given  value is a function.
      *
      * @param functionObject Value type Function to Serialize
      * @return null if the ScriptObjectMirror is not a function.
