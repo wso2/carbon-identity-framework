@@ -1799,6 +1799,7 @@
         {% if authentication.jit_provisioning.allow_idp_login is defined %}
             <AllowLoginToIDP>{{authentication.jit_provisioning.allow_idp_login}}</AllowLoginToIDP>
         {% endif %}
+        <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
     </JITProvisioning>
 
     <!--Application management service configurations-->

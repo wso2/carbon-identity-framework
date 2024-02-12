@@ -253,6 +253,7 @@ public abstract class FrameworkConstants {
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
     public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
     public static final String IDP_MAPPED_USER_ROLES = "identityProviderMappedUserRoles";
+    public static final String ALLOW_ASSOCIATING_TO_EXISTING_USER = "JITProvisioning.AllowAssociatingToExistingUser";
 
     private FrameworkConstants() {
 

@@ -257,5 +257,6 @@
     "internal",
     "console",
     "SYSTEM"
-  ]
+  ],
+  "authentication.jit_provisioning.associating_to_existing_user": false
 }
