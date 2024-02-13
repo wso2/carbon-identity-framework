@@ -4070,7 +4070,7 @@
             <Password>{{cache_invalidator.mb.password}}</Password>
             <HybridMode>{{cache_invalidator.mb.hybrid_mode_enabled}}</HybridMode>
         </MB>
-        {% for cache_manager in cache_invalidator.block_list.cache_manager %}
+        {% for cache_manager in cache_invalidator.sync_block_list.cache_manager %}
         <CacheManager name="{{cache_manager.name}}">
             {% for cache_name in cache_manager.list %}
             <Cache name="{{cache_name}}"/>
