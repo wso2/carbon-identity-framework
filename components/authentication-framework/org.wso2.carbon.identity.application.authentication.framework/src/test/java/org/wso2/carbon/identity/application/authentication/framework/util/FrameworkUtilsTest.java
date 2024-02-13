@@ -784,8 +784,8 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
         return new Object[][]{
                 {"IDP_ROLE_CLAIM", "IDP_ROLE_CLAIM"},
-                {"", ""},
-                {null, null}
+                {"", getLocalGroupsClaimURI()},
+                {null, getLocalGroupsClaimURI()}
         };
     }
 

@@ -912,7 +912,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 localClaimValues);
             } else {
                 // This block handle the JIT provisioning in new authz runtime with v2 roles.
-                String idpGroupsClaimUri = FrameworkUtils.getIdpGroupClaimUri(stepConfig, context);
+                String idpGroupsClaimUri = FrameworkUtils.getEffectiveIdpGroupClaimUri(stepConfig, context);
                 List<String> assignedRoleIdList = FrameworkUtils.getAssignedRolesFromIdPGroups(externalIdPConfig,
                         originalExternalAttributeValueMap, idpGroupsClaimUri, context.getTenantDomain());
 
