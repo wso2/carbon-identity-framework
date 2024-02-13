@@ -200,7 +200,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         boolean useAppAssociatedRoles = isAppRoleResolverExists() || !CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
         if (useAppAssociatedRoles) {
             // This handles the idp group to local role assignments in the new authz flow.
-            String idpGroupClaimUri = FrameworkUtils.getIdpGroupClaimUri(stepConfig, context);
+            String idpGroupClaimUri = FrameworkUtils.getEffectiveIdpGroupClaimUri(stepConfig, context);
             boolean idpGroupsExists = isIdpGroupsExistForIDP(context.getExternalIdP().getIdentityProvider());
             if (idpGroupsExists) {
                 federatedUserRolesUnmappedExclusive = getAppAssociatedRolesOfFederatedUser(stepConfig, context);
@@ -423,7 +423,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         String applicationId = serviceProvider.getApplicationResourceId();
 
         // Get the IDP group claim URI.
-        String idpGroupClaimUri = FrameworkUtils.getIdpGroupClaimUri(stepConfig, context);
+        String idpGroupClaimUri = FrameworkUtils.getEffectiveIdpGroupClaimUri(stepConfig, context);
         // If there is no groups claim mapping, no need to proceed.
         if (StringUtils.isBlank(idpGroupClaimUri)) {
             return new ArrayList<>();

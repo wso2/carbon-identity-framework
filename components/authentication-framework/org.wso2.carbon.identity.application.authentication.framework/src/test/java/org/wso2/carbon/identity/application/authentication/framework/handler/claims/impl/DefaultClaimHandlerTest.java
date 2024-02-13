@@ -112,7 +112,7 @@ public class DefaultClaimHandlerTest {
 
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
-        when(FrameworkUtils.getIdpGroupClaimUri(eq(stepConfig), eq(authenticationContext))).thenReturn(
+        when(FrameworkUtils.getEffectiveIdpGroupClaimUri(eq(stepConfig), eq(authenticationContext))).thenReturn(
                 idpGroupClaimName);
         when(FrameworkUtils.getAppAssociatedRolesOfFederatedUser(
                 eq(authenticatedUser), eq(applicationId), eq(idpGroupClaimName))).thenReturn(mappedApplicationRoles);
