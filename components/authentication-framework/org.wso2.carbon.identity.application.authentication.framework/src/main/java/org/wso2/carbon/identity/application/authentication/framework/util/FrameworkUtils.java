@@ -2646,7 +2646,7 @@ public class FrameworkUtils {
 
         Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
 
-        // Check whether to use the default dialect or custom dialect.
+        // Check whether to use the default dialect.
         if (useDefaultIdpDialect || !useLocalClaimDialectForClaimMappings ||
                 mergingCustomClaimMappingsWithDefaultClaimMappingsAllowed) {
             String idPStandardDialect = authenticator.getClaimDialectURI();
@@ -2727,7 +2727,7 @@ public class FrameworkUtils {
 
         Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
 
-        // Check whether to use the default dialect or custom dialect.
+        // Check whether to use the default dialect.
         if (useDefaultIdpDialect || !useLocalClaimDialectForClaimMappings ||
                 mergingCustomClaimMappingsWithDefaultClaimMappingsAllowed) {
             String idPStandardDialect = authenticator.getClaimDialectURI();
