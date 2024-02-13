@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 LLC. licenses this file to you under the Apache License,
+ * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -146,8 +146,6 @@ public abstract class FrameworkConstants {
 
     public static final String STATUS = "&status=";
     public static final String STATUS_MSG = "&statusMsg=";
-    public static final String STATUS_PARAM = "status";
-    public static final String STATUS_MSG_PARAM = "statusMsg";
     public static final String ACCOUNT_LOCKED_MSG = "ACCOUNT IS LOCKED";
     public static final String ERROR_MSG = "This account is locked due to exceeding maximum number of failed attempts.";
     public static final String USER_TENANT_DOMAIN_MISMATCH = "UserTenantDomainMismatch";

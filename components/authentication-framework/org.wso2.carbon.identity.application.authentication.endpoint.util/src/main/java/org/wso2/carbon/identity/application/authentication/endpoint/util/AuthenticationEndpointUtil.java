@@ -34,11 +34,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.owasp.encoder.Encode;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -72,8 +70,6 @@ public class AuthenticationEndpointUtil {
     private static final String QUERY_STRING_INITIATOR = "?";
     private static final String PADDING_CHAR = "=";
     private static final String UNDERSCORE = "_";
-    private static final String TENANT_DOMAIN_PLACEHOLDER = "${tenantDomain}";
-    private static final String SUPER_TENANT = "carbon.super";
 
     private AuthenticationEndpointUtil() {
     }
@@ -427,11 +423,6 @@ public class AuthenticationEndpointUtil {
                     responseString.append(inputLine);
                 }
             }
-        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-            if (log.isDebugEnabled()) {
-                log.debug("Response received from the backendURL " + backendURL + " with status " +
-                        response.getStatusLine() + ".");
-            }
         } else {
             log.error("Response received from the backendURL " + backendURL +" failed with status " +
                     response.getStatusLine() + ".");
@@ -455,49 +446,5 @@ public class AuthenticationEndpointUtil {
         String authHeader = new String(encoding, Charset.defaultCharset());
 
         httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
-    }
-
-    /**
-     * Resolve "${tenantDomain}" in the URL.
-     *
-     * @param   url URL to be tenant resolved
-     * @return  Tenant resolved URL
-     */
-    public static String resolveTenantDomain(String url) {
-
-        if (url.contains(TENANT_DOMAIN_PLACEHOLDER)) {
-            String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-            if (StringUtils.isBlank(tenantDomain)) {
-                tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            }
-            if (SUPER_TENANT.equals(tenantDomain)) {
-                url = url.replace("t/" + TENANT_DOMAIN_PLACEHOLDER + "/", "");
-            } else {
-                url = url.replace(TENANT_DOMAIN_PLACEHOLDER, tenantDomain);
-            }
-        }
-        return url;
-    }
-
-    /**
-     * Resolve the query string of the request using the request parameter map.
-     *
-     * @param queryParamMap - Parameter map of the request.
-     * @return - StringBuilder with query parameters appended.
-     */
-    public static String resolveQueryString(Map<String, String[]> queryParamMap) {
-
-        StringBuilder queryParamString = new StringBuilder();
-        if (queryParamMap != null && !queryParamMap.isEmpty()) {
-            queryParamString.append("?");
-            List<NameValuePair> paramNameValuePairs = new ArrayList<>();
-            for (Map.Entry<String, String[]> entry : queryParamMap.entrySet()) {
-                if (ArrayUtils.isNotEmpty(entry.getValue())) {
-                    paramNameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()[0]));
-                }
-            }
-            queryParamString.append(URLEncodedUtils.format(paramNameValuePairs, StandardCharsets.UTF_8));
-        }
-        return queryParamString.toString();
     }
 }

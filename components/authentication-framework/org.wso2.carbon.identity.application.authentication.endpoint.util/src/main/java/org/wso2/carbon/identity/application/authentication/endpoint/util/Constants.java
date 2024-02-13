@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 LLC. licenses this file to you under the Apache License,
+ * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,12 +37,6 @@ public class Constants {
     public static final String USER_CLAIMS_CONSENT_ONLY = "userClaimsConsentOnly";
     public static final String CLAIM_SEPARATOR = ",";
     public static final String REQUEST_PARAM_SP = "sp";
-    public static final String USERNAME = "username";
-    public static final String PROMPT_FOR_ACCOUNT_LINKING = "prompt_for_account_linking";
-    public static final String ATTEMPTED_USER = "attempted_user";
-    public static final String ATTEMPTED_USER_EMAIL = "attempted_user_email";
-    public static final String ATTEMPTED_IDP = "attempted_idp";
-
     // Response Messages
     public static final String ACCOUNT_RESEND_SUCCESS_RESOURCE = "account.resend.email.success";
     public static final String ACCOUNT_RESEND_FAIL_RESOURCE = "account.resend.email.fail";

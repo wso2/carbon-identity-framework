@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 LLC. licenses this file to you under the Apache License,
+ * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -276,6 +276,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (isBackToFirstStepRequest(request) || (isIdentifierFirstRequest(request)
                         && (!isFlowHandlerInCurrentStepCanHandleRequest(context, request)
                         && !isIdfInitiatedFromAuthenticator(context)))) {
+
                     if (isCompletedStepsAreFlowHandlersOnly(context)) {
                         // If the incoming request is restart and all the completed steps have only flow handlers as the
                         // authenticated authenticator, then we reset the current step to 1.
@@ -359,9 +360,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
                     e.getErrorCode());
-            FrameworkUtils.sendToRetryPage(request, responseWrapper, context, errorWrapper.getStatus(),
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, errorWrapper.getStatus(),
                     errorWrapper.getStatusMsg());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
                 if (log.isDebugEnabled()) {
@@ -447,7 +448,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     private boolean isIdfInitiatedFromAuthenticator(AuthenticationContext context) {
-
         return Boolean.TRUE.equals(context.getProperty(IS_IDF_INITIATED_FROM_AUTHENTICATOR));
     }
 

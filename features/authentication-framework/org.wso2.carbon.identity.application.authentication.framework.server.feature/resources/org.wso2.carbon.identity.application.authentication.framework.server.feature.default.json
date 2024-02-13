@@ -57,6 +57,11 @@
     "password",
     "SAMLRequest"
   ],
+  "authentication.endpoint.redirect_params.filter_policy": "exclude",
+  "authentication.endpoint.redirect_params.remove_on_consume_from_api": true,
+  "authentication.endpoint.redirect_params.parameters": [
+    "loggedInUser"
+  ],
 
   "authentication.authenticator.basic.name": "BasicAuthenticator",
   "authentication.authenticator.basic.enable": true,

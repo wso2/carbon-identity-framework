@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 LLC. licenses this file to you under the Apache License,
+ * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -617,22 +617,8 @@ public class FrameworkUtils {
             URIBuilder uriBuilder = new URIBuilder(
                     ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
             if (status != null && statusMsg != null) {
-                if (context != null) {
-                    Map<String, String> failureData = new HashMap<>();
-                    failureData.put(FrameworkConstants.STATUS_PARAM, status);
-                    failureData.put(FrameworkConstants.STATUS_MSG_PARAM, statusMsg);
-                    failureData.put(FrameworkConstants.REQUEST_PARAM_SP, context.getServiceProviderName());
-                    AuthenticationError authenticationError = new AuthenticationError(failureData);
-                    String errorKey = UUID.randomUUID().toString();
-                    FrameworkUtils.addAuthenticationErrorToCache(errorKey, authenticationError,
-                            context.getTenantDomain());
-                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_ERROR_KEY, errorKey);
-                    uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_AUTH_FLOW_ID,
-                            context.getContextIdentifier());
-                } else {
-                    uriBuilder.addParameter(FrameworkConstants.STATUS_PARAM, status);
-                    uriBuilder.addParameter(FrameworkConstants.STATUS_MSG_PARAM, statusMsg);
-                }
+                uriBuilder.addParameter("status", status);
+                uriBuilder.addParameter("statusMsg", statusMsg);
             }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             if (context != null) {
@@ -1748,17 +1734,13 @@ public class FrameworkUtils {
         boolean configAvailable = FileBasedConfigurationBuilder.getInstance()
                 .isAuthEndpointRedirectParamsConfigAvailable();
 
-        List<String> queryParams;
-        String action;
         if (!configAvailable) {
-            queryParams = Arrays.asList("loggedInUser");
-            action = "exclude";
-        } else {
-            queryParams = FileBasedConfigurationBuilder.getInstance()
-                    .getAuthEndpointRedirectParams();
-            action = FileBasedConfigurationBuilder.getInstance()
-                    .getAuthEndpointRedirectParamsAction();
+            return redirectUrl;
         }
+        List<String> queryParams = FileBasedConfigurationBuilder.getInstance()
+                .getAuthEndpointRedirectParams();
+        String action = FileBasedConfigurationBuilder.getInstance()
+                .getAuthEndpointRedirectParamsAction();
 
         URIBuilder uriBuilder;
 

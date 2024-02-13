@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2017, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 LLC. licenses this file to you under the Apache License,
+ * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -286,8 +286,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 tenantDomainQueryString = "tenantDomain=" + context.getTenantDomain();
                 promptPage = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, tenantDomainQueryString);
             }
-            String sessionDataKeyQueryString = "sessionDataKey=" + context.getContextIdentifier();
-            promptPage = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, sessionDataKeyQueryString);
             String redirectUrl = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, "templateId=" +
                     URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" +
                     context.getContextIdentifier());
