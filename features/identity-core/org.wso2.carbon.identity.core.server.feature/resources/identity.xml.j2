@@ -2412,40 +2412,6 @@
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
-        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/secretmgt/add</Permissions>
-            <Scopes>internal_secret_mgt_add</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/secretmgt/update</Permissions>
-            <Scopes>internal_secret_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/secretmgt/view</Permissions>
-            <Scopes>internal_secret_mgt_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/secretmgt/delete</Permissions>
-            <Scopes>internal_secret_mgt_delete</Scopes>
-        </Resource>
-
-        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/secretmgt/add</Permissions>
-            <Scopes>internal_secret_mgt_add</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="PATCH, PUT">
-            <Permissions>/permission/admin/manage/identity/secretmgt/update</Permissions>
-            <Scopes>internal_secret_mgt_update</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/secretmgt/view</Permissions>
-            <Scopes>internal_secret_mgt_view</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/secretmgt/delete</Permissions>
-            <Scopes>internal_secret_mgt_delete</Scopes>
-        </Resource>
-
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
