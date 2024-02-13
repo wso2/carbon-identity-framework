@@ -389,6 +389,8 @@ public class IdentityEventConstants {
         public static final String API_ID = "API_ID";
         public static final String ADDED_SCOPES = "ADDED_SCOPES";
         public static final String DELETED_SCOPES = "DELETED_SCOPES";
+
+        public static final String INITIATOR = "INITIATOR";
     }
 
     public class ErrorMessage {
