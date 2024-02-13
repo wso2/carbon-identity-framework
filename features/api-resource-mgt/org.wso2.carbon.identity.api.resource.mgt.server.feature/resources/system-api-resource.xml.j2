@@ -434,33 +434,6 @@
                     description="Delete script libraries"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Secret Type Management API" identifier="/api/server/v1/secret-type"
-                 requiresAuthorization="true"
-                 description="API representation of the Secret Type Management API" type="TENANT">
-        <Scopes>
-            <Scope displayName="Add Secret Type" name="internal_secret_type_mgt_add" 
-                    description="Create new secret types in secret management service"/>
-            <Scope displayName="Update Secret Type" name="internal_secret_type_mgt_update" 
-                    description="Update secret types in secret management service"/>
-            <Scope displayName="View Secret Type" name="internal_secret_type_mgt_view" 
-                    description="View secret types in secret management service"/>
-            <Scope displayName="Delete Secret Type" name="internal_secret_type_mgt_delete" 
-                    description="Delete secret types in secret management service"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Secret Management API" identifier="/api/server/v1/secrets"
-                 requiresAuthorization="true" description="API representation of the Secret Management API" type="TENANT">
-        <Scopes>
-            <Scope displayName="Add Secret" name="internal_secret_mgt_add" 
-                    description="Create new secrets in secret management service"/>
-            <Scope displayName="Update Secret" name="internal_secret_mgt_update" 
-                    description="Update secrets in secret management service"/>
-            <Scope displayName="View Secret" name="internal_secret_mgt_view" 
-                    description="View secrets in secret management service"/>
-            <Scope displayName="Delete Secret" name="internal_secret_mgt_delete" 
-                    description="Delete secrets in secret management service"/>
-        </Scopes>
-    </APIResource>
     <APIResource name="Userstore Management API" identifier="/api/server/v1/userstore"
                  requiresAuthorization="true"
                  description="API representation of the Userstore Management API" type="TENANT">
@@ -1075,15 +1048,6 @@
         <Scopes>
             <Scope displayName="Getting Started Feature" name="console:org:home"
                    description="Manage home settings in the organization from the Console"/>
-        </Scopes>
-    </APIResource>
-    <APIResource name="Secret Management Feature" identifier="console:secretsManagement"
-                 requiresAuthorization="true"
-                 description="Resource representation of the Secret Management Feature"
-                 type="CONSOLE_FEATURE">
-        <Scopes>
-            <Scope displayName="Secret Management Feature" name="console:secretsManagement" 
-                    description="Manage secrets from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Certificate Management Feature" identifier="console:certificates"
