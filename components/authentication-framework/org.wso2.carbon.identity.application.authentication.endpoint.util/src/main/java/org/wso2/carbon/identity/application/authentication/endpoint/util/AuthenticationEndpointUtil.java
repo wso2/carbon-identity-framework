@@ -75,7 +75,7 @@ public class AuthenticationEndpointUtil {
     private static final String QUERY_STRING_INITIATOR = "?";
     private static final String PADDING_CHAR = "=";
     private static final String UNDERSCORE = "_";
-    private static String serverHost;
+    private static String serverHostAndPort;
     private static final String TENANT_DOMAIN_PLACEHOLDER = "${tenantDomain}";
     private static final String SUPER_TENANT = "carbon.super";
 
@@ -304,23 +304,23 @@ public class AuthenticationEndpointUtil {
 
     private static boolean validateCallbackURL(String callbackURL) {
 
-        String multiOptionURIHost;
         String authenticationEndpointURL = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         try {
             if (isURLRelative(callbackURL)) {
                 return !callbackURL.startsWith("//"); // Check for protocol-relative URLs.
             } else {
-                multiOptionURIHost = new URL(callbackURL).getHost();
+                String multiOptionURIHostAndPort = getHostAndPort(callbackURL);
                 /*
                   If the multiOptionURI is an absolute URL, then the host of the multiOptionURI should be
                   either host of the server or host of the externalized authenticationEndpointURL.
                  */
-                if (multiOptionURIHost.equals(getServerHost()) || (!isURLRelative(authenticationEndpointURL) &&
-                        multiOptionURIHost.equals(new URL(authenticationEndpointURL).getHost()))) {
+                if (multiOptionURIHostAndPort.equals(getServerHostAndPort()) ||
+                        (!isURLRelative(authenticationEndpointURL) && multiOptionURIHostAndPort
+                                .equals(getHostAndPort(authenticationEndpointURL)))) {
                     return true;
                 } else {
-                    log.error("No valid host found for the multiOptionURI. Host: " + multiOptionURIHost + " is " +
-                            "not allowed.");
+                    log.error("No valid host found for the multiOptionURI. URL: " + multiOptionURIHostAndPort +
+                            " is not allowed.");
                     return false;
                 }
             }
@@ -332,12 +332,11 @@ public class AuthenticationEndpointUtil {
         }
     }
 
-    private static String getServerHost() {
+    private static String getServerHostAndPort() {
 
         try {
-            if (StringUtils.isEmpty(serverHost)) {
-                String urlString = buildAbsoluteURL("/");
-                serverHost = new URL(urlString).getHost();
+            if (StringUtils.isEmpty(serverHostAndPort)) {
+                serverHostAndPort = getHostAndPort(buildAbsoluteURL("/"));
             }
         } catch (MalformedURLException | URLBuilderException e) {
             if (log.isDebugEnabled()) {
@@ -345,7 +344,24 @@ public class AuthenticationEndpointUtil {
             }
         }
 
-        return serverHost;
+        return serverHostAndPort;
+    }
+
+    /**
+     * Extracts the host and port from a given URL string.
+     * If the URL does not specify a port, only the host is returned.
+     *
+     * @param urlString The URL from which to extract the host and port.
+     * @return A string containing the host and, if specified, the port.
+     * @throws MalformedURLException If the given string does not represent a valid URL.
+     */
+    private static String getHostAndPort(String urlString) throws MalformedURLException {
+
+        URL url = new URL(urlString);
+        String host = url.getHost();
+        int port = url.getPort(); // Returns -1 if the port is not explicitly specified in the URL
+
+        return port == -1 ? host : host + ":" + port;
     }
 
     private static boolean isURLRelative(String uriString) throws URISyntaxException {
