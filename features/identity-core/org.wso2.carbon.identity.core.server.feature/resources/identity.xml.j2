@@ -1154,6 +1154,17 @@
         -->
         <UseLegacyScopesAsAliasForNewScopes>{{oauth.use_legacy_scopes_as_alias_for_new_scopes}}</UseLegacyScopesAsAliasForNewScopes>
         {% endif %}
+        {% if oauth.use_legacy_permission_access_for_user_based_auth is defined %}
+        <!--
+        Configuration to maintain backward compatibility for user based authentication handlers like Basic Auth to have
+        the previous access level. Prior to IS 7.0.0, permissions of the users were used for the access control of user
+        based authentication handlers. With the introduction of new authorization runtime with IS 7.0.0, scopes are used
+        to control the access of user based authentication handlers. Even though the migration of permissions to scopes
+        handle, still there are new internal scopes introduced for some APIs which previously used shared scopes. This
+        configuration will give the same access level for the shared scopes.
+        -->
+        <UseLegacyPermissionAccessForUserBasedAuth>{{oauth.use_legacy_permission_access_for_user_based_auth}}</UseLegacyPermissionAccessForUserBasedAuth>
+        {% endif %}
     </OAuth>
 
     <RestApiAuthentication>
