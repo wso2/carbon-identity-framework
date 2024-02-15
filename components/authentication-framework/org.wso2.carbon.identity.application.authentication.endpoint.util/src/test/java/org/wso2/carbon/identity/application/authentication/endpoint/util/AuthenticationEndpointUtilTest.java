@@ -26,12 +26,10 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.base.api.ServerConfigurationService;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -44,10 +42,9 @@ import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN
 import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
-@PrepareForTest({IdentityUtil.class, IdentityCoreServiceComponent.class, IdentityTenantUtil.class})
+@PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class})
 @PowerMockIgnore("org.mockito.*")
 @WithCarbonHome
-@WithAxisConfiguration
 public class AuthenticationEndpointUtilTest {
 
     @Mock
@@ -62,19 +59,6 @@ public class AuthenticationEndpointUtilTest {
     final String USERNAME = "TestUser";
     final String USERSTORE_NAME = "WSO2.COM";
     final String TENANT_DOMAIN = "abc.com";
-    final String SUPER_TENANT_DOMAIN = "carbon.super";
-
-    final String FULL_QUALIFIED_NAME = USERSTORE_NAME + DOMAIN_SEPARATOR + USERNAME +
-            TENANT_DOMAIN_COMBINER + TENANT_DOMAIN;
-
-
-    @BeforeMethod
-    public void setUp() throws Exception {
-    }
-
-    @AfterMethod
-    public void tearDown() throws Exception {
-    }
 
     @Test
     public void testGetApplicationSpecificCustomPageConfigKey() throws Exception {
@@ -204,8 +188,8 @@ public class AuthenticationEndpointUtilTest {
 
     @Test(dataProvider = "url-provider")
     public void testIsValidURL(String urlString, boolean expectedValidity) throws Exception {
-        mockStatic(IdentityCoreServiceComponent.class);
-        when(IdentityCoreServiceComponent.getConfigurationContextService()).thenReturn(mockConfigurationContextService);
+
+        IdentityCoreServiceDataHolder.getInstance().setConfigurationContextService(mockConfigurationContextService);
         when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
         when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
 

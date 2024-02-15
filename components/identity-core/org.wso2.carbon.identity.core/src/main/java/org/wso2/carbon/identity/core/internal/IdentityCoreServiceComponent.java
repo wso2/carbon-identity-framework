@@ -66,7 +66,6 @@ public class IdentityCoreServiceComponent {
     private static MigrationClient migrationClient = null;
 
     private static BundleContext bundleContext = null;
-    private static ConfigurationContextService configurationContextService = null;
     private static ServiceURLBuilderFactory serviceURLBuilderFactory = new ServiceURLBuilderFactory();
     private ServiceRegistration<KeyProviderService> defaultKeystoreManagerServiceRef;
     private DefaultKeystoreManagerExtension defaultKeystoreManagerExtension = new DefaultKeystoreManagerExtension();
@@ -283,7 +282,7 @@ public class IdentityCoreServiceComponent {
      * @return
      */
     public static ConfigurationContextService getConfigurationContextService() {
-        return configurationContextService;
+        return IdentityCoreServiceDataHolder.getInstance().getConfigurationContextService();
     }
 
     /**
@@ -297,14 +296,14 @@ public class IdentityCoreServiceComponent {
             unbind = "unsetConfigurationContextService"
     )
     protected void setConfigurationContextService(ConfigurationContextService service) {
-        configurationContextService = service;
+        IdentityCoreServiceDataHolder.getInstance().setConfigurationContextService(service);
     }
 
     /**
      * @param service
      */
     protected void unsetConfigurationContextService(ConfigurationContextService service) {
-        configurationContextService = null;
+        IdentityCoreServiceDataHolder.getInstance().setConfigurationContextService(null);
     }
 
     /**

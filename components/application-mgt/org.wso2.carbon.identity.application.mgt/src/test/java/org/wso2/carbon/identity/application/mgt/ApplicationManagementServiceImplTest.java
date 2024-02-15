@@ -20,9 +20,7 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
-import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -67,7 +65,6 @@ import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicatio
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
@@ -105,7 +102,6 @@ import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -118,7 +114,6 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/identity.sql"})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*",
         "org.apache.xerces.*", "org.mockito.*"})
-@PrepareForTest(IdentityCoreServiceComponent.class)
 public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
@@ -142,15 +137,6 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     private static final String USERNAME_1 = "user 1";
     private static final String USERNAME_2 = "user 2";
     private static final String RANDOM_STRING = "random string";
-
-    @Mock
-    private ConfigurationContextService mockConfigurationContextService;
-
-    @Mock
-    private ConfigurationContext mockConfigurationContext;
-
-    @Mock
-    private AxisConfiguration mockAxisConfiguration;
 
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
@@ -204,12 +190,6 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     @Test(dataProvider = "addApplicationDataProvider")
     public void testAddApplication(Object serviceProvider, String tenantDomain, String username)
             throws Exception {
-
-        mockStatic(IdentityCoreServiceComponent.class);
-
-        when(IdentityCoreServiceComponent.getConfigurationContextService()).thenReturn(mockConfigurationContextService);
-        when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
-        when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
 
         ServiceProvider inputSP = (ServiceProvider) serviceProvider;
         addApplicationConfigurations(inputSP);
@@ -1112,6 +1092,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     }
 
     private void setupConfiguration() throws UserStoreException, RegistryException {
+
+        ConfigurationContextService mockConfigurationContextService = mock(ConfigurationContextService.class);
+        ConfigurationContext mockConfigurationContext = mock(ConfigurationContext.class);
+        AxisConfiguration mockAxisConfiguration = mock(AxisConfiguration.class);
+
+        IdentityCoreServiceDataHolder.getInstance().setConfigurationContextService(mockConfigurationContextService);
+        when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
+        when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
 
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes", "repository").
                 toString();

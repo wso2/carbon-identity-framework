@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.idp.mgt;
 
+import org.apache.axis2.context.ConfigurationContext;
+import org.apache.axis2.engine.AxisConfiguration;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -49,12 +52,14 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithKeyStore;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.io.ByteArrayInputStream;
 import java.sql.Connection;
@@ -78,7 +83,6 @@ import static java.lang.Boolean.TRUE;
 /**
  * Unit tests for IdentityProviderManagementService.
  */
-@WithAxisConfiguration
 @WithCarbonHome
 @WithRegistry
 @WithRealmService(injectToSingletons = {IdpMgtServiceComponentHolder.class}, initUserStoreManager = true)
@@ -93,6 +97,14 @@ public class IdentityProviderManagementServiceTest extends PowerMockTestCase {
 
     @BeforeMethod
     public void setUp() throws Exception {
+
+        ConfigurationContextService mockConfigurationContextService = Mockito.mock(ConfigurationContextService.class);
+        ConfigurationContext mockConfigurationContext = Mockito.mock(ConfigurationContext.class);
+        AxisConfiguration mockAxisConfiguration = Mockito.mock(AxisConfiguration.class);
+
+        IdentityCoreServiceDataHolder.getInstance().setConfigurationContextService(mockConfigurationContextService);
+        when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
+        when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
 
         identityProviderManagementService = new IdentityProviderManagementService();
         List<MetadataConverter> metadataConverterList = Arrays.asList(mockMetadataConverter);

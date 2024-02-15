@@ -28,6 +28,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.ServerConstants;
 
@@ -35,25 +36,14 @@ import java.nio.file.Paths;
 
 import javax.xml.namespace.QName;
 
+import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-@PrepareForTest(IdentityCoreServiceComponent.class)
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
-        ".*", "org.apache.xerces.*","org.mockito.*"})
 public class IdentityConfigParserTest {
-
-    @Mock
-    private ConfigurationContextService mockConfigurationContextService;
-
-    @Mock
-    private ConfigurationContext mockConfigurationContext;
-
-    @Mock
-    private AxisConfiguration mockAxisConfiguration;
 
     @AfterClass
     public void tearDown() throws Exception {
@@ -63,9 +53,11 @@ public class IdentityConfigParserTest {
     @Test
     public void testGetInstance() throws Exception {
 
-        mockStatic(IdentityCoreServiceComponent.class);
+        ConfigurationContextService mockConfigurationContextService = mock(ConfigurationContextService.class);
+        ConfigurationContext mockConfigurationContext = mock(ConfigurationContext.class);
+        AxisConfiguration mockAxisConfiguration = mock(AxisConfiguration.class);
 
-        when(IdentityCoreServiceComponent.getConfigurationContextService()).thenReturn(mockConfigurationContextService);
+        IdentityCoreServiceDataHolder.getInstance().setConfigurationContextService(mockConfigurationContextService);
         when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
         when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
 

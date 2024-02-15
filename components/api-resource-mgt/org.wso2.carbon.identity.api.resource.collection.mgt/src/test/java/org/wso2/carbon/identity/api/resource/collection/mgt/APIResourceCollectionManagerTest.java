@@ -37,7 +37,6 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
-import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
 import java.nio.charset.StandardCharsets;
@@ -54,7 +53,6 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @WithCarbonHome
-@WithAxisConfiguration
 @PrepareForTest({APIResourceCollectionMgtConfigBuilder.class, APIResourceCollectionManagerImpl.class, FilterUtil.class,
         APIResourceCollectionMgtServiceDataHolder.class, APIResourceManager.class, APIResourceManagerImpl.class})
 public class APIResourceCollectionManagerTest extends PowerMockTestCase {

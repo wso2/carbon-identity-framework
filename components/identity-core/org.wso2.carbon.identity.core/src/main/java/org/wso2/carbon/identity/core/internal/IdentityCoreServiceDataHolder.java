@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.core.internal;
 
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 /**
  * Identity core service data holder.
@@ -29,6 +30,7 @@ public class IdentityCoreServiceDataHolder {
     private static IdentityCoreServiceDataHolder instance = new IdentityCoreServiceDataHolder();
     private RealmService realmService = null;
     private OrganizationUserResidentResolverService organizationUserResidentResolverService = null;
+    private ConfigurationContextService configurationContextService = null;
 
     private boolean isTenantQualifiedUrlsEnabled;
 
@@ -113,5 +115,15 @@ public class IdentityCoreServiceDataHolder {
     public void setTenantedSessionsEnabled(boolean tenantedSessionsEnabled) {
 
         isTenantedSessionsEnabled = tenantedSessionsEnabled;
+    }
+
+    public ConfigurationContextService getConfigurationContextService() {
+
+        return configurationContextService;
+    }
+
+    public void setConfigurationContextService(ConfigurationContextService configurationContextService) {
+
+        this.configurationContextService = configurationContextService;
     }
 }
