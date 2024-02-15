@@ -52,6 +52,7 @@
     String userInfoEndpoint = null;
     String logoutUrlOIDC = null;
     boolean isOIDCUserIdInClaims = false;
+    String scopes = StringUtils.EMPTY;
     String oidcQueryParam = StringUtils.EMPTY;
     
     Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>)session.getAttribute(
