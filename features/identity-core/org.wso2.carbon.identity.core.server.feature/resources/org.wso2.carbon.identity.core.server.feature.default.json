@@ -1515,5 +1515,6 @@
   "api_response.set_account_lock_auth_failure_reason": false,
   
   "super_tenant.alias_in_public_url": "",
-  "connector.challenge_questions.enable": false
+  "connector.challenge_questions.enable": false,
+  "tenant_mgt.enable_email_domain": false
 }
