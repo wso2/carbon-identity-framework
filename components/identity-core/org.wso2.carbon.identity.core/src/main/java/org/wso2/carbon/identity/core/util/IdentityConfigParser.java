@@ -560,7 +560,7 @@ public class IdentityConfigParser {
             if (elementHasText(element)) {
                 String key = getKey(nameStack);
                 Object currentObject = configuration.get(key);
-                String value = replaceSystemProperty(element.getText());
+                String value = IdentityUtil.fillURLPlaceholders(element.getText());
                 if (secretResolver != null && secretResolver.isInitialized() &&
                         secretResolver.isTokenProtected(key)) {
                     value = secretResolver.resolve(key);
