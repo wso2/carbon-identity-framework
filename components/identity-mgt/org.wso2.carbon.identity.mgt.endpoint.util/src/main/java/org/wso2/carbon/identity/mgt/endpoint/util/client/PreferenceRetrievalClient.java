@@ -27,16 +27,15 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -71,9 +70,6 @@ public class PreferenceRetrievalClient {
     private static final String AUTO_LOGIN_AFTER_SELF_SIGN_UP = "SelfRegistration.AutoLogin.Enable";
     public static final String SEND_CONFIRMATION_ON_CREATION = "SelfRegistration.SendConfirmationOnCreation";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
-
-    public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
-    public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
 
     /**
      * Check self registration is enabled or not.
@@ -238,8 +234,7 @@ public class PreferenceRetrievalClient {
     public boolean checkPreference(String tenant, String connectorName, String propertyName, boolean defaultValue)
             throws PreferenceRetrievalClientException {
 
-        X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
-        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             JSONArray main = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -294,7 +289,7 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiplePreference(String tenant, String connectorName, List<String> propertyNames)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = createHttpClientBuilderWithHV().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             JSONArray requestBody = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -361,13 +356,4 @@ public class PreferenceRetrievalClient {
         httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
     }
 
-    private HttpClientBuilder createHttpClientBuilderWithHV() {
-
-        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create().useSystemProperties();
-        if (DEFAULT_AND_LOCALHOST.equals(System.getProperty(HOST_NAME_VERIFIER))) {
-            X509HostnameVerifier hv = new SelfRegistrationHostnameVerifier();
-            httpClientBuilder.setHostnameVerifier(hv);
-        }
-        return httpClientBuilder;
-    }
 }
