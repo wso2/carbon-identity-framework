@@ -2116,7 +2116,7 @@
         <com.google.api.services.playintegrity.osgi.version>2.0.0.wso2v1</com.google.api.services.playintegrity.osgi.version>
         <com.google.api.http.clients.osgi.version>1.43.3.wso2v1</com.google.api.http.clients.osgi.version>
         <com.google.api.http.clients.osgi.version.range>[1.41.2,1.44.0)</com.google.api.http.clients.osgi.version.range>
-        <org.wso2.orbit.io.opencensus.version>0.31.1.wso2v2</org.wso2.orbit.io.opencensus.version>
+        <org.wso2.orbit.io.opencensus.version>0.31.1.wso2v3</org.wso2.orbit.io.opencensus.version>
         <org.wso2.orbit.io.grpc.version>1.59.0.wso2v1</org.wso2.orbit.io.grpc.version>
     </properties>
 
