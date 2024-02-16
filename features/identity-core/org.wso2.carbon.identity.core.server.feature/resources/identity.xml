@@ -1177,6 +1177,7 @@
 
     <OutboundProvisioning>
         <ResetProvisioningEntitiesOnConfigUpdate>true</ResetProvisioningEntitiesOnConfigUpdate>
+        <enableApplicationBasedOutboundProvisioning>false</enableApplicationBasedOutboundProvisioning>
     </OutboundProvisioning>
 
     <EventListeners>
