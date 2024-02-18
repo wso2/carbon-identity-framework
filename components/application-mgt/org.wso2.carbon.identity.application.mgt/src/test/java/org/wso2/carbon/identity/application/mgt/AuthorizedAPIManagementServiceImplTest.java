@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.axis2.context.ConfigurationContext;
+import org.apache.axis2.engine.AxisConfiguration;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -41,7 +44,6 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
-import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -60,6 +62,7 @@ import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
@@ -77,7 +80,6 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
-@WithAxisConfiguration
 @WithCarbonHome
 @WithRegistry
 @WithRealmService(injectToSingletons = {OrganizationManagementDataHolder.class})
@@ -255,6 +257,14 @@ public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
     }
 
     private void setupConfiguration() throws UserStoreException, RegistryException {
+
+        ConfigurationContextService mockConfigurationContextService = Mockito.mock(ConfigurationContextService.class);
+        ConfigurationContext mockConfigurationContext = Mockito.mock(ConfigurationContext.class);
+        AxisConfiguration mockAxisConfiguration = Mockito.mock(AxisConfiguration.class);
+
+        IdentityCoreServiceDataHolder.getInstance().setConfigurationContextService(mockConfigurationContextService);
+        when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
+        when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
 
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes", "repository").
                 toString();

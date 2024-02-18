@@ -143,8 +143,7 @@ public class IdentityUtil {
     private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap<>();
     private static List<String> cookiesToInvalidateConfigurationHolder = new ArrayList<>();
     private static Map<String, Boolean> storeProcedureBasedDAOConfigurationHolder = new HashMap<>();
-    private static Document importerDoc = null;
-    private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
+    private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<>();
     private static final int ENTITY_EXPANSION_LIMIT = 0;
     public static final String PEM_BEGIN_CERTFICATE = "-----BEGIN CERTIFICATE-----";
     public static final String PEM_END_CERTIFICATE = "-----END CERTIFICATE-----";
@@ -206,7 +205,6 @@ public class IdentityUtil {
         } else {
             strValue = String.valueOf(value);
         }
-        strValue = fillURLPlaceholders(strValue);
         return strValue;
     }
 

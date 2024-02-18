@@ -18,15 +18,27 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import org.apache.axis2.context.ConfigurationContext;
+import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.collections.MapUtils;
+import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.ServerConstants;
 
-import javax.xml.namespace.QName;
 import java.nio.file.Paths;
 
+import javax.xml.namespace.QName;
+
+import static org.mockito.Mockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -40,6 +52,15 @@ public class IdentityConfigParserTest {
 
     @Test
     public void testGetInstance() throws Exception {
+
+        ConfigurationContextService mockConfigurationContextService = mock(ConfigurationContextService.class);
+        ConfigurationContext mockConfigurationContext = mock(ConfigurationContext.class);
+        AxisConfiguration mockAxisConfiguration = mock(AxisConfiguration.class);
+
+        IdentityCoreServiceDataHolder.getInstance().setConfigurationContextService(mockConfigurationContextService);
+        when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
+        when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
+
         String identityXmlPath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources",
                 "identity.xml").toString();
         System.setProperty(ServerConstants.CARBON_HOME, ".");

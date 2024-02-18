@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.axis2.context.ConfigurationContext;
+import org.apache.axis2.engine.AxisConfiguration;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -88,6 +90,7 @@ import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
@@ -109,7 +112,8 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  */
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/identity.sql"})
-@PowerMockIgnore({"org.mockito.*"})
+@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom.*",
+        "org.apache.xerces.*", "org.mockito.*"})
 public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
@@ -1088,6 +1092,14 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
     }
 
     private void setupConfiguration() throws UserStoreException, RegistryException {
+
+        ConfigurationContextService mockConfigurationContextService = mock(ConfigurationContextService.class);
+        ConfigurationContext mockConfigurationContext = mock(ConfigurationContext.class);
+        AxisConfiguration mockAxisConfiguration = mock(AxisConfiguration.class);
+
+        IdentityCoreServiceDataHolder.getInstance().setConfigurationContextService(mockConfigurationContextService);
+        when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
+        when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
 
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes", "repository").
                 toString();

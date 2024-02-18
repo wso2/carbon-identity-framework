@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
-import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -56,7 +55,6 @@ import static org.testng.Assert.assertNotNull;
         injectToSingletons = {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class},
         tenantDomain = "foo.com")
 @WithRegistry(injectToSingletons = {FrameworkServiceDataHolder.class})
-@WithAxisConfiguration
 public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @BeforeClass

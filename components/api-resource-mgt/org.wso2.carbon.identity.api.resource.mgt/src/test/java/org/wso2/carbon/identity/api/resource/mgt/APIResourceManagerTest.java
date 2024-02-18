@@ -28,7 +28,6 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
-import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -39,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@WithAxisConfiguration
 @WithCarbonHome
 @WithRegistry
 @WithRealmService(injectToSingletons = {OrganizationManagementDataHolder.class})

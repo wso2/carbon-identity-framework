@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.CachedBackedConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -164,6 +165,23 @@ public class ConfigurationManagerComponent {
             log.debug("Unsetting the Realm Service");
         }
         ConfigurationManagerComponentDataHolder.getInstance().setRealmService(null);
+    }
+
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
     }
 
     private void setUseCreatedTime() throws DataAccessException {
