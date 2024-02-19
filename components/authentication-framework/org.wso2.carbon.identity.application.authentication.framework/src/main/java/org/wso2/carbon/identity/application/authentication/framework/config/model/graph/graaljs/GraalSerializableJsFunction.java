@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -39,17 +39,12 @@ public class GraalSerializableJsFunction implements BaseSerializableJsFunction<C
     private static final long serialVersionUID = -7001351065432647040L;
     private String source;
     private boolean isPolyglotFunction = false;
-    private boolean isHostFunction = false;
     private String name;
 
-    public GraalSerializableJsFunction(String source, String functionType) {
+    public GraalSerializableJsFunction(String source) {
 
         this.source = source;
-        if (functionType.equals("polyglotFunction")) {
-            this.isPolyglotFunction = true;
-        } else {
-            this.isHostFunction = true;
-        }
+        this.isPolyglotFunction = true;
     }
 
     public GraalSerializableJsFunction(String source, boolean isFunction) {
@@ -116,10 +111,10 @@ public class GraalSerializableJsFunction implements BaseSerializableJsFunction<C
             }
             if (functionAsValue.canExecute()) {
                 if (functionAsValue.isHostObject()) {
-                    return serializePolyglot(null, "hostFunction");
+                    return null;
                 }
                 String source = (String) functionAsValue.getSourceLocation().getCharacters();
-                return serializePolyglot(source, "polyglotFunction");
+                return serializePolyglot(source);
             } else {
                 return null;
             }
@@ -140,8 +135,8 @@ public class GraalSerializableJsFunction implements BaseSerializableJsFunction<C
         this.name = name;
     }
 
-    private static GraalSerializableJsFunction serializePolyglot(String source, String functionType) {
+    private static GraalSerializableJsFunction serializePolyglot(String source) {
 
-        return new GraalSerializableJsFunction(source, functionType);
+        return new GraalSerializableJsFunction(source);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,10 +32,13 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraalSelectAcrFromFunction;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_LOG;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE;
 
 /**
  * Factory to create a Javascript based sequence builder.
@@ -57,7 +60,7 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
             throws FrameworkException {
 
         Map<String, Object> map = (Map<String, Object>) authContext.getProperty(JS_BINDING_CURRENT_CONTEXT);
-        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 Object deserializedValue = GraalSerializer.getInstance().fromJsSerializable(entry.getValue(), context);
@@ -68,10 +71,17 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
 
     public static void persistCurrentContext(AuthenticationContext authContext, Context context) {
 
-        Value engineBindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
+        Value engineBindings = context.getBindings(POLYGLOT_LANGUAGE);
         Map<String, Object> persistableMap = new HashMap<>();
         engineBindings.getMemberKeys().forEach((key) -> {
             Value binding = engineBindings.getMember(key);
+            /*
+             * Since, we don't have a difference between global and engine scopes, we need to identify what are the
+             * custom functions and the logger object we added bindings to, and not persist them since we will anyways
+             * bind them again.
+             * The functions will be host objects and can be executed. The logger object will be host object and will
+             * not have any array elements.
+             */
             if (!(binding.isHostObject() && (binding.canExecute() || !binding.hasArrayElements()))) {
                 persistableMap.put(key, GraalSerializer.getInstance().toJsSerializable(binding));
             }
@@ -81,15 +91,12 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
 
     public Context createEngine(AuthenticationContext authenticationContext) {
 
-        Context context =
-                Context.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE).allowHostAccess(HostAccess.ALL)
-                        .option("engine.WarnInterpreterOnly", "false").build();
+        Context context = Context.newBuilder(POLYGLOT_LANGUAGE).allowHostAccess(HostAccess.ALL)
+                .option("engine.WarnInterpreterOnly", "false").build();
 
-        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
-        GraalSelectAcrFromFunction selectAcrFromFunction = new GraalSelectAcrFromFunction();
-        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM, selectAcrFromFunction);
-        JsLogger jsLogger = new JsLogger();
-        bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
+        bindings.putMember(JS_FUNC_SELECT_ACR_FROM, new GraalSelectAcrFromFunction());
+        bindings.putMember(JS_LOG, new JsLogger());
         return context;
     }
 

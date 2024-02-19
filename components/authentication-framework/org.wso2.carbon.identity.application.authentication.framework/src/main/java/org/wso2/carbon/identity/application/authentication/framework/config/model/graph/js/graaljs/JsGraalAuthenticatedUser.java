@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -103,7 +103,15 @@ public class JsGraalAuthenticatedUser extends JsAuthenticatedUser implements Pro
     @Override
     public Object getMemberKeys() {
 
-        return ProxyArray.fromArray(FrameworkConstants.JSAttributes.JS_USERNAME);
+        return ProxyArray.fromArray(
+                FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT_IDENTIFIER,
+                FrameworkConstants.JSAttributes.JS_USERNAME,
+                FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN,
+                FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN,
+                FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS,
+                FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS,
+                FrameworkConstants.JSAttributes.JS_LOCAL_ROLES,
+                FrameworkConstants.JSAttributes.JS_CLAIMS);
     }
 
     public void putMember(String name, Value value) {
