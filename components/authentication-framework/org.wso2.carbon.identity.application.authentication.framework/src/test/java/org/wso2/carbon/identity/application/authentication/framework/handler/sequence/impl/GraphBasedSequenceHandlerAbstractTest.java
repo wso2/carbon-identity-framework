@@ -86,7 +86,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     public void setUpExecutionSupervisor() {
 
         initMocks(this);
-        JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 500000L);
+        JSExecutionSupervisor jsExecutionSupervisor = new JSExecutionSupervisor(1, 5000L);
         FrameworkServiceDataHolder.getInstance().setJsExecutionSupervisor(jsExecutionSupervisor);
     }
 

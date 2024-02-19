@@ -41,6 +41,8 @@ import java.util.Map;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.POLYGLOT_SOURCE;
 
 public class JsGraalAuthenticationContextTest {
 
@@ -56,7 +58,7 @@ public class JsGraalAuthenticationContextTest {
     @BeforeClass
     public void setUp() {
 
-        context = Context.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE).allowAllAccess(true).build();
+        context = Context.newBuilder(POLYGLOT_LANGUAGE).allowAllAccess(true).build();
     }
 
     @Test
@@ -74,25 +76,27 @@ public class JsGraalAuthenticationContextTest {
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
         JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
-        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
         bindings.putMember("context", jsAuthenticationContext);
 
-        Value result = context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
-                "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.1']",
-                FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+        Value result = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.1']",
+                        POLYGLOT_SOURCE).build());
         assertTrue(result.isNull());
 
-        result = context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
-                "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']",
-                FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+        result = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE,
+                        "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']",
+                        POLYGLOT_SOURCE).build());
         assertEquals(result.asString(), "TestClaimVal2");
 
-        context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
-                "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2'] = 'Modified2'",
-                FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
-        result = context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
-                "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']",
-                FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+        context.eval(Source.newBuilder(POLYGLOT_LANGUAGE,
+                        "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2'] = 'Modified2'",
+                        POLYGLOT_SOURCE).build());
+        result = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE,
+                        "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']",
+                        POLYGLOT_SOURCE).build());
         assertEquals(result.asString(), "Modified2");
 
     }
@@ -130,12 +134,12 @@ public class JsGraalAuthenticationContextTest {
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
         JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
-        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
         bindings.putMember("context", jsAuthenticationContext);
 
-        context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
-                "context.steps[1].subject.remoteClaims['testClaim']='testValue'",
-                FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+        context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.steps[1].subject.remoteClaims['testClaim']='testValue'",
+                        POLYGLOT_SOURCE).build());
 
         ClaimMapping claimMapping = ClaimMapping.build("testClaim", "testClaim", "", false);
         String claimCreatedByJs = authenticatedUser.getUserAttributes().get(claimMapping);
@@ -149,12 +153,11 @@ public class JsGraalAuthenticationContextTest {
         authenticationContext.setServiceProviderName(SERVICE_PROVIDER_NAME);
 
         JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
-        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
         bindings.putMember("context", jsAuthenticationContext);
 
         Value result = context.eval(
-                Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE, "context.serviceProviderName",
-                        FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.serviceProviderName", POLYGLOT_SOURCE).build());
         assertFalse(result.isNull());
         assertEquals(result.asString(), SERVICE_PROVIDER_NAME,
                 "Service Provider name set in AuthenticationContext is not " +
@@ -173,26 +176,26 @@ public class JsGraalAuthenticationContextTest {
         authenticationContext.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, lastAttemptedUser);
 
         JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
-        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
         bindings.putMember("context", jsAuthenticationContext);
 
         Value result = context.eval(
-                Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE, "context.lastLoginFailedUser",
-                        FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.lastLoginFailedUser", POLYGLOT_SOURCE).build());
         assertFalse(result.isNull());
         assertTrue(result.asProxyObject() instanceof JsAuthenticatedUser);
 
-        Value username = context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
-                "context.lastLoginFailedUser.username", FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+        Value username = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.lastLoginFailedUser.username", POLYGLOT_SOURCE).build());
         assertEquals(username.asString(), LAST_ATTEMPTED_USER_USERNAME);
 
-        Value tenantDomain = context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
-                "context.lastLoginFailedUser.tenantDomain", FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+        Value tenantDomain = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.lastLoginFailedUser.tenantDomain", POLYGLOT_SOURCE)
+                        .build());
         assertEquals(tenantDomain.asString(), LAST_ATTEMPTED_USER_TENANT_DOMAIN);
 
-        Value userStoreDomain = context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
-                        "context.lastLoginFailedUser.userStoreDomain", FrameworkConstants.JSAttributes.POLYGLOT_SOURCE)
-                .build());
+        Value userStoreDomain = context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.lastLoginFailedUser.userStoreDomain", POLYGLOT_SOURCE)
+                        .build());
         assertEquals(userStoreDomain.asString(), LAST_ATTEMPTED_USER_USERSTORE_DOMAIN.toUpperCase());
     }
 
@@ -203,12 +206,11 @@ public class JsGraalAuthenticationContextTest {
         authenticationContext.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, null);
 
         JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
-        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
         bindings.putMember("context", jsAuthenticationContext);
 
         Value result = context.eval(
-                Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE, "context.lastLoginFailedUser",
-                        FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.lastLoginFailedUser", POLYGLOT_SOURCE).build());
         assertTrue(result.isNull());
     }
 
@@ -221,12 +223,11 @@ public class JsGraalAuthenticationContextTest {
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
         JsGraalAuthenticationContext jsAuthenticationContext = new JsGraalAuthenticationContext(authenticationContext);
-        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
+        Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
         bindings.putMember("context", jsAuthenticationContext);
 
         Value result = context.eval(
-                Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE, "context.steps[1].authenticator",
-                        FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+                Source.newBuilder(POLYGLOT_LANGUAGE, "context.steps[1].authenticator", POLYGLOT_SOURCE).build());
 
         assertFalse(result.isNull());
         assertEquals(result.asString(), BASIC_AUTHENTICATOR,

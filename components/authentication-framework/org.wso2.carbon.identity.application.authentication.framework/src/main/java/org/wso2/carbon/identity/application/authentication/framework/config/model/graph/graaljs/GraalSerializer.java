@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,7 +24,6 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -32,6 +31,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE;
 
 /**
  * Serializer class supports GraalJS Engine.
@@ -136,11 +137,11 @@ public class GraalSerializer implements JsSerializer<Context> {
         if (value instanceof GraalSerializableJsFunction) {
             GraalSerializableJsFunction serializableJsFunction = (GraalSerializableJsFunction) value;
             try {
-                context.eval(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
+                context.eval(POLYGLOT_LANGUAGE,
                         "var tempFunc = " + serializableJsFunction.getSource());
-                return context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE).getMember("tempFunc");
+                return context.getBindings(POLYGLOT_LANGUAGE).getMember("tempFunc");
             } catch (Exception e) {
-                log.error("could not recreate JS Object", e);
+                log.error("Error when recreating JS Object", e);
             }
         } else if (value instanceof Map) {
             Map<String, Object> deserializedMap = new HashMap<>();
@@ -150,7 +151,7 @@ public class GraalSerializer implements JsSerializer<Context> {
             }
             return deserializedMap;
         } else if (value instanceof List) {
-            Value deserializedValue = context.eval(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE, "[]");
+            Value deserializedValue = context.eval(POLYGLOT_LANGUAGE, "[]");
             List<?> valueList = (List<?>) value;
             int listSize = valueList.size();
             for (int index = 0; index < listSize; index++) {

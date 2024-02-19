@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -90,8 +90,17 @@ public class JsGraalAuthenticationContext extends JsAuthenticationContext implem
     @Override
     public Object getMemberKeys() {
 
-        return ProxyArray.fromArray(FrameworkConstants.JSAttributes.JS_STEPS,
-                FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT);
+        return ProxyArray.fromArray(
+                FrameworkConstants.JSAttributes.JS_REQUESTED_ACR,
+                FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN,
+                FrameworkConstants.JSAttributes.JS_SERVICE_PROVIDER_NAME,
+                FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER,
+                FrameworkConstants.JSAttributes.JS_REQUEST,
+                FrameworkConstants.JSAttributes.JS_RESPONSE,
+                FrameworkConstants.JSAttributes.JS_STEPS,
+                FrameworkConstants.JSAttributes.JS_CURRENT_STEP,
+                FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT,
+                FrameworkConstants.JSAttributes.JS_RETRY_STEP);
     }
 
     @Override
