@@ -1516,5 +1516,6 @@
   
   "super_tenant.alias_in_public_url": "",
   "connector.challenge_questions.enable": false,
-  "tenant_mgt.enable_email_domain": false
+  "tenant_mgt.enable_email_domain": false,
+  "legacy_claims.allow_roles": false
 }

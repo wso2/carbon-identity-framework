@@ -3953,4 +3953,9 @@
 
     <SuperTenantAliasInPublicUrl>{{super_tenant.alias_in_public_url}}</SuperTenantAliasInPublicUrl>
 
+    {% if legacy_claims.allow_legacy_role_claim_behaviour is defined %}
+    <!-- Config to allow legacy roles claim behaviors -->
+    <AllowLegacyRoleClaimBehaviour>{{legacy_claims.allow_legacy_role_claim_behaviour}}</AllowLegacyRoleClaimBehaviour>
+    {% endif %}
+
 </Server>
