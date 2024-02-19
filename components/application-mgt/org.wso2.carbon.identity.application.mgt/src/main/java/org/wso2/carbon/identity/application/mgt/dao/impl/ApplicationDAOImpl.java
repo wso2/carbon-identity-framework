@@ -2161,8 +2161,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             clientAttestationMetaData.setAttestationEnabled(getIsAttestationEnabled(propertyList));
             clientAttestationMetaData.setAndroidPackageName(getAndroidPackageName(propertyList));
             clientAttestationMetaData.setAppleAppId(getAppleAppId(propertyList));
-            if (StringUtils.isNotEmpty(clientAttestationMetaData.getAndroidPackageName())
-                    && clientAttestationMetaData.isAttestationEnabled()) {
+            if (StringUtils.isNotEmpty(clientAttestationMetaData.getAndroidPackageName())) {
                 clientAttestationMetaData.setAndroidAttestationServiceCredentials
                         (getAndroidAttestationServiceCredentials(serviceProvider));
             }
