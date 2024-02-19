@@ -71,6 +71,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCA
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.ASK_PASSWORD_CLAIM;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.GROUP_CLAIM_URI;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.SELF_SIGNUP_ROLE;
+import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isApplicationBasedOutboundProvisioningEnabled;
 import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedOutboundProvisioningEnabled;
 
 /**
@@ -347,7 +348,9 @@ public class OutboundProvisioningManager {
             }
 
             // Any provisioning request coming via Console, considered as coming from the resident SP.
-            if (StringUtils.equals(CONSOLE_APPLICATION_NAME, serviceProviderIdentifier)) {
+            // If the application based outbound provisioning is disabled, resident SP configuration will be used.
+            if (StringUtils.equals(CONSOLE_APPLICATION_NAME, serviceProviderIdentifier) ||
+                    !isApplicationBasedOutboundProvisioningEnabled()) {
                 serviceProviderIdentifier = LOCAL_SP;
                 inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
             }
