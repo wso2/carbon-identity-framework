@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.utils.DiagnosticLog;
@@ -49,6 +50,7 @@ public class JsLogger {
      *
      * @param values
      */
+    @HostAccess.Export
     public void log(Object... values) {
 
         if (values != null) {
@@ -78,6 +80,7 @@ public class JsLogger {
         }
     }
 
+    @HostAccess.Export
     public void debug(String value) {
 
         logger.debug(value);
@@ -91,6 +94,7 @@ public class JsLogger {
         }
     }
 
+    @HostAccess.Export
     public void info(String value) {
 
         logger.info(value);
@@ -104,6 +108,7 @@ public class JsLogger {
         }
     }
 
+    @HostAccess.Export
     public void error(String value) {
 
         logger.error(value);
@@ -117,6 +122,7 @@ public class JsLogger {
         }
     }
 
+    @HostAccess.Export
     public void log(String message, Object... values) {
 
     }

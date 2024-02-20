@@ -114,7 +114,6 @@ public class JsGraalAuthenticationContext extends JsAuthenticationContext implem
                 return getCurrentSubjectIdentifierStep() != null;
             default:
                 return super.hasMember(name);
-
         }
     }
 

@@ -137,9 +137,7 @@ public class GraalSerializer implements JsSerializer<Context> {
         if (value instanceof GraalSerializableJsFunction) {
             GraalSerializableJsFunction serializableJsFunction = (GraalSerializableJsFunction) value;
             try {
-                context.eval(POLYGLOT_LANGUAGE,
-                        "var tempFunc = " + serializableJsFunction.getSource());
-                return context.getBindings(POLYGLOT_LANGUAGE).getMember("tempFunc");
+                return context.eval("js", "(" + serializableJsFunction.getSource() + ")");
             } catch (Exception e) {
                 log.error("Error when recreating JS Object", e);
             }

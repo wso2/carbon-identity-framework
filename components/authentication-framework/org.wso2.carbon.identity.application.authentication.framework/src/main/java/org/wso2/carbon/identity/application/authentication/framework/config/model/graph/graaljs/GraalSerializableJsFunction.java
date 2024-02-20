@@ -22,11 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
-import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.BaseSerializableJsFunction;
 
-import java.io.IOException;
 import java.util.function.Function;
 
 /**
@@ -78,10 +76,8 @@ public class GraalSerializableJsFunction implements BaseSerializableJsFunction<C
 
         if (isPolyglotFunction) {
             try {
-                polyglotContext.eval(Source.newBuilder("js", " var curFunc = " + getSource(), "src.js").build());
-                return polyglotContext.getBindings("js").getMember("curFunc").execute(params);
-            } catch (IOException e) {
-                log.error("Error when building the from function source", e);
+                Value jsFunction = polyglotContext.eval("js", "(" + getSource() + ")");
+                return jsFunction.execute(params);
             } catch (PolyglotException e) {
                 log.error("Error when executing function", e);
             }
@@ -115,8 +111,6 @@ public class GraalSerializableJsFunction implements BaseSerializableJsFunction<C
                 }
                 String source = (String) functionAsValue.getSourceLocation().getCharacters();
                 return serializePolyglot(source);
-            } else {
-                return null;
             }
         } catch (PolyglotException e) {
             log.error("Error when serializing JavaScript Function: ", e);

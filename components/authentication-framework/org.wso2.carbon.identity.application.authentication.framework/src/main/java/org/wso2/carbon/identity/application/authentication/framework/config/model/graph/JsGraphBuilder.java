@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -482,6 +483,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
      * @return functionLibraryScript
      * @throws FunctionLibraryManagementException
      */
+    @HostAccess.Export
     public String loadLocalLibrary(String functionLibraryName) throws FunctionLibraryManagementException {
 
         FunctionLibraryManagementService functionLibMgtService = FrameworkServiceComponent.
@@ -498,6 +500,18 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
             log.error("No function library available with " + functionLibraryName + "name.");
         }
         return libraryScript;
+    }
+
+    /**
+     * Load Executor implementation to load local libraries.
+     */
+    public class LoadExecutorImpl implements LoadExecutor {
+
+        @HostAccess.Export
+        public String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException {
+
+            return JsGraphBuilder.this.loadLocalLibrary(libraryName);
+        }
     }
 
     /**
@@ -615,6 +629,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     @FunctionalInterface
     public interface StepExecutor {
 
+        @HostAccess.Export
         void executeStep(Integer stepId, Object... parameterMap);
     }
 
@@ -624,6 +639,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     @FunctionalInterface
     public interface PromptExecutor {
 
+        @HostAccess.Export
         void prompt(String template, Object... parameterMap);
     }
 
