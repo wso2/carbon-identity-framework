@@ -161,10 +161,13 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORACLE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.UNION_SEPARATOR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getConsoleAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL_ORACLE;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT;
@@ -499,15 +502,30 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             return;
         }
         // Build SQL query to insert multiple values to the table based on the roles.size.
-        StringBuilder queryBuilder = new StringBuilder(ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_HEAD);
-        for (int i = 0; i < roles.size(); i++) {
-            queryBuilder.append(String.format(ADD_APPLICATION_ASSOC_ROLES_TAIL, i));
-            if (i != roles.size() - 1) {
-                queryBuilder.append(",");
-            }
-        }
+        try {
+            String dbProductName = connection.getMetaData().getDatabaseProductName();
+            StringBuilder queryBuilder = new StringBuilder(ORACLE.equals(dbProductName) ?
+                    ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_HEAD_ORACLE :
+                    ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_HEAD);
+            for (int i = 0; i < roles.size(); i++) {
+                if (ORACLE.equals(dbProductName)) {
+                    queryBuilder.append(String.format(
+                            ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_VALUES_ORACLE, i));
+                    if (i != roles.size() - 1) {
+                        queryBuilder.append(UNION_SEPARATOR);
+                    }
+                } else {
+                    queryBuilder.append(String.format(ADD_APPLICATION_ASSOC_ROLES_TAIL, i));
+                    if (i != roles.size() - 1) {
+                        queryBuilder.append(",");
+                    }
+                }
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, queryBuilder.toString())) {
+            }
+            if (ORACLE.equals(dbProductName)) {
+                queryBuilder.append(ADD_APPLICATION_ASSOC_ROLES_TAIL_ORACLE);
+            }
+            NamedPreparedStatement statement = new NamedPreparedStatement(connection, queryBuilder.toString());
             for (int i = 0; i < roles.size(); i++) {
                 statement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + i,
                         applicationId);
