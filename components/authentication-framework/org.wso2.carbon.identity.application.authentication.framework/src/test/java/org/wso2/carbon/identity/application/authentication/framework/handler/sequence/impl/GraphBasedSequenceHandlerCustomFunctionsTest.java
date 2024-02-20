@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.graalvm.polyglot.HostAccess;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -382,6 +383,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
     public class CustomBoolean2Impl implements CustomBoolean2Interface {
 
+        @HostAccess.Export
         public boolean getTrueFunction2(JsBaseAuthenticationContext context, String param1) {
 
             return true;

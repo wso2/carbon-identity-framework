@@ -62,5 +62,4 @@ public class JsGraalWritableParameters extends JsGraalParameters {
 
         return getWrapped().containsKey(name);
     }
-
 }

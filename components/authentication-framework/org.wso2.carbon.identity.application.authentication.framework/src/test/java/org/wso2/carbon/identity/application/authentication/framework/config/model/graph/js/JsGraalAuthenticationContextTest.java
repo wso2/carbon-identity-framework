@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.testng.annotations.BeforeClass;
@@ -58,7 +59,10 @@ public class JsGraalAuthenticationContextTest {
     @BeforeClass
     public void setUp() {
 
-        context = Context.newBuilder(POLYGLOT_LANGUAGE).allowAllAccess(true).build();
+        context = Context.newBuilder(POLYGLOT_LANGUAGE)
+                .allowHostAccess(HostAccess.EXPLICIT)
+                .option("engine.WarnInterpreterOnly", "false")
+                .build();
     }
 
     @Test
@@ -80,7 +84,8 @@ public class JsGraalAuthenticationContextTest {
         bindings.putMember("context", jsAuthenticationContext);
 
         Value result = context.eval(
-                Source.newBuilder(POLYGLOT_LANGUAGE, "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.1']",
+                Source.newBuilder(POLYGLOT_LANGUAGE,
+                        "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.1']",
                         POLYGLOT_SOURCE).build());
         assertTrue(result.isNull());
 
@@ -90,9 +95,10 @@ public class JsGraalAuthenticationContextTest {
                         POLYGLOT_SOURCE).build());
         assertEquals(result.asString(), "TestClaimVal2");
 
-        context.eval(Source.newBuilder(POLYGLOT_LANGUAGE,
+        context.eval(
+                Source.newBuilder(POLYGLOT_LANGUAGE,
                         "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2'] = 'Modified2'",
-                        POLYGLOT_SOURCE).build());
+                                POLYGLOT_SOURCE).build());
         result = context.eval(
                 Source.newBuilder(POLYGLOT_LANGUAGE,
                         "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']",

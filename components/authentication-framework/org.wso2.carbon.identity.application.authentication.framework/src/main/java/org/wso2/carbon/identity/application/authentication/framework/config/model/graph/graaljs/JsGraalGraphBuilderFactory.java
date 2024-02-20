@@ -91,8 +91,10 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
 
     public Context createEngine(AuthenticationContext authenticationContext) {
 
-        Context context = Context.newBuilder(POLYGLOT_LANGUAGE).allowHostAccess(HostAccess.ALL)
-                .option("engine.WarnInterpreterOnly", "false").build();
+        Context context = Context.newBuilder(POLYGLOT_LANGUAGE)
+                .allowHostAccess(HostAccess.EXPLICIT)
+                .option("engine.WarnInterpreterOnly", "false")
+                .build();
 
         Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
         bindings.putMember(JS_FUNC_SELECT_ACR_FROM, new GraalSelectAcrFromFunction());

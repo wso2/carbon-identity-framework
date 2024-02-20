@@ -61,7 +61,7 @@ public class JsGraalRuntimeClaims extends JsGraalClaims implements ProxyObject {
     public void putMember(String claimUri, Value claimValue) {
 
         if (authenticatedUser != null) {
-            setRuntimeClaim(claimUri, String.valueOf(claimValue));
+            setRuntimeClaim(claimUri, claimValue.asString());
         }
     }
 
@@ -91,10 +91,9 @@ public class JsGraalRuntimeClaims extends JsGraalClaims implements ProxyObject {
 
     private void setRuntimeClaim(String claimUri, String claimValue) {
 
-        String claimValueAsString = String.valueOf(claimValue);
-        if (claimValueAsString == null) {
-            claimValueAsString = StringUtils.EMPTY;
+        if (claimValue == null) {
+            claimValue = StringUtils.EMPTY;
         }
-        getContext().addRuntimeClaim(claimUri, claimValueAsString);
+        getContext().addRuntimeClaim(claimUri, claimValue);
     }
 }

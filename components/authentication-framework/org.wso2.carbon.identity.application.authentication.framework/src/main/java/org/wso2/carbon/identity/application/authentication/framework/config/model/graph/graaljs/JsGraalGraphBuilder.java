@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
@@ -141,10 +142,10 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
             currentBuilder.set(this);
             Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
 
-            bindings.putMember(JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
+            bindings.putMember(JS_FUNC_EXECUTE_STEP, new JsGraalStepExecuter());
             bindings.putMember(JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>) this::sendError);
-            bindings.putMember(JS_FUNC_SHOW_PROMPT, (PromptExecutor) this::addShowPrompt);
-            bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, (LoadExecutor) this::loadLocalLibrary);
+            bindings.putMember(JS_FUNC_SHOW_PROMPT, new PromptExecutorImpl());
+            bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new LoadExecutorImpl());
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap =
@@ -275,6 +276,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
      * @param params params
      */
     @SuppressWarnings("unchecked")
+    @HostAccess.Export
     public void executeStepInAsyncEvent(int stepId, Object... params) {
 
         AuthenticationContext context = contextForJs.get();
@@ -335,6 +337,19 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
                 Map<String, Object> options = (Map<String, Object>) params[0];
                 handleOptionsAsyncEvent(options, clonedStepConfig, context.getSequenceConfig().getStepMap());
             }
+        }
+    }
+
+
+    /**
+     * Executes the given script in an async event.
+     */
+    public class JsGraalStepExecuterInAsyncEvent implements StepExecutor {
+
+        @HostAccess.Export
+        public void executeStep(Integer stepId, Object... parameterMap) {
+
+            JsGraalGraphBuilder.this.executeStepInAsyncEvent(stepId, parameterMap);
         }
     }
 
@@ -400,6 +415,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
      * @param params params
      */
     @SuppressWarnings("unchecked")
+    @HostAccess.Export
     public void executeStep(int stepId, Object... params) {
 
         StepConfig stepConfig;
@@ -430,6 +446,18 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
                 Map<String, Object> options = (Map<String, Object>) params[0];
                 handleOptions(options, stepConfig);
             }
+        }
+    }
+
+    /**
+     * Executes the given script.
+     */
+    public class JsGraalStepExecuter implements StepExecutor {
+
+        @HostAccess.Export
+        public void executeStep(Integer stepId, Object... parameterMap) {
+
+            JsGraalGraphBuilder.this.executeStep(stepId, parameterMap);
         }
     }
 
@@ -475,6 +503,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
         }
     }
 
+    @HostAccess.Export
     public static void sendErrorAsync(String url, Map<String, Object> parameterMap) {
 
         FailNode newNode = createFailNode(url, parameterMap, true);
@@ -517,6 +546,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
         }
 
         @Override
+        @HostAccess.Export
         public Object evaluate(AuthenticationContext authenticationContext, Object... params) {
 
             JsGraalGraphBuilder graphBuilder = JsGraalGraphBuilder.this;
@@ -533,11 +563,11 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
                 Context context = getContext();
                 Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
 
-                bindings.putMember(JS_FUNC_EXECUTE_STEP, (StepExecutor) graphBuilder::executeStepInAsyncEvent);
+                bindings.putMember(JS_FUNC_EXECUTE_STEP, new JsGraalStepExecuterInAsyncEvent());
                 bindings.putMember(JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>) JsGraalGraphBuilder::sendErrorAsync);
-                bindings.putMember(JS_AUTH_FAILURE, (FailAuthenticationFunction) JsGraalGraphBuilder::failAsync);
-                bindings.putMember(JS_FUNC_SHOW_PROMPT, (PromptExecutor) graphBuilder::addShowPrompt);
-                bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, (LoadExecutor) graphBuilder::loadLocalLibrary);
+                bindings.putMember(JS_AUTH_FAILURE, new FailAuthenticationFunctionImpl());
+                bindings.putMember(JS_FUNC_SHOW_PROMPT, new PromptExecutorImpl());
+                bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new LoadExecutorImpl());
                 JsFunctionRegistry jsFunctionRegistrar =
                         FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
                 if (jsFunctionRegistrar != null) {
@@ -598,6 +628,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
      * @param parameters parameters
      */
     @SuppressWarnings("unchecked")
+    @HostAccess.Export
     public void addShowPrompt(String templateId, Object... parameters) {
 
         ShowPromptNode newNode = new ShowPromptNode();
@@ -623,11 +654,24 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
         }
     }
 
+    /**
+     * GraalJS specific prompt implementation
+     */
+    public class PromptExecutorImpl implements PromptExecutor {
+
+        @HostAccess.Export
+        public void prompt(String templateId, Object... parameters) {
+
+            JsGraalGraphBuilder.this.addShowPrompt(templateId, parameters);
+        }
+    }
+
     private boolean canInfuse(AuthGraphNode executingNode) {
 
         return executingNode instanceof DynamicDecisionNode && dynamicallyBuiltBaseNode.get() != null;
     }
 
+    @HostAccess.Export
     public static void failAsync(Object... parameters) {
 
         Map<String, Object> parameterMap;
@@ -645,6 +689,18 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
             dynamicallyBuiltBaseNode.set(newNode);
         } else {
             attachToLeaf(currentNode, newNode);
+        }
+    }
+
+    /**
+     * Fail function implementation for GraalJS.
+     */
+    public class FailAuthenticationFunctionImpl implements FailAuthenticationFunction {
+
+        @HostAccess.Export
+        public void fail(Object... parameters) {
+
+            failAsync(parameters);
         }
     }
 

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.graalvm.polyglot.HostAccess;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
@@ -98,6 +99,7 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
 
     public static class AsyncAnalyticsCbFunctionImpl implements Fn1 {
 
+        @HostAccess.Export
         public void publishEvent(String siddhiAppName, String inStreamName, String outStreamName,
                                  Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 

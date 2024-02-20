@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.io.Serializable;
@@ -39,5 +40,6 @@ public interface AuthenticationDecisionEvaluator extends Serializable {
      * @param context
      * @return
      */
+    @HostAccess.Export
     Object evaluate(AuthenticationContext context, Object... params);
 }

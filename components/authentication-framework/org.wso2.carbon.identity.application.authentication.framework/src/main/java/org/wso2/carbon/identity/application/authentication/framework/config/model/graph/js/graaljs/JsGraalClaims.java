@@ -52,9 +52,9 @@ public class JsGraalClaims extends JsClaims implements ProxyObject {
 
         if (authenticatedUser != null) {
             if (isRemoteClaimRequest) {
-                setFederatedClaim(claimUri, String.valueOf(claimValue));
+                setFederatedClaim(claimUri, claimValue.asString());
             } else {
-                setLocalClaim(claimUri, String.valueOf(claimValue));
+                setLocalClaim(claimUri, claimValue.asString());
             }
         }
     }
