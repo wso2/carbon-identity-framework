@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2011-2023, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2011-2024, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -2329,6 +2329,7 @@
                     <Path>/api/server/v1/branding-preference/text/resolve</Path>
                     <Path>/api/identity/auth/v1.1/data</Path>
                     <Path>/api/users/v1/offline-invite-link</Path>
+                    <Path>/api/server/v1/validation-rules</Path>
                 </SubPaths>
             </Context>
             <Context>
