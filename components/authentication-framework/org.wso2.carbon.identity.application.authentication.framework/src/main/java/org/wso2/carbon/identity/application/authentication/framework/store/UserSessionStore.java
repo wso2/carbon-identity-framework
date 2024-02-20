@@ -1272,7 +1272,7 @@ public class UserSessionStore {
         long currentTime = System.currentTimeMillis();
         long minTimestamp = currentTime - idleSessionTimeOut;
 
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
             String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
                     ? SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT_H2
                     : SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT;
