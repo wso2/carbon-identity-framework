@@ -976,6 +976,13 @@
              Supported versions : IS 7.0.0 onwards
         -->
         <UserEndpointMaxItemsPerPageEnabled>true</UserEndpointMaxItemsPerPageEnabled>
+
+        <!--
+          If you want to get the 'totalResults' by user count then enable this property value.
+          Default value : false
+        -->
+        <!--<EnableRetrieveTotalResultsByUserCount>false</EnableRetrieveTotalResultsByUserCount>-->
+
     </SCIM2>
 
     <!--Recovery>
