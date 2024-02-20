@@ -83,6 +83,8 @@ public class ApplicationConstants {
     public static final String S_MICROSOFT = "microsoft";
     public static final String INFORMIX = "Informix";
     public static final String H2 = "H2";
+    public static final String ORACLE = "Oracle";
+    public static final String UNION_SEPARATOR = " UNION ALL ";
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
     public static final int DEFAULT_RESULTS_PER_PAGE = 10;
     public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
