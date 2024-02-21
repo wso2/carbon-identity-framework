@@ -121,7 +121,8 @@ public class JsGraalAuthenticationContext extends JsAuthenticationContext implem
     public void putMember(String key, Value value) {
 
         if (FrameworkConstants.JSAttributes.JS_SELECTED_ACR.equals(key)) {
-            getWrapped().setSelectedAcr(String.valueOf(value));
+            String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
+            getWrapped().setSelectedAcr(valueAsString);
         }
     }
 

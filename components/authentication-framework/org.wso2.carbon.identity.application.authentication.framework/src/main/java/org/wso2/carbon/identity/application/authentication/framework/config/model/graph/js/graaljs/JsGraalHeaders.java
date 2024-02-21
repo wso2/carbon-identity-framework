@@ -85,7 +85,8 @@ public class JsGraalHeaders implements ProxyObject {
         if (wrapped != null) {
             wrapped.put(name, value);
             //adds a new header to the response.
-            response.addHeader(name, String.valueOf(value));
+            String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
+            response.addHeader(name, valueAsString);
         }
     }
 }
