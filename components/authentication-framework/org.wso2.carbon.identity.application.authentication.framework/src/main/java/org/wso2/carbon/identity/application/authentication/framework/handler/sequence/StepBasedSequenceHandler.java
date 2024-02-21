@@ -37,7 +37,10 @@ public interface StepBasedSequenceHandler extends SequenceHandler {
      * @param mappedRoles           Mapped Roles
      * @param extAttributesValueMap Attributes Value Map.
      * @throws FrameworkException Framework Exception.
+     * @deprecated This method is deprecated and use
+     * {@link #callJitProvisioningWithV2Roles(String, AuthenticationContext, List, Map)}.
      */
+    @Deprecated
     default void callJitProvisioning(String subjectIdentifier, AuthenticationContext context, List<String> mappedRoles,
             Map<String, String> extAttributesValueMap) throws FrameworkException { }
 
@@ -52,8 +55,5 @@ public interface StepBasedSequenceHandler extends SequenceHandler {
      */
     default void callJitProvisioningWithV2Roles(String subjectIdentifier, AuthenticationContext context,
                                                 List<String> assignedRoleIdList,
-                                                Map<String, String> extAttributesValueMap) throws FrameworkException {
-
-        throw new FrameworkException("Operation is not supported.");
-    }
+                                                Map<String, String> extAttributesValueMap) throws FrameworkException { }
 }
