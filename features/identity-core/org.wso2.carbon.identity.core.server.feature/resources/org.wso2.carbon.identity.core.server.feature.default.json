@@ -1047,6 +1047,7 @@
   "console.ui.email_templates.default_white_logo_url": "/libs/themes/default/assets/images/branding/logo-white.svg",
   "console.ui.app_favicon_path": "/assets/images/branding/favicon.ico",
   "console.ui.idp_templates.github.enabled": true,
+  "console.ui.idp_templates.hypr.enabled": false,
   "console.ui.i18n_configs.showLanguageSwitcher": false,
   "console.ui.i18n_configs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
