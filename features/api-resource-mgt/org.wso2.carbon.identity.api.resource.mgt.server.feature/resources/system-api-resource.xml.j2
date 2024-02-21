@@ -22,7 +22,7 @@
     <APIResource name="{{ api_resource.name }}" identifier="{{ api_resource.identifier }}" requiresAuthorization="{{ api_resource.requiresAuthorization }}" description="{{ api_resource.description }}" type="{{ api_resource.type }}">
         <Scopes>
             {% for scope in api_resource.scopes %}
-            <Scope displayName="{{ scope.displayName }}" name="{{ scope.name }}"/>
+            <Scope displayName="{{ scope.displayName }}" name="{{ scope.name }}" description = "{{ scope.description }}"/>
             {% endfor %}
         </Scopes>
     </APIResource>
