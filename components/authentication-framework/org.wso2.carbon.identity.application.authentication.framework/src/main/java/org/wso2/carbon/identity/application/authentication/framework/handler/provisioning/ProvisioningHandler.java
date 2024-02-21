@@ -47,12 +47,12 @@ public interface ProvisioningHandler {
      * Default implementation to handle provisioning with v1 roles by validating idp role mappings by keeping backward
      * compatibility.
      *
-     * @param roles List of role names.
-     * @param subject Subject identifier.
-     * @param attributes Attributes.
+     * @param roles                   List of role names.
+     * @param subject                 Subject identifier.
+     * @param attributes              Attributes.
      * @param provisioningUserStoreId Provisioning user store Id.
-     * @param tenantDomain Tenant domain.
-     * @param idpToLocalRoleMapping IdP to local role mapping.
+     * @param tenantDomain            Tenant domain.
+     * @param idpToLocalRoleMapping   IdP to local role mapping.
      * @throws FrameworkException If an error occurred while handling provisioning.
      * @deprecated This method is deprecated and use {@link #handleWithV2Roles(List, String, Map, String, String)}.
      */
