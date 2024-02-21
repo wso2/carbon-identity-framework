@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsSerializer;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -64,6 +65,9 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 Object deserializedValue = GraalSerializer.getInstance().fromJsSerializable(entry.getValue(), context);
+                if (deserializedValue instanceof AbstractJSObjectWrapper) {
+                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(authContext);
+                }
                 bindings.putMember(entry.getKey(), deserializedValue);
             }
         }
