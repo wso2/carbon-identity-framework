@@ -495,6 +495,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         return Collections.emptyMap();
     }
 
+    @Deprecated
     @Override
     public void callJitProvisioning(String subjectIdentifier, AuthenticationContext context,
                                     List<String> mappedRoles, Map<String, String> extAttributesValueMap)
