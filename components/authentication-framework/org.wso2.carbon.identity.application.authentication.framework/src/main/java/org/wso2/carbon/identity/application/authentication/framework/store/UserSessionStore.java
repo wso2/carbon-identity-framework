@@ -386,6 +386,30 @@ public class UserSessionStore {
         return isExisting;
     }
 
+    public boolean isExistingMapping(String sessionId) throws UserSessionException {
+
+        boolean isExisting = false;
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(
+                    SQLQueries.SQL_SELECT_USER_SESSION_MAP_BY_SESSION_ID)) {
+                preparedStatement.setString(1, sessionId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        isExisting = true;
+                    }
+                }
+            } catch (SQLException e1) {
+                throw new UserSessionException(
+                        "Error while retrieving existing mapping between user Id: " + "and session Id: " + sessionId,
+                        e1);
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException(
+                    "Error while retrieving existing mapping between user Id: " + " and session Id: " + sessionId, e);
+        }
+        return isExisting;
+    }
+
     /**
      * Method to get session Id list of a given user Id.
      *

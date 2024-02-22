@@ -144,6 +144,19 @@ public interface UserSessionManagementService {
     }
 
     /**
+     * Terminate the session of the given ID.
+     *
+     * @param sessionId Unique ID for the session.
+     * @return Whether the session termination is success or not. In default method, false is returned.
+     */
+    default boolean terminateSessionBySessionId(String sessionId) throws
+            SessionManagementException {
+
+        return false;
+    }
+
+
+    /**
      * Get active sessions that fulfill the criteria determined by the filter parameter value.
      *
      * @param tenantDomain Context tenant domain.
