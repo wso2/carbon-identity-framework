@@ -99,6 +99,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         return instance;
     }
 
+    @Deprecated
     @Override
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
             String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
@@ -110,6 +111,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     }
 
+    @Deprecated
     @Override
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
             String provisioningUserStoreId, String tenantDomain, List<String> idpToLocalRoleMapping)
