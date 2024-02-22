@@ -475,8 +475,18 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 if (commonAuthCookie != null) {
                     sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
-                    sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey,
-                            context.getLoginTenantDomain());
+                    // Get the authentication details from the cache.
+                    try {
+                        /*
+                        Starting the tenant-flow as the tenant domain is retrieved downstream
+                        from the carbon-context when getting the tenant-wise idle session timeout.
+                        */
+                        FrameworkUtils.startTenantFlow(context.getTenantDomain());
+                        sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey,
+                                context.getLoginTenantDomain());
+                    } finally {
+                        FrameworkUtils.endTenantFlow();
+                    }
                 }
             }
 
