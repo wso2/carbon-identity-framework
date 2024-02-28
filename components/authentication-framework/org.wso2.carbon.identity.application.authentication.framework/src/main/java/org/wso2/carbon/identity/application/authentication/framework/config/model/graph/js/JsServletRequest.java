@@ -18,10 +18,20 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -40,6 +50,9 @@ public abstract class JsServletRequest
         extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletRequest>>
         implements JsBaseServletRequest {
 
+    private static final Log LOG = LogFactory.getLog(JsServletRequest.class);
+
+
     public JsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
 
         super(wrapped);
@@ -54,6 +67,8 @@ public abstract class JsServletRequest
         }
 
         switch (name) {
+            case FrameworkConstants.JSAttributes.JS_REQUEST_IP:
+                return true;
             case FrameworkConstants.JSAttributes.JS_HEADERS:
                 return getRequest().getHeaderNames() != null;
             case FrameworkConstants.JSAttributes.JS_PARAMS:
@@ -65,7 +80,55 @@ public abstract class JsServletRequest
         }
     }
 
-    protected HttpServletRequest getRequest() {
+    public Object getMemberKeys() {
+
+        String[] servletRequestProperties =
+                new String[]{FrameworkConstants.JSAttributes.JS_HEADERS, FrameworkConstants.JSAttributes.JS_COOKIES,
+                        FrameworkConstants.JSAttributes.JS_REQUEST_IP, FrameworkConstants.JSAttributes.JS_PARAMS};
+
+        return Arrays.stream(servletRequestProperties).filter(this::hasMember).toArray();
+    }
+
+    public Object getMember(String name) {
+
+        switch (name) {
+            case FrameworkConstants.JSAttributes.JS_HEADERS:
+                Map headers = new HashMap();
+                Enumeration<String> headerNames = getRequest().getHeaderNames();
+                if (headerNames != null) {
+                    while (headerNames.hasMoreElements()) {
+                        String headerName = headerNames.nextElement();
+                        headers.put(headerName, getRequest().getHeader(headerName));
+                    }
+                }
+                return JsWrapperFactoryProvider.getInstance().getWrapperFactory().createJsWritableParameters(headers);
+            case FrameworkConstants.JSAttributes.JS_PARAMS:
+                return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                        .createJsParameters(getRequest().getParameterMap());
+            case FrameworkConstants.JSAttributes.JS_COOKIES:
+                Map cookies = new HashMap();
+                Cookie[] cookieArr = getRequest().getCookies();
+                if (cookieArr != null) {
+                    for (Cookie cookie : cookieArr) {
+                        cookies.put(cookie.getName(),
+                                JsWrapperFactoryProvider.getInstance().getWrapperFactory().createJsCookie(cookie));
+                    }
+                }
+                return JsWrapperFactoryProvider.getInstance().getWrapperFactory().createJsWritableParameters(cookies);
+            case FrameworkConstants.JSAttributes.JS_REQUEST_IP:
+                return IdentityUtil.getClientIpAddress(getRequest());
+            default:
+                return super.getMember(name);
+        }
+    }
+
+    public void setMember(String name, Object value) {
+
+        LOG.warn("Unsupported operation. Servlet Request is read only. Can't add parameter " + value);
+
+    }
+
+    private HttpServletRequest getRequest() {
 
         TransientObjectWrapper<HttpServletRequest> transientObjectWrapper = getWrapped();
         return transientObjectWrapper.getWrapped();

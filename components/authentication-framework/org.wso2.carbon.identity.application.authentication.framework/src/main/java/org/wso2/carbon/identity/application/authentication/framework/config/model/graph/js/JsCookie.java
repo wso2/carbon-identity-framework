@@ -18,8 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseCookie;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+
+import java.util.Arrays;
 
 import javax.servlet.http.Cookie;
 
@@ -31,6 +35,8 @@ import javax.servlet.http.Cookie;
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime Cookie.
  */
 public abstract class JsCookie extends AbstractJSObjectWrapper<Cookie> implements JsBaseCookie {
+
+    protected static final Log LOG = LogFactory.getLog(JsCookie.class);
 
     public JsCookie(Cookie cookie) {
         super(cookie);
@@ -63,6 +69,17 @@ public abstract class JsCookie extends AbstractJSObjectWrapper<Cookie> implement
         }
     }
 
+    public Object getMemberKeys() {
+
+        String[] cookieProperties = new String[]{
+                FrameworkConstants.JSAttributes.JS_COOKIE_NAME, FrameworkConstants.JSAttributes.JS_COOKIE_VALUE,
+                FrameworkConstants.JSAttributes.JS_COOKIE_COMMENT, FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN,
+                FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE, FrameworkConstants.JSAttributes.JS_COOKIE_PATH,
+                FrameworkConstants.JSAttributes.JS_COOKIE_SECURE, FrameworkConstants.JSAttributes.JS_COOKIE_VERSION,
+                FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY};
+        return Arrays.stream(cookieProperties).filter(this::hasMember).toArray();
+    }
+
     @Override
     public boolean hasMember(String name) {
 
@@ -81,8 +98,16 @@ public abstract class JsCookie extends AbstractJSObjectWrapper<Cookie> implement
                 return getWrapped().getPath() != null;
             case FrameworkConstants.JSAttributes.JS_COOKIE_VERSION:
                 return getWrapped().getVersion() != 0;
+            case FrameworkConstants.JSAttributes.JS_COOKIE_SECURE:
+            case FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY:
+                return true;
             default:
                 return super.hasMember(name);
         }
+    }
+
+    public void setMember(String name, Object value) {
+
+        LOG.warn("Unsupported operation. Cookie is read only. Can't remove parameter " + name);
     }
 }

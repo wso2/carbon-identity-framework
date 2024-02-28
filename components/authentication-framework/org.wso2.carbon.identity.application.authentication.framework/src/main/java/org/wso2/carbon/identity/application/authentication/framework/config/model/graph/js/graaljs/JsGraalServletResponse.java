@@ -25,11 +25,6 @@ import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -56,32 +51,15 @@ public class JsGraalServletResponse extends JsServletResponse implements ProxyOb
     }
 
     @Override
-    public Object getMember(String name) {
-
-        if (FrameworkConstants.JSAttributes.JS_HEADERS.equals(name)) {
-            Map<String, String> headers = new HashMap<>();
-            Collection<String> headerNames = getResponse().getHeaderNames();
-            if (headerNames != null) {
-                for (String element : headerNames) {
-                    headers.put(element, getResponse().getHeader(element));
-                }
-            }
-            return new JsGraalHeaders(headers, getResponse());
-        }
-        return super.getMember(name);
-    }
-
-    @Override
     public Object getMemberKeys() {
 
-        return ProxyArray.fromArray(FrameworkConstants.JSAttributes.JS_HEADERS);
+        return ProxyArray.fromArray(super.getMemberKeys());
     }
 
     @Override
     public void putMember(String key, Value value) {
 
-        log.warn("Unsupported operation. Servlet Response is read only. Can't set parameter " + key + " to value: " +
-                value);
+        String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
+        super.setMember(key, valueAsString);
     }
-
 }

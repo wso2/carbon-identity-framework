@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,23 +16,23 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import jdk.nashorn.api.scripting.AbstractJSObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseHeaders;
 
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Javascript wrapper for Java level HashMap of HTTP headers.
+ * Abstract Javascript wrapper for Java level HashMap of HTTP headers.
  * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class JsHeaders extends AbstractJSObject {
+public abstract class JsHeaders implements JsBaseHeaders {
 
-    private Map wrapped;
-    private HttpServletResponse response;
+    private final Map wrapped;
+    private final HttpServletResponse response;
 
     public JsHeaders(Map wrapped, HttpServletResponse response) {
 
@@ -40,17 +40,20 @@ public class JsHeaders extends AbstractJSObject {
         this.response = response;
     }
 
-    @Override
     public Object getMember(String name) {
 
         if (wrapped == null) {
-            return super.getMember(name);
+            return null;
         } else {
             return wrapped.get(name);
         }
     }
 
-    @Override
+    public Object getMemberKeys() {
+
+        return wrapped.keySet().toArray();
+    }
+
     public boolean hasMember(String name) {
 
         if (wrapped == null) {
@@ -60,27 +63,23 @@ public class JsHeaders extends AbstractJSObject {
         }
     }
 
-    @Override
-    public void removeMember(String name) {
+    public boolean removeMemberObject(String name) {
 
-        if (wrapped == null) {
-            super.removeMember(name);
-        } else {
-            if (wrapped.containsKey(name)) {
-                wrapped.remove(name);
-            }
+        if (wrapped != null) {
+            wrapped.remove(name);
+            return true;
         }
+        return false;
     }
 
-    @Override
-    public void setMember(String name, Object value) {
+    public boolean setMemberObject(String name, Object value) {
 
-        if (wrapped == null) {
-            super.setMember(name, value);
-        } else {
+        if (wrapped != null) {
             wrapped.put(name, value);
             //adds a new header to the response.
             response.addHeader(name, String.valueOf(value));
+            return true;
         }
+        return false;
     }
 }

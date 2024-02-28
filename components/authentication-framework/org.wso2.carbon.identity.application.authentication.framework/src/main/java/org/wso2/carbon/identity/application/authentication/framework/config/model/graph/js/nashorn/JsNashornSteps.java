@@ -18,76 +18,32 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSContextMemberObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsSteps;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
-import java.util.Optional;
+import java.util.Objects;
 
 /**
  * Returns when context.steps[<step_number] is called
  * This wrapper uses jdk.nashorn engine.
  */
-public class JsNashornSteps extends AbstractJSContextMemberObject implements AbstractJsObject {
-
-    private static final Log LOG = LogFactory.getLog(JsNashornSteps.class);
+public class JsNashornSteps extends JsSteps implements AbstractJsObject {
 
     public JsNashornSteps() {
+
+        super();
 
     }
 
     public JsNashornSteps(AuthenticationContext context) {
 
-        initializeContext(context);
-    }
-
-    @Override
-    public boolean hasSlot(int step) {
-
-        if (getContext() == null) {
-            return false;
-        } else {
-            return getContext().getSequenceConfig().getStepMap().containsKey(step);
-        }
+        super(context);
     }
 
     @Override
     public Object getSlot(int step) {
 
-        if (getContext() == null) {
-            return AbstractJsObject.super.getSlot(step);
-        } else {
-            return new JsNashornStep(getContext(), step, getAuthenticatedIdPOfStep(step),
-                    getAuthenticatedAuthenticatorOfStep(step));
-        }
-    }
-
-    private String getAuthenticatedIdPOfStep(int step) {
-
-        if (getContext().getSequenceConfig() == null) {
-            //Sequence config is not yet initialized
-            return null;
-        }
-
-        Optional<StepConfig> optionalStepConfig = getContext().getSequenceConfig().getStepMap().values().stream()
-                .filter(stepConfig -> stepConfig.getOrder() == step).findFirst();
-        return optionalStepConfig.map(StepConfig::getAuthenticatedIdP).orElse(null);
-    }
-
-    private String getAuthenticatedAuthenticatorOfStep(int step) {
-
-        if (getContext().getSequenceConfig() == null) {
-            // Sequence config is not yet initialized.
-            return null;
-        }
-
-        Optional<StepConfig> optionalStepConfig = getContext().getSequenceConfig().getStepMap().values().stream()
-                .filter(stepConfig -> stepConfig.getOrder() == step).findFirst();
-        AuthenticatorConfig authenticatorConfig = optionalStepConfig.map(StepConfig::getAuthenticatedAutenticator)
-                .orElse(null);
-        return authenticatorConfig != null ? authenticatorConfig.getName() : null;
+        Object jsStep = super.getSlot(step);
+        return Objects.nonNull(jsStep) ? jsStep : AbstractJsObject.super.getSlot(step);
     }
 }

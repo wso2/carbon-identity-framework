@@ -21,12 +21,8 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 /**
  * Javascript wrapper for Java level AuthenticationContext.
@@ -51,116 +47,21 @@ public class JsGraalAuthenticationContext extends JsAuthenticationContext implem
     }
 
     @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_REQUESTED_ACR:
-                return getWrapped().getRequestedAcr();
-            case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                return getWrapped().getTenantDomain();
-            case FrameworkConstants.JSAttributes.JS_SERVICE_PROVIDER_NAME:
-                return getWrapped().getServiceProviderName();
-            case FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER:
-                return getLastLoginFailedUserFromWrappedContext();
-            case FrameworkConstants.JSAttributes.JS_REQUEST:
-                return new JsGraalServletRequest((TransientObjectWrapper) getWrapped().getParameter(
-                        FrameworkConstants.RequestAttribute.HTTP_REQUEST));
-            case FrameworkConstants.JSAttributes.JS_RESPONSE:
-                return new JsGraalServletResponse((TransientObjectWrapper) getWrapped().getParameter(
-                        FrameworkConstants.RequestAttribute.HTTP_RESPONSE));
-            case FrameworkConstants.JSAttributes.JS_STEPS:
-                return new JsGraalSteps(getWrapped());
-            case FrameworkConstants.JSAttributes.JS_CURRENT_STEP:
-                return new JsGraalStep(getContext(), getContext().getCurrentStep(), getAuthenticatedIdPOfCurrentStep(),
-                        getAuthenticatedAuthenticatorOfCurrentStep());
-            case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
-                StepConfig stepConfig = getCurrentSubjectIdentifierStep();
-                if (stepConfig != null) {
-                    return new JsGraalAuthenticatedUser(this.getContext(), stepConfig.getAuthenticatedUser(),
-                            stepConfig.getOrder(), stepConfig.getAuthenticatedIdP());
-                } else {
-                    return null;
-                }
-            case FrameworkConstants.JSAttributes.JS_RETRY_STEP:
-                return getWrapped().isRetrying();
-        }
-        return super.getMember(name);
-    }
-
-    @Override
     public Object getMemberKeys() {
 
-        return ProxyArray.fromArray(
-                FrameworkConstants.JSAttributes.JS_REQUESTED_ACR,
-                FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN,
-                FrameworkConstants.JSAttributes.JS_SERVICE_PROVIDER_NAME,
-                FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER,
-                FrameworkConstants.JSAttributes.JS_REQUEST,
-                FrameworkConstants.JSAttributes.JS_RESPONSE,
-                FrameworkConstants.JSAttributes.JS_STEPS,
-                FrameworkConstants.JSAttributes.JS_CURRENT_STEP,
-                FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT,
-                FrameworkConstants.JSAttributes.JS_RETRY_STEP);
-    }
-
-    @Override
-    public boolean hasMember(String name) {
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_CURRENT_STEP:
-            case FrameworkConstants.JSAttributes.JS_RETRY_STEP:
-                return true;
-            case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
-                return getCurrentSubjectIdentifierStep() != null;
-            default:
-                return super.hasMember(name);
-        }
+        return ProxyArray.fromArray(super.getMemberKeys());
     }
 
     @Override
     public void putMember(String key, Value value) {
 
-        if (FrameworkConstants.JSAttributes.JS_SELECTED_ACR.equals(key)) {
-            String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
-            getWrapped().setSelectedAcr(valueAsString);
-        }
+        String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
+        super.setMemberObject(key, valueAsString);
     }
 
     @Override
     public boolean removeMember(String name) {
 
-        if (FrameworkConstants.JSAttributes.JS_SELECTED_ACR.equals(name)) {
-            getWrapped().setSelectedAcr(null);
-            return true;
-        }
-        return false;
+        return super.removeMemberObject(name);
     }
-
-    private JsGraalAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
-
-        Object lastLoginFailedUser =
-                getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
-        if (lastLoginFailedUser instanceof AuthenticatedUser) {
-            return new JsGraalAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
-        } else {
-            return null;
-        }
-    }
-
-    protected String getAuthenticatedAuthenticatorOfCurrentStep() {
-
-        if (getContext().getSequenceConfig() == null) {
-            //Sequence config is not yet initialized
-            return null;
-        }
-
-        StepConfig stepConfig = getContext().getSequenceConfig().getStepMap()
-                .get(getContext().getCurrentStep());
-        if (stepConfig != null) {
-            return stepConfig.getAuthenticatedAutenticator().getName();
-        }
-        return null;
-
-    }
-
 }

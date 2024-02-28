@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsHeaders;
 
 import java.util.Map;
 
@@ -31,62 +32,29 @@ import javax.servlet.http.HttpServletResponse;
  * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.
  * Also, it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class JsGraalHeaders implements ProxyObject {
-
-    private final Map wrapped;
-    private final HttpServletResponse response;
+public class JsGraalHeaders extends JsHeaders implements ProxyObject {
 
     public JsGraalHeaders(Map wrapped, HttpServletResponse response) {
 
-        this.wrapped = wrapped;
-        this.response = response;
-    }
-
-    @Override
-    public Object getMember(String name) {
-
-        if (wrapped == null) {
-            return null;
-        } else {
-            return wrapped.get(name);
-        }
+        super(wrapped, response);
     }
 
     @Override
     public Object getMemberKeys() {
 
-        return ProxyArray.fromArray(wrapped.keySet().toArray());
-    }
-
-    @Override
-    public boolean hasMember(String name) {
-
-        if (wrapped == null) {
-            return false;
-        } else {
-            return wrapped.get(name) != null;
-        }
+        return ProxyArray.fromArray(super.getMemberKeys());
     }
 
     @Override
     public boolean removeMember(String name) {
 
-        if (wrapped == null) {
-            return false;
-        } else {
-            wrapped.remove(name);
-        }
-        return false;
+        return super.removeMemberObject(name);
     }
 
     @Override
     public void putMember(String name, Value value) {
 
-        if (wrapped != null) {
-            wrapped.put(name, value);
-            //adds a new header to the response.
-            String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
-            response.addHeader(name, valueAsString);
-        }
+        String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
+        super.setMemberObject(name, valueAsString);
     }
 }

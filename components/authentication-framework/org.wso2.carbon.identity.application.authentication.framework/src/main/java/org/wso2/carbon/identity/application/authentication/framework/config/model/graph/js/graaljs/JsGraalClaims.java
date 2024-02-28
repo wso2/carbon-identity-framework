@@ -48,15 +48,9 @@ public class JsGraalClaims extends JsClaims implements ProxyObject {
     }
 
     @Override
-    public void putMember(String claimUri, Value claimValue) {
+    public void putMember(String claimUri, Value value) {
 
-        if (authenticatedUser != null) {
-            if (isRemoteClaimRequest) {
-                setFederatedClaim(claimUri, claimValue.asString());
-            } else {
-                setLocalClaim(claimUri, claimValue.asString());
-            }
-        }
+        String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
+        setMemberObject(claimUri, valueAsString);
     }
-
 }
