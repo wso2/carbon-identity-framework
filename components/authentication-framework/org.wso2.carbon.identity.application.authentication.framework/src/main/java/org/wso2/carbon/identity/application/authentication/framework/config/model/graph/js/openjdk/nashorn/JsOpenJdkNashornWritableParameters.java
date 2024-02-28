@@ -18,30 +18,23 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsWritableParameters;
+
 import java.util.Map;
 
 /**
  * Parameters that can be modified from the authentication script.
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
-public class JsOpenJdkNashornWritableParameters extends JsOpenJdkNashornParameters {
+public class JsOpenJdkNashornWritableParameters extends JsWritableParameters implements AbstractOpenJdkNashornJsObject {
 
     public JsOpenJdkNashornWritableParameters(Map wrapped) {
 
         super(wrapped);
     }
 
-    @Override
     public void removeMember(String name) {
 
-        if (getWrapped().containsKey(name)) {
-            getWrapped().remove(name);
-        }
-    }
-
-    @Override
-    public void setMember(String name, Object value) {
-
-        getWrapped().put(name, value);
+        super.removeMemberObject(name);
     }
 }

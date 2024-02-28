@@ -16,34 +16,28 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsWritableParameters;
-
-import java.util.List;
 import java.util.Map;
 
 /**
  * Parameters that can be modified from the authentication script.
- * This wrapper uses GraalJS polyglot context.
+ * This is the abstract wrapper used for all script engine implementations.
  */
-public class JsGraalWritableParameters extends JsWritableParameters implements ProxyObject {
+public abstract class JsWritableParameters extends JsParameters {
 
-    public JsGraalWritableParameters(Map wrapped) {
+    public JsWritableParameters(Map wrapped) {
 
         super(wrapped);
     }
 
-    public boolean removeMember(String name) {
+    public void removeMemberObject(String name) {
 
-        super.removeMemberObject(name);
-        return true;
+        getWrapped().remove(name);
     }
 
-    public void putMember(String key, Value value) {
+    public void setMember(String name, Object value) {
 
-        super.setMember(key, value.as(List.class));
+        getWrapped().put(name, value);
     }
 }

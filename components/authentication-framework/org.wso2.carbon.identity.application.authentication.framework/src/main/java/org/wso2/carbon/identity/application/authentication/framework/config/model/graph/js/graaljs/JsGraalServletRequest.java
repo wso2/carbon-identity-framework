@@ -25,15 +25,7 @@ import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -59,65 +51,16 @@ public class JsGraalServletRequest extends JsServletRequest implements ProxyObje
     }
 
     @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-                Map headers = new HashMap();
-                Enumeration<String> headerNames = getRequest().getHeaderNames();
-                if (headerNames != null) {
-                    while (headerNames.hasMoreElements()) {
-                        String headerName = headerNames.nextElement();
-                        headers.put(headerName, getRequest().getHeader(headerName));
-                    }
-                }
-                return new JsGraalWritableParameters(headers);
-            case FrameworkConstants.JSAttributes.JS_PARAMS:
-                return new JsGraalParameters(getRequest().getParameterMap());
-            case FrameworkConstants.JSAttributes.JS_COOKIES:
-                Map cookies = new HashMap();
-                Cookie[] cookieArr = getRequest().getCookies();
-                if (cookieArr != null) {
-                    for (Cookie cookie : cookieArr) {
-                        cookies.put(cookie.getName(), new JsGraalCookie(cookie));
-                    }
-                }
-                return new JsGraalWritableParameters(cookies);
-            case FrameworkConstants.JSAttributes.JS_REQUEST_IP:
-                return IdentityUtil.getClientIpAddress(getRequest());
-            default:
-                return super.getMember(name);
-        }
-    }
-
-    @Override
     public Object getMemberKeys() {
 
-        String[] servletRequestProperties =
-                new String[]{FrameworkConstants.JSAttributes.JS_HEADERS, FrameworkConstants.JSAttributes.JS_COOKIES,
-                        FrameworkConstants.JSAttributes.JS_REQUEST_IP, FrameworkConstants.JSAttributes.JS_PARAMS};
-
-        return ProxyArray.fromArray(Arrays.stream(servletRequestProperties).filter(this::hasMember).toArray());
-    }
-
-    @Override
-    public boolean hasMember(String name) {
-
-        if (getRequest() == null) {
-            //Transient Object is null, hence no member access is possible.
-            return false;
-        }
-
-        if (name.equals(FrameworkConstants.JSAttributes.JS_REQUEST_IP)) {
-            return true;
-        }
-        return super.hasMember(name);
+        return ProxyArray.fromArray(super.getMemberKeys());
     }
 
     @Override
     public void putMember(String key, Value value) {
 
-        LOG.warn("Unsupported operation. Servlet Request is read only. Can't remove parameter " + key);
+        String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
+        super.setMember(key, valueAsString);
     }
 
     @Override
@@ -125,5 +68,4 @@ public class JsGraalServletRequest extends JsServletRequest implements ProxyObje
 
         return false;
     }
-
 }

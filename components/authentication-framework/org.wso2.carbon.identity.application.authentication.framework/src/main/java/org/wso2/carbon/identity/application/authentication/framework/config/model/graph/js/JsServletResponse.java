@@ -18,9 +18,16 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -41,9 +48,17 @@ public abstract class JsServletResponse
         extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>>
         implements JsBaseServletResponse {
 
+    private static final Log LOG = LogFactory.getLog(JsServletResponse.class);
+
+
     public JsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
         super(wrapped);
+    }
+
+    public Object getMemberKeys() {
+
+        return new String[]{FrameworkConstants.JSAttributes.JS_HEADERS};
     }
 
     @Override
@@ -62,7 +77,31 @@ public abstract class JsServletResponse
         }
     }
 
-    protected HttpServletResponse getResponse() {
+    public Object getMember(String name) {
+
+        switch (name) {
+            case FrameworkConstants.JSAttributes.JS_HEADERS:
+                Map headers = new HashMap();
+                Collection<String> headerNames = getResponse().getHeaderNames();
+                if (headerNames != null) {
+                    for (String element : headerNames) {
+                        headers.put(element, getResponse().getHeader(element));
+                    }
+                }
+                return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                        .createJsHeaders(headers, getResponse());
+            default:
+                return super.getMember(name);
+        }
+    }
+
+    public void setMember(String name, Object value) {
+
+        LOG.warn("Unsupported operation. Servlet Response is read only. Can't set parameter " + name + " to value: " +
+                value);
+    }
+
+    private HttpServletResponse getResponse() {
 
         TransientObjectWrapper<HttpServletResponse> transientObjectWrapper = getWrapped();
         return transientObjectWrapper.getWrapped();

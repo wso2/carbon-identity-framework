@@ -16,31 +16,18 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
 
-import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyArray;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsSteps;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 /**
- * Returns when context.steps[<step_number] is called
- * This wrapper uses GraalJS polyglot context.
+ * Interface for Javascript wrapper for Java level step.
  */
-public class JsGraalSteps extends JsSteps implements ProxyArray {
+public interface JsBaseSteps {
 
-    public JsGraalSteps() {
-
-        super();
-    }
-
-    public JsGraalSteps(AuthenticationContext context) {
-
-        super(context);
-    }
-
-    @Override
-    public void set(long index, Value value) {
-        //Steps can not be set with script.
-    }
+    /**
+     * Get the Authentication Context.
+     * @return Authentication Context.
+     */
+    AuthenticationContext getContext();
 }

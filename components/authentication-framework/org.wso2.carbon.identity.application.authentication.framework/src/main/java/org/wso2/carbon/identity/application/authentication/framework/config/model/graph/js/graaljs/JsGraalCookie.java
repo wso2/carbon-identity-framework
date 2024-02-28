@@ -18,15 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsCookie;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-
-import java.util.Arrays;
 
 import javax.servlet.http.Cookie;
 
@@ -40,8 +35,6 @@ import javax.servlet.http.Cookie;
  */
 public class JsGraalCookie extends JsCookie implements ProxyObject {
 
-    protected static final Log LOG = LogFactory.getLog(JsGraalCookie.class);
-
     public JsGraalCookie(Cookie cookie) {
 
         super(cookie);
@@ -50,27 +43,12 @@ public class JsGraalCookie extends JsCookie implements ProxyObject {
     @Override
     public Object getMemberKeys() {
 
-        String[] cookieProperties = new String[]{FrameworkConstants.JSAttributes.JS_COOKIE_NAME,
-                FrameworkConstants.JSAttributes.JS_COOKIE_VALUE, FrameworkConstants.JSAttributes.JS_COOKIE_COMMENT,
-                FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN, FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE,
-                FrameworkConstants.JSAttributes.JS_COOKIE_PATH, FrameworkConstants.JSAttributes.JS_COOKIE_SECURE,
-                FrameworkConstants.JSAttributes.JS_COOKIE_VERSION, FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY};
-        return ProxyArray.fromArray(Arrays.stream(cookieProperties).filter(this::hasMember).toArray());
-    }
-
-    @Override
-    public boolean hasMember(String name) {
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_COOKIE_SECURE:
-            case FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY:
-                return true;
-        }
-        return super.hasMember(name);
+        return ProxyArray.fromArray(super.getMemberKeys());
     }
 
     public void putMember(String key, Value value) {
 
-        LOG.warn("Unsupported operation. Cookie is read only. Can't remove parameter " + key);
+        String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
+        super.setMember(key, valueAsString);
     }
 }

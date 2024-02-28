@@ -40,24 +40,15 @@ public class JsGraalParameters extends JsParameters implements ProxyObject {
     }
 
     @Override
-    public Object getMember(String name) {
-
-        Object member = getWrapped().get(name);
-        if (member instanceof Map) {
-            return new JsGraalParameters((Map) member);
-        }
-        return member;
-    }
-
-    @Override
     public Object getMemberKeys() {
 
-        return ProxyArray.fromArray(getWrapped().keySet().toArray());
+        return ProxyArray.fromArray(super.getMemberKeys());
     }
 
     public void putMember(String key, Value value) {
 
-        LOG.warn("Unsupported operation. Parameters are read only. Can't set parameter " + key + " to value: " + value);
+        String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
+        super.setMember(key, valueAsString);
     }
 
     @Override

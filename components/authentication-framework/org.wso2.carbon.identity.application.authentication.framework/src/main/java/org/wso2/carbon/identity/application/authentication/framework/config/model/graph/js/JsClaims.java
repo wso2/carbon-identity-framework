@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseClaims;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -53,14 +54,14 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Represent the user's claim for Javascript Execution. This contains the common methods all script engines.
+ * Represent the user's claim for Javascript Execution. This contains the common methods for all script engines.
  */
-public class JsClaims extends AbstractJSContextMemberObject {
+public abstract class JsClaims extends AbstractJSContextMemberObject implements JsBaseClaims {
 
-    protected static final Log LOG = LogFactory.getLog(JsClaims.class);
-    protected String idp;
-    protected boolean isRemoteClaimRequest;
-    protected int step;
+    private static final Log LOG = LogFactory.getLog(JsClaims.class);
+    private String idp;
+    private boolean isRemoteClaimRequest;
+    private int step;
     protected transient AuthenticatedUser authenticatedUser;
 
     /**
@@ -179,13 +180,26 @@ public class JsClaims extends AbstractJSContextMemberObject {
         return false;
     }
 
+    public boolean setMemberObject(String claimUri, Object claimValue) {
+
+        if (authenticatedUser != null) {
+            if (isRemoteClaimRequest) {
+                setFederatedClaim(claimUri, String.valueOf(claimValue));
+            } else {
+                setLocalClaim(claimUri, String.valueOf(claimValue));
+            }
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Get the claim by local claim URI.
      *
      * @param claimUri   Local claim URI
      * @param claimValue Claim Value
      */
-    protected void setLocalClaim(String claimUri, String claimValue) {
+    private void setLocalClaim(String claimUri, String claimValue) {
 
         if (isFederatedIdP()) {
             setLocalMappedClaim(claimUri, claimValue);
@@ -202,7 +216,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param localClaimURI Local claim URI
      * @param claimValue    Value to be set
      */
-    protected void setLocalMappedClaim(String localClaimURI, String claimValue) {
+    private void setLocalMappedClaim(String localClaimURI, String claimValue) {
 
         Map<ClaimMapping, String> idpAttributesMap = authenticatedUser.getUserAttributes();
         Map<String, String> remoteMapping = FrameworkUtils.getClaimMappings(idpAttributesMap, false);
@@ -218,7 +232,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param claimUri   Local claim URI
      * @param claimValue Claim value
      */
-    protected void setLocalUserClaim(String claimUri, Object claimValue) {
+    private void setLocalUserClaim(String claimUri, Object claimValue) {
 
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -377,7 +391,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param claimUri   Remote claim uri
      * @param claimValue Claim value
      */
-    protected void setFederatedClaim(String claimUri, String claimValue) {
+    private void setFederatedClaim(String claimUri, String claimValue) {
 
         if (claimValue == null) {
             claimValue = StringUtils.EMPTY;
@@ -410,7 +424,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param claimUri Local claim URI
      * @return Claim value of the given claim URI for the local user if available. Null Otherwise.
      */
-    protected String getLocalUserClaim(String claimUri) {
+    private String getLocalUserClaim(String claimUri) {
 
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();

@@ -20,11 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -48,21 +43,4 @@ public class JsNashornServletResponse extends JsServletResponse implements Abstr
         super(wrapped);
     }
 
-    @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-        case FrameworkConstants.JSAttributes.JS_HEADERS:
-            Map headers = new HashMap();
-            Collection<String> headerNames = getResponse().getHeaderNames();
-            if (headerNames != null) {
-                for (String element : headerNames) {
-                    headers.put(element, getResponse().getHeader(element));
-                }
-            }
-            return new JsHeaders(headers, getResponse());
-        default:
-            return super.getMember(name);
-        }
-    }
 }

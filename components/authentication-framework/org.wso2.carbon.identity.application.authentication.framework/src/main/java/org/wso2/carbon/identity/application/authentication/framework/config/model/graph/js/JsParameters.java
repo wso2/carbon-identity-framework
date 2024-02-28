@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseParameters;
 
 import java.util.Map;
@@ -42,7 +43,17 @@ public abstract class JsParameters extends AbstractJSObjectWrapper<Map> implemen
     @Override
     public Object getMember(String name) {
 
-        return getWrapped().get(name);
+        Object member = getWrapped().get(name);
+        if (member instanceof Map) {
+            return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                    .createJsWritableParameters((Map) member);
+        }
+        return member;
+    }
+
+    public Object getMemberKeys() {
+
+        return getWrapped().keySet().toArray();
     }
 
     @Override
