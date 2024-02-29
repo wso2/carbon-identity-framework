@@ -921,6 +921,10 @@
 
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
+
+        {% if oauth.add_tenant_domain_to_token is defined %}
+        <AddTenantDomainToToken>{{oauth.add_tenant_domain_to_token}}</AddTenantDomainToToken>
+        {% endif %}
     </OAuth>
 
     <RestApiAuthentication>
