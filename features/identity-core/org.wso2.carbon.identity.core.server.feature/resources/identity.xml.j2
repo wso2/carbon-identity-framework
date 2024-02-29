@@ -310,6 +310,8 @@
         <TimestampSkew>{{oauth.timestamp_skew}}</TimestampSkew>
         <!-- Enable renewal of refresh token for refresh_token grant -->
         <RenewRefreshTokenForRefreshGrant>{{oauth.token_renewal.renew_refresh_token}}</RenewRefreshTokenForRefreshGrant>
+        <!-- Enable password grant to go through the framework -->
+        <EnablePasswordFlowEnhancements>{{oauth.enable_password_grant_enhancements}}</EnablePasswordFlowEnhancements>
         <!-- Enable Extend renews refresh token expiry time -->
         <ExtendRenewedRefreshTokenExpiryTime>{{oauth.token_renewal.extend_refresh_token_expiry_time_on_renewal}}</ExtendRenewedRefreshTokenExpiryTime>
         <!-- Process the token before storing it in database, e.g. encrypting -->
