@@ -965,6 +965,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
 
         context.setServiceProviderName(effectiveSequence.getApplicationConfig().getApplicationName());
+        context.setServiceProviderResourceId(effectiveSequence.getApplicationConfig().
+                getServiceProvider().getApplicationResourceId());
 
         // set the sequence for the current authentication/logout flow
         context.setSequenceConfig(effectiveSequence);
