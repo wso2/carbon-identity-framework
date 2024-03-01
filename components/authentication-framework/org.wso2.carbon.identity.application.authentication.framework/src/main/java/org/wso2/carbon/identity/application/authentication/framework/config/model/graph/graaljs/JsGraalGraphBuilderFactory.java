@@ -29,7 +29,12 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraalSelectAcrFromFunction;
@@ -95,8 +100,25 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
 
     public Context createEngine(AuthenticationContext authenticationContext) {
 
+        HostAccess.Builder hostAccess = HostAccess.newBuilder(HostAccess.EXPLICIT);
+        /*
+         * We need to map the graaljs proxy objects be exposed as their abstract classes to be able to use the current
+         * functional interfaces we have for existing conditional authentication functions.
+         */
+        hostAccess.targetTypeMapping(Value.class, JsAuthenticationContext.class,
+                (v) -> v.asProxyObject() instanceof JsAuthenticationContext,
+                (v) -> (JsAuthenticationContext) v.asProxyObject());
+        hostAccess.targetTypeMapping(Value.class, JsAuthenticatedUser.class,
+                (v) -> v.asProxyObject() instanceof JsGraalAuthenticatedUser,
+                (v) -> (JsAuthenticatedUser) v.asProxyObject());
+        hostAccess.targetTypeMapping(Value.class, JsServletRequest.class,
+                (v) -> v.asProxyObject() instanceof JsServletRequest,
+                (v) -> (JsServletRequest) v.asProxyObject());
+        hostAccess.targetTypeMapping(Value.class, JsServletResponse.class,
+                (v) -> v.asProxyObject() instanceof JsServletResponse,
+                (v) -> (JsServletResponse) v.asProxyObject());
         Context context = Context.newBuilder(POLYGLOT_LANGUAGE)
-                .allowHostAccess(HostAccess.EXPLICIT)
+                .allowHostAccess(hostAccess.build())
                 .option("engine.WarnInterpreterOnly", "false")
                 .build();
 

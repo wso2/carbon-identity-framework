@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -143,9 +142,9 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
             Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
 
             bindings.putMember(JS_FUNC_EXECUTE_STEP, new JsGraalStepExecuter());
-            bindings.putMember(JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>) this::sendError);
-            bindings.putMember(JS_FUNC_SHOW_PROMPT, new PromptExecutorImpl());
-            bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new LoadExecutorImpl());
+            bindings.putMember(JS_FUNC_SEND_ERROR, new SendErrorAsyncFunctionImpl());
+            bindings.putMember(JS_FUNC_SHOW_PROMPT, new JsGraalPromptExecutorImpl());
+            bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new JsGraalLoadExecutorImpl());
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap =
@@ -516,6 +515,27 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
         }
     }
 
+    /**
+     * Implementation of the SendErrorFunction interface as an adaptor for sendErrorAsync function.
+     */
+    public static class SendErrorAsyncFunctionImpl implements SendErrorFunction {
+
+        @HostAccess.Export
+        public void sendError(String url, Map<String, Object> parameterMap) {
+            sendErrorAsync(url, parameterMap);
+        }
+    }
+
+    /**
+     * Implementation of the SendErrorFunction interface as an adaptor for sendError function.
+     */
+    public class SendErrorFunctionImpl implements SendErrorFunction {
+
+        @HostAccess.Export
+        public void sendError(String url, Map<String, Object> parameterMap) {
+            JsGraalGraphBuilder.this.sendError(url, parameterMap);
+        }
+    }
     private static FailNode createFailNode(String url, Map<String, Object> parameterMap, boolean isShowErrorPage) {
 
         FailNode failNode = new FailNode();
@@ -564,10 +584,10 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
                 Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
 
                 bindings.putMember(JS_FUNC_EXECUTE_STEP, new JsGraalStepExecuterInAsyncEvent());
-                bindings.putMember(JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>) JsGraalGraphBuilder::sendErrorAsync);
+                bindings.putMember(JS_FUNC_SEND_ERROR, new SendErrorFunctionImpl());
                 bindings.putMember(JS_AUTH_FAILURE, new FailAuthenticationFunctionImpl());
-                bindings.putMember(JS_FUNC_SHOW_PROMPT, new PromptExecutorImpl());
-                bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new LoadExecutorImpl());
+                bindings.putMember(JS_FUNC_SHOW_PROMPT, new JsGraalPromptExecutorImpl());
+                bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new JsGraalLoadExecutorImpl());
                 JsFunctionRegistry jsFunctionRegistrar =
                         FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
                 if (jsFunctionRegistrar != null) {
@@ -657,7 +677,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
     /**
      * GraalJS specific prompt implementation
      */
-    public class PromptExecutorImpl implements PromptExecutor {
+    public class JsGraalPromptExecutorImpl implements PromptExecutor {
 
         @HostAccess.Export
         public void prompt(String templateId, Object... parameters) {
@@ -695,7 +715,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
     /**
      * Fail function implementation for GraalJS.
      */
-    public class FailAuthenticationFunctionImpl implements FailAuthenticationFunction {
+    public static class FailAuthenticationFunctionImpl implements FailAuthenticationFunction {
 
         @HostAccess.Export
         public void fail(Object... parameters) {
