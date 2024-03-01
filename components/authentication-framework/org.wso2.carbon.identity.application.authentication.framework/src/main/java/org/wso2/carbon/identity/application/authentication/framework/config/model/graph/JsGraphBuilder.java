@@ -505,7 +505,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     /**
      * Load Executor implementation to load local libraries.
      */
-    public class LoadExecutorImpl implements LoadExecutor {
+    public class JsGraalLoadExecutorImpl implements LoadExecutor {
 
         @HostAccess.Export
         public String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException {
@@ -660,6 +660,15 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     public interface LoadExecutor {
 
         String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
+    }
+
+    /**
+     * Functional interface for sending error in the authentication script.
+     */
+    @FunctionalInterface
+    public interface SendErrorFunction {
+
+        void sendError(String url, Map<String, Object> parameterMap);
     }
 
     @Deprecated
