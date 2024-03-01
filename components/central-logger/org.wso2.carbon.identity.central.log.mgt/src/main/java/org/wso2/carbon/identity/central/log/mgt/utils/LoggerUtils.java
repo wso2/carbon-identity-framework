@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.identity.central.log.mgt.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
 import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
@@ -57,10 +60,19 @@ public class LoggerUtils {
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
     private static final String FLOW_ID_MDC = "Flow-ID";
     private static final String TENANT_DOMAIN = "tenantDomain";
+    public static final String ENABLE_V2_AUDIT_LOGS = "enableV2AuditLogs";
+
+    public enum InitiatorType {
+        User, System
+    }
+
+    public enum TargetType {
+        User, Role, Group, Application
+    }
 
     /**
-    * Config value related to masking sensitive information from logs.
-    */
+     * Config value related to masking sensitive information from logs.
+     */
     public static boolean isLogMaskingEnable;
 
     /**
@@ -89,8 +101,6 @@ public class LoggerUtils {
 
     /**
      * Trigger Diagnostic Log Event.
-     * @Deprecated This method is deprecated. Use the method with {@link #triggerDiagnosticLogEvent(
-     * DiagnosticLog.DiagnosticLogBuilder)}.
      *
      * @param componentId    Component ID.
      * @param input          Input parameters.
@@ -98,6 +108,8 @@ public class LoggerUtils {
      * @param resultMessage  Result message.
      * @param actionId       Action ID.
      * @param configurations System/application level configurations.
+     * @Deprecated This method is deprecated. Use the method with {@link #triggerDiagnosticLogEvent(
+     *DiagnosticLog.DiagnosticLogBuilder)}.
      */
     @Deprecated
     public static void triggerDiagnosticLogEvent(String componentId, Map<String, Object> input, String resultStatus,
@@ -276,7 +288,7 @@ public class LoggerUtils {
      *
      * @param errorMessage Error message.
      * @param userName     Username.
-     * @return  Masked error message.
+     * @return Masked error message.
      */
     public static String getSanitizedErrorMessage(String errorMessage, String userName) {
 
@@ -284,5 +296,17 @@ public class LoggerUtils {
             return errorMessage.replace(userName, LoggerUtils.getMaskedContent(userName));
         }
         return errorMessage;
+    }
+
+    public static boolean isEnableV2AuditLogs() {
+
+        return Boolean.parseBoolean(System.getProperty(ENABLE_V2_AUDIT_LOGS));
+    }
+
+    public static Map<String, Object> jsonObjectToMap(JSONObject jsonObject) {
+
+        Gson gson = new Gson();
+        return gson.fromJson(jsonObject.toString(), new TypeToken<Map<String, Object>>() {
+        }.getType());
     }
 }

@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.user.mgt.listeners.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -26,6 +29,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+
+import java.util.Map;
 
 /**
  * Utility class that handles the relevant utility tasks of listeners.
@@ -65,14 +70,18 @@ public class ListenerUtils {
     public static final String CLAIM_URI_FIELD = "Claim";
     public static final String CLAIM_VALUE_FIELD = "Claim Value";
     public static final String USERS_FIELD = "Users";
+    public static final String GROUPS_FIELD = "Groups";
     public static final String PERMISSIONS_FIELD = "Permissions";
     public static final String DELETED_USERS = "Deleted Users";
     public static final String NEW_USERS = "New Users";
     public static final String DELETED_ROLES = "Deleted Roles";
     public static final String NEW_ROLES = "New Roles";
+    public static final String DELETED_GROUPS = "DeletedGroups";
+    public static final String ADDED_GROUPS = "AddedGroups";
     public static final String PROFILE_FIELD = "Profile";
     public static final String FILTER_FIELD = "Filter";
     public static final String NEW_ROLE_NAME = "NewRoleName";
+    public static final String COUNT = "Count";
 
     /**
      * Audit log fields.
@@ -145,6 +154,29 @@ public class ListenerUtils {
     /**
      * Get the initiator for audit logs.
      *
+     * @return Initiator id despite masking.
+     */
+    public static String getInitiatorId() {
+        //todo: refactor this method to see if we return optional if we dont get an ID instead of returning system init.
+        String initiator = null;
+        String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
+        String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
+            initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
+        }
+        if (StringUtils.isBlank(initiator)) {
+            if (username.equals(CarbonConstants.REGISTRY_SYSTEM_USERNAME)) {
+                // If the initiator is the , we need not to mask the username.
+                return LoggerUtils.InitiatorType.System.name();
+            }
+            initiator = LoggerUtils.getMaskedContent(ListenerUtils.getUser());
+        }
+        return initiator;
+    }
+
+    /**
+     * Get the initiator for audit logs.
+     *
      * @return Initiator based on whether log masking is enabled or not.
      */
     public static String getInitiatorFromContext() {
@@ -171,8 +203,8 @@ public class ListenerUtils {
     /**
      * Returns the target value based on the masking config.
      *
-     * @param userName          Claims map.
-     * @param userStoreManager  JSON Object which will be added to audit log.
+     * @param userName         Claims map.
+     * @param userStoreManager JSON Object which will be added to audit log.
      * @return Target value. If log masking is enabled returns the masked value.
      */
     public static String getTargetForAuditLog(String userName, UserStoreManager userStoreManager) {
@@ -183,4 +215,12 @@ public class ListenerUtils {
         }
         return target;
     }
+
+    public static String getInitiatorType (String initiator) {
+        if (initiator.equals(LoggerUtils.InitiatorType.System.name())) {
+            return LoggerUtils.InitiatorType.System.name();
+        }
+        return LoggerUtils.InitiatorType.User.toString();
+    }
+
 }
