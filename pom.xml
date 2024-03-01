@@ -490,12 +490,12 @@
                 <version>${wsdl4j.wso2.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.ops4j.pax.logging</groupId>
+                <groupId>org.wso2.org.ops4j.pax.logging</groupId>
                 <artifactId>pax-logging-api</artifactId>
                 <version>${pax.logging.api.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.ops4j.pax.logging</groupId>
+                <groupId>org.wso2.org.ops4j.pax.logging</groupId>
                 <artifactId>pax-logging-log4j2</artifactId>
                 <version>${pax.logging.log4j2.version}</version>
             </dependency>
@@ -2010,8 +2010,8 @@
         <jersey-version>1.19.1</jersey-version>
 
         <!-- Pax Logging Version -->
-        <pax.logging.api.version>1.10.1</pax.logging.api.version>
-        <pax.logging.log4j2.version>1.10.1</pax.logging.log4j2.version>
+        <pax.logging.api.version>2.2.1-wso2v2</pax.logging.api.version>
+        <pax.logging.log4j2.version>2.2.1-wso2v2</pax.logging.log4j2.version>
 
         <!-- Log4j -->
         <log4j.api.version>2.17.1</log4j.api.version>
