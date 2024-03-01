@@ -59,6 +59,19 @@ public class LogConstants {
         public static final String CALLER_PATH = "common auth caller path";
     }
 
+    public static class ApplicationManagement {
+        public static final String CREATE_APPLICATION_ACTION = "create-application";
+        public static final String UPDATE_APPLICATION_ACTION = "update-application";
+        public static final String DELETE_APPLICATION_ACTION = "delete-application";
+        public static final String CREATE_SAML_APPLICATION_ACTION = "create-saml-application";
+        public static final String DELETE_SAML_APPLICATION_ACTION = "delete-saml-application";
+        public static final String UPDATE_SAML_APPLICATION_ACTION = "update-saml-application";
+        public static final String CREATE_OAUTH_APPLICATION_ACTION = "create-oauth-application";
+        public static final String UPDATE_OAUTH_APPLICATION_ACTION = "update-oauth-application";
+        public static final String DELETE_OAUTH_APPLICATION_ACTION = "delete-oauth-application";
+        public static final String REGENERATE_CLIENT_SECRET_ACTION = "regenerate-client-secret";
+        public static final String UPDATE_APP_STATE_ACTION = "update-app-state";
+    }
     public static class UserManagement {
         public static final String ADD_USER_ACTION = "add-user";
         public static final String DELETE_USER_ACTION = "delete-user";
