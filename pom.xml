@@ -1982,7 +1982,7 @@
         <cxf-bundle.wso2.version>2.7.16.wso2v1</cxf-bundle.wso2.version>
         <org.apache.cxf.version>3.6.2</org.apache.cxf.version>
         <opencsv.wso2.version>1.8.wso2v1</opencsv.wso2.version>
-        <orbit.version.poi>4.1.2.wso2v1</orbit.version.poi>
+        <orbit.version.poi>5.2.5.wso2v1</orbit.version.poi>
         <javax.activation.import.pkg.version>[0.0.0, 1.0.0)</javax.activation.import.pkg.version>
         <com.yubico.version>0.14.0</com.yubico.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
