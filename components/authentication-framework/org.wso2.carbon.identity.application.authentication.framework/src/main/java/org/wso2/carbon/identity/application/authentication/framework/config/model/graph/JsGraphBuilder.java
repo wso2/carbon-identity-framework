@@ -483,7 +483,6 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
      * @return functionLibraryScript
      * @throws FunctionLibraryManagementException
      */
-    @HostAccess.Export
     public String loadLocalLibrary(String functionLibraryName) throws FunctionLibraryManagementException {
 
         FunctionLibraryManagementService functionLibMgtService = FrameworkServiceComponent.
@@ -629,7 +628,6 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     @FunctionalInterface
     public interface StepExecutor {
 
-        @HostAccess.Export
         void executeStep(Integer stepId, Object... parameterMap);
     }
 

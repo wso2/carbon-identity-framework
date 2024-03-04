@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalCookie;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalHeaders;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalParameters;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalRuntimeClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalServletResponse;
@@ -86,9 +87,9 @@ public class JsGraalWrapperFactory implements JsWrapperBaseFactory {
     }
 
     @Override
-    public JsGraalWritableParameters createJsParameters(Map parameters) {
+    public JsGraalParameters createJsParameters(Map parameters) {
 
-        return new JsGraalWritableParameters(parameters);
+        return new JsGraalParameters(parameters);
     }
 
     @Override

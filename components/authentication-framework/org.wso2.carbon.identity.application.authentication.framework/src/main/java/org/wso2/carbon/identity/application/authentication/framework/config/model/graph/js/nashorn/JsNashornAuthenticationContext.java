@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 /**
  * Javascript wrapper for Java level AuthenticationContext.
@@ -47,21 +46,14 @@ public class JsNashornAuthenticationContext extends JsAuthenticationContext impl
 
     public void setMember(String name, Object value) {
 
-        boolean isSet = super.setMemberObject(name, value);
-        if (!isSet) {
-            AbstractJsObject.super.setMember(name, value);
-        }
+        super.setMemberObject(name, value);
     }
 
     @Override
     public void removeMember(String name) {
 
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
-                getWrapped().setSelectedAcr(null);
-                break;
-            default:
-                AbstractJsObject.super.removeMember(name);
+        if (!super.removeMemberObject(name)) {
+            AbstractJsObject.super.removeMember(name);
         }
     }
 }
