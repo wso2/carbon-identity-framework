@@ -1113,6 +1113,10 @@
         <!-- Configuration for allowing users to introspect tokens from other tenants. -->
         <AllowCrossTenantTokenIntrospection>{{oauth.introspect.allow_cross_tenant}}</AllowCrossTenantTokenIntrospection>
 
+        {% if oauth.add_tenant_domain_to_access_token is defined %}
+        <AddTenantDomainToAccessToken>{{oauth.add_tenant_domain_to_access_token}}</AddTenantDomainToAccessToken>
+        {% endif %}
+
         {% if oauth.jwt.renew_token_without_revoking_existing is defined %}
         <JWT>
             <RenewTokenWithoutRevokingExisting>
