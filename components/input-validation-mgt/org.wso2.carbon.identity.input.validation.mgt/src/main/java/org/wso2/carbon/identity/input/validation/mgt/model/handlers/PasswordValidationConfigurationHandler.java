@@ -77,7 +77,6 @@ public class PasswordValidationConfigurationHandler extends AbstractFieldValidat
                     rules.add(getRuleConfig(NumeralValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                     rules.add(getRuleConfig(UpperCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                     rules.add(getRuleConfig(LowerCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
-                    rules.add(getRuleConfig(SpecialCharacterValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                     configuration.setRules(rules);
                 } else {
                     rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, jsRegex));
@@ -89,7 +88,6 @@ public class PasswordValidationConfigurationHandler extends AbstractFieldValidat
                 rules.add(getRuleConfig(NumeralValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                 rules.add(getRuleConfig(UpperCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                 rules.add(getRuleConfig(LowerCaseValidator.class.getSimpleName(), MIN_LENGTH, "1"));
-                rules.add(getRuleConfig(SpecialCharacterValidator.class.getSimpleName(), MIN_LENGTH, "1"));
                 configuration.setRules(rules);
             }
             return configuration;
