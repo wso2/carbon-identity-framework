@@ -3558,4 +3558,28 @@ public class RoleDAOImpl implements RoleDAO {
         convertedGroup.setGroupName(idpGroup.getIdpGroupName());
         return convertedGroup;
     }
+
+    @Override
+    public List<RoleDTO> getSharedHybridRoles(String roleId, int mainTenantId) throws IdentityRoleManagementException {
+
+        List<RoleDTO> hybridRoles = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_SHARED_ROLES_SQL)) {
+            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
+            statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String name = resultSet.getString(1);
+                    int tenantId = resultSet.getInt(2);
+                    int audienceRefId = resultSet.getInt(3);
+                    String id = resultSet.getString(4);
+                    hybridRoles.add(new RoleDTO(name, id, audienceRefId, tenantId));
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while retrieving shared roles of role id : " + roleId;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return hybridRoles;
+    }
 }

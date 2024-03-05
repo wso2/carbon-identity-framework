@@ -64,6 +64,7 @@
   "oauth.token_validation.refresh_token_validity": "1d",
   "oauth.timestamp_skew": "0m",
   "oauth.token_renewal.renew_refresh_token": true,
+  "oauth.enable_password_grant_enhancements": false,
   "oauth.token_renewal.extend_refresh_token_expiry_time_on_renewal": true,
   "oauth.token_renewal.renew_access_token_per_request": false,
   "oauth.hash_tokens_and_secrets": false,
@@ -493,6 +494,7 @@
   "idp_role_management.return_only_mapped_local_roles": true,
   "idp_role_management.return_manually_added_local_roles": true,
   "outbound_provisioning_management.reset_provisioning_entities_on_config_update": true,
+  "outbound_provisioning_management.enable_application_based_outbound_provisioning": false,
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
@@ -1046,6 +1048,7 @@
   "console.ui.email_templates.default_white_logo_url": "/libs/themes/default/assets/images/branding/logo-white.svg",
   "console.ui.app_favicon_path": "/assets/images/branding/favicon.ico",
   "console.ui.idp_templates.github.enabled": true,
+  "console.ui.idp_templates.hypr.enabled": false,
   "console.ui.i18n_configs.showLanguageSwitcher": false,
   "console.ui.i18n_configs.langAutoDetectEnabled": false,
   "console.ui.product_name": "WSO2 Identity Server",
@@ -1516,6 +1519,5 @@
   
   "super_tenant.alias_in_public_url": "",
   "connector.challenge_questions.enable": false,
-  "tenant_mgt.enable_email_domain": false,
-  "legacy_claims.allow_roles": false
+  "tenant_mgt.enable_email_domain": false
 }

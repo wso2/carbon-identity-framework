@@ -346,8 +346,11 @@ public class IdentityTenantUtil {
                 throw IdentityRuntimeException.error(errorMsg, e);
             }
         }
-        if(tenantId == MultitenantConstants.INVALID_TENANT_ID){
-            throw IdentityRuntimeException.error("Invalid tenant domain of user " + username);
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid tenant domain of user " + username);
+            }
+            throw IdentityRuntimeException.error("Invalid tenant domain");
         } else {
             return tenantId;
         }

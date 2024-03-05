@@ -286,9 +286,15 @@ public class DefaultClaimHandler implements ClaimHandler {
         localUnfilteredClaims.putAll(context.getRuntimeClaims());
 
         if (useAppAssociatedRoles) {
-            localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM,
-                    StringUtils.isNotEmpty(serviceProviderMappedUserRoles) ?
-                            serviceProviderMappedUserRoles : StringUtils.EMPTY);
+            // Setting the roles claim in localUnfilteredClaims.
+            // If current authenticator is OrganizationAuthenticator, role claim comes through remote claim should be
+            // used and roles claim should not be overridden.
+            if (!FrameworkConstants.ORGANIZATION_AUTHENTICATOR.equals(
+                    stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator().getName())) {
+                localUnfilteredClaims.put(FrameworkConstants.ROLES_CLAIM,
+                        StringUtils.isNotEmpty(serviceProviderMappedUserRoles) ?
+                                serviceProviderMappedUserRoles : StringUtils.EMPTY);
+            }
             if (CollectionUtils.isNotEmpty(federatedUserRolesUnmappedExclusive)) {
                 localUnfilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM,
                         String.join(FrameworkUtils.getMultiAttributeSeparator(),

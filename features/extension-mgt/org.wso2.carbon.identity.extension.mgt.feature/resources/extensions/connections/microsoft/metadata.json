@@ -66,7 +66,7 @@
                         "Before you begin, create an <strong>OAuth credential</strong> on the <a href=\"https://entra.microsoft.com\" target=\"_blank\" rel=\"noopener noreferrer\">Microsoft Entra ID</a>, and obtain a <strong>Client ID & secret</strong>."                    ],
                     "link": {
                         "text": "See Microsoft's guide on configuring OAuth Apps.",
-                        "url": "https://learn.microsoft.com/en-us/entra/identity/saas-apps/tutorial-list"
+                        "url": "https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app"
                     }
                 },                
                 "fields": [
