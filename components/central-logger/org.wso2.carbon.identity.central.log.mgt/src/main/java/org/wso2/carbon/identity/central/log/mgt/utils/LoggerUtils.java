@@ -62,15 +62,15 @@ public class LoggerUtils {
     private static final String TENANT_DOMAIN = "tenantDomain";
     public static final String ENABLE_V2_AUDIT_LOGS = "enableV2AuditLogs";
 
-    public enum InitiatorType {
+    public enum Initiator {
         User, System
     }
 
-    public enum TargetType {
+    public enum Target {
         User, Role, Group, Application
     }
 
-    public enum TargetListType {
+    public enum TargetList {
         UserList, RoleList, GroupList, ApplicationList
     }
 
@@ -302,15 +302,39 @@ public class LoggerUtils {
         return errorMessage;
     }
 
+    /**
+     * Check if the V2 audit log is enabled.
+     *
+     * @return if the V2 Audit logs is enabled.
+     */
     public static boolean isEnableV2AuditLogs() {
 
         return Boolean.parseBoolean(System.getProperty(ENABLE_V2_AUDIT_LOGS));
     }
 
+    /**
+     * Get the data in a Map from the JSONObject.
+     *
+     * @param jsonObject jsonObject that has the data to be returned.
+     * @return Map of String and Object.
+     */
     public static Map<String, Object> jsonObjectToMap(JSONObject jsonObject) {
 
         Gson gson = new Gson();
         return gson.fromJson(jsonObject.toString(), new TypeToken<Map<String, Object>>() {
         }.getType());
+    }
+
+    /**
+     * Get the Initiator type.
+     *
+     * @param initiator Initiator for the logs.
+     * @return Type of the initiator.
+     */
+    public static String getInitiatorType (String initiator) {
+        if (initiator.equals(LoggerUtils.Initiator.System.name())) {
+            return LoggerUtils.Initiator.System.name();
+        }
+        return LoggerUtils.Initiator.User.toString();
     }
 }

@@ -79,12 +79,12 @@ public class LogConstants {
         public static final String SET_USER_CLAIM_VALUES_ACTION = "set-user-claim-values";
         public static final String DELETE_USER_CLAIM_VALUES_ACTION = "delete-user-claim-values";
         public static final String DELETE_USER_CLAIM_VALUE_ACTION = "delete-user-claim-value";
-        public static final String CHANGE_PASSWORD_BY_USER_ACTION = "change-password-by-user";
-        public static final String CHANGE_PASSWORD_BY_ADMIN_ACTION = "change-password-by-administrator";
+        public static final String CREDENTIAL_UPDATE_BY_USER_ACTION = "credential-update-by-user";
+        public static final String CREDENTIAL_UPDATE_BY_ADMIN_ACTION = "credential-update-by-administrator";
         public static final String GET_USER_LIST_ACTION = "get-user-list";
         public static final String GET_USER_CLAIM_VALUE_ACTION = "get-user-claim-value";
         public static final String GET_USER_CLAIM_VALUES_ACTION = "get-user-claim-values";
-        public static final String UPDATE_USER_GROUP_ACTION = "update-group-of-group";
+        public static final String UPDATE_USERS_OF_GROUP = "update-users-of-group";
         public static final String UPDATE_GROUPS_OF_USER_ACTION = "update-groups-of-user";
 
         public static final String ADD_GROUP_ACTION = "add-group";
@@ -117,12 +117,12 @@ public class LogConstants {
         public static final String GET_USERS_OF_ROLE_ACTION = "get-users-of-role";
         public static final String DELETE_ROLES_BY_APP_ACTION = "delete-application-roles";
         public static final String LOGIN = "login";
-        public static final String UPDATE_PERMISSIONS_OF_ROLE_ACTION = "update-permissions-of-role";
 
 
         public static final String USERS_FIELD = "Users";
         public static final String GROUPS_FIELD = "Groups";
         public static final String ROLES_FIELD = "Roles";
+        public static final String PROFILE_FIELD = "Roles";
 
         public static final String APP_ROLE_FIELD = "ApplicationRoles";
         public static final String AUDIENCE_FIELD = "Audience";

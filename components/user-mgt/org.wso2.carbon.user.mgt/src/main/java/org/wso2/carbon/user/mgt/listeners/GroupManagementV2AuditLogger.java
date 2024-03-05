@@ -18,36 +18,131 @@
 
 package org.wso2.carbon.user.mgt.listeners;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.AbstractIdentityGroupOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
-import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.common.AbstractGroupOperationEventListener;
 import org.wso2.carbon.user.core.common.Claim;
 import org.wso2.carbon.user.core.common.Group;
-import org.wso2.carbon.user.core.listener.GroupOperationEventListener;
-import org.wso2.carbon.user.core.model.Condition;
+import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
+import org.wso2.carbon.utils.AuditLog;
 
 import java.util.List;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_GROUP_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_USERS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_GROUP_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_GROUPS_OF_USERS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUPS_FIELD;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.NEW_USERS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_GROUP_NAME_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_USERS_OF_GROUP;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.Target;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 
 /**
- * This v2 audit logger logs the User Management success activities.
+ * This v2 audit logger logs the Group Management success activities.
  */
-public class GroupManagementV2AuditLogger extends AbstractGroupOperationEventListener {
+public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperationEventListener {
 
     public boolean isEnable() {
-        return isEnableV2AuditLogs();
+        if (super.isEnable()) {
+            return isEnableV2AuditLogs();
+        }
+        return false;
+    }
+
+    public boolean postAddGroup(String groupName, String groupId, List<String> userIds, List<Claim> claims,
+                                UserStoreManager userStoreManager) {
+
+        if (isEnable()) {
+            JSONObject dataObject = new JSONObject();
+            if (CollectionUtils.isNotEmpty(userIds)) {
+                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userIds));
+            }
+            dataObject.put(ListenerUtils.GROUP_NAME_FIELD, groupName);
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    groupId, Target.Group.name(), ADD_GROUP_ACTION )
+                    .data(jsonObjectToMap(dataObject));
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
+        return true;
+    }
+
+    public boolean postDeleteGroup(String groupId, String groupName, UserStoreManager userStoreManager) {
+        if (isEnable()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    groupId, Target.Group.name(), DELETE_GROUP_ACTION);
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
+        return true;
+    }
+
+    public boolean postRenameGroup(String groupId, String newGroupName, UserStoreManager userStoreManager) {
+
+        if (isEnable()) {
+            JSONObject dataObject = new JSONObject();
+            dataObject.put(ListenerUtils.GROUP_NAME_FIELD, newGroupName);
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    groupId, Target.Group.name(), UPDATE_GROUP_NAME_ACTION );
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
+        return true;
+    }
+
+
+    public boolean postUpdateUserListOfGroup(String groupId, List<String> deletedUserIds, List<String> newUserIds,
+                                             UserStoreManager userStoreManager) {
+
+        if (isEnable()) {
+            JSONObject dataObject = new JSONObject();
+            if (CollectionUtils.isNotEmpty(deletedUserIds)) {
+                dataObject.put(DELETED_USERS, new JSONArray(deletedUserIds));
+            }
+            if (CollectionUtils.isNotEmpty(newUserIds)) {
+                dataObject.put(NEW_USERS, new JSONArray(deletedUserIds));
+            }
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    groupId, Target.Group.name(), UPDATE_USERS_OF_GROUP );
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
+        return true;
+    }
+
+    public boolean postGetGroupsListOfUserByUserId(String userId, List<Group> groupList,
+                                                   UserStoreManager userStoreManager) {
+
+        if (isEnable()) {
+            JSONObject dataObject = new JSONObject();
+            if (CollectionUtils.isNotEmpty(groupList)) {
+                dataObject.put(GROUPS_FIELD, new JSONArray(groupList));
+            }
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    userId, Target.User.name(), GET_GROUPS_OF_USERS).data(jsonObjectToMap(dataObject));
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
+
+        return true;
     }
 
     @Override
     public int getExecutionOrderId() {
-        int orderId = 0;
+
+        int orderId = getOrderId();
         if (orderId != IdentityCoreConstants.EVENT_LISTENER_ORDER_ID) {
             return orderId;
         }
         return 1;
     }
-
 
 }

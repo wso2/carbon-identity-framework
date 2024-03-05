@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.user.mgt.listeners.utils;
+package org.wso2.carbon.identity.role.v2.mgt.core.listener.utils;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonConstants;
@@ -32,62 +32,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
  */
 public class ListenerUtils {
 
-    /**
-     * User Management Actions
-     */
-    public static final String ADD_USER_ACTION = "Add-User";
-    public static final String DELETE_USER_ACTION = "Delete-User";
-    public static final String SET_USER_CLAIM_VALUE_ACTION = "Set-User-Claim-Value";
-    public static final String SET_USER_CLAIM_VALUES_ACTION = "Set-User-Claim-Values";
-    public static final String DELETE_USER_CLAIM_VALUES_ACTION = "Delete-User-Claim-Values";
-    public static final String DELETE_USER_CLAIM_VALUE_ACTION = "Delete-User-Claim-Value";
-    public static final String CHANGE_PASSWORD_BY_USER_ACTION = "Change-Password-by-User";
-    public static final String CHANGE_PASSWORD_BY_ADMIN_ACTION = "Change-Password-by-Administrator";
-    public static final String DELETE_ROLE_ACTION = "Delete-Role";
-    public static final String ADD_ROLE_ACTION = "Add-Role";
-    public static final String ADD_GROUP_ACTION = "Add-Group";
-    public static final String UPDATE_ROLE_NAME_ACTION = "Update-Role-Name";
-    public static final String UPDATE_USERS_OF_ROLE_ACTION = "Update-Users-of-Role";
-    public static final String UPDATE_ROLES_OF_USER_ACTION = "Update-Roles-of-User";
-    public static final String GET_USER_CLAIM_VALUE_ACTION = "Get-User-Claim-Value";
-    public static final String GET_USER_CLAIM_VALUES_ACTION = "Get-User-Claim-Values";
-    public static final String GET_USER_LIST_ACTION = "Get-User-List";
-    public static final String GET_ROLES_OF_USER_ACTION = "Get-Roles-of-User";
-    public static final String GET_USERS_OF_ROLE_ACTION = "Get-Users-of-Role";
-    public static final String AUTHENTICATION_ACTION = "Authentication";
-    public static final String UPDATE_PERMISSIONS_OF_ROLE_ACTION = "Update-Permissions-of-Role";
-
-    /**
-     * Audit Log listener data fields.
-     */
-    public static final String ROLES_FIELD = "Roles";
-    public static final String CLAIMS_FIELD = "Claims";
-    public static final String CLAIM_URI_FIELD = "Claim";
-    public static final String CLAIM_VALUE_FIELD = "Claim Value";
-    public static final String USERS_FIELD = "Users";
-    public static final String GROUPS_FIELD = "Groups";
-    public static final String GROUP_NAME_FIELD = "GroupName";
-    public static final String PERMISSIONS_FIELD = "Permissions";
-    public static final String DELETED_USERS = "Deleted Users";
-    public static final String NEW_USERS = "New Users";
-    public static final String DELETED_ROLES = "Deleted Roles";
-    public static final String NEW_ROLES = "New Roles";
-    public static final String DELETED_GROUPS = "DeletedGroups";
-    public static final String ADDED_GROUPS = "AddedGroups";
-    public static final String PROFILE_FIELD = "Profile";
-    public static final String FILTER_FIELD = "Filter";
-    public static final String NEW_ROLE_NAME = "NewRoleName";
-    public static final String COUNT = "Count";
-
-    /**
-     * Audit log fields.
-     */
-    public static final String INITIATOR = "Initiator";
-    public static final String ACTION = "Action";
-    public static final String TARGET = "Target";
-    public static final String DATA = "Data";
-    public static final String OUTCOME = "Outcome";
-    public static final String ERROR = "Error";
 
     /**
      * To get the current user, who is doing the current task.
@@ -153,7 +97,6 @@ public class ListenerUtils {
      * @return Initiator id despite masking.
      */
     public static String getInitiatorId() {
-        //todo: refactor this method to see if we return optional if we dont get an ID instead of returning system init.
         String initiator = null;
         String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
         String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
@@ -211,4 +154,6 @@ public class ListenerUtils {
         }
         return target;
     }
+
+
 }

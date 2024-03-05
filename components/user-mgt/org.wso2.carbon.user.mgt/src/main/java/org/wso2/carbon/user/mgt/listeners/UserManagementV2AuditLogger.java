@@ -23,34 +23,36 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.AuthenticationResult;
 import org.wso2.carbon.user.core.common.User;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 import org.wso2.carbon.utils.AuditLog;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.*;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_USER_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_USER_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_USER_CLAIM_VALUES_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_USER_CLAIM_VALUE_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USER_CLAIM_VALUES_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USER_CLAIM_VALUE_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USER_LIST_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.PROFILE_FIELD;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.SET_USER_CLAIM_VALUES_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.SET_USER_CLAIM_VALUE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
-import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.CLAIM_URI_FIELD;
-import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.CLAIM_VALUE_FIELD;
-import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.COUNT;
-import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.DELETED_USERS;
-import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.NEW_USERS;
-import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.USERS_FIELD;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.*;
 
 /**
  * This v2 audit logger logs the User Management success activities.
@@ -66,6 +68,8 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
         return false;
     }
 
+    // todo: move all constants of v2 to logger utils
+
     @Override
     public boolean doPostAddUserWithID(User user, Object credential, String[]
             roleList, Map<String, String> claims, String profile, UserStoreManager userStoreManager) {
@@ -74,14 +78,14 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             JSONObject data = new JSONObject();
             data.put(ListenerUtils.PROFILE_FIELD, profile);
             if (ArrayUtils.isNotEmpty(roleList)) {
-                data.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
+                data.put(ROLE_NAME_FIELD, new JSONArray(roleList));
             }
             maskClaimsInAuditLog(claims, data);
             String userId = user.getUserID();
             if (isEnableV2AuditLogs()) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                        ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                        userId, LoggerUtils.TargetType.User.name(), ADD_USER_ACTION).data(jsonObjectToMap(data));
+                        ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                        userId, LoggerUtils.Target.User.name(), ADD_USER_ACTION).data(jsonObjectToMap(data));
                 triggerAuditLogEvent(auditLogBuilder, true);
             }
         }
@@ -93,8 +97,8 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
 
         if (isEnable()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    userId, LoggerUtils.TargetType.User.name(), DELETE_USER_ACTION);
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    userId, LoggerUtils.Target.User.name(), DELETE_USER_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
@@ -105,8 +109,8 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
 
         if (isEnable()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    userId, LoggerUtils.TargetType.User.name(), SET_USER_CLAIM_VALUE_ACTION);
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    userId, LoggerUtils.Target.User.name(), SET_USER_CLAIM_VALUE_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
@@ -117,12 +121,12 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
 
         if (isEnable()) {
             JSONObject dataObject = new JSONObject();
-            dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
+            dataObject.put(PROFILE_FIELD, profileName);
             maskClaimsInAuditLog(claims, dataObject);
             String initiatorId = ListenerUtils.getInitiatorId();
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    initiatorId, ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()), userId,
-                    LoggerUtils.TargetType.User.name(), SET_USER_CLAIM_VALUES_ACTION)
+                    initiatorId, LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()), userId,
+                    LoggerUtils.Target.User.name(), SET_USER_CLAIM_VALUES_ACTION)
                     .data(jsonObjectToMap(dataObject));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
@@ -134,8 +138,8 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
 
         if (isEnable()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    userId, LoggerUtils.TargetType.User.name(), DELETE_USER_CLAIM_VALUE_ACTION);
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    userId, LoggerUtils.Target.User.name(), DELETE_USER_CLAIM_VALUE_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
@@ -146,8 +150,8 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
 
         if (isEnable()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    userId, LoggerUtils.TargetType.User.name(), DELETE_USER_CLAIM_VALUES_ACTION);
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    userId, LoggerUtils.Target.User.name(), DELETE_USER_CLAIM_VALUES_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
@@ -158,8 +162,8 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
 
         if (isEnable()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    userId, LoggerUtils.TargetType.User.name(), CHANGE_PASSWORD_BY_USER_ACTION);
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    userId, LoggerUtils.Target.User.name(), CREDENTIAL_UPDATE_BY_USER_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
@@ -175,14 +179,14 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             // admin initiated. Hence,
             if (StringUtils.isNotBlank(initiatorId) && initiatorId.equals(userId)) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                        ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()), userId, LoggerUtils.TargetType.User.name(),
-                        CHANGE_PASSWORD_BY_USER_ACTION);
+                        ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                        userId, LoggerUtils.Target.User.name(), CREDENTIAL_UPDATE_BY_ADMIN_ACTION);
                 triggerAuditLogEvent(auditLogBuilder, true);
                 return true;
             }
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()), userId, LoggerUtils.TargetType.User.name(),
-                    CHANGE_PASSWORD_BY_ADMIN_ACTION);
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    userId, LoggerUtils.Target.User.name(),CREDENTIAL_UPDATE_BY_USER_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
@@ -201,15 +205,15 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
                 userList.add(user.getUserID());
             }
 
-            dataObject.put(USERS_FIELD, new JSONArray(userList));
+            dataObject.put(LogConstants.UserManagement.USERS_FIELD, new JSONArray(userList));
             dataObject.put(COUNT, users.size());
             String maskedClaimValue = LoggerUtils.getMaskedClaimValue(claimUri, claimValue);
             dataObject.put(CLAIM_VALUE_FIELD, maskedClaimValue);
             dataObject.put(CLAIM_URI_FIELD, claimUri);
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()), "User List", LoggerUtils.TargetType.User.name(),
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    LoggerUtils.TargetList.UserList.name(), LoggerUtils.Target.User.name(),
                     GET_USER_LIST_ACTION).data(jsonObjectToMap(dataObject));
-            // todo: what will be the target here? and why we dont have getUserListWithID for a single get user?
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
@@ -236,8 +240,8 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             }
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    userId, LoggerUtils.TargetType.User.name(), GET_USER_CLAIM_VALUE_ACTION)
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    userId, LoggerUtils.Target.User.name(), GET_USER_CLAIM_VALUE_ACTION)
                     .data(jsonObjectToMap(dataObject));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
@@ -255,8 +259,8 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             }
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    userId, LoggerUtils.TargetType.User.name(), GET_USER_CLAIM_VALUES_ACTION)
+                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    userId, LoggerUtils.Target.User.name(), GET_USER_CLAIM_VALUES_ACTION)
                     .data(jsonObjectToMap(dataObject));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
@@ -270,31 +274,10 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
         if (isEnable()) {
             if (authenticationResult.getAuthenticationStatus() == AuthenticationResult.AuthenticationStatus.SUCCESS) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                        ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                        userId, LoggerUtils.TargetType.User.name(), LOGIN);
+                        ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                        userId, LoggerUtils.Target.User.name(), LOGIN);
                 triggerAuditLogEvent(auditLogBuilder, true);
             }
-        }
-        return true;
-    }
-    @Override
-    public boolean doPostUpdateRoleListOfUserWithID(String userId, String[] deletedRoles, String[] newRoles,
-                                                    UserStoreManager userStoreManager) throws UserStoreException {
-
-        if (isEnable()) {
-            JSONObject dataObject = new JSONObject();
-            if (ArrayUtils.isNotEmpty(deletedRoles)) {
-                dataObject.put(ListenerUtils.DELETED_ROLES, new JSONArray(deletedRoles));
-            }
-            if (ArrayUtils.isNotEmpty(newRoles)) {
-                dataObject.put(ListenerUtils.NEW_ROLES, new JSONArray(newRoles));
-            }
-
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    userId, LoggerUtils.TargetType.User.name(), UPDATE_GROUPS_OF_USER_ACTION)
-                    .data(jsonObjectToMap(dataObject));
-            triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
     }
@@ -323,5 +306,4 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
         }
         return 1;
     }
-
 }
