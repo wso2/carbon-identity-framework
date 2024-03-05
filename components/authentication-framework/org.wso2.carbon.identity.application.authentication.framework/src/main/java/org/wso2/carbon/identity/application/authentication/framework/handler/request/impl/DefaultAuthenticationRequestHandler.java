@@ -103,6 +103,7 @@ import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
     public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
+    public static final String FEDERATED_TOKENS = "federated_tokens";
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile DefaultAuthenticationRequestHandler instance;
@@ -683,6 +684,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), analyticsSessionAction);
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
+        }
+
+        // Passing the federated tokens to the authentication result.
+        if (context.getProperty(FEDERATED_TOKENS) != null) {
+            authenticationResult.addProperty(FEDERATED_TOKENS, context.getProperty(FEDERATED_TOKENS));
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
