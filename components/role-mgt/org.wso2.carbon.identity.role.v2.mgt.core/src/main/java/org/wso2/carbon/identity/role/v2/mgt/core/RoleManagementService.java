@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleDTO;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 
 import java.util.List;
@@ -449,4 +450,16 @@ public interface RoleManagementService {
      */
     List<String> getAssociatedApplicationByRoleId(String roleId, String tenantDomain)
             throws IdentityRoleManagementException;
+
+    /**
+     * Get shared hybrid roles for the given main role ID.
+     *
+     * @param roleId   The main role ID.
+     * @param tenantId The tenant ID.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default List<RoleDTO> getSharedHybridRoles(String roleId, int tenantId) throws IdentityRoleManagementException {
+
+        return null;
+    }
 }

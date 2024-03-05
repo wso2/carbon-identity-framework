@@ -178,7 +178,9 @@
     "PRE_DELETE_ROLE_V2_EVENT",
     "POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT",
     "PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT",
-    "PRE_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT"
+    "PRE_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT",
+    "PRE_UPDATE_GROUP_LIST_OF_ROLE_EVENT",
+    "PRE_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT"
   ],
   "identity_mgt.events.schemes.userOperationDataDASPublisher.module_index": "29",
   "identity_mgt.events.schemes.userOperationDataDASPublisher.properties.enable": false,

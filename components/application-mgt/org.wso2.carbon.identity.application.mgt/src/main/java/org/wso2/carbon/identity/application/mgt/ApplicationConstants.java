@@ -122,10 +122,15 @@ public class ApplicationConstants {
      */
     public static class LogConstants {
 
+        public static final String TARGET_APPLICATION = "APPLICATION";
+        public static final String USER = "USER";
         public static final String INBOUND_AUTHENTICATION_CONFIG = "inboundAuthenticationConfig";
         public static final String APP_OWNER = "owner";
         public static final String DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG = "disableLegacyAuditLogsInAppMgt";
         public static final String ENABLE_V2_AUDIT_LOGS = "enableV2AuditLogs";
+        public static final String CREATE_APPLICATION = "create-application";
+        public static final String UPDATE_APPLICATION = "update-application";
+        public static final String DELETE_APPLICATION = "delete-application";
     }
 
     /**

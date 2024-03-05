@@ -299,7 +299,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         try {
             // Getting the userName from thread-local which has been set from doPreDeleteUserWithID.
             String userName = (String) IdentityUtil.threadLocalProperties.get().get(DO_PRE_DELETE_USER_USER_NAME);
-
+            if (userName == null) {
+                return true;
+            }
             for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
                 if (isNotAResolverListener(listener)) {
                     if (!listener.doPostDeleteUser(userName, userStoreManager)) {
