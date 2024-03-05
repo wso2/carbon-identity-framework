@@ -1850,6 +1850,7 @@ public class IdPManagementDAOTest extends PowerMockTestCase {
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
     }
 
+    // Add enabled and disabled IdPs used for tests.
     private void addTestIdps(Connection connection) throws IdentityProviderManagementException {
         // Initialize Test Identity Provider 4.
         IdentityProvider idp4 = new IdentityProvider();
