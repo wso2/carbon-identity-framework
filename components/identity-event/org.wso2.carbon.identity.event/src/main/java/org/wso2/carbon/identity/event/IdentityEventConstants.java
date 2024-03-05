@@ -58,6 +58,7 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_CREDENTIAL= "POST_UPDATE_CREDENTIAL";
         public static final String PRE_UPDATE_CREDENTIAL_BY_ADMIN= "PRE_UPDATE_CREDENTIAL_BY_ADMIN";
         public static final String POST_UPDATE_CREDENTIAL_BY_ADMIN= "POST_UPDATE_CREDENTIAL_BY_ADMIN";
+        public static final String POST_UPDATE_CREDENTIAL_BY_SCIM= "POST_UPDATE_CREDENTIAL_BY_SCIM";
         public static final String PRE_DELETE_USER= "PRE_DELETE_USER";
         public static final String POST_DELETE_USER= "POST_DELETE_USER";
         public static final String PRE_SET_USER_CLAIM= "PRE_SET_USER_CLAIM";
@@ -389,6 +390,8 @@ public class IdentityEventConstants {
         public static final String API_ID = "API_ID";
         public static final String ADDED_SCOPES = "ADDED_SCOPES";
         public static final String DELETED_SCOPES = "DELETED_SCOPES";
+
+        public static final String IS_ADMIN_UPDATE = "isAdminUpdate";
     }
 
     public class ErrorMessage {
