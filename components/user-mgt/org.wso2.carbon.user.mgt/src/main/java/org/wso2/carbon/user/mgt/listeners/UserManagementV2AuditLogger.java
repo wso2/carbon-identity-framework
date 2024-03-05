@@ -21,10 +21,8 @@ package org.wso2.carbon.user.mgt.listeners;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -32,6 +30,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.AuthenticationResult;
 import org.wso2.carbon.user.core.common.User;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
@@ -81,8 +80,8 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             String userId = user.getUserID();
             if (isEnableV2AuditLogs()) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                        ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()), userId, LoggerUtils.TargetType.User.name(),
-                        ADD_USER_ACTION).data(jsonObjectToMap(data));
+                        ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                        userId, LoggerUtils.TargetType.User.name(), ADD_USER_ACTION).data(jsonObjectToMap(data));
                 triggerAuditLogEvent(auditLogBuilder, true);
             }
         }
@@ -143,7 +142,7 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
     }
 
     @Override
-    public boolean doPostDeleteUserClaimValuesWithID(String userId, UserStoreManager userStoreManager) throws UserStoreException {
+    public boolean doPostDeleteUserClaimValuesWithID(String userId, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
@@ -251,7 +250,7 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
 
         if (isEnable()) {
             JSONObject dataObject = new JSONObject();
-            if(claimMap != null && !claimMap.isEmpty()) {
+            if (claimMap != null && !claimMap.isEmpty()) {
                 maskClaimsInAuditLog(claimMap, dataObject);
             }
             dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
@@ -278,87 +277,6 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
         }
         return true;
     }
-
-    // Group related methods
-    @Override
-    public boolean doPostDeleteRole(String roleName, UserStoreManager userStoreManager) {
-
-        if (isEnable()) {
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    roleName, LoggerUtils.TargetType.Group.name(), DELETE_GROUP_ACTION);
-            triggerAuditLogEvent(auditLogBuilder, true);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean doPostAddRoleWithID(String roleName, String[] userList, Permission[] permissions,
-                                       UserStoreManager userStoreManager) throws UserStoreException {
-
-        if (isEnable()) {
-            JSONObject dataObject = new JSONObject();
-            if (ArrayUtils.isNotEmpty(userList)) {
-                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
-            }
-            if (ArrayUtils.isNotEmpty(permissions)) {
-                JSONArray permissionsArray = new JSONArray(permissions);
-                dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
-            }
-            if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()) {
-                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                        ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                        roleName, LoggerUtils.TargetType.Group.name(), ADD_GROUP_ACTION);
-                //todo: what will be the targetId here? how to retrive this?
-                triggerAuditLogEvent(auditLogBuilder, true);
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public boolean doPostUpdateRoleName(String roleName, String newRoleName, UserStoreManager userStoreManager) {
-
-        if (isEnable()) {
-            JSONObject dataObject = new JSONObject();
-            dataObject.put(ListenerUtils.NEW_ROLE_NAME, newRoleName);
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    roleName, LoggerUtils.TargetType.Group.name(), UPDATE_GROUP_NAME_ACTION)
-                    .data(jsonObjectToMap(dataObject));
-            //todo: what will be the targetId here? how to retrive this?
-            triggerAuditLogEvent(auditLogBuilder, true);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean doPostUpdateUserListOfRoleWithID(String roleName, String[] deletedUserIDs, String[] newUserIDs,
-                                                    UserStoreManager userStoreManager) throws UserStoreException {
-
-        if (isEnable()) {
-            JSONObject dataObject = new JSONObject();
-            ArrayList<String> deletedUsers = new ArrayList<>();
-            ArrayList<String> newUsers = new ArrayList<>();
-            if (ArrayUtils.isNotEmpty(deletedUserIDs)) {
-                deletedUsers.addAll(Arrays.asList(deletedUserIDs));
-            }
-            if (ArrayUtils.isNotEmpty(newUserIDs)) {
-                newUsers.addAll(Arrays.asList(newUserIDs));
-            }
-            dataObject.put(DELETED_USERS, new JSONArray(deletedUsers));
-            dataObject.put(NEW_USERS, new JSONArray(newUsers));
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    roleName, LoggerUtils.TargetType.Group.name(), UPDATE_USERS_OF_GROUP_ACTION)
-                    .data(jsonObjectToMap(dataObject));
-            //todo: what will be the targetId here? how to retrive this?
-            triggerAuditLogEvent(auditLogBuilder, true);
-
-        }
-        return true;
-    }
-
     @Override
     public boolean doPostUpdateRoleListOfUserWithID(String userId, String[] deletedRoles, String[] newRoles,
                                                     UserStoreManager userStoreManager) throws UserStoreException {
@@ -376,51 +294,10 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
                     ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
                     userId, LoggerUtils.TargetType.User.name(), UPDATE_GROUPS_OF_USER_ACTION)
                     .data(jsonObjectToMap(dataObject));
-            //todo: what will be the targetId here? how to retrive this?
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
     }
-//
-//    @Override
-//    public boolean doPostGetRoleListOfUsersWithID(List<String> userIDs, Map<String, List<String>> rolesOfUsersMap,
-//                                                  UserStoreManager userStoreManager) throws UserStoreException {
-//
-//        if (isEnable()) {
-//            JSONObject dataObject = new JSONObject();
-//            dataObject.put(ListenerUtils.FILTER_FIELD, filter);
-//            if (ArrayUtils.isNotEmpty(roleList)) {
-//                dataObject.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
-//            }
-//
-//            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-//                    ListenerUtils.getInitiatorId(), ListenerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-//                    "userId", LoggerUtils.TargetType.User.name(), UserMgtActions.GET_GROUPS_OF_USERS)
-//                    .data(jsonObjectToMap(dataObject));
-//            //todo: what will be the targetId here? how to retrive this?
-//            triggerAuditLogEvent(auditLogBuilder, true);
-//        }
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean doPostGetUserListOfRole(String roleName, String[] userList, UserStoreManager userStoreManager) {
-//
-//        if (isEnable()) {
-//            JSONObject dataObject = new JSONObject();
-//            if (ArrayUtils.isNotEmpty(userList)) {
-//                if (LoggerUtils.isLogMaskingEnable) {
-//                    dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(LoggerUtils
-//                            .getMaskedArraysOfValues(userList)));
-//                } else {
-//                    dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
-//                }
-//            }
-//            audit.info(createAuditMessage(ListenerUtils.GET_USERS_OF_ROLE_ACTION,
-//                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
-//        }
-//        return true;
-//    }
 
     /**
      * Mask claims in audit logs based on the masking config.
@@ -437,7 +314,7 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
         }
     }
-    
+
     @Override
     public int getExecutionOrderId() {
         int orderId = getOrderId();

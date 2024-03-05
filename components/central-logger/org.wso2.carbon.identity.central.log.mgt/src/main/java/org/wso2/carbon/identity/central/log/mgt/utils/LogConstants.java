@@ -106,7 +106,7 @@ public class LogConstants {
         public static final String UPDATE_ROLE_NAME_ACTION = "update-role-name";
         public static final String UPDATE_USERS_OF_ROLE_ACTION = "update-users-of-role";
         public static final String GET_GROUP_LIST_OF_ROLE_ACTION = "get-group-list-of-role";
-        public static final String UPDATE_GROUP_LIST_OF_ROLE_ACTION = "update-group-list-of-role";
+        public static final String UPDATE_GROUPS_OF_ROLE_ACTION = "update-groups-of-role";
         public static final String GET_IDP_GROUPS_OF_ROLES = "get-idp-groups-of-role";
         public static final String UPDATE_IDP_GROUPS_OF_ROLES = "update-idp-groups-of-role";
         public static final String GET_PERMISSIONS_OF_ROLES = "get-permissions-of-role";

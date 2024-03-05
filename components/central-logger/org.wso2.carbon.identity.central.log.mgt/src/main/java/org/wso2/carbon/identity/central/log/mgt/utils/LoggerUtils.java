@@ -70,6 +70,10 @@ public class LoggerUtils {
         User, Role, Group, Application
     }
 
+    public enum TargetListType {
+        UserList, RoleList, GroupList, ApplicationList
+    }
+
     /**
      * Config value related to masking sensitive information from logs.
      */
