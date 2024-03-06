@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.input.validation.mgt.model.handlers;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -84,21 +85,19 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
             RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
             String usernameRegEx = getUsernameRegEx(realmConfiguration);
 
-            // Return the JsRegex if the default regex has been updated by the user.
-            if (!usernameRegEx.isEmpty() &&
-                    !DEFAULT_EMAIL_JS_REGEX_PATTERN.equals(usernameRegEx)) {
-                if (isAlphaNumericValidationByDefault()) {
-                    rules.add(getDefaultLengthValidatorRuleConfig());
-                    rules.add(getRuleConfig(AlphanumericValidator.class.getSimpleName(),
-                            ENABLE_VALIDATOR, Boolean.TRUE.toString()));
-                    configuration.setRules(rules);
-                } else {
-                    rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx));
-                    configuration.setRegEx(rules);
-                }
-            } else {
-                rules.add(getRuleConfig(EmailFormatValidator.class.getSimpleName(),
+            if (!usernameRegEx.isEmpty() && !DEFAULT_EMAIL_JS_REGEX_PATTERN.equals(usernameRegEx)
+                    && isAlphaNumericValidationByDefault()) {
+                rules.add(getDefaultLengthValidatorRuleConfig());
+                rules.add(getRuleConfig(AlphanumericValidator.class.getSimpleName(),
                         ENABLE_VALIDATOR, Boolean.TRUE.toString()));
+                configuration.setRules(rules);
+            } else if (PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain().equals("carbon.super")) {
+                // Return the JSRegex if the tenant domain is carbon.super
+                rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx));
+                configuration.setRegEx(rules);
+            } else {
+                rules.add(getRuleConfig(EmailFormatValidator.class.getSimpleName(), ENABLE_VALIDATOR,
+                        Boolean.TRUE.toString()));
                 configuration.setRules(rules);
             }
             return configuration;
