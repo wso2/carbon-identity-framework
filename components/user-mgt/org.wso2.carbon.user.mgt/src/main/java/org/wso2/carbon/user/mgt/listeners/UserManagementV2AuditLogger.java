@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
-import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AuthenticationResult;
 import org.wso2.carbon.user.core.common.User;
@@ -38,21 +37,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.*;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_USER_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.CREDENTIAL_UPDATE_BY_ADMIN_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.CREDENTIAL_UPDATE_BY_USER_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_USER_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_USER_CLAIM_VALUES_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_USER_CLAIM_VALUE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USER_CLAIM_VALUES_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USER_CLAIM_VALUE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USER_LIST_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.LOGIN_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.PROFILE_FIELD;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ROLE_NAME_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.SET_USER_CLAIM_VALUES_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.SET_USER_CLAIM_VALUE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
-import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.*;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.CLAIM_URI_FIELD;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.CLAIM_VALUE_FIELD;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.COUNT;
 
 /**
  * This v2 audit logger logs the User Management success activities.
@@ -275,7 +279,7 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             if (authenticationResult.getAuthenticationStatus() == AuthenticationResult.AuthenticationStatus.SUCCESS) {
                 AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                         ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                        userId, LoggerUtils.Target.User.name(), LOGIN);
+                        userId, LoggerUtils.Target.User.name(), LOGIN_ACTION);
                 triggerAuditLogEvent(auditLogBuilder, true);
             }
         }

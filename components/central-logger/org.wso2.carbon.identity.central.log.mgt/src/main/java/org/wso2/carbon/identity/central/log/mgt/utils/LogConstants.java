@@ -91,7 +91,7 @@ public class LogConstants {
         public static final String GET_USER_LIST_ACTION = "get-user-list";
         public static final String GET_USER_CLAIM_VALUE_ACTION = "get-user-claim-value";
         public static final String GET_USER_CLAIM_VALUES_ACTION = "get-user-claim-values";
-        public static final String UPDATE_USERS_OF_GROUP = "update-users-of-group";
+        public static final String UPDATE_USERS_OF_GROUP_ACTION = "update-users-of-group";
         public static final String UPDATE_GROUPS_OF_USER_ACTION = "update-groups-of-user";
 
         public static final String ADD_GROUP_ACTION = "add-group";
@@ -99,10 +99,9 @@ public class LogConstants {
         public static final String DELETE_GROUP_ACTION = "delete-group";
         public static final String UPDATE_GROUP_ACTION = "update-group";
         public static final String UPDATE_GROUP_NAME_ACTION = "update-group-name";
-        public static final String GET_GROUP_LIST = "get-group-list";
-        public static final String GET_USERS_OF_GROUP = "get-users-of-group";
-        public static final String GET_GROUPS_OF_USERS = "get-groups-of-users";
-        public static final String UPDATE_USERS_OF_GROUP_ACTION = "update-users-of-group";
+        public static final String GET_GROUP_LIST_ACTION = "get-group-list";
+        public static final String GET_USERS_OF_GROUP_ACTION = "get-users-of-group";
+        public static final String GET_GROUPS_OF_USERS_ACTION = "get-groups-of-users";
 
         public static final String DELETE_ROLE_ACTION = "delete-role";
         public static final String ADD_ORG_ROLE_ACTION = "add-organization-role";
@@ -114,16 +113,16 @@ public class LogConstants {
         public static final String UPDATE_USERS_OF_ROLE_ACTION = "update-users-of-role";
         public static final String GET_GROUP_LIST_OF_ROLE_ACTION = "get-group-list-of-role";
         public static final String UPDATE_GROUPS_OF_ROLE_ACTION = "update-groups-of-role";
-        public static final String GET_IDP_GROUPS_OF_ROLES = "get-idp-groups-of-role";
-        public static final String UPDATE_IDP_GROUPS_OF_ROLES = "update-idp-groups-of-role";
-        public static final String GET_PERMISSIONS_OF_ROLES = "get-permissions-of-role";
+        public static final String GET_IDP_GROUPS_OF_ROLES_ACTION = "get-idp-groups-of-role";
+        public static final String UPDATE_IDP_GROUPS_OF_ROLES_ACTION = "update-idp-groups-of-role";
+        public static final String GET_PERMISSIONS_OF_ROLES_ACTION = "get-permissions-of-role";
         public static final String UPDATE_PERMISSIONS_OF_ROLES_ACTION = "update-permissions-of-role";
         public static final String UPDATE_ROLES_OF_USER_ACTION = "update-roles-of-user";
         public static final String GET_ROLES_OF_USER_ACTION = "get-roles-of-user";
         public static final String GET_ROLES_OF_GROUP_ACTION = "get-roles-of-group";
         public static final String GET_USERS_OF_ROLE_ACTION = "get-users-of-role";
         public static final String DELETE_ROLES_BY_APP_ACTION = "delete-application-roles";
-        public static final String LOGIN = "login";
+        public static final String LOGIN_ACTION = "login";
 
 
         public static final String USERS_FIELD = "Users";

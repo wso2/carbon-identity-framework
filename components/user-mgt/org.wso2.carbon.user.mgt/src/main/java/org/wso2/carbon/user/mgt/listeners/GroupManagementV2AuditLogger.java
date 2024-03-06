@@ -35,11 +35,11 @@ import java.util.List;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_GROUP_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_USERS;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_GROUP_ACTION;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_GROUPS_OF_USERS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_GROUPS_OF_USERS_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUPS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.NEW_USERS;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_GROUP_NAME_ACTION;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_USERS_OF_GROUP;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_USERS_OF_GROUP_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.Target;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
@@ -112,7 +112,7 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
             }
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    groupId, Target.Group.name(), UPDATE_USERS_OF_GROUP );
+                    groupId, Target.Group.name(), UPDATE_USERS_OF_GROUP_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
@@ -128,7 +128,7 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
             }
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    userId, Target.User.name(), GET_GROUPS_OF_USERS).data(jsonObjectToMap(dataObject));
+                    userId, Target.User.name(), GET_GROUPS_OF_USERS_ACTION).data(jsonObjectToMap(dataObject));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
 

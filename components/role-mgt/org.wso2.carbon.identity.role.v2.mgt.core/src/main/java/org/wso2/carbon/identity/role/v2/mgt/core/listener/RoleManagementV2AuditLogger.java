@@ -42,17 +42,14 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserMa
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_IDP_GROUPS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_PERMISSIONS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_USERS;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_ROLES_BY_APP_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_ROLE_ACTION;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_ROLES_OF_USER_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USERS_OF_ROLE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUPS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.NEW_USERS;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.PERMISSIONS_FIELD;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ROLES_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ROLE_NAME_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_GROUPS_OF_ROLE_ACTION;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_IDP_GROUPS_OF_ROLES;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_IDP_GROUPS_OF_ROLES_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_PERMISSIONS_OF_ROLES_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_ROLE_NAME_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_USERS_OF_ROLE_ACTION;
@@ -70,11 +67,13 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
 
     @Override
     public int getExecutionOrderId() {
+
         return 0;
     }
 
     @Override
     public int getDefaultOrderId() {
+
         return 0;
     }
 
@@ -232,7 +231,7 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
                     roleId, LoggerUtils.Target.Role.name(),
-                    UPDATE_IDP_GROUPS_OF_ROLES).data(jsonObjectToMap(data));
+                    UPDATE_IDP_GROUPS_OF_ROLES_ACTION).data(jsonObjectToMap(data));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
     }
@@ -263,52 +262,6 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
                     ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
                     roleId, LoggerUtils.Target.Role.name(),
                     UPDATE_PERMISSIONS_OF_ROLES_ACTION).data(jsonObjectToMap(data));
-            triggerAuditLogEvent(auditLogBuilder, true);
-        }
-    }
-
-    @Override
-    public void postGetRoleListOfUser(List<RoleBasicInfo> roleBasicInfoList, String userId, String tenantDomain) {
-
-        if (isEnable()) {
-            JSONObject data = new JSONObject();
-            if (ArrayUtils.isNotEmpty(roleBasicInfoList.toArray())) {
-                ArrayList<String> roles = new ArrayList<>();
-                for (RoleBasicInfo roleBasicInfo : roleBasicInfoList) {
-                    roles.add(roleBasicInfo.getId());
-                }
-                data.put(ROLES_FIELD, new JSONArray(roles));
-            }
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    userId, LoggerUtils.TargetList.RoleList.name(),
-                    GET_ROLES_OF_USER_ACTION).data(jsonObjectToMap(data));
-            triggerAuditLogEvent(auditLogBuilder, true);
-        }
-    }
-
-    @Override
-    public void postGetRoleIdListOfUser(List<String> roleIds, String userId, String tenantDomain) {
-
-        if (isEnable()) {
-            JSONObject data = new JSONObject();
-            data.put(ROLES_FIELD, new JSONArray(roleIds));
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    LoggerUtils.TargetList.RoleList.name(), LoggerUtils.Target.User.name(),
-                    GET_ROLES_OF_USER_ACTION).data(jsonObjectToMap(data));
-            triggerAuditLogEvent(auditLogBuilder, true);
-        }
-    }
-
-    @Override
-    public void postDeleteRolesByApplication(String applicationId, String tenantDomain) {
-
-        if (isEnable()) {
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    applicationId, LoggerUtils.Target.Application.name(),
-                    DELETE_ROLES_BY_APP_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
     }
