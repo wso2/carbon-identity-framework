@@ -226,6 +226,7 @@ public abstract class FrameworkConstants {
 
     public static final String SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.ScriptEngine";
     public static final String THREAD_LOCAL_SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.LimitScriptEngineCreation";
+    public static final String SCRIPT_STATEMENTS_LIMIT = "AdaptiveAuth.StatementsLimit";
     public static final String OPENJDK_NASHORN = "openjdkNashorn";
     public static final String NASHORN = "nashorn";
     public static final String GRAAL_JS = "graaljs";
