@@ -122,7 +122,7 @@ public class LoggerUtils {
      * @param actionId       Action ID.
      * @param configurations System/application level configurations.
      * @Deprecated This method is deprecated. Use the method with {@link #triggerDiagnosticLogEvent(
-     *DiagnosticLog.DiagnosticLogBuilder)}.
+     * DiagnosticLog.DiagnosticLogBuilder)}.
      */
     @Deprecated
     public static void triggerDiagnosticLogEvent(String componentId, Map<String, Object> input, String resultStatus,
