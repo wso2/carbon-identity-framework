@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.ResourceLimits;
 import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
@@ -38,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraalSelectAcrFromFunction;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +47,7 @@ import java.util.Map;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_LOG;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.SCRIPT_STATEMENTS_LIMIT;
 
 /**
  * Factory to create a Javascript based sequence builder.
@@ -56,9 +59,11 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
 
     private static final Log LOG = LogFactory.getLog(JsGraalGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
+    private int javascriptResourceLimit = 500;
 
     public void init() {
 
+        setJavascriptResourceLimit();
     }
 
     @SuppressWarnings("unchecked")
@@ -100,25 +105,9 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
 
     public Context createEngine(AuthenticationContext authenticationContext) {
 
-        HostAccess.Builder hostAccess = HostAccess.newBuilder(HostAccess.EXPLICIT);
-        /*
-         * We need to map the graaljs proxy objects be exposed as their abstract classes to be able to use the current
-         * functional interfaces we have for existing conditional authentication functions.
-         */
-        hostAccess.targetTypeMapping(Value.class, JsAuthenticationContext.class,
-                (v) -> v.asProxyObject() instanceof JsAuthenticationContext,
-                (v) -> (JsAuthenticationContext) v.asProxyObject());
-        hostAccess.targetTypeMapping(Value.class, JsAuthenticatedUser.class,
-                (v) -> v.asProxyObject() instanceof JsGraalAuthenticatedUser,
-                (v) -> (JsAuthenticatedUser) v.asProxyObject());
-        hostAccess.targetTypeMapping(Value.class, JsServletRequest.class,
-                (v) -> v.asProxyObject() instanceof JsServletRequest,
-                (v) -> (JsServletRequest) v.asProxyObject());
-        hostAccess.targetTypeMapping(Value.class, JsServletResponse.class,
-                (v) -> v.asProxyObject() instanceof JsServletResponse,
-                (v) -> (JsServletResponse) v.asProxyObject());
         Context context = Context.newBuilder(POLYGLOT_LANGUAGE)
-                .allowHostAccess(hostAccess.build())
+                .allowHostAccess(getHostAccess())
+                .resourceLimits(getResourceLimits())
                 .option("engine.WarnInterpreterOnly", "false")
                 .build();
 
@@ -126,6 +115,35 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
         bindings.putMember(JS_FUNC_SELECT_ACR_FROM, new GraalSelectAcrFromFunction());
         bindings.putMember(JS_LOG, new JsLogger());
         return context;
+    }
+
+    public ResourceLimits getResourceLimits() {
+
+        ResourceLimits.Builder resourceLimitsBuilder = ResourceLimits.newBuilder();
+        resourceLimitsBuilder.statementLimit(javascriptResourceLimit, null);
+        return resourceLimitsBuilder.build();
+    }
+
+    public HostAccess getHostAccess() {
+
+        /*
+         * We need to map the graaljs proxy objects be exposed as their abstract classes to be able to use the current
+         * functional interfaces we have for existing conditional authentication functions.
+         */
+        return HostAccess.newBuilder(HostAccess.EXPLICIT)
+                .targetTypeMapping(Value.class, JsAuthenticationContext.class,
+                        (v) -> v.asProxyObject() instanceof JsAuthenticationContext,
+                        (v) -> (JsAuthenticationContext) v.asProxyObject())
+                .targetTypeMapping(Value.class, JsAuthenticatedUser.class,
+                        (v) -> v.asProxyObject() instanceof JsGraalAuthenticatedUser,
+                        (v) -> (JsAuthenticatedUser) v.asProxyObject())
+                .targetTypeMapping(Value.class, JsServletRequest.class,
+                        (v) -> v.asProxyObject() instanceof JsServletRequest,
+                        (v) -> (JsServletRequest) v.asProxyObject())
+                .targetTypeMapping(Value.class, JsServletResponse.class,
+                        (v) -> v.asProxyObject() instanceof JsServletResponse,
+                        (v) -> (JsServletResponse) v.asProxyObject())
+                .build();
     }
 
     @Override
@@ -153,4 +171,19 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
                 currentNode);
     }
 
+    private void setJavascriptResourceLimit() {
+
+        String statementLimit = IdentityUtil.getProperty(SCRIPT_STATEMENTS_LIMIT);
+        int defaultLimit = 500;
+        if (statementLimit != null) {
+            try {
+                javascriptResourceLimit = Integer.parseInt(statementLimit);
+            } catch (NumberFormatException e) {
+                LOG.warn("Error while parsing the script statement limit. Defaulting to " + defaultLimit, e);
+                javascriptResourceLimit = defaultLimit;
+            }
+        } else {
+            javascriptResourceLimit = defaultLimit;
+        }
+    }
 }

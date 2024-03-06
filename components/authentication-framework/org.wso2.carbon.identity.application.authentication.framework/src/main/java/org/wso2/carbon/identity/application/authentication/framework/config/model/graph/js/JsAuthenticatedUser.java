@@ -197,9 +197,8 @@ public abstract class JsAuthenticatedUser extends AbstractJSObjectWrapper<Authen
                 return getWrapped().getTenantDomain() != null;
             case FrameworkConstants.JSAttributes.JS_CLAIMS:
             case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
-                return idp != null;
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
-                return idp != null && !FrameworkConstants.LOCAL.equals(idp);
+                return true;
             default:
                 return super.hasMember(name);
         }
