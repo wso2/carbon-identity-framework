@@ -56,6 +56,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Conf
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.EMAIL_CLAIM_URI;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATORS_COMBINATION;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPER_TENANT_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG_EX;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX;
@@ -91,7 +92,8 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
                 rules.add(getRuleConfig(AlphanumericValidator.class.getSimpleName(),
                         ENABLE_VALIDATOR, Boolean.TRUE.toString()));
                 configuration.setRules(rules);
-            } else if (PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain().equals("carbon.super")) {
+            } else if (PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()
+                    .equals(SUPER_TENANT_DOMAIN)) {
                 // Return the JSRegex if the tenant domain is carbon.super
                 rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx));
                 configuration.setRegEx(rules);

@@ -50,6 +50,7 @@ public class Constants {
                 put(PASSWORD, PasswordValidationConfigurationHandler.class.getSimpleName());
             }});
     public static final String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
+    public static final String SUPER_TENANT_DOMAIN = "carbon.super";
 
     /**
      * Class contains the configuration related constants.
