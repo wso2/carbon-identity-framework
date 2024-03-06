@@ -59,6 +59,9 @@ public class LogConstants {
         public static final String CALLER_PATH = "common auth caller path";
     }
 
+    /**
+     * Application Mgt related log constants.
+     */
     public static class ApplicationManagement {
         public static final String CREATE_APPLICATION_ACTION = "create-application";
         public static final String UPDATE_APPLICATION_ACTION = "update-application";
@@ -72,6 +75,10 @@ public class LogConstants {
         public static final String REGENERATE_CLIENT_SECRET_ACTION = "regenerate-client-secret";
         public static final String UPDATE_APP_STATE_ACTION = "update-app-state";
     }
+
+    /**
+     * User mgt related log constants.
+     */
     public static class UserManagement {
         public static final String ADD_USER_ACTION = "add-user";
         public static final String DELETE_USER_ACTION = "delete-user";

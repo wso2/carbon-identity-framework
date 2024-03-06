@@ -62,14 +62,23 @@ public class LoggerUtils {
     private static final String TENANT_DOMAIN = "tenantDomain";
     public static final String ENABLE_V2_AUDIT_LOGS = "enableV2AuditLogs";
 
+    /**
+     * Defines the Initiators of the logs.
+     */
     public enum Initiator {
         User, System
     }
 
+    /**
+     * Defines the Targets of the logs.
+     */
     public enum Target {
         User, Role, Group, Application
     }
 
+    /**
+     * Defines the Targets of the logs when the targets are list.
+     */
     public enum TargetList {
         UserList, RoleList, GroupList, ApplicationList
     }
