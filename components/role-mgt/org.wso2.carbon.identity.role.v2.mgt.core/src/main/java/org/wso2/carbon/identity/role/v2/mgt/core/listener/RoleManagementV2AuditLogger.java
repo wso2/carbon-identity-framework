@@ -38,15 +38,15 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserMa
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_APP_ROLE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_ORG_ROLE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.AUDIENCE_FIELD;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_GROUPS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_GROUPS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_IDP_GROUPS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_PERMISSIONS_FIELD;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_USERS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_ROLE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_ROLES_OF_USER_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USERS_OF_ROLE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUPS_FIELD;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.NEW_USERS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.NEW_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.PERMISSIONS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ROLES_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ROLE_NAME_FIELD;
@@ -174,10 +174,10 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
 
         JSONObject data = new JSONObject();
         if (ArrayUtils.isNotEmpty(newUserIDList.toArray())) {
-            data.put(NEW_USERS, new JSONArray(newUserIDList));
+            data.put(NEW_USERS_FIELD, new JSONArray(newUserIDList));
         }
         if (ArrayUtils.isNotEmpty(deletedUserIDList.toArray())) {
-            data.put(DELETED_USERS, new JSONArray(deletedUserIDList));
+            data.put(DELETED_USERS_FIELD, new JSONArray(deletedUserIDList));
         }
         if (isEnable()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
@@ -197,7 +197,7 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
             data.put(ADDED_GROUPS_FIELD, new JSONArray(newGroupIDList));
         }
         if (ArrayUtils.isNotEmpty(deletedGroupIDList.toArray())) {
-            data.put(DELETED_GROUPS, new JSONArray(deletedGroupIDList));
+            data.put(DELETED_GROUPS_FIELD, new JSONArray(deletedGroupIDList));
         }
         if (isEnable()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
