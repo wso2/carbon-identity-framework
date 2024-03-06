@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.BaseSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DynamicDecisionNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GenericSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionMonitorData;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
@@ -200,6 +201,12 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
         return this;
     }
 
+    @Override
+    public AuthenticationDecisionEvaluator getScriptEvaluator(BaseSerializableJsFunction fn) {
+
+        return null;
+    }
+
     private static void attachEventListeners(Map<String, Object> eventsMap, AuthGraphNode currentNode) {
 
         if (eventsMap == null) {
@@ -207,7 +214,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
         }
         DynamicDecisionNode decisionNode = new DynamicDecisionNode();
         addEventListeners(decisionNode, eventsMap);
-        if (!decisionNode.getFunctionMap().isEmpty()) {
+        if (!decisionNode.getGenericFunctionMap().isEmpty()) {
             attachToLeaf(currentNode, decisionNode);
         }
     }
@@ -219,7 +226,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
         }
         DynamicDecisionNode decisionNode = new DynamicDecisionNode();
         addEventListeners(decisionNode, eventsMap);
-        if (!decisionNode.getFunctionMap().isEmpty()) {
+        if (!decisionNode.getGenericFunctionMap().isEmpty()) {
             attachToLeaf(currentNode, decisionNode);
             currentNode = decisionNode;
         }
@@ -240,12 +247,12 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
             if ((!(value instanceof GraalSerializableJsFunction))) {
                 GraalSerializableJsFunction jsFunction = GraalSerializableJsFunction.toSerializableForm(value);
                 if (jsFunction != null) {
-                    decisionNode.addFunction(key, jsFunction);
+                    decisionNode.addGenericFunction(key, jsFunction);
                 } else {
                     log.error("Event handler : " + key + " is not a function : " + value);
                 }
             } else {
-                decisionNode.addFunction(key, (GraalSerializableJsFunction) value);
+                decisionNode.addGenericFunction(key, (GraalSerializableJsFunction) value);
             }
         });
     }
@@ -259,12 +266,12 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
             if (!(value instanceof GraalSerializableJsFunction)) {
                 GraalSerializableJsFunction jsFunction = GraalSerializableJsFunction.toSerializableForm(value);
                 if (jsFunction != null) {
-                    showPromptNode.addHandler(key, jsFunction);
+                    showPromptNode.addGenericHandler(key, jsFunction);
                 } else {
                     log.error("Event handler : " + key + " is not a function : " + value);
                 }
             } else {
-                showPromptNode.addHandler(key, (GraalSerializableJsFunction) value);
+                showPromptNode.addGenericHandler(key, (GraalSerializableJsFunction) value);
             }
         });
     }
@@ -396,7 +403,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
         addHandlers(newNode, handlers);
     }
 
-    public AuthenticationDecisionEvaluator getScriptEvaluator(BaseSerializableJsFunction fn) {
+    public AuthenticationDecisionEvaluator getScriptEvaluator(GenericSerializableJsFunction fn) {
 
         return new JsBasedEvaluator((GraalSerializableJsFunction) fn);
     }

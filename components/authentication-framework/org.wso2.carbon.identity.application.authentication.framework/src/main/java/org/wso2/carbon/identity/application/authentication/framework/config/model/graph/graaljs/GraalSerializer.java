@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsSerializer;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import java.io.Serializable;
@@ -37,7 +37,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 /**
  * Serializer class supports GraalJS Engine.
  */
-public class GraalSerializer implements JsSerializer<Context> {
+public class GraalSerializer implements JsGenericSerializer<Context> {
 
     private static final Log log = LogFactory.getLog(GraalSerializer.class);
     private static final GraalSerializer graalSerializer = new GraalSerializer();

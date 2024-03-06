@@ -36,10 +36,10 @@ public class JsWrapperFactoryProvider {
     private JsWrapperFactoryProvider() {
 
         if (FrameworkServiceDataHolder.getInstance()
-                .getJsGraphBuilderFactory() instanceof JsOpenJdkNashornGraphBuilderFactory) {
+                .getJsGenericGraphBuilderFactory() instanceof JsOpenJdkNashornGraphBuilderFactory) {
             jsWrapperBaseFactory = new JsOpenJdkNashornWrapperFactory();
         } else if (FrameworkServiceDataHolder.getInstance()
-                .getJsGraphBuilderFactory() instanceof JsGraalGraphBuilderFactory) {
+                .getJsGenericGraphBuilderFactory() instanceof JsGraalGraphBuilderFactory) {
             jsWrapperBaseFactory = new JsGraalWrapperFactory();
         } else {
             jsWrapperBaseFactory = new JsWrapperFactory();

@@ -49,8 +49,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.buil
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -276,12 +276,12 @@ public class FrameworkServiceComponent {
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
 
-        JsBaseGraphBuilderFactory jsGraphBuilderFactory = FrameworkUtils.createJsGraphBuilderFactoryFromConfig();
+        JsGenericGraphBuilderFactory jsGraphBuilderFactory = FrameworkUtils.createJsGraphBuilderFactoryFromConfig();
         if (jsGraphBuilderFactory != null) {
             bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
             dataHolder.setAdaptiveAuthenticationAvailable(true);
             jsGraphBuilderFactory.init();
-            dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+            dataHolder.setJsGenericGraphBuilderFactory(jsGraphBuilderFactory);
         } else {
             dataHolder.setAdaptiveAuthenticationAvailable(false);
             log.warn("Adaptive authentication is disabled.");

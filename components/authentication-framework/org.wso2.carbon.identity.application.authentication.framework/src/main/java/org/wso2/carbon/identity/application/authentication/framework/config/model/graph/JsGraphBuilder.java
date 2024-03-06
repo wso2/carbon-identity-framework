@@ -472,7 +472,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     public static void addPrompt(String templateId, Map<String, Object> parameters, Map<String, Object> handlers,
                                  Map<String, Object> callbacks) {
 
-        FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getCurrentBuilder()
+        FrameworkServiceDataHolder.getInstance().getJsGenericGraphBuilderFactory().getCurrentBuilder()
                 .addPromptInternal(templateId, parameters, handlers, callbacks);
     }
 
@@ -521,7 +521,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     public static void addLongWaitProcess(AsyncProcess asyncProcess,
                                           Map<String, Object> parameterMap) {
 
-        FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getCurrentBuilder()
+        FrameworkServiceDataHolder.getInstance().getJsGenericGraphBuilderFactory().getCurrentBuilder()
                 .addLongWaitProcessInternal(asyncProcess, parameterMap);
     }
 

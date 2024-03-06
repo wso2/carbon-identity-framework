@@ -66,6 +66,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
@@ -3013,7 +3014,8 @@ public class FrameworkUtils {
      */
     public static Object toJsSerializable(Object value) {
 
-        return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getJsUtil().toJsSerializable(value);
+        return FrameworkServiceDataHolder.getInstance().getJsGenericGraphBuilderFactory()
+                .getJsUtil().toJsSerializable(value);
     }
 
     /**
@@ -4000,6 +4002,15 @@ public class FrameworkUtils {
     }
 
     public static JsBaseGraphBuilderFactory createJsGraphBuilderFactoryFromConfig() {
+
+        JsGenericGraphBuilderFactory jsGenericGraphBuilderFactory = createJsGenericGraphBuilderFactoryFromConfig();
+        if (jsGenericGraphBuilderFactory instanceof JsBaseGraphBuilderFactory) {
+            return (JsBaseGraphBuilderFactory) jsGenericGraphBuilderFactory;
+        }
+        return null;
+    }
+
+    public static JsGenericGraphBuilderFactory createJsGenericGraphBuilderFactoryFromConfig() {
 
         String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.SCRIPT_ENGINE_CONFIG);
         if (scriptEngineName != null) {

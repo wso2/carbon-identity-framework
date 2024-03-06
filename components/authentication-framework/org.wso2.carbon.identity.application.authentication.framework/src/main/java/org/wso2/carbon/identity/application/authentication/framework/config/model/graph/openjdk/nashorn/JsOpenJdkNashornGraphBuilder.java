@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DynamicDecisionNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.EndStep;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GenericSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionMonitorData;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
@@ -161,6 +162,11 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
     }
 
     @Override
+    public AuthenticationDecisionEvaluator getScriptEvaluator(GenericSerializableJsFunction fn) {
+
+        return  new JsBasedEvaluator((OpenJdkNashornSerializableJsFunction) fn);
+    }
+
     public AuthenticationDecisionEvaluator getScriptEvaluator(BaseSerializableJsFunction fn) {
 
         return new JsBasedEvaluator((OpenJdkNashornSerializableJsFunction) fn);
@@ -868,7 +874,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
         }
         DynamicDecisionNode decisionNode = new DynamicDecisionNode();
         addEventListeners(decisionNode, eventsMap);
-        if (!decisionNode.getFunctionMap().isEmpty()) {
+        if (!decisionNode.getGenericFunctionMap().isEmpty()) {
             attachToLeaf(currentNode, decisionNode);
         }
     }
@@ -880,7 +886,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
         }
         DynamicDecisionNode decisionNode = new DynamicDecisionNode();
         addEventListeners(decisionNode, eventsMap);
-        if (!decisionNode.getFunctionMap().isEmpty()) {
+        if (!decisionNode.getGenericFunctionMap().isEmpty()) {
             attachToLeaf(currentNode, decisionNode);
             currentNode = decisionNode;
         }
@@ -923,12 +929,12 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                 OpenJdkNashornSerializableJsFunction jsFunction = OpenJdkNashornSerializableJsFunction
                         .toSerializableForm((ScriptObjectMirror) value);
                 if (jsFunction != null) {
-                    showPromptNode.addHandler(key, jsFunction);
+                    showPromptNode.addGenericHandler(key, jsFunction);
                 } else {
                     log.error("Event handler : " + key + " is not a function : " + value);
                 }
             } else if (value instanceof OpenJdkNashornSerializableJsFunction) {
-                showPromptNode.addHandler(key, (OpenJdkNashornSerializableJsFunction) value);
+                showPromptNode.addGenericHandler(key, (OpenJdkNashornSerializableJsFunction) value);
             }
         });
     }
@@ -1226,7 +1232,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
 
         private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
 
-            return (ScriptEngine) FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
+            return (ScriptEngine) FrameworkServiceDataHolder.getInstance().getJsGenericGraphBuilderFactory()
                     .createEngine(authenticationContext);
         }
     }

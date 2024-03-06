@@ -51,7 +51,7 @@ import javax.script.ScriptEngine;
  * <p>
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
-public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFactory<ScriptEngine> {
+public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFactory {
 
     private static final Log LOG = LogFactory.getLog(JsOpenJdkNashornGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
