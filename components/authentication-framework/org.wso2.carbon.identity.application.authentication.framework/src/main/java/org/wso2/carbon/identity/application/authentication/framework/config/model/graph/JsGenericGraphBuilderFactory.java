@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,14 +23,13 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 
 import java.util.Map;
 
-import javax.script.ScriptEngine;
-
 /**
  * Interface for Factory to create a Javascript based sequence builder.
  * This factory is there to reuse of script engine and any related expensive objects.
  *
+ * @param <T> Type of the Javascript Engine
  */
-public interface JsBaseGraphBuilderFactory extends JsGenericGraphBuilderFactory<ScriptEngine> {
+public interface JsGenericGraphBuilderFactory<T> {
 
     void init();
 
@@ -39,9 +38,9 @@ public interface JsBaseGraphBuilderFactory extends JsGenericGraphBuilderFactory<
     JsBaseGraphBuilder createBuilder(AuthenticationContext authenticationContext,
                                      Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode);
 
-    ScriptEngine createEngine(AuthenticationContext authenticationContext);
+    T createEngine(AuthenticationContext authenticationContext);
 
-    JsSerializer getJsUtil();
+    JsGenericSerializer getJsUtil();
 
     JsBaseGraphBuilder getCurrentBuilder();
 }

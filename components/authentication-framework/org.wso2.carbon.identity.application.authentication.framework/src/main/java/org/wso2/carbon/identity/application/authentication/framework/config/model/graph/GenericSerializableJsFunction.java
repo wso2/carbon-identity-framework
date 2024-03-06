@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import javax.script.ScriptEngine;
+import java.io.Serializable;
 
 /**
  * Serializable javascript function.
@@ -27,8 +27,9 @@ import javax.script.ScriptEngine;
  * The request may come to different node.
  * The current authentication context holds this function in serialized form.
  *
+ * @param <T> Script Engine
  */
-public interface BaseSerializableJsFunction extends GenericSerializableJsFunction<ScriptEngine> {
+public interface GenericSerializableJsFunction<T> extends Serializable {
 
     void setSource(String name);
 
@@ -38,6 +39,6 @@ public interface BaseSerializableJsFunction extends GenericSerializableJsFunctio
 
     void setFunction(boolean function);
 
-    Object apply(ScriptEngine scriptEngine, Object... params);
+    Object apply(T scriptEngine, Object... params);
 
 }

@@ -143,6 +143,12 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
         return result;
     }
 
+    @Override
+    public AuthenticationDecisionEvaluator getScriptEvaluator(GenericSerializableJsFunction fn) {
+
+        return new JsBasedEvaluator((SerializableJsFunction) fn);
+    }
+
     /**
      * Creates the graph with the given Script and step map.
      *
@@ -843,7 +849,7 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
         }
         DynamicDecisionNode decisionNode = new DynamicDecisionNode();
         addEventListeners(decisionNode, eventsMap);
-        if (!decisionNode.getFunctionMap().isEmpty()) {
+        if (!decisionNode.getGenericFunctionMap().isEmpty()) {
             attachToLeaf(currentNode, decisionNode);
         }
     }
@@ -855,7 +861,7 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
         }
         DynamicDecisionNode decisionNode = new DynamicDecisionNode();
         addEventListeners(decisionNode, eventsMap);
-        if (!decisionNode.getFunctionMap().isEmpty()) {
+        if (!decisionNode.getGenericFunctionMap().isEmpty()) {
             attachToLeaf(currentNode, decisionNode);
             currentNode = decisionNode;
         }
@@ -898,12 +904,12 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
                 SerializableJsFunction jsFunction = SerializableJsFunction
                         .toSerializableForm((ScriptObjectMirror) value);
                 if (jsFunction != null) {
-                    showPromptNode.addHandler(key, jsFunction);
+                    showPromptNode.addGenericHandler(key, jsFunction);
                 } else {
                     log.error("Event handler : " + key + " is not a function : " + value);
                 }
             } else if (value instanceof SerializableJsFunction) {
-                showPromptNode.addHandler(key, (SerializableJsFunction) value);
+                showPromptNode.addGenericHandler(key, (SerializableJsFunction) value);
             }
         });
     }
@@ -1079,7 +1085,6 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
         stepConfig.setSubjectAttributeStep(true);
     }
 
-    @Override
     public AuthenticationDecisionEvaluator getScriptEvaluator(BaseSerializableJsFunction fn) {
 
         return new JsBasedEvaluator((SerializableJsFunction) fn);
@@ -1206,7 +1211,7 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
 
         private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
 
-            return (ScriptEngine) FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
+            return (ScriptEngine) FrameworkServiceDataHolder.getInstance().getJsGenericGraphBuilderFactory()
                     .createEngine(authenticationContext);
         }
     }

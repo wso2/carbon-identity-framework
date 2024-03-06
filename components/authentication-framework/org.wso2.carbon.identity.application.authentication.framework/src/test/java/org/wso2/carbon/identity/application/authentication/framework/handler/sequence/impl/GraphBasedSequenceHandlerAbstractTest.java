@@ -32,8 +32,8 @@ import org.wso2.carbon.identity.application.authentication.framework.MockAuthent
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
@@ -80,7 +80,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     protected static final String TEST_USER_1_ID = "4b4414e1-916b-4475-aaee-6b0751c29ff6";
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
     protected UIBasedConfigurationLoader configurationLoader;
-    protected JsBaseGraphBuilderFactory graphBuilderFactory;
+    protected JsGenericGraphBuilderFactory graphBuilderFactory;
 
     @BeforeTest
     public void setUpExecutionSupervisor() {
@@ -121,7 +121,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
 
         graphBuilderFactory.init();
-        FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
+        FrameworkServiceDataHolder.getInstance().setJsGenericGraphBuilderFactory(graphBuilderFactory);
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
         asyncSequenceExecutor.init();

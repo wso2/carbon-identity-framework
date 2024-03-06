@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,13 +20,12 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
-import javax.script.ScriptEngine;
-
 /**
  * Interface for serializer class supports Multiple JS Engines.
  *
+ * @param <T> Js Engine.
  */
-public interface JsSerializer extends JsGenericSerializer<ScriptEngine> {
+public interface JsGenericSerializer<T> {
 
     /**
      * Serialize the object using selected serializable function.
@@ -44,6 +43,6 @@ public interface JsSerializer extends JsGenericSerializer<ScriptEngine> {
      * @return De-Serialize object.
      * @throws FrameworkException FrameworkException.
      */
-    Object fromJsSerializable(Object value, ScriptEngine engine) throws FrameworkException;
+    Object fromJsSerializable(Object value, T engine) throws FrameworkException;
 
 }

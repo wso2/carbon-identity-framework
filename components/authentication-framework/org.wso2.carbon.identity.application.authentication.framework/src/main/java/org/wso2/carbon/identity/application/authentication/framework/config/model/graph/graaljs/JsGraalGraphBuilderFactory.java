@@ -27,8 +27,8 @@ import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsSerializer;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericSerializer;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
@@ -55,7 +55,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
  * <p>
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing GraalJS engine.
  */
-public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Context> {
+public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<Context> {
 
     private static final Log LOG = LogFactory.getLog(JsGraalGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
@@ -147,7 +147,7 @@ public class JsGraalGraphBuilderFactory implements JsBaseGraphBuilderFactory<Con
     }
 
     @Override
-    public JsSerializer getJsUtil() {
+    public JsGenericSerializer getJsUtil() {
 
         return GraalSerializer.getInstance();
     }

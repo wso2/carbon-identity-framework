@@ -35,7 +35,7 @@ import javax.script.ScriptException;
  * Javascript function wrapper. This allows serialization of a javascript defined function.
  * Since Nashorn is deprecated in JDK 11 and onwards. We replaced it with OpenJDK Nashorn classes.
  */
-public class OpenJdkNashornSerializableJsFunction implements BaseSerializableJsFunction<ScriptEngine> {
+public class OpenJdkNashornSerializableJsFunction implements BaseSerializableJsFunction {
 
     private static final Log log = LogFactory.getLog(OpenJdkNashornSerializableJsFunction.class);
 

@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.BaseSerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GenericSerializableJsFunction;
 
 import java.util.function.Function;
 
@@ -31,7 +31,7 @@ import java.util.function.Function;
  * Javascript function wrapper. This allows serialization of a javascript defined function.
  * Since Nashorn is deprecated in JDK 11 and onwards. We replaced it with GraalJS classes.
  */
-public class GraalSerializableJsFunction implements BaseSerializableJsFunction<Context> {
+public class GraalSerializableJsFunction implements GenericSerializableJsFunction<Context> {
 
     private static final Log log = LogFactory.getLog(GraalSerializableJsFunction.class);
     private static final long serialVersionUID = -7001351065432647040L;
