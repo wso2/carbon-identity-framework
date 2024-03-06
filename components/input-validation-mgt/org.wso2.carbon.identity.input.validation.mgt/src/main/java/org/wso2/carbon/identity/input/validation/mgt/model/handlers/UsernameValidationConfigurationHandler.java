@@ -92,7 +92,7 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
                         ENABLE_VALIDATOR, Boolean.TRUE.toString()));
                 configuration.setRules(rules);
             } else if (PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain().equals("carbon.super")) {
-                // Return the JSRegex if the tenant domain is carbon.super
+                // Return the JSRegex if the tenant domain is carbon.super.
                 rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx));
                 configuration.setRegEx(rules);
             } else {
