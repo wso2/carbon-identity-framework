@@ -689,6 +689,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         // Passing the federated tokens to the authentication result.
         if (context.getProperty(FEDERATED_TOKENS) != null) {
             authenticationResult.addProperty(FEDERATED_TOKENS, context.getProperty(FEDERATED_TOKENS));
+            if (log.isDebugEnabled()) {
+                log.debug("Federated tokens are available in the authentication context for the IDP:" +
+                        FrameworkUtils.getFederatedAuthenticatorName(context));
+                log.debug("Federated tokens are added to the authentication result. IDP:" +
+                        FrameworkUtils.getFederatedAuthenticatorName(context));
+            }
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
