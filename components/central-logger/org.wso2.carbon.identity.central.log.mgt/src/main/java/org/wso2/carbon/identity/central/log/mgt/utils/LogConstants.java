@@ -123,12 +123,11 @@ public class LogConstants {
         public static final String GET_USERS_OF_ROLE_ACTION = "get-users-of-role";
         public static final String DELETE_ROLES_BY_APP_ACTION = "delete-application-roles";
         public static final String LOGIN_ACTION = "login";
-
-
+        public static final String LOGOUT_ACTION = "logout";
         public static final String USERS_FIELD = "Users";
         public static final String GROUPS_FIELD = "Groups";
         public static final String ROLES_FIELD = "Roles";
-        public static final String PROFILE_FIELD = "Roles";
+        public static final String PROFILE_FIELD = "Profile";
 
         public static final String APP_ROLE_FIELD = "ApplicationRoles";
         public static final String AUDIENCE_FIELD = "Audience";
@@ -137,16 +136,16 @@ public class LogConstants {
         public static final String ORG_ROLE_FIELD = "OrganizationRoles";
         public static final String ROLE_NAME_FIELD = "RoleName";
         public static final String PERMISSIONS_FIELD = "Permissions";
-        public static final String DELETED_USERS = "DeletedUsers";
-        public static final String NEW_USERS = "NewUsers";
-        public static final String DELETED_ROLES = "DeletedRoles";
-        public static final String NEW_ROLES = "NewRoles";
-        public static final String DELETED_GROUPS = "DeletedGroups";
+        public static final String DELETED_USERS_FIELD = "DeletedUsers";
+        public static final String NEW_USERS_FIELD = "NewUsers";
+        public static final String DELETED_ROLES_FIELD = "DeletedRoles";
+        public static final String NEW_ROLES_FIELD = "NewRoles";
+        public static final String ADDED_GROUPS_FIELD = "AddedGroups";
+        public static final String DELETED_GROUPS_FIELD = "DeletedGroups";
         public static final String IDP_GROUPS_FIELD = "IdpGroups";
         public static final String ADDED_IDP_GROUPS_FIELD = "AddedIdpGroups";
         public static final String ADDED_PERMISSIONS_FIELD = "AddedPermissions";
         public static final String DELETED_PERMISSIONS_FIELD = "DeletedPermissions";
         public static final String DELETED_IDP_GROUPS_FIELD = "DeletedIdpGroups";
-        public static final String ADDED_GROUPS_FIELD = "AddedGroups";
     }
 }

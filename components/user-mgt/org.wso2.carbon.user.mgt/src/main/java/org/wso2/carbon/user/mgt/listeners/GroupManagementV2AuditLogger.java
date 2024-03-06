@@ -33,11 +33,11 @@ import org.wso2.carbon.utils.AuditLog;
 import java.util.List;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_GROUP_ACTION;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_USERS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_GROUP_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_GROUPS_OF_USERS_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUPS_FIELD;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.NEW_USERS;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.NEW_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_GROUP_NAME_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_USERS_OF_GROUP_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.Target;
@@ -98,17 +98,16 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
         return true;
     }
 
-
     public boolean postUpdateUserListOfGroup(String groupId, List<String> deletedUserIds, List<String> newUserIds,
                                              UserStoreManager userStoreManager) {
 
         if (isEnable()) {
             JSONObject dataObject = new JSONObject();
             if (CollectionUtils.isNotEmpty(deletedUserIds)) {
-                dataObject.put(DELETED_USERS, new JSONArray(deletedUserIds));
+                dataObject.put(DELETED_USERS_FIELD, new JSONArray(deletedUserIds));
             }
             if (CollectionUtils.isNotEmpty(newUserIds)) {
-                dataObject.put(NEW_USERS, new JSONArray(deletedUserIds));
+                dataObject.put(NEW_USERS_FIELD, new JSONArray(deletedUserIds));
             }
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
