@@ -131,7 +131,6 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
                     userId, Target.User.name(), GET_GROUPS_OF_USERS_ACTION).data(jsonObjectToMap(dataObject));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
-
         return true;
     }
 

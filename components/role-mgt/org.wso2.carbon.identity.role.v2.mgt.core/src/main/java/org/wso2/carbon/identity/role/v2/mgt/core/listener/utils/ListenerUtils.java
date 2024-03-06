@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 
 package org.wso2.carbon.identity.role.v2.mgt.core.listener.utils;
 
@@ -36,7 +37,7 @@ public class ListenerUtils {
     /**
      * To get the current user, who is doing the current task.
      *
-     * @return current logged-in user
+     * @return current logged-in user.
      */
     public static String getUser() {
 
@@ -112,48 +113,4 @@ public class ListenerUtils {
         }
         return initiator;
     }
-
-    /**
-     * Get the initiator for audit logs.
-     *
-     * @return Initiator based on whether log masking is enabled or not.
-     */
-    public static String getInitiatorFromContext() {
-
-        String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        if (LoggerUtils.isLogMaskingEnable) {
-            if (StringUtils.isNotBlank(user) && StringUtils.isNotBlank(tenantDomain)) {
-                String initiator = IdentityUtil.getInitiatorId(user, tenantDomain);
-                if (StringUtils.isNotBlank(initiator)) {
-                    return initiator;
-                }
-            }
-            if (StringUtils.isNotBlank(user)) {
-                return LoggerUtils.getMaskedContent(user + "@" + tenantDomain);
-            }
-            return LoggerUtils.getMaskedContent(CarbonConstants.REGISTRY_SYSTEM_USERNAME);
-        } else if (StringUtils.isNotBlank(user)) {
-            return user + "@" + tenantDomain;
-        }
-        return CarbonConstants.REGISTRY_SYSTEM_USERNAME;
-    }
-
-    /**
-     * Returns the target value based on the masking config.
-     *
-     * @param userName         Claims map.
-     * @param userStoreManager JSON Object which will be added to audit log.
-     * @return Target value. If log masking is enabled returns the masked value.
-     */
-    public static String getTargetForAuditLog(String userName, UserStoreManager userStoreManager) {
-
-        String target = ListenerUtils.getEntityWithUserStoreDomain(userName, userStoreManager);
-        if (LoggerUtils.isLogMaskingEnable) {
-            return LoggerUtils.getMaskedContent(target);
-        }
-        return target;
-    }
-
-
 }
