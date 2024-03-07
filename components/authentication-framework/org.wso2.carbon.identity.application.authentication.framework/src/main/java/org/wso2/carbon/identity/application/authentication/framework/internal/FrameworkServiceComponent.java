@@ -276,7 +276,8 @@ public class FrameworkServiceComponent {
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
 
-        JsGenericGraphBuilderFactory jsGraphBuilderFactory = FrameworkUtils.createJsGraphBuilderFactoryFromConfig();
+        JsGenericGraphBuilderFactory jsGraphBuilderFactory =
+                FrameworkUtils.createJsGenericGraphBuilderFactoryFromConfig();
         if (jsGraphBuilderFactory != null) {
             bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
             dataHolder.setAdaptiveAuthenticationAvailable(true);
