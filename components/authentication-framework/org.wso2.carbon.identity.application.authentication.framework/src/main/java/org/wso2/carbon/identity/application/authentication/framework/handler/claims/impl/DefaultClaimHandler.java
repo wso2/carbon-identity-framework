@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -198,7 +199,10 @@ public class DefaultClaimHandler implements ClaimHandler {
         String serviceProviderMappedUserRoles;
 
         boolean useAppAssociatedRoles = isAppRoleResolverExists() || !CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME;
-        if (useAppAssociatedRoles) {
+        boolean excludeSuperTenantForLegacyRolesClaim =
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(context.getTenantDomain()) &&
+                Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.ALLOW_LEGACY_ROLE_CLAIM_BEHAVIOUR));
+        if (useAppAssociatedRoles && !excludeSuperTenantForLegacyRolesClaim) {
             // This handles the idp group to local role assignments in the new authz flow.
             String idpGroupClaimUri = FrameworkUtils.getEffectiveIdpGroupClaimUri(stepConfig, context);
             boolean idpGroupsExists = isIdpGroupsExistForIDP(context.getExternalIdP().getIdentityProvider());
@@ -761,7 +765,8 @@ public class DefaultClaimHandler implements ClaimHandler {
                             .getMultiAttributeSeparator(), appAssociatedRoles));
                 }
             } else {
-                if (isRoleClaimRequested) {
+                if (isRoleClaimRequested && !Boolean.parseBoolean(IdentityUtil.getProperty(
+                        IdentityConstants.ALLOW_LEGACY_ROLE_CLAIM_BEHAVIOUR))) {
                     allLocalClaims.put(rolesClaimURI, String.join(FrameworkUtils.getMultiAttributeSeparator(),
                             StringUtils.EMPTY));
                 }
