@@ -55,8 +55,8 @@ public abstract class JsAuthenticatedUser extends AbstractJSObjectWrapper<Authen
         implements JsBaseAuthenticatedUser {
 
     private static final Log LOG = LogFactory.getLog(JsAuthenticatedUser.class);
-    private int step;
-    private String idp;
+    protected int step;
+    protected String idp;
 
     /**
      * Constructor to be used when required to access step specific user details.
@@ -204,7 +204,7 @@ public abstract class JsAuthenticatedUser extends AbstractJSObjectWrapper<Authen
         }
     }
 
-    private String[] getLocalRoles() {
+    protected String[] getLocalRoles() {
 
         if (idp == null || FrameworkConstants.LOCAL.equals(idp)) {
             RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();

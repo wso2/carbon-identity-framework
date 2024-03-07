@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsWritableParameters;
 
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,7 @@ import java.util.Map;
  * Parameters that can be modified from the authentication script.
  * This wrapper uses GraalJS polyglot context.
  */
-public class JsGraalWritableParameters extends JsWritableParameters implements ProxyObject {
+public class JsGraalWritableParameters extends JsGraalParameters implements ProxyObject {
 
     public JsGraalWritableParameters(Map wrapped) {
 
@@ -44,6 +43,16 @@ public class JsGraalWritableParameters extends JsWritableParameters implements P
 
     public void putMember(String key, Value value) {
 
-        super.setMember(key, value.as(List.class));
+        setMember(key, value.as(List.class));
+    }
+
+    public boolean hasMember(String name) {
+
+        return true;
+    }
+
+    public void setMember(String name, Object value) {
+
+        getWrapped().put(name, value);
     }
 }

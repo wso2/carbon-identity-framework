@@ -53,4 +53,9 @@ public class JsGraalClaims extends JsClaims implements ProxyObject {
         String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
         setMemberObject(claimUri, valueAsString);
     }
+
+    public boolean hasMember(String name) {
+
+        return true;
+    }
 }

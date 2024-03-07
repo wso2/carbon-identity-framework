@@ -51,4 +51,9 @@ public class JsGraalCookie extends JsCookie implements ProxyObject {
         String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
         super.setMember(key, valueAsString);
     }
+
+    public boolean hasMember(String name) {
+
+        return true;
+    }
 }

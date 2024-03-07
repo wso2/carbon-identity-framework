@@ -64,4 +64,9 @@ public class JsGraalAuthenticationContext extends JsAuthenticationContext implem
 
         return super.removeMemberObject(name);
     }
+
+    public boolean hasMember(String name) {
+
+        return true;
+    }
 }

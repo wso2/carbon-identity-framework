@@ -25,16 +25,16 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Abstract Javascript wrapper for Java level HashMap of HTTP headers.
+ * Javascript wrapper for Java level HashMap of HTTP headers.
  * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public abstract class JsHeaders implements JsBaseHeaders {
+public class CommonJsHeaders implements JsBaseHeaders {
 
     private final Map wrapped;
     private final HttpServletResponse response;
 
-    public JsHeaders(Map wrapped, HttpServletResponse response) {
+    public CommonJsHeaders(Map wrapped, HttpServletResponse response) {
 
         this.wrapped = wrapped;
         this.response = response;

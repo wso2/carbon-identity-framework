@@ -70,8 +70,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerNoJsTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerCustomFunctionsTest"/>
-<!--            TODO: Fix the GraphBasedSequenceHandlerClaimMappingsTest. Its failing due to issues in mocking IdentityClaimManager.-->
-<!--            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClaimMappingsTest" />-->
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClaimMappingsTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClaimsTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerLongWaitTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerExceptionRetryTest" />
@@ -86,8 +85,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerNoJsTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerCustomFunctionsTest"/>
-<!--            TODO: Fix the GraphBasedSequenceHandlerClaimMappingsTest. Its failing due to issues in mocking IdentityClaimManager-->
-<!--            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClaimMappingsTest" />-->
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClaimMappingsTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClaimsTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerLongWaitTest" />
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerExceptionRetryTest" />

@@ -43,4 +43,9 @@ public class JsGraalSteps extends JsSteps implements ProxyArray {
     public void set(long index, Value value) {
         //Steps can not be set with script.
     }
+
+    public boolean hasMember(String name) {
+
+        return true;
+    }
 }
