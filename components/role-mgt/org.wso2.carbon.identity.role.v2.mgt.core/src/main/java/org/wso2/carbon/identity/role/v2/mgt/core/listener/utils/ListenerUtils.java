@@ -24,7 +24,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 

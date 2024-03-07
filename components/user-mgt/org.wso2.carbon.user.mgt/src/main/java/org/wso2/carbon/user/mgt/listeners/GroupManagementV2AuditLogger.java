@@ -62,76 +62,65 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
     public boolean postAddGroup(String groupName, String groupId, List<String> userIds, List<Claim> claims,
                                 UserStoreManager userStoreManager) {
 
-        if (isEnable()) {
-            JSONObject dataObject = new JSONObject();
-            if (CollectionUtils.isNotEmpty(userIds)) {
-                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userIds));
-            }
-            dataObject.put(GROUP_NAME_FIELD, groupName);
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
-                    groupId, Target.Group.name(), ADD_GROUP_ACTION)
-                    .data(jsonObjectToMap(dataObject));
-            triggerAuditLogEvent(auditLogBuilder);
+        JSONObject dataObject = new JSONObject();
+        if (CollectionUtils.isNotEmpty(userIds)) {
+            dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userIds));
         }
+        dataObject.put(GROUP_NAME_FIELD, groupName);
+        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                LoggerUtils.getInitiatorType(getInitiatorId()), groupId, Target.Group.name(), ADD_GROUP_ACTION)
+                .data(jsonObjectToMap(dataObject));
+        triggerAuditLogEvent(auditLogBuilder);
         return true;
     }
 
     public boolean postDeleteGroup(String groupId, String groupName, UserStoreManager userStoreManager) {
-        if (isEnable()) {
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
-                    groupId, Target.Group.name(), DELETE_GROUP_ACTION);
-            triggerAuditLogEvent(auditLogBuilder);
-        }
+
+        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                LoggerUtils.getInitiatorType(getInitiatorId()), groupId, Target.Group.name(), DELETE_GROUP_ACTION);
+        triggerAuditLogEvent(auditLogBuilder);
         return true;
     }
 
     public boolean postRenameGroup(String groupId, String newGroupName, UserStoreManager userStoreManager) {
 
-        if (isEnable()) {
-            JSONObject dataObject = new JSONObject();
-            dataObject.put(GROUP_NAME_FIELD, newGroupName);
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
-                    groupId, Target.Group.name(), UPDATE_GROUP_NAME_ACTION).data(jsonObjectToMap(dataObject));
-            triggerAuditLogEvent(auditLogBuilder);
-        }
+        JSONObject dataObject = new JSONObject();
+        dataObject.put(GROUP_NAME_FIELD, newGroupName);
+        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                LoggerUtils.getInitiatorType(getInitiatorId()), groupId, Target.Group.name(), UPDATE_GROUP_NAME_ACTION)
+                .data(jsonObjectToMap(dataObject));
+        triggerAuditLogEvent(auditLogBuilder);
         return true;
     }
 
     public boolean postUpdateUserListOfGroup(String groupId, List<String> deletedUserIds, List<String> newUserIds,
                                              UserStoreManager userStoreManager) {
 
-        if (isEnable()) {
-            JSONObject dataObject = new JSONObject();
-            if (CollectionUtils.isNotEmpty(deletedUserIds)) {
-                dataObject.put(DELETED_USERS_FIELD, new JSONArray(deletedUserIds));
-            }
-            if (CollectionUtils.isNotEmpty(newUserIds)) {
-                dataObject.put(NEW_USERS_FIELD, new JSONArray(deletedUserIds));
-            }
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
-                    groupId, Target.Group.name(), UPDATE_USERS_OF_GROUP_ACTION).data(jsonObjectToMap(dataObject));
-            triggerAuditLogEvent(auditLogBuilder);
+        JSONObject dataObject = new JSONObject();
+        if (CollectionUtils.isNotEmpty(deletedUserIds)) {
+            dataObject.put(DELETED_USERS_FIELD, new JSONArray(deletedUserIds));
         }
+        if (CollectionUtils.isNotEmpty(newUserIds)) {
+            dataObject.put(NEW_USERS_FIELD, new JSONArray(deletedUserIds));
+        }
+        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                LoggerUtils.getInitiatorType(getInitiatorId()), groupId, Target.Group.name(),
+                UPDATE_USERS_OF_GROUP_ACTION).data(jsonObjectToMap(dataObject));
+        triggerAuditLogEvent(auditLogBuilder);
         return true;
     }
 
     public boolean postGetGroupsListOfUserByUserId(String userId, List<Group> groupList,
                                                    UserStoreManager userStoreManager) {
 
-        if (isEnable()) {
-            JSONObject dataObject = new JSONObject();
-            if (CollectionUtils.isNotEmpty(groupList)) {
-                dataObject.put(GROUPS_FIELD, new JSONArray(groupList));
-            }
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
-                    userId, Target.User.name(), GET_GROUPS_OF_USERS_ACTION).data(jsonObjectToMap(dataObject));
-            triggerAuditLogEvent(auditLogBuilder);
+        JSONObject dataObject = new JSONObject();
+        if (CollectionUtils.isNotEmpty(groupList)) {
+            dataObject.put(GROUPS_FIELD, new JSONArray(groupList));
         }
+        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                LoggerUtils.getInitiatorType(getInitiatorId()), userId, Target.User.name(), GET_GROUPS_OF_USERS_ACTION)
+                .data(jsonObjectToMap(dataObject));
+        triggerAuditLogEvent(auditLogBuilder);
         return true;
     }
 
@@ -144,5 +133,4 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
         }
         return 1;
     }
-
 }
