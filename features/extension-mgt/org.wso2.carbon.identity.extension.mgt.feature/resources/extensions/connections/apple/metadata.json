@@ -3,7 +3,7 @@
         "image": "assets/images/logos/apple.svg",
         "header": "Apple",
         "Subheading": "Login users with their Apple IDs.",
-        "documentation": "{ENV}/asgardeo/docs/guides/authentication/social-login/add-apple-login/",
+        "documentation": "",
         "modal": {
             "form": {
                 "fields": [
