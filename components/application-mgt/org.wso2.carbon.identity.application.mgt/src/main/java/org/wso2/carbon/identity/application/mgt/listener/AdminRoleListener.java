@@ -140,10 +140,13 @@ public class AdminRoleListener extends AbstractRoleManagementListener {
         RoleManagementService roleManagementService = ApplicationManagementServiceComponentHolder.getInstance()
                 .getRoleManagementServiceV2();
         RoleBasicInfo role = roleManagementService.getRoleBasicInfoById(roleId, tenantDomain);
-        if (StringUtils.equals(getOrgAdminRoleName(), (role.getName()))) {
-            return role.getAudience().equals(RoleConstants.ORGANIZATION);
-        } else if (RoleConstants.ADMINISTRATOR.equals(role.getName())) {
-            return role.getAudienceName().equals(ApplicationConstants.CONSOLE_APPLICATION_NAME);
+        if (StringUtils.equals(getOrgAdminRoleName(), (role.getName())) &&
+                role.getAudience().equals(RoleConstants.ORGANIZATION)) {
+            return true;
+        }
+        if (RoleConstants.ADMINISTRATOR.equals(role.getName()) &&
+                role.getAudienceName().equals(ApplicationConstants.CONSOLE_APPLICATION_NAME)) {
+            return true;
         }
         return false;
     }
