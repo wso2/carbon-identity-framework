@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -699,8 +699,8 @@
                     description="Delete OAuth2 scopes in the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Email Template Management API"
-                 identifier="/api/server/v1/email/template-types" requiresAuthorization="true"
+    <APIResource name="Email Template Management API v1/v2"
+                 identifier="/api/server/v(.*)/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API" type="TENANT">
         <Scopes>
             <Scope displayName="View Email Template" name="internal_email_mgt_view" 
@@ -713,8 +713,8 @@
                     description="Delete email templates and types in the organization (root)"/>
         </Scopes>
     </APIResource>
-    <APIResource name="Email Template Management API"
-                 identifier="/o/api/server/v1/email/template-types" requiresAuthorization="true"
+    <APIResource name="Email Template Management API v1/v2"
+                 identifier="/o/api/server/v(.*)/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API"
                  type="CONSOLE_ORG_LEVEL">
         <Scopes>
