@@ -92,7 +92,7 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
             dataObject.put(ListenerUtils.GROUP_NAME_FIELD, newGroupName);
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    groupId, Target.Group.name(), UPDATE_GROUP_NAME_ACTION );
+                    groupId, Target.Group.name(), UPDATE_GROUP_NAME_ACTION).data(jsonObjectToMap(dataObject));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
@@ -111,7 +111,7 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
             }
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                     ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    groupId, Target.Group.name(), UPDATE_USERS_OF_GROUP_ACTION);
+                    groupId, Target.Group.name(), UPDATE_USERS_OF_GROUP_ACTION).data(jsonObjectToMap(dataObject));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
         return true;
