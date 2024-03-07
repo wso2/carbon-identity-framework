@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.model.FederatedToken;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -103,9 +104,9 @@ import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
     public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
-    public static final String FEDERATED_TOKENS = "federated_tokens";
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
+    public static final String COMMA = ",";
     private static volatile DefaultAuthenticationRequestHandler instance;
 
     public static DefaultAuthenticationRequestHandler getInstance() {
@@ -119,6 +120,27 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         return instance;
+    }
+
+    /**
+     * This method returns the comma separated list of federated authenticator names bounded to the
+     * federated_tokens property in the authentication context.
+     *
+     * @param context Authentication context containing the federated_tokens property.
+     * @return Comma separated list of the federated authenticator names.
+     */
+    public static String getFederatedAuthenticatorName(AuthenticationContext context) {
+
+        if (!(context.getProperty(FrameworkConstants.FEDERATED_TOKENS) instanceof List)) {
+            return StringUtils.EMPTY;
+        }
+        List<FederatedToken> federatedTokens =
+                (List<FederatedToken>) context.getProperty(FrameworkConstants.FEDERATED_TOKENS);
+
+        StringBuilder federatedAuthenticators = new StringBuilder();
+        federatedTokens.stream().map(FederatedToken::getIdp)
+                .forEach(idp -> federatedAuthenticators.append(idp).append(COMMA));
+        return federatedAuthenticators.toString();
     }
 
     /**
@@ -687,13 +709,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         // Passing the federated tokens to the authentication result.
-        if (context.getProperty(FEDERATED_TOKENS) != null) {
-            authenticationResult.addProperty(FEDERATED_TOKENS, context.getProperty(FEDERATED_TOKENS));
+        if (context.getProperty(FrameworkConstants.FEDERATED_TOKENS) != null) {
+            authenticationResult.addProperty(
+                    FrameworkConstants.FEDERATED_TOKENS, context.getProperty(FrameworkConstants.FEDERATED_TOKENS));
             if (log.isDebugEnabled()) {
                 log.debug("Federated tokens are available in the authentication context for the IDP:" +
-                        FrameworkUtils.getFederatedAuthenticatorName(context));
-                log.debug("Federated tokens are added to the authentication result. IDP:" +
-                        FrameworkUtils.getFederatedAuthenticatorName(context));
+                        getFederatedAuthenticatorName(context) + " and added to the authentication result");
             }
         }
 

@@ -4155,21 +4155,4 @@ public class FrameworkUtils {
         }
     }
 
-    /**
-     * This method returns the current federated authenticator name. If there is no external IdP, then the current
-     * authenticator name is returned.
-     *
-     * @param context Authentication context.
-     * @return Federated authenticator name.
-     */
-    public static String getFederatedAuthenticatorName(AuthenticationContext context) {
-
-        if (context == null) {
-            return StringUtils.EMPTY;
-        }
-        if (context.getExternalIdP() == null) {
-            return context.getCurrentAuthenticator();
-        }
-        return context.getExternalIdP().getIdPName();
-    }
 }

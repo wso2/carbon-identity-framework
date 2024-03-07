@@ -81,7 +81,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler.FEDERATED_TOKENS;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.FEDERATED_TOKENS;
 
 @PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class, LoggerUtils.class})
 @WithCarbonHome

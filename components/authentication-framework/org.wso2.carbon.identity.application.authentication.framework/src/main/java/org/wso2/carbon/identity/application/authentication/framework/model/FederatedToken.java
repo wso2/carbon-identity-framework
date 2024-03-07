@@ -1,12 +1,19 @@
 /*
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com). All Rights Reserved.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This software is the property of WSO2 LLC. and its suppliers, if any.
- * Dissemination of any information or reproduction of any material contained
- * herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
- * You may not alter or remove any copyright or other notice from copies of this content.
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.application.authentication.framework.model;
@@ -23,11 +30,17 @@ public class FederatedToken implements Serializable {
     private static final long serialVersionUID = 6618332057931299623L;
     private String idp;
     private String tokenValidityPeriod;
+    // Space delimited list of the scopes bounded to the federated token.
     private String scope;
     private String accessToken;
     private String refreshToken;
 
-    // Constructor
+    /**
+     * A federated token should be created with the identity provider and the access token.
+     *
+     * @param idp         The federated authenticator name which returned the access token.
+     * @param accessToken The access token.
+     */
     public FederatedToken(String idp, String accessToken) {
 
         this.idp = idp;
@@ -55,11 +68,21 @@ public class FederatedToken implements Serializable {
         this.tokenValidityPeriod = tokenValidityPeriod;
     }
 
+    /**
+     * Get the space delimited list of the scopes bounded to the federated token.
+     *
+     * @return Space delimited list of the scopes bounded to the federated token.
+     */
     public String getScope() {
 
         return scope;
     }
 
+    /**
+     * Set the space delimited list of the scopes bounded to the federated token.
+     *
+     * @param scope Space delimited list of the scopes bounded to the federated token.
+     */
     public void setScope(String scope) {
 
         this.scope = scope;
