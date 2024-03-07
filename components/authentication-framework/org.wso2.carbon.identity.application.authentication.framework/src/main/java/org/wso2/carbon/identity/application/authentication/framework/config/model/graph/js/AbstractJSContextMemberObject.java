@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018-2023, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018-2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -51,6 +51,7 @@ public class AbstractJSContextMemberObject implements Serializable {
     }
 
     public boolean hasMember (String name) {
+
         Objects.requireNonNull(name);
         return false;
     }

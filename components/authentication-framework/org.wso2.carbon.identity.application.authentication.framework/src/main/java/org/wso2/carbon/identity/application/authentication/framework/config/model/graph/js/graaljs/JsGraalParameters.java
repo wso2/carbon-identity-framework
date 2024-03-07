@@ -58,4 +58,8 @@ public class JsGraalParameters extends JsParameters implements ProxyObject {
         return false;
     }
 
+    public boolean hasMember(String name) {
+
+        return true;
+    }
 }

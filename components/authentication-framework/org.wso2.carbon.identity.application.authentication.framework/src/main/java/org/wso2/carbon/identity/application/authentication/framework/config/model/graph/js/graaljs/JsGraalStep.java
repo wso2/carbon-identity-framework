@@ -59,4 +59,9 @@ public class JsGraalStep extends JsStep implements ProxyObject {
         super.removeMemberObject(name);
         return true;
     }
+
+    public boolean hasMember(String name) {
+
+        return true;
+    }
 }

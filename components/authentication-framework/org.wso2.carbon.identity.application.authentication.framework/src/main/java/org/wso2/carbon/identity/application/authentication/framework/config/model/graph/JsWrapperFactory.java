@@ -24,11 +24,11 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseRuntimeClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseStep;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseSteps;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsHeaders;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornCookie;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornHeaders;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornParameters;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornRuntimeClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornServletRequest;
@@ -143,7 +143,7 @@ public class JsWrapperFactory implements JsWrapperBaseFactory {
     @Override
     public JsBaseHeaders createJsHeaders(Map wrapped, HttpServletResponse response) {
 
-        return new JsNashornHeaders(wrapped, response);
+        return new JsHeaders(wrapped, response);
     }
 
     @Override

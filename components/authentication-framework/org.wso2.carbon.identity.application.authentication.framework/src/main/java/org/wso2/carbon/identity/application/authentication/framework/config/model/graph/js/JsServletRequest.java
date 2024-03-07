@@ -128,7 +128,7 @@ public abstract class JsServletRequest
 
     }
 
-    private HttpServletRequest getRequest() {
+    protected HttpServletRequest getRequest() {
 
         TransientObjectWrapper<HttpServletRequest> transientObjectWrapper = getWrapped();
         return transientObjectWrapper.getWrapped();

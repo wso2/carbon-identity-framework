@@ -70,4 +70,8 @@ public class JsGraalAuthenticatedUser extends JsAuthenticatedUser implements Pro
         setMember(name, valueAsString);
     }
 
+    public boolean hasMember(String name) {
+
+        return true;
+    }
 }

@@ -21,23 +21,23 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsRuntimeClaims;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseRuntimeClaims;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 /**
  * Represent the user's runtime claims for GraalJs Execution.
  */
-public class JsGraalRuntimeClaims extends JsRuntimeClaims implements ProxyObject {
+public class JsGraalRuntimeClaims extends JsGraalClaims implements JsBaseRuntimeClaims, ProxyObject {
 
     public JsGraalRuntimeClaims(AuthenticationContext context, int step, String idp) {
 
-        super(context, step, idp);
+        super(context, step, idp, false);
     }
 
     public JsGraalRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
 
-        super(context, user);
+        super(context, user, false);
     }
 
     @Override
@@ -51,5 +51,25 @@ public class JsGraalRuntimeClaims extends JsRuntimeClaims implements ProxyObject
 
         String valueAsString = value.isString() ? value.asString() : String.valueOf(value);
         setMember(claimUri, valueAsString);
+    }
+
+    public Object getMember(String claimUri) {
+
+        if (authenticatedUser != null) {
+            return getRuntimeClaim(claimUri);
+        }
+        return null;
+    }
+
+    public boolean hasMember(String name) {
+
+        return true;
+    }
+
+    public void setMember(String claimUri, Object claimValue) {
+
+        if (authenticatedUser != null) {
+            setRuntimeClaim(claimUri, claimValue);
+        }
     }
 }

@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsHeaders;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.CommonJsHeaders;
 
 import java.util.Map;
 
@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
-public class JsOpenJdkNashornHeaders extends JsHeaders implements AbstractOpenJdkNashornJsObject {
+public class JsOpenJdkNashornHeaders extends CommonJsHeaders implements AbstractOpenJdkNashornJsObject {
 
     public JsOpenJdkNashornHeaders(Map wrapped, HttpServletResponse response) {
 

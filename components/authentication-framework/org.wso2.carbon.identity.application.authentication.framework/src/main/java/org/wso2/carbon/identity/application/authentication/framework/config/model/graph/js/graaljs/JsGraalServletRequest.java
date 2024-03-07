@@ -68,4 +68,9 @@ public class JsGraalServletRequest extends JsServletRequest implements ProxyObje
 
         return false;
     }
+
+    public boolean hasMember(String name) {
+
+        return true;
+    }
 }

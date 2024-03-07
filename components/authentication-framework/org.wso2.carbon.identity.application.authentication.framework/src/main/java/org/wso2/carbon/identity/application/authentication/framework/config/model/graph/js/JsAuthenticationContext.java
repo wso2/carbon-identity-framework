@@ -167,7 +167,7 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
         return transientObjectWrapper != null && transientObjectWrapper.getWrapped() != null;
     }
 
-    private String getAuthenticatedIdPOfCurrentStep() {
+    protected String getAuthenticatedIdPOfCurrentStep() {
 
         if (getContext().getSequenceConfig() == null) {
             //Sequence config is not yet initialized
@@ -183,7 +183,7 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
 
     }
 
-    private String getAuthenticatedAuthenticatorOfCurrentStep() {
+    protected String getAuthenticatedAuthenticatorOfCurrentStep() {
 
         if (getContext().getSequenceConfig() == null) {
             // Sequence config is not yet initialized.
@@ -196,7 +196,7 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
         return stepConfig != null ? stepConfig.getAuthenticatedAutenticator().getName() : null;
     }
 
-    private StepConfig getCurrentSubjectIdentifierStep() {
+    protected StepConfig getCurrentSubjectIdentifierStep() {
 
         if (getContext().getSequenceConfig() == null) {
             //Sequence config is not yet initialized
@@ -216,7 +216,7 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
         }
     }
 
-    private JsBaseAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
+    protected JsBaseAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
 
         Object lastLoginFailedUser
                 = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);

@@ -442,4 +442,35 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
         return null;
     }
 
+    protected Object getRuntimeClaim(String claimUri) {
+
+        String runtimeClaimValue = getContext().getRuntimeClaim(claimUri);
+        if (runtimeClaimValue != null) {
+            return runtimeClaimValue;
+        }
+        if (isFederatedIdP()) {
+            return getFederatedClaim(claimUri);
+        }
+        return getLocalClaim(claimUri);
+    }
+
+    protected boolean hasRuntimeClaim(String claimUri) {
+
+        String claim = getContext().getRuntimeClaim(claimUri);
+        if (claim != null) {
+            return true;
+        }
+        if (isFederatedIdP()) {
+            return hasFederatedClaim(claimUri);
+        }
+        return hasLocalClaim(claimUri);
+    }
+
+    protected void setRuntimeClaim(String claimUri, Object claimValue) {
+
+        if (claimValue == null) {
+            claimValue = StringUtils.EMPTY;
+        }
+        getContext().addRuntimeClaim(claimUri, String.valueOf(claimValue));
+    }
 }

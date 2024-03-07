@@ -26,12 +26,12 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import java.util.Map;
 
 /**
- * Abstract Javascript abstract wrapper for Java level HashMap of HTTP headers/cookies.
+ * Javascript wrapper for Java level HashMap of HTTP headers/cookies.
  * This provides controlled access to HTTPServletRequest object's headers and cookies via provided javascript native
  * syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public abstract class JsParameters extends AbstractJSObjectWrapper<Map> implements JsBaseParameters {
+public class JsParameters extends AbstractJSObjectWrapper<Map> implements JsBaseParameters {
 
     protected static final Log LOG = LogFactory.getLog(JsParameters.class);
 
@@ -67,5 +67,10 @@ public abstract class JsParameters extends AbstractJSObjectWrapper<Map> implemen
 
         LOG.warn("Unsupported operation. Parameters are read only. Can't set parameter " + name + " to value: "
                 + value);
+    }
+
+    public void removeMemberObject(String name) {
+
+        getWrapped().remove(name);
     }
 }
