@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,12 +26,12 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import java.util.Map;
 
 /**
- * Javascript wrapper for Java level HashMap of HTTP headers/cookies.
+ * Abstract Javascript abstract wrapper for Java level HashMap of HTTP headers/cookies.
  * This provides controlled access to HTTPServletRequest object's headers and cookies via provided javascript native
  * syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class JsParameters extends AbstractJSObjectWrapper<Map> implements JsBaseParameters {
+public abstract class JsParameters extends AbstractJSObjectWrapper<Map> implements JsBaseParameters {
 
     protected static final Log LOG = LogFactory.getLog(JsParameters.class);
 
