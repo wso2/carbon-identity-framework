@@ -52,23 +52,6 @@ public class ListenerUtils {
     }
 
     /**
-     * This method will append the user store domain with user/role name.
-     *
-     * @param entity           Entity that need to modified.
-     * @param userStoreManager UserStore Manager particular user/role handled by.
-     * @return UserStoreDomain/UserName or UserStoreDomain/RoleName
-     */
-    public static String getEntityWithUserStoreDomain(String entity, UserStoreManager userStoreManager) {
-
-        String entityWithUserStoreDomain = entity;
-        if (StringUtils.isNotEmpty(entity) && userStoreManager != null) {
-            String userStoreDomain = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
-            entityWithUserStoreDomain = UserCoreUtil.addDomainToName(entity, userStoreDomain);
-        }
-        return entityWithUserStoreDomain;
-    }
-
-    /**
      * Returns initiator based on the masking config.
      *
      * @return Initiator. If log masking is enabled returns the userId, if userId can not be resolved then returns the

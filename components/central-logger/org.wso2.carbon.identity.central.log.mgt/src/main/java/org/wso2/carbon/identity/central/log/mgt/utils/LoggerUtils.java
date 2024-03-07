@@ -77,13 +77,6 @@ public class LoggerUtils {
     }
 
     /**
-     * Defines the Targets of the logs when the targets are list.
-     */
-    public enum TargetList {
-        UserList, RoleList, GroupList, ApplicationList
-    }
-
-    /**
      * Config value related to masking sensitive information from logs.
      */
     public static boolean isLogMaskingEnable;
@@ -113,6 +106,16 @@ public class LoggerUtils {
     }
 
     /**
+     * This method is used to trigger audit log event whence the new audit log publishing is enabled by default.
+     *
+     * @param auditLogBuilder  Audit log builder
+     */
+    public static void triggerAuditLogEvent(AuditLog.AuditLogBuilder auditLogBuilder) {
+
+        triggerAuditLogEvent(auditLogBuilder, true);
+    }
+
+    /**
      * Trigger Diagnostic Log Event.
      *
      * @param componentId    Component ID.
@@ -122,7 +125,7 @@ public class LoggerUtils {
      * @param actionId       Action ID.
      * @param configurations System/application level configurations.
      * @Deprecated This method is deprecated. Use the method with {@link #triggerDiagnosticLogEvent(
-     * DiagnosticLog.DiagnosticLogBuilder)}.
+     *DiagnosticLog.DiagnosticLogBuilder)}.
      */
     @Deprecated
     public static void triggerDiagnosticLogEvent(String componentId, Map<String, Object> input, String resultStatus,
@@ -340,7 +343,8 @@ public class LoggerUtils {
      * @param initiator Initiator for the logs.
      * @return Type of the initiator.
      */
-    public static String getInitiatorType (String initiator) {
+    public static String getInitiatorType(String initiator) {
+
         if (initiator.equals(LoggerUtils.Initiator.System.name())) {
             return LoggerUtils.Initiator.System.name();
         }

@@ -37,6 +37,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserMa
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_GROUP_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_GROUPS_OF_USERS_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUPS_FIELD;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUP_NAME_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.NEW_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_GROUP_NAME_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_USERS_OF_GROUP_ACTION;
@@ -44,6 +45,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.Target;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiatorId;
 
 /**
  * This v2 audit logger logs the Group Management success activities.
@@ -65,12 +67,12 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
             if (CollectionUtils.isNotEmpty(userIds)) {
                 dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userIds));
             }
-            dataObject.put(ListenerUtils.GROUP_NAME_FIELD, groupName);
+            dataObject.put(GROUP_NAME_FIELD, groupName);
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
-                    groupId, Target.Group.name(), ADD_GROUP_ACTION )
+                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
+                    groupId, Target.Group.name(), ADD_GROUP_ACTION)
                     .data(jsonObjectToMap(dataObject));
-            triggerAuditLogEvent(auditLogBuilder, true);
+            triggerAuditLogEvent(auditLogBuilder);
         }
         return true;
     }
@@ -78,9 +80,9 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
     public boolean postDeleteGroup(String groupId, String groupName, UserStoreManager userStoreManager) {
         if (isEnable()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
                     groupId, Target.Group.name(), DELETE_GROUP_ACTION);
-            triggerAuditLogEvent(auditLogBuilder, true);
+            triggerAuditLogEvent(auditLogBuilder);
         }
         return true;
     }
@@ -89,11 +91,11 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
 
         if (isEnable()) {
             JSONObject dataObject = new JSONObject();
-            dataObject.put(ListenerUtils.GROUP_NAME_FIELD, newGroupName);
+            dataObject.put(GROUP_NAME_FIELD, newGroupName);
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
                     groupId, Target.Group.name(), UPDATE_GROUP_NAME_ACTION).data(jsonObjectToMap(dataObject));
-            triggerAuditLogEvent(auditLogBuilder, true);
+            triggerAuditLogEvent(auditLogBuilder);
         }
         return true;
     }
@@ -110,9 +112,9 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
                 dataObject.put(NEW_USERS_FIELD, new JSONArray(deletedUserIds));
             }
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
                     groupId, Target.Group.name(), UPDATE_USERS_OF_GROUP_ACTION).data(jsonObjectToMap(dataObject));
-            triggerAuditLogEvent(auditLogBuilder, true);
+            triggerAuditLogEvent(auditLogBuilder);
         }
         return true;
     }
@@ -126,9 +128,9 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
                 dataObject.put(GROUPS_FIELD, new JSONArray(groupList));
             }
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    ListenerUtils.getInitiatorId(), LoggerUtils.getInitiatorType(ListenerUtils.getInitiatorId()),
+                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
                     userId, Target.User.name(), GET_GROUPS_OF_USERS_ACTION).data(jsonObjectToMap(dataObject));
-            triggerAuditLogEvent(auditLogBuilder, true);
+            triggerAuditLogEvent(auditLogBuilder);
         }
         return true;
     }

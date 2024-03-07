@@ -65,19 +65,14 @@ public class ListenerUtils {
     public static final String CLAIM_URI_FIELD = "Claim";
     public static final String CLAIM_VALUE_FIELD = "Claim Value";
     public static final String USERS_FIELD = "Users";
-    public static final String GROUPS_FIELD = "Groups";
-    public static final String GROUP_NAME_FIELD = "GroupName";
     public static final String PERMISSIONS_FIELD = "Permissions";
     public static final String DELETED_USERS = "Deleted Users";
     public static final String NEW_USERS = "New Users";
     public static final String DELETED_ROLES = "Deleted Roles";
     public static final String NEW_ROLES = "New Roles";
-    public static final String DELETED_GROUPS = "DeletedGroups";
-    public static final String ADDED_GROUPS = "AddedGroups";
     public static final String PROFILE_FIELD = "Profile";
     public static final String FILTER_FIELD = "Filter";
     public static final String NEW_ROLE_NAME = "NewRoleName";
-    public static final String COUNT = "Count";
 
     /**
      * Audit log fields.

@@ -104,8 +104,7 @@ public class LogConstants {
         public static final String GET_GROUPS_OF_USERS_ACTION = "get-groups-of-users";
 
         public static final String DELETE_ROLE_ACTION = "delete-role";
-        public static final String ADD_ORG_ROLE_ACTION = "add-organization-role";
-        public static final String ADD_APP_ROLE_ACTION = "add-application-role";
+        public static final String ADD_ROLE_ACTION = "add-role";
         public static final String GET_ROLE_LIST_ACTION = "get-role-list";
         public static final String GET_ROLE_ACTION = "get-role";
         public static final String GET_ROLE_BASIC_INFO_ACTION = "get-role-basicInformation";
@@ -128,6 +127,11 @@ public class LogConstants {
         public static final String GROUPS_FIELD = "Groups";
         public static final String ROLES_FIELD = "Roles";
         public static final String PROFILE_FIELD = "Profile";
+        public static final String COUNT_FIELD = "Count";
+        public static final String GROUP_NAME_FIELD = "GroupName";
+
+        public static final String CLAIM_URI_FIELD = "Claim";
+        public static final String CLAIM_VALUE_FIELD = "ClaimValue";
 
         public static final String APP_ROLE_FIELD = "ApplicationRoles";
         public static final String AUDIENCE_FIELD = "Audience";
