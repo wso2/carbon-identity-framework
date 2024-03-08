@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -36,6 +37,7 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -46,6 +48,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
@@ -57,6 +61,7 @@ import static org.testng.Assert.assertNotNull;
         tenantDomain = "foo.com")
 @WithRegistry(injectToSingletons = {FrameworkServiceDataHolder.class})
 @WithAxisConfiguration
+@PrepareForTest({LoggerUtils.class})
 public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @BeforeClass
@@ -134,6 +139,9 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
 
     @Test(expectedExceptions = FrameworkException.class)
     public void testHandleIncorrectFunctionJavascriptAcr() throws Exception {
+
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
 
         ServiceProvider sp1 = getTestServiceProvider("incorrect-function-js-sp-1.xml");
 

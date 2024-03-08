@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framwork.test.utils.C
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.RealmConfiguration;
@@ -76,7 +77,8 @@ import static org.testng.Assert.assertNotNull;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
-@PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class, IdentityUtil.class})
+@PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class, IdentityUtil.class,
+        LoggerUtils.class})
 @PowerMockIgnore("org.mockito.*")
 public class DefaultRequestPathBasedSequenceHandlerTest {
 
@@ -179,6 +181,10 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
     */
     @Test
     public void testHandleAuthenticatorFailedException() throws Exception {
+
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
+//        when(DiagnosticLog.DiagnosticLogBuilder).thenReturn(true);
 
         // mock the behaviour of the request path authenticator
         when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(true);

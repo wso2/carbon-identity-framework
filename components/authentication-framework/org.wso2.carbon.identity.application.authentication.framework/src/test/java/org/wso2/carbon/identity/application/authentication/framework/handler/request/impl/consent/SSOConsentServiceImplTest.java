@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -81,7 +82,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 @PrepareForTest({IdentityConfigParser.class, OMElement.class, IdentityUtil.class, PrivilegedCarbonContext.class,
         FrameworkServiceDataHolder.class, ConsentUtils.class, ConsentManagerConfigurationHolder.class,
         RealmService.class, TenantManager.class, UserRealm.class, DataSource.class,
-        ConsentManagerComponentDataHolder.class})
+        ConsentManagerComponentDataHolder.class, LoggerUtils.class})
 public class SSOConsentServiceImplTest extends PowerMockTestCase {
 
     private static final String TEMPORARY_CLAIM_URI = "http://wso2.org/claims/nickname";
@@ -231,6 +232,9 @@ public class SSOConsentServiceImplTest extends PowerMockTestCase {
 
     @Test
     public void testGetClaimsWithConsents() throws Exception {
+
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
 
         ServiceProvider serviceProvider = new ServiceProvider();
         serviceProvider.setApplicationName("Travelocity.com");

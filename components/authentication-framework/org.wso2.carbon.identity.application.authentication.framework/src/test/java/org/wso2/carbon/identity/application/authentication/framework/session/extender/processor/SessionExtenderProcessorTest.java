@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.processor;
 
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
@@ -30,12 +31,13 @@ import org.wso2.carbon.identity.application.authentication.framwork.test.utils.C
 
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertTrue;
 
 /**
  * Unit test cases for SessionExtenderProcessor.
  */
-@PrepareForTest({SessionContextCache.class})
+@PrepareForTest({SessionContextCache.class, PrivilegedCarbonContext.class})
 public class SessionExtenderProcessorTest extends PowerMockTestCase {
 
     private SessionExtenderProcessor sessionExtenderProcessor;
@@ -43,6 +45,9 @@ public class SessionExtenderProcessorTest extends PowerMockTestCase {
     @BeforeMethod
     public void setUp() throws Exception {
         initMocks(this);
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = Mockito.mock(PrivilegedCarbonContext.class);
+        Mockito.when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
         sessionExtenderProcessor = new SessionExtenderProcessor();
         CommonTestUtils.initPrivilegedCarbonContext();
     }

@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
@@ -53,7 +54,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  */
 @WithCarbonHome
 @PrepareForTest({IdentityTenantUtil.class, FrameworkUtils.class,
-                SessionNonceCookieUtil.class})
+                SessionNonceCookieUtil.class, LoggerUtils.class})
 public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
 
     private DefaultRequestCoordinator requestCoordinator;
@@ -93,6 +94,9 @@ public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
         mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(isTenantQualifiedUrlModeEnabled);
         when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantDomainInThreadLocal);
+
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter(TYPE)).thenReturn("oauth");

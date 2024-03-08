@@ -171,6 +171,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                                 errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
                             }
                             diagLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
+                            System.out.println("hi");
                             LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
                         }
                         return AuthenticatorFlowStatus.INCOMPLETE;

@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
@@ -34,7 +35,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-@PrepareForTest(FrameworkUtils.class)
+@PrepareForTest({FrameworkUtils.class, PrivilegedCarbonContext.class})
 //@PowerMockIgnore({"org.xml.*","org.w3c.*"})
 public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
 
@@ -43,6 +44,9 @@ public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
     @BeforeMethod
     public void setUp() throws Exception {
         provisioningHandler = new DefaultProvisioningHandler();
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = Mockito.mock(PrivilegedCarbonContext.class);
+        Mockito.when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
         CommonTestUtils.initPrivilegedCarbonContext();
     }
 
