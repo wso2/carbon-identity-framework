@@ -18,12 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseClaims;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseHeaders;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseRuntimeClaims;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseStep;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseSteps;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsHeaders;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticationContext;
@@ -65,7 +59,7 @@ public class JsWrapperFactory implements JsWrapperBaseFactory {
     }
 
     @Override
-    public JsBaseAuthenticatedUser createJsAuthenticatedUser(AuthenticationContext context,
+    public JsNashornAuthenticatedUser createJsAuthenticatedUser(AuthenticationContext context,
                                                              AuthenticatedUser wrappedUser, int step, String idp) {
 
         return new JsNashornAuthenticatedUser(context, wrappedUser, step, idp);
@@ -108,46 +102,46 @@ public class JsWrapperFactory implements JsWrapperBaseFactory {
     }
 
     @Override
-    public JsBaseClaims createJsClaims(AuthenticationContext context, int step, String idp,
+    public JsNashornClaims createJsClaims(AuthenticationContext context, int step, String idp,
                                        boolean isRemoteClaimRequest) {
 
         return new JsNashornClaims(context, step, idp, isRemoteClaimRequest);
     }
 
     @Override
-    public JsBaseClaims createJsClaims(AuthenticationContext context, AuthenticatedUser user,
+    public JsNashornClaims createJsClaims(AuthenticationContext context, AuthenticatedUser user,
                                        boolean isRemoteClaimRequest) {
 
         return new JsNashornClaims(context, user, isRemoteClaimRequest);
     }
 
     @Override
-    public JsBaseRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, int step, String idp) {
+    public JsNashornRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, int step, String idp) {
 
         return new JsNashornRuntimeClaims(context, step, idp);
     }
 
     @Override
-    public JsBaseRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
+    public JsNashornRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
 
         return new JsNashornRuntimeClaims(context, user);
     }
 
     @Override
-    public JsBaseStep createJsStep(AuthenticationContext context, int step, String authenticatedIdp,
+    public JsNashornStep createJsStep(AuthenticationContext context, int step, String authenticatedIdp,
                                    String authenticatedAuthenticator) {
 
         return new JsNashornStep(context, step, authenticatedIdp, authenticatedAuthenticator);
     }
 
     @Override
-    public JsBaseHeaders createJsHeaders(Map wrapped, HttpServletResponse response) {
+    public JsHeaders createJsHeaders(Map wrapped, HttpServletResponse response) {
 
         return new JsHeaders(wrapped, response);
     }
 
     @Override
-    public JsBaseSteps createJsSteps(AuthenticationContext context) {
+    public JsNashornSteps createJsSteps(AuthenticationContext context) {
 
         return new JsNashornSteps(context);
     }

@@ -19,12 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperBaseFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseClaims;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseHeaders;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseRuntimeClaims;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseStep;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseSteps;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalClaims;
@@ -67,7 +61,7 @@ public class JsGraalWrapperFactory implements JsWrapperBaseFactory {
     }
 
     @Override
-    public JsBaseAuthenticatedUser createJsAuthenticatedUser(AuthenticationContext context,
+    public JsGraalAuthenticatedUser createJsAuthenticatedUser(AuthenticationContext context,
                                                              AuthenticatedUser wrappedUser, int step, String idp) {
 
         return new JsGraalAuthenticatedUser(context, wrappedUser, step, idp);
@@ -111,46 +105,46 @@ public class JsGraalWrapperFactory implements JsWrapperBaseFactory {
     }
 
     @Override
-    public JsBaseClaims createJsClaims(AuthenticationContext context, int step, String idp,
+    public JsGraalClaims createJsClaims(AuthenticationContext context, int step, String idp,
                                        boolean isRemoteClaimRequest) {
 
         return new JsGraalClaims(context, step, idp, isRemoteClaimRequest);
     }
 
     @Override
-    public JsBaseClaims createJsClaims(AuthenticationContext context, AuthenticatedUser user,
+    public JsGraalClaims createJsClaims(AuthenticationContext context, AuthenticatedUser user,
                                        boolean isRemoteClaimRequest) {
 
         return new JsGraalClaims(context, user, isRemoteClaimRequest);
     }
 
     @Override
-    public JsBaseRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, int step, String idp) {
+    public JsGraalRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, int step, String idp) {
 
         return new JsGraalRuntimeClaims(context, step, idp);
     }
 
     @Override
-    public JsBaseRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
+    public JsGraalRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
 
         return new JsGraalRuntimeClaims(context, user);
     }
 
     @Override
-    public JsBaseStep createJsStep(AuthenticationContext context, int step, String authenticatedIdp,
+    public JsGraalStep createJsStep(AuthenticationContext context, int step, String authenticatedIdp,
                                    String authenticatedAuthenticator) {
 
         return new JsGraalStep(context, step, authenticatedIdp, authenticatedAuthenticator);
     }
 
     @Override
-    public JsBaseHeaders createJsHeaders(Map wrapped, HttpServletResponse response) {
+    public JsGraalHeaders createJsHeaders(Map wrapped, HttpServletResponse response) {
 
         return new JsGraalHeaders(wrapped, response);
     }
 
     @Override
-    public JsBaseSteps createJsSteps(AuthenticationContext context) {
+    public JsGraalSteps createJsSteps(AuthenticationContext context) {
 
         return new JsGraalSteps(context);
     }
