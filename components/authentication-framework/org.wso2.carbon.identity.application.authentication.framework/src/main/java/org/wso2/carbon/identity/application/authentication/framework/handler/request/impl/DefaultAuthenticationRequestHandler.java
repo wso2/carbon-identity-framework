@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,6 +49,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.model.FederatedToken;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -78,6 +80,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -105,6 +108,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
+    private static final String COMMA = ",";
     private static volatile DefaultAuthenticationRequestHandler instance;
 
     public static DefaultAuthenticationRequestHandler getInstance() {
@@ -685,6 +689,20 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
         }
 
+        // Passing the federated tokens to the authentication result.
+        if (context.getProperty(FrameworkConstants.FEDERATED_TOKENS) instanceof List) {
+            authenticationResult.addProperty(FrameworkConstants.FEDERATED_TOKENS,
+                    context.getProperty(FrameworkConstants.FEDERATED_TOKENS));
+
+            if (log.isDebugEnabled()) {
+                List<String> federatedAuthenticatorNames = getFederatedAuthenticatorName(
+                        (List<FederatedToken>) context.getProperty(FrameworkConstants.FEDERATED_TOKENS));
+                log.debug("Federated tokens are available in the authentication context for the IDP: " +
+                        StringUtils.join(federatedAuthenticatorNames, COMMA) +
+                        " and added to the authentication result");
+            }
+        }
+
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
         // authenticator in multi steps scenario. Ex. Fido
         if (FrameworkUtils.getCacheDisabledAuthenticators().contains(context.getRequestType())
@@ -1222,5 +1240,20 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         auditData.put(SessionMgtConstants.SESSION_LAST_ACCESSED_TIMESTAMP, lastAccessedTimestamp);
         AUDIT_LOG.info(String.format(SessionMgtConstants.AUDIT_MESSAGE_TEMPLATE, initiator,
                 sessionAction, auditData, SessionMgtConstants.SUCCESS));
+    }
+
+    /**
+     * This method returns the list of federated authenticator names bounded to the
+     * federated_tokens property in the authentication context.
+     *
+     * @param federatedTokens The list of federated tokens.
+     * @return List of the federated authenticator names.
+     */
+    private List<String> getFederatedAuthenticatorName(List<FederatedToken> federatedTokens) {
+
+        if (CollectionUtils.isEmpty(federatedTokens)) {
+            return null;
+        }
+        return federatedTokens.stream().map(FederatedToken::getIdp).collect(Collectors.toList());
     }
 }
