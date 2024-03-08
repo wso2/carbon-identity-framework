@@ -3,7 +3,7 @@
         "image": "assets/images/logos/microsoft.svg",
         "header": "Microsoft",
         "Subheading": "Enable login for users with existing Microsoft accounts",
-        "documentation": "{ ENV }/asgardeo/docs/guides/authentication/social-login/add-microsoft-login/",
+        "documentation": "",
         "modal": {
             "form": {
                 "fields": [
