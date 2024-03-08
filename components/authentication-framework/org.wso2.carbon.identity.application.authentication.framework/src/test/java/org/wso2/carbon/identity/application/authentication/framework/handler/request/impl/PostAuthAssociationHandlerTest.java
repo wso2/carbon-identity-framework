@@ -26,7 +26,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -73,15 +72,13 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 /**
  * This is a test class for {@link PostAuthAssociationHandler}.
  */
 @PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, ClaimMetadataHandler.class, AdminServicesUtil.class
-        , IdentityTenantUtil.class, PrivilegedCarbonContext.class})
+        , IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.xml.*", "org.mockito.*"})
 public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
 
@@ -145,7 +142,6 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
     public void testHandleWithAuthenticatedUserWithFederatedIdpAssociatedToSecondaryUserStore(boolean hasSpRoleMapping)
             throws Exception {
 
-        mockCarbonContextForTenant();
         PowerMockito.spy(AdminServicesUtil.class);
         PowerMockito.doReturn(null).when(AdminServicesUtil.class, "getUserRealm");
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true, hasSpRoleMapping);
@@ -242,15 +238,5 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
 
         }
         return false;
-    }
-
-    private void mockCarbonContextForTenant() {
-
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
-        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
-        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
-        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
     }
 }
