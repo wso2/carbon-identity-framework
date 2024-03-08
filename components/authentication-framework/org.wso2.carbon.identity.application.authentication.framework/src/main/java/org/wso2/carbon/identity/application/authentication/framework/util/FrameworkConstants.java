@@ -226,7 +226,6 @@ public abstract class FrameworkConstants {
 
     public static final String SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.ScriptEngine";
     public static final String THREAD_LOCAL_SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.LimitScriptEngineCreation";
-    public static final String SCRIPT_STATEMENTS_LIMIT = "AdaptiveAuth.StatementsLimit";
     public static final String OPENJDK_NASHORN = "openjdkNashorn";
     public static final String NASHORN = "nashorn";
     public static final String GRAAL_JS = "graaljs";
@@ -674,6 +673,9 @@ public abstract class FrameworkConstants {
                 = "AdaptiveAuthExecutionSupervisorResult";
         public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG
                 = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
+        public static final String GRAALJS_SCRIPT_STATEMENTS_LIMIT
+                = "AdaptiveAuth.GraalJS.ScriptStatementsLimit";
+        public static final int DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT = 0;
     }
 
     /**

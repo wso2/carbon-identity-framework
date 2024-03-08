@@ -44,10 +44,11 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.GRAALJS_SCRIPT_STATEMENTS_LIMIT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_LOG;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.SCRIPT_STATEMENTS_LIMIT;
 
 /**
  * Factory to create a Javascript based sequence builder.
@@ -59,7 +60,7 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
 
     private static final Log LOG = LogFactory.getLog(JsGraalGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
-    private int javascriptResourceLimit = 500;
+    private int javascriptResourceLimit = 0;
 
     public void init() {
 
@@ -173,17 +174,20 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
 
     private void setJavascriptResourceLimit() {
 
-        String statementLimit = IdentityUtil.getProperty(SCRIPT_STATEMENTS_LIMIT);
-        int defaultLimit = 500;
+        /*
+         * This sets the number of javascript statements that can be executed in a single execution.
+         * The default value is set to 0 which is equivalent to unlimited number of statement.
+         */
+        String statementLimit = IdentityUtil.getProperty(GRAALJS_SCRIPT_STATEMENTS_LIMIT);
         if (statementLimit != null) {
             try {
                 javascriptResourceLimit = Integer.parseInt(statementLimit);
             } catch (NumberFormatException e) {
-                LOG.warn("Error while parsing the script statement limit. Defaulting to " + defaultLimit, e);
-                javascriptResourceLimit = defaultLimit;
+                LOG.warn("Error while parsing the script statement limit. Defaulting to " + DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT, e);
+                javascriptResourceLimit = DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT;
             }
         } else {
-            javascriptResourceLimit = defaultLimit;
+            javascriptResourceLimit = DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT;
         }
     }
 }
