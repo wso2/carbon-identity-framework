@@ -42,6 +42,7 @@
 				<AttributeID>organizationName</AttributeID>
 				<Description>Organization</Description>
 				<DisplayOrder>3</DisplayOrder>
+				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/streetaddress</ClaimURI>
