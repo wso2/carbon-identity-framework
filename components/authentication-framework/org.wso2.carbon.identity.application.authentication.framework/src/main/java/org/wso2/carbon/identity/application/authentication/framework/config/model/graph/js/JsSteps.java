@@ -45,20 +45,18 @@ public abstract class JsSteps extends AbstractJSContextMemberObject implements J
 
         if (getContext() == null) {
             return false;
-        } else {
-            return getContext().getSequenceConfig().getStepMap().containsKey(step);
         }
+        return getContext().getSequenceConfig().getStepMap().containsKey(step);
     }
 
     public Object getSlot(int step) {
 
         if (getContext() == null) {
             return null;
-        } else {
-            return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                    .createJsStep(getContext(), step, getAuthenticatedIdPOfStep(step),
-                            getAuthenticatedAuthenticatorOfStep(step));
         }
+        return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                .createJsStep(getContext(), step, getAuthenticatedIdPOfStep(step),
+                        getAuthenticatedAuthenticatorOfStep(step));
     }
 
     public Object get(long index) {

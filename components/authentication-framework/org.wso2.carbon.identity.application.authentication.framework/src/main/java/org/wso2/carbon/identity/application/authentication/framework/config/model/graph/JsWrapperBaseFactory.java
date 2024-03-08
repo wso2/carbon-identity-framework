@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.CommonJsHeaders;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseCookie;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseHeaders;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseParameters;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseRuntimeClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletRequest;
@@ -173,7 +173,7 @@ public interface JsWrapperBaseFactory {
      * @param response - Wrapped Servlet Response
      * @return Proxy for HTTP headers/Cookies in Servlet Request
      */
-    JsBaseHeaders createJsHeaders(Map wrapped, HttpServletResponse response);
+    CommonJsHeaders createJsHeaders(Map wrapped, HttpServletResponse response);
 
     /**
      * Creates a JavaScript Proxy for Steps.

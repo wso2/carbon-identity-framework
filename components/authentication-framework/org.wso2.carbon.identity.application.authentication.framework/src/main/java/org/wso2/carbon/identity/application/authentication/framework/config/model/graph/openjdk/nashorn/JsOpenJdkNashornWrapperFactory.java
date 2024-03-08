@@ -19,12 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperBaseFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseClaims;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseHeaders;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseRuntimeClaims;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseStep;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseSteps;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornClaims;
@@ -67,7 +61,7 @@ public class JsOpenJdkNashornWrapperFactory implements JsWrapperBaseFactory {
     }
 
     @Override
-    public JsBaseAuthenticatedUser createJsAuthenticatedUser(AuthenticationContext context,
+    public JsOpenJdkNashornAuthenticatedUser createJsAuthenticatedUser(AuthenticationContext context,
                                                              AuthenticatedUser wrappedUser, int step, String idp) {
 
         return new JsOpenJdkNashornAuthenticatedUser(context, wrappedUser, step, idp);
@@ -112,46 +106,46 @@ public class JsOpenJdkNashornWrapperFactory implements JsWrapperBaseFactory {
     }
 
     @Override
-    public JsBaseClaims createJsClaims(AuthenticationContext context, int step, String idp,
+    public JsOpenJdkNashornClaims createJsClaims(AuthenticationContext context, int step, String idp,
                                        boolean isRemoteClaimRequest) {
 
         return new JsOpenJdkNashornClaims(context, step, idp, isRemoteClaimRequest);
     }
 
     @Override
-    public JsBaseClaims createJsClaims(AuthenticationContext context, AuthenticatedUser user,
+    public JsOpenJdkNashornClaims createJsClaims(AuthenticationContext context, AuthenticatedUser user,
                                        boolean isRemoteClaimRequest) {
 
         return new JsOpenJdkNashornClaims(context, user, isRemoteClaimRequest);
     }
 
     @Override
-    public JsBaseRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, int step, String idp) {
+    public JsOpenJdkNashornRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, int step, String idp) {
 
         return new JsOpenJdkNashornRuntimeClaims(context, step, idp);
     }
 
     @Override
-    public JsBaseRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
+    public JsOpenJdkNashornRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
 
         return new JsOpenJdkNashornRuntimeClaims(context, user);
     }
 
     @Override
-    public JsBaseStep createJsStep(AuthenticationContext context, int step, String authenticatedIdp,
+    public JsOpenJdkNashornStep createJsStep(AuthenticationContext context, int step, String authenticatedIdp,
                                    String authenticatedAuthenticator) {
 
         return new JsOpenJdkNashornStep(context, step, authenticatedIdp, authenticatedAuthenticator);
     }
 
     @Override
-    public JsBaseHeaders createJsHeaders(Map wrapped, HttpServletResponse response) {
+    public JsOpenJdkNashornHeaders createJsHeaders(Map wrapped, HttpServletResponse response) {
 
         return new JsOpenJdkNashornHeaders(wrapped, response);
     }
 
     @Override
-    public JsBaseSteps createJsSteps(AuthenticationContext context) {
+    public JsOpenJdkNashornSteps createJsSteps(AuthenticationContext context) {
 
         return new JsOpenJdkNashornSteps(context);
     }

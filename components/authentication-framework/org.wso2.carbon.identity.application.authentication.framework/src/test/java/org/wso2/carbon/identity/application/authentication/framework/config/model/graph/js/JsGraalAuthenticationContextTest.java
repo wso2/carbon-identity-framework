@@ -111,7 +111,6 @@ public class JsGraalAuthenticationContextTest {
                         "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']",
                         POLYGLOT_SOURCE).build());
         assertEquals(result.asString(), "Modified2");
-
     }
 
     private void setupAuthContextWithStepData(AuthenticationContext context, AuthenticatedUser authenticatedUser) {

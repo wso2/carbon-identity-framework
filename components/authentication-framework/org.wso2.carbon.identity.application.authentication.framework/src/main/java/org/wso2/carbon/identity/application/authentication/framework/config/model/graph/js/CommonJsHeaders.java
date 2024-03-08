@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseHeaders;
-
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -29,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class CommonJsHeaders implements JsBaseHeaders {
+public class CommonJsHeaders {
 
     private final Map wrapped;
     private final HttpServletResponse response;
@@ -74,7 +72,7 @@ public class CommonJsHeaders implements JsBaseHeaders {
 
         if (wrapped != null) {
             wrapped.put(name, value);
-            //adds a new header to the response.
+            // Adds a new header to the response.
             response.addHeader(name, String.valueOf(value));
             return true;
         }
