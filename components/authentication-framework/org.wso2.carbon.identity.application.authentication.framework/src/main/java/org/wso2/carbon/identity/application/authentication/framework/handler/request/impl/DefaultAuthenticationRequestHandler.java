@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -80,6 +81,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -690,12 +692,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // Passing the federated tokens to the authentication result.
         if (context.getProperty(FrameworkConstants.FEDERATED_TOKENS) instanceof List) {
-            authenticationResult.addProperty(
-                    FrameworkConstants.FEDERATED_TOKENS, context.getProperty(FrameworkConstants.FEDERATED_TOKENS));
+            authenticationResult.addProperty(FrameworkConstants.FEDERATED_TOKENS,
+                    context.getProperty(FrameworkConstants.FEDERATED_TOKENS));
+
             if (log.isDebugEnabled()) {
+                List<String> federatedAuthenticatorNames = getFederatedAuthenticatorName(
+                        (List<FederatedToken>) context.getProperty(FrameworkConstants.FEDERATED_TOKENS));
                 log.debug("Federated tokens are available in the authentication context for the IDP: " +
-                        getFederatedAuthenticatorName(
-                                (List<FederatedToken>) context.getProperty(FrameworkConstants.FEDERATED_TOKENS)) +
+                        StringUtils.join(federatedAuthenticatorNames, COMMA) +
                         " and added to the authentication result");
             }
         }
@@ -1240,21 +1244,17 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     }
 
     /**
-     * This method returns the comma separated list of federated authenticator names bounded to the
+     * This method returns the list of federated authenticator names bounded to the
      * federated_tokens property in the authentication context.
      *
      * @param federatedTokens The list of federated tokens.
-     * @return Comma separated list of the federated authenticator names.
+     * @return List of the federated authenticator names.
      */
-    private static String getFederatedAuthenticatorName(List<FederatedToken> federatedTokens) {
+    private static List<String> getFederatedAuthenticatorName(List<FederatedToken> federatedTokens) {
 
         if (CollectionUtils.isEmpty(federatedTokens)) {
-            return StringUtils.EMPTY;
+            return null;
         }
-
-        StringBuilder federatedAuthenticators = new StringBuilder();
-        federatedTokens.stream().map(FederatedToken::getIdp)
-                .forEach(idp -> federatedAuthenticators.append(idp).append(COMMA));
-        return federatedAuthenticators.toString();
+        return federatedTokens.stream().map(FederatedToken::getIdp).collect(Collectors.toList());
     }
 }
