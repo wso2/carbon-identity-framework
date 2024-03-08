@@ -44,9 +44,8 @@ public class CommonJsHeaders implements JsBaseHeaders {
 
         if (wrapped == null) {
             return null;
-        } else {
-            return wrapped.get(name);
         }
+        return wrapped.get(name);
     }
 
     public Object getMemberKeys() {
@@ -58,9 +57,8 @@ public class CommonJsHeaders implements JsBaseHeaders {
 
         if (wrapped == null) {
             return false;
-        } else {
-            return wrapped.get(name) != null;
         }
+        return wrapped.get(name) != null;
     }
 
     public boolean removeMemberObject(String name) {

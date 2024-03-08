@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.HostAccess;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.Collections;
@@ -37,7 +37,7 @@ public class GraalSelectAcrFromFunction implements SelectOneFunction {
     private static final Log log = LogFactory.getLog(SelectAcrFromFunction.class);
 
     @HostAccess.Export
-    public String evaluate(JsBaseAuthenticationContext context, Object possibleOutcomesObj) {
+    public String evaluate(JsAuthenticationContext context, Object possibleOutcomesObj) {
 
         String[] possibleOutcomes = extractPossibleOutcomes(context, possibleOutcomesObj);
         List<String> acrListRequested = context.getWrapped().getRequestedAcr();
@@ -53,7 +53,7 @@ public class GraalSelectAcrFromFunction implements SelectOneFunction {
         return null;
     }
 
-    private String[] extractPossibleOutcomes(JsBaseAuthenticationContext context, Object possibleOutcomesObj) {
+    private String[] extractPossibleOutcomes(JsAuthenticationContext context, Object possibleOutcomesObj) {
 
         String[] possibleOutcomes;
         if (possibleOutcomesObj instanceof List) {

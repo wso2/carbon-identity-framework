@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.Collections;
@@ -37,7 +37,7 @@ public class SelectAcrFromFunction implements SelectOneFunction {
 
     private static final Log log = LogFactory.getLog(SelectAcrFromFunction.class);
 
-    public String evaluate(JsBaseAuthenticationContext context, Object possibleOutcomesObj) {
+    public String evaluate(JsAuthenticationContext context, Object possibleOutcomesObj) {
 
         String[] possibleOutcomes = extractPossibleOutcomes(context, possibleOutcomesObj);
         List<String> acrListRequested = context.getWrapped().getRequestedAcr();
@@ -53,7 +53,7 @@ public class SelectAcrFromFunction implements SelectOneFunction {
         return null;
     }
 
-    private String[] extractPossibleOutcomes(JsBaseAuthenticationContext context, Object possibleOutcomesObj) {
+    private String[] extractPossibleOutcomes(JsAuthenticationContext context, Object possibleOutcomesObj) {
 
         String[] possibleOutcomes;
         if (possibleOutcomesObj instanceof String[]) {

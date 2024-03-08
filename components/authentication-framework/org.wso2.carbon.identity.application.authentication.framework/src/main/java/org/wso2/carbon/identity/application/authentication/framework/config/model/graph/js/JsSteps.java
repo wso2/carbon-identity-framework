@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import java.util.Optional;
 
 /**
- * Returns when context.steps[<step_number] is called.
+ * Returns when context.steps[step_number] is called.
  * This is the abstract wrapper used for all script engine implementations.
  */
 public abstract class JsSteps extends AbstractJSContextMemberObject implements JsBaseSteps {
@@ -70,9 +70,8 @@ public abstract class JsSteps extends AbstractJSContextMemberObject implements J
 
         if (getContext() == null) {
             return 0;
-        } else {
-            return getContext().getSequenceConfig().getStepMap().size();
         }
+        return getContext().getSequenceConfig().getStepMap().size();
     }
 
     private String getAuthenticatedIdPOfStep(int step) {

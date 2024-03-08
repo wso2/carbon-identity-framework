@@ -70,7 +70,6 @@ public class JsGraalAuthenticationContextTest {
         Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperBaseFactory");
         wrapperFactory.setAccessible(true);
         wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsGraalWrapperFactory());
-
     }
 
     @Test
@@ -173,9 +172,8 @@ public class JsGraalAuthenticationContextTest {
         Value result = context.eval(
                 Source.newBuilder(POLYGLOT_LANGUAGE, "context.serviceProviderName", POLYGLOT_SOURCE).build());
         assertFalse(result.isNull());
-        assertEquals(result.asString(), SERVICE_PROVIDER_NAME,
-                "Service Provider name set in AuthenticationContext is not " +
-                        "accessible from JSAuthenticationContext");
+        assertEquals(result.asString(), SERVICE_PROVIDER_NAME, "Service Provider name set in " +
+                "AuthenticationContext is not accessible from JSAuthenticationContext");
     }
 
     @Test
@@ -245,9 +243,6 @@ public class JsGraalAuthenticationContextTest {
 
         assertFalse(result.isNull());
         assertEquals(result.asString(), BASIC_AUTHENTICATOR,
-                "Authenticator of the step in AuthenticationContext is not " +
-                        "accessible from JSAuthenticationContext");
-
+                "Authenticator of the step in AuthenticationContext is not accessible from JSAuthenticationContext");
     }
-
 }

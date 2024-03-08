@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 
 /**
  * Functional interface to select one outcome from possible outcomes.
  */
 @FunctionalInterface
 public interface SelectOneFunction {
-    String evaluate(JsBaseAuthenticationContext context, Object possibleOutcomesObj);
+    String evaluate(JsAuthenticationContext context, Object possibleOutcomesObj);
 }

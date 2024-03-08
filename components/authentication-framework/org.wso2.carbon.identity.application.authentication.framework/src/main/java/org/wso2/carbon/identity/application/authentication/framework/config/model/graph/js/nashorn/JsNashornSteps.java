@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import java.util.Objects;
 
 /**
- * Returns when context.steps[<step_number] is called
+ * Returns when context.steps[step_number] is called
  * This wrapper uses jdk.nashorn engine.
  */
 public class JsNashornSteps extends JsSteps implements AbstractJsObject {

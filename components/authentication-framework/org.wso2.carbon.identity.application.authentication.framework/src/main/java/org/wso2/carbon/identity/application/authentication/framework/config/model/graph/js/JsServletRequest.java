@@ -52,7 +52,6 @@ public abstract class JsServletRequest
 
     private static final Log LOG = LogFactory.getLog(JsServletRequest.class);
 
-
     public JsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
 
         super(wrapped);
@@ -125,7 +124,6 @@ public abstract class JsServletRequest
     public void setMember(String name, Object value) {
 
         LOG.warn("Unsupported operation. Servlet Request is read only. Can't add parameter " + value);
-
     }
 
     protected HttpServletRequest getRequest() {

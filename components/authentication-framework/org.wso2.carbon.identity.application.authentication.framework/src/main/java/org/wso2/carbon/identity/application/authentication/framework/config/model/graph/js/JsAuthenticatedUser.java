@@ -126,31 +126,29 @@ public abstract class JsAuthenticatedUser extends AbstractJSObjectWrapper<Authen
                 if (StringUtils.isNotBlank(idp)) {
                     return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
                             .createJsClaims(getContext(), step, idp, false);
-                } else {
-                    // Represent step independent user
-                    return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                            .createJsClaims(getContext(), getWrapped(), false);
                 }
+                    // Represent step independent user
+                return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                        .createJsClaims(getContext(), getWrapped(), false);
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
                 if (StringUtils.isNotBlank(idp)) {
                     return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
                             .createJsClaims(getContext(), step, idp, true);
-                } else {
-                    // Represent step independent user
-                    return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                            .createJsClaims(getContext(), getWrapped(), true);
                 }
+                // Represent step independent user
+                return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                        .createJsClaims(getContext(), getWrapped(), true);
+
             case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
                 return getLocalRoles();
             case FrameworkConstants.JSAttributes.JS_CLAIMS:
                 if (StringUtils.isNotBlank(idp)) {
                     return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
                             .createJsRuntimeClaims(getContext(), step, idp);
-                } else {
-                    // Represent step independent user
-                    return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                            .createJsRuntimeClaims(getContext(), getWrapped());
                 }
+                // Represent step independent user
+                return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                        .createJsRuntimeClaims(getContext(), getWrapped());
             default:
                 return super.getMember(name);
         }

@@ -114,9 +114,8 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
                     return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
                             .createJsAuthenticatedUser(this.getContext(), stepConfig.getAuthenticatedUser(),
                                     stepConfig.getOrder(), stepConfig.getAuthenticatedIdP());
-                } else {
-                    return null;
                 }
+                return null;
             case FrameworkConstants.JSAttributes.JS_RETRY_STEP:
                 return getWrapped().isRetrying();
             case FrameworkConstants.JSAttributes.JS_ENDPOINT_PARAMS:
@@ -211,9 +210,8 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
             return subjectIdentifierStep.get();
         } else if (getContext().getCurrentStep() > 0) {
             return stepConfigs.get(getContext().getCurrentStep());
-        } else {
-            return null;
         }
+        return null;
     }
 
     protected JsBaseAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
@@ -223,8 +221,7 @@ public abstract class JsAuthenticationContext extends AbstractJSObjectWrapper<Au
         if (lastLoginFailedUser instanceof AuthenticatedUser) {
             return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
                     .createJsAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
-        } else {
-            return null;
         }
+        return null;
     }
 }
