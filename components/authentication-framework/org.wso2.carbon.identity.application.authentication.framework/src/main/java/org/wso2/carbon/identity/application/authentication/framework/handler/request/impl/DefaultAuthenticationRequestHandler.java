@@ -1250,7 +1250,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
      * @param federatedTokens The list of federated tokens.
      * @return List of the federated authenticator names.
      */
-    private static List<String> getFederatedAuthenticatorName(List<FederatedToken> federatedTokens) {
+    private List<String> getFederatedAuthenticatorName(List<FederatedToken> federatedTokens) {
 
         if (CollectionUtils.isEmpty(federatedTokens)) {
             return null;
