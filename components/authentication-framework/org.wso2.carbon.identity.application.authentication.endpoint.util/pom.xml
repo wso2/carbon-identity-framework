@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>7.0.92</version>
+        <version>7.0.93-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
