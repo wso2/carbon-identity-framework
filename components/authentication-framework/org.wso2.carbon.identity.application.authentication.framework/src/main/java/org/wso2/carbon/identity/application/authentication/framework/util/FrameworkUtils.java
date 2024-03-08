@@ -4154,5 +4154,4 @@ public class FrameworkUtils {
             throw new FrameworkException("Error occurred while encrypting claim value of: " + claimURI, e);
         }
     }
-
 }

@@ -257,6 +257,7 @@ public abstract class FrameworkConstants {
 
     // The constant to used as the attribute key or the property key of the federated tokens.
     public static final String FEDERATED_TOKENS = "federated_tokens";
+
     private FrameworkConstants() {
 
     }
