@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import java.util.Objects;
 
 /**
- * Returns when context.steps[<step_number] is called.
+ * Returns when context.steps[step_number] is called.
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
 public class JsOpenJdkNashornSteps extends JsSteps implements AbstractOpenJdkNashornJsObject {

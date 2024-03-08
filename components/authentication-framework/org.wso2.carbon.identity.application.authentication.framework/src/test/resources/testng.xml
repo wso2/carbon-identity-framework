@@ -65,7 +65,7 @@
     </test>
 
     <test name="GraphBasedSequenceHandlerTestsWithNashornScriptEngine" preserve-order="false" parallel="false">
-        <!--        <parameter name="log-level" value="debug"/>-->
+        <!--<parameter name="log-level" value="debug"/>-->
         <parameter name="scriptEngine" value="nashorn"/>
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerNoJsTest"/>
@@ -80,7 +80,7 @@
     </test>
 
     <test name="GraphBasedSequenceHandlerTestsWithGraalJSScriptEngine" preserve-order="false" parallel="false">
-        <!--        <parameter name="log-level" value="debug"/>-->
+        <!--<parameter name="log-level" value="debug"/>-->
         <parameter name="scriptEngine" value="graaljs"/>
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerNoJsTest"/>

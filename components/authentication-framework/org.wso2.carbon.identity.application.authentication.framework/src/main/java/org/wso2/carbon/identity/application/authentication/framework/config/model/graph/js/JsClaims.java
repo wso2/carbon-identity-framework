@@ -132,9 +132,8 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
             return subjectIdentifierStep.get();
         } else if (getContext().getCurrentStep() > 0) {
             return stepConfigs.get(getContext().getCurrentStep());
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -204,8 +203,8 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
         if (isFederatedIdP()) {
             setLocalMappedClaim(claimUri, claimValue);
         } else {
-            // This covers step with a local authenticator, and the scenarios where step/idp is not set
-            // if the step/idp is not set, user is assumed to be a local user
+            /* This covers step with a local authenticator, and the scenarios where step/idp is not set
+             if the step/idp is not set, user is assumed to be a local user. */
             setLocalUserClaim(claimUri, claimValue);
         }
     }
@@ -268,8 +267,8 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
         Map<String, String> localToIdpClaimMapping;
         String tenantDomain = getContext().getTenantDomain();
         try {
-            // Check if the IDP use a standard dialect (like oidc), If it does, dialect claim mapping are
-            // prioritized over IdP claim mapping
+            /* Check if the IDP use a standard dialect (like oidc), If it does, dialect claim mapping are
+             prioritized over IdP claim mapping. */
             ApplicationAuthenticator authenticator =
                     getContext().getSequenceConfig().getStepMap().get(step).getAuthenticatedAutenticator()
                             .getApplicationAuthenticator();
@@ -368,11 +367,10 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
 
         if (isFederatedIdP()) {
             return getLocalMappedClaim(claimUri);
-        } else {
-            // This covers step with a local authenticator, and the scenarios where step/idp is not set
-            // if the step/idp is not set, user is assumed to be a local user
-            return getLocalUserClaim(claimUri);
         }
+        /* This covers step with a local authenticator, and the scenarios where step/idp is not set
+        if the step/idp is not set, user is assumed to be a local user. */
+        return getLocalUserClaim(claimUri);
     }
 
     /**

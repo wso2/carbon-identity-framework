@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 /**
- * Returns when context.steps[<step_number] is called
+ * Returns when context.steps[step_number] is called
  * This wrapper uses GraalJS polyglot context.
  */
 public class JsGraalSteps extends JsSteps implements ProxyArray {

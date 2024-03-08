@@ -50,7 +50,6 @@ public abstract class JsServletResponse
 
     private static final Log LOG = LogFactory.getLog(JsServletResponse.class);
 
-
     public JsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
         super(wrapped);
