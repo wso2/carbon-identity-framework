@@ -184,6 +184,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
     private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
+    private String message;
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -2556,7 +2557,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     application, applicationModel.getInboundProtocolConfigurationDto());
             
             return createApplication(application, tenantDomain, username);
-        } catch (Exception e) {
+        } catch (IdentityApplicationManagementException identityApplicationManagementException) {
             /*
              * The current implementation of the application creation process is not atomic. Therefore, if an Exception
              * occurs, there is a chance that the database gets updated partially. Hence, we need to rollback the
@@ -2564,8 +2565,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
              * For more information read https://github.com/wso2/product-is/issues/12579.
              */
             rollbackInbounds(addedInbounds);
-            throw ApplicationMgtUtil.handleException("Server encountered an unexpected error when " +
-                    "creating the application.", e);
+            throw identityApplicationManagementException;
         }
     }
 
