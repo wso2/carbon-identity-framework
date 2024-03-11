@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADDED_GROUPS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADDED_IDP_GROUPS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADDED_PERMISSIONS_FIELD;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADDED_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_ROLE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.AUDIENCE_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_GROUPS_FIELD;
@@ -43,7 +44,6 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserMa
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_ROLE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USERS_OF_ROLE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUPS_FIELD;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADDED_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.PERMISSIONS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ROLE_NAME_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_GROUPS_OF_ROLE_ACTION;
@@ -155,7 +155,7 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
     public void postUpdateUserListOfRole(String roleId, List<String> newUserIDList, List<String> deletedUserIDList,
                                          String tenantDomain) {
 
-       if (!isEnable()) {
+        if (!isEnable()) {
             return;
         }
         JSONObject data = new JSONObject();
