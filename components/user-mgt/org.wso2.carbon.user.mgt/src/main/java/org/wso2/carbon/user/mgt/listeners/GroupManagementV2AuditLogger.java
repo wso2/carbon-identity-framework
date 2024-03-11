@@ -53,15 +53,20 @@ import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiato
 public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperationEventListener {
 
     public boolean isEnable() {
+
         if (super.isEnable()) {
             return isEnableV2AuditLogs();
         }
         return false;
     }
 
+    @Override
     public boolean postAddGroup(String groupName, String groupId, List<String> userIds, List<Claim> claims,
                                 UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         if (CollectionUtils.isNotEmpty(userIds)) {
             dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userIds));
@@ -74,16 +79,24 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
         return true;
     }
 
+    @Override
     public boolean postDeleteGroup(String groupId, String groupName, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
                 LoggerUtils.getInitiatorType(getInitiatorId()), groupId, Target.Group.name(), DELETE_GROUP_ACTION);
         triggerAuditLogEvent(auditLogBuilder);
         return true;
     }
 
+    @Override
     public boolean postRenameGroup(String groupId, String newGroupName, UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         dataObject.put(GROUP_NAME_FIELD, newGroupName);
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
@@ -93,9 +106,13 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
         return true;
     }
 
+    @Override
     public boolean postUpdateUserListOfGroup(String groupId, List<String> deletedUserIds, List<String> newUserIds,
                                              UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         if (CollectionUtils.isNotEmpty(deletedUserIds)) {
             dataObject.put(DELETED_USERS_FIELD, new JSONArray(deletedUserIds));
@@ -110,9 +127,13 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
         return true;
     }
 
+    @Override
     public boolean postGetGroupsListOfUserByUserId(String userId, List<Group> groupList,
                                                    UserStoreManager userStoreManager) {
 
+        if (!isEnable()) {
+            return true;
+        }
         JSONObject dataObject = new JSONObject();
         if (CollectionUtils.isNotEmpty(groupList)) {
             dataObject.put(GROUPS_FIELD, new JSONArray(groupList));

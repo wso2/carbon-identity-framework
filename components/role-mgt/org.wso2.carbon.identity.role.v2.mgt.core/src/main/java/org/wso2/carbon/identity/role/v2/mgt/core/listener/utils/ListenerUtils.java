@@ -32,7 +32,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
  */
 public class ListenerUtils {
 
-
     /**
      * To get the current user, who is doing the current task.
      *
@@ -80,6 +79,7 @@ public class ListenerUtils {
      * @return Initiator id despite masking.
      */
     public static String getInitiatorId() {
+
         String initiator = null;
         String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
         String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());

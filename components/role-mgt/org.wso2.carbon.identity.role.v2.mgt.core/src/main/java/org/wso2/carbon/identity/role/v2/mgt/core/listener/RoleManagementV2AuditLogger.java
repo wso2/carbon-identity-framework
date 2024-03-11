@@ -30,6 +30,7 @@ import org.wso2.carbon.utils.AuditLog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADDED_GROUPS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADDED_IDP_GROUPS_FIELD;
@@ -83,16 +84,17 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
     public void postAddRole(RoleBasicInfo roleBasicInfo, String roleName, List<String> userList, List<String> groupList,
                             List<Permission> permissions, String audience, String audienceId, String tenantDomain) {
 
+        if (!isEnable()) {
+            return;
+        }
         JSONObject data = new JSONObject();
         String roleId = roleBasicInfo.getId();
         data.put(ROLE_NAME_FIELD, roleName);
         data.put(AUDIENCE_FIELD, audience);
         if (ArrayUtils.isNotEmpty(permissions.toArray())) {
-            ArrayList<String> permissionsList = new ArrayList<>();
-            for (Permission permission : permissions) {
-                permissionsList.add(permission.getName());
-            }
-            data.put(PERMISSIONS_FIELD, new JSONArray(permissionsList));
+            data.put(PERMISSIONS_FIELD, new JSONArray(permissions.stream().map(Permission::getName)
+                    .collect(Collectors.toList())
+            ));
         }
         if (ArrayUtils.isNotEmpty(userList.toArray())) {
             data.put(USERS_FIELD, new JSONArray(userList));
@@ -109,6 +111,9 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
     @Override
     public void postUpdateRoleName(String roleId, String newRoleName, String tenantDomain) {
 
+        if (!isEnable()) {
+            return;
+        }
         JSONObject data = new JSONObject();
         data.put(ROLE_NAME_FIELD, newRoleName);
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
@@ -120,6 +125,9 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
     @Override
     public void postDeleteRole(String roleId, String tenantDomain) {
 
+        if (!isEnable()) {
+            return;
+        }
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
                 LoggerUtils.getInitiatorType(getInitiatorId()), roleId, LoggerUtils.Target.Role.name(),
                 DELETE_ROLE_ACTION);
@@ -129,13 +137,14 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
     @Override
     public void postGetUserListOfRole(List<UserBasicInfo> userBasicInfoList, String roleId, String tenantDomain) {
 
+        if (!isEnable()) {
+            return;
+        }
         JSONObject data = new JSONObject();
         if (ArrayUtils.isNotEmpty(userBasicInfoList.toArray())) {
-            ArrayList<String> usersList = new ArrayList<>();
-            for (UserBasicInfo user : userBasicInfoList) {
-                usersList.add(user.getId());
-            }
-            data.put(USERS_FIELD, new JSONArray(usersList));
+            data.put(USERS_FIELD, new JSONArray(userBasicInfoList.stream().map(UserBasicInfo::getId)
+                    .collect(Collectors.toList())
+            ));
         }
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
                 LoggerUtils.getInitiatorType(getInitiatorId()), roleId, LoggerUtils.Target.Role.name(),
@@ -147,6 +156,9 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
     public void postUpdateUserListOfRole(String roleId, List<String> newUserIDList, List<String> deletedUserIDList,
                                          String tenantDomain) {
 
+       if (!isEnable()) {
+            return;
+        }
         JSONObject data = new JSONObject();
         if (ArrayUtils.isNotEmpty(newUserIDList.toArray())) {
             data.put(NEW_USERS_FIELD, new JSONArray(newUserIDList));
@@ -154,18 +166,19 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
         if (ArrayUtils.isNotEmpty(deletedUserIDList.toArray())) {
             data.put(DELETED_USERS_FIELD, new JSONArray(deletedUserIDList));
         }
-        if (isEnable()) {
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()), roleId,
-                    LoggerUtils.Target.Role.name(), UPDATE_USERS_OF_ROLE_ACTION).data(jsonObjectToMap(data));
-            triggerAuditLogEvent(auditLogBuilder);
-        }
+        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()), roleId,
+                LoggerUtils.Target.Role.name(), UPDATE_USERS_OF_ROLE_ACTION).data(jsonObjectToMap(data));
+        triggerAuditLogEvent(auditLogBuilder);
     }
 
     @Override
     public void postUpdateGroupListOfRole(String roleId, List<String> newGroupIDList, List<String> deletedGroupIDList,
                                           String tenantDomain) {
 
+        if (!isEnable()) {
+            return;
+        }
         JSONObject data = new JSONObject();
         if (ArrayUtils.isNotEmpty(newGroupIDList.toArray())) {
             data.put(ADDED_GROUPS_FIELD, new JSONArray(newGroupIDList));
@@ -183,20 +196,17 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
     public void postUpdateIdpGroupListOfRole(String roleId, List<IdpGroup> newGroupIDList,
                                              List<IdpGroup> deletedGroupIDList, String tenantDomain) {
 
+        if (!isEnable()) {
+            return;
+        }
         JSONObject data = new JSONObject();
         if (ArrayUtils.isNotEmpty(newGroupIDList.toArray())) {
-            ArrayList<String> newIdpGroupsList = new ArrayList<>();
-            for (IdpGroup idpGroup : newGroupIDList) {
-                newIdpGroupsList.add(idpGroup.getGroupId());
-            }
-            data.put(ADDED_IDP_GROUPS_FIELD, new JSONArray(newIdpGroupsList));
+            data.put(ADDED_IDP_GROUPS_FIELD, new JSONArray(newGroupIDList.stream().map(IdpGroup::getGroupId)
+                    .collect(Collectors.toList())));
         }
         if (ArrayUtils.isNotEmpty(deletedGroupIDList.toArray())) {
-            ArrayList<String> deletedIdpGroupList = new ArrayList<>();
-            for (IdpGroup idpGroup : deletedGroupIDList) {
-                deletedIdpGroupList.add(idpGroup.getGroupId());
-            }
-            data.put(DELETED_IDP_GROUPS_FIELD, new JSONArray(deletedIdpGroupList));
+            data.put(DELETED_IDP_GROUPS_FIELD, new JSONArray(deletedGroupIDList.stream().map(IdpGroup::getGroupId)
+                    .collect(Collectors.toList())));
         }
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
                 LoggerUtils.getInitiatorType(getInitiatorId()), roleId, LoggerUtils.Target.Role.name(),
@@ -209,20 +219,17 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
                                              List<Permission> deletedPermissions, String audience, String audienceId,
                                              String tenantDomain) {
 
+        if (!isEnable()) {
+            return;
+        }
         JSONObject data = new JSONObject();
         if (ArrayUtils.isNotEmpty(addedPermissions.toArray())) {
-            ArrayList<String> addedPermissionsList = new ArrayList<>();
-            for (Permission permission : addedPermissions) {
-                addedPermissionsList.add(permission.getName());
-            }
-            data.put(ADDED_PERMISSIONS_FIELD, new JSONArray(addedPermissionsList));
+            data.put(ADDED_PERMISSIONS_FIELD, new JSONArray(addedPermissions.stream().map(Permission::getName)
+                    .collect(Collectors.toList())));
         }
         if (ArrayUtils.isNotEmpty(deletedPermissions.toArray())) {
-            ArrayList<String> deletedPermissionsList = new ArrayList<>();
-            for (Permission permission : addedPermissions) {
-                deletedPermissionsList.add(permission.getName());
-            }
-            data.put(DELETED_PERMISSIONS_FIELD, new JSONArray(deletedPermissionsList));
+            data.put(DELETED_PERMISSIONS_FIELD, new JSONArray(deletedPermissions.stream().map(Permission::getName)
+                    .collect(Collectors.toList())));
         }
         data.put(AUDIENCE_FIELD, audience);
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
