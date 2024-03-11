@@ -184,7 +184,6 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
         mockStatic(LoggerUtils.class);
         when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
-//        when(DiagnosticLog.DiagnosticLogBuilder).thenReturn(true);
 
         // mock the behaviour of the request path authenticator
         when(requestPathAuthenticator.canHandle(any(HttpServletRequest.class))).thenReturn(true);
