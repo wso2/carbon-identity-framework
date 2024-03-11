@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.User;
-import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 import org.wso2.carbon.utils.AuditLog;
 
 import java.util.ArrayList;
@@ -36,6 +35,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_USER_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.CLAIMS_FIELD;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.CLAIM_URI_FIELD;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.CLAIM_VALUE_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.CREDENTIAL_UPDATE_BY_ADMIN_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.CREDENTIAL_UPDATE_BY_USER_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_USER_ACTION;
@@ -200,7 +202,7 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             return true;
         }
         JSONObject dataObject = new JSONObject();
-        dataObject.put(ListenerUtils.CLAIM_URI_FIELD, claim);
+        dataObject.put(CLAIM_URI_FIELD, claim);
         if (LoggerUtils.isLogMaskingEnable) {
             List<String> maskedClaimValues = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(claimValue)) {
@@ -208,12 +210,12 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
                     String maskedClaimValue = LoggerUtils.getMaskedClaimValue(claim, claimVal);
                     maskedClaimValues.add(maskedClaimValue);
                 }
-                dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, new JSONArray(maskedClaimValues));
+                dataObject.put(CLAIM_VALUE_FIELD, new JSONArray(maskedClaimValues));
             }
         } else if (CollectionUtils.isNotEmpty(claimValue)) {
-            dataObject.put(ListenerUtils.CLAIM_VALUE_FIELD, new JSONArray(claimValue));
+            dataObject.put(CLAIM_VALUE_FIELD, new JSONArray(claimValue));
         }
-        dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
+        dataObject.put(PROFILE_FIELD, profileName);
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
                 LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
                 GET_USER_CLAIM_VALUE_ACTION).data(jsonObjectToMap(dataObject));
@@ -232,7 +234,7 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
         if (claimMap != null && !claimMap.isEmpty()) {
             maskClaimsInAuditLog(claimMap, dataObject);
         }
-        dataObject.put(ListenerUtils.PROFILE_FIELD, profileName);
+        dataObject.put(PROFILE_FIELD, profileName);
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
                 LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
                 GET_USER_CLAIM_VALUES_ACTION).data(jsonObjectToMap(dataObject));
@@ -250,9 +252,9 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
 
         if (LoggerUtils.isLogMaskingEnable) {
             Map<String, String> maskedClaims = LoggerUtils.getMaskedClaimsMap(claims);
-            data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(maskedClaims));
+            data.put(CLAIMS_FIELD, new JSONObject(maskedClaims));
         } else {
-            data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
+            data.put(CLAIMS_FIELD, new JSONObject(claims));
         }
     }
 

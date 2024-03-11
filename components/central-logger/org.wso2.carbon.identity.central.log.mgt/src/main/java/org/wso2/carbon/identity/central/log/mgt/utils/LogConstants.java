@@ -134,6 +134,7 @@ public class LogConstants {
 
         public static final String CLAIM_URI_FIELD = "Claim";
         public static final String CLAIM_VALUE_FIELD = "ClaimValue";
+        public static final String CLAIMS_FIELD = "Claims";
 
         public static final String APP_ROLE_FIELD = "ApplicationRoles";
         public static final String AUDIENCE_FIELD = "Audience";
@@ -143,9 +144,9 @@ public class LogConstants {
         public static final String ROLE_NAME_FIELD = "RoleName";
         public static final String PERMISSIONS_FIELD = "Permissions";
         public static final String DELETED_USERS_FIELD = "DeletedUsers";
-        public static final String NEW_USERS_FIELD = "NewUsers";
+        public static final String ADDED_USERS_FIELD = "AddedUsers";
         public static final String DELETED_ROLES_FIELD = "DeletedRoles";
-        public static final String NEW_ROLES_FIELD = "NewRoles";
+        public static final String ADDED_ROLES_FIELD = "AddedRoles";
         public static final String ADDED_GROUPS_FIELD = "AddedGroups";
         public static final String DELETED_GROUPS_FIELD = "DeletedGroups";
         public static final String IDP_GROUPS_FIELD = "IdpGroups";

@@ -27,20 +27,20 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.Claim;
 import org.wso2.carbon.user.core.common.Group;
-import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 import org.wso2.carbon.utils.AuditLog;
 
 import java.util.List;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADDED_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_GROUP_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_GROUP_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_GROUPS_OF_USERS_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUPS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUP_NAME_FIELD;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.NEW_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_GROUP_NAME_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_USERS_OF_GROUP_ACTION;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.Target;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnableV2AuditLogs;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
@@ -69,7 +69,7 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
         }
         JSONObject dataObject = new JSONObject();
         if (CollectionUtils.isNotEmpty(userIds)) {
-            dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userIds));
+            dataObject.put(USERS_FIELD, new JSONArray(userIds));
         }
         dataObject.put(GROUP_NAME_FIELD, groupName);
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
@@ -118,7 +118,7 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
             dataObject.put(DELETED_USERS_FIELD, new JSONArray(deletedUserIds));
         }
         if (CollectionUtils.isNotEmpty(newUserIds)) {
-            dataObject.put(NEW_USERS_FIELD, new JSONArray(deletedUserIds));
+            dataObject.put(ADDED_USERS_FIELD, new JSONArray(deletedUserIds));
         }
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
                 LoggerUtils.getInitiatorType(getInitiatorId()), groupId, Target.Group.name(),
