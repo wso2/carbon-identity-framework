@@ -63,6 +63,7 @@ public class LogConstants {
      * Application Mgt related log constants.
      */
     public static class ApplicationManagement {
+
         public static final String CREATE_APPLICATION_ACTION = "create-application";
         public static final String UPDATE_APPLICATION_ACTION = "update-application";
         public static final String DELETE_APPLICATION_ACTION = "delete-application";
@@ -80,6 +81,7 @@ public class LogConstants {
      * User mgt related log constants.
      */
     public static class UserManagement {
+
         public static final String ADD_USER_ACTION = "add-user";
         public static final String DELETE_USER_ACTION = "delete-user";
         public static final String SET_USER_CLAIM_VALUE_ACTION = "set-user-claim-value";
