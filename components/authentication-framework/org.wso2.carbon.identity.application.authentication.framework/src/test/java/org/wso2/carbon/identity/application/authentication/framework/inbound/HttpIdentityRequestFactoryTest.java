@@ -54,7 +54,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * Unit tests for {@link HttpIdentityRequestFactory}
  */
-@PrepareForTest({IdentityUtil.class})
+@PrepareForTest(IdentityUtil.class)
 public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
 
     private static final String ERROR_MESSAGE = "CLIENT_ERROR_MESSAGE";
