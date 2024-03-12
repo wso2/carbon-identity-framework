@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -48,7 +47,6 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -56,7 +54,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * Unit tests for {@link HttpIdentityRequestFactory}
  */
-@PrepareForTest({IdentityUtil.class, PrivilegedCarbonContext.class})
+@PrepareForTest({IdentityUtil.class})
 public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
 
     private static final String ERROR_MESSAGE = "CLIENT_ERROR_MESSAGE";
@@ -72,9 +70,6 @@ public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
     @BeforeMethod
     public void setUp() throws Exception {
         initMocks(this);
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = Mockito.mock(PrivilegedCarbonContext.class);
-        Mockito.when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
         httpIdentityRequestFactory = new HttpIdentityRequestFactory();
         CommonTestUtils.initPrivilegedCarbonContext();
     }
