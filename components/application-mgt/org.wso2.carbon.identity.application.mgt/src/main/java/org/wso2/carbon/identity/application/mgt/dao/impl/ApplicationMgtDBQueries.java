@@ -491,11 +491,17 @@ public class ApplicationMgtDBQueries {
 
     public static final String ADD_APPLICATION_ASSOC_ROLES_HEAD = "INSERT INTO APP_ROLE_ASSOCIATION " +
             "(APP_ID, ROLE_ID) VALUES ";
-
+    public static final String ADD_APPLICATION_ASSOC_ROLES_HEAD_ORACLE = "INSERT INTO APP_ROLE_ASSOCIATION (APP_ID, " +
+            "ROLE_ID) WITH appRoleAssoc AS (";
     public static final String ADD_APPLICATION_ASSOC_ROLES_TAIL = "(:" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + "%1$d;, :" +
             SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "%1$d;)";
 
+    public static final String ADD_APPLICATION_ASSOC_ROLES_VALUES_ORACLE = "SELECT :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + "%1$d;, :" +
+            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_ROLE_ID + "%1$d; FROM dual";
+
+    public static final String ADD_APPLICATION_ASSOC_ROLES_TAIL_ORACLE = ") SELECT * FROM appRoleAssoc";
     public static final String DELETE_APPLICATION_ROLE_ASSOCIATIONS = "DELETE FROM APP_ROLE_ASSOCIATION WHERE " +
             "APP_ID=:" +  SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID + ";";
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -626,25 +626,25 @@
         <Scopes>internal_claim_meta_delete</Scopes>
     </Resource>
 
-    <!-- [Organization] Email Template Management API -->
-    <Resource context="(.*)/o/api/server/v1/email/template-types(.*)" secured="true" http-method="GET">
+    <!-- [Organization] Email Template Management API v1/v2 -->
+    <Resource context="(.*)/o/api/server/v(.*)/email/template-types(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_email_mgt_view</Scopes>
     </Resource>
-    <Resource context="(.*)/o/api/server/v1/email/template-types/(.*)" secured="true" http-method="PUT">
+    <Resource context="(.*)/o/api/server/v(.*)/email/template-types/(.*)" secured="true" http-method="PUT">
         <Scopes>internal_org_email_mgt_update</Scopes>
     </Resource>
 
-    <!-- Email Template Management API -->
-    <Resource context="(.*)/api/server/v1/email/template-types(.*)" secured="true" http-method="GET">
+    <!-- Email Template Management API v1/v2 -->
+    <Resource context="(.*)/api/server/v(.*)/email/template-types(.*)" secured="true" http-method="GET">
         <Scopes>internal_email_mgt_view</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/email/template-types(.*)" secured="true" http-method="POST">
+    <Resource context="(.*)/api/server/v(.*)/email/template-types(.*)" secured="true" http-method="POST">
         <Scopes>internal_email_mgt_create</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/email/template-types/(.*)" secured="true" http-method="PUT">
+    <Resource context="(.*)/api/server/v(.*)/email/template-types/(.*)" secured="true" http-method="PUT">
         <Scopes>internal_email_mgt_update</Scopes>
     </Resource>
-    <Resource context="(.*)/api/server/v1/email/template-types/(.*)" secured="true" http-method="DELETE">
+    <Resource context="(.*)/api/server/v1(.*)/email/template-types/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_email_mgt_delete</Scopes>
     </Resource>
 

@@ -83,6 +83,8 @@ public class ApplicationConstants {
     public static final String S_MICROSOFT = "microsoft";
     public static final String INFORMIX = "Informix";
     public static final String H2 = "H2";
+    public static final String ORACLE = "Oracle";
+    public static final String UNION_SEPARATOR = " UNION ALL ";
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
     public static final int DEFAULT_RESULTS_PER_PAGE = 10;
     public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
@@ -126,9 +128,9 @@ public class ApplicationConstants {
         public static final String APP_OWNER = "owner";
         public static final String DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG = "disableLegacyAuditLogsInAppMgt";
         public static final String ENABLE_V2_AUDIT_LOGS = "enableV2AuditLogs";
-        public static final String CREATE_APPLICATION = "CREATE APPLICATION";
-        public static final String UPDATE_APPLICATION = "UPDATE APPLICATION";
-        public static final String DELETE_APPLICATION = "DELETE APPLICATION";
+        public static final String CREATE_APPLICATION = "create-application";
+        public static final String UPDATE_APPLICATION = "update-application";
+        public static final String DELETE_APPLICATION = "delete-application";
     }
 
     /**

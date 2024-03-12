@@ -59,6 +59,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -477,7 +478,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         } catch (UserStoreException e) {
             throw new PostAuthenticationFailedException(
                     ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getCode(),
-                    String.format(ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getMessage(), username), e);
+                    String.format(ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getMessage(),
+                            (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username)), e);
         }
         return false;
     }

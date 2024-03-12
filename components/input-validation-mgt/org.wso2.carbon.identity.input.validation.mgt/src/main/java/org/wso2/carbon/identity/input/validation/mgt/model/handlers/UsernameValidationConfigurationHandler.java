@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.input.validation.mgt.model.handlers;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -55,6 +56,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Conf
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.EMAIL_CLAIM_URI;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_GETTING_EXISTING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATORS_COMBINATION;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPER_TENANT_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_JS_REG_EX;
 import static org.wso2.carbon.user.core.UserCoreConstants.RealmConfig.PROPERTY_USER_NAME_WITH_EMAIL_JS_REG_EX;
@@ -84,21 +86,20 @@ public class UsernameValidationConfigurationHandler extends AbstractFieldValidat
             RealmConfiguration realmConfiguration = getRealmConfiguration(tenantDomain);
             String usernameRegEx = getUsernameRegEx(realmConfiguration);
 
-            // Return the JsRegex if the default regex has been updated by the user.
-            if (!usernameRegEx.isEmpty() &&
-                    !DEFAULT_EMAIL_JS_REGEX_PATTERN.equals(usernameRegEx)) {
-                if (isAlphaNumericValidationByDefault()) {
-                    rules.add(getDefaultLengthValidatorRuleConfig());
-                    rules.add(getRuleConfig(AlphanumericValidator.class.getSimpleName(),
-                            ENABLE_VALIDATOR, Boolean.TRUE.toString()));
-                    configuration.setRules(rules);
-                } else {
-                    rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx));
-                    configuration.setRegEx(rules);
-                }
-            } else {
-                rules.add(getRuleConfig(EmailFormatValidator.class.getSimpleName(),
+            if (!usernameRegEx.isEmpty() && !DEFAULT_EMAIL_JS_REGEX_PATTERN.equals(usernameRegEx)
+                    && isAlphaNumericValidationByDefault()) {
+                rules.add(getDefaultLengthValidatorRuleConfig());
+                rules.add(getRuleConfig(AlphanumericValidator.class.getSimpleName(),
                         ENABLE_VALIDATOR, Boolean.TRUE.toString()));
+                configuration.setRules(rules);
+            } else if (PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()
+                    .equals(SUPER_TENANT_DOMAIN)) {
+                // Return the JSRegex if the tenant domain is carbon.super.
+                rules.add(getRuleConfig("JsRegExValidator", JS_REGEX, usernameRegEx));
+                configuration.setRegEx(rules);
+            } else {
+                rules.add(getRuleConfig(EmailFormatValidator.class.getSimpleName(), ENABLE_VALIDATOR,
+                        Boolean.TRUE.toString()));
                 configuration.setRules(rules);
             }
             return configuration;
