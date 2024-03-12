@@ -134,7 +134,7 @@ public class ValidationConfigurationRetrievalClient {
             passwordConfig.put(MIN_NUMBER_KEY, 1);
             passwordConfig.put(MIN_UPPER_CASE_KEY, 1);
             passwordConfig.put(MIN_LOWER_CASE_KEY, 1);
-            passwordConfig.put(MIN_SPECIAL_KEY, 1);
+            passwordConfig.put(MIN_SPECIAL_KEY, 0);
         }
         return passwordConfig;
     }
