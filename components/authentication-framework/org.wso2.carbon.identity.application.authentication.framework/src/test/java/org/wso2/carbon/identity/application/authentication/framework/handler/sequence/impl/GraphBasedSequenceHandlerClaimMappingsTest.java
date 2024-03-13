@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.common.testng.realm.UserStoreModel;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 
