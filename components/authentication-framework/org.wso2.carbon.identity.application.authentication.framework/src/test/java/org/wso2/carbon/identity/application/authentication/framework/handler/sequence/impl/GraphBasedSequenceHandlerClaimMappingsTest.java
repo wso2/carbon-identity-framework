@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -40,7 +41,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 
 /**
  * Tests the claim handling in the Javascript.
@@ -50,14 +55,19 @@ import static org.testng.Assert.assertEquals;
 @WithCarbonHome
 @WithRealmService(injectToSingletons =
         {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
+@PrepareForTest({LoggerUtils.class, PrivilegedCarbonContext.class})
 public class GraphBasedSequenceHandlerClaimMappingsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     public void testHandleClaimHandling() throws Exception {
 
-        LoggerUtils.isLogMaskingEnable = false;
-        PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
+
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-4-claim.xml");
 

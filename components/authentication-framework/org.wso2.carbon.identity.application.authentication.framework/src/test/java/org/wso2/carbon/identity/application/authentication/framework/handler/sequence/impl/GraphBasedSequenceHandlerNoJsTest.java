@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -40,23 +41,30 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
 @WithCarbonHome
 @WithRealmService(injectToSingletons =
         {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
+@PrepareForTest(PrivilegedCarbonContext.class)
 public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test(dataProvider = "noJsDataProvider")
     public void testHandleStaticSequence(String spFileName, int authHistoryCount) throws
             Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
 
         ServiceProvider sp1 = getTestServiceProvider(spFileName);
 

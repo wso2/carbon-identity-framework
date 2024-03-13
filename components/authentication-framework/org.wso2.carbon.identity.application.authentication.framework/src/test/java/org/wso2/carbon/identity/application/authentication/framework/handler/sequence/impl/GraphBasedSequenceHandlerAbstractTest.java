@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -41,6 +42,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -50,13 +52,12 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
+@PowerMockIgnore("org.mockito.*")
 public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest {
 
     private static final Log logger = LogFactory.getLog(GraphBasedSequenceHandlerAbstractTest.class);

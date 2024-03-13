@@ -22,6 +22,8 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -60,6 +62,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLStreamException;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -70,6 +73,7 @@ import static org.testng.Assert.assertTrue;
 @WithRealmService(injectToSingletons =
         {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
 @WithRegistry(injectToSingletons = {FrameworkServiceDataHolder.class})
+@PrepareForTest(LoggerUtils.class)
 public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     public static String customFunction1(JsNashornAuthenticationContext context) {
@@ -288,6 +292,8 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
             }
         }
 
+        PowerMockito.mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
         FrameworkServiceDataHolder.getInstance().setAdaptiveAuthenticationAvailable(true);
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);

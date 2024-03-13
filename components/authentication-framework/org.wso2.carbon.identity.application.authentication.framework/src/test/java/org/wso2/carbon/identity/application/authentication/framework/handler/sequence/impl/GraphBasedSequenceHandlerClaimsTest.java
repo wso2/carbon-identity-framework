@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
@@ -36,6 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the claims in the Javascript.
@@ -45,6 +49,7 @@ import static org.mockito.Mockito.mock;
 @WithCarbonHome
 @WithRealmService(injectToSingletons =
         {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
+@PrepareForTest({LoggerUtils.class})
 public class GraphBasedSequenceHandlerClaimsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     public void testHandleClaimHandling() throws Exception {
@@ -63,6 +68,9 @@ public class GraphBasedSequenceHandlerClaimsTest extends GraphBasedSequenceHandl
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
+
+        PowerMockito.mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
 
         graphBasedSequenceHandler.handle(req, resp, context);
 

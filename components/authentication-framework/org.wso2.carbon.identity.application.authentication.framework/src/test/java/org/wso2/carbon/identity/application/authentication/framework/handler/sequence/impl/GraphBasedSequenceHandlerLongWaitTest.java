@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
@@ -46,21 +47,28 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
 @WithCarbonHome
 @WithRealmService(injectToSingletons =
         {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
+@PrepareForTest(PrivilegedCarbonContext.class)
 public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test
     public void testHandleLongWait() throws Exception {
 
         LoggerUtils.isLogMaskingEnable = false;
-        PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);

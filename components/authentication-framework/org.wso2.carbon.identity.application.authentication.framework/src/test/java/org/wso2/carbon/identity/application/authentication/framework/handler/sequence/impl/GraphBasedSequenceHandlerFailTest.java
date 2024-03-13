@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -40,21 +41,27 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2CarbonDB", files = {"dbScripts/h2.sql"})
 @WithCarbonHome
+@PrepareForTest(PrivilegedCarbonContext.class)
 public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test
     public void handleFailMethodWithParamsTest() throws Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants
-                .SUPER_TENANT_DOMAIN_NAME);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-fail-method-with-params-onSuccess.xml");
 
@@ -86,9 +93,11 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
     @Test
     public void handleFailMethodWithoutParamsTest() throws Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants
-                .SUPER_TENANT_DOMAIN_NAME);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-fail-method-without-params-onSuccsss.xml");
 
@@ -118,9 +127,11 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
     @Test
     public void handleFailMethodWithParamsOnFailTest() throws Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants
-                .SUPER_TENANT_DOMAIN_NAME);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-fail-method-with-params-onFail.xml");
 
@@ -152,9 +163,11 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
     @Test
     public void handleFailMethodWithoutParamsOnFailTest() throws Exception {
 
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants
-                .SUPER_TENANT_DOMAIN_NAME);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-fail-method-without-params-onFail.xml");
 
