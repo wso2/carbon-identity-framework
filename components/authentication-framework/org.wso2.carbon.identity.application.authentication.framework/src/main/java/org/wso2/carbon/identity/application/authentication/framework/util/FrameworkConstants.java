@@ -255,6 +255,9 @@ public abstract class FrameworkConstants {
     public static final String IDP_MAPPED_USER_ROLES = "identityProviderMappedUserRoles";
     public static final String ALLOW_ASSOCIATING_TO_EXISTING_USER = "JITProvisioning.AllowAssociatingToExistingUser";
 
+    // The constant to used as the attribute key or the property key of the federated tokens.
+    public static final String FEDERATED_TOKENS = "federated_tokens";
+
     private FrameworkConstants() {
 
     }

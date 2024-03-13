@@ -294,6 +294,7 @@ public class IdentityEventConstants {
         public static final String IDENTITY_MGT_CONFIG = "identityMgtConfig";
         public static final String TENANT_ID = "tenantId";
         public static final String TENANT_DOMAIN = "tenant-domain";
+        public static final String APPLICATION_DOMAIN = "application-domain";
         public static final String OPERATION_STATUS = "OPERATION_STATUS";
         public static final String OPERATION_DESCRIPTION = "OPERATION_DESCRIPTION";
         public static final String USER_STORE_MANAGER = "userStoreManager";
