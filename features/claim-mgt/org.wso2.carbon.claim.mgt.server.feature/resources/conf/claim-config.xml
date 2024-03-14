@@ -68,7 +68,7 @@
 				<Required />
 				<DisplayOrder>6</DisplayOrder>
 				<SupportedByDefault />
-                <RegEx>^([a-zA-Z0-9!#$'\+\\=^_\.{|}~\-&amp;])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,10})+$</RegEx>
+                <RegEx>^([a-zA-Z0-9!#$'\+=^_\.{|}~\-&amp;])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,10})+$</RegEx>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/telephone</ClaimURI>
