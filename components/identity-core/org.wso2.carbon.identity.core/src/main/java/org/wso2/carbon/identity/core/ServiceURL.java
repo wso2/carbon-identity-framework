@@ -135,4 +135,9 @@ public interface ServiceURL {
 
         return StringUtils.EMPTY;
     }
+
+    default String getAbsoluteRegionalURL() {
+
+        return StringUtils.EMPTY;
+    }
 }
