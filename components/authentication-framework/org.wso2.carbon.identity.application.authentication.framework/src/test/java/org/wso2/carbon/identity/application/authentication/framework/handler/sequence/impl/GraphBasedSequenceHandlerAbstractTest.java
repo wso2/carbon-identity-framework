@@ -58,7 +58,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
-@PowerMockIgnore("org.mockito.*")
+@PowerMockIgnore({"org.mockito.*"})
 public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest {
 
     private static final Log logger = LogFactory.getLog(GraphBasedSequenceHandlerAbstractTest.class);
