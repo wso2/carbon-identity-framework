@@ -38,7 +38,6 @@ import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.RolePermissionManagementService;
 import org.wso2.carbon.user.mgt.RolePermissionManagementServiceImpl;
-import org.wso2.carbon.user.mgt.listeners.GroupManagementV2AuditLogger;
 import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
 import org.wso2.carbon.user.mgt.listeners.UserClaimsAuditLogger;
 import org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener;
@@ -133,16 +132,6 @@ public class UserMgtDSComponent {
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("UserManagementV2AuditV2Logger successfully registered.");
-                }
-            }
-
-            serviceRegistration = ctxt.getBundleContext().registerService(GroupOperationEventListener.class.getName(),
-                    new GroupManagementV2AuditLogger(), null);
-            if (serviceRegistration == null) {
-                log.error("Error while registering GroupManagementV2AuditLogger.");
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("GroupManagementV2AuditLogger successfully registered.");
                 }
             }
 
