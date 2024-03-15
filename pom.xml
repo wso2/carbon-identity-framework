@@ -1684,7 +1684,6 @@
                 <scope>test</scope>
                 <version>${h2database.version}</version>
             </dependency>
-
             <!-- MSF4J currently used only on tests as of now -->
             <dependency>
                 <groupId>org.wso2.msf4j</groupId>
