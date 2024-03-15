@@ -22,10 +22,14 @@ import org.apache.commons.lang.ArrayUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
+import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.utils.AuditLog;
 
 import java.util.List;
@@ -63,15 +67,9 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.listener.utils.ListenerU
 public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener {
 
     @Override
-    public int getExecutionOrderId() {
-
-        return 0;
-    }
-
-    @Override
     public int getDefaultOrderId() {
 
-        return 0;
+        return 3;
     }
 
     @Override
