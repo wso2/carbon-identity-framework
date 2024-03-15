@@ -393,6 +393,15 @@ public class IdentityEventConstants {
         public static final String DELETED_SCOPES = "DELETED_SCOPES";
 
         public static final String SCENARIO = "SCENARIO";
+
+        public class Scenario {
+
+            public class ScenarioTypes {
+
+                public static final String POST_CREDENTIAL_UPDATE_BY_ADMIN = "POST_CREDENTIAL_UPDATE_BY_ADMIN";
+                public static final String POST_CREDENTIAL_UPDATE_BY_USER = "POST_CREDENTIAL_UPDATE_BY_USER";
+            }
+        }
     }
 
     public class ErrorMessage {
