@@ -2028,6 +2028,19 @@
                        orderId="{{event.default_listener.client_certificate_authentication_handler.priority}}"
                        enable="{{event.default_listener.client_certificate_authentication_handler.enable}}"/>
 
+        <!-- New V2 Audit Loggers-->
+         <EventListener id="user_management_v2_audit_logger"
+                               type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                               name="org.wso2.carbon.user.mgt.listeners.UserManagementV2AuditLogger"
+                               orderId="{{event.default_listener.user_management_v2_audit_logger.priority}}"
+                               enable="{{event.default_listener.user_management_v2_audit_logger.enable}}"/>
+          <EventListener id="role_management_v2_audit_logger"
+                                type="org.wso2.carbon.identity.role.v2.mgt.core.listener"
+                                name="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementV2AuditLogger"
+                                orderId="{{event.default_listener.role_management_v2_audit_logger.priority}}"
+                                enable="{{event.default_listener.role_management_v2_audit_logger.enable}}"/>
+
+
         <!-- B2B organization management Event Listeners -->
         <EventListener id="fragment_app_mgt_listener"
                        type="org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener"

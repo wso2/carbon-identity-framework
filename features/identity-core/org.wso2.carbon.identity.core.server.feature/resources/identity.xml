@@ -1293,6 +1293,16 @@
                        name="org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener"
                        orderId="1" enable="false"/>
 
+        <!-- New V2 Audit Loggers-->
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.user.mgt.listeners.UserManagementV2AuditLogger"
+                       orderId="150" enable="true"/>
+
+        <EventListener type="org.wso2.carbon.identity.role.v2.mgt.core.listener"
+                       name="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementV2AuditLogger"
+                       orderId="3" enable="true"/>
+
+
         <!-- B2B organization management Event Listeners -->
         <EventListener id="fragment_app_mgt_listener"
                        type="org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener"

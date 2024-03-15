@@ -63,15 +63,9 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.listener.utils.ListenerU
 public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener {
 
     @Override
-    public int getExecutionOrderId() {
-
-        return 0;
-    }
-
-    @Override
     public int getDefaultOrderId() {
 
-        return 0;
+        return 3;
     }
 
     @Override
