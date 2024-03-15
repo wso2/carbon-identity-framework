@@ -76,6 +76,7 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
 
     @Override
     public boolean isEnable() {
+
         return isEnableV2AuditLogs();
     }
 
