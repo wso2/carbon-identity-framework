@@ -435,6 +435,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     protected org.wso2.carbon.user.core.common.User getUser(AuthenticatedUser authenticatedUser)
             throws AuthenticationFailedException {
 
+        return getUser(authenticatedUser, null);
+    }
+    protected org.wso2.carbon.user.core.common.User getUser(AuthenticatedUser authenticatedUser,
+                                                            AuthenticationContext context)
+            throws AuthenticationFailedException {
+
         org.wso2.carbon.user.core.common.User user = null;
         String tenantDomain = authenticatedUser.getTenantDomain();
         if (tenantDomain == null) {
@@ -443,9 +449,13 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
             if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
+                String username = authenticatedUser.getUserName();
+                if (context != null) {
+                    username = FrameworkUtils.preprocessUsername(username, context);
+                }
                 ResolvedUserResult resolvedUserResult = FrameworkServiceDataHolder.getInstance()
                         .getMultiAttributeLoginService().resolveUser(MultitenantUtils.getTenantAwareUsername(
-                                authenticatedUser.getUserName()), tenantDomain);
+                                username), tenantDomain);
                 if (resolvedUserResult != null && ResolvedUserResult.UserResolvedStatus.SUCCESS.
                         equals(resolvedUserResult.getResolvedStatus())) {
                     user = resolvedUserResult.getUser();
