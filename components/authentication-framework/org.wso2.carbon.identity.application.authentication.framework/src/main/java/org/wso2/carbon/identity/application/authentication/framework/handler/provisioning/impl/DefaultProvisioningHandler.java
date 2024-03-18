@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.pr
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,6 +55,7 @@ import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -65,6 +65,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -718,7 +719,29 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
      * @return
      */
     protected String generatePassword() {
-        return RandomStringUtils.randomNumeric(12);
+
+        // Pick from some letters that won't be easily mistaken for each other.
+        // So, for example, omit o O and 0, 1 l and L.
+        // This will generate a random password which satisfy the following regex.
+        // ^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*])).{12}$}
+        Random secureRandom = new SecureRandom();
+        String digits = "23456789";
+        String lowercaseLetters = "abcdefghjkmnpqrstuvwxyz";
+        String uppercaseLetters = "ABCDEFGHJKMNPQRSTUVWXYZ";
+        String specialCharacters = "!@#$%&*";
+        String characters = digits + lowercaseLetters + uppercaseLetters + specialCharacters;
+        int passwordLength = 12;
+        int mandatoryCharactersCount = 4;
+
+        StringBuilder pw = new StringBuilder();
+        for (int i = 0; i < passwordLength - mandatoryCharactersCount; i++) {
+            pw.append(characters.charAt(secureRandom.nextInt(characters.length())));
+        }
+        pw.append(digits.charAt(secureRandom.nextInt(digits.length())));
+        pw.append(lowercaseLetters.charAt(secureRandom.nextInt(lowercaseLetters.length())));
+        pw.append(uppercaseLetters.charAt(secureRandom.nextInt(uppercaseLetters.length())));
+        pw.append(specialCharacters.charAt(secureRandom.nextInt(specialCharacters.length())));
+        return pw.toString();
     }
 
     /**
