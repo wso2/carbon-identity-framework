@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>policy-editor</artifactId>
-        <version>7.0.104-SNAPSHOT</version>
+        <version>7.0.105</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
