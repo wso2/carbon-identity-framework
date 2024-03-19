@@ -2040,6 +2040,11 @@
                                 orderId="{{event.default_listener.role_management_v2_audit_logger.priority}}"
                                 enable="{{event.default_listener.role_management_v2_audit_logger.enable}}"/>
 
+          <EventListener id="group_management_v2_audit_logger"
+                                         type="org.wso2.carbon.user.core.listener.GroupOperationEventListener"
+                                         name="org.wso2.carbon.user.mgt.listeners.GroupManagementV2AuditLogger"
+                                         orderId="{{event.default_listener.group_management_v2_audit_logger.priority}}"
+                                         enable="{{event.default_listener.group_management_v2_audit_logger.enable}}"/>
 
         <!-- B2B organization management Event Listeners -->
         <EventListener id="fragment_app_mgt_listener"

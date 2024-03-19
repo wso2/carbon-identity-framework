@@ -38,13 +38,7 @@ import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.RolePermissionManagementService;
 import org.wso2.carbon.user.mgt.RolePermissionManagementServiceImpl;
-import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
-import org.wso2.carbon.user.mgt.listeners.UserClaimsAuditLogger;
-import org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener;
-import org.wso2.carbon.user.mgt.listeners.UserManagementAuditLogger;
-import org.wso2.carbon.user.mgt.listeners.UserManagementV2AuditLogger;
-import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
-import org.wso2.carbon.user.mgt.listeners.UserMgtFailureAuditLogger;
+import org.wso2.carbon.user.mgt.listeners.*;
 import org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder;
 import org.wso2.carbon.user.mgt.recorder.UserDeletionEventRecorder;
 import org.wso2.carbon.user.mgt.permission.ManagementPermissionsAdder;
@@ -132,6 +126,16 @@ public class UserMgtDSComponent {
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("UserManagementV2AuditV2Logger successfully registered.");
+                }
+            }
+
+            serviceRegistration = ctxt.getBundleContext().registerService(GroupOperationEventListener.class.getName(),
+                    new GroupManagementV2AuditLogger(), null);
+            if (serviceRegistration == null) {
+                log.error("Error while registering GroupManagementV2AuditLogger.");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("GroupManagementV2AuditLogger successfully registered.");
                 }
             }
 
