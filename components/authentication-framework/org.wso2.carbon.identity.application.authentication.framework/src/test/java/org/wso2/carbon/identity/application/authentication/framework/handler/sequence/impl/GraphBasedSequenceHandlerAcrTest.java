@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -37,7 +38,6 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 import java.util.List;
@@ -46,8 +46,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
@@ -57,6 +61,7 @@ import static org.testng.Assert.assertNotNull;
         tenantDomain = "foo.com")
 @WithRegistry(injectToSingletons = {FrameworkServiceDataHolder.class})
 @WithAxisConfiguration
+@PrepareForTest({LoggerUtils.class, PrivilegedCarbonContext.class})
 public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @BeforeClass
@@ -70,10 +75,11 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
             Exception {
 
         LoggerUtils.isLogMaskingEnable = false;
-        PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
-
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         ServiceProvider sp1 = getTestServiceProvider(spFileName);
 
         AuthenticationContext context = getAuthenticationContext(sp1);

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -29,6 +30,7 @@ import java.util.UUID;
 
 import javax.xml.stream.XMLStreamException;
 
+@PowerMockIgnore("javax.xml.*")
 public class AbstractFrameworkTest {
 
     protected ServiceProvider getTestServiceProvider(String spFileName) throws XMLStreamException {

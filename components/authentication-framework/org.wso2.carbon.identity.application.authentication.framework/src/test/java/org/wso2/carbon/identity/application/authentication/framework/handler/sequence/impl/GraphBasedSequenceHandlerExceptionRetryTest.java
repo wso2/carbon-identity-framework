@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -50,6 +51,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
@@ -57,6 +60,7 @@ import static org.mockito.Mockito.mock;
 @WithRealmService(injectToSingletons =
         {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
 @WithRegistry(injectToSingletons = {FrameworkServiceDataHolder.class})
+@PrepareForTest(LoggerUtils.class)
 public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSequenceHandlerAbstractTest {
 
     private static final String CONTEXT_ATTRIBUTE_NAME_CURRENT_FAIL_TRIES = "RetriesOnTest";
@@ -90,6 +94,9 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
+
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
 
         graphBasedSequenceHandler.handle(req, resp, context);
 

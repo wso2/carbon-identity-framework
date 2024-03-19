@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -57,6 +58,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
+@PowerMockIgnore({"org.mockito.*"})
 public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest {
 
     private static final Log logger = LogFactory.getLog(GraphBasedSequenceHandlerAbstractTest.class);
