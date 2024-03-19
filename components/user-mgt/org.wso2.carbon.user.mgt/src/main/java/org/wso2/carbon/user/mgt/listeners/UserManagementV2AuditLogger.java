@@ -194,54 +194,6 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
         return true;
     }
 
-    @Override
-    public boolean doPostGetUserClaimValueWithID(String userId, String claim, List<String> claimValue,
-                                                 String profileName, UserStoreManager userStoreManager) {
-
-        if (!isEnable()) {
-            return true;
-        }
-        JSONObject dataObject = new JSONObject();
-        dataObject.put(CLAIM_URI_FIELD, claim);
-        if (LoggerUtils.isLogMaskingEnable) {
-            List<String> maskedClaimValues = new ArrayList<>();
-            if (CollectionUtils.isNotEmpty(claimValue)) {
-                for (String claimVal : claimValue) {
-                    String maskedClaimValue = LoggerUtils.getMaskedClaimValue(claim, claimVal);
-                    maskedClaimValues.add(maskedClaimValue);
-                }
-                dataObject.put(CLAIM_VALUE_FIELD, new JSONArray(maskedClaimValues));
-            }
-        } else if (CollectionUtils.isNotEmpty(claimValue)) {
-            dataObject.put(CLAIM_VALUE_FIELD, new JSONArray(claimValue));
-        }
-        dataObject.put(PROFILE_FIELD, profileName);
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
-                LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
-                GET_USER_CLAIM_VALUE_ACTION).data(jsonObjectToMap(dataObject));
-        triggerAuditLogEvent(auditLogBuilder);
-        return true;
-    }
-
-    @Override
-    public boolean doPostGetUserClaimValuesWithID(String userId, String[] claims, String profileName,
-                                                  Map<String, String> claimMap, UserStoreManager userStoreManager) {
-
-        if (!isEnable()) {
-            return true;
-        }
-        JSONObject dataObject = new JSONObject();
-        if (claimMap != null && !claimMap.isEmpty()) {
-            maskClaimsInAuditLog(claimMap, dataObject);
-        }
-        dataObject.put(PROFILE_FIELD, profileName);
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
-                LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
-                GET_USER_CLAIM_VALUES_ACTION).data(jsonObjectToMap(dataObject));
-        triggerAuditLogEvent(auditLogBuilder);
-        return true;
-    }
-
     /**
      * Mask claims in audit logs based on the masking config.
      *
