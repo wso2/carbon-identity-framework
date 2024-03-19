@@ -33,6 +33,7 @@ import org.wso2.carbon.utils.AuditLog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_USER_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.CLAIMS_FIELD;
@@ -53,6 +54,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnabl
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiatorId;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiatorIdForGet;
 
 /**
  * This v2 audit logger logs the User Management success activities.
@@ -191,6 +193,60 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
                 LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
                 CREDENTIAL_UPDATE_BY_ADMIN_ACTION);
         triggerAuditLogEvent(auditLogBuilder);
+        return true;
+    }
+
+    @Override
+    public boolean doPostGetUserClaimValueWithID(String userId, String claim, List<String> claimValue,
+                                                 String profileName, UserStoreManager userStoreManager) {
+
+        if (!isEnable()) {
+            return true;
+        }
+        JSONObject dataObject = new JSONObject();
+        dataObject.put(CLAIM_URI_FIELD, claim);
+        if (LoggerUtils.isLogMaskingEnable) {
+            List<String> maskedClaimValues = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(claimValue)) {
+                for (String claimVal : claimValue) {
+                    String maskedClaimValue = LoggerUtils.getMaskedClaimValue(claim, claimVal);
+                    maskedClaimValues.add(maskedClaimValue);
+                }
+                dataObject.put(CLAIM_VALUE_FIELD, new JSONArray(maskedClaimValues));
+            }
+        } else if (CollectionUtils.isNotEmpty(claimValue)) {
+            dataObject.put(CLAIM_VALUE_FIELD, new JSONArray(claimValue));
+        }
+        dataObject.put(PROFILE_FIELD, profileName);
+        Optional<String> initiatorId = getInitiatorIdForGet();
+        if (initiatorId.isPresent()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId.get(),
+                    LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
+                    GET_USER_CLAIM_VALUE_ACTION).data(jsonObjectToMap(dataObject));
+            triggerAuditLogEvent(auditLogBuilder);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean doPostGetUserClaimValuesWithID(String userId, String[] claims, String profileName,
+                                                  Map<String, String> claimMap, UserStoreManager userStoreManager) {
+
+        if (!isEnable()) {
+            return true;
+        }
+        JSONObject dataObject = new JSONObject();
+        if (claimMap != null && !claimMap.isEmpty()) {
+            maskClaimsInAuditLog(claimMap, dataObject);
+        }
+        dataObject.put(PROFILE_FIELD, profileName);
+        Optional<String> initiatorId = getInitiatorIdForGet();
+        if (initiatorId.isPresent()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId.get(),
+                    LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
+                    GET_USER_CLAIM_VALUES_ACTION).data(jsonObjectToMap(dataObject));
+            triggerAuditLogEvent(auditLogBuilder);
+        }
         return true;
     }
 

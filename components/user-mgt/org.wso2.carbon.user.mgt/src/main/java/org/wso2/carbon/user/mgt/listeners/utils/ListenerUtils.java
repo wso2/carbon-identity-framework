@@ -27,6 +27,9 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import javax.swing.text.html.Option;
+import java.util.Optional;
+
 /**
  * Utility class that handles the relevant utility tasks of listeners.
  */
@@ -148,7 +151,7 @@ public class ListenerUtils {
      * @return Initiator id despite masking.
      */
     public static String getInitiatorId() {
-        //todo: refactor this method to see if we return optional if we dont get an ID instead of returning system init.
+
         String initiator = null;
         String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
         String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
@@ -163,6 +166,21 @@ public class ListenerUtils {
             initiator = LoggerUtils.getMaskedContent(ListenerUtils.getUser());
         }
         return initiator;
+    }
+
+    /**
+     * Get the initiator for audit logs get operations.
+     *
+     * @return Initiator id despite masking.
+     */
+    public static Optional<String> getInitiatorIdForGet() {
+
+        String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
+        String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
+            return Optional.ofNullable(IdentityUtil.getInitiatorId(username, tenantDomain));
+        }
+        return Optional.empty();
     }
 
     /**
