@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -67,6 +68,12 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         IdentityEventService identityEventService = mock(IdentityEventService.class);
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+    }
+
+    @AfterClass
+    public void tearDown() {
+
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
     }
 
     @Test(dataProvider = "staticAcrDataProvider")

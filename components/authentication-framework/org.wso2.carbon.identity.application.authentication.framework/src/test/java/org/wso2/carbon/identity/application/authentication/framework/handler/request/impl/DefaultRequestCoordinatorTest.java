@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -69,6 +70,11 @@ public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
     @AfterMethod
     public void tearDown() throws Exception {
 
+    }
+
+    @AfterClass
+    public void tearDownClass() throws Exception {
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
     }
 
     @DataProvider(name = "tenantDomainProvider")
