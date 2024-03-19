@@ -41,6 +41,11 @@ public interface JsBaseGraphBuilder {
 
     AuthenticationDecisionEvaluator getScriptEvaluator(BaseSerializableJsFunction fn);
 
+    default AuthenticationDecisionEvaluator getScriptEvaluator(GenericSerializableJsFunction fn) {
+
+        return null;
+    }
+
     void addLongWaitProcessInternal(AsyncProcess asyncProcess,
                        Map<String, Object> parameterMap);
 

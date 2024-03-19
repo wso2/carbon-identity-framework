@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
 
+import org.graalvm.polyglot.HostAccess;
+
 import java.util.Map;
 
 /**
@@ -26,6 +28,7 @@ import java.util.Map;
  * syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
+@HostAccess.Implementable
 public interface JsBaseParameters {
 
     /**

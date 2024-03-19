@@ -30,7 +30,7 @@ import javax.script.ScriptEngine;
  * This factory is there to reuse of script engine and any related expensive objects.
  *
  */
-public interface JsBaseGraphBuilderFactory {
+public interface JsBaseGraphBuilderFactory extends JsGenericGraphBuilderFactory<ScriptEngine> {
 
     void init();
 

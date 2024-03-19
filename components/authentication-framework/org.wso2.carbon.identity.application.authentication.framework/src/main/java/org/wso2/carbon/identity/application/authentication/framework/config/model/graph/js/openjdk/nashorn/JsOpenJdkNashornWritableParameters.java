@@ -24,22 +24,19 @@ import java.util.Map;
  * Parameters that can be modified from the authentication script.
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
-public class JsOpenJdkNashornWritableParameters extends JsOpenJdkNashornParameters {
+public class JsOpenJdkNashornWritableParameters extends JsOpenJdkNashornParameters
+        implements AbstractOpenJdkNashornJsObject {
 
     public JsOpenJdkNashornWritableParameters(Map wrapped) {
 
         super(wrapped);
     }
 
-    @Override
     public void removeMember(String name) {
 
-        if (getWrapped().containsKey(name)) {
-            getWrapped().remove(name);
-        }
+        super.removeMemberObject(name);
     }
 
-    @Override
     public void setMember(String name, Object value) {
 
         getWrapped().put(name, value);

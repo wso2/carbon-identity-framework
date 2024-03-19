@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 
 import java.util.Map;
@@ -32,8 +30,6 @@ import java.util.Map;
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
 public class JsOpenJdkNashornParameters extends JsParameters implements AbstractOpenJdkNashornJsObject {
-
-    private static final Log LOG = LogFactory.getLog(JsOpenJdkNashornParameters.class);
 
     public JsOpenJdkNashornParameters(Map wrapped) {
 

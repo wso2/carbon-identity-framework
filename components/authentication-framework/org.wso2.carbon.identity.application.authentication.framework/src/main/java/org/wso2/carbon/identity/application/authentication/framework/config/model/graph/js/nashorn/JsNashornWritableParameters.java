@@ -18,29 +18,23 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
-
 import java.util.Map;
 
 /**
  * Parameters that can be modified from the authentication script.
  * This wrapper uses jdk.nashorn engine.
  */
-public class JsNashornWritableParameters extends JsNashornParameters {
+public class JsNashornWritableParameters extends JsNashornParameters implements AbstractJsObject {
 
     public JsNashornWritableParameters(Map wrapped) {
 
         super(wrapped);
     }
-
-    @Override
     public void removeMember(String name) {
 
-        if (getWrapped().containsKey(name)) {
-            getWrapped().remove(name);
-        }
+        super.removeMemberObject(name);
     }
 
-    @Override
     public void setMember(String name, Object value) {
 
         getWrapped().put(name, value);

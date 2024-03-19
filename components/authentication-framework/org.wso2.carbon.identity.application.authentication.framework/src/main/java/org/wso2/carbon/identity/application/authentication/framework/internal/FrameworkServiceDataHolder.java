@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.ServerSessi
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimFilter;
@@ -83,7 +84,7 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private AuthenticationDataPublisher authnDataPublisherProxy = null;
     private SequenceLoader sequenceLoader = null;
-    private JsBaseGraphBuilderFactory jsGraphBuilderFactory;
+    private JsGenericGraphBuilderFactory jsGraphBuilderFactory;
     private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
     private List<PostAuthenticationHandler> postAuthenticationHandlers = new ArrayList<>();
     private PostAuthenticationMgtService postAuthenticationMgtService = null;
@@ -284,10 +285,23 @@ public class FrameworkServiceDataHolder {
 
     public JsBaseGraphBuilderFactory getJsGraphBuilderFactory() {
 
+        if (jsGraphBuilderFactory instanceof JsBaseGraphBuilderFactory) {
+            return (JsBaseGraphBuilderFactory) jsGraphBuilderFactory;
+        }
+        return null;
+    }
+
+    public JsGenericGraphBuilderFactory getJsGenericGraphBuilderFactory() {
+
         return jsGraphBuilderFactory;
     }
 
     public void setJsGraphBuilderFactory(JsBaseGraphBuilderFactory jsGraphBuilderFactory) {
+
+        this.jsGraphBuilderFactory = jsGraphBuilderFactory;
+    }
+
+    public void setJsGenericGraphBuilderFactory(JsGenericGraphBuilderFactory jsGraphBuilderFactory) {
 
         this.jsGraphBuilderFactory = jsGraphBuilderFactory;
     }

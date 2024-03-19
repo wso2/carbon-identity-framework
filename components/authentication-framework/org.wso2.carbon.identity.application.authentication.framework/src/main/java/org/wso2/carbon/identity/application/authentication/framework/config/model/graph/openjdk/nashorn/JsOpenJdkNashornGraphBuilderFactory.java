@@ -48,7 +48,7 @@ import javax.script.ScriptEngine;
 /**
  * Factory to create a Javascript based sequence builder.
  * This factory is there to reuse of Open JDk Nashorn engine and any related expnsive objects.
- *
+ * <p>
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
 public class JsOpenJdkNashornGraphBuilderFactory implements JsBaseGraphBuilderFactory {

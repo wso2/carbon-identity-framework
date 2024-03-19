@@ -21,10 +21,15 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperBaseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornCookie;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornHeaders;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornRuntimeClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornStep;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornSteps;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn.JsOpenJdkNashornWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
@@ -53,6 +58,13 @@ public class JsOpenJdkNashornWrapperFactory implements JsWrapperBaseFactory {
                                                              AuthenticatedUser authenticatedUser) {
 
         return new JsOpenJdkNashornAuthenticatedUser(authenticationContext, authenticatedUser);
+    }
+
+    @Override
+    public JsOpenJdkNashornAuthenticatedUser createJsAuthenticatedUser(AuthenticationContext context,
+                                                             AuthenticatedUser wrappedUser, int step, String idp) {
+
+        return new JsOpenJdkNashornAuthenticatedUser(context, wrappedUser, step, idp);
     }
 
     @Override
@@ -91,5 +103,50 @@ public class JsOpenJdkNashornWrapperFactory implements JsWrapperBaseFactory {
             (TransientObjectWrapper<HttpServletResponse> wrapped) {
 
         return new JsOpenJdkNashornServletResponse(wrapped);
+    }
+
+    @Override
+    public JsOpenJdkNashornClaims createJsClaims(AuthenticationContext context, int step, String idp,
+                                       boolean isRemoteClaimRequest) {
+
+        return new JsOpenJdkNashornClaims(context, step, idp, isRemoteClaimRequest);
+    }
+
+    @Override
+    public JsOpenJdkNashornClaims createJsClaims(AuthenticationContext context, AuthenticatedUser user,
+                                       boolean isRemoteClaimRequest) {
+
+        return new JsOpenJdkNashornClaims(context, user, isRemoteClaimRequest);
+    }
+
+    @Override
+    public JsOpenJdkNashornRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, int step, String idp) {
+
+        return new JsOpenJdkNashornRuntimeClaims(context, step, idp);
+    }
+
+    @Override
+    public JsOpenJdkNashornRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
+
+        return new JsOpenJdkNashornRuntimeClaims(context, user);
+    }
+
+    @Override
+    public JsOpenJdkNashornStep createJsStep(AuthenticationContext context, int step, String authenticatedIdp,
+                                   String authenticatedAuthenticator) {
+
+        return new JsOpenJdkNashornStep(context, step, authenticatedIdp, authenticatedAuthenticator);
+    }
+
+    @Override
+    public JsOpenJdkNashornHeaders createJsHeaders(Map wrapped, HttpServletResponse response) {
+
+        return new JsOpenJdkNashornHeaders(wrapped, response);
+    }
+
+    @Override
+    public JsOpenJdkNashornSteps createJsSteps(AuthenticationContext context) {
+
+        return new JsOpenJdkNashornSteps(context);
     }
 }

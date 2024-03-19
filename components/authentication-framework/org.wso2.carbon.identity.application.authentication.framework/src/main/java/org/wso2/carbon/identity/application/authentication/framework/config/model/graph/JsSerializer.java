@@ -24,11 +24,13 @@ import javax.script.ScriptEngine;
 
 /**
  * Interface for serializer class supports Multiple JS Engines.
+ *
  */
-public interface JsSerializer {
+public interface JsSerializer extends JsGenericSerializer<ScriptEngine> {
 
     /**
      * Serialize the object using selected serializable function.
+     *
      * @param value Object to evaluate.
      * @return Serialized Object.
      */
@@ -36,7 +38,8 @@ public interface JsSerializer {
 
     /**
      * De-Serialize the object using selected serializable function.
-     * @param value Serialized Object.
+     *
+     * @param value  Serialized Object.
      * @param engine Js Engine.
      * @return De-Serialize object.
      * @throws FrameworkException FrameworkException.

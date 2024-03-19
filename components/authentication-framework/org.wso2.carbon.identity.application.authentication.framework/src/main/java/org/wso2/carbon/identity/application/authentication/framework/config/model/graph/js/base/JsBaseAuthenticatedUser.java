@@ -18,15 +18,19 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
 
+import org.graalvm.polyglot.HostAccess;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 /**
  * Interface for JavaScript Authenticated User Wrapper.
  */
+@HostAccess.Implementable
 public interface JsBaseAuthenticatedUser {
 
     /**
      * @return Wrapped Authenticated User
      */
     AuthenticatedUser getWrapped();
+    AuthenticationContext getContext();
 }
