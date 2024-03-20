@@ -54,7 +54,6 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.isEnabl
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiatorId;
-import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiatorIdForGet;
 
 /**
  * This v2 audit logger logs the User Management success activities.
@@ -218,9 +217,9 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             dataObject.put(CLAIM_VALUE_FIELD, new JSONArray(claimValue));
         }
         dataObject.put(PROFILE_FIELD, profileName);
-        Optional<String> initiatorId = getInitiatorIdForGet();
-        if (initiatorId.isPresent()) {
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId.get(),
+        String initiatorId = getInitiatorId();
+        if (!initiatorId.equals(LoggerUtils.Initiator.System.name())) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId,
                     LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
                     GET_USER_CLAIM_VALUE_ACTION).data(jsonObjectToMap(dataObject));
             triggerAuditLogEvent(auditLogBuilder);
@@ -240,9 +239,9 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             maskClaimsInAuditLog(claimMap, dataObject);
         }
         dataObject.put(PROFILE_FIELD, profileName);
-        Optional<String> initiatorId = getInitiatorIdForGet();
-        if (initiatorId.isPresent()) {
-            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId.get(),
+        String initiatorId = getInitiatorId();
+        if (!initiatorId.equals(LoggerUtils.Initiator.System.name())) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId,
                     LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
                     GET_USER_CLAIM_VALUES_ACTION).data(jsonObjectToMap(dataObject));
             triggerAuditLogEvent(auditLogBuilder);

@@ -169,21 +169,6 @@ public class ListenerUtils {
     }
 
     /**
-     * Get the initiator for audit logs get operations.
-     *
-     * @return Initiator id despite masking.
-     */
-    public static Optional<String> getInitiatorIdForGet() {
-
-        String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
-        String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
-        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
-            return Optional.ofNullable(IdentityUtil.getInitiatorId(username, tenantDomain));
-        }
-        return Optional.empty();
-    }
-
-    /**
      * Get the initiator for audit logs.
      *
      * @return Initiator based on whether log masking is enabled or not.
