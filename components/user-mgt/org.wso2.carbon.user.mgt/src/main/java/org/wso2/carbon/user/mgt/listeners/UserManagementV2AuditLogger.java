@@ -33,7 +33,6 @@ import org.wso2.carbon.utils.AuditLog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_USER_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.CLAIMS_FIELD;
