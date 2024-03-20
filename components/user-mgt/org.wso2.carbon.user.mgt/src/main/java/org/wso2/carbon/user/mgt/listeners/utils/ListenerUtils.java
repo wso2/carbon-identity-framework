@@ -27,9 +27,6 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import javax.swing.text.html.Option;
-import java.util.Optional;
-
 /**
  * Utility class that handles the relevant utility tasks of listeners.
  */
