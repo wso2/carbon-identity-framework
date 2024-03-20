@@ -274,6 +274,11 @@
         <TokenPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</TokenPersistenceProcessor>
         {% endif %}
 
+         <!-- To invoke token revocation events when renewing access token. -->
+         {% if oauth.access_token.invoke_token_revocation_event_on_renewal is defined %}
+         <InvokeTokenRevocationEventOnRenewal>{{oauth.access_token.invoke_token_revocation_event_on_renewal}}</InvokeTokenRevocationEventOnRenewal>
+         {% endif %}
+
         <HashAlgorithm>{{oauth.hash_token_algorithm}}</HashAlgorithm>
         <!-- This should be true if the oauth keys (consumer secret, access token, refresh token and authorization code) need to be hashed,
              before storing them in the database. If the value is false, the oauth keys will be saved in a plain text format.
