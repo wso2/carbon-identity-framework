@@ -90,8 +90,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVA
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.PERMISSION_ALREADY_ADDED;
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.SORTING_NOT_IMPLEMENTED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
@@ -279,9 +277,7 @@ public class RoleDAOImpl implements RoleDAO {
                         String.format(errorMessage, roleName, tenantDomain), e);
             }
         } else {
-            throw new IdentityRoleManagementClientException(ROLE_ALREADY_EXISTS.getCode(),
-                    "Role already exist for the role name: " + roleName + " audience: " + audience + " audienceId: "
-                            + audienceId);
+            roleId = getRoleIdByName(roleName, audience, audienceId, tenantDomain);
         }
         return new RoleBasicInfo(roleId, roleName);
     }
@@ -1808,20 +1804,21 @@ public class RoleDAOImpl implements RoleDAO {
         if (permissions == null || permissions.isEmpty()) {
             return;
         }
-        checkPermissionsAlreadyAdded(roleId, permissions, tenantDomain, connection);
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_SCOPE_SQL)) {
-            for (Permission permission : permissions) {
-                statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
-                statement.setString(RoleConstants.RoleTableColumns.SCOPE_NAME, permission.getName());
-                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID,
-                        IdentityTenantUtil.getTenantId(tenantDomain));
-                statement.addBatch();
+        if (!checkPermissionsAlreadyAdded(roleId, permissions, tenantDomain, connection)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_SCOPE_SQL)) {
+                for (Permission permission : permissions) {
+                    statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
+                    statement.setString(RoleConstants.RoleTableColumns.SCOPE_NAME, permission.getName());
+                    statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID,
+                            IdentityTenantUtil.getTenantId(tenantDomain));
+                    statement.addBatch();
+                }
+                statement.executeBatch();
+            } catch (SQLException e) {
+                String errorMessage = "Error while adding permissions to roleId : " + roleId;
+                throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                        errorMessage, e);
             }
-            statement.executeBatch();
-        } catch (SQLException e) {
-            String errorMessage = "Error while adding permissions to roleId : " + roleId;
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    errorMessage, e);
         }
     }
 
@@ -1834,16 +1831,18 @@ public class RoleDAOImpl implements RoleDAO {
      * @param connection   DB connection.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private void checkPermissionsAlreadyAdded(String roleId, List<Permission> permissions, String tenantDomain,
+    private boolean checkPermissionsAlreadyAdded(String roleId, List<Permission> permissions, String tenantDomain,
                                               Connection connection) throws IdentityRoleManagementException {
 
         List<String> alreadyAddedPermissions = getPermissionNames(roleId, tenantDomain, connection);
         for (Permission permission : permissions) {
             if (alreadyAddedPermissions.contains(permission.getName())) {
-                throw new IdentityRoleManagementClientException(PERMISSION_ALREADY_ADDED.getCode(),
-                        "Permission: " + permission.getName() + " already assigned to role : " + roleId);
+//                throw new IdentityRoleManagementClientException(PERMISSION_ALREADY_ADDED.getCode(),
+//                        "Permission: " + permission.getName() + " already assigned to role : " + roleId);
+                return true;
             }
         }
+        return false;
     }
 
     /**

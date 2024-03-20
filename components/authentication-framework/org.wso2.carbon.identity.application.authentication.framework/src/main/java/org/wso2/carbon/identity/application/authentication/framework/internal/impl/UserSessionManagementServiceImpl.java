@@ -503,6 +503,25 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
     }
 
+    @Override
+    public boolean terminateSessionBySessionId(String sessionId) throws SessionManagementException {
+
+        if (StringUtils.isBlank(sessionId)) {
+            throw handleSessionManagementClientException(ERROR_CODE_INVALID_SESSION, null);
+        }
+
+        if (isUserSessionMappingExist(sessionId)) {
+
+            sessionManagementService.removeSession(sessionId);
+            List<String> sessionIdList = new ArrayList<>();
+            sessionIdList.add(sessionId);
+            UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
+            return true;
+        } else {
+            throw handleSessionManagementClientException(ERROR_CODE_FORBIDDEN_ACTION, "");
+        }
+    }
+
     /**
      * Returns the user session of the given session id.
      *
@@ -617,6 +636,25 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             isUserAuthorized = UserSessionStore.getInstance().isExistingMapping(userId, sessionId);
         } catch (UserSessionException e) {
             throw handleSessionManagementServerException(ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, userId, e);
+        }
+        return isUserAuthorized;
+    }
+
+    /**
+     * This method validates the session that is going to be deleted actually belongs to the provided user identified
+     * by the user id.
+     *
+     * @param sessionId id of the session
+     * @return true/false whether the user is authorized for the action
+     * @throws SessionManagementServerException if an error occurs while validating the user.
+     */
+    private boolean isUserSessionMappingExist(String sessionId) throws SessionManagementServerException {
+
+        boolean isUserAuthorized;
+        try {
+            isUserAuthorized = UserSessionStore.getInstance().isExistingMapping(sessionId);
+        } catch (UserSessionException e) {
+            throw handleSessionManagementServerException(ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, "", e);
         }
         return isUserAuthorized;
     }

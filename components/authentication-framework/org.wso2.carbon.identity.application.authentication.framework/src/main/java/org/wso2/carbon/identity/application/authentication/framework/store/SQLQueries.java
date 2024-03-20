@@ -69,6 +69,8 @@ public class SQLQueries {
     public static final String SQL_SELECT_USER_SESSION_MAP =
             "SELECT * FROM IDN_AUTH_USER_SESSION_MAPPING WHERE USER_ID =? AND SESSION_ID =?";
 
+    public static final String SQL_SELECT_USER_SESSION_MAP_BY_SESSION_ID =
+            "SELECT * FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID =?";
     /**
      * Query to retrieve IdP Id of a registered IdP.
      */
