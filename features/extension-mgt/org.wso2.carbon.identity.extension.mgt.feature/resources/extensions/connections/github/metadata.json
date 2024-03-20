@@ -105,7 +105,7 @@
             },
             {
                 "key": "scope",
-                "value": "user:email,read:user"
+                "value": "user:email read:user"
             },
             {
                 "key": "UsePrimaryEmail",
