@@ -854,11 +854,12 @@ public class FrameworkServiceComponent {
 
         try {
             ClassLoader loader = FrameworkServiceComponent.class.getClassLoader();
-            InputStream resourceStream = loader.getResourceAsStream("js/require.js");
-            requireCode = IOUtils.toString(resourceStream);
-            FrameworkServiceDataHolder.getInstance().setCodeForRequireFunction(requireCode);
+            try (InputStream resourceStream = loader.getResourceAsStream("js/require.js")) {
+                requireCode = IOUtils.toString(resourceStream);
+                FrameworkServiceDataHolder.getInstance().setCodeForRequireFunction(requireCode);
+            }
         } catch (IOException e) {
-            log.error("Failed to read require.js file. Therefore, require() function doesn't support in" +
+            log.error("Failed to read require.js file. Therefore, require() function doesn't support in " +
                     "adaptive authentication scripts.", e);
         }
     }
