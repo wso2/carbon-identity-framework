@@ -217,7 +217,7 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
         }
         dataObject.put(PROFILE_FIELD, profileName);
         String initiatorId = getInitiatorId();
-        if (!initiatorId.equals(LoggerUtils.Initiator.System.name())) {
+        if (!LoggerUtils.Initiator.System.name().equalsIgnoreCase(initiatorId)) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId,
                     LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
                     GET_USER_CLAIM_VALUE_ACTION).data(jsonObjectToMap(dataObject));
@@ -239,7 +239,7 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
         }
         dataObject.put(PROFILE_FIELD, profileName);
         String initiatorId = getInitiatorId();
-        if (!initiatorId.equals(LoggerUtils.Initiator.System.name())) {
+        if (!LoggerUtils.Initiator.System.name().equalsIgnoreCase(initiatorId)) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId,
                     LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
                     GET_USER_CLAIM_VALUES_ACTION).data(jsonObjectToMap(dataObject));
