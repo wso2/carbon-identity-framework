@@ -1933,10 +1933,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            // Disable external entity processing to prevent XXE attacks.
+            unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             return (ServiceProvider) unmarshaller.unmarshal(new ByteArrayInputStream(
                     spTemplateXml.getBytes(StandardCharsets.UTF_8)));
         } catch (JAXBException e) {
             throw new IdentityApplicationManagementException("Error in reading Service Provider template " +
+                    "configuration ", e);
+        } catch (Exception e) {
+            throw new IdentityApplicationManagementException("Unexpected error in reading Service Provider template " +
                     "configuration ", e);
         }
     }
