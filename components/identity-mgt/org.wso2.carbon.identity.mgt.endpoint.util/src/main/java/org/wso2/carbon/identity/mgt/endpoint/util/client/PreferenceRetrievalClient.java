@@ -59,6 +59,7 @@ public class PreferenceRetrievalClient {
     private static final String SELF_REGISTRATION_PROPERTY = "SelfRegistration.Enable";
     private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     private static final String NOTIFICATION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Notification.Password.Enable";
+    private static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY = "Recovery.Notification.Password.smsOtp.Enable";
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
     private static final String SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY = "SelfRegistration.LockOnCreation";
     private static final String MULTI_ATTRIBUTE_LOGIN_PROPERTY = "account.multiattributelogin.handler.enable";
@@ -142,6 +143,18 @@ public class PreferenceRetrievalClient {
     public boolean checkNotificationBasedPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, RECOVERY_CONNECTOR, NOTIFICATION_PASSWORD_RECOVERY_PROPERTY);
+    }
+
+    /**
+     * Check if SMSOTP based password recovery is enabled or not.
+     *
+     * @param tenant tenant domain name.
+     * @return returns true if  SMSOTP based password recovery is enabled.
+     * @throws PreferenceRetrievalClientException
+     */
+    public boolean checkSMSOTPBasedPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, RECOVERY_CONNECTOR, SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
     }
 
     /**
