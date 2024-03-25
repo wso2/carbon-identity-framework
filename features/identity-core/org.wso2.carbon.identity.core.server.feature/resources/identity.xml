@@ -975,7 +975,7 @@
              Default value : true
              Supported versions : IS 7.0.0 onwards
         -->
-        <UserEndpointMaximumItemsPerPageEnabled>true</UserEndpointMaximumItemsPerPageEnabled>
+        <UserEndpointMaxItemsPerPageEnabled>true</UserEndpointMaxItemsPerPageEnabled>
     </SCIM2>
 
     <!--Recovery>

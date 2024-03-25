@@ -1805,14 +1805,14 @@ public class IdentityUtil {
      *
      * @return If SCIM User Endpoint Maximum Items Per Page is enabled.
      */
-    public static boolean isSCIM2UserEndpointMaximumItemsPerPageEnabled() {
+    public static boolean isSCIM2UserMaxItemsPerPageEnabled() {
 
-        String scim2UserEndpointMaximumItemsPerPageEnabledProperty =
-                IdentityUtil.getProperty(IdentityCoreConstants.SCIM2_USER_ENDPOINT_MAXIMUM_ITEMS_PER_PAGE_ENABLED);
+        String scim2UserMaxItemsPerPageEnabledProperty =
+                IdentityUtil.getProperty(IdentityCoreConstants.SCIM2_USER_MAX_ITEMS_PER_PAGE_ENABLED);
 
-        if (StringUtils.isBlank(scim2UserEndpointMaximumItemsPerPageEnabledProperty)) {
+        if (StringUtils.isBlank(scim2UserMaxItemsPerPageEnabledProperty)) {
             return true;
         }
-        return Boolean.parseBoolean(scim2UserEndpointMaximumItemsPerPageEnabledProperty);
+        return Boolean.parseBoolean(scim2UserMaxItemsPerPageEnabledProperty);
     }
 }
