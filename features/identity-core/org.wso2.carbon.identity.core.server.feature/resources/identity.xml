@@ -968,6 +968,13 @@
           Supported versions : IS 5.10.0 onwards
         -->
         <!--<ConsiderTotalRecordsForTotalResultOfLDAP>false</ConsiderTotalRecordsForTotalResultOfLDAP>-->
+        <!--
+             If you want to remove the limit set for the count query parameter of SCIM2 Users Endpoint then disable this
+             property value.
+
+             Default value : true
+             Supported versions : IS 7.0.0 onwards
+        -->
         <UserEndpointMaximumItemsPerPageEnabled>true</UserEndpointMaximumItemsPerPageEnabled>
     </SCIM2>
 
