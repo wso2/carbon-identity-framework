@@ -1799,4 +1799,20 @@ public class IdentityUtil {
         }
         return userId;
     }
+
+    /**
+     * Read the SCIM User Endpoint Maximum Items Per Page is enabled config and returns it.
+     *
+     * @return If SCIM User Endpoint Maximum Items Per Page is enabled.
+     */
+    public static boolean isSCIM2UserEndpointMaximumItemsPerPageEnabled() {
+
+        String scim2UserEndpointMaximumItemsPerPageEnabledProperty =
+                IdentityUtil.getProperty(IdentityCoreConstants.SCIM2_USER_ENDPOINT_MAXIMUM_ITEMS_PER_PAGE_ENABLED);
+
+        if (StringUtils.isBlank(scim2UserEndpointMaximumItemsPerPageEnabledProperty)) {
+            return true;
+        }
+        return Boolean.parseBoolean(scim2UserEndpointMaximumItemsPerPageEnabledProperty);
+    }
 }

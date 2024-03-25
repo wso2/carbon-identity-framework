@@ -968,7 +968,7 @@
           Supported versions : IS 5.10.0 onwards
         -->
         <!--<ConsiderTotalRecordsForTotalResultOfLDAP>false</ConsiderTotalRecordsForTotalResultOfLDAP>-->
-
+        <UserEndpointMaximumItemsPerPageEnabled>true</UserEndpointMaximumItemsPerPageEnabled>
     </SCIM2>
 
     <!--Recovery>
