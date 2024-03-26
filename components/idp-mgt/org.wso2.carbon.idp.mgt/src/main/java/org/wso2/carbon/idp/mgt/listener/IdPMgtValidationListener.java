@@ -52,7 +52,7 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
             if (StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
                 throw new IdentityProviderManagementException("Cannot delete Resident Identity Provider of Super " +
                         "Tenant");
-            } else if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME != loggedInTenant) {
+            } else if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(loggedInTenant)) {
                 throw new IdentityProviderManagementException("Tenant user of " + loggedInTenant + " cannot delete " +
                         "Resident Identity Provider of tenant " + tenantDomain);
             } else {
