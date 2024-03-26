@@ -35,6 +35,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -254,6 +255,25 @@ public class AuthenticationEndpointUtil {
      */
     public static boolean isValidURL(String urlString) {
 
+        return validateURL(urlString);
+    }
+
+    /**
+     * This method is to validate a multiOptionURI. This will check whether the URL is a proper relative URL and
+     * if it is an absolute URL will validate the host of the URL.
+     * @param urlString URL String.
+     * @return true if valid URL, false otherwise.
+     */
+    public static boolean isValidMultiOptionURI(String urlString) {
+
+        if (validateURL(urlString)) {
+            return validateCallbackURL(urlString);
+        }
+        return false;
+    }
+
+    private static boolean validateURL(String urlString) {
+
         if (StringUtils.isBlank(urlString)) {
             String errorMsg = "Invalid URL.";
             if (log.isDebugEnabled()) {
@@ -279,6 +299,62 @@ public class AuthenticationEndpointUtil {
             return false;
         }
         return true;
+    }
+
+    private static boolean validateCallbackURL(String callbackURL) {
+
+        String authenticationEndpointURL = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+        try {
+            if (isURLRelative(callbackURL)) {
+                /*
+                  If the multiOptionURI is a relative URL, then the URL should start with an alphanumeric character
+                  or a slash followed by an alphanumeric character.
+                 */
+                if (callbackURL.matches("^/?[a-zA-Z0-9].*")) {
+                    return true;
+                } else {
+                    log.error("No valid URL found for the multiOptionURI. URL: " + callbackURL + " is not allowed.");
+                    return false;
+                }
+            } else {
+                String multiOptionURIHostAndPort = getHostAndPort(callbackURL);
+                /*
+                  If the multiOptionURI is an absolute URL, then the host of the multiOptionURI should be
+                  either host of the server or host of the externalized authenticationEndpointURL.
+                 */
+                if (multiOptionURIHostAndPort.equals(getHostAndPort(buildAbsoluteURL("/"))) ||
+                        (!isURLRelative(authenticationEndpointURL) && multiOptionURIHostAndPort
+                                .equals(getHostAndPort(authenticationEndpointURL)))) {
+                    return true;
+                } else {
+                    log.error("No valid host found for the multiOptionURI. URL: " + multiOptionURIHostAndPort +
+                            " is not allowed.");
+                    return false;
+                }
+            }
+        } catch (MalformedURLException | URISyntaxException | URLBuilderException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Extracts the host and port from a given URL string.
+     * If the URL does not specify a port, only the host is returned.
+     *
+     * @param urlString The URL from which to extract the host and port.
+     * @return A string containing the host and, if specified, the port.
+     * @throws MalformedURLException If the given string does not represent a valid URL.
+     */
+    private static String getHostAndPort(String urlString) throws MalformedURLException {
+
+        URL url = new URL(urlString);
+        String host = url.getHost();
+        int port = url.getPort(); // Returns -1 if the port is not explicitly specified in the URL.
+
+        return port == -1 ? host : host + ":" + port;
     }
 
     private static boolean isURLRelative(String uriString) throws URISyntaxException {

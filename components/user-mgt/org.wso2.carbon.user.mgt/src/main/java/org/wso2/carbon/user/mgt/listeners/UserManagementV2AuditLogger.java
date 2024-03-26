@@ -216,10 +216,13 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             dataObject.put(CLAIM_VALUE_FIELD, new JSONArray(claimValue));
         }
         dataObject.put(PROFILE_FIELD, profileName);
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
-                LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
-                GET_USER_CLAIM_VALUE_ACTION).data(jsonObjectToMap(dataObject));
-        triggerAuditLogEvent(auditLogBuilder);
+        String initiatorId = getInitiatorId();
+        if (!LoggerUtils.Initiator.System.name().equalsIgnoreCase(initiatorId)) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId,
+                    LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
+                    GET_USER_CLAIM_VALUE_ACTION).data(jsonObjectToMap(dataObject));
+            triggerAuditLogEvent(auditLogBuilder);
+        }
         return true;
     }
 
@@ -235,10 +238,13 @@ public class UserManagementV2AuditLogger extends AbstractIdentityUserOperationEv
             maskClaimsInAuditLog(claimMap, dataObject);
         }
         dataObject.put(PROFILE_FIELD, profileName);
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
-                LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
-                GET_USER_CLAIM_VALUES_ACTION).data(jsonObjectToMap(dataObject));
-        triggerAuditLogEvent(auditLogBuilder);
+        String initiatorId = getInitiatorId();
+        if (!LoggerUtils.Initiator.System.name().equalsIgnoreCase(initiatorId)) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(initiatorId,
+                    LoggerUtils.getInitiatorType(getInitiatorId()), userId, LoggerUtils.Target.User.name(),
+                    GET_USER_CLAIM_VALUES_ACTION).data(jsonObjectToMap(dataObject));
+            triggerAuditLogEvent(auditLogBuilder);
+        }
         return true;
     }
 

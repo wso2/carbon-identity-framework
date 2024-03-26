@@ -104,6 +104,9 @@ public class IdentityCoreConstants {
     public static final String MICROSOFT = "Microsoft";
     public static final String S_MICROSOFT = "microsoft";
 
+    // SCIM2 constants.
+    public static final String SCIM2_USER_MAX_ITEMS_PER_PAGE_ENABLED = "SCIM2.UserEndpointMaxItemsPerPageEnabled";
+
     public static class Filter {
 
         public static final String AND = "and";

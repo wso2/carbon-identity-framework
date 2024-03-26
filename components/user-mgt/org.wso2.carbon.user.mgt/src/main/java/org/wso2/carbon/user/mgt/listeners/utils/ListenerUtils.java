@@ -148,7 +148,7 @@ public class ListenerUtils {
      * @return Initiator id despite masking.
      */
     public static String getInitiatorId() {
-        //todo: refactor this method to see if we return optional if we dont get an ID instead of returning system init.
+
         String initiator = null;
         String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
         String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
