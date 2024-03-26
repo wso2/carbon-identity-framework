@@ -589,6 +589,8 @@
   "event.default_listener.user_management_v2_audit_logger.enable": true,
   "event.default_listener.role_management_v2_audit_logger.priority": "3",
   "event.default_listener.role_management_v2_audit_logger.enable": true,
+  "event.default_listener.group_management_v2_audit_logger.priority": "10",
+  "event.default_listener.group_management_v2_audit_logger.enable": true,
 
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,

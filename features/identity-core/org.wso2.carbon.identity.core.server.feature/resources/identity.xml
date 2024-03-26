@@ -1305,6 +1305,10 @@
                        name="org.wso2.carbon.user.mgt.listeners.UserManagementV2AuditLogger"
                        orderId="150" enable="true"/>
 
+        <EventListener type="org.wso2.carbon.user.core.listener.GroupOperationEventListener"
+                       name="org.wso2.carbon.user.mgt.listeners.GroupManagementV2AuditLogger"
+                       orderId="10" enable="true"/>
+
         <EventListener type="org.wso2.carbon.identity.role.v2.mgt.core.listener"
                        name="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementV2AuditLogger"
                        orderId="3" enable="true"/>
