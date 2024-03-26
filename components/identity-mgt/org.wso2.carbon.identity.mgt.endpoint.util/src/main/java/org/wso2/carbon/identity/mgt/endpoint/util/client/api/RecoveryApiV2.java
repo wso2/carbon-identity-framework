@@ -29,9 +29,13 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.Configuration;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.Pair;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.AccountRecoveryType;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.ConfirmRequest;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.ConfirmResponse;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.RecoveryInitRequest;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.RecoveryRequest;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.RecoveryResponse;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.ResendRequest;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.ResendResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,6 +102,38 @@ public class RecoveryApiV2 {
 
         String localVarPath = "/password/recover".replaceAll("\\{format\\}", "json");
         return recover(recoveryRequest, tenantDomain, headers, localVarPath);
+    }
+
+    /**
+     * Resend password recovery confirmation details.
+     *
+     * @param resendRequest   Resend request. (required)
+     * @param tenantDomain      Tenant Domain which user belongs. Default "carbon.super" (optional)
+     * @param headers           Any additional headers to be embedded. (optional)
+     * @return Resend response.
+     * @throws ApiException If fails to make API call.
+     */
+    public ResendResponse resendPasswordNotification(ResendRequest resendRequest, String tenantDomain,
+                                                     Map<String, String> headers) throws ApiException {
+
+        String localVarPath = "/password/resend".replaceAll("\\{format\\}", "json");
+        return resend(resendRequest, tenantDomain, headers, localVarPath);
+    }
+
+    /**
+     * Confirm password recovery.
+     *
+     * @param confirmRequest   Password recovery confirm request. (required)
+     * @param tenantDomain      Tenant Domain which user belongs. Default "carbon.super" (optional)
+     * @param headers           Any additional headers to be embedded. (optional)
+     * @return Confirm response.
+     * @throws ApiException If fails to make API call.
+     */
+    public ConfirmResponse confirmPasswordRecovery(ConfirmRequest confirmRequest, String tenantDomain,
+                                                     Map<String, String> headers) throws ApiException {
+
+        String localVarPath = "/password/confirm".replaceAll("\\{format\\}", "json");
+        return confirm(confirmRequest, tenantDomain, headers, localVarPath);
     }
 
     /**
@@ -190,6 +226,76 @@ public class RecoveryApiV2 {
         GenericType<RecoveryResponse> localVarReturnType = new GenericType<RecoveryResponse>() {
         };
         return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody,
+                localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames,
+                localVarReturnType);
+    }
+
+    private ResendResponse resend(ResendRequest resendRequest, String tenantDomain, Map<String, String> headers,
+                                  String localVarPath) throws ApiException {
+
+        // Verify if the required parameter 'recoveryRequest' is set.
+        if (resendRequest == null) {
+            throw new ApiException(400, "Missing the required parameter 'resendRequest' when requesting recovery");
+        }
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        if (MapUtils.isNotEmpty(headers)) {
+            localVarHeaderParams.putAll(headers);
+        }
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+        final String[] localVarAccepts = {
+                "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        final String[] localVarContentTypes = {
+                "application/json"
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        String[] localVarAuthNames = new String[]{};
+        GenericType<ResendResponse> localVarReturnType = new GenericType<ResendResponse>() {
+        };
+        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, resendRequest,
+                localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames,
+                localVarReturnType);
+    }
+
+    private ConfirmResponse confirm(ConfirmRequest confirmRequest, String tenantDomain, Map<String, String> headers,
+                                   String localVarPath) throws ApiException {
+
+        // Verify if the required parameter 'recoveryRequest' is set.
+        if (confirmRequest == null) {
+            throw new ApiException(400, "Missing the required parameter 'confirmRequest' when requesting recovery");
+        }
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        if (MapUtils.isNotEmpty(headers)) {
+            localVarHeaderParams.putAll(headers);
+        }
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+        final String[] localVarAccepts = {
+                "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        final String[] localVarContentTypes = {
+                "application/json"
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        String[] localVarAuthNames = new String[]{};
+        GenericType<ConfirmResponse> localVarReturnType = new GenericType<ConfirmResponse>() {
+        };
+        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, confirmRequest,
                 localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames,
                 localVarReturnType);
     }

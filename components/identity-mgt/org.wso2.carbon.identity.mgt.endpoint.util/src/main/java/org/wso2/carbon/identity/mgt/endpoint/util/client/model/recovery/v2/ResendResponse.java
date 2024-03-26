@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Response to username/password recovery request.
- */
-public class RecoveryResponse {
+ * Response to resend recovery code request.
+ **/
+public class ResendResponse {
 
 
     private String code;
@@ -41,17 +41,22 @@ public class RecoveryResponse {
     /**
      * Success status code.
      **/
-    public RecoveryResponse code(String code) {
+    public ResendResponse code(String code) {
 
         this.code = code;
         return this;
     }
+
 
     @JsonProperty("code")
     public String getCode() {
 
         return code;
     }
+
+    /**
+     * Set code
+     **/
     public void setCode(String code) {
 
         this.code = code;
@@ -59,100 +64,160 @@ public class RecoveryResponse {
 
     /**
      * Success status message.
-     **/
-    public RecoveryResponse message(String message) {
+     * @param message message
+     * @return ResendResponse
+     */
+    public ResendResponse message(String message) {
 
         this.message = message;
         return this;
     }
 
+    /**
+     * Get message
+     * @return message
+     */
     @JsonProperty("message")
     public String getMessage() {
 
         return message;
     }
+
+    /**
+     * Set message
+     * @param message message
+     */
     public void setMessage(String message) {
 
         this.message = message;
     }
 
     /**
-     * Recovery flow confirmation code.
-     **/
-    public RecoveryResponse flowConfirmationCode(String flowConfirmationCode) {
+     * Confirmation code of the recovery flow.
+     * @param flowConfirmationCode flowConfirmationCode
+     * @return ResendResponse
+     */
+    public ResendResponse flowConfirmationCode(String flowConfirmationCode) {
 
         this.flowConfirmationCode = flowConfirmationCode;
         return this;
     }
 
+    /**
+     * Get flowConfirmationCode
+     * @return flowConfirmationCode
+     */
     @JsonProperty("flowConfirmationCode")
     public String getFlowConfirmationCode() {
 
         return flowConfirmationCode;
     }
+
+    /**
+     * Set flowConfirmationCode
+     * @param flowConfirmationCode flowConfirmationCode
+     */
     public void setFlowConfirmationCode(String flowConfirmationCode) {
 
-        this.flowConfirmationCode = flowConfirmationCode;
+        this.message = flowConfirmationCode;
     }
 
     /**
-     * Channel that is used to send recovery information.
-     **/
-    public RecoveryResponse notificationChannel(String notificationChannel) {
+     * Set the notification channel that user prefers to get recovery notifications.
+     * @param notificationChannel notificationChannel
+     * @return ResendResponse
+     */
+    public ResendResponse notificationChannel(String notificationChannel) {
 
         this.notificationChannel = notificationChannel;
         return this;
     }
 
+    /**
+     * Get notificationChannel
+     * @return notificationChannel
+     */
     @JsonProperty("notificationChannel")
     public String getNotificationChannel() {
 
         return notificationChannel;
     }
+
+    /**
+     * Set notificationChannel
+     * @param notificationChannel notificationChannel
+     */
     public void setNotificationChannel(String notificationChannel) {
 
         this.notificationChannel = notificationChannel;
     }
 
     /**
-     * Code to resend the confirmation code to the user via user selected channel.
-     **/
-    public RecoveryResponse resendCode(String resendCode) {
+     * Code to resend the notification to the user via user selected channel.
+     * @param resendCode resendCode
+     * @return ResendResponse
+     */
+    public ResendResponse resendCode(String resendCode) {
 
         this.resendCode = resendCode;
         return this;
     }
 
+    /**
+     * Get resendCode
+     * @return resendCode
+     */
     @JsonProperty("resendCode")
     public String getResendCode() {
 
         return resendCode;
     }
+
+    /**
+     * Set resendCode
+     * @param resendCode resendCode
+     */
     public void setResendCode(String resendCode) {
 
         this.resendCode = resendCode;
     }
 
     /**
-     * Contains available api calls.
-     **/
-    public RecoveryResponse links(List<APICall> links) {
+     * Links for next requests.
+     * @param links links
+     * @return ResendResponse
+     */
+    public ResendResponse links(List<APICall> links) {
 
         this.links = links;
         return this;
     }
 
+    /**
+     * Get links
+     * @return links
+     */
     @JsonProperty("links")
     public List<APICall> getLinks() {
 
         return links;
     }
+
+    /**
+     * Set links
+     * @param links links
+     */
     public void setLinks(List<APICall> links) {
 
         this.links = links;
     }
 
-    public RecoveryResponse addLinksItem(APICall linksItem) {
+    /**
+     * Add linksItem
+     * @param linksItem linksItem
+     * @return ResendResponse
+     */
+    public ResendResponse addLinksItem(APICall linksItem) {
         if (this.links == null) {
             this.links = new ArrayList<>();
         }
@@ -169,10 +234,9 @@ public class RecoveryResponse {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RecoveryResponse passwordRecoveryInternalNotifyResponse = (RecoveryResponse) o;
+        ResendResponse passwordRecoveryInternalNotifyResponse = (ResendResponse) o;
         return Objects.equals(this.code, passwordRecoveryInternalNotifyResponse.code) &&
                 Objects.equals(this.message, passwordRecoveryInternalNotifyResponse.message) &&
-                Objects.equals(this.flowConfirmationCode, passwordRecoveryInternalNotifyResponse.flowConfirmationCode) &&
                 Objects.equals(this.notificationChannel, passwordRecoveryInternalNotifyResponse.notificationChannel) &&
                 Objects.equals(this.resendCode, passwordRecoveryInternalNotifyResponse.resendCode) &&
                 Objects.equals(this.links, passwordRecoveryInternalNotifyResponse.links);
@@ -181,23 +245,19 @@ public class RecoveryResponse {
     @Override
     public int hashCode() {
 
-        return Objects.hash(code, message, flowConfirmationCode, notificationChannel, resendCode, links);
+        return Objects.hash(code, message, notificationChannel, resendCode, links);
     }
 
     @Override
     public String toString() {
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("class RecoveryResponse {\n");
-
-        sb.append("    code: ").append(toIndentedString(code)).append("\n");
-        sb.append("    message: ").append(toIndentedString(message)).append("\n");
-        sb.append("    flowConfirmationCode: ").append(toIndentedString(flowConfirmationCode)).append("\n");
-        sb.append("    notificationChannel: ").append(toIndentedString(notificationChannel)).append("\n");
-        sb.append("    resendCode: ").append(toIndentedString(resendCode)).append("\n");
-        sb.append("    links: ").append(toIndentedString(links)).append("\n");
-        sb.append("}");
-        return sb.toString();
+        return "class ResendResponse {\n" +
+                "    code: " + toIndentedString(code) + "\n" +
+                "    message: " + toIndentedString(message) + "\n" +
+                "    notificationChannel: " + toIndentedString(notificationChannel) + "\n" +
+                "    resendCode: " + toIndentedString(resendCode) + "\n" +
+                "    links: " + toIndentedString(links) + "\n" +
+                "}";
     }
 
     /**
@@ -209,6 +269,8 @@ public class RecoveryResponse {
         if (o == null) {
             return "null";
         }
-        return o.toString().replace("\n", "\n");
+        return o.toString().replace("\n", "\n    ");
     }
+
+
 }
