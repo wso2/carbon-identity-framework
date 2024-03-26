@@ -52,6 +52,7 @@ import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiato
  */
 public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperationEventListener {
 
+    @Override
     public boolean isEnable() {
 
         if (super.isEnable()) {
