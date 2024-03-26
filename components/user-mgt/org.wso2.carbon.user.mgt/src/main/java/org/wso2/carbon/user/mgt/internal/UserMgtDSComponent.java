@@ -141,9 +141,7 @@ public class UserMgtDSComponent {
             if (serviceRegistration == null) {
                 log.error("Error while registering GroupManagementV2AuditLogger.");
             } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("GroupManagementV2AuditLogger successfully registered.");
-                }
+                log.debug("GroupManagementV2AuditLogger successfully registered.");
             }
 
             serviceRegistration = ctxt.getBundleContext()
