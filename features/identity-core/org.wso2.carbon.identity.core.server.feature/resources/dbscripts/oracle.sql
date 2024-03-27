@@ -2027,7 +2027,7 @@ CREATE OR REPLACE TRIGGER IDN_ORG_USER_INVITE_ASSIGNMENT_TRIG
             REFERENCING NEW AS NEW
             FOR EACH ROW
             BEGIN
-                SELECT IDN_ORG_USER_INVITE_ASSIGNMENT.nextval INTO :NEW.ID FROM dual;
+                SELECT IDN_ORG_USER_INVITE_ASSIGNMENT_SEQ.nextval INTO :NEW.ID FROM dual;
             END;
 /
 -- --------------------------- INDEX CREATION -----------------------------
