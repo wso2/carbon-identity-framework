@@ -22,7 +22,7 @@
         "idpIssuerName": "",
         "claims": {
             "userIdClaim": {
-                "uri": "email"
+                "uri": "http://wso2.org/claims/username"
             },
             "roleClaim": {
                 "uri": "http://wso2.org/claims/role"
