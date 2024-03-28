@@ -1643,6 +1643,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('132b0ee6-43e0-462d-8b4b-15b68109d71d', 'ORGANIZATION_CONFIGURATION', 'A resource type to keep the organization configurations.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('1fc809a0-dc0d-4cb2-82f3-58934d389236', 'CUSTOM_TEXT', 'A resource type to keep the tenant custom text preferences.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('c385a42a-5697-4604-b49a-62456621e926', 'DCR_CONFIGURATION', 'A resource type to keep the DCR configurations.')
 SELECT 1 FROM dual
 /
 
