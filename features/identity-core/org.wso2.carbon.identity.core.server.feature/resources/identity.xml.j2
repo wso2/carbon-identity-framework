@@ -3637,12 +3637,23 @@
     {% endif %}
 
     <!-- This configuration specifies the claims that should be logged to "audit.log" upon changes. -->
-    {% if audit.log.loggable_user_claim|length %}
-    <LoggableUserClaims>
-        {% for claim in audit.log.loggable_user_claim %}
-        <LoggableUserClaim>{{claim}}</LoggableUserClaim>
-        {% endfor %}
-    </LoggableUserClaims>
+    {% if audit.log.loggable_user_claim is defined %}
+        {% if audit.log.loggable_user_claim.claims is defined %}
+            <LoggableUserClaims>
+                {% for claim in audit.log.loggable_user_claim.claims %}
+                    <LoggableUserClaim>{{ claim }}</LoggableUserClaim>
+                {% endfor %}
+            </LoggableUserClaims>
+        {% endif %}
+        {% if audit.log.loggable_user_claim|length > 0 %}
+            <LoggableUserClaims>
+                {% for key, value in audit.log.loggable_user_claim.items() %}
+                    {% if key != 'claims' %}
+                        <LoggableUserClaim>{{ value }}</LoggableUserClaim>
+                    {% endif %}
+                {% endfor %}
+            </LoggableUserClaims>
+        {% endif %}
     {% endif %}
 
      <!-- This configuration specifies enabling contextual param for audit logs. -->

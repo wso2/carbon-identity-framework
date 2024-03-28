@@ -35,6 +35,8 @@ public class LogConstants {
     public static final String MASKING_CHARACTER = "*";
     public static final String ENABLE_LOG_MASKING = "MaskingLogs.Enabled";
     public static final Pattern LOG_MASKING_PATTERN = Pattern.compile("(?<=.).(?=.)");
+    public static final String LOGGABLE_USER_CLAIMS = "LoggableUserClaims.LoggableUserClaim";
+
 
     /**
      * Define common and reusable Input keys for diagnostic logs.
