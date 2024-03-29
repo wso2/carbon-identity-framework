@@ -1464,7 +1464,9 @@
                 <ClaimURI>{{claimuri}}</ClaimURI>
             {% endfor %}
         </IndelibleClaims>
-
+        <AllowAssociatingToExistingUser>
+            {{authentication.jit_provisioning.associating_to_existing_user | default(true)}}
+        </AllowAssociatingToExistingUser>
     </JITProvisioning>
 
     <!--Application management service configurations-->
