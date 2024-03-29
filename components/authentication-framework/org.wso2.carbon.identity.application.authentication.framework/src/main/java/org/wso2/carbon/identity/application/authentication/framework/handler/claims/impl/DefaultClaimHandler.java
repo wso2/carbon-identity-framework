@@ -953,8 +953,8 @@ public class DefaultClaimHandler implements ClaimHandler {
                         authenticatedUser.getLoggableUserId() + " in " + tenantDomain, e);
             }
         } catch (UserIdNotFoundException e) {
-            throw new FrameworkException("User id is not available for user: " + authenticatedUser.getLoggableUserId(),
-                    e);
+            throw new FrameworkException("User id is not available for user: " +
+                    authenticatedUser.getLoggableMaskedUserId(), e);
         }
         return allLocalClaims;
     }
@@ -1133,7 +1133,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             log.error("Error occurred while retrieving " + subjectURI + " claim value for user "
                             + authenticatedUser.getLoggableUserId(), e);
         } catch (UserIdNotFoundException e) {
-            log.error("User id is not available for user: " + authenticatedUser.getLoggableUserId(), e);
+            log.error("User id is not available for user: " + authenticatedUser.getLoggableMaskedUserId(), e);
         }
     }
 
