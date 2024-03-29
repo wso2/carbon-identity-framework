@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -83,6 +84,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     private static final String USER_WORKFLOW_ENGAGED_ERROR_CODE = "WFM-10001";
     private static volatile DefaultProvisioningHandler instance;
     private static final String LOCAL_DEFAULT_CLAIM_DIALECT = "http://wso2.org/claims";
+    private static Boolean allowAssociationToExistingUser;
 
     public static DefaultProvisioningHandler getInstance() {
         if (instance == null) {
@@ -154,6 +156,23 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             Map<String, String> userClaims = prepareClaimMappings(attributes);
 
             if (userStoreManager.isExistingUser(username)) {
+                String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
+                        .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
+
+                if (StringUtils.isBlank(associatedUserName)) {
+                    /*
+                     * If a local user is using the same username, association is not allowed unless
+                     * enabled through config.
+                     */
+                    if (isAssociationToExistingUserAllowed()) {
+                        // Associate User
+                        associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+                    } else {
+                        throw new FrameworkException(
+                                FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage(),
+                                FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode(), null);
+                    }
+                }
                 /*
                 Set PROVISIONED_USER thread local property to true, to identify already provisioned
                 user claim update scenario.
@@ -205,12 +224,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                             }
                         }
                     }
-                }
-                String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
-                        .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
-                if (StringUtils.isEmpty(associatedUserName)) {
-                    // Associate User
-                    associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
                 }
             } else {
                 String password = generatePassword();
@@ -684,5 +697,20 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
         }
         return indelibleClaims;
+    }
+
+    /**
+     * Check whether the configuration that allows to associate the existing users is enabled or not.
+     *
+     * @return whether the association of the existing users with the federated users is allowed.
+     */
+    private Boolean isAssociationToExistingUserAllowed() {
+
+        if (allowAssociationToExistingUser == null) {
+            String configValue = IdentityUtil.getProperty(FrameworkConstants.ALLOW_ASSOCIATING_TO_EXISTING_USER);
+            // if the config value is not set, default value is true. This is to preserve existing behavior as default.
+            allowAssociationToExistingUser = StringUtils.isBlank(configValue) || Boolean.parseBoolean(configValue);
+        }
+        return allowAssociationToExistingUser;
     }
 }
