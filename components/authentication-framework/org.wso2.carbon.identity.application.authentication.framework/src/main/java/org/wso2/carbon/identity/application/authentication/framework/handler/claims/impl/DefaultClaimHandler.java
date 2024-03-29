@@ -953,8 +953,8 @@ public class DefaultClaimHandler implements ClaimHandler {
                         authenticatedUser.getLoggableUserId() + " in " + tenantDomain, e);
             }
         } catch (UserIdNotFoundException e) {
-            throw new FrameworkException("User id is not available for user: " + authenticatedUser.getLoggableUserId(),
-                    e);
+            throw new FrameworkException("User id is not available for user: " +
+                    authenticatedUser.getLoggableMaskedUserId(), e);
         }
         return allLocalClaims;
     }
