@@ -360,7 +360,7 @@ public class LoggerUtils {
     /**
      * Get the loggable claim uris.
      *
-     * @return array of loggable claim uris.
+     * @return list of loggable claim uris.
      */
     public static List<String> getLoggableClaimURIs() {
 
@@ -372,7 +372,7 @@ public class LoggerUtils {
             claimsFilters.add((String) configValue);
         }
         if (!claimsFilters.isEmpty()) {
-            // Strip leading and trailing whitespace from each string in the list
+            // Strip leading and trailing whitespace from each string in the list.
             List<String> strippedClaims = new ArrayList<>();
             for (String claim : claimsFilters) {
                 strippedClaims.add(StringUtils.stripToNull(claim));
@@ -380,5 +380,5 @@ public class LoggerUtils {
             return strippedClaims;
         }
         return new ArrayList<>();
-        }
+    }
 }
