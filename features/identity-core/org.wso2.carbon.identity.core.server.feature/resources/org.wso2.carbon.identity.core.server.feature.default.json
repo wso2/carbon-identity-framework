@@ -1467,6 +1467,8 @@
   "cors.supports_credentials": true,
   "cors.max_age": -1,
   "cors.tag_requests": false,
+  "x509.request_header_name": "X-SSL-CERT",
+  "x509.crl_download_timeout": "60000",
   "audit.log.contextual_param.params": [],
   "common_auth_caller_path.enable_common_auth_caller_path_validation": true,
   "authentication.skip_local_user_search_for_authentication_flow_handlers": true,
