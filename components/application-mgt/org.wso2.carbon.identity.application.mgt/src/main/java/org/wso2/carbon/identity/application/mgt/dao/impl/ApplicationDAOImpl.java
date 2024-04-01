@@ -2254,7 +2254,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      */
     private boolean getBooleanValue(String booleanValueAsString) throws SQLException {
 
-        return "1".equals(booleanValueAsString) || "true".equalsIgnoreCase(booleanValueAsString);
+        return ApplicationConstants.BOOLEAN_ONE_AS_STRING.equals(booleanValueAsString) 
+                || ApplicationConstants.BOOLEAN_TRUE_AS_STRING.equalsIgnoreCase(booleanValueAsString);
     }
 
     /**

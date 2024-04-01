@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.LongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.sql.Connection;
@@ -144,6 +145,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
      */
     private boolean getBooleanValue(String booleanValueAsString) throws SQLException {
 
-        return "1".equals(booleanValueAsString) || "true".equalsIgnoreCase(booleanValueAsString);
+        return FrameworkConstants.BOOLEAN_ONE_AS_STRING.equals(booleanValueAsString)
+                || FrameworkConstants.BOOLEAN_TRUE_AS_STRING.equalsIgnoreCase(booleanValueAsString);
     }
 }

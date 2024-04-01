@@ -99,6 +99,9 @@ public class ApplicationConstants {
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
 
+    public static final String BOOLEAN_TRUE_AS_STRING = "true";
+    public static final String BOOLEAN_ONE_AS_STRING = "1";
+
     /**
      * Grouping of constants related to database SP_APP table.
      */
