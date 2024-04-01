@@ -256,6 +256,12 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 if (authenticatorConfig == null) {
                     authenticatorConfig = sequenceConfig.getAuthenticatedReqPathAuthenticator();
                 }
+                // If there is no authenticated authenticator, skip the step.
+                if (authenticatorConfig == null) {
+                    currentStep++;
+                    context.setCurrentStep(currentStep);
+                    continue;
+                }
                 ApplicationAuthenticator authenticator =
                         authenticatorConfig.getApplicationAuthenticator();
 
