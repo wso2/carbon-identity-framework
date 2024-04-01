@@ -1162,7 +1162,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             while (resultSet.next()) {
                 inBoundProvisioningConfig.setProvisioningUserStore(resultSet.getString(1));
-                inBoundProvisioningConfig.setDumbMode("1".equals(resultSet.getString(2)));
+                inBoundProvisioningConfig.setDumbMode(getBooleanValue(resultSet.getString(2)));
             }
 
         } finally {
@@ -1205,19 +1205,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 proConnector = new ProvisioningConnectorConfig();
                 proConnector.setName(resultSet.getString(2));
 
-                if ("1".equals(resultSet.getString(3))) {
+                if (getBooleanValue(resultSet.getString(3))) {
                     JustInTimeProvisioningConfig jitConfig = new JustInTimeProvisioningConfig();
                     jitConfig.setProvisioningEnabled(true);
                     fedIdp.setJustInTimeProvisioningConfig(jitConfig);
                 }
 
-                if ("1".equals(resultSet.getString(4))) {
+                if (getBooleanValue(resultSet.getString(4))) {
                     proConnector.setBlocking(true);
                 } else {
                     proConnector.setBlocking(false);
                 }
 
-                if ("1".equals(resultSet.getString(5))) {
+                if (getBooleanValue(resultSet.getString(5))) {
                     proConnector.setRulesEnabled(true);
                 } else {
                     proConnector.setRulesEnabled(false);
@@ -1817,23 +1817,23 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 ClaimConfig claimConfig = new ClaimConfig();
                 claimConfig.setRoleClaimURI(basicAppDataResultSet.getString(7));
-                claimConfig.setLocalClaimDialect("1".equals(basicAppDataResultSet.getString(10)));
-                claimConfig.setAlwaysSendMappedLocalSubjectId("1".equals(basicAppDataResultSet
-                        .getString(11)));
+                claimConfig.setLocalClaimDialect(getBooleanValue(basicAppDataResultSet.getString(10)));
+                claimConfig.setAlwaysSendMappedLocalSubjectId(getBooleanValue(basicAppDataResultSet.getString(11)));
                 serviceProvider.setClaimConfig(claimConfig);
 
                 LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
                         new LocalAndOutboundAuthenticationConfig();
-                localAndOutboundAuthenticationConfig.setAlwaysSendBackAuthenticatedListOfIdPs("1"
-                        .equals(basicAppDataResultSet.getString(14)));
-                localAndOutboundAuthenticationConfig.setEnableAuthorization("1".equals(basicAppDataResultSet
-                        .getString(15)));
+                localAndOutboundAuthenticationConfig.setAlwaysSendBackAuthenticatedListOfIdPs(
+                            getBooleanValue(basicAppDataResultSet.getString(14)));
+                localAndOutboundAuthenticationConfig.setEnableAuthorization(
+                            getBooleanValue(basicAppDataResultSet.getString(15)));
+
                 localAndOutboundAuthenticationConfig.setSubjectClaimUri(basicAppDataResultSet
                         .getString(16));
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
 
-                serviceProvider.setSaasApp("1".equals(basicAppDataResultSet.getString(17)));
+                serviceProvider.setSaasApp(getBooleanValue(basicAppDataResultSet.getString(17)));
 
                 // Will be supported with 'Advance Consent Management Feature'.
                 /*
@@ -2242,9 +2242,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
+
+    /**
+     * Converts a string to a boolean, recognizing "1" or "true" (case-insensitive) as true,
+     * and treating any other value as false. Useful for interpreting boolean strings from
+     * various sources like databases or external inputs.
+     *
+     * @param booleanValueAsString The string representation of the boolean value to be evaluated.
+     * @return true if the string is "1" or "true" (case-insensitive), false otherwise.
+     * @throws SQLException if there is a database access error.
+     */
     private boolean getBooleanValue(String booleanValueAsString) throws SQLException {
 
-        return "1".equals(booleanValueAsString);
+        return "1".equals(booleanValueAsString) || "true".equalsIgnoreCase(booleanValueAsString);
     }
 
     /**
@@ -2664,8 +2674,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     idpAuths.add(fedAuthenticator);
                 }
 
-                authStep.setSubjectStep("1".equals(stepInfoResultSet.getString(3)));
-                authStep.setAttributeStep("1".equals(stepInfoResultSet.getString(4)));
+                authStep.setSubjectStep(getBooleanValue(stepInfoResultSet.getString(3)));
+                authStep.setAttributeStep(getBooleanValue(stepInfoResultSet.getString(4)));
 
                 authSteps.put(step, authStep);
             }
@@ -2769,14 +2779,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 localAndOutboundConfigResultSet = localAndOutboundConfigPrepStmt.executeQuery();
 
                 if (localAndOutboundConfigResultSet.next()) {
-                    localAndOutboundConfiguration.setUseTenantDomainInLocalSubjectIdentifier("1"
-                            .equals(localAndOutboundConfigResultSet.getString(1)));
-                    localAndOutboundConfiguration.setUseUserstoreDomainInLocalSubjectIdentifier("1"
-                            .equals(localAndOutboundConfigResultSet.getString(2)));
-                    localAndOutboundConfiguration.setEnableAuthorization("1"
-                            .equals(localAndOutboundConfigResultSet.getString(3)));
-                    localAndOutboundConfiguration.setAlwaysSendBackAuthenticatedListOfIdPs("1"
-                            .equals(localAndOutboundConfigResultSet.getString(4)));
+                    localAndOutboundConfiguration.setUseTenantDomainInLocalSubjectIdentifier(getBooleanValue(
+                            localAndOutboundConfigResultSet.getString(1)));
+                    localAndOutboundConfiguration.setUseUserstoreDomainInLocalSubjectIdentifier(getBooleanValue(
+                            localAndOutboundConfigResultSet.getString(2)));
+                    localAndOutboundConfiguration.setEnableAuthorization(getBooleanValue(
+                            localAndOutboundConfigResultSet.getString(3)));
+                    localAndOutboundConfiguration.setAlwaysSendBackAuthenticatedListOfIdPs(getBooleanValue(
+                            localAndOutboundConfigResultSet.getString(4)));
                     localAndOutboundConfiguration.setSubjectClaimUri(localAndOutboundConfigResultSet
                             .getString(5));
 
@@ -2827,7 +2837,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
 
                     try {
-                        boolean isEnabled = "1".equals(localAndOutboundConfigScriptResultSet.getString(2));
+                        boolean isEnabled = getBooleanValue((localAndOutboundConfigScriptResultSet.getString(2)));
                         InputStream scriptBinaryStream = localAndOutboundConfigScriptResultSet.getBinaryStream(1);
                         String targetString = StringUtils.EMPTY;
                         if (scriptBinaryStream != null) {
@@ -2861,7 +2871,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             resultSet = get.executeQuery();
 
             if (resultSet.next()) {
-                return "1".equals(resultSet.getString(1));
+                return getBooleanValue(resultSet.getString(1));
             }
 
             return false;
@@ -2908,7 +2918,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 String requested = resultSet.getString(3);
 
-                if ("1".equalsIgnoreCase(requested)) {
+                if (getBooleanValue(requested)) {
                     claimMapping.setRequested(true);
                 } else {
                     claimMapping.setRequested(false);
@@ -2916,7 +2926,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 String mandatory = resultSet.getString(4);
 
-                if ("1".equalsIgnoreCase(mandatory)) {
+                if (getBooleanValue(mandatory)) {
                     claimMapping.setMandatory(true);
                 } else {
                     claimMapping.setMandatory(false);
@@ -2966,8 +2976,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             while (loadClaimConfigsResultSet.next()) {
                 claimConfig.setRoleClaimURI(loadClaimConfigsResultSet.getString(1));
-                claimConfig.setLocalClaimDialect("1".equals(loadClaimConfigsResultSet.getString(2)));
-                claimConfig.setAlwaysSendMappedLocalSubjectId("1".equals(loadClaimConfigsResultSet
+                claimConfig.setLocalClaimDialect(getBooleanValue(loadClaimConfigsResultSet.getString(2)));
+                claimConfig.setAlwaysSendMappedLocalSubjectId(getBooleanValue(loadClaimConfigsResultSet
                         .getString(3)));
             }
         } catch (SQLException e) {
@@ -4275,7 +4285,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             getClaimPreStmt.setInt(2, tenantID);
             resultSet = getClaimPreStmt.executeQuery();
             while (resultSet.next()) {
-                if ("1".equalsIgnoreCase(resultSet.getString(3))) {
+                if (getBooleanValue(resultSet.getString(3))) {
                     reqClaimUris.add(resultSet.getString(1));
                 }
             }
