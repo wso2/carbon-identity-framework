@@ -256,7 +256,11 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 if (authenticatorConfig == null) {
                     authenticatorConfig = sequenceConfig.getAuthenticatedReqPathAuthenticator();
                 }
-                // If there is no authenticated authenticator, skip the step.
+                /*
+                 * In certain login scenarios which uses `prompt` adaptive function may create steps without
+                 * an authenticated authenticator. During the logout flow, we will check those steps and skip
+                 * processing those steps further.
+                 */
                 if (authenticatorConfig == null) {
                     currentStep++;
                     context.setCurrentStep(currentStep);
