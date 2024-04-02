@@ -200,6 +200,9 @@ public abstract class FrameworkConstants {
     public static final String OPENJDK_NASHORN = "openjdkNashorn";
     public static final String NASHORN = "nashorn";
 
+    public static final String BOOLEAN_TRUE_AS_STRING = "true";
+    public static final String BOOLEAN_ONE_AS_STRING = "1";
+
     private FrameworkConstants() {
 
     }

@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.LongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.sql.Connection;
@@ -106,7 +107,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
                         String waitStatus = resultSet.getString("WAIT_STATUS");
                         if (log.isDebugEnabled()) {
                             log.debug("Searched for wait status for wait key: " + waitKey + ". Result: "
-                                    + ("1".equals(waitStatus) ? "WAITING" : "COMPLETED"));
+                                    + (getBooleanValue(waitStatus) ? "WAITING" : "COMPLETED"));
                         }
                         if (waitStatus.equals("1")) {
                             longWaitStatus.setStatus(LongWaitStatus.Status.WAITING);
@@ -130,5 +131,21 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
             longWaitStatus.setStatus(LongWaitStatus.Status.UNKNOWN);
         }
         return longWaitStatus;
+    }
+
+
+    /**
+     * Converts a string to a boolean, recognizing "1" or "true" (case-insensitive) as true,
+     * and treating any other value as false. Useful for interpreting boolean strings from
+     * various sources like databases or external inputs.
+     *
+     * @param booleanValueAsString The string representation of the boolean value to be evaluated.
+     * @return true if the string is "1" or "true" (case-insensitive), false otherwise.
+     * @throws SQLException if there is a database access error.
+     */
+    private boolean getBooleanValue(String booleanValueAsString) throws SQLException {
+
+        return FrameworkConstants.BOOLEAN_ONE_AS_STRING.equals(booleanValueAsString)
+                || FrameworkConstants.BOOLEAN_TRUE_AS_STRING.equalsIgnoreCase(booleanValueAsString);
     }
 }
