@@ -273,6 +273,12 @@ public class DefaultStepHandler implements StepHandler {
                  */
                 boolean isOrganizationLogin = isLoggedInWithOrganizationLogin(authenticatorConfig);
 
+                if (LOG.isDebugEnabled() && isOrganizationLogin) {
+                    LOG.debug("GIT-22890: User logged in with OrganizationAuthenticator. user: "
+                            + context.getSubject().getUserName() + " re-authentication : "
+                            + context.isReAuthenticate());
+                }
+
                 if (context.isReAuthenticate() || isOrganizationLogin) {
 
                     if (LOG.isDebugEnabled()) {
@@ -742,9 +748,17 @@ public class DefaultStepHandler implements StepHandler {
                 return;
             }
 
+            if (LOG.isDebugEnabled() && context.getSubject() != null) {
+                LOG.debug("GIT-22890:User : " + context.getSubject().getUserName()
+                        + " authenticated with the authenticator: " + authenticator.getName());
+            }
             // Set authorized organization and user resident organization for B2B user logins.
             if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
                 String userResidentOrganization = resolveUserResidentOrganization(context.getSubject());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("GIT-22890:User : " + context.getSubject().getUserName()
+                            + " user resident organization: " + userResidentOrganization);
+                }
                 context.getSubject().setUserResidentOrganization(userResidentOrganization);
                 // Set the accessing org as the user resident org. The accessing org will be changed when org switching.
                 context.getSubject().setAccessingOrganization(userResidentOrganization);
@@ -1394,7 +1408,15 @@ public class DefaultStepHandler implements StepHandler {
     private boolean isLoggedInWithOrganizationLogin(AuthenticatorConfig authenticatorConfig) {
 
         if (authenticatorConfig == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("GIT-22890: Authenticator config is null.");
+            }
             return false;
+        }
+
+        if (LOG.isDebugEnabled() && FrameworkConstants.ORGANIZATION_AUTHENTICATOR
+                .equals(authenticatorConfig.getName())) {
+            LOG.debug("GIT-22890: User logged in with OrganizationAuthenticator ");
         }
         return FrameworkConstants.ORGANIZATION_AUTHENTICATOR.equals(authenticatorConfig.getName());
     }
@@ -1407,6 +1429,10 @@ public class DefaultStepHandler implements StepHandler {
      */
     private void setLoggedInOrgIdInRequest(AuthenticatedIdPData authenticatedIdPData, HttpServletRequest request) {
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("GIT-22890: Setting the logged in org Id in the request.");
+        }
+
         AuthenticatedUser authenticatedUser = authenticatedIdPData.getUser();
         Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
@@ -1414,6 +1440,10 @@ public class DefaultStepHandler implements StepHandler {
             if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
                 String organizationId = entry.getValue();
                 if (StringUtils.isNotBlank(organizationId)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("GIT-22890: User: " + authenticatedUser + "'s organization id is: "
+                                + organizationId);
+                    }
                     request.setAttribute(FrameworkConstants.ORG_ID_PARAMETER, organizationId);
                 }
                 return;
@@ -1434,6 +1464,10 @@ public class DefaultStepHandler implements StepHandler {
             for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
                 if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
                         userAttributes.getKey().getLocalClaim().getClaimUri())) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("GIT-22890: Check for user organization claim for the authenticated user via " +
+                                "the organization login authenticator.");
+                    }
                     return userAttributes.getValue();
                 }
             }
