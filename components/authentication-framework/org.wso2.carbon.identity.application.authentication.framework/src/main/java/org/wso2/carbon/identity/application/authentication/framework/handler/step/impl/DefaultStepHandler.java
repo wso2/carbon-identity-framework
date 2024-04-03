@@ -275,7 +275,7 @@ public class DefaultStepHandler implements StepHandler {
 
                 if (LOG.isDebugEnabled() && isOrganizationLogin) {
                     LOG.debug("GIT-22890: User logged in with OrganizationAuthenticator. user: "
-                            + context.getSubject().getUserName() + " re-authentication : "
+                            + context.getSubject().toFullQualifiedUsername() + " re-authentication : "
                             + context.isReAuthenticate());
                 }
 
@@ -749,14 +749,14 @@ public class DefaultStepHandler implements StepHandler {
             }
 
             if (LOG.isDebugEnabled() && context.getSubject() != null) {
-                LOG.debug("GIT-22890:User : " + context.getSubject().getUserName()
+                LOG.debug("GIT-22890:User : " + context.getSubject().toFullQualifiedUsername()
                         + " authenticated with the authenticator: " + authenticator.getName());
             }
             // Set authorized organization and user resident organization for B2B user logins.
             if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
                 String userResidentOrganization = resolveUserResidentOrganization(context.getSubject());
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("GIT-22890:User : " + context.getSubject().getUserName()
+                    LOG.debug("GIT-22890:User : " + context.getSubject().toFullQualifiedUsername()
                             + " user resident organization: " + userResidentOrganization);
                 }
                 context.getSubject().setUserResidentOrganization(userResidentOrganization);
@@ -1441,8 +1441,8 @@ public class DefaultStepHandler implements StepHandler {
                 String organizationId = entry.getValue();
                 if (StringUtils.isNotBlank(organizationId)) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("GIT-22890: User: " + authenticatedUser + "'s organization id is: "
-                                + organizationId);
+                        LOG.debug("GIT-22890: User: " + authenticatedUser.toFullQualifiedUsername()
+                                + "'s organization id is: " + organizationId);
                     }
                     request.setAttribute(FrameworkConstants.ORG_ID_PARAMETER, organizationId);
                 }
@@ -1465,8 +1465,9 @@ public class DefaultStepHandler implements StepHandler {
                 if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
                         userAttributes.getKey().getLocalClaim().getClaimUri())) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("GIT-22890: Check for user organization claim for the authenticated user via " +
-                                "the organization login authenticator.");
+                        LOG.debug("GIT-22890: Check for user: " + authenticatedUser.toFullQualifiedUsername()
+                                + " organization claim for the authenticated user via the organization " +
+                                "login authenticator.");
                     }
                     return userAttributes.getValue();
                 }
