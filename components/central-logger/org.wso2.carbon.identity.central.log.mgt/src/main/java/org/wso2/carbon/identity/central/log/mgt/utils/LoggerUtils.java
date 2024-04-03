@@ -29,6 +29,7 @@ import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -43,11 +44,14 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.LOGGABLE_USER_CLAIMS;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
 
@@ -108,7 +112,7 @@ public class LoggerUtils {
     /**
      * This method is used to trigger audit log event whence the new audit log publishing is enabled by default.
      *
-     * @param auditLogBuilder  Audit log builder
+     * @param auditLogBuilder Audit log builder
      */
     public static void triggerAuditLogEvent(AuditLog.AuditLogBuilder auditLogBuilder) {
 
@@ -257,9 +261,10 @@ public class LoggerUtils {
     public static Map<String, String> getMaskedClaimsMap(Map<String, String> claims) {
 
         Map<String, String> maskedClaims = new HashMap<>();
+        List<String> loggableClaims = getLoggableClaimURIs();
         if (MapUtils.isNotEmpty(claims)) {
             for (Map.Entry<String, String> entry : claims.entrySet()) {
-                if (LogConstants.USER_ID_CLAIM_URI.equals(entry.getKey())) {
+                if (LogConstants.USER_ID_CLAIM_URI.equals(entry.getKey()) || loggableClaims.contains(entry.getKey())) {
                     maskedClaims.put(entry.getKey(), entry.getValue());
                 } else {
                     maskedClaims.put(entry.getKey(), getMaskedContent(entry.getValue()));
@@ -278,7 +283,8 @@ public class LoggerUtils {
      */
     public static String getMaskedClaimValue(String claimURI, String claimValue) {
 
-        if (LogConstants.USER_ID_CLAIM_URI.equals(claimURI)) {
+        List<String> loggableClaims = getLoggableClaimURIs();
+        if (LogConstants.USER_ID_CLAIM_URI.equals(claimURI) || loggableClaims.contains(claimURI)) {
             return claimValue;
         }
         return getMaskedContent(claimValue);
@@ -349,5 +355,30 @@ public class LoggerUtils {
             return LoggerUtils.Initiator.System.name();
         }
         return LoggerUtils.Initiator.User.toString();
+    }
+
+    /**
+     * Get the loggable claim uris.
+     *
+     * @return list of loggable claim uris.
+     */
+    public static List<String> getLoggableClaimURIs() {
+
+        Object configValue = IdentityConfigParser.getInstance().getConfiguration().get(LOGGABLE_USER_CLAIMS);
+        List<String> claimsFilters = new ArrayList<>();
+        if (configValue instanceof ArrayList) {
+            claimsFilters = (ArrayList) configValue;
+        } else if (configValue instanceof String) {
+            claimsFilters.add((String) configValue);
+        }
+        if (!claimsFilters.isEmpty()) {
+            // Strip leading and trailing whitespace from each string in the list.
+            List<String> strippedClaims = new ArrayList<>();
+            for (String claim : claimsFilters) {
+                strippedClaims.add(StringUtils.stripToNull(claim));
+            }
+            return strippedClaims;
+        }
+        return new ArrayList<>();
     }
 }
