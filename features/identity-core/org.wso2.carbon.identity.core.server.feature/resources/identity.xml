@@ -978,7 +978,7 @@
         <UserEndpointMaxItemsPerPageEnabled>true</UserEndpointMaxItemsPerPageEnabled>
 
         <!--
-            This configuration enhances the behavior of the SCIM API when invoked with a group-based filter.
+            This configuration enhances the behavior of the SCIM2 API User Endpoint when invoked with a group-based filter.
             It determines the totalResults based on the total user count corresponding to the given group-based filter.
             Additionally, when invoking the user endpoint with a groups filter by passing a role (hybrid or system roles),
             it returns an empty list when role group separation is enabled, instead of returning users linked to the passed role.
