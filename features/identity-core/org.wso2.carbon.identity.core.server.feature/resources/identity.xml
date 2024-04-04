@@ -983,7 +983,6 @@
             Additionally, when invoking the user endpoint with a groups filter by passing a role (hybrid or system roles),
             it returns an empty list when role group separation is enabled, instead of returning users linked to the passed role.
             Default value : false
-            Supported versions : IS 7.0.0 onwards
         -->
         <!--<EnableGroupBasedUserFilteringImprovements>false</EnableGroupBasedUserFilteringImprovements>-->
 
