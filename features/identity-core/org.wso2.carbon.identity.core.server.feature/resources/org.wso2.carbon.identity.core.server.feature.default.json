@@ -351,6 +351,7 @@
   "scim2.remove_duplicate_users_in_users_response": false,
   "scim2.consider_max_limit_for_total_results": false,
   "scim2.consider_total_records_for_total_results_of_ldap": false,
+  "scim2.user_endpoint_max_items_per_page.enable": true,
 
   "identity_mgt.password_policy.password_policy_validation_handler.enable": true,
   "identity_mgt.recovery.enable_v1_api": false,
@@ -588,6 +589,8 @@
   "event.default_listener.user_management_v2_audit_logger.enable": true,
   "event.default_listener.role_management_v2_audit_logger.priority": "3",
   "event.default_listener.role_management_v2_audit_logger.enable": true,
+  "event.default_listener.group_management_v2_audit_logger.priority": "10",
+  "event.default_listener.group_management_v2_audit_logger.enable": true,
 
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,
