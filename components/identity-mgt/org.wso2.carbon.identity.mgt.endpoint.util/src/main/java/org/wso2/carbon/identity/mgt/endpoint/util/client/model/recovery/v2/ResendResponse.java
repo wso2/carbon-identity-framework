@@ -119,7 +119,7 @@ public class ResendResponse {
      */
     public void setFlowConfirmationCode(String flowConfirmationCode) {
 
-        this.message = flowConfirmationCode;
+        this.flowConfirmationCode = flowConfirmationCode;
     }
 
     /**
