@@ -195,6 +195,7 @@ public class PreferenceRetrievalClient {
         List<String> propertyNameList = new ArrayList<String>();
         propertyNameList.add(QUESTION_PASSWORD_RECOVERY_PROPERTY);
         propertyNameList.add(SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
+        propertyNameList.add(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
         return checkMultiplePreference(tenant, RECOVERY_CONNECTOR, propertyNameList);
     }
 
