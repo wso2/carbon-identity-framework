@@ -2544,6 +2544,18 @@
         <EnableSHA256>true</EnableSHA256>
     </CertThumbprint>
 
+    <!--
+        These configurations are deprecated from this file and moved to organization-mgt.xml file.
+        The configuration reading will happen from the organization-mgt.xml file and the deployment.toml
+        configurations will remain the same.
+    -->
+    <OrganizationUserInvitation>
+        <DefaultExpiryTime>4320</DefaultExpiryTime>
+        <PrimaryUserDomain>PRIMARY</PrimaryUserDomain>
+        <DefaultAcceptURL>/accountrecoveryendpoint/acceptinvitation.do</DefaultAcceptURL>
+        <AssociationWaitTime>5000</AssociationWaitTime>
+    </OrganizationUserInvitation>
+
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
         <ExtensionTypes>applications,connections</ExtensionTypes>

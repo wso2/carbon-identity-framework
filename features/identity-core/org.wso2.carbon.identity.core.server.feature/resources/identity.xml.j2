@@ -3934,6 +3934,11 @@
         <EnableSHA256>{{cert_thumbprint.enable_sha256}}</EnableSHA256>
     </CertThumbprint>
 
+    <!--
+        These configurations are deprecated from this file and moved to organization-mgt.xml file.
+        The configuration reading will happen from the organization-mgt.xml file and the deployment.toml
+        configurations will remain the same.
+    -->
     <OrganizationUserInvitation>
         <DefaultExpiryTime>{{organization.user.invitation.default.expiry_time}}</DefaultExpiryTime>
         <PrimaryUserDomain>{{organization.user.invitation.primary.user_domain}}</PrimaryUserDomain>
