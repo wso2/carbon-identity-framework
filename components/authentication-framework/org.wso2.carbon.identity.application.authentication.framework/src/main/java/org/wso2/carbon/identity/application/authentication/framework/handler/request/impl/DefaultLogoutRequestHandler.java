@@ -88,7 +88,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
     private static final String DEFAULT_LOGOUT_URL_CONFIG = "CommonAuthCallerPath.DefaultUrl";
     private static final String CONFIGURED_RETURN_URL = ".*";
 
-
     public static DefaultLogoutRequestHandler getInstance() {
 
         if (log.isTraceEnabled()) {
