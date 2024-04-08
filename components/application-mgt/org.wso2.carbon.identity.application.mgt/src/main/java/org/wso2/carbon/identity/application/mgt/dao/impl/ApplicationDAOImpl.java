@@ -87,9 +87,11 @@ import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
@@ -122,7 +124,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -193,6 +194,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
     private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
+    private static final String UUID = "UUID";
+    private static final String SPACE = " ";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
@@ -605,9 +608,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     serviceProvider.getPermissionAndRoleConfig().getPermissions());
         }
 
-        // Update associated roles.
-        updateAssociatedRolesOfApplication(connection, serviceProvider.getApplicationResourceId(),
-                serviceProvider.getApplicationName(), serviceProvider.getAssociatedRolesConfig(), tenantDomain);
+        if (serviceProvider.getAssociatedRolesConfig() != null) {
+            String appAudience = serviceProvider.getAssociatedRolesConfig().getAllowedAudience();
+            // Update associated roles.
+            if (RoleConstants.APPLICATION.equalsIgnoreCase(appAudience)) {
+                updateAssociatedRolesOfApplication(connection, serviceProvider.getApplicationResourceId(),
+                        serviceProvider.getApplicationName(), serviceProvider.getAssociatedRolesConfig(), tenantDomain);
+            }
+        }
 
         updateConfigurationsAsServiceProperties(serviceProvider);
         if (ArrayUtils.isNotEmpty(serviceProvider.getSpProperties())) {
@@ -2243,22 +2251,45 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
         AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
         List<String> associatedRoleIds = new ArrayList<>();
-        try (NamedPreparedStatement preparedStatement = new NamedPreparedStatement(connection,
-                ApplicationMgtDBQueries.LOAD_ASSOCIATED_ROLES)) {
-            preparedStatement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID,
-                    applicationId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    associatedRoleIds.add(resultSet.getString(1));
-                }
-            }
-            associatedRolesConfig.setRoles(buildAssociatedRolesWithRoleName(associatedRoleIds, tenantDomain));
-        } catch (SQLException | IdentityRoleManagementException e) {
-            throw new IdentityApplicationManagementException(
-                    "Error while retrieving associated roles for application ID: " + applicationId, e);
-        }
         String allowedAudience =
                 getSPPropertyValueByPropertyKey(applicationId, ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, tenantDomain);
+        if (RoleConstants.APPLICATION.equalsIgnoreCase(allowedAudience)) {
+            try (NamedPreparedStatement preparedStatement = new NamedPreparedStatement(connection,
+                    ApplicationMgtDBQueries.LOAD_ASSOCIATED_ROLES)) {
+                preparedStatement.setString(ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_APP_ID,
+                        applicationId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        associatedRoleIds.add(resultSet.getString(1));
+                    }
+                }
+
+                associatedRolesConfig.setRoles(buildAssociatedRolesWithRoleName(associatedRoleIds, tenantDomain));
+            } catch (SQLException | IdentityRoleManagementException e) {
+                throw new IdentityApplicationManagementException(
+                        "Error while retrieving associated roles for application ID: " + applicationId, e);
+            }
+        } else if (RoleConstants.ORGANIZATION.equalsIgnoreCase(allowedAudience)) {
+            ApplicationManagementServiceComponentHolder holder = ApplicationManagementServiceComponentHolder.
+                    getInstance();
+            RoleManagementService roleManagementService = holder.getRoleManagementServiceV2();
+            try {
+                if (roleManagementService != null) {
+                    List<RoleBasicInfo> listOfAllRoles = roleManagementService.
+                            getRoles(RoleConstants.AUDIENCE + SPACE + RoleConstants.EQ + SPACE +
+                                            RoleConstants.ORGANIZATION,
+                                    0, 0, null, null, tenantDomain);
+                    List<String> roleIds = listOfAllRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.
+                            toList());
+                    associatedRolesConfig.setRoles(buildAssociatedRolesWithRoleName(roleIds, tenantDomain));
+                }
+            } catch (IdentityRoleManagementException e) {
+                throw new IdentityApplicationManagementException("Error while retrieving associated roles for " +
+                        "application ID: " + applicationId, e);
+            }
+
+        }
+
         associatedRolesConfig.setAllowedAudience(
                 StringUtils.isNotBlank(allowedAudience) ? allowedAudience.toLowerCase() : RoleConstants.ORGANIZATION);
         return associatedRolesConfig;
@@ -3745,6 +3776,50 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         return count;
+    }
+
+    /**
+     * Retrieve application basic information using the sp metadata property key and value.
+     *
+     * @param key Name of the sp metadata property key
+     * @param value Value of the sp metadata property value
+     * @return
+     * @throws IdentityApplicationManagementException if loading application information based on the
+     * SP properties is failed.
+     */
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfoBySPProperty(String key, String value)
+            throws IdentityApplicationManagementException {
+
+        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Getting all applications matching property: %s with value %s in tenant %d",
+                    key, value, tenantID));
+        }
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement getAppNamesStmt = connection.prepareStatement(JdbcUtils.isH2DB() ?
+                     ApplicationMgtDBQueries.LOAD_APP_IDS_BY_SP_PROPERTY_H2 :
+                     ApplicationMgtDBQueries.LOAD_APP_IDS_BY_SP_PROPERTY)) {
+
+            getAppNamesStmt.setString(1, key);
+            getAppNamesStmt.setString(2, value);
+            getAppNamesStmt.setInt(3, tenantID);
+
+            try (ResultSet appNameResultSet = getAppNamesStmt.executeQuery()) {
+                ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
+
+                while (appNameResultSet.next()) {
+                    ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
+                    basicInfo.setUuid(appNameResultSet.getString(UUID));
+                    appInfo.add(basicInfo);
+                }
+
+                return appInfo.toArray(new ApplicationBasicInfo[0]);
+            }
+        } catch (SQLException | DataAccessException e) {
+            throw new IdentityApplicationManagementException("Error while getting applications from DB", e);
+        }
     }
 
     /**
@@ -6100,7 +6175,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private String generateApplicationResourceId(ServiceProvider serviceProvider) {
 
-        return UUID.randomUUID().toString();
+        return java.util.UUID.randomUUID().toString();
     }
 
     /**
