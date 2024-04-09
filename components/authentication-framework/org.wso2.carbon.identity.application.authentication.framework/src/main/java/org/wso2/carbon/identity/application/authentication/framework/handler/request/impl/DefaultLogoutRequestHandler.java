@@ -83,7 +83,10 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static final String LOGOUT_RETURN_URL_SP_PROPERTY = "logoutReturnUrl";
     private static final String ENABLE_VALIDATING_LOGOUT_RETURN_URL_CONFIG = "CommonAuthCallerPath.EnableValidation";
+    private static final String ENABLE_FALLBACK_TO_DEFAULT_LOGOUT_URL_CONFIG =
+            "CommonAuthCallerPath.EnableFallbackToDefaultOnNoReturnUrl";
     private static final String DEFAULT_LOGOUT_URL_CONFIG = "CommonAuthCallerPath.DefaultUrl";
+    private static final String CONFIGURED_RETURN_URL = ".*";
 
     public static DefaultLogoutRequestHandler getInstance() {
 
@@ -548,6 +551,15 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             try {
                 String configuredReturnUrl = getRegisteredLogoutReturnUrl(context.getRelyingParty(), context
                         .getRequestType(), context.getTenantDomain());
+                // If the config to fall back to default logout url when the logout return url is not set at the
+                // application level is enabled, then the validation should return false when the configured Return Url
+                // is set to .*. This will set the logout return url to default logout url after this method execution.
+                if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_FALLBACK_TO_DEFAULT_LOGOUT_URL_CONFIG))
+                        && CONFIGURED_RETURN_URL.equals(configuredReturnUrl)) {
+                    log.debug("The configured return url is set to .*. Logout return url validation will be failed " +
+                            "to fallback to default logout url.");
+                    return false;
+                }
                 return context.getCallerPath().matches(configuredReturnUrl);
             } catch (IdentityApplicationManagementException e) {
                 return false;
@@ -564,7 +576,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         if (FrameworkConstants.OIDC.equals(requestType)) {
             requestType = FrameworkConstants.OAUTH2;
         }
-        String configuredReturnUrl = ".*";
+        String configuredReturnUrl = CONFIGURED_RETURN_URL;
         ApplicationManagementService appMgtService = ApplicationManagementService.getInstance();
         ServiceProvider serviceProvider = appMgtService.getServiceProviderByClientId(relyingParty, requestType,
                 tenantDomain);
