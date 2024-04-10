@@ -410,6 +410,11 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (serviceProvider == null) {
             return null;
         }
+        /* Application and user should be in same tenant domain in order to match the application assigned roles for
+            the user. */
+        if (!StringUtils.equals(serviceProvider.getTenantDomain(), authenticatedUser.getTenantDomain())) {
+            return new ArrayList<>();
+        }
         String applicationId = serviceProvider.getApplicationResourceId();
         return FrameworkUtils.getAppAssociatedRolesOfLocalUser(authenticatedUser, applicationId);
     }
