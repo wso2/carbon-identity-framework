@@ -1147,6 +1147,8 @@
   "console.attribute_dialects.scopes.delete": ["internal_claim_meta_delete"],
   "console.branding.enabled": true,
   "console.bulk_user_import.enabled": true,
+  "console.bulk_user_import.user_limit": 100,
+  "console.bulk_user_import.file_import_timeout": 60000,
   "console.bulk_user_import.scopes.create": [
     "internal_user_mgt_view",
     "internal_user_mgt_list",
