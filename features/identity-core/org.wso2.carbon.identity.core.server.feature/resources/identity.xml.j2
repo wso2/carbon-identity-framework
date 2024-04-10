@@ -71,6 +71,20 @@
             <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
         </PushedAuthReqCleanUp>
     </JDBCPersistenceManager>
+    <RegistryDataPersistenceManager>
+        <DataSource>
+            <!-- Include a data source name (jndiConfigName) from the set of data
+                sources defined in master-datasources.xml -->
+            <Name>{{shared_registry.data_source}}</Name>
+        </DataSource>
+    </RegistryDataPersistenceManager>
+    <!-- The location where the registry data is stored for each function.
+     Support "default", "registry" and "on_migration" values-->
+    <RegistryDataStoreLocation>
+        <EmailTemplates>{{registry_datastore_location.email_templates}}</EmailTemplates>
+        <SAMLConfigs>{{registry_datastore_location.saml_configurations}}</SAMLConfigs>
+        <KeyStores>{{registry_datastore_location.keystores}}</KeyStores>
+    </RegistryDataStoreLocation>
 
     <!--
     This section provide the ability to configure the storage type for the features that used to store data in the

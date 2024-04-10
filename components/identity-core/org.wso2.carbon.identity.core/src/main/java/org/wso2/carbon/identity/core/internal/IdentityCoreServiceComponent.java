@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.core.migrate.MigrationClient;
 import org.wso2.carbon.identity.core.migrate.MigrationClientException;
 import org.wso2.carbon.identity.core.migrate.MigrationClientStartupObserver;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
+import org.wso2.carbon.identity.core.persistence.RegistryDataPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtServiceImpl;
@@ -141,6 +142,9 @@ public class IdentityCoreServiceComponent {
             } else {
                 jdbcPersistenceManager.initializeDatabase();
             }
+
+            // Initialize governanceDB persistence manager to retrieve governance registry datasource.
+            RegistryDataPersistenceManager.getInstance();
 
             // initialize um persistence manager and retrieve the user management datasource.
             UmPersistenceManager.getInstance();
