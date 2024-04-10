@@ -410,6 +410,9 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (serviceProvider == null) {
             return null;
         }
+        if (!StringUtils.equals(serviceProvider.getTenantDomain(), authenticatedUser.getTenantDomain())) {
+            return null;
+        }
         String applicationId = serviceProvider.getApplicationResourceId();
         return FrameworkUtils.getAppAssociatedRolesOfLocalUser(authenticatedUser, applicationId);
     }
