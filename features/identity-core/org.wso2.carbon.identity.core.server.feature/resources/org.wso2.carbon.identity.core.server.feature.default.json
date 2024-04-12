@@ -1066,7 +1066,7 @@
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
-  "console.ui.legacy_mode.apiResourcesV1": true,
+  "console.ui.legacy_mode.apiResourcesV1": false,
   "console.ui.legacy_mode.apiResourcesV2": true,
   "console.ui.legacy_mode.applicationListSystemApps": false,
   "console.ui.legacy_mode.applicationOIDCSubjectIdentifier": true,
