@@ -252,6 +252,7 @@
       "console.ui.legacy_mode.applicationSystemAppsSettings": true,
       "console.ui.legacy_mode.approvals": true,
       "console.ui.legacy_mode.certificates": true,
+      "console.ui.legacy_mode.backupCodesForSubOrganizations": true,
       "console.ui.legacy_mode.loginAndRegistrationEmailDomainDiscovery": true,
       "console.ui.legacy_mode.organizations": false,
       "console.ui.legacy_mode.saasApplications": true,
