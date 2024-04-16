@@ -2274,12 +2274,23 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     getInstance();
             RoleManagementService roleManagementService = holder.getRoleManagementServiceV2();
             try {
+                List<RoleBasicInfo> chunkOfRoles;
+                int offset = 0;
+                int maximumPage = IdentityUtil.getMaximumItemPerPage();
+                List<RoleBasicInfo> allRoles = new ArrayList<>();
                 if (roleManagementService != null) {
-                    List<RoleBasicInfo> listOfAllRoles = roleManagementService.
-                            getRoles(RoleConstants.AUDIENCE + SPACE + RoleConstants.EQ + SPACE +
-                                            RoleConstants.ORGANIZATION,
-                                    0, 0, null, null, tenantDomain);
-                    List<String> roleIds = listOfAllRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.
+                    do {
+                        chunkOfRoles = roleManagementService.
+                                getRoles(RoleConstants.AUDIENCE + SPACE + RoleConstants.EQ + SPACE +
+                                                RoleConstants.ORGANIZATION, maximumPage, offset, null, null,
+                                        tenantDomain);
+                        if (!chunkOfRoles.isEmpty()) {
+                            allRoles.addAll(chunkOfRoles);
+                            offset += chunkOfRoles.size(); // Move to the next chunk
+                        }
+                    } while (!chunkOfRoles.isEmpty());
+
+                    List<String> roleIds = allRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.
                             toList());
                     associatedRolesConfig.setRoles(buildAssociatedRolesWithRoleName(roleIds, tenantDomain));
                 }
@@ -3783,7 +3794,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      *
      * @param key Name of the sp metadata property key
      * @param value Value of the sp metadata property value
-     * @return
+     * @return Filtered applications' basic information.
      * @throws IdentityApplicationManagementException if loading application information based on the
      * SP properties is failed.
      */

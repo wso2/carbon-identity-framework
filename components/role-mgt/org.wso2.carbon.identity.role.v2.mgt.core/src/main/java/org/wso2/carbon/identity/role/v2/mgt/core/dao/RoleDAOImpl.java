@@ -299,33 +299,21 @@ public class RoleDAOImpl implements RoleDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         limit = validateLimit(limit);
         offset = validateOffset(offset);
-        List<RoleBasicInfo> allRoles = new ArrayList<>();
-        int maxLimit = 100;
         validateAttributesForSorting(sortBy, sortOrder);
-        List<RoleBasicInfo> chunkOfRoles;
+        List<RoleBasicInfo> roles;
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                     getDBTypeSpecificRolesRetrievalQuery(databaseProductName), RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-                if (limit != 0 && limit <= maxLimit) {
-                    allRoles = processListRolesQuery(limit, offset, statement, tenantDomain);
-                } else {
-                    do {
-                        chunkOfRoles = processListRolesQuery(maxLimit, offset, statement, tenantDomain);
-                        if (!chunkOfRoles.isEmpty()) {
-                            allRoles.addAll(chunkOfRoles);
-                            offset += chunkOfRoles.size(); // Move to the next chunk
-                        }
-                    } while (chunkOfRoles.isEmpty());
-                }
+                roles = processListRolesQuery(limit, offset, statement, tenantDomain);
             }
         } catch (SQLException e) {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     "Error while listing roles in tenantDomain: " + tenantDomain, e);
         }
-        return allRoles;
+        return roles;
     }
 
     @Override
@@ -355,10 +343,7 @@ public class RoleDAOImpl implements RoleDAO {
         limit = validateLimit(limit);
         offset = validateOffset(offset);
         validateAttributesForSorting(sortBy, sortOrder);
-        List<RoleBasicInfo> allRoles = new ArrayList<>();
-        int maxLimit = 100;
-        validateAttributesForSorting(sortBy, sortOrder);
-        List<RoleBasicInfo> chunkOfRoles;
+        List<RoleBasicInfo> roles;
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
@@ -372,24 +357,13 @@ public class RoleDAOImpl implements RoleDAO {
                         statement.setString(entry.getKey(), entry.getValue());
                     }
                 }
-
-                if (limit != 0 && limit <= maxLimit) {
-                    allRoles = processListRolesQuery(limit, offset, statement, tenantDomain);
-                } else {
-                    do {
-                        chunkOfRoles = processListRolesQuery(maxLimit, offset, statement, tenantDomain);
-                        if (!chunkOfRoles.isEmpty()) {
-                            allRoles.addAll(chunkOfRoles);
-                            offset += chunkOfRoles.size(); // Move to the next chunk
-                        }
-                    } while (!chunkOfRoles.isEmpty());
-                }
+                roles = processListRolesQuery(limit, offset, statement, tenantDomain);
             }
         } catch (SQLException e) {
             throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
                     "Error while listing roles in tenantDomain: " + tenantDomain, e);
         }
-        return allRoles;
+        return roles;
     }
 
     @Override
