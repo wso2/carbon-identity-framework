@@ -637,6 +637,10 @@ public class DefaultStepHandler implements StepHandler {
                 if (StringUtils.isNotBlank(selectedIdp) && authenticatorConfig.getIdps().get(selectedIdp) == null) {
                     // If the selected idp name is not configured for the application, throw error since
                     // this is an invalid case.
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(String.format("Application authenticators: '%s' do not contain the user selected " +
+                                "idp: '%s'", authenticatorConfig.getIdpNames(), selectedIdp));
+                    }
                     throw new FrameworkException("Authenticators configured for application and user selected idp " +
                             "does not match. Possible tampering of parameters in login page.");
                 }
