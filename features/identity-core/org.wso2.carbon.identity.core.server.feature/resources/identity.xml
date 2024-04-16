@@ -2423,6 +2423,10 @@
         <!--<HTTPConnectionRequestTimeout>5000</HTTPConnectionRequestTimeout>-->
         <!--End of default configs for timeouts-->
 
+        <!--Retry counts-->
+        <!--<HTTPRequestRetryCount>{{authentication.adaptive.http_connections.request_retry_count}}</HTTPRequestRetryCount>-->
+        <!--End of retry counts-->
+
         <!--<RefreshInterval>500</RefreshInterval>-->
         <!--End of timeouts in milliseconds-->
 
