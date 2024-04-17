@@ -340,36 +340,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
     }
 
-    @Override
-    public ApplicationBasicInfo[] getApplicationBasicInfoBySPProperty(String tenantDomain, String username,
-                                                                      String key, String value)
-            throws IdentityApplicationManagementException {
-
-        ApplicationDAO appDAO;
-        // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.getApplicationBasicInfoBySPProperty(tenantDomain, username, key,
-                    value)) {
-                return new ApplicationBasicInfo[0];
-            }
-        }
-
-        try {
-            startTenantFlow(tenantDomain, username);
-            appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        } finally {
-            endTenantFlow();
-        }
-
-        if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
-            log.error("Get application basic info service is not supported.");
-            throw new IdentityApplicationManagementException("This service is not supported.");
-        }
-
-        return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfoBySPProperty(key, value);
-    }
-
     /**
      * Get All Application Basic Information with pagination
      *

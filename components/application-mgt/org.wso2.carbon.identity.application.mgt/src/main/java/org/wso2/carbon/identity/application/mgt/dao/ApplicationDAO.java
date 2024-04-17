@@ -200,26 +200,12 @@ public interface ApplicationDAO {
     }
 
     /**
-     * Retrieve application basic information using the sp metadata property key and value.
-     *
-     * @param key Name of the sp metadata property key
-     * @param value Value of the sp metadata property
-     * @return ApplicationBasicInfo containing the basic app information
-     * @throws IdentityApplicationManagementException if building {@link ApplicationBasicInfo} fails.
-     */
-    default ApplicationBasicInfo[] getApplicationBasicInfoBySPProperty(String key, String value)
-            throws IdentityApplicationManagementException {
-
-        return null;
-    }
-
-    /**
      * Retrieve application basic information using the application name.
      *
      * @param name          Name of the application
      * @param tenantDomain  Tenant domain of the application
      * @return ApplicationBasicInfo containing the basic app information
-     * @throws IdentityApplicationManagementException if building {@link ApplicationBasicInfo} fails.
+     * @throws IdentityApplicationManagementException
      */
     default ApplicationBasicInfo getApplicationBasicInfoByName(String name, String tenantDomain)
             throws IdentityApplicationManagementException {
