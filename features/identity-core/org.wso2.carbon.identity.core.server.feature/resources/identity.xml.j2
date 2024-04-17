@@ -1418,6 +1418,15 @@
         <ConsiderTotalRecordsForTotalResultOfLDAP>{{scim2.consider_total_records_for_total_results_of_ldap}}</ConsiderTotalRecordsForTotalResultOfLDAP>
 
         <!--
+             This configuration enhances the behavior of the SCIM2 API User Endpoint when invoked with a group-based filter.
+             It determines the totalResults based on the total user count corresponding to the given group-based filter.
+             Additionally, when invoking the user endpoint with a groups filter by passing a role (hybrid or system roles),
+             it returns an empty list when role group separation is enabled, instead of returning users linked to the passed role.
+             Default value : false
+        -->
+        <EnableGroupBasedUserFilteringImprovements>{{scim2.enable_group_based_user_filter_improvements}}</EnableGroupBasedUserFilteringImprovements>
+
+        <!--
              If you want to remove the limit set for the count query parameter of SCIM2 Users Endpoint then disable this
              property value.
 
@@ -3528,6 +3537,10 @@
         <HTTPConnectionRequestTimeout>{{authentication.adaptive.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
         <!--End of default configs for timeouts-->
 
+        <!--Retry counts-->
+        <HTTPRequestRetryCount>{{authentication.adaptive.http_connections.request_retry_count}}</HTTPRequestRetryCount>
+        <!--End of retry counts-->
+
         <!--Timeouts for callChore token call and adaptive endpoint-->
         <CallChoreo>
           <!--Default timeout in milliseconds-->
@@ -3628,21 +3641,35 @@
 
     <!--This configuration is used for X509 Certificate based authentication. -->
 
-    {% if x509.request_header_name is defined and x509.request_header_name|length %}
     <X509>
         <!--During ssl termination at LB, the X509 certificate is passed over the HTTP header. This configuration
         provides the facility to configure HTTP request header name which is configured at LB.  -->
+        {% if x509.request_header_name is defined and x509.request_header_name|length %}
         <X509RequestHeaderName>{{x509.request_header_name}}</X509RequestHeaderName>
+        {% endif %}
+        {% if x509.crl_download_timeout is defined and x509.crl_download_timeout|length %}
+        <CRLDownloadTimeout>{{x509.crl_download_timeout}}</CRLDownloadTimeout>
+        {% endif %}
     </X509>
-    {% endif %}
 
     <!-- This configuration specifies the claims that should be logged to "audit.log" upon changes. -->
-    {% if audit.log.loggable_user_claim|length %}
-    <LoggableUserClaims>
-        {% for claim in audit.log.loggable_user_claim %}
-        <LoggableUserClaim>{{claim}}</LoggableUserClaim>
-        {% endfor %}
-    </LoggableUserClaims>
+    {% if audit.log.loggable_user_claim is defined %}
+        {% if audit.log.loggable_user_claim.claims is defined %}
+            <LoggableUserClaims>
+                {% for claim in audit.log.loggable_user_claim.claims %}
+                    <LoggableUserClaim>{{ claim }}</LoggableUserClaim>
+                {% endfor %}
+            </LoggableUserClaims>
+        {% endif %}
+        {% if audit.log.loggable_user_claim|length > 0 %}
+            <LoggableUserClaims>
+                {% for key, value in audit.log.loggable_user_claim.items() %}
+                    {% if key != 'claims' %}
+                        <LoggableUserClaim>{{ value }}</LoggableUserClaim>
+                    {% endif %}
+                {% endfor %}
+            </LoggableUserClaims>
+        {% endif %}
     {% endif %}
 
      <!-- This configuration specifies enabling contextual param for audit logs. -->
@@ -3840,6 +3867,9 @@
         {% if common_auth_caller_path.default_url is defined %}
         <DefaultUrl>{{common_auth_caller_path.default_url}}</DefaultUrl>
         {% endif %}
+        {% if common_auth_caller_path.enable_fallback_to_default_on_no_return_url is defined %}
+        <EnableFallbackToDefaultOnNoReturnUrl>{{common_auth_caller_path.enable_fallback_to_default_on_no_return_url}}</EnableFallbackToDefaultOnNoReturnUrl>
+        {% endif %}
     </CommonAuthCallerPath>
 
     <!-- Cookies to invalidate during authentication flow failures. -->
@@ -3923,6 +3953,11 @@
         <EnableSHA256>{{cert_thumbprint.enable_sha256}}</EnableSHA256>
     </CertThumbprint>
 
+    <!--
+        These configurations are deprecated from this file and moved to organization-mgt.xml file.
+        The configuration reading will happen from the organization-mgt.xml file and the deployment.toml
+        configurations will remain the same.
+    -->
     <OrganizationUserInvitation>
         <DefaultExpiryTime>{{organization.user.invitation.default.expiry_time}}</DefaultExpiryTime>
         <PrimaryUserDomain>{{organization.user.invitation.primary.user_domain}}</PrimaryUserDomain>

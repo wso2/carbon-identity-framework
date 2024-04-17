@@ -1487,6 +1487,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 basicApplication.setApplicationName(serviceProvider.getApplicationName());
                 basicApplication.setDescription(serviceProvider.getDescription());
 
+                if (serviceProvider.isManagementApp()) {
+                    basicApplication.setManagementApp(true);
+                }
+
                 String resourceId = createApplication(basicApplication, tenantDomain, username);
                 savedSP = getApplicationByResourceId(resourceId, tenantDomain);
             }

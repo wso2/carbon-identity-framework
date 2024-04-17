@@ -976,6 +976,16 @@
              Supported versions : IS 7.0.0 onwards
         -->
         <UserEndpointMaxItemsPerPageEnabled>true</UserEndpointMaxItemsPerPageEnabled>
+
+        <!--
+            This configuration enhances the behavior of the SCIM2 API User Endpoint when invoked with a group-based filter.
+            It determines the totalResults based on the total user count corresponding to the given group-based filter.
+            Additionally, when invoking the user endpoint with a groups filter by passing a role (hybrid or system roles),
+            it returns an empty list when role group separation is enabled, instead of returning users linked to the passed role.
+            Default value : false
+        -->
+        <!--<EnableGroupBasedUserFilteringImprovements>false</EnableGroupBasedUserFilteringImprovements>-->
+
     </SCIM2>
 
     <!--Recovery>
@@ -2413,6 +2423,10 @@
         <!--<HTTPConnectionRequestTimeout>5000</HTTPConnectionRequestTimeout>-->
         <!--End of default configs for timeouts-->
 
+        <!--Retry counts-->
+        <!--<HTTPRequestRetryCount>{{authentication.adaptive.http_connections.request_retry_count}}</HTTPRequestRetryCount>-->
+        <!--End of retry counts-->
+
         <!--<RefreshInterval>500</RefreshInterval>-->
         <!--End of timeouts in milliseconds-->
 
@@ -2543,6 +2557,18 @@
     <CertThumbprint>
         <EnableSHA256>true</EnableSHA256>
     </CertThumbprint>
+
+    <!--
+        These configurations are deprecated from this file and moved to organization-mgt.xml file.
+        The configuration reading will happen from the organization-mgt.xml file and the deployment.toml
+        configurations will remain the same.
+    -->
+    <OrganizationUserInvitation>
+        <DefaultExpiryTime>4320</DefaultExpiryTime>
+        <PrimaryUserDomain>PRIMARY</PrimaryUserDomain>
+        <DefaultAcceptURL>/accountrecoveryendpoint/acceptinvitation.do</DefaultAcceptURL>
+        <AssociationWaitTime>5000</AssociationWaitTime>
+    </OrganizationUserInvitation>
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>

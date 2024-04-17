@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscovererTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandlerTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImplTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinatorTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandlerTest"/>

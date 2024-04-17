@@ -410,6 +410,11 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (serviceProvider == null) {
             return null;
         }
+        /* Application and user should be in same tenant domain in order to match the application assigned roles for
+            the user. */
+        if (!StringUtils.equals(serviceProvider.getTenantDomain(), authenticatedUser.getTenantDomain())) {
+            return new ArrayList<>();
+        }
         String applicationId = serviceProvider.getApplicationResourceId();
         return FrameworkUtils.getAppAssociatedRolesOfLocalUser(authenticatedUser, applicationId);
     }
@@ -953,8 +958,8 @@ public class DefaultClaimHandler implements ClaimHandler {
                         authenticatedUser.getLoggableUserId() + " in " + tenantDomain, e);
             }
         } catch (UserIdNotFoundException e) {
-            throw new FrameworkException("User id is not available for user: " + authenticatedUser.getLoggableUserId(),
-                    e);
+            throw new FrameworkException("User id is not available for user: " +
+                    authenticatedUser.getLoggableMaskedUserId(), e);
         }
         return allLocalClaims;
     }
@@ -1133,7 +1138,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             log.error("Error occurred while retrieving " + subjectURI + " claim value for user "
                             + authenticatedUser.getLoggableUserId(), e);
         } catch (UserIdNotFoundException e) {
-            log.error("User id is not available for user: " + authenticatedUser.getLoggableUserId(), e);
+            log.error("User id is not available for user: " + authenticatedUser.getLoggableMaskedUserId(), e);
         }
     }
 
