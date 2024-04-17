@@ -5,6 +5,6 @@
     "image": "",
     "category": "DEFAULT",
     "displayOrder": -1,
-    "tags": [ "OIDC" ],
+    "tags": [ "OIDC", "APIAuth" ],
     "type": "identity-provider"
 }

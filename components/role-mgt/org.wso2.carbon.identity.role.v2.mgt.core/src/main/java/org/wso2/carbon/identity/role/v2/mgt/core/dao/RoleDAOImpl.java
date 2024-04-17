@@ -84,6 +84,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.
+        ErrorMessages.ERROR_CODE_INVALID_ORGANIZATION_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_LIMIT;
@@ -194,7 +196,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.UPDATE_SC
 public class RoleDAOImpl implements RoleDAO {
 
     private static final Log log = LogFactory.getLog(RoleDAOImpl.class);
-    private static final String ORG_65056 = "ORG-65056";
     private final GroupIDResolver groupIDResolver = new GroupIDResolver();
     private final UserIDResolver userIDResolver = new UserIDResolver();
     private final Set<String> systemRoles = getSystemRoles();
@@ -334,8 +335,8 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     private List<RoleBasicInfo> getFilteredRolesBasicInfo(List<ExpressionNode> expressionNodes, Integer limit,
-                                                          Integer offset, String sortBy, String sortOrder,
-                                                          String tenantDomain) throws IdentityRoleManagementException {
+                                                         Integer offset, String sortBy, String sortOrder,
+                                                         String tenantDomain) throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
@@ -2298,10 +2299,10 @@ public class RoleDAOImpl implements RoleDAO {
             return RoleManagementServiceComponentHolder.getInstance().getOrganizationManager()
                     .getOrganizationNameById(organizationId);
         } catch (OrganizationManagementException e) {
-            if (ORG_65056.equals(e.getErrorCode())) {
+            if (ERROR_CODE_INVALID_ORGANIZATION_ID.getCode().equals(e.getErrorCode())) {
                 if (log.isDebugEnabled()) {
                     log.debug("Returning an empty string as the organization name as the " +
-                            "name is not returned for the organization :" + organizationId);
+                            "name is not returned for the given id :" + organizationId);
                 }
                 return StringUtils.EMPTY;
             }

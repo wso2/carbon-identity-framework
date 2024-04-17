@@ -454,22 +454,4 @@ public interface ApplicationMgtListener {
 
         return true;
     }
-
-    /**
-     * Define any additional actions before getting all applications' basic information for the sp property
-     * key and value
-     *
-     * @param tenantDomain tenant domain
-     * @param username username
-     * @param key sp  property key
-     * @param value sp  property value
-     * @return true
-     * @throws IdentityApplicationManagementException
-     */
-    default boolean getApplicationBasicInfoBySPProperty(String tenantDomain, String username,
-                                                       String key, String value)
-            throws IdentityApplicationManagementException {
-
-        return true;
-    }
 }

@@ -5,6 +5,6 @@
     "image": "assets/images/logos/github.svg",
     "category": "DEFAULT",
     "displayOrder": 4,
-    "tags": [ "Social-Login" ],
+    "tags": [ "Social-Login", "APIAuth" ],
     "type": "identity-provider"
 }
