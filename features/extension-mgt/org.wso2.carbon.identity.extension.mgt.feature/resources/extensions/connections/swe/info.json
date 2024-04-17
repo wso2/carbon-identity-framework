@@ -5,6 +5,6 @@
     "image": "assets/images/logos/ethereum.svg",
     "category": "DEFAULT",
     "displayOrder": 9,
-    "tags": [ "OIDC" ],
+    "tags": [ "OIDC", "APIAuth" ],
     "type": "identity-provider"
 }

@@ -5,6 +5,6 @@
     "image": "assets/images/logos/google.svg",
     "category": "DEFAULT",
     "displayOrder": 1,
-    "tags": [ "Social-Login" ],
+    "tags": [ "Social-Login", "APIAuth" ],
     "type": "identity-provider"
 }

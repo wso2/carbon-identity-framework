@@ -5,6 +5,6 @@
     "image": "assets/images/logos/microsoft.svg",
     "category": "DEFAULT",
     "displayOrder": 2,
-    "tags": [ "Social-Login" ],
+    "tags": [ "Social-Login", "APIAuth" ],
     "type": "identity-provider"
 }
