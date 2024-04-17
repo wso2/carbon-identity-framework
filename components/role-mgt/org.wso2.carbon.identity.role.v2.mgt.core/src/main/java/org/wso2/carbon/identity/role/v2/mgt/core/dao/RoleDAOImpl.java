@@ -194,6 +194,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.UPDATE_SC
 public class RoleDAOImpl implements RoleDAO {
 
     private static final Log log = LogFactory.getLog(RoleDAOImpl.class);
+    private static final String ORG_65056 = "ORG-65056";
     private final GroupIDResolver groupIDResolver = new GroupIDResolver();
     private final UserIDResolver userIDResolver = new UserIDResolver();
     private final Set<String> systemRoles = getSystemRoles();
@@ -2297,6 +2298,13 @@ public class RoleDAOImpl implements RoleDAO {
             return RoleManagementServiceComponentHolder.getInstance().getOrganizationManager()
                     .getOrganizationNameById(organizationId);
         } catch (OrganizationManagementException e) {
+            if (ORG_65056.equals(e.getErrorCode())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Returning an empty string as the organization name as the " +
+                            "name is not returned for the organization :" + organizationId);
+                }
+                return StringUtils.EMPTY;
+            }
             String errorMessage = "Error while retrieving the organization name for the given id: " + organizationId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
