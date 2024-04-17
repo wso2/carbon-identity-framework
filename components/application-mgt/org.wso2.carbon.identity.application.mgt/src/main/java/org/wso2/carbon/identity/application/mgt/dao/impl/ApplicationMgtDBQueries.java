@@ -78,15 +78,6 @@ public class ApplicationMgtDBQueries {
             "TENANT_ID = ? AND APP_NAME != ? ORDER BY ID DESC";
     public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME = "SELECT ID, APP_NAME, DESCRIPTION FROM SP_APP " +
             "WHERE TENANT_ID = ? AND APP_NAME != ? AND (%s) ORDER BY ID DESC";
-
-    public static final String LOAD_APP_IDS_BY_SP_PROPERTY_H2 = "SELECT SP_APP.UUID FROM SP_APP JOIN " +
-            "SP_METADATA ON SP_APP.ID = SP_METADATA.SP_ID WHERE SP_METADATA.NAME=? and " +
-            "SP_METADATA.`VALUE`=? AND SP_METADATA.TENANT_ID = ?";
-
-    public static final String LOAD_APP_IDS_BY_SP_PROPERTY = "SELECT SP_APP.UUID FROM SP_APP JOIN " +
-            "SP_METADATA ON SP_APP.ID = SP_METADATA.SP_ID WHERE SP_METADATA.NAME=? and " +
-            "SP_METADATA.VALUE=? AND SP_METADATA.TENANT_ID = ?";
-
     public static final String LOAD_APP_COUNT_BY_TENANT = "SELECT COUNT(*) FROM SP_APP WHERE TENANT_ID = ? AND " +
             "APP_NAME != ? ";
 

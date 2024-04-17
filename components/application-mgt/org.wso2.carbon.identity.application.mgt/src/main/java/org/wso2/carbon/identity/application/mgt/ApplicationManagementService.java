@@ -117,23 +117,6 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             throws IdentityApplicationManagementException;
 
     /**
-     * Get all basic application information based on the 'SP Property Key' and 'Value'.
-     *
-     * @param tenantDomain Tenant Domain
-     * @param username     User Name
-     * @param key          SP Property key
-     * @param value        SP Property value
-     * @return ApplicationBasicInfo Object.
-     * @throws IdentityApplicationManagementException if loading application
-     */
-    public ApplicationBasicInfo[] getApplicationBasicInfoBySPProperty(String tenantDomain, String username,
-                                                                      String key, String value)
-            throws IdentityApplicationManagementException {
-
-        throw new NotImplementedException();
-    }
-
-    /**
      * Update Application
      *
      * @param tenantDomain Tenant Domain
