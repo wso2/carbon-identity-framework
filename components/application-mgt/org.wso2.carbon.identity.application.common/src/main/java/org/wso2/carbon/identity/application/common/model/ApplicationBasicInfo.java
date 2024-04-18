@@ -38,6 +38,7 @@ public class ApplicationBasicInfo implements Serializable {
     private String clientId;
     private String issuer;
     private String tenantDomain;
+    private String uuid;
 
     /**
      * Get application id.
@@ -238,4 +239,25 @@ public class ApplicationBasicInfo implements Serializable {
 
         this.tenantDomain = tenantDomain;
     }
+
+    /**
+     * Get application uuid.
+     *
+     * @return uuid application uuid
+     */
+    public String getUuid() {
+
+        return uuid;
+    }
+
+    /**
+     * Set application uuid.
+     *
+     * @param uuid application uuid
+     */
+    public void setUuid(String uuid) {
+
+        this.uuid = uuid;
+    }
+
 }
