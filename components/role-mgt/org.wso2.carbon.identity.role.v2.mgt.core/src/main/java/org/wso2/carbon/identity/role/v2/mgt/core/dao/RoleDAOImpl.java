@@ -84,6 +84,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.
+        ErrorMessages.ERROR_CODE_INVALID_ORGANIZATION_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_LIMIT;
@@ -2297,6 +2299,13 @@ public class RoleDAOImpl implements RoleDAO {
             return RoleManagementServiceComponentHolder.getInstance().getOrganizationManager()
                     .getOrganizationNameById(organizationId);
         } catch (OrganizationManagementException e) {
+            if (ERROR_CODE_INVALID_ORGANIZATION_ID.getCode().equals(e.getErrorCode())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Returning an empty string as the organization name as the " +
+                            "name is not returned for the given id :" + organizationId);
+                }
+                return StringUtils.EMPTY;
+            }
             String errorMessage = "Error while retrieving the organization name for the given id: " + organizationId;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
