@@ -273,6 +273,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 preparedStatement.setString(4, apiResource.getId());
                 preparedStatement.executeUpdate();
 
+                if (CollectionUtils.isNotEmpty(removedScopes)) {
+                    // Delete Scopes.
+                    deleteScopes(dbConnection, removedScopes, tenantId);
+                }
+
                 if (CollectionUtils.isNotEmpty(addedScopes)) {
                     // Add Scopes.
                     addScopes(dbConnection, apiResource.getId(), addedScopes, tenantId);
@@ -860,6 +865,36 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_SCOPES, e);
+        }
+    }
+
+    /**
+     * Delete scopes from the API resource.
+     *
+     * @param dbConnection Database connection.
+     * @param scopes       List of scopes.
+     * @param tenantId     Tenant id.
+     * @throws APIResourceMgtException If an error occurs while deleting scopes.
+     */
+    private void deleteScopes(Connection dbConnection, List<String> scopes, Integer tenantId)
+            throws APIResourceMgtException {
+
+        if (CollectionUtils.isEmpty(scopes)) {
+            return;
+        }
+        try {
+            PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.DELETE_SCOPE_BY_NAME);
+            for (String scope : scopes) {
+                if (isScopeExists(dbConnection, scope, tenantId)) {
+                    prepStmt.setString(1, scope);
+                    prepStmt.setObject(2, tenantId == 0 ? null : tenantId);
+                    prepStmt.addBatch();
+                }
+            }
+            prepStmt.executeBatch();
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_DELETING_SCOPES, e);
         }
     }
 
