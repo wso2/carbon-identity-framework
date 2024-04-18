@@ -335,8 +335,8 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     private List<RoleBasicInfo> getFilteredRolesBasicInfo(List<ExpressionNode> expressionNodes, Integer limit,
-                                                         Integer offset, String sortBy, String sortOrder,
-                                                         String tenantDomain) throws IdentityRoleManagementException {
+                                                          Integer offset, String sortBy, String sortOrder,
+                                                          String tenantDomain) throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
