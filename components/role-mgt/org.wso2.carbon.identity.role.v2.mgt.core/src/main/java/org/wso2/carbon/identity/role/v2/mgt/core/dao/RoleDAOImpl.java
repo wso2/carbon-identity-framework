@@ -1179,7 +1179,9 @@ public class RoleDAOImpl implements RoleDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     String roleId = resultSet.getString(1);
-                    roleIds.add(roleId);
+                    if (roleId != null) {
+                        roleIds.add(roleId);
+                    }
                 }
             }
             if (!isSubOrgByTenant(tenantDomain)) {
