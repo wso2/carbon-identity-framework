@@ -7,7 +7,7 @@
     "category": "DEFAULT",
     "displayOrder": 3,
     "services": [],
-    "tags": [ "Social-Login" ],
+    "tags": [ "Social-Login", "APIAuth" ],
     "idp": {
         "name": "Facebook",
         "description": "",

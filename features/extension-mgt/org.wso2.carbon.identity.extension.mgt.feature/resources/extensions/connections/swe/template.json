@@ -7,7 +7,7 @@
     "category": "DEFAULT",
     "displayOrder": 9,
     "services": [],
-    "tags": [ "OIDC" ],
+    "tags": [ "OIDC", "APIAuth" ],
     "disabled": false,
     "templateId": "swe-idp",
     "idp": {
