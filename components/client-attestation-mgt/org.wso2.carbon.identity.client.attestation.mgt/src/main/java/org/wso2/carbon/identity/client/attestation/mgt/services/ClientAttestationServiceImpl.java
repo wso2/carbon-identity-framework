@@ -97,6 +97,8 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
             return clientAttestationContext;
         }
 
+        clientAttestationContext.setAttestationEnabled(true);
+
         // Check if the attestation object is empty.
         if (StringUtils.isEmpty(attestationObject)) {
             // App is configured to validate attestation but attestation object is empty.
@@ -105,7 +107,6 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
                 LOG.debug("App :" + serviceProvider.getApplicationResourceId() + " in tenant : " + tenantDomain +
                         " is requested with empty attestation object.");
             }
-            clientAttestationContext.setAttestationEnabled(true);
             clientAttestationContext.setAttested(false);
             clientAttestationContext.setValidationFailureMessage("App is configured to validate attestation " +
                     "but attestation object is empty.");
@@ -114,7 +115,6 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
 
         if (isAndroidAttestation(attestationObject)) {
 
-            clientAttestationContext.setAttestationEnabled(true);
             clientAttestationContext.setClientType(Constants.ClientTypes.ANDROID);
 
             ClientAttestationValidator androidAttestationValidator =
@@ -123,7 +123,7 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
             androidAttestationValidator.validateAttestation(attestationObject, clientAttestationContext);
             return clientAttestationContext;
         } else if (isAppleAttestation(attestationObject)) {
-            clientAttestationContext.setAttestationEnabled(true);
+
             clientAttestationContext.setClientType(Constants.ClientTypes.IOS);
 
             ClientAttestationValidator appleAttestationValidator =
