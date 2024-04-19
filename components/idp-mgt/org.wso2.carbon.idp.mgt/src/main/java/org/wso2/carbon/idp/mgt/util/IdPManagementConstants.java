@@ -156,8 +156,9 @@ public class IdPManagementConstants {
         public static final String GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL =
                 "SELECT IDP.ID, IDP.NAME, IDP.DESCRIPTION, IDP.IS_ENABLED, IDP.IMAGE_URL, IDP.UUID ";
 
-        public static final String GET_IDP_BY_TENANT_MSSQL_TAIL = "TENANT_ID =? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
-                " ROWS ONLY";
+        public static final String GET_IDP_BY_TENANT_MSSQL_TAIL = "TENANT_ID =? AND NAME != '" + RESIDENT_IDP + "' " +
+                "AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE NAME = 'isSystemReservedIdP' AND VALUE = 'true') " +
+                "ORDER BY %s OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
         public static final String GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL_TAIL = "IDP.TENANT_ID =? AND IDP.NAME != '" + RESIDENT_IDP + "' ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
                 " ROWS ONLY";
