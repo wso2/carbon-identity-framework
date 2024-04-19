@@ -143,12 +143,14 @@ public class IdPManagementConstants {
         public static final String GET_IDP_BY_TENANT_MYSQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
-        public static final String GET_IDP_BY_TENANT_MYSQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s LIMIT ?, ?";
+        public static final String GET_IDP_BY_TENANT_MYSQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' " +
+                "AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND NAME = 'isSystemReservedIdP' AND VALUE = 'true') " +
+                "ORDER BY %s OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
         public static final String GET_IDP_BY_TENANT_DB2SQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
-        public static final String GET_IDP_BY_TENANT_DB2SQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s LIMIT ? OFFSET ?";
+        public static final String GET_IDP_BY_TENANT_DB2SQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND NAME = 'isSystemReservedIdP' AND VALUE = 'true') ORDER BY %s LIMIT ? OFFSET ?";
 
         public static final String GET_IDP_BY_TENANT_MSSQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
@@ -156,8 +158,9 @@ public class IdPManagementConstants {
         public static final String GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL =
                 "SELECT IDP.ID, IDP.NAME, IDP.DESCRIPTION, IDP.IS_ENABLED, IDP.IMAGE_URL, IDP.UUID ";
 
-        public static final String GET_IDP_BY_TENANT_MSSQL_TAIL = "TENANT_ID =? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
-                " ROWS ONLY";
+        public static final String GET_IDP_BY_TENANT_MSSQL_TAIL = "TENANT_ID =? AND NAME != '" + RESIDENT_IDP + "' " +
+                "AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND NAME = 'isSystemReservedIdP' AND VALUE = 'true') " +
+                "ORDER BY %s OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
         public static final String GET_TRUSTED_TOKEN_ISSUER_TENANT_MSSQL_TAIL = "IDP.TENANT_ID =? AND IDP.NAME != '" + RESIDENT_IDP + "' ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
                 " ROWS ONLY";
@@ -171,17 +174,17 @@ public class IdPManagementConstants {
 
         public static final String FROM = " FROM ( ";
 
-        public static final String GET_IDP_BY_TENANT_ORACLE_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' AND ROWNUM <= ?) WHERE rnum > ?";
+        public static final String GET_IDP_BY_TENANT_ORACLE_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND NAME = 'isSystemReservedIdP' AND VALUE = 'true') AND ROWNUM <= ?) WHERE rnum > ?";
 
         public static final String GET_IDP_BY_TENANT_POSTGRESQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
-        public static final String GET_IDP_BY_TENANT_POSTGRESQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s LIMIT ? OFFSET ?";
+        public static final String GET_IDP_BY_TENANT_POSTGRESQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND NAME = 'isSystemReservedIdP' AND VALUE = 'true') ORDER BY %s LIMIT ? OFFSET ?";
 
         public static final String GET_IDP_BY_TENANT_INFORMIX =
                 "SELECT SKIP ? FIRST ? ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
-        public static final String GET_IDP_BY_TENANT_INFORMIX_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s";
+        public static final String GET_IDP_BY_TENANT_INFORMIX_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND NAME = 'isSystemReservedIdP' AND VALUE = 'true') ORDER BY %s";
 
         public static final String GET_IDP_COUNT_SQL = "SELECT COUNT(*) FROM IDP WHERE ";
 
