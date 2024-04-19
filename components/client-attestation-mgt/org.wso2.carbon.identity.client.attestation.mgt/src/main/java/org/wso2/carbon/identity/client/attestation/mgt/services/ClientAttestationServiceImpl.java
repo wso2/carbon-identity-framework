@@ -77,10 +77,7 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
                                                         String applicationResourceId, String tenantDomain)
             throws ClientAttestationMgtException {
 
-        ClientAttestationContext clientAttestationContext = new ClientAttestationContext();
-        clientAttestationContext.setApplicationResourceId(applicationResourceId);
-        clientAttestationContext.setTenantDomain(tenantDomain);
-
+        ClientAttestationContext clientAttestationContext;
         ServiceProvider serviceProvider = getServiceProvider(applicationResourceId, tenantDomain);
 
         // Check if the app is subscribed to client attestation validation.
@@ -92,49 +89,40 @@ public class ClientAttestationServiceImpl implements ClientAttestationService {
                 LOG.debug("App :" + serviceProvider.getApplicationResourceId() + " in tenant : " + tenantDomain +
                         " is not subscribed to Client Attestation Service.");
             }
-            clientAttestationContext.setAttestationEnabled(false);
+            clientAttestationContext = new ClientAttestationContext(false);
             clientAttestationContext.setAttested(true);
-            return clientAttestationContext;
-        }
-
-        clientAttestationContext.setAttestationEnabled(true);
-
-        // Check if the attestation object is empty.
-        if (StringUtils.isEmpty(attestationObject)) {
-            // App is configured to validate attestation but attestation object is empty.
-            // This is a potential attack, so reject the request.
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("App :" + serviceProvider.getApplicationResourceId() + " in tenant : " + tenantDomain +
-                        " is requested with empty attestation object.");
-            }
-            clientAttestationContext.setAttested(false);
-            clientAttestationContext.setValidationFailureMessage("App is configured to validate attestation " +
-                    "but attestation object is empty.");
-            return clientAttestationContext;
-        }
-
-        if (isAndroidAttestation(attestationObject)) {
-
-            clientAttestationContext.setClientType(Constants.ClientTypes.ANDROID);
-
-            ClientAttestationValidator androidAttestationValidator =
-                    new AndroidAttestationValidator(applicationResourceId, tenantDomain,
-                            serviceProvider.getClientAttestationMetaData());
-            androidAttestationValidator.validateAttestation(attestationObject, clientAttestationContext);
-            return clientAttestationContext;
-        } else if (isAppleAttestation(attestationObject)) {
-
-            clientAttestationContext.setClientType(Constants.ClientTypes.IOS);
-
-            ClientAttestationValidator appleAttestationValidator =
-                    new AppleAttestationValidator(applicationResourceId, tenantDomain,
-                            serviceProvider.getClientAttestationMetaData());
-            appleAttestationValidator.validateAttestation(attestationObject, clientAttestationContext);
-            return clientAttestationContext;
         } else {
-            handleInvalidAttestationObject(clientAttestationContext);
-            return clientAttestationContext;
+            clientAttestationContext = new ClientAttestationContext(true);
+            // Check if the attestation object is empty.
+            if (StringUtils.isEmpty(attestationObject)) {
+                // App is configured to validate attestation but attestation object is empty.
+                // This is a potential attack, so reject the request.
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("App :" + serviceProvider.getApplicationResourceId() + " in tenant : " + tenantDomain +
+                            " is requested with empty attestation object.");
+                }
+                clientAttestationContext.setAttested(false);
+                clientAttestationContext.setValidationFailureMessage("App is configured to validate attestation " +
+                        "but attestation object is empty.");
+            } else if (isAndroidAttestation(attestationObject)) {
+                clientAttestationContext.setClientType(Constants.ClientTypes.ANDROID);
+                ClientAttestationValidator androidAttestationValidator =
+                        new AndroidAttestationValidator(applicationResourceId, tenantDomain,
+                                serviceProvider.getClientAttestationMetaData());
+                androidAttestationValidator.validateAttestation(attestationObject, clientAttestationContext);
+            } else if (isAppleAttestation(attestationObject)) {
+                clientAttestationContext.setClientType(Constants.ClientTypes.IOS);
+                ClientAttestationValidator appleAttestationValidator =
+                        new AppleAttestationValidator(applicationResourceId, tenantDomain,
+                                serviceProvider.getClientAttestationMetaData());
+                appleAttestationValidator.validateAttestation(attestationObject, clientAttestationContext);
+            } else {
+                handleInvalidAttestationObject(clientAttestationContext);
+            }
         }
+        clientAttestationContext.setApplicationResourceId(applicationResourceId);
+        clientAttestationContext.setTenantDomain(tenantDomain);
+        return clientAttestationContext;
     }
 
     /**

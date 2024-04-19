@@ -34,10 +34,15 @@ public class ClientAttestationContext extends MessageContext {
 
     private String applicationResourceId;
     private String tenantDomain;
-    private boolean attestationEnabled;
     private boolean isAttested;
     private Constants.ClientTypes clientType;
     private String validationFailureMessage;
+    private final boolean attestationEnabled;
+
+    public ClientAttestationContext(boolean attestationEnabled) {
+
+        this.attestationEnabled = attestationEnabled;
+    }
 
     public String getApplicationResourceId() {
 
@@ -62,11 +67,6 @@ public class ClientAttestationContext extends MessageContext {
     public boolean isAttestationEnabled() {
 
         return attestationEnabled;
-    }
-
-    public void setAttestationEnabled(boolean attestationEnabled) {
-
-        this.attestationEnabled = attestationEnabled;
     }
 
     public boolean isAttested() {
