@@ -2096,7 +2096,7 @@
         <h2database.version>2.2.224</h2database.version>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
-        <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>
+        <maven.spotbugsplugin.version>4.8.4.0</maven.spotbugsplugin.version>
 
         <account.lock.service.imp.pkg.version.range>[1.4.23, 2.0.0)</account.lock.service.imp.pkg.version.range>
         <openjdk.nashorn.version>15.3</openjdk.nashorn.version>
@@ -2199,15 +2199,14 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>${maven.findbugsplugin.version}</version>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
+                    <version>${maven.spotbugsplugin.version}</version>
                     <configuration>
                         <excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
                         <effort>Max</effort>
                         <threshold>Low</threshold>
                         <xmlOutput>true</xmlOutput>
-                        <findbugsXmlOutputDirectory>${project.build.directory}/findbugs</findbugsXmlOutputDirectory>
                     </configuration>
                     <executions>
                         <execution>
@@ -2265,8 +2264,8 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

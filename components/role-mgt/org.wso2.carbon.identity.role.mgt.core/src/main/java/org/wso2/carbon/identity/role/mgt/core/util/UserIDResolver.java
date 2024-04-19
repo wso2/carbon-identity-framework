@@ -41,7 +41,7 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.RoleTableColu
  */
 public class UserIDResolver implements IDResolver {
 
-    private Log log = LogFactory.getLog(UserIDResolver.class);
+    private static final Log LOG = LogFactory.getLog(UserIDResolver.class);
 
     @Override
     public String getNameByID(String id, String tenantDomain) throws IdentityRoleManagementException {
@@ -116,8 +116,8 @@ public class UserIDResolver implements IDResolver {
                 if (userStoreManager instanceof AbstractUserStoreManager) {
                     return ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
                 }
-                if (log.isDebugEnabled()) {
-                    log.debug("Provided user store manager for the userID: " + userID + ", is not an instance of the "
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Provided user store manager for the userID: " + userID + ", is not an instance of the "
                             + "AbstractUserStore manager");
                 }
                 throw new IdentityRoleManagementClientException(OPERATION_NOT_SUPPORTED.getCode(),
@@ -149,8 +149,8 @@ public class UserIDResolver implements IDResolver {
                 if (userStoreManager instanceof AbstractUserStoreManager) {
                     return ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(userName);
                 }
-                if (log.isDebugEnabled()) {
-                    log.debug(
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(
                             "Provided user store manager for the userName: " + userName + ", is not an instance of the "
                                     + "AbstractUserStore manager");
                 }
