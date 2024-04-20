@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.mgt.core.dao;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -139,9 +140,10 @@ import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_SCIM_
 /**
  * Implementation of the {@link RoleDAO} interface.
  */
+@SuppressFBWarnings({"MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR", "CT_CONSTRUCTOR_THROW"})
 public class RoleDAOImpl implements RoleDAO {
 
-    private Log log = LogFactory.getLog(RoleDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(RoleDAOImpl.class);
     private GroupIDResolver groupIDResolver = new GroupIDResolver();
     private UserIDResolver userIDResolver = new UserIDResolver();
     private Set<String> systemRoles = getSystemRoles();
@@ -151,8 +153,8 @@ public class RoleDAOImpl implements RoleDAO {
                                  List<String> permissions, String tenantDomain) throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if (log.isDebugEnabled()) {
-            log.debug("Creating the role: " + roleName + " in the tenantDomain: " + tenantDomain);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Creating the role: " + roleName + " in the tenantDomain: " + tenantDomain);
         }
 
         String primaryDomainName = IdentityUtil.getPrimaryDomainName();
@@ -236,8 +238,8 @@ public class RoleDAOImpl implements RoleDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         // Append internal domain in order to maintain the backward compatibility.
         roleName = appendInternalDomain(roleName);
-        if (log.isDebugEnabled()) {
-            log.debug("Adding the roleID: " + roleId + " for the role: " + roleName + " in the tenantDomain: "
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Adding the roleID: " + roleId + " for the role: " + roleName + " in the tenantDomain: "
                     + tenantDomain);
         }
 
@@ -268,8 +270,8 @@ public class RoleDAOImpl implements RoleDAO {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         roleName = removeInternalDomain(roleName);
-        if (log.isDebugEnabled()) {
-            log.debug("Adding the roleID: " + roleId + " for the role: " + roleName + " in the tenantDomain: "
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Adding the roleID: " + roleId + " for the role: " + roleName + " in the tenantDomain: "
                     + tenantDomain);
         }
 
@@ -443,8 +445,8 @@ public class RoleDAOImpl implements RoleDAO {
         if (StringUtils.isNotBlank(filter)) {
             sqlfilter = filter.trim().replace(RoleConstants.WILDCARD_CHARACTER, "%").replace("?", "_");
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Input filter: " + filter + " resolved for SQL filter: " + sqlfilter);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Input filter: " + filter + " resolved for SQL filter: " + sqlfilter);
         }
         return sqlfilter;
     }
@@ -557,8 +559,8 @@ public class RoleDAOImpl implements RoleDAO {
         int maximumItemsPerPage = IdentityUtil.getMaximumItemPerPage();
         if (limit == null) {
             limit = IdentityUtil.getDefaultItemsPerPage();
-            if (log.isDebugEnabled()) {
-                log.debug("Given limit is null. Therefore assigning the default limit: " + limit);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Given limit is null. Therefore assigning the default limit: " + limit);
             }
         } else if (limit < 0) {
             String errorMessage =
@@ -566,8 +568,8 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementClientException(INVALID_LIMIT.getCode(), errorMessage);
         } else if (limit > maximumItemsPerPage) {
             limit = maximumItemsPerPage;
-            if (log.isDebugEnabled()) {
-                log.debug("Given limit exceed the maximum limit. Therefore assigning the maximum limit: "
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Given limit exceed the maximum limit. Therefore assigning the maximum limit: "
                         + maximumItemsPerPage);
             }
         }
@@ -600,8 +602,8 @@ public class RoleDAOImpl implements RoleDAO {
         }
         String roleName = getRoleNameByID(roleID, tenantDomain);
         if (CollectionUtils.isEmpty(newUserIDList) && CollectionUtils.isEmpty(deletedUserIDList)) {
-            if (log.isDebugEnabled()) {
-                log.debug("User lists are empty.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("User lists are empty.");
             }
             return new RoleBasicInfo(roleID, roleName);
         }
@@ -736,8 +738,8 @@ public class RoleDAOImpl implements RoleDAO {
         // Validate the group removal operation based on the default system roles.
         validateGroupRemovalFromRole(deletedGroupIDList, roleName, tenantDomain);
         if (CollectionUtils.isEmpty(newGroupIDList) && CollectionUtils.isEmpty(deletedGroupIDList)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Group lists are empty.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Group lists are empty.");
             }
             return new RoleBasicInfo(roleID, roleName);
         }
@@ -861,8 +863,8 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementClientException(ROLE_ALREADY_EXISTS.getCode(),
                     "Role name: " + newRoleName + " is already there in the system. Please pick another role name.");
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Updating the roleName: " + roleName + " to :" + newRoleName + " in the tenantDomain: "
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Updating the roleName: " + roleName + " to :" + newRoleName + " in the tenantDomain: "
                     + tenantDomain);
         }
 
@@ -1013,8 +1015,8 @@ public class RoleDAOImpl implements RoleDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         // Append internal domain in order to maintain the backward compatibility.
         roleName = appendInternalDomain(roleName);
-        if (log.isDebugEnabled()) {
-            log.debug("Deleting the role: " + roleName + " for the role: " + roleName + " in the tenantDomain: "
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Deleting the role: " + roleName + " for the role: " + roleName + " in the tenantDomain: "
                     + tenantDomain);
         }
 
@@ -1060,8 +1062,8 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     String.format(errorMessage, roleName, tenantDomain), e);
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Is roleName: " + roleName + " Exist: " + isExist + " in the tenantDomain: " + tenantDomain);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Is roleName: " + roleName + " Exist: " + isExist + " in the tenantDomain: " + tenantDomain);
         }
         return isExist;
     }
@@ -1088,8 +1090,8 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     String.format(errorMessage, roleID, tenantDomain), e);
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Is roleID: " + roleID + " Exist: " + isExist + " in the tenantDomain: " + tenantDomain);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Is roleID: " + roleID + " Exist: " + isExist + " in the tenantDomain: " + tenantDomain);
         }
         return isExist;
     }
@@ -1140,8 +1142,8 @@ public class RoleDAOImpl implements RoleDAO {
                             } catch (IdentityRoleManagementClientException roleManagementClientException) {
                                 String errorMessage = String.format(USER_NOT_FOUND_ERROR_MESSAGE, name, tenantDomain);
                                 if (roleManagementClientException.getMessage().equals(errorMessage)) {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug(errorMessage);
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug(errorMessage);
                                     }
                                     continue;
                                 } else {
@@ -1298,8 +1300,8 @@ public class RoleDAOImpl implements RoleDAO {
         Therefore validating for NULL will be sufficient.
          */
         if (permissions == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Permissions list is null. Therefore not proceeding further.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Permissions list is null. Therefore not proceeding further.");
             }
             return new RoleBasicInfo(roleID, roleName);
         }
@@ -1523,7 +1525,7 @@ public class RoleDAOImpl implements RoleDAO {
                             String message =
                                     "Invalid scenario. Multiple roles found for the given role ID: " + roleID + " and "
                                             + "tenantDomain: " + tenantDomain;
-                            log.warn(message);
+                            LOG.warn(message);
                         }
                         roleName = resultSet.getString(1);
                     }
@@ -1555,8 +1557,8 @@ public class RoleDAOImpl implements RoleDAO {
         OMElement systemRolesConfig = configParser
                 .getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT);
         if (systemRolesConfig == null) {
-            if (log.isDebugEnabled()) {
-                log.debug(
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(
                         "'" + IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT + "' config cannot be found.");
             }
             return Collections.emptySet();
@@ -1565,8 +1567,8 @@ public class RoleDAOImpl implements RoleDAO {
         Iterator roleIdentifierIterator = systemRolesConfig
                 .getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT);
         if (roleIdentifierIterator == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("'" + IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT + "' config cannot be found.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("'" + IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT + "' config cannot be found.");
             }
             return Collections.emptySet();
         }
@@ -1647,8 +1649,8 @@ public class RoleDAOImpl implements RoleDAO {
         if (node.isSelected()) {
             // Assuming all child nodes selected and no traversing further.
             permissions.add(node.getResourcePath());
-            if (log.isDebugEnabled()) {
-                log.debug("Permission: " + node.getDisplayName() + " and resourcePath: " + node.getResourcePath()
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Permission: " + node.getDisplayName() + " and resourcePath: " + node.getResourcePath()
                         + " added to the permission map.");
             }
         } else {
@@ -1723,11 +1725,11 @@ public class RoleDAOImpl implements RoleDAO {
                 }
             }
         } catch (UserStoreException e) {
-            log.error(String.format("Error while retrieving property %s for userstore %s in tenantId %s. " +
+            LOG.error(String.format("Error while retrieving property %s for userstore %s in tenantId %s. " +
                     "Returning null.", property, userStoreDomain, tenantId), e);
         }
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Userstore property %s is set to %s for userstore %s in tenantId %s",
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Userstore property %s is set to %s for userstore %s in tenantId %s",
                     property, propValue, userStoreDomain, tenantId));
         }
         return propValue;
