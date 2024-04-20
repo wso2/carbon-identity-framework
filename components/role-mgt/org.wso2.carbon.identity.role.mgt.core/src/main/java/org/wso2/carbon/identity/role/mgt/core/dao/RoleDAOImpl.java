@@ -24,6 +24,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
@@ -74,6 +75,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -396,6 +398,9 @@ public class RoleDAOImpl implements RoleDAO {
                 }
                 roleNames.add(appendInternalDomain(roleName));
             }
+        }
+        if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME == null || CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+            roleNames = roleNames.stream().distinct().collect(Collectors.toList());
         }
         Map<String, String> roleNamesToIDs = getRoleIDsByNames(roleNames, tenantDomain);
 
@@ -1480,7 +1485,7 @@ public class RoleDAOImpl implements RoleDAO {
                 statement.setString(RoleConstants.RoleTableColumns.ATTR_NAME, RoleConstants.ID_URI);
                 int count = 0;
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    while (resultSet.next()) {
+                    if (resultSet.next()) {
                         // Handle multiple matching roles.
                         count++;
                         if (count > 1) {
