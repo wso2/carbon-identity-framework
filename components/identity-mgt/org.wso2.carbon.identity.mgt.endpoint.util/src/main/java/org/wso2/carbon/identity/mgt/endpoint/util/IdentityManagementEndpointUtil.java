@@ -236,6 +236,29 @@ public class IdentityManagementEndpointUtil {
     }
 
     /**
+     * Replace the ${organizationIdHint} placeholder in the url with the organization id.
+     *
+     * @param url URL.
+     * @param tenantDomain Tenant Domain.
+     * @return The value replaced url.
+     */
+    public static String getOrganizationIdHintReplacedURL(String url, String tenantDomain) {
+
+        if (StringUtils.isBlank(url)) {
+            return url;
+        }
+        if (!url.contains(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER)) {
+            return url;
+        }
+        // TODO : Resolve the organization id from tenant domain.
+        if (StringUtils.isNotBlank(tenantDomain)) {
+            return url.replaceAll(Pattern.quote(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER),
+                    tenantDomain);
+        }
+        return url;
+    }
+
+    /**
      * Cast the provided Object to a Boolean
      *
      * @param value Object
