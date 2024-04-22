@@ -64,6 +64,22 @@
         </PushedAuthReqCleanUp>
     </JDBCPersistenceManager>
 
+    <!--
+    This section provide the ability to configure the storage type for the features that used to store data in the
+    registry in IS 7.0.0 or earlier.
+
+    Applicable values:
+        - "database" - Data will be store in tables in the specified tables in the identity database.
+        - "hybrid"   - Any new changes stored in "database" and any existing data read from "registry" allowing data to
+                        on-demand migrate.
+        Default value is "database".
+    -->
+    <DataStorageType>
+        <NotificationTemplates>database</NotificationTemplates>
+<!--        <SAMLConfigs>database</SAMLConfigs>-->
+<!--        <KeyStores>database</KeyStores>-->
+    </DataStorageType>
+
     <!-- Time configurations are in minutes -->
     <TimeConfig>
         <SessionIdleTimeout>15</SessionIdleTimeout>
