@@ -159,10 +159,6 @@ public class IdentityConstants {
     // Configuration constants of authentication authenticator in identity.xml file.
     public static final String TAGS = "Tags";
 
-    // User account association constants
-    public static final String USER_ACCOUNT_ASSOCIATION_ENABLE_SHA256_KEY = "UserAccountAssociation.EnableSHA256Key";
-
-    public static final String IDENTITY_UTIL_ENABLE_SHA256_RANDOM_NUMBERS = "EnableSHA256RandomNumberGenerator";
     public static final String IDENTITY_UTIL_ENABLE_SHA256 = "IdentityUtil.EnableSHA256";
     public static final String CERT_THUMBPRINT_ENABLE_SHA256 = "CertThumbprint.EnableSHA256";
 
@@ -404,8 +400,6 @@ public class IdentityConstants {
         public static final String STS_IDENTITY_PROVIDER_URL = "SecurityTokenService.IdentityProviderURL";
         public static final String PASSIVE_STS_SLO_HOST_NAME_VERIFICATION_ENABLED =
                 "PassiveSTS.SLOHostNameVerificationEnabled";
-        public static final String PASSIVE_STS_ENABLE_DEFAULT_SIGNATURE_AND_DIGEST_ALG =
-                "PassiveSTS.EnableDefaultSignatureAndDigestAlgorithm";
     }
 
     /**
