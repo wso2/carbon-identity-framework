@@ -236,6 +236,29 @@ public class IdentityManagementEndpointUtil {
     }
 
     /**
+     * Replace the ${organizationIdHint} placeholder in the url with the organization id.
+     *
+     * @param url URL.
+     * @param orgId Organization id.
+     * @return The value replaced url.
+     */
+    public static String getOrganizationIdHintReplacedURL(String url, String orgId) {
+
+        if (StringUtils.isBlank(url)) {
+            return url;
+        }
+        if (!url.contains(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER)) {
+            return url;
+        }
+        if (StringUtils.isNotBlank(orgId)) {
+            return url.replaceAll(Pattern.quote(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER),
+                    orgId);
+        }
+        return url.replaceAll(Pattern.quote(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER),
+                StringUtils.EMPTY);
+    }
+
+    /**
      * Cast the provided Object to a Boolean
      *
      * @param value Object
