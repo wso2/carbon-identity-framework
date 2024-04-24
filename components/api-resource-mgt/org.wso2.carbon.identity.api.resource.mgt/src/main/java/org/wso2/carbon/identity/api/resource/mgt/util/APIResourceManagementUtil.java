@@ -102,17 +102,10 @@ public class APIResourceManagementUtil {
                 HashMap<String, APIResource> tempConfigs = new HashMap<>(configs);
                 List<APIResource> systemAPIs = getSystemAPIs(tenantDomain);
                 for (APIResource systemAPI : systemAPIs) {
-                    if (tempConfigs.containsKey(systemAPI.getIdentifier())) {
-                        tempConfigs.remove(systemAPI.getIdentifier());
-                    } else {
-                        String apiId = APIResourceManagerImpl.getInstance().getAPIResourceByIdentifier(
-                                systemAPI.getIdentifier(), tenantDomain).getId();
-                        APIResourceManagerImpl.getInstance().deleteAPIResourceById(apiId, tenantDomain);
-                    }
+                    tempConfigs.remove(systemAPI.getIdentifier());
                 }
                 // Register the new system APIs.
                 registerAPIResources(new ArrayList<>(tempConfigs.values()), tenantDomain);
-
                 // Handle duplicate system APIs.
                 for (APIResource oldAPIResource : duplicateConfigs.values()) {
                     // Get the existing API resource from the DB.

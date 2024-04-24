@@ -85,7 +85,9 @@ public class APIResourceManagementConstants {
         public static final String DESCRIPTION = "description";
         public static final String REQUIRES_AUTHORIZATION = "requiresAuthorization";
         public static final String TYPE = "type";
+        public static final String DISABLED = "disabled";
         public static final String TENANT_ADMIN_TYPE = "TENANT_ADMIN";
+
     }
 
     /**

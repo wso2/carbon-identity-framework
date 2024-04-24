@@ -168,6 +168,10 @@ public class APIResourceManagementConfigBuilder {
 
     private APIResource buildAPIResource(OMElement element) {
 
+        // If API resource is disabled skip adding to the list.
+        if (Boolean.parseBoolean(element.getAttributeValue(new QName(APIResourceConfigBuilderConstants.DISABLED)))) {
+            return null;
+        }
         String apiResourceIdentifier = element.getAttributeValue(
                 new QName(APIResourceConfigBuilderConstants.IDENTIFIER));
         String type = APIResourceConfigBuilderConstants.TENANT_ADMIN_TYPE;
