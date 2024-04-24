@@ -366,9 +366,9 @@ public class IdentityUtilTest {
     @DataProvider
     public Object[][] getHmacTestData() {
         return new Object[][]{
-                {"Secret", "text2hmac", "z0XIaT8rj/RWZlR+w0OD0TX51g+hEfTnzucHGSbS0f8="},
-                {"Secret", "", "DmWwlxMYdf692IJa9TD+5PHo/4tUn6xTxfme8G0yXPM="},
-                {" ", "", "f/LRRYVdcBczSZySEtT6ENcODf1MJMO6aPLnwDElPkQ="},
+                {"Secret", "text2hmac", "YXtiz29YSC7+tSC/MoSLUp/Bpaw="},
+                {"Secret", "", "C+IW8zY183KCv2ykZKQV1rLVuAY="},
+                {" ", "", "SRJSdgtKDFBrWRewM1+u6JJU3PI="},
         };
     }
 
