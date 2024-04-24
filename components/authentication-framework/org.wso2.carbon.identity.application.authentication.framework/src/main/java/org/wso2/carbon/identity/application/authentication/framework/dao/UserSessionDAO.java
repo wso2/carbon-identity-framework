@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -111,10 +111,17 @@ public interface UserSessionDAO {
         }
     }
 
+    /**
+     * Get all the federated user session details mapped for federated IDP sessionId.
+     *
+     * @param fedIdpSessionId sid claim in the logout token of the federated idp.
+     * @return List of FederatedUserSession containing federated authentication session details.
+     * @throws SessionManagementServerException
+     */
     default List<FederatedUserSession> getFederatedAuthSessionsDetails(String fedIdpSessionId)
             throws SessionManagementServerException {
 
-        List<FederatedUserSession> federatedUserSession = new ArrayList<>();
+        List<FederatedUserSession> federatedUserSession;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
         try {
             federatedUserSession = jdbcTemplate.executeQuery(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID,
