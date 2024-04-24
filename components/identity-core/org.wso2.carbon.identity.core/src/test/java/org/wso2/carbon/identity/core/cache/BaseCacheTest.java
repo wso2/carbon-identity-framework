@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.core.cache;
 
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.MockedStatic;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -32,18 +32,17 @@ import java.io.File;
 import java.net.URL;
 
 import static org.mockito.Mockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
 /**
  * Test for the Base cache.
  */
-@PrepareForTest({IdentityTenantUtil.class})
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.*", "org.w3c.*",
-        "javax.naming.*", "javax.sql.*", "org.mockito.*"})
 public class BaseCacheTest {
+
+    MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -64,12 +63,19 @@ public class BaseCacheTest {
         when(mockTenantManager.getTenantId("bar.com")).thenReturn(2);
         OSGiDataHolder.getInstance().setUserRealmService(mockRealmService);
 
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantDomain(1)).thenReturn("foo.com");
-        when(IdentityTenantUtil.getTenantDomain(2)).thenReturn("bar.com");
-        when(IdentityTenantUtil.getTenantId("foo.com")).thenReturn(1);
-        when(IdentityTenantUtil.getTenantId("bar.com")).thenReturn(2);
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(1)).thenReturn("foo.com");
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(2)).thenReturn("bar.com");
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId("foo.com")).thenReturn(1);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId("bar.com")).thenReturn(2);
     }
+
+    @AfterMethod
+    public void tearDown() throws Exception {
+
+        identityTenantUtil.close();
+    }
+
     @Test
     public void testAddition() {
 

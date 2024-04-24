@@ -21,14 +21,14 @@ package org.wso2.carbon.identity.core.internal;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.IObjectFactory;
+import org.mockito.MockedStatic;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -42,21 +42,18 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
-@PrepareForTest({ServerConfiguration.class, CarbonUtils.class, IdentityCoreServiceComponent.class, NetworkUtils.class,
-        IdentityTenantUtil.class, PrivilegedCarbonContext.class, IdentityUtil.class})
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
-        ".*", "org.apache.xerces.*", "org.mockito.*"})
+@Listeners(MockitoTestNGListener.class)
 public class DefaultServiceURLBuilderTest {
 
     @Mock
@@ -70,27 +67,32 @@ public class DefaultServiceURLBuilderTest {
 
     private final String HTTPS = "https";
 
+    MockedStatic<CarbonUtils> carbonUtils;
+    MockedStatic<ServerConfiguration> serverConfiguration;
+    MockedStatic<NetworkUtils> networkUtils;
+    MockedStatic<IdentityCoreServiceComponent> identityCoreServiceComponent;
+    MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
+
     @BeforeMethod
     public void setUp() throws Exception {
 
-        mockStatic(CarbonUtils.class);
-        mockStatic(ServerConfiguration.class);
-        mockStatic(NetworkUtils.class);
-        mockStatic(IdentityCoreServiceComponent.class);
-        mockStatic(IdentityTenantUtil.class);
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        carbonUtils = mockStatic(CarbonUtils.class);
+        serverConfiguration = mockStatic(ServerConfiguration.class);
+        networkUtils = mockStatic(NetworkUtils.class);
+        identityCoreServiceComponent = mockStatic(IdentityCoreServiceComponent.class);
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext mockPrivilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
-        when(ServerConfiguration.getInstance()).thenReturn(mockServerConfiguration);
-        when(IdentityCoreServiceComponent.getConfigurationContextService()).thenReturn(mockConfigurationContextService);
+        privilegedCarbonContext.when(
+                PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(mockPrivilegedCarbonContext);
+        serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(mockServerConfiguration);
+        identityCoreServiceComponent.when(
+                IdentityCoreServiceComponent::getConfigurationContextService).thenReturn(mockConfigurationContextService);
         when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
         when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
-        try {
-            when(NetworkUtils.getLocalHostname()).thenReturn("localhost");
-        } catch (SocketException e) {
-            // Mock behaviour, hence ignored
-        }
+        networkUtils.when(NetworkUtils::getLocalHostname).thenReturn("localhost");
 
         System.setProperty(IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP_PROPERTY, "9763");
         System.setProperty(IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTPS_PROPERTY, "9443");
@@ -101,6 +103,13 @@ public class DefaultServiceURLBuilderTest {
 
         System.clearProperty(IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP_PROPERTY);
         System.clearProperty(IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTPS_PROPERTY);
+
+        carbonUtils.close();
+        serverConfiguration.close();
+        networkUtils.close();
+        identityCoreServiceComponent.close();
+        identityTenantUtil.close();
+        privilegedCarbonContext.close();
     }
 
     @Test
@@ -108,7 +117,7 @@ public class DefaultServiceURLBuilderTest {
 
         String testPath = "/testPath";
         String urlPath = null;
-        when(CarbonUtils.getManagementTransport()).thenReturn(HTTPS);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(HTTPS);
         try {
             urlPath = ServiceURLBuilder.create().addPath(testPath).build().getPath();
         } catch (URLBuilderException e) {
@@ -125,7 +134,7 @@ public class DefaultServiceURLBuilderTest {
         String testPath2 = "testPath2/";
         String testPath3 = "/testPath3/";
         String urlPath = null;
-        when(CarbonUtils.getManagementTransport()).thenReturn(HTTPS);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(HTTPS);
         try {
             urlPath = ServiceURLBuilder.create().addPath(testPath1, testPath2, testPath3).build().getPath();
         } catch (URLBuilderException e) {
@@ -139,7 +148,7 @@ public class DefaultServiceURLBuilderTest {
     public void testAddParameter() {
 
         String parameterValue = null;
-        when(CarbonUtils.getManagementTransport()).thenReturn(HTTPS);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(HTTPS);
         try {
             parameterValue = ServiceURLBuilder.create().addParameter("key", "value").build().getParameter("key");
         } catch (URLBuilderException e) {
@@ -152,7 +161,7 @@ public class DefaultServiceURLBuilderTest {
     @Test
     public void testAddParameters() {
 
-        when(CarbonUtils.getManagementTransport()).thenReturn(HTTPS);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(HTTPS);
         Map<String, String> parameters = new HashMap<>();
         Map<String, String> expected = new HashMap<String, String>() {
             {
@@ -174,7 +183,7 @@ public class DefaultServiceURLBuilderTest {
     @Test
     public void testSetFragment() {
 
-        when(CarbonUtils.getManagementTransport()).thenReturn(HTTPS);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(HTTPS);
         String fragment = null;
         try {
             fragment = ServiceURLBuilder.create().setFragment("fragment").build().getFragment();
@@ -189,7 +198,7 @@ public class DefaultServiceURLBuilderTest {
     public void testAddFragmentParameter() {
 
         String fragment = null;
-        when(CarbonUtils.getManagementTransport()).thenReturn(HTTPS);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(HTTPS);
         try {
             fragment =
                     ServiceURLBuilder.create().addFragmentParameter("key1", "value1").addFragmentParameter("key2",
@@ -205,7 +214,7 @@ public class DefaultServiceURLBuilderTest {
     public void testAddFragmentParameters() {
 
         String fragment = null;
-        when(CarbonUtils.getManagementTransport()).thenReturn(HTTPS);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(HTTPS);
         try {
             fragment =
                     ServiceURLBuilder.create().addFragmentParameter("key1", "value1").addFragmentParameter("key2",
@@ -228,8 +237,9 @@ public class DefaultServiceURLBuilderTest {
         String[] valuesList = {"value1", "value2", "value3"};
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn("proxyContextPath");
-        when(CarbonUtils.getManagementTransport()).thenReturn(HTTPS);
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(true);
+        when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(null);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(HTTPS);
+        identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(true);
         when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
         try {
@@ -346,14 +356,14 @@ public class DefaultServiceURLBuilderTest {
                                          Map<String, String> parameters, String fragment, Map<String, String> fragmentParams,
                                          String expected, String urlPath) {
 
-        when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(protocol);
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(hostName);
-        when(CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
+        carbonUtils.when(() -> CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn(proxyContextPath);
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
-        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantNameFromContext);
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+        identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(enableTenantURLSupport);
+        identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(tenantNameFromContext);
+        lenient().when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
         String absoluteUrl = null;
 
@@ -395,44 +405,55 @@ public class DefaultServiceURLBuilderTest {
                                          Map<String, String> parameters, String fragment, Map<String, String> fragmentParams,
                                          String expected, String urlPath) {
 
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(IdentityCoreConstants.SERVER_HOST_NAME)).thenReturn(serverHostName);
-        when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
-        when(CarbonUtils.getTransportPort(mockAxisConfiguration, protocol)).thenReturn(port);
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
-        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantNameFromContext);
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(IdentityCoreConstants.SERVER_HOST_NAME)).thenReturn(serverHostName);
+            carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(protocol);
+            carbonUtils.when(() -> CarbonUtils.getTransportPort(mockAxisConfiguration, protocol)).thenReturn(port);
+            identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled)
+                    .thenReturn(enableTenantURLSupport);
+            identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(tenantNameFromContext);
+            lenient().when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
-        String absoluteUrl = null;
+            String absoluteUrl = null;
 
-        try {
-            if (MapUtils.isNotEmpty(parameters) && MapUtils.isNotEmpty(fragmentParams)) {
-                absoluteUrl =
-                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",
-                                "fragment").addFragmentParameter("key2", "fragment").addFragmentParameter("key3",
-                                "fragment").addFragmentParameter("key4", "fragment").addParameter("key1", "v")
-                                .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v").build()
-                                .getAbsoluteInternalURL();
-            } else if (MapUtils.isNotEmpty(fragmentParams)){
-                absoluteUrl =
-                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",
-                                "fragment").addFragmentParameter("key2", "fragment").addFragmentParameter("key3",
-                                "fragment").addFragmentParameter("key4", "fragment").build().getAbsoluteInternalURL();
-            } else if (MapUtils.isNotEmpty(parameters)){
-                absoluteUrl =
-                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addParameter("key1", "v")
-                                .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v").build()
-                                .getAbsoluteInternalURL();
-            } else {
-                absoluteUrl =
-                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).build().getAbsoluteInternalURL();
+            try {
+                if (MapUtils.isNotEmpty(parameters) && MapUtils.isNotEmpty(fragmentParams)) {
+                    absoluteUrl =
+                            ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment)
+                                    .addFragmentParameter("key1",
+                                            "fragment").addFragmentParameter("key2", "fragment")
+                                    .addFragmentParameter("key3",
+                                            "fragment").addFragmentParameter("key4", "fragment")
+                                    .addParameter("key1", "v")
+                                    .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v")
+                                    .build()
+                                    .getAbsoluteInternalURL();
+                } else if (MapUtils.isNotEmpty(fragmentParams)) {
+                    absoluteUrl =
+                            ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment)
+                                    .addFragmentParameter("key1",
+                                            "fragment").addFragmentParameter("key2", "fragment")
+                                    .addFragmentParameter("key3",
+                                            "fragment").addFragmentParameter("key4", "fragment").build()
+                                    .getAbsoluteInternalURL();
+                } else if (MapUtils.isNotEmpty(parameters)) {
+                    absoluteUrl =
+                            ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addParameter("key1", "v")
+                                    .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v")
+                                    .build()
+                                    .getAbsoluteInternalURL();
+                } else {
+                    absoluteUrl =
+                            ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).build()
+                                    .getAbsoluteInternalURL();
+                }
+
+            } catch (URLBuilderException e) {
+                //Mock behaviour, hence ignored
             }
 
-        } catch (URLBuilderException e) {
-            //Mock behaviour, hence ignored
+            assertEquals(absoluteUrl, expected);
         }
-
-        assertEquals(absoluteUrl, expected);
     }
 
     @DataProvider
@@ -453,14 +474,14 @@ public class DefaultServiceURLBuilderTest {
                                          String tenantNameFromContext, boolean enableTenantURLSupport,
                                          String expected, String urlPath) {
 
-        when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(protocol);
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(hostName);
-        when(CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
+        carbonUtils.when(() -> CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn(proxyContextPath);
         when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
         when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantNameFromContext);
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+        lenient().when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
         String relativePublicUrl = null;
         try {
@@ -488,14 +509,14 @@ public class DefaultServiceURLBuilderTest {
                                            String tenantNameFromContext, boolean enableTenantURLSupport,
                                            String expected, String urlPath) {
 
-        when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(protocol);
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(hostName);
-        when(CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
+        carbonUtils.when(() -> CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn(proxyContextPath);
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
-        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantNameFromContext);
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+        identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(enableTenantURLSupport);
+        identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(tenantNameFromContext);
+        lenient().when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
         String relativeInternalUrl = null;
         try {
@@ -505,11 +526,4 @@ public class DefaultServiceURLBuilderTest {
         }
         assertEquals(relativeInternalUrl, expected);
     }
-
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
-
 }

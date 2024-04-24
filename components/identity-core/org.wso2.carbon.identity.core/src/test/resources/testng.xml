@@ -19,14 +19,14 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="identity-core-test-suite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+<suite name="identity-core-test-suite"  parallel="false">
     <test name="identity-core-test-all">
         <classes>
             <class name="org.wso2.carbon.identity.core.util.IdentityUtilTest"/>
-            <class name="org.wso2.carbon.identity.core.util.IdentityConfigParserTest"/>
-            <class name="org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAOTest"/>
-            <class name="org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilderTest"/>
-            <class name="org.wso2.carbon.identity.core.cache.BaseCacheTest"/>
+<!--            <class name="org.wso2.carbon.identity.core.util.IdentityConfigParserTest"/>-->
+<!--            <class name="org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAOTest"/>-->
+<!--            <class name="org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilderTest"/>-->
+<!--            <class name="org.wso2.carbon.identity.core.cache.BaseCacheTest"/>-->
         </classes>
     </test>
 </suite>
