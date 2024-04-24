@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Sessio
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -102,6 +103,28 @@ public interface UserSessionDAO {
                                     resultSet.getString(SessionMgtConstants.FEDERATED_AUTHENTICATOR_ID),
                                     resultSet.getString(SessionMgtConstants.FEDERATED_PROTOCOL_TYPE)),
                             preparedStatement -> preparedStatement.setString(1, fedIdpSessionId));
+            return federatedUserSession;
+        } catch (DataAccessException e) {
+            throw new SessionManagementServerException(
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_FED_USER_SESSION,
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_FED_USER_SESSION.getDescription(), e);
+        }
+    }
+
+    default List<FederatedUserSession> getFederatedAuthSessionsDetails(String fedIdpSessionId)
+            throws SessionManagementServerException {
+
+        List<FederatedUserSession> federatedUserSession = new ArrayList<>();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
+        try {
+            federatedUserSession = jdbcTemplate.executeQuery(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID,
+                    (resultSet, rowNumber) -> new FederatedUserSession(
+                            resultSet.getString(SessionMgtConstants.FEDERATED_IDP_SESSION_ID),
+                            resultSet.getString(SessionMgtConstants.FEDERATED_SESSION_ID),
+                            resultSet.getString(SessionMgtConstants.FEDERATED_IDP_NAME),
+                            resultSet.getString(SessionMgtConstants.FEDERATED_AUTHENTICATOR_ID),
+                            resultSet.getString(SessionMgtConstants.FEDERATED_PROTOCOL_TYPE)),
+                    preparedStatement -> preparedStatement.setString(1, fedIdpSessionId));
             return federatedUserSession;
         } catch (DataAccessException e) {
             throw new SessionManagementServerException(
