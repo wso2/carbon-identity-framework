@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Sessio
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -124,7 +123,8 @@ public interface UserSessionDAO {
         List<FederatedUserSession> federatedUserSession;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate(JdbcUtils.Database.IDENTITY);
         try {
-            federatedUserSession = jdbcTemplate.executeQuery(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID,
+            federatedUserSession = jdbcTemplate
+                    .executeQuery(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID,
                     (resultSet, rowNumber) -> new FederatedUserSession(
                             resultSet.getString(SessionMgtConstants.FEDERATED_IDP_SESSION_ID),
                             resultSet.getString(SessionMgtConstants.FEDERATED_SESSION_ID),
