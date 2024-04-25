@@ -2209,9 +2209,6 @@
         <ApplicationName>My Account</ApplicationName>
     </SystemApplications>
 
-    <!-- Configuration for allowing admins to introspect tokens from other tenants. -->
-    <AllowCrossTenantTokenIntrospection>true</AllowCrossTenantTokenIntrospection>
-
     <!-- Configure the max age of the PASTR cookie. -->
     <PASTRCookieMaxAge>-1</PASTRCookieMaxAge>
     <!-- Claim to store localization code  -->
