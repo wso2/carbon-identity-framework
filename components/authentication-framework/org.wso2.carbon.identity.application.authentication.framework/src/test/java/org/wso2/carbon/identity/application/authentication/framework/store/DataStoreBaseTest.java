@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * Unit test class implementing methods to manage data source connection.
  */
-public class DataStoreBaseTest extends PowerMockIdentityBaseTest {
+public class DataStoreBaseTest extends IdentityBaseTest {
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 

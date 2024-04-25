@@ -33,7 +33,7 @@ import org.wso2.carbon.identity.functions.library.mgt.dao.FunctionLibraryDAO;
 import org.wso2.carbon.identity.functions.library.mgt.dao.util.DAOUtils;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -51,7 +51,7 @@ import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({IdentityDatabaseUtil.class, IdentityTenantUtil.class})
 @PowerMockIgnore("org.mockito.*")
-public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
+public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
 
     private static final String SAMPLE_TENANT_DOMAIN = "carbon.super";
     private static final String SAMPLE_TENANT_DOMAIN2 = "abc.com";

@@ -70,7 +70,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.event.services.IdentityEventServiceImpl;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
@@ -102,7 +102,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @PrepareForTest({SameSiteCookie.class, SessionContextCache.class, AuthenticationResultCache.class,
         AuthenticationContextCache.class, IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
-public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
+public class FrameworkUtilsTest extends IdentityBaseTest {
 
     private static final String ROOT_DOMAIN = "/";
     private static final String DUMMY_TENANT_DOMAIN = "ABC";

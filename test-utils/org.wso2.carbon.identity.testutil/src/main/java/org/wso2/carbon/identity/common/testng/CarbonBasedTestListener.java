@@ -95,6 +95,13 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     @Override
     public void onTestStart(ITestResult iTestResult) {
 
+        //TODO check this
+        Object instance = iTestResult.getInstance();
+        Class<?> realClass = iTestResult.getTestClass().getRealClass();
+        if (annotationPresent(realClass, WithMicroService.class) && !microserviceServerInitialized(instance)) {
+            MicroserviceServer microserviceServer = initMicroserviceServer(instance);
+            scanAndLoadClasses(microserviceServer, realClass, instance);
+        }
     }
 
     @Override
@@ -175,7 +182,7 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     }
 
     @Override
-    public void onBeforeClass(ITestClass iTestClass, IMethodInstance iMethodInstance) {
+    public void onBeforeClass(ITestClass iTestClass) {
 
         Class realClass = iTestClass.getRealClass();
         if (annotationPresent(realClass, WithCarbonHome.class)) {
@@ -220,13 +227,9 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             WithKeyStore withKeyStore = (WithKeyStore) annotation;
             createKeyStore(realClass, withKeyStore);
         }
-        if (annotationPresent(realClass, WithMicroService.class) && !microserviceServerInitialized(
-                iMethodInstance.getInstance())) {
-            MicroserviceServer microserviceServer = initMicroserviceServer(iMethodInstance.getInstance());
-            scanAndLoadClasses(microserviceServer, realClass, iMethodInstance.getInstance());
-        }
-        Field[] fields = realClass.getDeclaredFields();
-        processFields(fields, iMethodInstance.getInstance());
+        //TODO check this
+//        Field[] fields = realClass.getDeclaredFields();
+//        processFields(fields, iMethodInstance.getInstance());
     }
 
     private boolean microserviceServerInitialized(Object instance) {
@@ -440,15 +443,15 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
     }
 
     @Override
-    public void onAfterClass(ITestClass iTestClass, IMethodInstance iMethodInstance) {
-
-        MockInitialContextFactory.destroy();
-        MicroserviceServer microserviceServer = microserviceServerMap.get(iMethodInstance.getInstance());
-        if (microserviceServer != null) {
-            microserviceServer.stop();
-            microserviceServer.destroy();
-            microserviceServerMap.remove(iMethodInstance.getInstance());
-        }
+    public void onAfterClass(ITestClass iTestClass) {
+//TODO add a way to stop the microservice server
+//        MockInitialContextFactory.destroy();
+//        MicroserviceServer microserviceServer = microserviceServerMap.get(iMethodInstance.getInstance());
+//        if (microserviceServer != null) {
+//            microserviceServer.stop();
+//            microserviceServer.destroy();
+//            microserviceServerMap.remove(iMethodInstance.getInstance());
+//        }
     }
 
     private void processFields(Field[] fields, Object realInstance) {
@@ -520,7 +523,7 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             return microserviceServer;
 
         } catch (IOException e) {
-            throw new TestCreationException("Could not get an aviailable port for micro-service", e);
+            throw new TestCreationException("Could not get an available port for micro-service", e);
         }
     }
 }

@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -48,7 +48,7 @@ import static org.testng.Assert.assertEquals;
 @PrepareForTest({IdentityDatabaseUtil.class, DataSource.class})
 @PowerMockIgnore("jdk.internal.reflect.*")
 @WithH2Database(files = {"dbScripts/h2.sql"})
-public class UserSessionDAOImplTest extends PowerMockIdentityBaseTest {
+public class UserSessionDAOImplTest extends IdentityBaseTest {
 
     UserSessionDAOImpl userSessionDAO;
 

@@ -17,13 +17,12 @@
 package org.wso2.carbon.user.mgt;
 
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.user.api.Claim;
@@ -42,8 +41,6 @@ import org.wso2.carbon.user.mgt.common.FlaggedName;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 import org.wso2.carbon.user.mgt.common.UserRealmInfo;
 
-import java.lang.reflect.Field;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,8 +52,6 @@ import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.user.mgt.UserRealmProxy.PERMISSION;
 
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*"})
-@PrepareForTest({UserRealm.class, AuthorizationManager.class, AbstractUserStoreManager.class})
 public class UserRealmProxyTest {
     private UserRealm realm;
     private UserRealmProxy userRealmProxy;
@@ -79,7 +74,7 @@ public class UserRealmProxyTest {
         authorizationManager = mock(AuthorizationManager.class);
         claimManager = mock(ClaimManager.class);
         userRealmProxy = new UserRealmProxy(realm);
-        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
+        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRealmConfiguration());
     }
 
     @Test
@@ -120,12 +115,9 @@ public class UserRealmProxyTest {
     public void testGetAllRolesNames() throws Exception {
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManagerWithAb);
         HybridRoleManager hybridRoleManager = mock(HybridRoleManager.class);
-        Object cc = userStoreManagerWithAb;
-        Field f1 = cc.getClass().getSuperclass().getDeclaredField("hybridRoleManager");
-        f1.setAccessible(true);
-        f1.set(cc, hybridRoleManager);
         String[] test = {"role3x", "role4x"};
         Mockito.when(hybridRoleManager.getHybridRoles("role")).thenReturn(test);
+        Mockito.when(((AbstractUserStoreManager)userStoreManagerWithAb).getHybridRoles("role")).thenReturn(test);
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
                 .getSharedRoleNames("role", 10)).thenReturn(new String[]{"role1", "role2"});
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
@@ -142,7 +134,7 @@ public class UserRealmProxyTest {
         Mockito.when(realm.getClaimManager()).thenReturn(claimManager);
         Mockito.when(authorizationManager.isUserAuthorized("admin",
                 "/permission/admin/manage/identity", CarbonConstants.UI_PERMISSION_ACTION)).thenReturn(true);
-        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
+        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRealmConfiguration());
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManagerWithAb);
         ClaimMapping claimMapping = new ClaimMapping();
         claimMapping.setMappedAttribute("test1");
@@ -155,7 +147,7 @@ public class UserRealmProxyTest {
 
         Mockito.when(claimManager.getAllClaimMappings(UserCoreConstants.DEFAULT_CARBON_DIALECT))
                 .thenReturn(new ClaimMapping[]{claimMapping});
-        Mockito.when(userStoreManagerWithAb.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
+        Mockito.when(userStoreManagerWithAb.getRealmConfiguration()).thenReturn(this.getSampleRealmConfiguration());
         Mockito.when(userStoreManagerWithAb.isBulkImportSupported()).thenReturn(false);
         UserRealmInfo realmInfo = userRealmProxy.getUserRealmInfo();
         Assert.assertEquals(realmInfo.getEveryOneRole(), "everyone");
@@ -164,7 +156,7 @@ public class UserRealmProxyTest {
 
     @Test
     public void testAddUser() throws Exception {
-        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
+        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRealmConfiguration());
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManager);
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
         Mockito.when(authorizationManager.isRoleAuthorized("role1", PERMISSION,
@@ -189,7 +181,7 @@ public class UserRealmProxyTest {
 
     @Test
     public void testChangePassword() throws Exception {
-        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
+        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRealmConfiguration());
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
         Mockito.when(authorizationManager.
                 isUserAuthorized("admin2", PERMISSION, UserMgtConstants.EXECUTE_ACTION))
@@ -202,7 +194,7 @@ public class UserRealmProxyTest {
     @Test
     public void testDeleteUser() throws Exception {
         Registry registry = mock(Registry.class);
-        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
+        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRealmConfiguration());
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManager);
         Mockito.when(authorizationManager.
@@ -218,17 +210,13 @@ public class UserRealmProxyTest {
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
                 .getRoleListOfUser("admin2"))
                 .thenReturn(new String[]{"PRIMARY/role1", "PRIMARY/role2"});
-        Object cc = userStoreManagerWithAb;
         HybridRoleManager hybridRoleManager = mock(HybridRoleManager.class);
-        Field f1 = cc.getClass().getSuperclass().getDeclaredField("hybridRoleManager");
-        f1.setAccessible(true);
-        f1.set(cc, hybridRoleManager);
         String[] test = {"PRIMARY/role3", "PRIMARY/role4"};
-        String[] test2 = {"role3", "role4"};
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
                 .getRoleNames("role", listCount,
                         true, true, true)).thenReturn(null);
         Mockito.when(hybridRoleManager.getHybridRoles("role")).thenReturn(test);
+        Mockito.when(((AbstractUserStoreManager)userStoreManagerWithAb).getHybridRoles("role")).thenReturn(test);
         FlaggedName[] flaggedNames = userRealmProxy
                 .getRolesOfUser("admin2", "role", listCount);
         Assert.assertEquals(flaggedNames.length, assertCount);
@@ -236,7 +224,7 @@ public class UserRealmProxyTest {
 
     @Test
     public void testUpdateUsersOfRole() throws Exception {
-        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRelaimConfiguration());
+        Mockito.when(realm.getRealmConfiguration()).thenReturn(this.getSampleRealmConfiguration());
         Mockito.when(realm.getAuthorizationManager()).thenReturn(authorizationManager);
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManager);
         Mockito.when(authorizationManager.
@@ -246,16 +234,15 @@ public class UserRealmProxyTest {
         verify(userStoreManager).updateRoleName("testRole", "testNewRole");
     }
 
-    private static void startTenantFlow(String tenantDomain) {
-        String carbonHome = Paths.get(System.getProperty("user.dir"), "target").toString();
-        System.setProperty("carbon.home", carbonHome);
+    private void startTenantFlow(String tenantDomain) {
+        System.setProperty(CarbonBaseConstants.CARBON_HOME, this.getClass().getResource("/").getFile());
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername("admin");
         PrivilegedCarbonContext.getThreadLocalCarbonContext();
     }
 
-    private RealmConfiguration getSampleRelaimConfiguration() {
+    private RealmConfiguration getSampleRealmConfiguration() {
         RealmConfiguration realmConfig = new RealmConfiguration();
         realmConfig.setAddAdmin("aldmin");
         realmConfig.setAdminPassword("admin");

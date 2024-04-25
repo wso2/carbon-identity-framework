@@ -441,50 +441,52 @@ public class UserRealmProxy {
             List<FlaggedName> flaggedNames = new ArrayList<FlaggedName>();
             Map<String, Integer> userCount = new HashMap<String, Integer>();
 
-            for (String externalRole : externalRoles) {
-                FlaggedName fName = new FlaggedName();
-                mapEntityName(externalRole, fName, userStoreMan);
-                fName.setRoleType(UserMgtConstants.EXTERNAL_ROLE);
+            if (externalRoles != null) {
+                for (String externalRole : externalRoles) {
+                    FlaggedName fName = new FlaggedName();
+                    mapEntityName(externalRole, fName, userStoreMan);
+                    fName.setRoleType(UserMgtConstants.EXTERNAL_ROLE);
 
-                // setting read only or writable
-                int index = externalRole != null ? externalRole.indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
-                boolean domainProvided = index > 0;
-                String domain = domainProvided ? externalRole.substring(0, index) : null;
-                UserStoreManager secManager = realm.getUserStoreManager().getSecondaryUserStoreManager(domain);
+                    // setting read only or writable
+                    int index = externalRole != null ? externalRole.indexOf(CarbonConstants.DOMAIN_SEPARATOR) : -1;
+                    boolean domainProvided = index > 0;
+                    String domain = domainProvided ? externalRole.substring(0, index) : null;
+                    UserStoreManager secManager = realm.getUserStoreManager().getSecondaryUserStoreManager(domain);
 
-                if (domain != null && !UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain) &&
-                        !UserMgtConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
-                    if (secManager != null && (secManager.isReadOnly() ||
-                            (FALSE.equals(secManager.getRealmConfiguration().
-                                    getUserStoreProperty(UserCoreConstants.RealmConfig.WRITE_GROUPS_ENABLED))))) {
-                        fName.setEditable(false);
+                    if (domain != null && !UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain) &&
+                            !UserMgtConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
+                        if (secManager != null && (secManager.isReadOnly() ||
+                                (FALSE.equals(secManager.getRealmConfiguration().
+                                        getUserStoreProperty(UserCoreConstants.RealmConfig.WRITE_GROUPS_ENABLED))))) {
+                            fName.setEditable(false);
+                        } else {
+                            fName.setEditable(true);
+                        }
                     } else {
-                        fName.setEditable(true);
+                        if (realm.getUserStoreManager().isReadOnly() ||
+                                (FALSE.equals(realm.getUserStoreManager().getRealmConfiguration().
+                                        getUserStoreProperty(UserCoreConstants.RealmConfig.WRITE_GROUPS_ENABLED)))) {
+                            fName.setEditable(false);
+                        } else {
+                            fName.setEditable(true);
+                        }
                     }
-                } else {
-                    if (realm.getUserStoreManager().isReadOnly() ||
-                            (FALSE.equals(realm.getUserStoreManager().getRealmConfiguration().
-                                    getUserStoreProperty(UserCoreConstants.RealmConfig.WRITE_GROUPS_ENABLED)))) {
-                        fName.setEditable(false);
+                    if (domain != null) {
+                        if (userCount.containsKey(domain)) {
+                            userCount.put(domain, userCount.get(domain) + 1);
+                        } else {
+                            userCount.put(domain, 1);
+                        }
                     } else {
-                        fName.setEditable(true);
+                        if (userCount.containsKey(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME)) {
+                            userCount.put(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME,
+                                    userCount.get(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME) + 1);
+                        } else {
+                            userCount.put(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME, 1);
+                        }
                     }
+                    flaggedNames.add(fName);
                 }
-                if (domain != null) {
-                    if (userCount.containsKey(domain)) {
-                        userCount.put(domain, userCount.get(domain) + 1);
-                    } else {
-                        userCount.put(domain, 1);
-                    }
-                } else {
-                    if (userCount.containsKey(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME)) {
-                        userCount.put(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME,
-                                userCount.get(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME) + 1);
-                    } else {
-                        userCount.put(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME, 1);
-                    }
-                }
-                flaggedNames.add(fName);
             }
 
             String filteredDomain = null;
@@ -502,19 +504,21 @@ public class UserRealmProxy {
             // Filter the internal system roles created to maintain the backward compatibility.
             hybridRoles = filterInternalSystemRoles(hybridRoles);
 
-            for (String hybridRole : hybridRoles) {
-                if (filteredDomain != null && !hybridRole.startsWith(filteredDomain)) {
-                    continue;
+            if (hybridRoles != null) {
+                for (String hybridRole : hybridRoles) {
+                    if (filteredDomain != null && !hybridRole.startsWith(filteredDomain)) {
+                        continue;
+                    }
+                    FlaggedName fName = new FlaggedName();
+                    fName.setItemName(hybridRole);
+                    if (hybridRole.toLowerCase().startsWith(UserCoreConstants.INTERNAL_DOMAIN.toLowerCase())) {
+                        fName.setRoleType(UserMgtConstants.INTERNAL_ROLE);
+                    } else {
+                        fName.setRoleType(UserMgtConstants.APPLICATION_DOMAIN);
+                    }
+                    fName.setEditable(true);
+                    flaggedNames.add(fName);
                 }
-                FlaggedName fName = new FlaggedName();
-                fName.setItemName(hybridRole);
-                if (hybridRole.toLowerCase().startsWith(UserCoreConstants.INTERNAL_DOMAIN.toLowerCase())) {
-                    fName.setRoleType(UserMgtConstants.INTERNAL_ROLE);
-                } else {
-                    fName.setRoleType(UserMgtConstants.APPLICATION_DOMAIN);
-                }
-                fName.setEditable(true);
-                flaggedNames.add(fName);
             }
             String exceededDomains = "";
             boolean isPrimaryExceeding = false;

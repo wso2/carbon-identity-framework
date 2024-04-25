@@ -34,7 +34,7 @@ import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceCom
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.util.ArrayList;
 
@@ -57,7 +57,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @WithCarbonHome
 @PrepareForTest({IdentityTenantUtil.class, FrameworkUtils.class,
                 SessionNonceCookieUtil.class})
-public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
+public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
     private DefaultRequestCoordinator requestCoordinator;
 

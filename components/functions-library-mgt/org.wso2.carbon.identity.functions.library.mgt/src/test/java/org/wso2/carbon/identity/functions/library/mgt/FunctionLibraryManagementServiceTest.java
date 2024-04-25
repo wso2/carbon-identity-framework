@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.functions.library.mgt.dao.impl.FunctionLibraryDAOImpl;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,7 +39,7 @@ import static org.testng.Assert.fail;
 import static org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryMgtUtil.isRegexValidated;
 
 @PrepareForTest({FunctionLibraryManagementServiceImpl.class})
-public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseTest {
+public class FunctionLibraryManagementServiceTest extends IdentityBaseTest {
 
     private static final String SAMPLE_TENANT_DOMAIN = "carbon.super";
     private static final String SAMPLE_TENANT_DOMAIN2 = "abc.com";
