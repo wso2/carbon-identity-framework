@@ -52,6 +52,7 @@ public class APIResourceManagementConfigBuilder {
     private static final Log LOG = LogFactory.getLog(APIResourceManagementConfigBuilder.class);
     private static final Map<String, APIResource> apiResourceMgtConfigurations = new HashMap<>();
     private static final Map<String, APIResource> duplicateAPIResourceConfigs = new HashMap<>();
+    private static final List<String> disabledAPIResourceIdentifiers = new ArrayList<>();
     private static final APIResourceManagementConfigBuilder apiResourceManagementConfigBuilder =
             new APIResourceManagementConfigBuilder();
 
@@ -162,12 +163,24 @@ public class APIResourceManagementConfigBuilder {
                 duplicateAPIResourceConfigs.put(apiResourceObj.getIdentifier(), apiResourceObj);
                 continue;
             }
+            if (disabledAPIResourceIdentifiers.contains(apiResourceObj.getIdentifier())) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("API resource with identifier: " + apiResourceObj.getIdentifier() + " is disabled.");
+                }
+                continue;
+            }
             apiResourceMgtConfigurations.put(apiResourceObj.getIdentifier(), apiResourceObj);
         }
     }
 
     private APIResource buildAPIResource(OMElement element) {
 
+        // If API resource is disabled skip adding to the list.
+        if (Boolean.parseBoolean(element.getAttributeValue(new QName(APIResourceConfigBuilderConstants.DISABLED)))) {
+            disabledAPIResourceIdentifiers.add(element.getAttributeValue(
+                    new QName(APIResourceConfigBuilderConstants.IDENTIFIER)));
+            return null;
+        }
         String apiResourceIdentifier = element.getAttributeValue(
                 new QName(APIResourceConfigBuilderConstants.IDENTIFIER));
         String type = APIResourceConfigBuilderConstants.TENANT_ADMIN_TYPE;
