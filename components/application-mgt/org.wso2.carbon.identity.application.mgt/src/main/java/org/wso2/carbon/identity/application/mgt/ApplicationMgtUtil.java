@@ -1099,7 +1099,7 @@ public class ApplicationMgtUtil {
     public static String resolveOriginUrlFromPlaceholdersPortalApps(String absoluteUrl, String appName)
             throws URLBuilderException {
 
-        String basePath = "";
+        String basePath = StringUtils.EMPTY;
         if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(appName)) {
             basePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
         } else if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
