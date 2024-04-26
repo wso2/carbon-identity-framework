@@ -1096,17 +1096,19 @@ public class ApplicationMgtUtil {
      * @return The resolved URL from placeholders.
      * @throws URLBuilderException If any error occurs when building absolute public url without path.
      */
-    public static String resolveOriginUrlFromPlaceholdersPortalApps(String absoluteUrl, String appName)
+    public static String resolveOriginUrlFromPlaceholders(String absoluteUrl, String appName)
             throws URLBuilderException {
 
-        String basePath = StringUtils.EMPTY;
+        if (StringUtils.isEmpty(appName)) {
+            return resolveOriginUrlFromPlaceholders(absoluteUrl);
+        }
+        String basePath;
         if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(appName)) {
             basePath = IdentityUtil.getProperty(CONSOLE_ACCESS_ORIGIN);
         } else if (ApplicationConstants.MY_ACCOUNT_APPLICATION_NAME.equals(appName)) {
             basePath = IdentityUtil.getProperty(MYACCOUNT_ACCESS_ORIGIN);
-        }
-        if (StringUtils.isEmpty(basePath)) {
-            basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
+        } else {
+            return resolveOriginUrlFromPlaceholders(absoluteUrl);
         }
         return StringUtils.replace(absoluteUrl, BASE_URL_PLACEHOLDER, basePath);
     }
