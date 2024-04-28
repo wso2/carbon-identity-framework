@@ -1182,6 +1182,9 @@
         -->
         <UseLegacyPermissionAccessForUserBasedAuth>{{oauth.use_legacy_permission_access_for_user_based_auth}}</UseLegacyPermissionAccessForUserBasedAuth>
         {% endif %}
+        {% if oauth.extensions.scope_metadata_service is defined %}
+        <ScopeMetadataService>{{oauth.extensions.scope_metadata_service}}</ScopeMetadataService>
+        {% endif %}
     </OAuth>
 
     <RestApiAuthentication>
