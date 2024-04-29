@@ -1165,7 +1165,10 @@
     "internal_userstore_view",
     "internal_role_mgt_view"],
   "console.branding.scopes.feature": ["console:branding"],
-  "console.branding.disabled_features": ["branding.hostnameUrlBranding"],
+  "console.branding.disabled_features": [
+    "branding.hostnameUrlBranding",
+    "branding.ai"
+  ],
   "console.branding.scopes.create": ["internal_branding_preference_update"],
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
