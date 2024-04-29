@@ -57,6 +57,8 @@
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": false,
 
+  "oauth.impersonation.enable": false,
+
   "oauth.use_entityid_as_issuer_in_oidc_discovery": true,
   "oauth.token_validation.authorization_code_validity": "5m",
   "oauth.token_validation.app_access_token_validity": "1h",

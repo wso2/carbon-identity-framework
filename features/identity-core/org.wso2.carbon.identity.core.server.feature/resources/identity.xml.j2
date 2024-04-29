@@ -210,6 +210,10 @@
     </ClientAttestation>
 
     <OAuth>
+        <!-- OAuth Impersonation Config -->
+        <Impersonation>
+            <Enabled>{{oauth.impersonation.enable}}</Enabled>
+        </Impersonation>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
