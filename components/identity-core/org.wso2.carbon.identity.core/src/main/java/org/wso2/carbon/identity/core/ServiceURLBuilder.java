@@ -125,5 +125,5 @@ public interface ServiceURLBuilder {
      * @return {@link ServiceURL}.
      * @throws URLBuilderException If error occurred while constructing the URL.
      */
-    ServiceURL buildURL(String hostname) throws URLBuilderException;
+    ServiceURL build(String hostname) throws URLBuilderException;
 }

@@ -96,7 +96,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
      * @throws URLBuilderException If error occurred while constructing the URL.
      */
     @Override
-    public ServiceURL buildURL(String hostname) throws URLBuilderException {
+    public ServiceURL build(String hostname) throws URLBuilderException {
 
         return buildServiceURL(hostname);
     }
