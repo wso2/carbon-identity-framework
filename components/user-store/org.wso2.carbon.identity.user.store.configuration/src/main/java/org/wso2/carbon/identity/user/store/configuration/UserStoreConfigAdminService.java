@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
+import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
@@ -59,6 +60,8 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreC
 public class UserStoreConfigAdminService extends AbstractAdmin {
 
     public static final Log LOG = LogFactory.getLog(UserStoreConfigAdminService.class);
+    private static final String EXPRESSION_LANGUAGE_REGEX = "^.*(\\$\\{|#\\{).*}.*$";
+    private static final String PASSWORD = "password";
 
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
@@ -164,7 +167,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
-
+            validateUserStoreProperty(userStoreDTO);
             UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().addUserStore(userStoreDTO);
         } catch (IdentityUserStoreClientException e) {
             throw buildIdentityUserStoreMgtException(e, "Error while adding the userstore.");
@@ -180,6 +183,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     public void editUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
+            validateUserStoreProperty(userStoreDTO);
             UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().updateUserStore(userStoreDTO,
                     false);
         } catch (IdentityUserStoreClientException e) {
@@ -205,6 +209,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
         try {
             validateForFederatedDomain(domainName);
+            validateUserStoreProperty(userStoreDTO);
             UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().
                     updateUserStoreByDomainName(previousDomainName, userStoreDTO);
         } catch (UserStoreException e) {
@@ -438,5 +443,24 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             errorMessage = e.getMessage();
         }
         return new IdentityUserStoreMgtException(errorMessage, e);
+    }
+
+    private void validateUserStoreProperty(UserStoreDTO userStoreDTO) throws IdentityUserStoreClientException {
+
+        Pattern pattern = Pattern.compile(EXPRESSION_LANGUAGE_REGEX);
+        if (userStoreDTO != null) {
+            if ((StringUtils.isNotBlank(userStoreDTO.getDomainId()) &&
+                    pattern.matcher(userStoreDTO.getDomainId()).matches()) ||
+                    (StringUtils.isNotBlank(userStoreDTO.getDescription()) &&
+                            pattern.matcher(userStoreDTO.getDescription()).matches())) {
+                throw new IdentityUserStoreClientException("Invalid property format.");
+            } else if (userStoreDTO.getProperties() != null) {
+                for (PropertyDTO property : userStoreDTO.getProperties()) {
+                    if (!PASSWORD.equals(property.getName()) && pattern.matcher(property.getValue()).matches()) {
+                        throw new IdentityUserStoreClientException("Invalid property format.");
+                    }
+                }
+            }
+        }
     }
 }
