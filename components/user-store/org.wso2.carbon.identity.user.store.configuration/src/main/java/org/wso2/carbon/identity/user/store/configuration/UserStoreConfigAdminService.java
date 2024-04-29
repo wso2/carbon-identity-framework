@@ -456,8 +456,10 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 throw new IdentityUserStoreClientException("Invalid property format.");
             } else if (userStoreDTO.getProperties() != null) {
                 for (PropertyDTO property : userStoreDTO.getProperties()) {
-                    if (!PASSWORD.equals(property.getName()) && pattern.matcher(property.getValue()).matches()) {
-                        throw new IdentityUserStoreClientException("Invalid property format.");
+                    if (property != null && property.getValue() != null) {
+                        if (!PASSWORD.equals(property.getName()) && pattern.matcher(property.getValue()).matches()) {
+                            throw new IdentityUserStoreClientException("Invalid property format.");
+                        }
                     }
                 }
             }
