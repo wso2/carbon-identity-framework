@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
@@ -57,7 +58,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.LoginC
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -97,6 +97,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.IS_API_BASED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REDIRECT_URL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
@@ -107,7 +108,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
-import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.IS_APP_SHARED;
 
 /**
  * Request Coordinator
@@ -846,7 +846,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
         // Get service provider chain
         SequenceConfig effectiveSequence = getSequenceConfig(context, request.getParameterMap());
-        setStepConfigAuthenticatorList(effectiveSequence);
+        String applicationName = effectiveSequence.getApplicationConfig().getApplicationName();
+        // organization SSO IDP is added for portal apps only if requested with FIDP param.
+        if (FrameworkConstants.Application.CONSOLE_APP.equals(applicationName) ||
+                FrameworkConstants.Application.MY_ACCOUNT_APP.equals(applicationName)) {
+            String[] fidpParam = request.getParameterMap().get(FrameworkConstants.RequestParams.FEDERATED_IDP);
+            if (fidpParam == null || !ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER.equals(fidpParam[0])) {
+                removeOrganizationSsoStepsForPortalApps(effectiveSequence);
+            }
+        }
 
         if (acrRequested != null) {
             for (String acr : acrRequested) {
@@ -1209,33 +1217,48 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private void setStepConfigAuthenticatorList(SequenceConfig effectiveSequence) {
+    /**
+     * The organization SSO IDP is added for Console & MyAccount to provide sub-organization access. But the
+     * organization SSO IDP should be hidden from the login sequence unless the organization SSO option is requested via
+     * the fidp parameter.
+     *
+     * @param effectiveSequence The effective sequences.
+     */
+    private void removeOrganizationSsoStepsForPortalApps(SequenceConfig effectiveSequence) {
 
         Map<Integer, StepConfig> stepMap = effectiveSequence.getStepMap();
-        ApplicationConfig applicationConfig = effectiveSequence.getApplicationConfig();
-        if (MapUtils.isEmpty(stepMap) && applicationConfig == null) {
-            return;
-        }
-        ServiceProviderProperty[] spProperties = applicationConfig.getServiceProvider().getSpProperties();
-        boolean showOrganizationAuthenticator = true;
-        for (ServiceProviderProperty property : spProperties) {
-            if (IS_APP_SHARED.equals(property.getName()) && !Boolean.parseBoolean(property.getValue())) {
-                showOrganizationAuthenticator = false;
-                break;
-            }
-        }
-        if (showOrganizationAuthenticator) {
-            return;
+        if (MapUtils.isEmpty(stepMap)) {
+            stepMap = effectiveSequence.getAuthenticationGraph().getStepMap();
+            effectiveSequence.setStepMap(stepMap);
         }
         StepConfig stepConfig = stepMap.get(1);
         if (stepConfig == null) {
             return;
         }
+        // Remove the organization SSO authenticator from the step configs.
         List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
         authenticatorList = authenticatorList.stream()
                 .filter(authenticatorConfig -> !authenticatorConfig.getName()
                         .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
         stepConfig.setAuthenticatorList(authenticatorList);
+
+        // Remove the organization SSO authenticator from the graph nodes if already configured.
+        if (effectiveSequence.getAuthenticationGraph() == null ||
+                effectiveSequence.getAuthenticationGraph().getStartNode() == null) {
+            return;
+        }
+        StepConfigGraphNode graphNode = (StepConfigGraphNode) effectiveSequence.getAuthenticationGraph().getStartNode();
+        if (graphNode.getStepConfig() == null ||
+                CollectionUtils.isEmpty(graphNode.getStepConfig().getAuthenticatorList())) {
+            return;
+        }
+        authenticatorList = ((StepConfigGraphNode) effectiveSequence.getAuthenticationGraph().getStartNode())
+                .getStepConfig().getAuthenticatorList();
+        authenticatorList = authenticatorList.stream()
+                .filter(authenticatorConfig -> !authenticatorConfig.getName()
+                        .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
+        ((StepConfigGraphNode) effectiveSequence.getAuthenticationGraph().getStartNode()).getStepConfig()
+                .setAuthenticatorList(authenticatorList);
     }
 
     private boolean isStepHasMultiOption(AuthenticationContext context) {
