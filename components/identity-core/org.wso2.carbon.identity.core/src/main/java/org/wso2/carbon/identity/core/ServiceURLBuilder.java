@@ -112,7 +112,7 @@ public interface ServiceURLBuilder {
      *
      * @return {@link ServiceURL}.
      * @throws URLBuilderException If error occurred while constructing the URL.
-     * @deprecated Use {@link #buildURL(String)} instead.
+     * @deprecated Use {@link #build(String)} instead.
      */
     @Deprecated
     ServiceURL build() throws URLBuilderException;
@@ -125,5 +125,8 @@ public interface ServiceURLBuilder {
      * @return {@link ServiceURL}.
      * @throws URLBuilderException If error occurred while constructing the URL.
      */
-    ServiceURL build(String hostname) throws URLBuilderException;
+    default ServiceURL build(String hostname) throws URLBuilderException {
+
+        return build();
+    }
 }

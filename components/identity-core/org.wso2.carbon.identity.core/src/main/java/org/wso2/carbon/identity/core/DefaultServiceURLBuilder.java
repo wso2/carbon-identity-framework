@@ -78,7 +78,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
      *
      * @return {@link ServiceURL}.
      * @throws URLBuilderException If error occurred while constructing the URL.
-     * @deprecated Use {@link #buildURL(String)} instead.
+     * @deprecated Use {@link #build(String)} (String)} instead.
      */
     @Override
     @Deprecated
