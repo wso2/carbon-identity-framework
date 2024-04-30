@@ -73,6 +73,7 @@ import org.wso2.carbon.utils.DiagnosticLog;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -656,9 +657,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
-            if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/") &&
-                    !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + loginTenantDomain + "/")) {
-                callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+            try {
+                if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/") &&
+                        !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + loginTenantDomain + "/")
+                        && FrameworkUtils.isURLRelative(callerPath)) {
+                    callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+                }
+            } catch (URISyntaxException e) {
+                throw new FrameworkException(e.getMessage(), e);
             }
         }
         context.setCallerPath(callerPath);
