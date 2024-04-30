@@ -261,26 +261,15 @@ public class RecoveryApiV2 {
         basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
                 IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
-        List<Pair> localVarQueryParams = new ArrayList<>();
         Map<String, String> localVarHeaderParams = new HashMap<>();
         if (MapUtils.isNotEmpty(headers)) {
             localVarHeaderParams.putAll(headers);
         }
-        Map<String, Object> localVarFormParams = new HashMap<>();
-        final String[] localVarAccepts = {
-                "application/json"
-        };
-        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
-        final String[] localVarContentTypes = {
-                "application/json"
-        };
-        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
-        String[] localVarAuthNames = new String[]{};
-        GenericType<ResendResponse> localVarReturnType = new GenericType<ResendResponse>() {
-        };
-        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, resendRequest,
-                localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames,
-                localVarReturnType);
+        final String localVarAccept = apiClient.selectHeaderAccept(new String[]{"application/json"});
+        final String localVarContentType = apiClient.selectHeaderContentType(new String[]{"application/json"});
+        return apiClient.invokeAPI(localVarPath, "POST", new ArrayList<>(), resendRequest,
+                localVarHeaderParams, new HashMap<>(), localVarAccept, localVarContentType, new String[]{},
+                new GenericType<ResendResponse>(){});
     }
 
     private ConfirmResponse confirm(ConfirmRequest confirmRequest, String tenantDomain, Map<String, String> headers,
@@ -296,26 +285,15 @@ public class RecoveryApiV2 {
         basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
                 IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
-        List<Pair> localVarQueryParams = new ArrayList<>();
         Map<String, String> localVarHeaderParams = new HashMap<>();
         if (MapUtils.isNotEmpty(headers)) {
             localVarHeaderParams.putAll(headers);
         }
-        Map<String, Object> localVarFormParams = new HashMap<>();
-        final String[] localVarAccepts = {
-                "application/json"
-        };
-        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
-        final String[] localVarContentTypes = {
-                "application/json"
-        };
-        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
-        String[] localVarAuthNames = new String[]{};
-        GenericType<ConfirmResponse> localVarReturnType = new GenericType<ConfirmResponse>() {
-        };
-        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, confirmRequest,
-                localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames,
-                localVarReturnType);
+        final String localVarAccept = apiClient.selectHeaderAccept(new String[]{"application/json"});
+        final String localVarContentType = apiClient.selectHeaderContentType(new String[]{"application/json"});
+        return apiClient.invokeAPI(localVarPath, "POST", new ArrayList<>(), confirmRequest,
+                localVarHeaderParams, new HashMap<>(), localVarAccept, localVarContentType, new String[]{},
+                new GenericType<ConfirmResponse>(){});
     }
 
     private ResetResponse reset(ResetRequest resetRequest, String tenantDomain, Map<String, String> headers,
@@ -331,25 +309,14 @@ public class RecoveryApiV2 {
         basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
                 IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
-        List<Pair> localVarQueryParams = new ArrayList<>();
         Map<String, String> localVarHeaderParams = new HashMap<>();
         if (MapUtils.isNotEmpty(headers)) {
             localVarHeaderParams.putAll(headers);
         }
-        Map<String, Object> localVarFormParams = new HashMap<>();
-        final String[] localVarAccepts = {
-                "application/json"
-        };
-        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
-        final String[] localVarContentTypes = {
-                "application/json"
-        };
-        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
-        String[] localVarAuthNames = new String[]{};
-        GenericType<ResetResponse> localVarReturnType = new GenericType<ResetResponse>() {
-        };
-        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, resetRequest,
-                localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames,
-                localVarReturnType);
+        final String localVarAccept = apiClient.selectHeaderAccept(new String[]{"application/json"});
+        final String localVarContentType = apiClient.selectHeaderContentType(new String[]{"application/json"});
+        return apiClient.invokeAPI(localVarPath, "POST", new ArrayList<>(), resetRequest,
+                localVarHeaderParams, new HashMap<>(), localVarAccept, localVarContentType, new String[]{},
+                new GenericType<ResetResponse>(){});
     }
 }
