@@ -86,7 +86,7 @@ public class RecoveryApiV2 {
                                                               String tenantDomain, Map<String, String> headers)
             throws ApiException {
 
-        String localVarPath = "/password/init".replaceAll("\\{format\\}", "json");
+        String localVarPath = "/password/init";
         return initiateRecovery(recoveryInitRequest, tenantDomain, headers, localVarPath);
     }
 
@@ -102,7 +102,7 @@ public class RecoveryApiV2 {
     public RecoveryResponse recoverPassword(RecoveryRequest recoveryRequest, String tenantDomain,
                                             Map<String, String> headers) throws ApiException {
 
-        String localVarPath = "/password/recover".replaceAll("\\{format\\}", "json");
+        String localVarPath = "/password/recover";
         return recover(recoveryRequest, tenantDomain, headers, localVarPath);
     }
 
@@ -110,15 +110,15 @@ public class RecoveryApiV2 {
      * Resend password recovery confirmation details.
      *
      * @param resendRequest   Resend request. (required)
-     * @param tenantDomain      Tenant Domain which user belongs. Default "carbon.super" (optional)
-     * @param headers           Any additional headers to be embedded. (optional)
+     * @param tenantDomain    Tenant Domain which user belongs. Default "carbon.super". (optional)
+     * @param headers         Any additional headers to be embedded. (optional)
      * @return Resend response.
      * @throws ApiException If fails to make API call.
      */
     public ResendResponse resendPasswordNotification(ResendRequest resendRequest, String tenantDomain,
                                                      Map<String, String> headers) throws ApiException {
 
-        String localVarPath = "/password/resend".replaceAll("\\{format\\}", "json");
+        String localVarPath = "/password/resend";
         return resend(resendRequest, tenantDomain, headers, localVarPath);
     }
 
@@ -126,15 +126,15 @@ public class RecoveryApiV2 {
      * Confirm password recovery.
      *
      * @param confirmRequest   Password recovery confirm request. (required)
-     * @param tenantDomain      Tenant Domain which user belongs. Default "carbon.super" (optional)
-     * @param headers           Any additional headers to be embedded. (optional)
+     * @param tenantDomain     Tenant Domain which user belongs. Default "carbon.super". (optional)
+     * @param headers          Any additional headers to be embedded. (optional)
      * @return Confirm response.
      * @throws ApiException If fails to make API call.
      */
     public ConfirmResponse confirmPasswordRecovery(ConfirmRequest confirmRequest, String tenantDomain,
                                                    Map<String, String> headers) throws ApiException {
 
-        String localVarPath = "/password/confirm".replaceAll("\\{format\\}", "json");
+        String localVarPath = "/password/confirm";
         return confirm(confirmRequest, tenantDomain, headers, localVarPath);
     }
 
@@ -142,15 +142,15 @@ public class RecoveryApiV2 {
      * Reset user password.
      *
      * @param resetRequest   Password reset request. (required)
-     * @param tenantDomain      Tenant Domain which user belongs. Default "carbon.super" (optional)
-     * @param headers           Any additional headers to be embedded. (optional)
+     * @param tenantDomain   Tenant Domain which user belongs. Default "carbon.super". (optional)
+     * @param headers        Any additional headers to be embedded. (optional)
      * @return reset response.
      * @throws ApiException If fails to make API call.
      */
     public ResetResponse resetUserPassword(ResetRequest resetRequest, String tenantDomain,
                                            Map<String, String> headers) throws ApiException {
 
-        String localVarPath = "/password/reset".replaceAll("\\{format\\}", "json");
+        String localVarPath = "/password/reset";
         return reset(resetRequest, tenantDomain, headers, localVarPath);
     }
 
@@ -261,12 +261,12 @@ public class RecoveryApiV2 {
         basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
                 IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
-        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        List<Pair> localVarQueryParams = new ArrayList<>();
+        Map<String, String> localVarHeaderParams = new HashMap<>();
         if (MapUtils.isNotEmpty(headers)) {
             localVarHeaderParams.putAll(headers);
         }
-        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+        Map<String, Object> localVarFormParams = new HashMap<>();
         final String[] localVarAccepts = {
                 "application/json"
         };
@@ -296,12 +296,12 @@ public class RecoveryApiV2 {
         basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
                 IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
-        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        List<Pair> localVarQueryParams = new ArrayList<>();
+        Map<String, String> localVarHeaderParams = new HashMap<>();
         if (MapUtils.isNotEmpty(headers)) {
             localVarHeaderParams.putAll(headers);
         }
-        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+        Map<String, Object> localVarFormParams = new HashMap<>();
         final String[] localVarAccepts = {
                 "application/json"
         };
@@ -331,12 +331,12 @@ public class RecoveryApiV2 {
         basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
                 IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
-        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        List<Pair> localVarQueryParams = new ArrayList<>();
+        Map<String, String> localVarHeaderParams = new HashMap<>();
         if (MapUtils.isNotEmpty(headers)) {
             localVarHeaderParams.putAll(headers);
         }
-        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+        Map<String, Object> localVarFormParams = new HashMap<>();
         final String[] localVarAccepts = {
                 "application/json"
         };

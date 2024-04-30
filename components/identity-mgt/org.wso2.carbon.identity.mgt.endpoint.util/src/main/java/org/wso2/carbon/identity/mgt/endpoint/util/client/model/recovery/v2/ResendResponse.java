@@ -54,9 +54,6 @@ public class ResendResponse {
         return code;
     }
 
-    /**
-     * Set code
-     **/
     public void setCode(String code) {
 
         this.code = code;
@@ -73,20 +70,12 @@ public class ResendResponse {
         return this;
     }
 
-    /**
-     * Get message
-     * @return message
-     */
     @JsonProperty("message")
     public String getMessage() {
 
         return message;
     }
 
-    /**
-     * Set message
-     * @param message message
-     */
     public void setMessage(String message) {
 
         this.message = message;
@@ -103,20 +92,12 @@ public class ResendResponse {
         return this;
     }
 
-    /**
-     * Get flowConfirmationCode
-     * @return flowConfirmationCode
-     */
     @JsonProperty("flowConfirmationCode")
     public String getFlowConfirmationCode() {
 
         return flowConfirmationCode;
     }
 
-    /**
-     * Set flowConfirmationCode
-     * @param flowConfirmationCode flowConfirmationCode
-     */
     public void setFlowConfirmationCode(String flowConfirmationCode) {
 
         this.flowConfirmationCode = flowConfirmationCode;
@@ -133,20 +114,12 @@ public class ResendResponse {
         return this;
     }
 
-    /**
-     * Get notificationChannel
-     * @return notificationChannel
-     */
     @JsonProperty("notificationChannel")
     public String getNotificationChannel() {
 
         return notificationChannel;
     }
 
-    /**
-     * Set notificationChannel
-     * @param notificationChannel notificationChannel
-     */
     public void setNotificationChannel(String notificationChannel) {
 
         this.notificationChannel = notificationChannel;
@@ -163,20 +136,12 @@ public class ResendResponse {
         return this;
     }
 
-    /**
-     * Get resendCode
-     * @return resendCode
-     */
     @JsonProperty("resendCode")
     public String getResendCode() {
 
         return resendCode;
     }
 
-    /**
-     * Set resendCode
-     * @param resendCode resendCode
-     */
     public void setResendCode(String resendCode) {
 
         this.resendCode = resendCode;
@@ -193,29 +158,21 @@ public class ResendResponse {
         return this;
     }
 
-    /**
-     * Get links
-     * @return links
-     */
     @JsonProperty("links")
     public List<APICall> getLinks() {
 
         return links;
     }
 
-    /**
-     * Set links
-     * @param links links
-     */
     public void setLinks(List<APICall> links) {
 
         this.links = links;
     }
 
     /**
-     * Add linksItem
-     * @param linksItem linksItem
-     * @return ResendResponse
+     * Add linksItem.
+     * @param linksItem linksItem.
+     * @return ResendResponse.
      */
     public ResendResponse addLinksItem(APICall linksItem) {
         if (this.links == null) {

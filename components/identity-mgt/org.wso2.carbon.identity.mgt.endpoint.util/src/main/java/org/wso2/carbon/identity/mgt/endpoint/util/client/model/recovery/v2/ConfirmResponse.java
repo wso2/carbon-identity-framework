@@ -53,7 +53,7 @@ public class ConfirmResponse {
     }
 
     /**
-     * Contains available api calls.
+     * Contains available API links for next recovery steps.
      **/
     public ConfirmResponse links(List<APICall> links) {
 
@@ -71,6 +71,11 @@ public class ConfirmResponse {
         this.links = links;
     }
 
+    /**
+     * Add linksItem.
+     * @param linksItem linksItem.
+     * @return ResendResponse.
+     */
     public ConfirmResponse addLinksItem(APICall linksItem) {
         if (this.links == null) {
             this.links = new ArrayList<>();
@@ -102,10 +107,9 @@ public class ConfirmResponse {
     @Override
     public String toString() {
 
-        String sb = "class RecoveryResponse {\n" +
+        return "class RecoveryResponse {\n" +
                 "    resetCode: " + resetCode + "\n" +
                 "    links: " + links + "\n" +
                 "}";
-        return sb;
     }
 }

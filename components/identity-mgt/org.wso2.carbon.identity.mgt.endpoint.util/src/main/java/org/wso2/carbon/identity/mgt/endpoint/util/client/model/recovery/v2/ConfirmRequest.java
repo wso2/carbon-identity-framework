@@ -55,7 +55,7 @@ public class ConfirmRequest {
     }
 
     /**
-     * otp sent to the user.
+     * OTP sent to the user.
      **/
     public ConfirmRequest otp(String otp) {
 
@@ -94,6 +94,11 @@ public class ConfirmRequest {
         this.properties = properties;
     }
 
+    /**
+     * Adds property to the request properties.
+     * @param propertiesItem propertiesItem.
+     * @return ConfirmRequest.
+     */
     public ConfirmRequest addPropertiesItem(Property propertiesItem) {
 
         if (this.properties == null) {

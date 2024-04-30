@@ -43,22 +43,12 @@ public class ResendRequest {
         return this;
     }
 
-    /**
-     * Get resendCode
-     *
-     * @return resendCode
-     **/
     @JsonProperty("resendCode")
     public String getResendCode() {
 
         return resendCode;
     }
 
-    /**
-     * Set resendCode
-     *
-     * @param resendCode
-     **/
     public void setResendCode(String resendCode) {
 
         this.resendCode = resendCode;
@@ -73,32 +63,22 @@ public class ResendRequest {
         return this;
     }
 
-    /**
-     * Get meta properties
-     *
-     * @return List<Property>
-     **/
     @JsonProperty("properties")
     public List<Property> getProperties() {
 
         return properties;
     }
 
-    /**
-     * Set meta properties
-     *
-     * @param properties
-     **/
     public void setProperties(List<Property> properties) {
 
         this.properties = properties;
     }
 
     /**
-     * Add meta properties
+     * Add meta properties.
      *
-     * @param propertiesItem
-     * @return ResendRequest
+     * @param propertiesItem propertiesItem.
+     * @return ResendRequest.
      **/
     public ResendRequest addPropertiesItem(Property propertiesItem) {
 
@@ -132,13 +112,10 @@ public class ResendRequest {
     @Override
     public String toString() {
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("class ResendRequest {\n");
-
-        sb.append("    resendCode: ").append(toIndentedString(resendCode)).append("\n");
-        sb.append("    properties: ").append(toIndentedString(properties)).append("\n");
-        sb.append("}");
-        return sb.toString();
+        return "class ResendRequest {\n" +
+                "    resendCode: " + toIndentedString(resendCode) + "\n" +
+                "    properties: " + toIndentedString(properties) + "\n" +
+                "}";
     }
 
     /**

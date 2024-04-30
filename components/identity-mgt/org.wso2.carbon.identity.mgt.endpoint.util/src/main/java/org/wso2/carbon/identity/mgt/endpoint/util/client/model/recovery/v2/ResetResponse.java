@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -51,7 +49,7 @@ public class ResetResponse {
     }
 
     /**
-     * Set code
+     * Set status code.
      **/
     public void setCode(String code) {
 
@@ -60,8 +58,8 @@ public class ResetResponse {
 
     /**
      * Success status message.
-     * @param message message
-     * @return ResendResponse
+     * @param message message.
+     * @return ResendResponse.
      */
     public ResetResponse message(String message) {
 
@@ -70,8 +68,8 @@ public class ResetResponse {
     }
 
     /**
-     * Get message
-     * @return message
+     * Get message.
+     * @return message.
      */
     @JsonProperty("message")
     public String getMessage() {
@@ -80,8 +78,8 @@ public class ResetResponse {
     }
 
     /**
-     * Set message
-     * @param message message
+     * Set message.
+     * @param message message.
      */
     public void setMessage(String message) {
 

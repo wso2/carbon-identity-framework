@@ -115,6 +115,11 @@ public class ResetRequest {
         this.properties = properties;
     }
 
+    /**
+     * Adds property to the request properties.
+     * @param propertiesItem propertiesItem.
+     * @return ConfirmRequest.
+     */
     public ResetRequest addPropertiesItem(Property propertiesItem) {
 
         if (this.properties == null) {
