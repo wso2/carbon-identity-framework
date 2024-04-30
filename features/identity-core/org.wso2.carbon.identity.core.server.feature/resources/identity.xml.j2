@@ -301,6 +301,11 @@
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
         <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
 
+        <MutualTLSAliases>
+            <Enabled>{{oauth.mtls_aliases.enabled}}</Enabled>
+            <Hostname>{{oauth.mtls_aliases.hostname}}</Hostname>
+        </MutualTLSAliases>
+
         <EnableSHA256OAuth2JWKThumbprint>{{oauth.jwk_thumbprint_enable_sha256}}</EnableSHA256OAuth2JWKThumbprint>
 
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->

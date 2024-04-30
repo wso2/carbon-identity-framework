@@ -78,12 +78,32 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
      *
      * @return {@link ServiceURL}.
      * @throws URLBuilderException If error occurred while constructing the URL.
+     * @deprecated Use {@link #build(String)} (String)} instead.
      */
     @Override
+    @Deprecated
     public ServiceURL build() throws URLBuilderException {
 
+        return buildServiceURL(fetchProxyHostName());
+    }
+
+    /**
+     * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
+     * root and the tenant domain (appended if required).
+     *
+     * @param hostname Hostname.
+     * @return {@link ServiceURL}.
+     * @throws URLBuilderException If error occurred while constructing the URL.
+     */
+    @Override
+    public ServiceURL build(String hostname) throws URLBuilderException {
+
+        return buildServiceURL(hostname);
+    }
+
+    private ServiceURL buildServiceURL(String proxyHostName) throws URLBuilderException {
+
         String protocol = fetchProtocol();
-        String proxyHostName = fetchProxyHostName();
         String internalHostName = fetchInternalHostName();
         String authenticationEndpointHostName = fetchAuthenticationEndpointHostName();
         String authenticationEndpointPath = fetchAuthenticationEndpointPath();

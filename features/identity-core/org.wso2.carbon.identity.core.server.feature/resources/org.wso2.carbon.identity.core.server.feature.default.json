@@ -109,6 +109,8 @@
   "oauth.endpoints.oidc_discovery_url": "$ref{server.base_path}/oauth2/oidcdiscovery",
   "oauth.endpoints.oauth2_device_authz_url": "$ref{server.base_path}/oauth2/device_authorize",
   "oauth.jwk_thumbprint_enable_sha256": true,
+  "oauth.mtls_aliases.enabled": false,
+  "oauth.mtls_aliases.hostname": "$ref{server.base_path}",
 
   "oauth.response_type.token.enable": true,
   "oauth.response_type.token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.AccessTokenResponseTypeHandler",
