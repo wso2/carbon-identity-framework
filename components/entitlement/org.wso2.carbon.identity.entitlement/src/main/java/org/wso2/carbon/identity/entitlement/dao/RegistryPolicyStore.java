@@ -88,7 +88,7 @@ public class RegistryPolicyStore extends AbstractPolicyStore {
      * @throws EntitlementException throws, if fails
      */
     @Override
-    public void addOrUpdatePAPPolicy(PolicyDTO policy) throws EntitlementException {
+    public void addOrUpdatePolicy(PolicyDTO policy) throws EntitlementException {
 
         String version = createVersion(policy);
         policy.setVersion(version);
@@ -101,25 +101,16 @@ public class RegistryPolicyStore extends AbstractPolicyStore {
 
 
     /**
-     * Sets the global policy combining algorithm
-     */
-    @Override
-    public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
-
-    }
-
-
-    /**
      * Gets the requested policy
      *
      * @param policyId policy ID
-     * @param fromPDP  policy source
      * @return policyDTO
      * @throws EntitlementException throws, if fails
      */
     @Override
-    public PolicyDTO getPolicy(String policyId, boolean fromPDP) throws EntitlementException {
+    public PolicyDTO getPolicy(String policyId) throws EntitlementException {
 
+        boolean fromPDP = false;
         if (fromPDP) {
             return null;
         } else {
@@ -169,13 +160,13 @@ public class RegistryPolicyStore extends AbstractPolicyStore {
     /**
      * Gets all policy IDs
      *
-     * @param fromPDP policy source
      * @return array of policy IDs
      * @throws EntitlementException throws, if fails
      */
     @Override
-    public String[] getAllPolicyIds(boolean fromPDP) throws EntitlementException {
+    public String[] listPolicyIds() throws EntitlementException {
 
+        boolean fromPDP = false;
         if (fromPDP) {
             return null;
         } else {
@@ -189,36 +180,37 @@ public class RegistryPolicyStore extends AbstractPolicyStore {
     /**
      * Gets all policies
      *
-     * @param fromPDP policy source
      * @return array of policyDTOs
      * @throws EntitlementException throws, if fails
      */
     @Override
-    public PolicyDTO[] getAllPolicies(boolean fromPDP) throws EntitlementException {
+    public PolicyDTO[] listPolicies() throws EntitlementException {
 
-        if (fromPDP) {
-            return null;
-        } else {
-            String[] resources;
-            resources = getAllPolicyIds(false);
-
-            if (resources == null) {
-                return new PolicyDTO[0];
-            }
-            List<PolicyDTO> policyDTOList = new ArrayList<>();
-            for (String resource : resources) {
-                PolicyDTO dto = getPolicy(resource, false);
-                if (dto != null) {
-                    dto.setPolicy(null);
-                    AttributeDTO[] arr = new AttributeDTO[0];
-                    dto.setAttributeDTOs(arr);
-                    String[] arr2 = new String[0];
-                    dto.setPolicyEditorData(arr2);
-                }
-                policyDTOList.add(dto);
-            }
-            return policyDTOList.toArray(new PolicyDTO[0]);
-        }
+//        boolean fromPDP = false;
+//        if (fromPDP) {
+//            return null;
+//        } else {
+//            String[] resources;
+//            resources = getAllPolicyIds(false);
+//
+//            if (resources == null) {
+//                return new PolicyDTO[0];
+//            }
+//            List<PolicyDTO> policyDTOList = new ArrayList<>();
+//            for (String resource : resources) {
+//                PolicyDTO dto = getPolicy(resource, false);
+//                if (dto != null) {
+//                    dto.setPolicy(null);
+//                    AttributeDTO[] arr = new AttributeDTO[0];
+//                    dto.setAttributeDTOs(arr);
+//                    String[] arr2 = new String[0];
+//                    dto.setPolicyEditorData(arr2);
+//                }
+//                policyDTOList.add(dto);
+//            }
+//            return policyDTOList.toArray(new PolicyDTO[0]);
+//        }
+        return null;
 
     }
 
@@ -256,6 +248,44 @@ public class RegistryPolicyStore extends AbstractPolicyStore {
 
 
     /**
+     * Removes the given policy from PAP
+     *
+     * @param policyId policy ID
+     * @throws EntitlementException throws, if fails
+     */
+    @Override
+    public void removePolicy(String policyId) throws EntitlementException {
+
+        String path;
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removing entitlement policy");
+        }
+
+        try {
+            path = PDPConstants.ENTITLEMENT_POLICY_PAP + policyId;
+            if (!registry.resourceExists(path)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Trying to access an entitlement policy which does not exist");
+                }
+                return;
+            }
+            registry.delete(path);
+
+            // Removes versions
+            if (registry.resourceExists(PDPConstants.ENTITLEMENT_POLICY_VERSION + policyId)) {
+                registry.delete(PDPConstants.ENTITLEMENT_POLICY_VERSION + policyId);
+            }
+
+        } catch (RegistryException e) {
+            log.error("Error while removing entitlement policy " + policyId + " from PAP policy store", e);
+            throw new EntitlementException("Error while removing policy " + policyId + " from PAP policy store");
+        }
+
+    }
+
+
+    /**
      * Checks whether the given policy is published or not
      *
      * @param policyId policy ID
@@ -279,19 +309,9 @@ public class RegistryPolicyStore extends AbstractPolicyStore {
 
 
     /**
-     * Gets the policy combining algorithm
+     * Gets all published policy IDs
      */
-    @Override
-    public PolicyCombiningAlgorithm getGlobalPolicyAlgorithm() {
-        return null;
-    }
-
-
-    /**
-     * Gets the policy combining algorithm name
-     */
-    @Override
-    public String getGlobalPolicyAlgorithmName() {
+    public String[] listPublishedPolicyIds() throws EntitlementException{
         return null;
     }
 
@@ -363,47 +383,37 @@ public class RegistryPolicyStore extends AbstractPolicyStore {
      * De-promotes the policy
      */
     @Override
-    public void dePromotePolicy(String policyId) throws EntitlementException {
+    public void unpublishPolicy(String policyId) throws EntitlementException {
 
     }
 
 
     /**
-     * Removes the given policy from PAP
-     *
-     * @param policyId policy ID
-     * @throws EntitlementException throws, if fails
+     * Sets the global policy combining algorithm
      */
     @Override
-    public void removePAPPolicy(String policyId) throws EntitlementException {
-
-        String path;
-
-        if (log.isDebugEnabled()) {
-            log.debug("Removing entitlement policy");
-        }
-
-        try {
-            path = PDPConstants.ENTITLEMENT_POLICY_PAP + policyId;
-            if (!registry.resourceExists(path)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Trying to access an entitlement policy which does not exist");
-                }
-                return;
-            }
-            registry.delete(path);
-
-            // Removes versions
-            if (registry.resourceExists(PDPConstants.ENTITLEMENT_POLICY_VERSION + policyId)) {
-                registry.delete(PDPConstants.ENTITLEMENT_POLICY_VERSION + policyId);
-            }
-
-        } catch (RegistryException e) {
-            log.error("Error while removing entitlement policy " + policyId + " from PAP policy store", e);
-            throw new EntitlementException("Error while removing policy " + policyId + " from PAP policy store");
-        }
+    public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
     }
+
+
+    /**
+     * Gets the policy combining algorithm
+     */
+    @Override
+    public PolicyCombiningAlgorithm getGlobalPolicyAlgorithm() {
+        return null;
+    }
+
+
+    /**
+     * Gets the policy combining algorithm name
+     */
+    @Override
+    public String getGlobalPolicyAlgorithmName() {
+        return null;
+    }
+
 
 
     /**

@@ -38,25 +38,19 @@ public interface PolicyStore {
 
 
     /**
-     * Adds or updates the given PAP policy
+     * Adds or updates the given policy
      */
-    void addOrUpdatePAPPolicy(PolicyDTO policy) throws EntitlementException;
-
-
-    /**
-     * Sets the global policy combining algorithm
-     */
-    void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException;
+    void addOrUpdatePolicy(PolicyDTO policy) throws EntitlementException;
 
 
     /**
      * Gets the requested policy
      */
-    PolicyDTO getPolicy(String policyId, boolean fromPAP) throws EntitlementException;
+    PolicyDTO getPolicy(String policyId) throws EntitlementException;
 
 
     /**
-     * Gets the requested policy version from PAP
+     * Gets the requested policy version
      */
     PolicyDTO getPolicy(String policyId, String version) throws EntitlementException;
 
@@ -64,13 +58,14 @@ public interface PolicyStore {
     /**
      * Gets all policy IDs
      */
-    String[] getAllPolicyIds(boolean fromPAP) throws EntitlementException;
+    String[] listPolicyIds() throws EntitlementException;
 
 
     /**
      * Gets all policies
      */
-    PolicyDTO[] getAllPolicies(boolean fromPAP) throws EntitlementException;
+    //TODO add filters
+    PolicyDTO[] listPolicies() throws EntitlementException;
 
 
     /**
@@ -80,9 +75,39 @@ public interface PolicyStore {
 
 
     /**
+     * Removes the given policy
+     */
+    void removePolicy(String policyId) throws EntitlementException;
+
+
+    /**
      * Checks whether the given policy is published or not
      */
     boolean isPublished(String policyId);
+
+
+    /**
+     * Gets all published policy IDs
+     */
+    String[] listPublishedPolicyIds() throws EntitlementException;
+
+
+    /**
+     * Publishes the given policy
+     */
+    void publishPolicy(PolicyStoreDTO policy) throws EntitlementException;
+
+
+    /**
+     * Unpublishes the policy
+     */
+    void unpublishPolicy(String policyId) throws EntitlementException;
+
+
+    /**
+     * Sets the global policy combining algorithm
+     */
+    void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException;
 
 
     /**
@@ -104,23 +129,5 @@ public interface PolicyStore {
         return new String[] {"deny-overrides", "permit-overrides", "first-applicable", "ordered-deny-overrides",
                 "ordered-permit-overrides", "only-one-applicable"};
     }
-
-
-    /**
-     * Publishes the given policy
-     */
-    void publishPolicy(PolicyStoreDTO policy) throws EntitlementException;
-
-
-    /**
-     * De-promotes the policy
-     */
-    void dePromotePolicy(String policyId) throws EntitlementException;
-
-
-    /**
-     * Removes the given policy from PAP
-     */
-    void removePAPPolicy(String policyId) throws EntitlementException;
 
 }

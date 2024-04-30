@@ -18,8 +18,12 @@
 
 package org.wso2.carbon.identity.entitlement.dao;
 
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.dto.StatusHolder;
+import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
+import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 import java.util.Properties;
 import java.util.List;
@@ -37,15 +41,31 @@ public interface StatusDataStore {
 
 
     /**
-     * Handles the status data
+     * Handles policy status data
      */
-    void handleStatusData(String about, String key, List<StatusHolder> statusHolder) throws EntitlementException;
+    void handlePolicyStatus(String policyId, List<StatusHolder> statusHolders) throws EntitlementException;
 
 
     /**
-     * Gets the requested status data
+     * Handles subscriber status data
      */
-    StatusHolder[] getStatusData(String about, String key, String type, String searchString)
-            throws EntitlementException;
+    void handleSubscriberStatus(String policyId, List<StatusHolder> statusHolders) throws EntitlementException;
 
+
+    /**
+     * Gets the requested policy status data
+     */
+    StatusHolder[] getPolicyStatus(String policyId, String type, String filter) throws EntitlementException;
+
+
+    /**
+     * Gets the requested subscriber status data
+     */
+    StatusHolder[] getSubscriberStatus(String policyId, String type, String filter) throws EntitlementException;
+
+
+    /**
+     * Removes status data
+     */
+    void removeStatusData(String path) throws EntitlementException;
 }

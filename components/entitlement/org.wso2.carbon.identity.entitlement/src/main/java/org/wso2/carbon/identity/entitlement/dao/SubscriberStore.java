@@ -29,21 +29,27 @@ public interface SubscriberStore {
 
 
     /**
-     * Adds or updates a subscriber
+     * Adds a subscriber
      */
-    void addOrUpdateSubscriber(PublisherDataHolder holder, boolean isUpdate) throws EntitlementException;
+    void addSubscriber(PublisherDataHolder holder) throws EntitlementException;
 
 
     /**
      * Gets the requested subscriber
      */
-    PublisherDataHolder getSubscriber(String id, boolean returnSecrets) throws EntitlementException;
+    PublisherDataHolder getSubscriber(String subscriberId, boolean returnSecrets) throws EntitlementException;
 
 
     /**
      * Gets all subscriber IDs
      */
-    String[] getSubscriberIds(String searchString) throws EntitlementException;
+    String[] getSubscriberIds(String filter) throws EntitlementException;
+
+
+    /**
+     * Updates a subscriber
+     */
+    void updateSubscriber(PublisherDataHolder holder) throws EntitlementException;
 
 
     /**
