@@ -5263,7 +5263,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         allowedRoleAudienceProperty.setName(ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME);
         AssociatedRolesConfig associatedRolesConfig = serviceProvider.getAssociatedRolesConfig();
         if (associatedRolesConfig == null) {
-            allowedRoleAudienceProperty.setValue(RoleConstants.ORGANIZATION);
+            allowedRoleAudienceProperty.setValue(RoleConstants.APPLICATION);
             return allowedRoleAudienceProperty;
         }
         String allowedAudience = StringUtils.isNotBlank(associatedRolesConfig.getAllowedAudience()) ?
