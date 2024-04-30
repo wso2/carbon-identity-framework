@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-mgt-feature</artifactId>
-        <version>7.1.45-SNAPSHOT</version>
+        <version>7.1.45</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
