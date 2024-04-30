@@ -101,54 +101,6 @@ public class PublisherDataHolder {
         this.propertyDTOs = propertyDTOs.toArray(new PublisherPropertyDTO[propertyDTOs.size()]);
     }
 
-    public PublisherDataHolder(ResultSet resultSet, boolean returnSecrets) throws SQLException {
-
-        List<PublisherPropertyDTO> propertyDTOs = new ArrayList<PublisherPropertyDTO>();
-
-        if (resultSet != null) {
-
-            do {
-
-                String entitlementModuleName = resultSet.getString("ENTITLEMENT_MODULE_NAME");
-                String propertyId = resultSet.getString("PROPERTY_ID");
-                String displayName = resultSet.getString("DISPLAY_NAME");
-                String value = resultSet.getString("VALUE");
-                boolean isRequired = resultSet.getBoolean("IS_REQUIRED");
-                int displayOrder = resultSet.getInt("DISPLAY_ORDER");
-                boolean isSecret = resultSet.getBoolean("IS_SECRET");
-                String module = resultSet.getString("MODULE");
-
-                PublisherPropertyDTO dto = new PublisherPropertyDTO();
-
-                dto.setId(propertyId);
-                dto.setValue(value);
-                dto.setDisplayName(displayName);
-                dto.setDisplayOrder(displayOrder);
-                dto.setRequired(isRequired);
-                dto.setSecret(isSecret);
-                dto.setModule(module);
-
-                if (dto.isSecret()) {
-                    if (returnSecrets) {
-                        String password = dto.getValue();
-                        try {
-                            password = new String(CryptoUtil.getDefaultCryptoUtil().
-                                    base64DecodeAndDecrypt(dto.getValue()));
-                        } catch (CryptoException e) {
-                            log.error(e);
-                            // ignore
-                        }
-                        dto.setValue(password);
-                    }
-                }
-
-                this.moduleName = entitlementModuleName;
-                propertyDTOs.add(dto);
-            } while (resultSet.next());
-        }
-        this.propertyDTOs = propertyDTOs.toArray(new PublisherPropertyDTO[propertyDTOs.size()]);
-    }
-
     public String getModuleName() {
         return moduleName;
     }
