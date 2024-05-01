@@ -851,7 +851,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (FrameworkConstants.Application.CONSOLE_APP.equals(applicationName) ||
                 FrameworkConstants.Application.MY_ACCOUNT_APP.equals(applicationName)) {
             String[] fidpParam = request.getParameterMap().get(FrameworkConstants.RequestParams.FEDERATED_IDP);
-            if (fidpParam == null || !ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER.equals(fidpParam[0])) {
+            if (fidpParam == null || fidpParam.length > 0 &&
+                    !ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER.equals(fidpParam[0])) {
                 removeOrganizationSsoStepsForPortalApps(effectiveSequence);
             }
         }
