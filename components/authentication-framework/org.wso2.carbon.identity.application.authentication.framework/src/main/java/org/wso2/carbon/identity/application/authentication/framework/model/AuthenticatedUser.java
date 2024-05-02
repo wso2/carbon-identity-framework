@@ -66,6 +66,8 @@ public class AuthenticatedUser extends User {
     private String accessingOrganization;
     private String userResidentOrganization;
     private Map<ClaimMapping, String> userAttributes = new HashMap<>();
+    private String sharedUserId;
+    private String userSharedOrganizationId;
 
     /**
      * Instantiates an AuthenticatedUser
@@ -580,5 +582,25 @@ public class AuthenticatedUser extends User {
             return authenticatedSubjectIdentifier;
         }
         return super.toString();
+    }
+
+    public String getSharedUserId() {
+
+        return sharedUserId;
+    }
+
+    public void setSharedUserId(String sharedUserId) {
+
+        this.sharedUserId = sharedUserId;
+    }
+
+    public String getUserSharedOrganizationId() {
+
+        return userSharedOrganizationId;
+    }
+
+    public void setUserSharedOrganizationId(String sharedUserOrganizationId) {
+
+        this.userSharedOrganizationId = sharedUserOrganizationId;
     }
 }
