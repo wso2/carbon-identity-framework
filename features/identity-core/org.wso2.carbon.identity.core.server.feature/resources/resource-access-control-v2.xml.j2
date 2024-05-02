@@ -679,9 +679,6 @@
         <Resource context="(.*)/o/api/server/v(.*)/email/template-types(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_email_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/o/api/server/v(.*)/email/template-types/(.*)" secured="true" http-method="PUT">
-            <Scopes>internal_org_email_mgt_update</Scopes>
-        </Resource>
 
         <!-- Email Template Management API v1/v2 -->
         <Resource context="(.*)/api/server/v(.*)/email/template-types(.*)" secured="true" http-method="GET">
