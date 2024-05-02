@@ -447,20 +447,20 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
     private void validateUserStoreProperty(UserStoreDTO userStoreDTO) throws IdentityUserStoreClientException {
 
+        if (userStoreDTO == null) {
+            return;
+        }
         Pattern pattern = Pattern.compile(EXPRESSION_LANGUAGE_REGEX);
-        if (userStoreDTO != null) {
-            if ((StringUtils.isNotBlank(userStoreDTO.getDomainId()) &&
-                    pattern.matcher(userStoreDTO.getDomainId()).matches()) ||
-                    (StringUtils.isNotBlank(userStoreDTO.getDescription()) &&
-                            pattern.matcher(userStoreDTO.getDescription()).matches())) {
-                throw new IdentityUserStoreClientException("Invalid property format.");
-            } else if (userStoreDTO.getProperties() != null) {
-                for (PropertyDTO property : userStoreDTO.getProperties()) {
-                    if (property != null && property.getValue() != null) {
-                        if (!PASSWORD.equals(property.getName()) && pattern.matcher(property.getValue()).matches()) {
-                            throw new IdentityUserStoreClientException("Invalid property format.");
-                        }
-                    }
+        if ((StringUtils.isNotBlank(userStoreDTO.getDomainId()) &&
+                pattern.matcher(userStoreDTO.getDomainId()).matches()) ||
+                (StringUtils.isNotBlank(userStoreDTO.getDescription()) &&
+                        pattern.matcher(userStoreDTO.getDescription()).matches())) {
+            throw new IdentityUserStoreClientException("Invalid property format.");
+        } else if (userStoreDTO.getProperties() != null) {
+            for (PropertyDTO property : userStoreDTO.getProperties()) {
+                if (property != null && property.getValue() != null &&
+                        (!PASSWORD.equals(property.getName()) && pattern.matcher(property.getValue()).matches())) {
+                    throw new IdentityUserStoreClientException("Invalid property format.");
                 }
             }
         }
