@@ -186,7 +186,7 @@ public class IdPManagementDAO {
 
                     identityProvider.setId(rs.getString("ID"));
                     List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
-                            Integer.parseInt(identityProvider.getId()));
+                            Integer.parseInt(identityProvider.getId()), tenantId);
                     identityProvider
                             .setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
                     identityProvider.setImageUrl(rs.getString("IMAGE_URL"));
@@ -282,7 +282,7 @@ public class IdPManagementDAO {
                     identityProvider.setDisplayName(rs.getString("DISPLAY_NAME"));
                     identityProvider.setId(rs.getString("ID"));
                     List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(
-                            dbConnection, Integer.parseInt(identityProvider.getId()));
+                            dbConnection, Integer.parseInt(identityProvider.getId()), tenantId);
                     identityProvider.setIdpProperties(propertyList
                             .toArray(new IdentityProviderProperty[0]));
                     identityProvider.setImageUrl(rs.getString("IMAGE_URL"));
@@ -676,7 +676,7 @@ public class IdPManagementDAO {
                 identityProviderList.add(identityProvider);
             }
             List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
-                    Integer.parseInt(resultSet.getString("ID")));
+                    Integer.parseInt(resultSet.getString("ID")), tenantId);
             identityProvider.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
         }
         return identityProviderList;
@@ -980,12 +980,16 @@ public class IdPManagementDAO {
      * @param idpId        IDP Id
      * @return Identity provider properties
      */
-    private List<IdentityProviderProperty> getIdentityPropertiesByIdpId(Connection dbConnection, int idpId)
+    private List<IdentityProviderProperty> getIdentityPropertiesByIdpId(Connection dbConnection,
+                                                                        int idpId, int tenantId)
             throws SQLException {
 
+        final String DEPRECATED_RECOVERY_NOTIFICATION_PASSWORD_CONFIG = "Recovery.Notification.Password.Enable";
+        String recoveryNotificationPasswordValue = "";
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<IdentityProviderProperty> idpProperties = new ArrayList<IdentityProviderProperty>();
+        boolean isRecoveryNotificationPasswordPropertyAvailable = false;
 
         try {
             String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
@@ -996,9 +1000,17 @@ public class IdPManagementDAO {
             while (rs.next()) {
                 IdentityProviderProperty property = new IdentityProviderProperty();
                 property.setName(rs.getString("NAME"));
+                if (DEPRECATED_RECOVERY_NOTIFICATION_PASSWORD_CONFIG.equals(property.getName())) {
+                    isRecoveryNotificationPasswordPropertyAvailable = true;
+                    recoveryNotificationPasswordValue = rs.getString("VALUE");
+                }
                 property.setValue(rs.getString("VALUE"));
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
+            }
+            if (isRecoveryNotificationPasswordPropertyAvailable) {
+                handlePropertyChanges(dbConnection, tenantId, idpId, idpProperties,
+                        recoveryNotificationPasswordValue);
             }
         } catch (DataAccessException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
@@ -3120,7 +3132,7 @@ public class IdPManagementDAO {
                 federatedIdp.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
 
                 List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
-                        getIdentityPropertiesByIdpId(dbConnection, idpId));
+                        getIdentityPropertiesByIdpId(dbConnection, idpId, tenantId));
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
@@ -3397,7 +3409,8 @@ public class IdPManagementDAO {
                 federatedIdp.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
 
                 List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
-                        getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
+                        getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))
+                                ,tenantId));
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
                     fillResidentIdpProperties(federatedIdp, tenantDomain);
@@ -3559,7 +3572,8 @@ public class IdPManagementDAO {
                 federatedIdp.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
 
                 List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
-                        getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
+                        getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID")),
+                                tenantId));
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
@@ -5928,5 +5942,21 @@ public class IdPManagementDAO {
             propertiesFromConnectors.get(useNumericProperty).setValue(Boolean.FALSE.toString());
         }
         propertiesFromConnectors.get(otpLengthProperty).setValue(Integer.toString(otpLength));
+    }
+
+    private void handlePropertyChanges(Connection dbConnection, int tenantId,
+                                       int idpId, List<IdentityProviderProperty> idpProperties,
+                                       String recoveryNotificationPasswordValue)
+        throws SQLException {
+
+        // Set value of Recovery.Notification.Password.Enable to Recovery.Notification.Password.emailLink.
+        // Enable property to keep backward compatibility. This is only run once per tenant.
+        IdentityProviderProperty property = new IdentityProviderProperty();
+        property.setName("Recovery.Notification.Password.emailLink.Enable");
+        property.setValue(recoveryNotificationPasswordValue);
+        idpProperties.add(property);
+        idpProperties.stream().filter(idpProperty -> "Recovery.Notification.Password.Enable".equals(idpProperty.getName()))
+                .findFirst().ifPresent(idpProperties::remove);
+        updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
     }
 }
