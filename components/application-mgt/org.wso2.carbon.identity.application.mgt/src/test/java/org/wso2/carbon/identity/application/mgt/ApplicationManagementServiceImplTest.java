@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ClientAttestationMetaData;
+import org.wso2.carbon.identity.application.common.model.ClientImpersonation;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
@@ -994,6 +995,62 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         Assert.assertEquals(retrievedSP.getClientAttestationMetaData().isAttestationEnabled(), !isAttestationEnabled);
         Assert.assertNull(retrievedSP.getClientAttestationMetaData().getAndroidAttestationServiceCredentials());
+        // Deleting added application.
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+    }
+
+    @DataProvider(name = "testAddApplicationWithClientImpersonationData")
+    public Object[][] testAddApplicationWithClientImpersonationData() {
+
+
+        return new Object[][]{
+                {true, true},
+                {false, true},
+                {true, false},
+        };
+    }
+
+    @Test(dataProvider = "testAddApplicationWithClientImpersonationData")
+    public void testAddApplicationWithClientImpersonationData(boolean isImpersonationEnabled,
+                                                              boolean isEmailNotificationEnabled) throws Exception {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+
+        addApplicationConfigurations(inputSP);
+        ClientImpersonation clientImpersonation = new ClientImpersonation();
+        clientImpersonation.setImpersonationEnabled(isImpersonationEnabled);
+        clientImpersonation.setImpersonationEmailNotificationEnabled(isEmailNotificationEnabled);
+        inputSP.setClientImpersonation(clientImpersonation);
+
+        // Adding new application.
+        ServiceProvider addedSP = applicationManagementService.addApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+        Assert.assertEquals(addedSP.getClientImpersonation().isImpersonationEnabled(), isImpersonationEnabled);
+        Assert.assertEquals(addedSP.getClientImpersonation().isImpersonationEmailNotificationEnabled(),
+                isEmailNotificationEnabled);
+
+        //  Retrieving added application.
+        ServiceProvider retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs
+                (inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertEquals(retrievedSP.getClientImpersonation().isImpersonationEnabled(), isImpersonationEnabled);
+        Assert.assertEquals(retrievedSP.getClientImpersonation().isImpersonationEmailNotificationEnabled(),
+                isImpersonationEnabled && isEmailNotificationEnabled);
+
+        // Updating the application by changing the configuration. It should be changed.
+        ClientImpersonation clientImpersonationUpdate = new ClientImpersonation();
+        clientImpersonationUpdate.setImpersonationEnabled(!isImpersonationEnabled);
+        clientImpersonationUpdate.setImpersonationEmailNotificationEnabled(!isEmailNotificationEnabled);
+        inputSP.setClientImpersonation(clientImpersonationUpdate);
+        applicationManagementService.updateApplication(inputSP, SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+
+        retrievedSP = applicationManagementService.getApplicationExcludingFileBasedSPs
+                (inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertEquals(retrievedSP.getClientImpersonation().isImpersonationEnabled(), !isImpersonationEnabled);
+        Assert.assertEquals(retrievedSP.getClientImpersonation().isImpersonationEmailNotificationEnabled(),
+                !(isImpersonationEnabled || isEmailNotificationEnabled));
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
                 REGISTRY_SYSTEM_USERNAME);

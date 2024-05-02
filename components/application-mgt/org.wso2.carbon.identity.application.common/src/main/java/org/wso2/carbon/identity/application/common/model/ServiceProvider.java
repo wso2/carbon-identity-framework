@@ -149,6 +149,10 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = "ClientAttestationMetaData")
     private ClientAttestationMetaData clientAttestationMetaData;
 
+    @IgnoreNullElement
+    @XmlElement(name = "ClientImpersonation")
+    private ClientImpersonation clientImpersonation;
+
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
      * <Owner>....</Owner>
@@ -206,6 +210,9 @@ public class ServiceProvider implements Serializable {
                 serviceProvider
                         .setClientAttestationMetaData(ClientAttestationMetaData
                                 .build(element));
+            } else if ("ClientImpersonation".equals(elementName)) {
+                // build client impersonation meta data configuration.
+                serviceProvider.setClientImpersonation(ClientImpersonation.build(element));
             } else if ("IsSaaSApp".equals(elementName)) {
                 if (element.getText() != null && "true".equals(element.getText())) {
                     serviceProvider.setSaasApp(true);
@@ -601,6 +608,16 @@ public class ServiceProvider implements Serializable {
     public void setClientAttestationMetaData(ClientAttestationMetaData clientAttestationMetaData) {
 
         this.clientAttestationMetaData = clientAttestationMetaData;
+    }
+
+    public ClientImpersonation getClientImpersonation() {
+
+        return clientImpersonation;
+    }
+
+    public void setClientImpersonation(ClientImpersonation clientImpersonation) {
+
+        this.clientImpersonation = clientImpersonation;
     }
 }
 

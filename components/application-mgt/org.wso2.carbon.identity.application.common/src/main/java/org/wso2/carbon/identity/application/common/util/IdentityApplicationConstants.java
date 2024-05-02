@@ -130,6 +130,12 @@ public class IdentityApplicationConstants {
                 = "ANDROID_ATTESTATION_CREDENTIALS";
     public static final String CLIENT_ATTESTATION = "CLIENT_ATTESTATION";
     public static final String ANDROID = "ANDROID";
+    public static final String IS_IMPERSONATION_ENABLED_PROPERTY_NAME = "IsImpersonationEnabled";
+    public static final String IS_IMPERSONATION_ENABLED_DISPLAY_NAME = "Is Client Impersonation Enabled";
+    public static final String IS_IMPERSONATION_EMAIL_NOTIFICATION_ENABLED_PROPERTY_NAME =
+            "IsImpersonationEmailNotificationEnabled";
+    public static final String IS_IMPERSONATION_EMAIL_NOTIFICATION_ENABLED_DISPLAY_NAME =
+            "Is Impersonation Email Notification Enabled";
 
     /**
      * Config elements.

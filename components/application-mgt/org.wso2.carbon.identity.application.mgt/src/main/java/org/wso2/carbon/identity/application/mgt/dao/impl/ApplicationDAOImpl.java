@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ClientAttestationMetaData;
+import org.wso2.carbon.identity.application.common.model.ClientImpersonation;
 import org.wso2.carbon.identity.application.common.model.ConsentConfig;
 import org.wso2.carbon.identity.application.common.model.ConsentPurpose;
 import org.wso2.carbon.identity.application.common.model.ConsentPurposeConfigs;
@@ -152,6 +153,10 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_IMPERSONATION_EMAIL_NOTIFICATION_ENABLED_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_IMPERSONATION_EMAIL_NOTIFICATION_ENABLED_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_IMPERSONATION_ENABLED_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_IMPERSONATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_MANAGEMENT_APP_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_DISPLAY_NAME;
@@ -467,6 +472,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProviderProperties.add(appleAppId);
 
                 storeAndroidAttestationServiceCredentialAsSecret(application);
+            }
+
+            if (application.getClientImpersonation() != null) {
+                ServiceProviderProperty isImpersonationEnabled =
+                        buildIsImpersonationEnabledProperty(application.getClientImpersonation());
+                serviceProviderProperties.add(isImpersonationEnabled);
+
+                if (application.getClientImpersonation().isImpersonationEnabled()) {
+                    ServiceProviderProperty isImpersonationEmailNotificationEnabled =
+                            buildIsImpersonationEmailNotificationEnabledProperty(application.getClientImpersonation());
+                    serviceProviderProperties.add(isImpersonationEmailNotificationEnabled);
+                }
             }
 
             ServiceProviderProperty allowedRoleAudienceProperty = buildAllowedRoleAudienceProperty(application);
@@ -2185,6 +2202,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         (getAndroidAttestationServiceCredentials(serviceProvider));
             }
             serviceProvider.setClientAttestationMetaData(clientAttestationMetaData);
+            ClientImpersonation clientImpersonation = new ClientImpersonation();
+            clientImpersonation.setImpersonationEnabled(getIsImpersonationEnabled(propertyList));
+            if (clientImpersonation.isImpersonationEnabled()) {
+                clientImpersonation.setImpersonationEmailNotificationEnabled
+                        (getIsImpersonationEmailNotificationEnabled(propertyList));
+            }
+            serviceProvider.setClientImpersonation(clientImpersonation);
             serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                     applicationId, connection, tenantID));
             serviceProvider
@@ -2384,6 +2408,27 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         String value = propertyList.stream()
                 .filter(property -> IS_B2B_SS_APP_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+        return Boolean.parseBoolean(value);
+    }
+
+    private boolean getIsImpersonationEnabled(List<ServiceProviderProperty> propertyList) {
+
+        String value = propertyList.stream()
+                .filter(property -> IS_IMPERSONATION_ENABLED_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+        return Boolean.parseBoolean(value);
+    }
+
+    private boolean getIsImpersonationEmailNotificationEnabled(List<ServiceProviderProperty> propertyList) {
+
+        String value = propertyList.stream()
+                .filter(property -> IS_IMPERSONATION_EMAIL_NOTIFICATION_ENABLED_PROPERTY_NAME
+                        .equals(property.getName()))
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
@@ -5072,7 +5117,38 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAndroidAttestationServiceCredentialAsSecret(sp);
         }
 
+        if (sp.getClientImpersonation() != null) {
+            ServiceProviderProperty isImpersonationEnabled =
+                    buildIsImpersonationEnabledProperty(sp.getClientImpersonation());
+            spPropertyMap.put(isImpersonationEnabled.getName(), isImpersonationEnabled);
+
+            if (sp.getClientImpersonation().isImpersonationEnabled()) {
+                ServiceProviderProperty isImpersonationEmailNotificationEnabled =
+                        buildIsImpersonationEmailNotificationEnabledProperty(sp.getClientImpersonation());
+                spPropertyMap.put(isImpersonationEmailNotificationEnabled.getName(),
+                        isImpersonationEmailNotificationEnabled);
+            }
+        }
         sp.setSpProperties(spPropertyMap.values().toArray(new ServiceProviderProperty[0]));
+    }
+
+    private ServiceProviderProperty buildIsImpersonationEnabledProperty(ClientImpersonation clientImpersonation) {
+
+        ServiceProviderProperty isImpersonationEnabled = new ServiceProviderProperty();
+        isImpersonationEnabled.setName(IS_IMPERSONATION_ENABLED_PROPERTY_NAME);
+        isImpersonationEnabled.setDisplayName(IS_IMPERSONATION_ENABLED_DISPLAY_NAME);
+        isImpersonationEnabled.setValue(String.valueOf(clientImpersonation.isImpersonationEnabled()));
+        return isImpersonationEnabled;
+    }
+
+    private ServiceProviderProperty buildIsImpersonationEmailNotificationEnabledProperty
+            (ClientImpersonation clientImpersonation) {
+
+        ServiceProviderProperty property = new ServiceProviderProperty();
+        property.setName(IS_IMPERSONATION_EMAIL_NOTIFICATION_ENABLED_PROPERTY_NAME);
+        property.setDisplayName(IS_IMPERSONATION_EMAIL_NOTIFICATION_ENABLED_DISPLAY_NAME);
+        property.setValue(String.valueOf(clientImpersonation.isImpersonationEmailNotificationEnabled()));
+        return property;
     }
 
     private ServiceProviderProperty buildIsAPIBasedAuthenticationEnabledProperty(ServiceProvider sp) {
