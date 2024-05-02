@@ -61,6 +61,7 @@ public class ResendResponse {
 
     /**
      * Success status message.
+     *
      * @param message message
      * @return ResendResponse
      */
@@ -83,6 +84,7 @@ public class ResendResponse {
 
     /**
      * Confirmation code of the recovery flow.
+     *
      * @param flowConfirmationCode flowConfirmationCode
      * @return ResendResponse
      */
@@ -105,6 +107,7 @@ public class ResendResponse {
 
     /**
      * Set the notification channel that user prefers to get recovery notifications.
+     *
      * @param notificationChannel notificationChannel
      * @return ResendResponse
      */
@@ -127,6 +130,7 @@ public class ResendResponse {
 
     /**
      * Code to resend the notification to the user via user selected channel.
+     *
      * @param resendCode resendCode
      * @return ResendResponse
      */
@@ -149,6 +153,7 @@ public class ResendResponse {
 
     /**
      * Links for next requests.
+     *
      * @param links links
      * @return ResendResponse
      */
@@ -171,6 +176,7 @@ public class ResendResponse {
 
     /**
      * Add linksItem.
+     *
      * @param linksItem linksItem.
      * @return ResendResponse.
      */

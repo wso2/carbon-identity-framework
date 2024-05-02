@@ -58,6 +58,7 @@ public class ResetResponse {
 
     /**
      * Success status message.
+     *
      * @param message message.
      * @return ResendResponse.
      */
@@ -69,6 +70,7 @@ public class ResetResponse {
 
     /**
      * Get message.
+     *
      * @return message.
      */
     @JsonProperty("message")
@@ -79,6 +81,7 @@ public class ResetResponse {
 
     /**
      * Set message.
+     *
      * @param message message.
      */
     public void setMessage(String message) {

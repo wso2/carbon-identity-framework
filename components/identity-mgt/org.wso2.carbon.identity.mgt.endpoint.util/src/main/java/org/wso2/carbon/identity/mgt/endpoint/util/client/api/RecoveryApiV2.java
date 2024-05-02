@@ -22,6 +22,7 @@ import com.sun.jersey.api.client.GenericType;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiClient;
@@ -86,7 +87,7 @@ public class RecoveryApiV2 {
                                                               String tenantDomain, Map<String, String> headers)
             throws ApiException {
 
-        String localVarPath = "/password/init";
+        final String localVarPath = "/password/init";
         return initiateRecovery(recoveryInitRequest, tenantDomain, headers, localVarPath);
     }
 
@@ -102,7 +103,7 @@ public class RecoveryApiV2 {
     public RecoveryResponse recoverPassword(RecoveryRequest recoveryRequest, String tenantDomain,
                                             Map<String, String> headers) throws ApiException {
 
-        String localVarPath = "/password/recover";
+        final String localVarPath = "/password/recover";
         return recover(recoveryRequest, tenantDomain, headers, localVarPath);
     }
 
@@ -118,7 +119,7 @@ public class RecoveryApiV2 {
     public ResendResponse resendPasswordNotification(ResendRequest resendRequest, String tenantDomain,
                                                      Map<String, String> headers) throws ApiException {
 
-        String localVarPath = "/password/resend";
+        final String localVarPath = "/password/resend";
         return resend(resendRequest, tenantDomain, headers, localVarPath);
     }
 
@@ -134,7 +135,7 @@ public class RecoveryApiV2 {
     public ConfirmResponse confirmPasswordRecovery(ConfirmRequest confirmRequest, String tenantDomain,
                                                    Map<String, String> headers) throws ApiException {
 
-        String localVarPath = "/password/confirm";
+        final String localVarPath = "/password/confirm";
         return confirm(confirmRequest, tenantDomain, headers, localVarPath);
     }
 
@@ -150,7 +151,7 @@ public class RecoveryApiV2 {
     public ResetResponse resetUserPassword(ResetRequest resetRequest, String tenantDomain,
                                            Map<String, String> headers) throws ApiException {
 
-        String localVarPath = "/password/reset";
+        final String localVarPath = "/password/reset";
         return reset(resetRequest, tenantDomain, headers, localVarPath);
     }
 
@@ -187,11 +188,11 @@ public class RecoveryApiV2 {
         }
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
         final String[] localVarAccepts = {
-                "application/json"
+                FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON
         };
         final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
         final String[] localVarContentTypes = {
-                "application/json"
+                FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON
         };
         final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
         String[] localVarAuthNames = new String[]{};
@@ -233,11 +234,11 @@ public class RecoveryApiV2 {
         }
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
         final String[] localVarAccepts = {
-                "application/json"
+                FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON
         };
         final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
         final String[] localVarContentTypes = {
-                "application/json"
+                FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON
         };
         final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
         String[] localVarAuthNames = new String[]{};
@@ -265,8 +266,10 @@ public class RecoveryApiV2 {
         if (MapUtils.isNotEmpty(headers)) {
             localVarHeaderParams.putAll(headers);
         }
-        final String localVarAccept = apiClient.selectHeaderAccept(new String[]{"application/json"});
-        final String localVarContentType = apiClient.selectHeaderContentType(new String[]{"application/json"});
+        final String localVarAccept = apiClient.selectHeaderAccept(
+                new String[]{FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON});
+        final String localVarContentType = apiClient.selectHeaderContentType(
+                new String[]{FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON});
         return apiClient.invokeAPI(localVarPath, "POST", new ArrayList<>(), resendRequest,
                 localVarHeaderParams, new HashMap<>(), localVarAccept, localVarContentType, new String[]{},
                 new GenericType<ResendResponse>(){});
@@ -289,8 +292,10 @@ public class RecoveryApiV2 {
         if (MapUtils.isNotEmpty(headers)) {
             localVarHeaderParams.putAll(headers);
         }
-        final String localVarAccept = apiClient.selectHeaderAccept(new String[]{"application/json"});
-        final String localVarContentType = apiClient.selectHeaderContentType(new String[]{"application/json"});
+        final String localVarAccept = apiClient.selectHeaderAccept(
+                new String[]{FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON});
+        final String localVarContentType = apiClient.selectHeaderContentType(
+                new String[]{FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON});
         return apiClient.invokeAPI(localVarPath, "POST", new ArrayList<>(), confirmRequest,
                 localVarHeaderParams, new HashMap<>(), localVarAccept, localVarContentType, new String[]{},
                 new GenericType<ConfirmResponse>(){});
@@ -313,8 +318,10 @@ public class RecoveryApiV2 {
         if (MapUtils.isNotEmpty(headers)) {
             localVarHeaderParams.putAll(headers);
         }
-        final String localVarAccept = apiClient.selectHeaderAccept(new String[]{"application/json"});
-        final String localVarContentType = apiClient.selectHeaderContentType(new String[]{"application/json"});
+        final String localVarAccept = apiClient.selectHeaderAccept(
+                new String[]{FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON});
+        final String localVarContentType = apiClient.selectHeaderContentType(
+                new String[]{FrameworkConstants.ContentTypes.TYPE_APPLICATION_JSON});
         return apiClient.invokeAPI(localVarPath, "POST", new ArrayList<>(), resetRequest,
                 localVarHeaderParams, new HashMap<>(), localVarAccept, localVarContentType, new String[]{},
                 new GenericType<ResetResponse>(){});

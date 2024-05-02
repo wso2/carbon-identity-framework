@@ -117,6 +117,7 @@ public class ResetRequest {
 
     /**
      * Adds property to the request properties.
+     *
      * @param propertiesItem propertiesItem.
      * @return ConfirmRequest.
      */

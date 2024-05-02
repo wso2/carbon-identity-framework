@@ -5949,8 +5949,8 @@ public class IdPManagementDAO {
                                        String recoveryNotificationPasswordValue)
         throws SQLException {
 
-        // Set value of Recovery.Notification.Password.Enable to Recovery.Notification.Password.emailLink.
-        // Enable property to keep backward compatibility. This is only run once per tenant.
+        // Set value of Recovery.Notification.Password.Enable to Recovery.Notification.Password.emailLink.Enable
+        // property to keep backward compatibility. This is only run once per tenant.
         IdentityProviderProperty property = new IdentityProviderProperty();
         property.setName("Recovery.Notification.Password.emailLink.Enable");
         property.setValue(recoveryNotificationPasswordValue);

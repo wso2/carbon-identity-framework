@@ -73,6 +73,7 @@ public class ConfirmResponse {
 
     /**
      * Add linksItem.
+     *
      * @param linksItem linksItem.
      * @return ResendResponse.
      */

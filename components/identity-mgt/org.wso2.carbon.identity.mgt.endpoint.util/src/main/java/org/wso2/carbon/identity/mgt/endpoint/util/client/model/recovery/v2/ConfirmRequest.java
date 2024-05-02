@@ -96,6 +96,7 @@ public class ConfirmRequest {
 
     /**
      * Adds property to the request properties.
+     *
      * @param propertiesItem propertiesItem.
      * @return ConfirmRequest.
      */
