@@ -50,6 +50,11 @@ import java.util.Map;
  */
 public class RecoveryApiV2 {
 
+    private static final String PATH_PASSWORD_RECOVERY_INIT = "/password/init";
+    private static final String PATH_PASSWORD_RECOVERY_RECOVER = "/password/recover";
+    private static final String PATH_PASSWORD_RECOVERY_RESEND = "/password/resend";
+    private static final String PATH_PASSWORD_RECOVERY_CONFIRM = "/password/confirm";
+    private static final String PATH_PASSWORD_RECOVERY_RESET = "/password/reset";
     String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(IdentityManagementEndpointConstants
             .UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
     private ApiClient apiClient;
@@ -87,8 +92,7 @@ public class RecoveryApiV2 {
                                                               String tenantDomain, Map<String, String> headers)
             throws ApiException {
 
-        final String localVarPath = "/password/init";
-        return initiateRecovery(recoveryInitRequest, tenantDomain, headers, localVarPath);
+        return initiateRecovery(recoveryInitRequest, tenantDomain, headers, PATH_PASSWORD_RECOVERY_INIT);
     }
 
     /**
@@ -103,8 +107,7 @@ public class RecoveryApiV2 {
     public RecoveryResponse recoverPassword(RecoveryRequest recoveryRequest, String tenantDomain,
                                             Map<String, String> headers) throws ApiException {
 
-        final String localVarPath = "/password/recover";
-        return recover(recoveryRequest, tenantDomain, headers, localVarPath);
+        return recover(recoveryRequest, tenantDomain, headers, PATH_PASSWORD_RECOVERY_RECOVER);
     }
 
     /**
@@ -118,9 +121,8 @@ public class RecoveryApiV2 {
      */
     public ResendResponse resendPasswordNotification(ResendRequest resendRequest, String tenantDomain,
                                                      Map<String, String> headers) throws ApiException {
-
-        final String localVarPath = "/password/resend";
-        return resend(resendRequest, tenantDomain, headers, localVarPath);
+        
+        return resend(resendRequest, tenantDomain, headers, PATH_PASSWORD_RECOVERY_RESEND);
     }
 
     /**
@@ -134,9 +136,8 @@ public class RecoveryApiV2 {
      */
     public ConfirmResponse confirmPasswordRecovery(ConfirmRequest confirmRequest, String tenantDomain,
                                                    Map<String, String> headers) throws ApiException {
-
-        final String localVarPath = "/password/confirm";
-        return confirm(confirmRequest, tenantDomain, headers, localVarPath);
+        
+        return confirm(confirmRequest, tenantDomain, headers, PATH_PASSWORD_RECOVERY_CONFIRM);
     }
 
     /**
@@ -151,8 +152,7 @@ public class RecoveryApiV2 {
     public ResetResponse resetUserPassword(ResetRequest resetRequest, String tenantDomain,
                                            Map<String, String> headers) throws ApiException {
 
-        final String localVarPath = "/password/reset";
-        return reset(resetRequest, tenantDomain, headers, localVarPath);
+        return reset(resetRequest, tenantDomain, headers, PATH_PASSWORD_RECOVERY_RESET);
     }
 
     /**

@@ -121,6 +121,10 @@ public class IdPManagementDAO {
     private static final Log log = LogFactory.getLog(IdPManagementDAO.class);
 
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
+    private static final String DEPRECATED_RECOVERY_NOTIFICATION_PASSWORD_CONFIG
+            = "Recovery.Notification.Password.Enable";
+    private static final String EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY
+            = "Recovery.Notification.Password.emailLink.Enable";
 
     /**
      * @param dbConnection
@@ -984,7 +988,6 @@ public class IdPManagementDAO {
                                                                         int idpId, int tenantId)
             throws SQLException {
 
-        final String DEPRECATED_RECOVERY_NOTIFICATION_PASSWORD_CONFIG = "Recovery.Notification.Password.Enable";
         String recoveryNotificationPasswordValue = "";
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
@@ -5952,10 +5955,10 @@ public class IdPManagementDAO {
         // Set value of Recovery.Notification.Password.Enable to Recovery.Notification.Password.emailLink.Enable
         // property to keep backward compatibility. This is only run once per tenant.
         IdentityProviderProperty property = new IdentityProviderProperty();
-        property.setName("Recovery.Notification.Password.emailLink.Enable");
+        property.setName(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
         property.setValue(recoveryNotificationPasswordValue);
         idpProperties.add(property);
-        idpProperties.stream().filter(idpProperty -> "Recovery.Notification.Password.Enable".equals(idpProperty.getName()))
+        idpProperties.stream().filter(idpProperty -> DEPRECATED_RECOVERY_NOTIFICATION_PASSWORD_CONFIG.equals(idpProperty.getName()))
                 .findFirst().ifPresent(idpProperties::remove);
         updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
     }
