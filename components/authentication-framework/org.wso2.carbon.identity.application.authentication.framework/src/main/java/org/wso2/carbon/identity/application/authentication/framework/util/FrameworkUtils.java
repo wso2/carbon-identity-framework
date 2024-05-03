@@ -161,6 +161,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -4153,5 +4154,17 @@ public class FrameworkUtils {
         } catch (CryptoException e) {
             throw new FrameworkException("Error occurred while encrypting claim value of: " + claimURI, e);
         }
+    }
+
+    /**
+     * This method return true if the given URL is relative URL.
+     *
+     * @param uriString
+     * @return true if the given URL is relative URL.
+     * @throws URISyntaxException
+     */
+    public static boolean isURLRelative(String uriString) throws URISyntaxException {
+
+        return !new URI(uriString).isAbsolute();
     }
 }

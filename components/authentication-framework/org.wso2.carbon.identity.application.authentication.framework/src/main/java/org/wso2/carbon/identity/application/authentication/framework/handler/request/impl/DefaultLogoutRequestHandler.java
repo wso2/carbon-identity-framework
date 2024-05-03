@@ -61,6 +61,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -539,11 +540,16 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
     private boolean isValidCallerPath(AuthenticationContext context) {
 
-        // The following regex is used to identify whether the caller path is internal or external.
-        // Internal redirection urls will always be relevant paths and validation can therefore be skipped.
-        String urlRegex = "^((https?)://|(www)\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+([/?].*)?$";
-        if (!context.getCallerPath().matches(urlRegex)) {
-            return true;
+        // Internal redirection urls will always be relative paths and validation can therefore be skipped.
+        try {
+            if (FrameworkUtils.isURLRelative(context.getCallerPath())) {
+                return true;
+            }
+        } catch (URISyntaxException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+            return false;
         }
 
         // This is an external redirection.
