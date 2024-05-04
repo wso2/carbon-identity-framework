@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -1252,11 +1253,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         // Remove the organization SSO authenticator from the graph nodes if already configured.
         AuthenticationGraph authenticationGraph = effectiveSequence.getAuthenticationGraph();
-        if (authenticationGraph == null || authenticationGraph.getStartNode() == null) {
+        if (authenticationGraph == null) {
             return;
         }
-        if (authenticationGraph.getStartNode() instanceof StepConfigGraphNode) {
-            StepConfigGraphNode graphNode = (StepConfigGraphNode) authenticationGraph.getStartNode();
+        AuthGraphNode authGraphNode = authenticationGraph.getStartNode();
+        if (authGraphNode == null) {
+            return;
+        }
+        if (authGraphNode instanceof StepConfigGraphNode) {
+            StepConfigGraphNode graphNode = (StepConfigGraphNode) authGraphNode;
             if (graphNode.getStepConfig() == null ||
                     CollectionUtils.isEmpty(graphNode.getStepConfig().getAuthenticatorList())) {
                 return;
