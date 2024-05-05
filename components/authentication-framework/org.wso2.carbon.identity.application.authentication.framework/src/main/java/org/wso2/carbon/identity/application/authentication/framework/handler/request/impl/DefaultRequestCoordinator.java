@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -34,6 +34,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -1250,22 +1252,26 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         stepConfig.setAuthenticatorList(authenticatorList);
 
         // Remove the organization SSO authenticator from the graph nodes if already configured.
-        if (effectiveSequence.getAuthenticationGraph() == null ||
-                effectiveSequence.getAuthenticationGraph().getStartNode() == null) {
+        AuthenticationGraph authenticationGraph = effectiveSequence.getAuthenticationGraph();
+        if (authenticationGraph == null) {
             return;
         }
-        StepConfigGraphNode graphNode = (StepConfigGraphNode) effectiveSequence.getAuthenticationGraph().getStartNode();
-        if (graphNode.getStepConfig() == null ||
-                CollectionUtils.isEmpty(graphNode.getStepConfig().getAuthenticatorList())) {
+        AuthGraphNode authGraphNode = authenticationGraph.getStartNode();
+        if (authGraphNode == null) {
             return;
         }
-        authenticatorList = ((StepConfigGraphNode) effectiveSequence.getAuthenticationGraph().getStartNode())
-                .getStepConfig().getAuthenticatorList();
-        authenticatorList = authenticatorList.stream()
-                .filter(authenticatorConfig -> !authenticatorConfig.getName()
-                        .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
-        ((StepConfigGraphNode) effectiveSequence.getAuthenticationGraph().getStartNode()).getStepConfig()
-                .setAuthenticatorList(authenticatorList);
+        if (authGraphNode instanceof StepConfigGraphNode) {
+            StepConfigGraphNode graphNode = (StepConfigGraphNode) authGraphNode;
+            if (graphNode.getStepConfig() == null ||
+                    CollectionUtils.isEmpty(graphNode.getStepConfig().getAuthenticatorList())) {
+                return;
+            }
+            authenticatorList = graphNode.getStepConfig().getAuthenticatorList();
+            authenticatorList = authenticatorList.stream()
+                    .filter(authenticatorConfig -> !authenticatorConfig.getName()
+                            .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
+            graphNode.getStepConfig().setAuthenticatorList(authenticatorList);
+        }
     }
 
     private boolean isStepHasMultiOption(AuthenticationContext context) {
