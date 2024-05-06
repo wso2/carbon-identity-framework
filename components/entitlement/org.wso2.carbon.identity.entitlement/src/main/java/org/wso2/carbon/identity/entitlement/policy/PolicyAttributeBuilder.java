@@ -1,20 +1,20 @@
 /*
-*  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-*  WSO2 Inc. licenses this file to you under the Apache License,
-*  Version 2.0 (the "License"); you may not use this file except
-*  in compliance with the License.
-*  You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ *  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 package org.wso2.carbon.identity.entitlement.policy;
 
@@ -28,14 +28,11 @@ import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 
 /**
- * This class phrase the xml representation of policy and build the policy meta data such as
+ * This class phrase the xml representation of policy and build the policy metadata such as
  * resource names, subject names action names and environment names, attribute ids and data types.
  */
 public class PolicyAttributeBuilder {
@@ -64,9 +61,9 @@ public class PolicyAttributeBuilder {
     }
 
     /**
-     * This creates properties object which contains the policy meta data.
+     * This creates properties object which contains the policy metadata.
      *
-     * @return properties object which contains the policy meta data
+     * @return properties object which contains the policy metadata
      * @throws EntitlementException throws
      */
     public Properties getPolicyMetaDataFromPolicy() throws EntitlementException {
@@ -125,6 +122,30 @@ public class PolicyAttributeBuilder {
 
         return attributeDTOs.toArray(new AttributeDTO[attributeDTOs.size()]);
     }
+
+    public AttributeDTO[] getPolicyMetaData(Properties properties) {
+
+        List<AttributeDTO> attributeDTOs = new ArrayList<AttributeDTO>();
+        if (properties != null && !properties.isEmpty()) {
+            for (int attributeElementNo = 0; attributeElementNo < properties.size(); ) {
+
+                String[] attributeData = Collections.singletonList(properties.get(PDPConstants.POLICY_META_DATA +
+                        attributeElementNo)).toString().split(PDPConstants.ATTRIBUTE_SEPARATOR);
+                if (attributeData.length == PDPConstants.POLICY_META_DATA_ARRAY_LENGTH) {
+                    AttributeDTO attributeDTO = new AttributeDTO();
+                    attributeDTO.setCategory(attributeData[0]);
+                    attributeDTO.setAttributeValue(attributeData[1]);
+                    attributeDTO.setAttributeId(attributeData[2]);
+                    attributeDTO.setAttributeDataType(attributeData[3]);
+                    attributeDTOs.add(attributeDTO);
+                }
+                attributeElementNo++;
+            }
+        }
+
+        return attributeDTOs.toArray(new AttributeDTO[0]);
+    }
+
 
     /**
      * This creates the OMElement from the policy xml and create the the meta data for hole policy

@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.entitlement.policy.finder.registry;
 
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
-import org.wso2.carbon.identity.entitlement.policy.store.RegistryPolicyStoreManageModule;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.handlers.Handler;
 import org.wso2.carbon.registry.core.jdbc.handlers.RequestContext;
@@ -41,7 +40,7 @@ public class RegistryPolicyHandler extends Handler {
             enableRegistryCacheClear = Boolean.parseBoolean(properties.getProperty(PDPConstants.PDP_REGISTRY_LEVEL_POLICY_CACHE_CLEAR));
         }
         if(enableRegistryCacheClear) {
-            RegistryPolicyStoreManageModule.invalidateCache();
+            RegistryPolicyDAOImpl.invalidateCache();
         }
 
 
@@ -57,7 +56,7 @@ public class RegistryPolicyHandler extends Handler {
             enableRegistryCacheClear = Boolean.parseBoolean(properties.getProperty(PDPConstants.PDP_REGISTRY_LEVEL_POLICY_CACHE_CLEAR));
         }
         if(enableRegistryCacheClear) {
-            RegistryPolicyStoreManageModule.invalidateCache();
+            RegistryPolicyDAOImpl.invalidateCache();
         }
 
     }

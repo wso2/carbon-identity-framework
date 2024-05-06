@@ -21,15 +21,11 @@ package org.wso2.carbon.identity.entitlement.pap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
+import org.wso2.carbon.identity.entitlement.dao.*;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreManager;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PolicyPublisher;
-import org.wso2.carbon.identity.entitlement.policy.store.DefaultPolicyDataStore;
-import org.wso2.carbon.identity.entitlement.policy.store.PolicyDataStore;
 import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManager;
-import org.wso2.carbon.identity.entitlement.policy.version.DefaultPolicyVersionManager;
-import org.wso2.carbon.identity.entitlement.policy.version.PolicyVersionManager;
 
 import java.util.Map;
 import java.util.Properties;
@@ -46,40 +42,22 @@ public class EntitlementAdminEngine {
             new ConcurrentHashMap<String, EntitlementAdminEngine>();
     private static Log log = LogFactory.getLog(EntitlementAdminEngine.class);
     private PolicyPublisher policyPublisher;
-    private PolicyVersionManager versionManager;
     private EntitlementDataFinder entitlementDataFinder;
-    private PolicyDataStore policyDataStore;
     private PolicyStoreManager policyStoreManager;
     private PAPPolicyStoreManager papPolicyStoreManager;
-    private Set<PAPStatusDataHandler> papStatusDataHandlers;
+    private Set<StatusDataDAO> papStatusDataHandlers;
 
     public EntitlementAdminEngine() {
 
         this.entitlementDataFinder = new EntitlementDataFinder();
         this.policyPublisher = new PolicyPublisher();
         this.papPolicyStoreManager = new PAPPolicyStoreManager();
-        Map<PolicyVersionManager, Properties> versionManagers = EntitlementServiceComponent.
-                getEntitlementConfig().getPolicyVersionModule();
-        if (versionManagers != null && versionManagers.size() > 0) {
-            this.versionManager = versionManagers.entrySet().iterator().next().getKey();
-        } else {
-            //init without init()
-            this.versionManager = new DefaultPolicyVersionManager();
-        }
-        Map<PolicyDataStore, Properties> dataStoreModules = EntitlementServiceComponent.
-                getEntitlementConfig().getPolicyDataStore();
-        if (dataStoreModules != null && dataStoreModules.size() > 0) {
-            this.policyDataStore = dataStoreModules.entrySet().iterator().next().getKey();
-        } else {
-            //init without init()
-            this.policyDataStore = new DefaultPolicyDataStore();
-        }
 
-        Map<PAPStatusDataHandler, Properties> statusDataHandlers = EntitlementServiceComponent.
+        Map<StatusDataDAO, Properties> statusDataHandlers = EntitlementServiceComponent.
                 getEntitlementConfig().getPapStatusDataHandlers();
         papStatusDataHandlers = statusDataHandlers.keySet();
         this.policyPublisher.setPapStatusDataHandlers(papStatusDataHandlers);
-        this.policyStoreManager = new PolicyStoreManager(policyDataStore);
+        this.policyStoreManager = new PolicyStoreManager();
     }
 
     /**
@@ -110,12 +88,6 @@ public class EntitlementAdminEngine {
         return policyPublisher;
     }
 
-    /**
-     * @return
-     */
-    public PolicyVersionManager getVersionManager() {
-        return versionManager;
-    }
 
     /**
      * This method returns the entitlement data finder
@@ -126,12 +98,6 @@ public class EntitlementAdminEngine {
         return entitlementDataFinder;
     }
 
-    /**
-     * @return
-     */
-    public PolicyDataStore getPolicyDataStore() {
-        return policyDataStore;
-    }
 
     /**
      * This returns policy store manager
@@ -149,7 +115,7 @@ public class EntitlementAdminEngine {
         return papPolicyStoreManager;
     }
 
-    public Set<PAPStatusDataHandler> getPapStatusDataHandlers() {
+    public Set<StatusDataDAO> getPapStatusDataHandlers() {
         return papStatusDataHandlers;
     }
 }

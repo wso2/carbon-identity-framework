@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.entitlement.policy.finder;
 
+import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 
 import java.util.Map;
@@ -82,7 +83,7 @@ public interface PolicyFinderModule {
      *
      * @return array of policies as Strings
      */
-    public String[] getActivePolicies();
+    public String[] getActivePolicies() throws EntitlementException;
 
     /**
      * gets all supported policy ids by this module
@@ -90,7 +91,7 @@ public interface PolicyFinderModule {
      *
      * @return array of policy ids as Strings
      */
-    public String[] getOrderedPolicyIdentifiers();
+    public String[] getOrderedPolicyIdentifiers() throws EntitlementException;
 
     /**
      * gets policy for given policy Id
@@ -98,7 +99,7 @@ public interface PolicyFinderModule {
      * @param policyId policy id as String value
      * @return policy as String
      */
-    public String getPolicy(String policyId);
+    public String getPolicyString(String policyId);
 
 
     public int getPolicyOrder(String policyId);

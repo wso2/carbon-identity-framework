@@ -20,11 +20,11 @@ package org.wso2.carbon.identity.entitlement;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.entitlement.dao.ConfigDAO;
 import org.wso2.carbon.identity.entitlement.dto.PDPDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.PIPFinderDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.PolicyFinderDataHolder;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
-import org.wso2.carbon.identity.entitlement.pap.EntitlementAdminEngine;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyFinder;
 import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
 import org.wso2.carbon.identity.entitlement.pip.AbstractPIPAttributeFinder;
@@ -44,7 +44,7 @@ import java.util.Set;
 /**
  * Entitlement PDP related admin services are exposed
  */
-public class EntitlementAdminService {
+public class  EntitlementAdminService {
 
 	private static Log log = LogFactory.getLog(EntitlementAdminService.class);
 
@@ -426,7 +426,7 @@ public class EntitlementAdminService {
      * @param finder
      * @return
      */
-    public PolicyFinderDataHolder getPolicyFinderData(String finder) {
+    public PolicyFinderDataHolder getPolicyFinderData(String finder) throws EntitlementException {
 
         PolicyFinderDataHolder holder = null;
         // get registered finder modules
@@ -527,8 +527,8 @@ public class EntitlementAdminService {
      */
     public String getGlobalPolicyAlgorithm() throws EntitlementException {
 
-        return EntitlementAdminEngine.getInstance().
-                getPolicyDataStore().getGlobalPolicyAlgorithmName();
+        ConfigDAO config = new RegistryConfigDAOImpl();
+        return config.getGlobalPolicyAlgorithmName();
     }
 
     /**
@@ -539,7 +539,7 @@ public class EntitlementAdminService {
      */
     public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
-        EntitlementAdminEngine.getInstance().
-                getPolicyDataStore().setGlobalPolicyAlgorithm(policyCombiningAlgorithm);
+        ConfigDAO config = new RegistryConfigDAOImpl();
+        config.setGlobalPolicyAlgorithm(policyCombiningAlgorithm);
     }
 }

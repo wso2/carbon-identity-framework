@@ -54,23 +54,16 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.cache.EntitlementBaseCache;
 import org.wso2.carbon.identity.entitlement.cache.IdentityCacheEntry;
 import org.wso2.carbon.identity.entitlement.cache.IdentityCacheKey;
-import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
+import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
-import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementExtensionBuilder;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pap.EntitlementAdminEngine;
-import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStore;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreManager;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreReader;
-import org.wso2.carbon.identity.entitlement.policy.publisher.PolicyPublisher;
-import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManageModule;
-import org.wso2.carbon.identity.entitlement.policy.version.PolicyVersionManager;
-import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
@@ -101,7 +94,6 @@ public class EntitlementUtil {
 
     private static Log log = LogFactory.getLog(EntitlementUtil.class);
 
-    private static final String ENHANCED_XACML_LOADING_SYSTEM_PROPERTY = "enableEnhancedXACMLLoading";
 
     /**
      * Return an instance of a named cache that is common to all tenants.
@@ -341,6 +333,73 @@ public class EntitlementUtil {
     }
 
     /**
+     * Gets all supported policy combining algorithm names
+     *
+     * @return array of policy combining algorithm names
+     */
+    public static String[] getAllGlobalPolicyAlgorithmNames() {
+        return new String[] {"deny-overrides", "permit-overrides", "first-applicable", "ordered-deny-overrides",
+                "ordered-permit-overrides", "only-one-applicable"};
+    }
+
+    /**
+     * Gets the maximum no of status records to persist
+     *
+     * @return maximum no of status records
+     */
+    public static int getMaxNoOfStatusRecords(){
+        int maxRecords = 0;
+        String maxRecordsString = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties().
+                getProperty(PDPConstants.MAX_NO_OF_STATUS_RECORDS);
+        if (maxRecordsString != null) {
+            try {
+                maxRecords = Integer.parseInt(maxRecordsString);
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+        if (maxRecords == 0) {
+            maxRecords = PDPConstants.DEFAULT_MAX_NO_OF_STATUS_RECORDS;
+        }
+        return maxRecords;
+    }
+
+    /**
+     * Gets the maximum no of policy versions allowed
+     *
+     * @return maximum no of policy versions
+     */
+    public static int getMaxNoOfPolicyVersions(){
+        int maxVersions = 0;
+        String maxVersionsString = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties().
+                getProperty(PDPConstants.MAX_NO_OF_POLICY_VERSIONS);
+        try {
+            maxVersions = Integer.parseInt(maxVersionsString);
+        } catch (Exception e) {
+            // ignore
+        }
+        if (maxVersions == 0) {
+            maxVersions = PDPConstants.DEFAULT_MAX_NO_OF_POLICY_VERSIONS;
+        }
+        return maxVersions;
+    }
+
+    /**
+     * Gets the policy store path
+     *
+     * @return policy store path
+     */
+    public static String getPolicyStorePath(){
+        String policyStorePath;
+        policyStorePath = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties().
+                getProperty(PDPConstants.POLICY_STORE_PATH);
+        if (policyStorePath == null) {
+            policyStorePath = PDPConstants.DEFAULT_POLICY_STORE_PATH;
+        }
+        return policyStorePath;
+    }
+
+    /**
      * Creates Simple XACML request using given attribute value.Here category, attribute ids and datatypes are
      * taken as default values.
      *
@@ -376,7 +435,7 @@ public class EntitlementUtil {
                 "</Request> ";
     }
 
-    public static void addSamplePolicies(Registry registry) {
+    public static void addSamplePolicies() {
 
         File policyFolder = new File(CarbonUtils.getCarbonHome() + File.separator
                 + "repository" + File.separator + "resources" + File.separator
@@ -390,7 +449,7 @@ public class EntitlementUtil {
                     PolicyDTO policyDTO = new PolicyDTO();
                     try {
                         policyDTO.setPolicy(FileUtils.readFileToString(policyFile));
-                        EntitlementUtil.addFilesystemPolicy(policyDTO, registry, false);
+                        EntitlementUtil.addFilesystemPolicy(policyDTO, false);
                     } catch (Exception e) {
                         // log and ignore
                         log.error("Error while adding sample XACML policies", e);
@@ -401,31 +460,28 @@ public class EntitlementUtil {
     }
 
     /**
-     * This method checks whether there is a policy having the same policyId as the given policyId is in the registry
+     * This method checks whether there is a policy having the same policyId as the given policyId.
      *
      * @param policyId
-     * @param registry
      * @return
      * @throws EntitlementException
      */
-    public static boolean isPolicyExists(String policyId, Registry registry) throws EntitlementException {
-        PAPPolicyStoreReader policyReader = null;
-        policyReader = new PAPPolicyStoreReader(new PAPPolicyStore(registry));
+    public static boolean isPolicyExists(String policyId) throws EntitlementException {
+        PAPPolicyStoreReader policyReader;
+        PolicyDAO store = new RegistryPolicyDAOImpl();
+        policyReader = new PAPPolicyStoreReader(store);
         return policyReader.isExistPolicy(policyId);
     }
 
     /**
-     * This method persists a new XACML policy, which was read from filesystem,
-     * in the registry
+     * This method persists a new XACML policy, which was read from filesystem.
      *
      * @param policyDTO PolicyDTO object
-     * @param registry  Registry
      * @param promote   where policy must be promote PDP or not
      * @return returns whether True/False
      * @throws org.wso2.carbon.identity.entitlement.EntitlementException throws if policy with same id is exist
      */
-    public static boolean addFilesystemPolicy(PolicyDTO policyDTO,
-                                              Registry registry, boolean promote)
+    public static boolean addFilesystemPolicy(PolicyDTO policyDTO, boolean promote)
             throws EntitlementException {
 
         PAPPolicyStoreManager policyAdmin;
@@ -438,44 +494,20 @@ public class EntitlementUtil {
         policyObj = getPolicy(policyDTO.getPolicy());
 
         if (policyObj != null) {
-            PAPPolicyStore policyStore = new PAPPolicyStore(registry);
             policyAdmin = new PAPPolicyStoreManager();
             policyDTO.setPolicyId(policyObj.getId().toASCIIString());
             policyDTO.setActive(true);
 
-            if (isPolicyExists(policyDTO.getPolicyId(), registry)) {
+            if (isPolicyExists(policyDTO.getPolicyId())) {
                 return false;
             }
 
             policyDTO.setPromote(promote);
-            PolicyVersionManager versionManager = EntitlementAdminEngine.getInstance().getVersionManager();
-            try {
-                String version = versionManager.createVersion(policyDTO);
-                policyDTO.setVersion(version);
-            } catch (EntitlementException e) {
-                log.error("Policy versioning is not supported", e);
-            }
             policyAdmin.addOrUpdatePolicy(policyDTO);
 
-            PAPPolicyStoreReader reader = new PAPPolicyStoreReader(policyStore);
-            policyDTO = reader.readPolicyDTO(policyDTO.getPolicyId());
-
-            if (Boolean.parseBoolean(System.getProperty(ENHANCED_XACML_LOADING_SYSTEM_PROPERTY)) && promote) {
+            if (promote) {
                 EntitlementAdminEngine adminEngine = EntitlementAdminEngine.getInstance();
                 adminEngine.getPolicyStoreManager().addPolicy(policyDTO);
-            } else {
-                PolicyStoreDTO policyStoreDTO = new PolicyStoreDTO();
-                policyStoreDTO.setPolicyId(policyDTO.getPolicyId());
-                policyStoreDTO.setPolicy(policyDTO.getPolicy());
-                policyStoreDTO.setPolicyOrder(policyDTO.getPolicyOrder());
-                policyStoreDTO.setAttributeDTOs(policyDTO.getAttributeDTOs());
-                policyStoreDTO.setActive(policyDTO.isActive());
-                policyStoreDTO.setSetActive(policyDTO.isActive());
-
-                if (promote) {
-                    addPolicyToPDP(policyStoreDTO);
-                }
-                policyAdmin.addOrUpdatePolicy(policyDTO);
             }
             return true;
         } else {
@@ -526,87 +558,12 @@ public class EntitlementUtil {
      * @throws org.wso2.carbon.identity.entitlement.EntitlementException
      */
     public static PolicyDTO getPolicy(String policyId, Registry registry) throws EntitlementException {
-        PAPPolicyStoreReader policyReader = null;
-        policyReader = new PAPPolicyStoreReader(new PAPPolicyStore(registry));
+        PAPPolicyStoreReader policyReader;
+        PolicyDAO store = new RegistryPolicyDAOImpl();
+        policyReader = new PAPPolicyStoreReader(store);
         return policyReader.readPolicyDTO(policyId);
     }
 
-    /**
-     * @param policyStoreDTO
-     * @return
-     */
-    public static void addPolicyToPDP(PolicyStoreDTO policyStoreDTO) throws EntitlementException {
-
-        Registry registry;
-        String policyPath;
-        Collection policyCollection;
-        Resource resource;
-
-        Map.Entry<PolicyStoreManageModule, Properties> entry = EntitlementServiceComponent
-                .getEntitlementConfig().getPolicyStore().entrySet().iterator().next();
-        String policyStorePath = entry.getValue().getProperty("policyStorePath");
-
-        if (policyStorePath == null) {
-            policyStorePath = "/repository/identity/entitlement/policy/pdp/";
-        }
-
-        if (policyStoreDTO == null || policyStoreDTO.getPolicy() == null
-                || policyStoreDTO.getPolicy().trim().length() == 0
-                || policyStoreDTO.getPolicyId() == null
-                || policyStoreDTO.getPolicyId().trim().length() == 0) {
-            return;
-        }
-
-        try {
-            registry = EntitlementServiceComponent.getRegistryService()
-                    .getGovernanceSystemRegistry();
-
-            if (registry.resourceExists(policyStorePath)) {
-                policyCollection = (Collection) registry.get(policyStorePath);
-            } else {
-                policyCollection = registry.newCollection();
-            }
-
-            registry.put(policyStorePath, policyCollection);
-            policyPath = policyStorePath + policyStoreDTO.getPolicyId();
-
-            if (registry.resourceExists(policyPath)) {
-                resource = registry.get(policyPath);
-            } else {
-                resource = registry.newResource();
-            }
-
-            resource.setProperty("policyOrder", Integer.toString(policyStoreDTO.getPolicyOrder()));
-            resource.setContent(policyStoreDTO.getPolicy());
-            resource.setMediaType("application/xacml-policy+xml");
-            resource.setProperty("active", String.valueOf(policyStoreDTO.isActive()));
-            AttributeDTO[] attributeDTOs = policyStoreDTO.getAttributeDTOs();
-            if (attributeDTOs != null) {
-                setAttributesAsProperties(attributeDTOs, resource);
-            }
-            registry.put(policyPath, resource);
-            //Enable published policies in PDP
-            PAPPolicyStoreManager storeManager = EntitlementAdminEngine.getInstance().getPapPolicyStoreManager();
-            if (storeManager.isExistPolicy(policyStoreDTO.getPolicyId())) {
-
-                PolicyPublisher publisher = EntitlementAdminEngine.getInstance().getPolicyPublisher();
-                String[] subscribers = new String[]{EntitlementConstants.PDP_SUBSCRIBER_ID};
-
-                if (policyStoreDTO.isActive()) {
-                    publisher.publishPolicy(new String[]{policyStoreDTO.getPolicyId()}, null,
-                            EntitlementConstants.PolicyPublish.ACTION_ENABLE, false, 0, subscribers, null);
-
-                } else {
-                    publisher.publishPolicy(new String[]{policyStoreDTO.getPolicyId()}, null,
-                            EntitlementConstants.PolicyPublish.ACTION_DISABLE, false, 0, subscribers, null);
-                }
-            }
-
-        } catch (RegistryException e) {
-            log.error(e);
-            throw new EntitlementException("Error while adding policy to PDP", e);
-        }
-    }
 
     /**
      * This helper method creates properties object which contains the policy meta data.

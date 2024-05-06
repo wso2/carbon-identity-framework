@@ -37,14 +37,13 @@ import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.PolicyOrderComparator;
 import org.wso2.carbon.identity.entitlement.cache.PolicyStatus;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
+import org.wso2.carbon.identity.entitlement.dao.ConfigDAO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
 import org.wso2.carbon.identity.entitlement.policy.PolicyReader;
 import org.wso2.carbon.identity.entitlement.policy.collection.PolicyCollection;
 import org.wso2.carbon.identity.entitlement.policy.collection.SimplePolicyCollection;
-import org.wso2.carbon.identity.entitlement.policy.store.DefaultPolicyDataStore;
-import org.wso2.carbon.identity.entitlement.policy.store.PolicyDataStore;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -84,11 +83,15 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
     public void init(PolicyFinder finder) {
         initFinish = false;
         this.finder = finder;
-        init();
+        try {
+            init();
+        } catch (EntitlementException e) {
+            throw new RuntimeException(e);
+        }
         policyReferenceCache.clear();
     }
 
-    private synchronized void init() {
+    private synchronized void init() throws EntitlementException {
 
         if (initFinish) {
             return;
@@ -143,17 +146,8 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
         if (this.finderModules != null && this.finderModules.size() > 0) {
             // find policy combining algorithm.
 
-            // here we can get policy data store by using EntitlementAdminEngine. But we are not
-            // use it here.  As we need not to have a dependant on EntitlementAdminEngine
-            PolicyDataStore policyDataStore;
-            Map<PolicyDataStore, Properties> dataStoreModules = EntitlementServiceComponent.
-                    getEntitlementConfig().getPolicyDataStore();
-            if (dataStoreModules != null && dataStoreModules.size() > 0) {
-                policyDataStore = dataStoreModules.entrySet().iterator().next().getKey();
-            } else {
-                policyDataStore = new DefaultPolicyDataStore();
-            }
-            policyCombiningAlgorithm = policyDataStore.getGlobalPolicyAlgorithm();
+            ConfigDAO config = new RegistryConfigDAOImpl();
+            policyCombiningAlgorithm = config.getGlobalPolicyAlgorithm();
 
             tempPolicyCollection.setPolicyCombiningAlgorithm(policyCombiningAlgorithm);
 
@@ -298,7 +292,7 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
     private AbstractPolicy loadPolicy(String policyId) {
         if (this.finderModules != null) {
             for (PolicyFinderModule finderModule : this.finderModules) {
-                String policyString = finderModule.getPolicy(policyId);
+                String policyString = finderModule.getPolicyString(policyId);
                 if (policyString != null) {
                     AbstractPolicy policy = policyReader.getPolicy(policyString);
                     if (policy != null) {

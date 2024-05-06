@@ -34,6 +34,7 @@ import org.wso2.balana.finder.PolicyFinder;
 import org.wso2.balana.finder.PolicyFinderModule;
 import org.wso2.balana.finder.PolicyFinderResult;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
+import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.policy.collection.DefaultPolicyCollection;
 
@@ -46,14 +47,13 @@ public class PAPPolicyFinder extends PolicyFinderModule {
     // the logger we'll use for all messages
     private static final Log log = LogFactory.getLog(PAPPolicyFinder.class);
     // the list of policy URLs passed to the constructor
-    private PAPPolicyStoreReader policyReader;
+    private final PAPPolicyStoreReader policyReader;
     // the map of policies
     private DefaultPolicyCollection policies;
     //keeps policy ids according to the order
     private List<String> policyIds;
     private PolicyFinder policyFinder;
-    // only five policies are allowed
-    private int maxInMemoryPolicies = 5;
+
 
     /**
      * Creates a PAPPolicyFinder that provides access to the given collection of policies.
@@ -62,7 +62,7 @@ public class PAPPolicyFinder extends PolicyFinderModule {
      * PolicyRepository.POLICY_SCHEMA_PROPERTY. If the retrieved property is null, then no schema
      * validation will occur.
      *
-     * @param policyReader Policy store repository for Registry
+     * @param policyReader Policy store repository
      */
     public PAPPolicyFinder(PAPPolicyStoreReader policyReader) {
         this.policyReader = policyReader;
@@ -161,12 +161,12 @@ public class PAPPolicyFinder extends PolicyFinderModule {
         // clear all current policies
         policies.getPolicies().clear();
 
-        ArrayList<AbstractPolicy> list = new ArrayList<AbstractPolicy>();
+        ArrayList<AbstractPolicy> list = new ArrayList<>();
 
         try {
             for (String policyId : policyIds) {
 
-                if (list.size() == maxInMemoryPolicies) {
+                if (list.size() == PDPConstants.DEFAULT_MAX_NO_OF_IN_MEMORY_POLICIES) {
                     break;
                 }
                 AbstractPolicy policy = null;
@@ -208,7 +208,7 @@ public class PAPPolicyFinder extends PolicyFinderModule {
                 return new PolicyFinderResult(policy);
             }
         } catch (EntitlementException e) {
-            ArrayList<String> code = new ArrayList<String>();
+            ArrayList<String> code = new ArrayList<>();
             code.add(Status.STATUS_PROCESSING_ERROR);
             Status status = new Status(code, e.getMessage());
             return new PolicyFinderResult(status);
@@ -219,14 +219,14 @@ public class PAPPolicyFinder extends PolicyFinderModule {
     /**
      * Sets polices ids that is evaluated
      *
-     * @param policyIds
+     * @param policyIds policyIds
      */
     public void setPolicyIds(List<String> policyIds) {
         this.policyIds = policyIds;
     }
 
     public void initPolicyIds() throws EntitlementException {
-        this.policyIds = new ArrayList<String>();
+        this.policyIds = new ArrayList<>();
         PolicyDTO[] policyDTOs = policyReader.readAllLightPolicyDTOs();
         for (PolicyDTO dto : policyDTOs) {
             if (dto.isActive()) {

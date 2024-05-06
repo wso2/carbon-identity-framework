@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.entitlement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
+import org.wso2.carbon.identity.entitlement.dao.StatusDataDAO;
 import org.wso2.carbon.identity.entitlement.dto.StatusHolder;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.notification.mgt.NotificationManagementException;
@@ -36,7 +37,7 @@ import java.util.Properties;
  * registered in entitlement.properties file.
  */
 @SuppressWarnings("unused")
-public class EntitlementNotificationExtension implements PAPStatusDataHandler {
+public class EntitlementNotificationExtension implements StatusDataDAO {
 
     private static final Log log = LogFactory.getLog(EntitlementNotificationExtension.class);
     private final String eventName = "policyUpdate";

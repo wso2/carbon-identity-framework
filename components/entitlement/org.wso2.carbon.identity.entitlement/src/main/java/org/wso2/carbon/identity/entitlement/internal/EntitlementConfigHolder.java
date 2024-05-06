@@ -19,7 +19,8 @@
 package org.wso2.carbon.identity.entitlement.internal;
 
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
-import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
+import org.wso2.carbon.identity.entitlement.dao.StatusDataDAO;
+import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
 import org.wso2.carbon.identity.entitlement.pap.EntitlementDataFinderModule;
 import org.wso2.carbon.identity.entitlement.pip.PIPAttributeFinder;
@@ -30,9 +31,6 @@ import org.wso2.carbon.identity.entitlement.policy.finder.PolicyFinderModule;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PolicyPublisherModule;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PostPublisherModule;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PublisherVerificationModule;
-import org.wso2.carbon.identity.entitlement.policy.store.PolicyDataStore;
-import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManageModule;
-import org.wso2.carbon.identity.entitlement.policy.version.PolicyVersionManager;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.util.ArrayList;
@@ -105,27 +103,14 @@ public class EntitlementConfigHolder {
     /**
      * Will be fired by admin services, whenever it wants send notifications
      */
-    private Map<PAPStatusDataHandler, Properties> papStatusDataHandlers =
-            new HashMap<PAPStatusDataHandler, Properties>();
+    private Map<StatusDataDAO, Properties> papStatusDataHandlers =
+            new HashMap<StatusDataDAO, Properties>();
 
     /**
      * This holds all the policy storing logic of entitlement engine
      */
-    private Map<PolicyStoreManageModule, Properties> policyStore =
-            new HashMap<PolicyStoreManageModule, Properties>();
-
-    /**
-     * This holds all the policy versioning of PAP
-     */
-    private Map<PolicyDataStore, Properties> policyDataStore =
-            new HashMap<PolicyDataStore, Properties>();
-
-
-    /**
-     * This holds all the policy storing logic of entitlement engine
-     */
-    private Map<PolicyVersionManager, Properties> policyVersionModule =
-            new HashMap<PolicyVersionManager, Properties>();
+    private Map<PolicyDAO, Properties> policyStore =
+            new HashMap<PolicyDAO, Properties>();
 
 
     /**
@@ -244,11 +229,11 @@ public class EntitlementConfigHolder {
         this.policyCollections.put(collection, properties);
     }
 
-    public Map<PolicyStoreManageModule, Properties> getPolicyStore() {
+    public Map<PolicyDAO, Properties> getPolicyStore() {
         return policyStore;
     }
 
-    public void addPolicyStore(PolicyStoreManageModule policyStoreStore, Properties properties) {
+    public void addPolicyStore(PolicyDAO policyStoreStore, Properties properties) {
         this.policyStore.put(policyStoreStore, properties);
     }
 
@@ -269,29 +254,13 @@ public class EntitlementConfigHolder {
         this.publisherVerificationModule.put(publisherVerificationModule, properties);
     }
 
-    public Map<PAPStatusDataHandler, Properties> getPapStatusDataHandlers() {
+    public Map<StatusDataDAO, Properties> getPapStatusDataHandlers() {
         return papStatusDataHandlers;
     }
 
-    public void addNotificationHandler(PAPStatusDataHandler notificationHandler,
+    public void addNotificationHandler(StatusDataDAO notificationHandler,
                                        Properties properties) {
         this.papStatusDataHandlers.put(notificationHandler, properties);
-    }
-
-    public Map<PolicyVersionManager, Properties> getPolicyVersionModule() {
-        return policyVersionModule;
-    }
-
-    public void addPolicyVersionModule(PolicyVersionManager policyVersionModule, Properties properties) {
-        this.policyVersionModule.put(policyVersionModule, properties);
-    }
-
-    public Map<PolicyDataStore, Properties> getPolicyDataStore() {
-        return policyDataStore;
-    }
-
-    public void addPolicyDataStore(PolicyDataStore policyDataStore, Properties properties) {
-        this.policyDataStore.put(policyDataStore, properties);
     }
 
     public ConfigurationContextService getConfigurationContextService() {

@@ -40,9 +40,9 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
+import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.listener.CacheClearingUserOperationListener;
-import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStore;
 import org.wso2.carbon.identity.entitlement.thrift.EntitlementService;
 import org.wso2.carbon.identity.entitlement.thrift.ThriftConfigConstants;
 import org.wso2.carbon.identity.entitlement.thrift.ThriftEntitlementServiceImpl;
@@ -155,21 +155,6 @@ public class EntitlementServiceComponent {
         return null;
     }
 
-    /**
-     * @param httpService
-     */
-    /*protected void setHttpService(HttpService httpService) {
-        httpServiceInstance = httpService;
-    }
-
-    */
-
-    /**
-     * @param httpService
-     *//*
-    protected void unsetHttpService(HttpService httpService) {
-        httpServiceInstance = null;
-    }*/
     public static NotificationSender getNotificationSender() {
         return EntitlementServiceComponent.notificationSender;
     }
@@ -224,18 +209,17 @@ public class EntitlementServiceComponent {
             // Start loading schema.
             new Thread(new SchemaBuilder(EntitlementConfigHolder.getInstance())).start();
 
-            // Read XACML policy files from a pre-defined location in the
-            // filesystem and load to registry at the server startup
-            PAPPolicyStore papPolicyStore = new PAPPolicyStore(
-                    registryService.getGovernanceSystemRegistry());
+            // Read XACML policy files from a pre-defined location in the filesystem
+            PolicyDAO papPolicyStore = new RegistryPolicyDAOImpl();
 
             String startUpPolicyAdding = EntitlementConfigHolder.getInstance().getEngineProperties().getProperty(
                     PDPConstants.START_UP_POLICY_ADDING);
 
             List<String> policyIdList = new ArrayList<>();
 
-            if (papPolicyStore != null && ArrayUtils.isNotEmpty(papPolicyStore.getAllPolicyIds())) {
-                String[] allPolicyIds = papPolicyStore.getAllPolicyIds();
+            if (papPolicyStore != null &&
+                    ArrayUtils.isNotEmpty(papPolicyStore.listPolicyIds().toArray(new String[0]))) {
+                String[] allPolicyIds = papPolicyStore.listPolicyIds().toArray(new String[0]);
                 policyIdList = Arrays.asList(allPolicyIds);
             }
 
@@ -250,7 +234,7 @@ public class EntitlementServiceComponent {
                 }
 
                 if (policyFolder != null && !policyFolder.exists()) {
-                    log.warn("Defined policy directory location is not exit. " +
+                    log.warn("Defined policy directory location does not exit. " +
                             "Therefore using default policy location");
                 }
 
@@ -288,7 +272,7 @@ public class EntitlementServiceComponent {
 
                 if (!customPolicies) {
                     // load default policies
-                    EntitlementUtil.addSamplePolicies(registryService.getGovernanceSystemRegistry());
+                    EntitlementUtil.addSamplePolicies();
                 }
             }
             // Cache clearing listener is always registered since cache clearing is a must when
@@ -319,7 +303,7 @@ public class EntitlementServiceComponent {
     }
 
     /**
-     * Adds policy files with unique policyIDs to the registry.
+     * Adds policy files with unique policyIDs.
      *
      * @param policyIdList  List of IDs of existing policies.
      * @param fileList      List of files in policy folder.
@@ -335,8 +319,7 @@ public class EntitlementServiceComponent {
                 policyDTO.setPolicy(FileUtils.readFileToString(policyFile));
                 if (!policyIdList.contains(policyDTO.getPolicyId())) {
                     try {
-                        EntitlementUtil.addFilesystemPolicy(policyDTO, registryService
-                                .getGovernanceSystemRegistry(), true);
+                        EntitlementUtil.addFilesystemPolicy(policyDTO, true);
                     } catch (Exception e) {
                         // Log error and continue with the rest of the files.
                         log.error("Error while adding XACML policies", e);
