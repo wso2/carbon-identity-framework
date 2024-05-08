@@ -1055,6 +1055,8 @@
         -->
         <DCRM>
             <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
+            <ClientAuthenticationRequired>{{oauth.dcr.authentication_required}}</ClientAuthenticationRequired>
+            <MandatorySoftwareStatement>{{oauth.dcr.mandate_ssa}}</MandatorySoftwareStatement>
             {% if oauth.dcr.ssa_jkws is defined %}
             <SoftwareStatementJWKS>{{oauth.dcr.ssa_jkws}}</SoftwareStatementJWKS>
             {% endif %}

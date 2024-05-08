@@ -713,6 +713,10 @@
         -->
         <DCRM>
             <ApplicationRolePermissionRequiredToView>true</ApplicationRolePermissionRequiredToView>
+            <ClientAuthenticationRequired>true</ClientAuthenticationRequired>
+            <MandatorySoftwareStatement>true</MandatorySoftwareStatement>
+            <EnableFAPIEnforcement>false</EnableFAPIEnforcement>
+            <EnableSectorIdentifierURIValidation>false</EnableSectorIdentifierURIValidation>
         </DCRM>
 
         <!--
