@@ -31,6 +31,7 @@ import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -345,8 +346,11 @@ public class IdentityTenantUtil {
                 throw IdentityRuntimeException.error(errorMsg, e);
             }
         }
-        if(tenantId == MultitenantConstants.INVALID_TENANT_ID){
-            throw IdentityRuntimeException.error("Invalid tenant domain of user " + username);
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid tenant domain of user " + username);
+            }
+            throw IdentityRuntimeException.error("Invalid tenant domain");
         } else {
             return tenantId;
         }
@@ -412,7 +416,7 @@ public class IdentityTenantUtil {
      */
     public static boolean isTenantQualifiedUrlsEnabled() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS));
+        return IdentityCoreServiceDataHolder.getInstance().isTenantQualifiedUrlsEnabled();
     }
 
 
@@ -422,7 +426,7 @@ public class IdentityTenantUtil {
      */
     public static boolean isTenantedSessionsEnabled() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANTED_SESSIONS));
+        return IdentityCoreServiceDataHolder.getInstance().isTenantedSessionsEnabled();
     }
 
     /**
@@ -462,5 +466,15 @@ public class IdentityTenantUtil {
     public static boolean isLegacySaaSAuthenticationEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_LEGACY_SAAS_AUTHENTICATION));
+    }
+
+    /**
+     * Checks if it is required to specify carbon.super in tenant qualified in public URLs.
+     *
+     * @return true if it is mandatory, false otherwise.
+     */
+    public static String getSuperTenantAliasInPublicUrl() {
+
+        return IdentityUtil.getProperty(IdentityCoreConstants.SUPER_TENANT_ALIAS_IN_PUBLIC_URL);
     }
 }

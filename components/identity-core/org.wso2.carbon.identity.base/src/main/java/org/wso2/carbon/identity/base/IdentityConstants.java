@@ -166,6 +166,7 @@ public class IdentityConstants {
 
     public static final String IDENTITY_UTIL_ENABLE_SHA256 = "IdentityUtil.EnableSHA256";
     public static final String CERT_THUMBPRINT_ENABLE_SHA256 = "CertThumbprint.EnableSHA256";
+    public static final String ALLOW_LEGACY_ROLE_CLAIM_BEHAVIOUR = "AllowLegacyRoleClaimBehaviour";
 
     private IdentityConstants() {
     }
@@ -594,5 +595,13 @@ public class IdentityConstants {
         public static final String ROLE_NAME_CONFIG_ELEMENT = "Name";
         public static final String ROLE_MANDATORY_SCOPES_CONFIG_ELEMENT = "MandatoryScopes";
         public static final String ROLE_SCOPE_CONFIG_ELEMENT = "Scope";
+    }
+
+    /**
+     * Common constants related to API Response.
+     */
+    public static class APIResponse {
+
+        public static final String SET_ACCOUNT_LOCK_AUTH_FAILURE_REASON = "APIResponse.SetAccountLockAuthFailureReason";
     }
 }

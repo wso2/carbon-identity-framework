@@ -3,7 +3,7 @@
         "image": "assets/images/logos/microsoft.svg",
         "header": "Microsoft",
         "Subheading": "Enable login for users with existing Microsoft accounts",
-        "documentation": "{ ENV }/asgardeo/docs/guides/authentication/social-login/add-microsoft-login/",
+        "documentation": "",
         "modal": {
             "form": {
                 "fields": [
@@ -63,10 +63,10 @@
                     ],
                     "header": "Prerequites",
                     "paragraphs": [
-                        "Before you begin, create an <strong>OAuth credential</strong> on the <a href=\"https://portal.azure.com\" target=\"_blank\" rel=\"noopener noreferrer\">Azure Active Directory</a>, and obtain a <strong>Client ID & secret</strong>."                    ],
+                        "Before you begin, create an <strong>OAuth credential</strong> on the <a href=\"https://entra.microsoft.com\" target=\"_blank\" rel=\"noopener noreferrer\">Microsoft Entra ID</a>, and obtain a <strong>Client ID & secret</strong>."                    ],
                     "link": {
                         "text": "See Microsoft's guide on configuring OAuth Apps.",
-                        "url": "https://learn.microsoft.com/en-us/azure/active-directory/saas-apps"
+                        "url": "https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app"
                     }
                 },                
                 "fields": [
@@ -100,7 +100,7 @@
             },
             {
                 "key": "Scopes",
-                "value": "email,openid,profile"
+                "value": "email openid profile"
             },
             {
                 "key": "commonAuthQueryParams",

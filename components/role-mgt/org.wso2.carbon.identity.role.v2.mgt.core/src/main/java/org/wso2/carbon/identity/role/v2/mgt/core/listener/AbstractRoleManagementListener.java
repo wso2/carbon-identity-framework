@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.listener;
 
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.GroupBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
@@ -328,5 +331,16 @@ public abstract class AbstractRoleManagementListener implements RoleManagementLi
     public void postDeleteRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+    }
+
+    @Override
+    public int getExecutionOrderId() {
+
+        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+                (RoleManagementListener.class.getName(), this.getClass().getName());
+        if (identityEventListenerConfig == null) {
+            return IdentityCoreConstants.EVENT_LISTENER_ORDER_ID;
+        }
+        return identityEventListenerConfig.getOrder();
     }
 }

@@ -146,10 +146,10 @@ public class Constants {
         public static final String INVALID_CLIENT_APP_NOT_FOUND_I18N_KEY = "application.not.found";
         public static final String INVALID_REQUEST_INVALID_REDIRECT_URI = "invalid_request_invalid.redirect.uri";
         public static final String INVALID_REQUEST_INVALID_REDIRECT_URI_I18N_KEY = "invalid.redirect.uri";
-        public static final String INVALID_REQUEST_INVALID_PAR_REQUEST_URI = "invalid_request_par.invalid.request.uri";
+        public static final String INVALID_REQUEST_INVALID_PAR_REQUEST_URI = "invalid_request_uri_par.invalid.request.uri";
         public static final String INVALID_REQUEST_INVALID_PAR_REQUEST_URI_I18N_KEY = "par.invalid.request.uri";
         public static final String INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED =
-                "invalid_request_par.request.uri.expired";
+                "invalid_request_uri_par.request.uri.expired";
         public static final String INVALID_REQUEST_PAR_REQUEST_URI_EXPIRED_I18N_KEY =
                 "par.request.uri.expired";
         public static final String INVALID_REQUEST_PAR_CLIENT_ID_NOT_MATCH = "invalid_request_par.client.id.not.match";

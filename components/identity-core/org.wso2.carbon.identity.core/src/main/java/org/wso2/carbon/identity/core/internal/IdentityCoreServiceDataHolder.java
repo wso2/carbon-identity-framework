@@ -30,6 +30,10 @@ public class IdentityCoreServiceDataHolder {
     private RealmService realmService = null;
     private OrganizationUserResidentResolverService organizationUserResidentResolverService = null;
 
+    private boolean isTenantQualifiedUrlsEnabled;
+
+    private boolean isTenantedSessionsEnabled;
+
     private IdentityCoreServiceDataHolder() {
 
     }
@@ -79,5 +83,35 @@ public class IdentityCoreServiceDataHolder {
             OrganizationUserResidentResolverService organizationUserResidentResolverService) {
         
         this.organizationUserResidentResolverService = organizationUserResidentResolverService;
+    }
+
+    /**
+     * Get tenant qualified URLs enabled status.
+     *
+     * @return Tenant qualified URLs enabled status.
+     */
+    public boolean isTenantQualifiedUrlsEnabled() {
+
+        return isTenantQualifiedUrlsEnabled;
+    }
+
+    /**
+     * Get tenanted sessions enabled status.
+     *
+     * @return Tenanted sessions enabled status.
+     */
+    public boolean isTenantedSessionsEnabled() {
+
+        return isTenantedSessionsEnabled;
+    }
+
+    public void setTenantQualifiedUrlsEnabled(boolean tenantQualifiedUrlsEnabled) {
+
+        isTenantQualifiedUrlsEnabled = tenantQualifiedUrlsEnabled;
+    }
+
+    public void setTenantedSessionsEnabled(boolean tenantedSessionsEnabled) {
+
+        isTenantedSessionsEnabled = tenantedSessionsEnabled;
     }
 }

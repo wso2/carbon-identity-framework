@@ -84,6 +84,9 @@ public class AuthServiceConstants {
         ERROR_AUTHENTICATION_CONTEXT_NULL("60009",
                 "Invalid flow identifier.",
                 "The provided flowId is invalid."),
+        ERROR_INVALID_LOGOUT_REQUEST("60010",
+                "Invalid logout request.",
+                "Received logout request is invalid."),
         // Server Error starting from 650xx.
         /* The 65001 ERROR_UNABLE_TO_PROCEED is used as the default server error
          therefor be cautious if that is being changed.*/
@@ -98,7 +101,10 @@ public class AuthServiceConstants {
                 "Unknown authentication flow status: %s"),
         ERROR_RETRIEVING_APPLICATION("65004",
                 "Unable to retrieve application.",
-                "Server encountered an error while retrieving application for clientId %s in tenant domain %s");
+                "Server encountered an error while retrieving application for clientId %s in tenant domain %s"),
+        ERROR_UNABLE_TO_PROCEED_LOGOUT("65005",
+                "Unable to proceed with logout.",
+                "Server encountered an error while processing the logout request.");
         private final String code;
         private final String message;
         private final String description;

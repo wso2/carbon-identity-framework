@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
@@ -55,22 +57,22 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 prepStmt.execute();
 
                 prepStmt = dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE);
+                boolean isSystemAPI = APIResourceManagementUtil.isSystemAPIByAPIId(apiId);
                 for (Scope scope : scopes) {
                     prepStmt.setString(1, applicationId);
                     prepStmt.setString(2, apiId);
                     prepStmt.setString(3, scope.getName());
-                    prepStmt.setInt(4, tenantId);
+                    prepStmt.setObject(4, isSystemAPI ? null : tenantId);
                     prepStmt.addBatch();
                     prepStmt.clearParameters();
                 }
                 prepStmt.executeBatch();
-
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
-            } catch (SQLException e) {
+            } catch (SQLException | APIResourceMgtException e) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
                 throw e;
             }
-        } catch (SQLException e) {
+        } catch (SQLException | APIResourceMgtException e) {
             throw new IdentityApplicationManagementException("Error while adding authorized API.", e);
         }
     }
@@ -130,7 +132,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                             ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE);
                     prepStmt.setString(1, appId);
                     prepStmt.setString(2, apiId);
-                    prepStmt.setInt(4, tenantId);
+                    prepStmt.setObject(4, tenantId == 0 ? null : tenantId);
                     for (String scope : addedScopes) {
                         prepStmt.setString(3, scope);
                         prepStmt.addBatch();
@@ -221,17 +223,21 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             ResultSet resultSet = prepStmt.executeQuery();
             AuthorizedAPI authorizedAPI = null;
             while (resultSet.next()) {
-                Scope scope = new Scope.ScopeBuilder()
-                        .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME)).build();
                 if (authorizedAPI == null) {
                     authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
                             .apiId(apiId)
                             .appId(applicationId)
                             .policyId(resultSet.getString(ApplicationConstants.ApplicationTableColumns.POLICY_ID))
-                            .scopes(Collections.singletonList(scope)).build();
+                            .build();
+                    if (resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME) != null) {
+                        Scope scope = new Scope.ScopeBuilder()
+                                .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME))
+                                .build();
+                        authorizedAPI.setScopes(Collections.singletonList(scope));
+                    }
                 } else {
                     List<Scope> scopes = new ArrayList<>(authorizedAPI.getScopes());
-                    scope = new Scope.ScopeBuilder()
+                    Scope scope = new Scope.ScopeBuilder()
                             .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.SCOPE_NAME)).build();
                     scopes.add(scope);
                     authorizedAPI.setScopes(scopes);

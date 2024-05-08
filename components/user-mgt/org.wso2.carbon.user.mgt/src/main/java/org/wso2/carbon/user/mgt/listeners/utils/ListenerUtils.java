@@ -145,6 +145,29 @@ public class ListenerUtils {
     /**
      * Get the initiator for audit logs.
      *
+     * @return Initiator id despite masking.
+     */
+    public static String getInitiatorId() {
+
+        String initiator = null;
+        String username = MultitenantUtils.getTenantAwareUsername(ListenerUtils.getUser());
+        String tenantDomain = MultitenantUtils.getTenantDomain(ListenerUtils.getUser());
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(tenantDomain)) {
+            initiator = IdentityUtil.getInitiatorId(username, tenantDomain);
+        }
+        if (StringUtils.isBlank(initiator)) {
+            if (username.equals(CarbonConstants.REGISTRY_SYSTEM_USERNAME)) {
+                // If the initiator is wso2.system, we need not to mask the username.
+                return LoggerUtils.Initiator.System.name();
+            }
+            initiator = LoggerUtils.getMaskedContent(ListenerUtils.getUser());
+        }
+        return initiator;
+    }
+
+    /**
+     * Get the initiator for audit logs.
+     *
      * @return Initiator based on whether log masking is enabled or not.
      */
     public static String getInitiatorFromContext() {
@@ -171,8 +194,8 @@ public class ListenerUtils {
     /**
      * Returns the target value based on the masking config.
      *
-     * @param userName          Claims map.
-     * @param userStoreManager  JSON Object which will be added to audit log.
+     * @param userName         Claims map.
+     * @param userStoreManager JSON Object which will be added to audit log.
      * @return Target value. If log masking is enabled returns the masked value.
      */
     public static String getTargetForAuditLog(String userName, UserStoreManager userStoreManager) {

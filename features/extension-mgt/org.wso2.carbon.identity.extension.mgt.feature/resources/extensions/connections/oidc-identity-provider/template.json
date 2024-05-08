@@ -5,7 +5,7 @@
     "templateGroup": "enterprise-protocols",
     "displayOrder": 5,
     "id": "enterprise-oidc-idp",
-    "tags": [ "OIDC" ],
+    "tags": [ "OIDC", "APIAuth" ],
     "idp": {
         "alias": "",
         "idpIssuerName": "",

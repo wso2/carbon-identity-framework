@@ -24,6 +24,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -166,6 +167,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         SecretManagerComponentDataHolder.getInstance().setSecretManagementEnabled(true);
         SecretDAO secretDAO = new SecretDAOImpl();
         SecretManagerComponentDataHolder.getInstance().setSecretDAOS(Collections.singletonList(secretDAO));
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
     }
 
     @DataProvider(name = "addApplicationDataProvider")

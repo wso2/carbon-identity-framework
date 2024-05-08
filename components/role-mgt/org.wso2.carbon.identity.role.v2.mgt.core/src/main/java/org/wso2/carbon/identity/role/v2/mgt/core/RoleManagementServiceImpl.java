@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleDTO;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
@@ -288,6 +289,12 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public Role getRole(String roleId) throws IdentityRoleManagementException {
+
+        return roleDAO.getRole(roleId);
+    }
+
+    @Override
     public RoleBasicInfo getRoleBasicInfoById(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -347,10 +354,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     @Override
     public void deleteRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
-        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
-                .getInstance();
-        roleManagementEventPublisherProxy.publishPreDeleteRoleWithException(roleId, tenantDomain);
-        doPreValidateRoleDeletion(roleId, tenantDomain);
         List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
                 .getRoleManagementListenerList();
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
@@ -358,6 +361,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 roleManagementListener.preDeleteRole(roleId, tenantDomain);
             }
         }
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreDeleteRoleWithException(roleId, tenantDomain);
+        doPreValidateRoleDeletion(roleId, tenantDomain);
         roleDAO.deleteRole(roleId, tenantDomain);
         roleManagementEventPublisherProxy.publishPostDeleteRole(roleId, tenantDomain);
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
@@ -599,7 +606,20 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public List<String> getPermissionListOfRoles(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        return roleDAO.getPermissionListOfRoles(roleIds, tenantDomain);
+        List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
+                .getRoleManagementListenerList();
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.preGetPermissionListOfRoles(roleIds, tenantDomain);
+            }
+        }
+        List<String> permissionListOfRoles = roleDAO.getPermissionListOfRoles(roleIds, tenantDomain);
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.postGetPermissionListOfRoles(permissionListOfRoles, roleIds, tenantDomain);
+            }
+        }
+        return permissionListOfRoles;
     }
 
     @Override
@@ -878,6 +898,12 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         return roleDAO.getAssociatedApplicationIdsByRoleId(roleId, tenantDomain);
     }
 
+    @Override
+    public List<RoleDTO> getSharedHybridRoles(String roleId, int mainTenantId) throws IdentityRoleManagementException {
+
+        return roleDAO.getSharedHybridRoles(roleId, mainTenantId);
+    }
+
     /**
      * Get user from tenant domain.
      *
@@ -1016,6 +1042,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
      * @param arr2 Array of permissions.
      */
     private void removeSimilarPermissions(List<Permission> arr1, List<Permission> arr2) {
+
+        if (arr1 == null || arr2 == null) {
+            return;
+        }
 
         List<Permission> common = new ArrayList<>(arr1);
         common.retainAll(arr2);

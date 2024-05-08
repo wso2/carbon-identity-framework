@@ -211,6 +211,7 @@ public class EntitlementExtensionBuilder {
         setProperty(properties, pdpProperties, PDPConstants.PDP_REGISTRY_LEVEL_POLICY_CACHE_CLEAR);
         setProperty(properties, pdpProperties, PDPConstants.POLICY_CACHING_INTERVAL);
         setProperty(properties, pdpProperties, PDPConstants.XACML_JSON_SHORT_FORM_ENABLED);
+        setProperty(properties, pdpProperties, PDPConstants.STORE_POLICY_META_DATA);
 
         holder.setEngineProperties(pdpProperties);
     }

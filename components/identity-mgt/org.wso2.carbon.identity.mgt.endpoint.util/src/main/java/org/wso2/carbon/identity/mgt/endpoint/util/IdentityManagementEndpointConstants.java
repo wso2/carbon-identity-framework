@@ -103,6 +103,7 @@ public class IdentityManagementEndpointConstants {
     public static final String My_ACCOUNT_APPLICATION_NAME = "My Account";
     public static final String CONSOLE_APPLICATION_NAME = "Console";
     public static final String USER_TENANT_HINT_PLACE_HOLDER = "${UserTenantHint}";
+    public static final String ORGANIZATION_ID_HINT_PLACE_HOLDER = "${organizationIdHint}";
 
     public static final String RELATIVE_PATH_START_CHAR = ".";
     public static final String SERVICE_CONFIG_RELATIVE_PATH =

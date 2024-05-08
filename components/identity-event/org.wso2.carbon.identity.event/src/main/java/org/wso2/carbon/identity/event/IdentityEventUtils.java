@@ -68,7 +68,7 @@ public class IdentityEventUtils {
     }
 
     /**
-     * Returns a sub set of properties which has the given prefix key. ie properties which has numbers at the end
+     * Returns a sub set of properties which has the given prefix key.
      *
      * @param prefix     Prefix of the key
      * @param properties Set of properties which needs be filtered for the given prefix
@@ -85,9 +85,30 @@ public class IdentityEventUtils {
         Properties subProperties = new Properties();
         while (properties.getProperty(prefix + "." + i) != null) {
             // Remove from original properties to hold property schema. ie need to get the set of properties which
-            // remains after consuming all required specific properties
+            // remains after consuming all required specific properties.
             subProperties.put(prefix + "." + i, properties.remove(prefix + "." + i++));
         }
+        return subProperties;
+    }
+
+    /**
+     * Returns the module names using a given prefix key. ie properties which has numbers at the end.
+     *
+     * @param prefix     Prefix of the properties used to define module names.
+     * @param properties Set of properties which needs be filtered for the given prefix.
+     * @return Map of module names.
+     */
+    public static Properties getModuleNames(String prefix, Properties properties) {
+
+        // Stop proceeding if required arguments are not present.
+        if (StringUtils.isEmpty(prefix) || properties == null) {
+            throw new IllegalArgumentException("Prefix and Properties should not be null to get sub properties");
+        }
+
+        Properties subProperties = new Properties();
+        // Remove from original properties to hold property schema. ie need to get the set of properties which
+        // remains after consuming all required specific properties.
+        subProperties.putAll(getPropertiesWithPrefix(prefix, properties));
         return subProperties;
     }
 

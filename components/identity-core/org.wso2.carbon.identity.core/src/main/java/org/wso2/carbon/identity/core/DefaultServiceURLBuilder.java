@@ -78,12 +78,32 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
      *
      * @return {@link ServiceURL}.
      * @throws URLBuilderException If error occurred while constructing the URL.
+     * @deprecated Use {@link #build(String)} (String)} instead.
      */
     @Override
+    @Deprecated
     public ServiceURL build() throws URLBuilderException {
 
+        return buildServiceURL(fetchProxyHostName());
+    }
+
+    /**
+     * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
+     * root and the tenant domain (appended if required).
+     *
+     * @param hostname Hostname.
+     * @return {@link ServiceURL}.
+     * @throws URLBuilderException If error occurred while constructing the URL.
+     */
+    @Override
+    public ServiceURL build(String hostname) throws URLBuilderException {
+
+        return buildServiceURL(hostname);
+    }
+
+    private ServiceURL buildServiceURL(String proxyHostName) throws URLBuilderException {
+
         String protocol = fetchProtocol();
-        String proxyHostName = fetchProxyHostName();
         String internalHostName = fetchInternalHostName();
         String authenticationEndpointHostName = fetchAuthenticationEndpointHostName();
         String authenticationEndpointPath = fetchAuthenticationEndpointPath();
@@ -92,23 +112,25 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         int proxyPort = fetchPort();
         int transportPort = fetchTransportPort();
         String tenantDomain = StringUtils.isNotBlank(tenant) ? tenant : resolveTenantDomain();
+        String tenantDomainForPublicUrl = resolveTenantDomainForUrlBuilder(tenantDomain);
         String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(PROXY_CONTEXT_PATH);
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         String urlPath = getResolvedUrlPath(tenantDomain);
-        String relativePublicUrl = fetchRelativePublicUrl(proxyContextPath, urlPath, resolvedFragment);
+        String urlPathForPublicUrl = getResolvedUrlPath(tenantDomainForPublicUrl);
+        String relativePublicUrl = fetchRelativePublicUrl(proxyContextPath, urlPathForPublicUrl, resolvedFragment);
         String relativeInternalUrl = fetchRelativeInternalUrl(urlPath, resolvedFragment);
         String absoluteInternalUrl = fetchAbsoluteInternalUrl(protocol, internalHostName, transportPort,
                 relativeInternalUrl);
         String absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol, proxyHostName,
                 proxyPort);
-        if (StringUtils.isNotBlank(urlPath)) {
+        if (StringUtils.isNotBlank(urlPathForPublicUrl)) {
             if (authenticationEndpointHostName != null && authenticationEndpointPath != null &&
-                    urlPath.contains(authenticationEndpointPath)) {
+                    urlPathForPublicUrl.contains(authenticationEndpointPath)) {
                 absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
                         authenticationEndpointHostName, proxyPort);
             }
             if (recoveryEndpointHostName != null && recoveryEndpointPath != null &&
-                    urlPath.contains(recoveryEndpointPath)) {
+                    urlPathForPublicUrl.contains(recoveryEndpointPath)) {
                 absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
                         recoveryEndpointHostName, proxyPort);
             }
@@ -492,6 +514,16 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
         // ####### Tenant perspective resource URL building.
         resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+    }
+
+    private String resolveTenantDomainForUrlBuilder(String tenantDomain) {
+
+        // If the "SuperTenantAliasInPublicUrl" is not null, use it as the domain name for carbon.super in public urls.
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) &&
+                StringUtils.isNotBlank(IdentityTenantUtil.getSuperTenantAliasInPublicUrl())) {
+            return IdentityTenantUtil.getSuperTenantAliasInPublicUrl();
+        }
+        return tenantDomain;
     }
 
     protected static class ServiceURLImpl implements ServiceURL {

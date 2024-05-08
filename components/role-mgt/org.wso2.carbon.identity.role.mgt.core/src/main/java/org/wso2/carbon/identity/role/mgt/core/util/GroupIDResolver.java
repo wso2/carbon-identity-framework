@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.role.mgt.core.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.mgt.core.dao.GroupDAO;
@@ -34,8 +32,6 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID
  * GroupIDResolver Implementation of the {@link IDResolver} interface.
  */
 public class GroupIDResolver implements IDResolver {
-
-    private Log log = LogFactory.getLog(GroupIDResolver.class);
 
     @Override
     public String getNameByID(String id, String tenantDomain) throws IdentityRoleManagementException {

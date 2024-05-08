@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
+import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 public class PAPPolicyStore {
@@ -218,7 +220,11 @@ public class PAPPolicyStore {
                     String key = o.toString();
                     resourceProperties.put(key, Collections.singletonList(properties.get(key)));
                 }
-                resource.setProperties(resourceProperties);
+
+                // Store policy metadata based on the configured property.
+                if (EntitlementUtil.isPolicyMetadataStoringEnabled()) {
+                    resource.setProperties(resourceProperties);
+                }
             }
 
             resource.setProperty(PDPConstants.ACTIVE_POLICY, Boolean.toString(policy.isActive()));
@@ -312,6 +318,15 @@ public class PAPPolicyStore {
                 }
                 resource.setProperty(PDPConstants.BASIC_POLICY_EDITOR_META_DATA_AMOUNT,
                                      Integer.toString(i));
+            }
+
+            // Store policy metadata based on the configured property.
+            if (!EntitlementUtil.isPolicyMetadataStoringEnabled()) {
+                for (Map.Entry<Object, Object> entry : resource.getProperties().entrySet()) {
+                    if (entry.getKey().toString().startsWith(PDPConstants.POLICY_META_DATA)) {
+                        resource.getProperties().remove(entry.getKey());
+                    }
+                }
             }
 
             registry.put(path, resource);

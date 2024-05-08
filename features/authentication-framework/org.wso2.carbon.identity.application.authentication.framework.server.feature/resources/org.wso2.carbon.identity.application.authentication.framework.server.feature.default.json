@@ -133,6 +133,7 @@
   "authentication.authenticator.magiclink.name": "MagicLinkAuthenticator",
   "authentication.authenticator.magiclink.enable": true,
   "authentication.authenticator.magiclink.ExpiryTime": "300",
+  "authentication.authenticator.magiclink.parameters.Tags": "Passwordless",
 
   "authentication.authenticator.mobile_connect.name": "MobileConnectAuthenticator",
   "authentication.authenticator.mobile_connect.enable": true,
@@ -241,7 +242,7 @@
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
 
   "authorization_control.skip_authorization.client_authentication.name":"ClientAuthentication",
-  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*)",
+  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*),(.*)/api/identity/user/v(.*)/resend-code(.*)",
 
   "jit_provisioning.indelible_claims.claim_uris": [
     "http://wso2.org/claims/userid",
@@ -250,11 +251,13 @@
     "http://wso2.org/claims/roles",
     "http://wso2.org/claims/created",
     "http://wso2.org/claims/modified",
-    "http://wso2.org/claims/groups"
+    "http://wso2.org/claims/groups",
+    "http://wso2.org/claims/userprincipal"
   ],
   "oauth.restricted_scopes": [
     "internal",
     "console",
     "SYSTEM"
-  ]
+  ],
+  "authentication.jit_provisioning.associating_to_existing_user": false
 }

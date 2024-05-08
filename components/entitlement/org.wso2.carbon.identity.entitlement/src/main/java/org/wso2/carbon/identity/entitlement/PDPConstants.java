@@ -288,4 +288,7 @@ public class PDPConstants {
     public static final String USER_CATEGORY = "http://wso2.org/identity/user";
 
     public static final String USER_TYPE_ID = USER_CATEGORY + "/user-type";
+
+    public static final String STORE_POLICY_META_DATA = "PAP.Policy.Store.MetaData";
+
 }

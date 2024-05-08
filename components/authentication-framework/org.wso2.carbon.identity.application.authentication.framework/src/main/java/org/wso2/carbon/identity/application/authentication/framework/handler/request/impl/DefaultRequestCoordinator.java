@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2013-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -34,6 +34,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
@@ -57,7 +60,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.LoginC
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -73,6 +75,7 @@ import org.wso2.carbon.utils.DiagnosticLog;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -97,6 +100,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.IS_API_BASED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REDIRECT_URL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
@@ -107,7 +111,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
-import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.IS_APP_SHARED;
 
 /**
  * Request Coordinator
@@ -317,6 +320,23 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     return;
                 }
 
+                // Check if the Identity Framework (IDF) is initiated from authenticators like SMS OTP or Email OTP,
+                // which have two procedures: 1. Identify the User, and 2. Perform authentication.
+                // After the first procedure, the context's current authenticator is set to the corresponding
+                // authenticator.
+                // Users have the option to restart the flow from the 1st step by choosing a different option.
+                // In such cases, if it's the first step in the authentication process, we need to remove
+                // the context's current authenticator to reset the flow.
+                // Reference: https://github.com/wso2/product-is/issues/18655
+                if (FrameworkUtils.isIdfInitiatedFromAuthenticator(context)
+                        && isStepHasMultiOption(context)
+                        && context.getCurrentStep() == 1
+                        && !isIdentifierFirstRequest(request)) {
+
+                    // Reset the current authenticator in the context since it's the first step in the authentication.
+                    context.setCurrentAuthenticator(null);
+                }
+
                 /*
                 If
                  Request specify to restart the flow again from first step by passing `restart_flow`.
@@ -382,7 +402,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 String message = "Requested client: " + request.getRemoteAddr() + ", URI :" + request.getMethod() +
                         ":" + request.getRequestURI() + ", User-Agent: " + userAgent + " , Referer: " + referer;
 
-                log.error("Context does not exist. Probably due to invalidated cache. " + message);
+                log.warn("Context does not exist. Probably due to invalidated cache. " + message);
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
                         FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL,
                         FrameworkConstants.ERROR_DESCRIPTION_AUTH_CONTEXT_NULL);
@@ -639,9 +659,14 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
-            if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/") &&
-                    !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + loginTenantDomain + "/")) {
-                callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+            try {
+                if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/") &&
+                        !callerPath.startsWith(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX + loginTenantDomain + "/")
+                        && FrameworkUtils.isURLRelative(callerPath)) {
+                    callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+                }
+            } catch (URISyntaxException e) {
+                throw new FrameworkException(e.getMessage(), e);
             }
         }
         context.setCallerPath(callerPath);
@@ -829,7 +854,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
         // Get service provider chain
         SequenceConfig effectiveSequence = getSequenceConfig(context, request.getParameterMap());
-        setStepConfigAuthenticatorList(effectiveSequence);
+        String applicationName = effectiveSequence.getApplicationConfig().getApplicationName();
+        // organization SSO IDP is added for portal apps only if requested with FIDP param.
+        if (FrameworkConstants.Application.CONSOLE_APP.equals(applicationName) ||
+                FrameworkConstants.Application.MY_ACCOUNT_APP.equals(applicationName)) {
+            String[] fidpParam = request.getParameterMap().get(FrameworkConstants.RequestParams.FEDERATED_IDP);
+            if (fidpParam == null || fidpParam.length > 0 &&
+                    !ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER.equals(fidpParam[0])) {
+                removeOrganizationSsoStepsForPortalApps(effectiveSequence);
+            }
+        }
 
         if (acrRequested != null) {
             for (String acr : acrRequested) {
@@ -948,6 +982,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
 
         context.setServiceProviderName(effectiveSequence.getApplicationConfig().getApplicationName());
+        if (effectiveSequence.getApplicationConfig().getServiceProvider() != null && StringUtils.isNotBlank(
+                effectiveSequence.getApplicationConfig().getServiceProvider().getApplicationResourceId())) {
+            context.setServiceProviderResourceId(
+                    effectiveSequence.getApplicationConfig().getServiceProvider().getApplicationResourceId());
+        }
 
         // set the sequence for the current authentication/logout flow
         context.setSequenceConfig(effectiveSequence);
@@ -1004,7 +1043,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     .append("&relyingParty=").append(URLEncoder.encode(context.getRelyingParty(), "UTF-8"))
                     .append("&type=").append(context.getRequestType()).append("&")
                     .append(FrameworkConstants.REQUEST_PARAM_SP).append("=")
-                    .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&isSaaSApp=")
+                    .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&");
+            if (context.getServiceProviderResourceId() != null) {
+                outboundQueryStringBuilder.append(FrameworkConstants.REQUEST_PARAM_SP_UUID).append("=")
+                        .append(URLEncoder.encode(context.getServiceProviderResourceId(), "UTF-8")).append("&");
+            }
+            outboundQueryStringBuilder.append("&isSaaSApp=")
                     .append(context.getSequenceConfig().getApplicationConfig().isSaaSApp());
         } catch (UnsupportedEncodingException e) {
             throw new FrameworkException("Error while URL Encoding", e);
@@ -1182,32 +1226,67 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private void setStepConfigAuthenticatorList(SequenceConfig effectiveSequence) {
+    /**
+     * The organization SSO IDP is added for Console & MyAccount to provide sub-organization access. But the
+     * organization SSO IDP should be hidden from the login sequence unless the organization SSO option is requested via
+     * the fidp parameter.
+     *
+     * @param effectiveSequence The effective sequences.
+     */
+    private void removeOrganizationSsoStepsForPortalApps(SequenceConfig effectiveSequence) {
 
         Map<Integer, StepConfig> stepMap = effectiveSequence.getStepMap();
-        ApplicationConfig applicationConfig = effectiveSequence.getApplicationConfig();
-        if (MapUtils.isEmpty(stepMap) && applicationConfig == null) {
-            return;
-        }
-        ServiceProviderProperty[] spProperties = applicationConfig.getServiceProvider().getSpProperties();
-        boolean showOrganizationAuthenticator = true;
-        for (ServiceProviderProperty property : spProperties) {
-            if (IS_APP_SHARED.equals(property.getName()) && !Boolean.parseBoolean(property.getValue())) {
-                showOrganizationAuthenticator = false;
-                break;
-            }
-        }
-        if (showOrganizationAuthenticator) {
-            return;
+        if (MapUtils.isEmpty(stepMap)) {
+            stepMap = effectiveSequence.getAuthenticationGraph().getStepMap();
+            effectiveSequence.setStepMap(stepMap);
         }
         StepConfig stepConfig = stepMap.get(1);
         if (stepConfig == null) {
             return;
         }
+        // Remove the organization SSO authenticator from the step configs.
         List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
         authenticatorList = authenticatorList.stream()
                 .filter(authenticatorConfig -> !authenticatorConfig.getName()
                         .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
         stepConfig.setAuthenticatorList(authenticatorList);
+
+        // Remove the organization SSO authenticator from the graph nodes if already configured.
+        AuthenticationGraph authenticationGraph = effectiveSequence.getAuthenticationGraph();
+        if (authenticationGraph == null) {
+            return;
+        }
+        AuthGraphNode authGraphNode = authenticationGraph.getStartNode();
+        if (authGraphNode == null) {
+            return;
+        }
+        if (authGraphNode instanceof StepConfigGraphNode) {
+            StepConfigGraphNode graphNode = (StepConfigGraphNode) authGraphNode;
+            if (graphNode.getStepConfig() == null ||
+                    CollectionUtils.isEmpty(graphNode.getStepConfig().getAuthenticatorList())) {
+                return;
+            }
+            authenticatorList = graphNode.getStepConfig().getAuthenticatorList();
+            authenticatorList = authenticatorList.stream()
+                    .filter(authenticatorConfig -> !authenticatorConfig.getName()
+                            .equals(ORGANIZATION_AUTHENTICATOR)).collect(Collectors.toList());
+            graphNode.getStepConfig().setAuthenticatorList(authenticatorList);
+        }
+    }
+
+    private boolean isStepHasMultiOption(AuthenticationContext context) {
+
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+
+        if (sequenceConfig != null) {
+            Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
+
+            if (stepMap != null) {
+                StepConfig stepConfig = stepMap.get(context.getCurrentStep());
+
+                return stepConfig != null && stepConfig.isMultiOption();
+            }
+        }
+        return false;
     }
 }

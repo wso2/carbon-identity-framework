@@ -1,0 +1,59 @@
+<!--
+  Copyright (c) 2024 WSO2 LCC. (http://www.wso2.com) All Rights Reserved.
+
+   WSO2 LCC. licenses this file to you under the Apache License,
+   Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+  -->
+<component xmlns="http://products.wso2.org/carbon">
+    <!-- sample menu configuration -->
+    <menus>
+        <menu>
+            <id>role_mgt_menu</id>
+            <i18n-key>security.role-management</i18n-key>
+            <i18n-bundle>org.wso2.carbon.role.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>identity_menu</parent-menu>
+            <link>#</link>
+            <region>region1</region>
+            <order>1</order>
+            <style-class>manage</style-class>
+            <icon>../rolemgt/images/user-store.gif</icon>
+
+            <at-least>/permission/admin/manage/identity/userroleuimgt/create</at-least>
+            <at-least>/permission/admin/login</at-least>
+        </menu>
+
+        <menu>
+            <id>role_mgt_menu_list</id>
+            <i18n-key>list</i18n-key>
+            <i18n-bundle>org.wso2.carbon.role.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>role_mgt_menu</parent-menu>
+            <link>../rolemgt/role-mgt.jsp</link>
+            <region>region1</region>
+            <order>2</order>
+            <style-class>manage</style-class>
+            <icon>../rolemgt/images/list.gif</icon>
+            <require-permission>/permission/admin/login</require-permission>
+        </menu>
+    </menus>
+
+    <servlets>
+        <servlet id="RoleMgt">
+            <servlet-name>rolemgtservice</servlet-name>
+            <url-pattern>/rolemgtservice</url-pattern>
+            <display-name>RoleManagement</display-name>
+            <servlet-class>org.wso2.carbon.user.mgt.ui.servlet.UserAndRoleManagementServlet</servlet-class>
+        </servlet>
+    </servlets>
+
+</component>

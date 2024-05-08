@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.role.mgt.core.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.role.mgt.core.RoleConstants;
 
@@ -29,8 +27,6 @@ import java.util.Locale;
  * Util class for role management functionality.
  */
 public class RoleManagementUtils {
-
-    private Log log = LogFactory.getLog(RoleManagementUtils.class);
 
     /**
      * Checks whether the given role is an internal or application role.

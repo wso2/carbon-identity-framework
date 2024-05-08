@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonException;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -63,11 +66,13 @@ public class TenantMgtAdminServiceClient {
     /**
      * Default keystore type of the client
      */
-    private static String keyStoreType = "JKS";
+    @Deprecated
+    private static String keyStoreType = KeystoreUtils.getKeyStoreFileType(
+            MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     /**
      * Default truststore type of the client
      */
-    private static String trustStoreType = "JKS";
+    private static String trustStoreType = KeystoreUtils.getTrustStoreFileType();
     /**
      * Default keymanager type of the client
      */
@@ -91,7 +96,7 @@ public class TenantMgtAdminServiceClient {
     }
 
     /**
-     * Load key store with given keystore.jks
+     * Load key store with given keystore file.
      *
      * @param keyStorePath     Path to keystore
      * @param keyStorePassword Password of keystore
@@ -101,11 +106,13 @@ public class TenantMgtAdminServiceClient {
             throws AuthenticationException {
         InputStream fis = null;
         try {
+            String fileExtension = keyStorePath.substring(keyStorePath.lastIndexOf("."));
             TenantMgtAdminServiceClient.keyStorePassword = keyStorePassword.toCharArray();
-            keyStore = KeyStore.getInstance(keyStoreType);
+            keyStore = KeyStore.getInstance(KeystoreUtils.getFileTypeByExtension(fileExtension));
             fis = new FileInputStream(keyStorePath);
             keyStore.load(fis, TenantMgtAdminServiceClient.keyStorePassword);
-        } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
+        } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException |
+                 CarbonException e) {
             throw new AuthenticationException("Error while trying to load Key Store.", e);
         } finally {
             if (fis != null) {
@@ -119,7 +126,7 @@ public class TenantMgtAdminServiceClient {
     }
 
     /**
-     * Load trust store with given .jks file
+     * Load trust store with given truststore file
      *
      * @param trustStorePath     Path to truststore
      * @param trustStorePassword Password of truststore
@@ -287,10 +294,12 @@ public class TenantMgtAdminServiceClient {
         return response;
     }
 
+    @Deprecated
     public static String getKeyStoreType() {
         return keyStoreType;
     }
 
+    @Deprecated
     public static void setKeyStoreType(String keyStoreType) {
         TenantMgtAdminServiceClient.keyStoreType = keyStoreType;
     }

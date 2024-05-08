@@ -5,6 +5,6 @@
     "image": "assets/images/logos/facebook.svg",
     "category": "DEFAULT",
     "displayOrder": 3,
-    "tags": [ "Social-Login" ],
+    "tags": [ "Social-Login", "APIAuth" ],
     "type": "identity-provider"
 }

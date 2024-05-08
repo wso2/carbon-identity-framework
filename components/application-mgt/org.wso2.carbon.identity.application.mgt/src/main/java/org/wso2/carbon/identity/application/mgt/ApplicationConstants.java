@@ -83,6 +83,8 @@ public class ApplicationConstants {
     public static final String S_MICROSOFT = "microsoft";
     public static final String INFORMIX = "Informix";
     public static final String H2 = "H2";
+    public static final String ORACLE = "Oracle";
+    public static final String UNION_SEPARATOR = " UNION ALL ";
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
     public static final int DEFAULT_RESULTS_PER_PAGE = 10;
     public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
@@ -109,6 +111,13 @@ public class ApplicationConstants {
     // Console and My Account application names.
     public static final String CONSOLE_APPLICATION_NAME = "Console";
     public static final String MY_ACCOUNT_APPLICATION_NAME = "My Account";
+    public static final String CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS = "Console.AccessURL";
+    public static final String MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS = "MyAccount.AccessURL";
+    public static final String CONSOLE_APPLICATION_CLIENT_ID = "CONSOLE";
+    public static final String CONSOLE_APPLICATION_INBOUND_TYPE = "oauth2";
+    public static final String TENANT_DOMAIN_PLACEHOLDER = "{TENANT_DOMAIN}";
+    public static final String CONSOLE_ACCESS_ORIGIN = "Console.Origin";
+    public static final String MYACCOUNT_ACCESS_ORIGIN = "MyAccount.Origin";
 
     /**
      * Group the constants related to logs.
@@ -121,9 +130,9 @@ public class ApplicationConstants {
         public static final String APP_OWNER = "owner";
         public static final String DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG = "disableLegacyAuditLogsInAppMgt";
         public static final String ENABLE_V2_AUDIT_LOGS = "enableV2AuditLogs";
-        public static final String CREATE_APPLICATION = "CREATE APPLICATION";
-        public static final String UPDATE_APPLICATION = "UPDATE APPLICATION";
-        public static final String DELETE_APPLICATION = "DELETE APPLICATION";
+        public static final String CREATE_APPLICATION = "create-application";
+        public static final String UPDATE_APPLICATION = "update-application";
+        public static final String DELETE_APPLICATION = "delete-application";
     }
 
     /**

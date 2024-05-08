@@ -80,6 +80,8 @@ import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtL
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorManager;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -156,8 +158,6 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_APPLICATIONS_CONFIG_ELEMENT;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.TARGET_APPLICATION;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.USER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPData;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
@@ -184,6 +184,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
     private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
+    private String message;
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -254,8 +255,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(username, tenantDomain), USER, getAppId(serviceProvider), TARGET_APPLICATION,
-                    ApplicationConstants.LogConstants.CREATE_APPLICATION)
+                    getInitiatorId(username, tenantDomain),  LoggerUtils.Target.User.name(),
+                    getAppId(serviceProvider), LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
                     .data(buildSPData(serviceProvider));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
@@ -336,6 +338,36 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfoBySPProperty(String tenantDomain, String username,
+                                                                      String key, String value)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO;
+        // invoking the listeners
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.getApplicationBasicInfoBySPProperty(tenantDomain, username, key,
+                    value)) {
+                return new ApplicationBasicInfo[0];
+            }
+        }
+
+        try {
+            startTenantFlow(tenantDomain, username);
+            appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        } finally {
+            endTenantFlow();
+        }
+
+        if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
+            log.error("Get application basic info service is not supported.");
+            throw new IdentityApplicationManagementException("This service is not supported.");
+        }
+
+        return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfoBySPProperty(key, value);
     }
 
     /**
@@ -708,8 +740,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(username, tenantDomain), USER, getAppId(serviceProvider), TARGET_APPLICATION,
-                    ApplicationConstants.LogConstants.UPDATE_APPLICATION)
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
+                    getAppId(serviceProvider), LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
                     .data(buildSPData(serviceProvider));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
@@ -823,8 +856,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(username, tenantDomain), USER, getAppId(serviceProvider), TARGET_APPLICATION,
-                    ApplicationConstants.LogConstants.DELETE_APPLICATION);
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(), getAppId(serviceProvider),
+                    LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.DELETE_APPLICATION_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
     }
@@ -1452,6 +1486,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 ServiceProvider basicApplication = new ServiceProvider();
                 basicApplication.setApplicationName(serviceProvider.getApplicationName());
                 basicApplication.setDescription(serviceProvider.getDescription());
+
+                if (serviceProvider.isManagementApp()) {
+                    basicApplication.setManagementApp(true);
+                }
 
                 String resourceId = createApplication(basicApplication, tenantDomain, username);
                 savedSP = getApplicationByResourceId(resourceId, tenantDomain);
@@ -2529,8 +2567,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(username, tenantDomain), USER, resourceId, TARGET_APPLICATION,
-                    ApplicationConstants.LogConstants.CREATE_APPLICATION)
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(), resourceId,
+                    LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
                     .data(buildSPData(application));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
@@ -2556,7 +2595,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     application, applicationModel.getInboundProtocolConfigurationDto());
             
             return createApplication(application, tenantDomain, username);
-        } catch (Exception e) {
+        } catch (IdentityApplicationManagementException identityApplicationManagementException) {
             /*
              * The current implementation of the application creation process is not atomic. Therefore, if an Exception
              * occurs, there is a chance that the database gets updated partially. Hence, we need to rollback the
@@ -2564,8 +2603,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
              * For more information read https://github.com/wso2/product-is/issues/12579.
              */
             rollbackInbounds(addedInbounds);
-            throw ApplicationMgtUtil.handleException("Server encountered an unexpected error when " +
-                    "creating the application.", e);
+            throw identityApplicationManagementException;
         }
     }
 
@@ -2719,8 +2757,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(username, tenantDomain), USER, resourceId, TARGET_APPLICATION,
-                    ApplicationConstants.LogConstants.UPDATE_APPLICATION)
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
+                    resourceId, LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
                     .data(buildSPData(updatedApp));
             triggerAuditLogEvent(auditLogBuilder, true);
         }
@@ -2754,7 +2793,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         List<ApplicationInboundAuthConfigHandler> applicationInboundAuthConfigHandlers =
                 ApplicationManagementServiceComponentHolder.getInstance().getApplicationInboundAuthConfigHandler();
         for (ApplicationInboundAuthConfigHandler handler : applicationInboundAuthConfigHandlers) {
-            if (handler.canHandle(inboundProtocolConfigurationDTO.getProtocolName())) {
+            if (handler.canHandle(inboundProtocolConfigurationDTO.fetchProtocolName())) {
                 addedInbound = handler.handleConfigUpdate(serviceProvider,
                         inboundProtocolConfigurationDTO);
                 break;
@@ -3088,8 +3127,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
-                    getInitiatorId(username, tenantDomain), USER, resourceId, TARGET_APPLICATION,
-                    ApplicationConstants.LogConstants.DELETE_APPLICATION);
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
+                    resourceId, LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.DELETE_APPLICATION_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
     }

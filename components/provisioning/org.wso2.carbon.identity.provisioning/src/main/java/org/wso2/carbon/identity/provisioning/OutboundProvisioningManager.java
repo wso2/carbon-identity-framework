@@ -66,6 +66,12 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APPLICATION_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.ASK_PASSWORD_CLAIM;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.GROUP_CLAIM_URI;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.SELF_SIGNUP_ROLE;
+import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isApplicationBasedOutboundProvisioningEnabled;
 import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedOutboundProvisioningEnabled;
 
 /**
@@ -340,6 +346,15 @@ public class OutboundProvisioningManager {
             if (provisioningEntity.getEntityName() == null) {
                 setProvisioningEntityName(provisioningEntity);
             }
+
+            // Any provisioning request coming via Console, considered as coming from the resident SP.
+            // If the application based outbound provisioning is disabled, resident SP configuration will be used.
+            if (StringUtils.equals(CONSOLE_APPLICATION_NAME, serviceProviderIdentifier) ||
+                    !isApplicationBasedOutboundProvisioningEnabled()) {
+                serviceProviderIdentifier = LOCAL_SP;
+                inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
+            }
+
             // get details about the service provider.any in-bound provisioning request via
             // the SOAP based API (or the management console) - or SCIM API with HTTP Basic
             // Authentication is considered as coming from the local service provider.
@@ -460,8 +475,8 @@ public class OutboundProvisioningManager {
                 if (ProvisioningOperation.DELETE.equals(provisioningOp) &&
                     (provisionedIdentifier == null || provisionedIdentifier.getIdentifier() == null)) {
                     //No provisioning identifier found. User has not outbound provisioned to this idp. So no need to
-                    // send outbound delete request. Skip the flow
-                    return;
+                    // send outbound delete request. Continue the flow
+                    continue;
                 }
                 if (provisionedIdentifier == null || provisionedIdentifier.getIdentifier() == null) {
                     provisioningOp = ProvisioningOperation.POST;
@@ -469,7 +484,7 @@ public class OutboundProvisioningManager {
 
                 String[] provisionByRoleList = new String[0];
 
-                if (provisioningIdp.getProvisioningRole() != null) {
+                if (StringUtils.isNotBlank(provisioningIdp.getProvisioningRole())) {
                     provisionByRoleList = provisioningIdp.getProvisioningRole().trim().split("\\s*,[,\\s]*");
                 }
 
@@ -622,7 +637,18 @@ public class OutboundProvisioningManager {
                                              String connectorType,
                                              String idPName, Callable<Boolean> proThread, boolean isBlocking)
             throws IdentityProvisioningException {
-        if (!isBlocking) {
+
+        if (!isBlocking && needToWaitForUserProvisioning(provisioningEntity)) {
+            try {
+                boolean success = proThread.call();
+                if (!success) {
+                    log.error(generateMessageOnFailureProvisioningOperation(idPName, connectorType, provisioningEntity));
+                    //DO not roll back since non-blocking configuration was enabled.
+                }
+            } catch (Exception e) {
+                handleException(idPName, connectorType, provisioningEntity, executors, e);
+            }
+        } else if (!isBlocking) {
             executors.submit(proThread);
         } else {
             try {
@@ -656,7 +682,7 @@ public class OutboundProvisioningManager {
         List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
         if (roleListOfUser != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false), roleListOfUser);
+                    GROUP_CLAIM_URI, null, null, false), roleListOfUser);
         }
 
         String domainAwareName = userName;
@@ -704,7 +730,7 @@ public class OutboundProvisioningManager {
         }
 
         updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
-                IdentityProvisioningConstants.GROUP_CLAIM_URI);
+                GROUP_CLAIM_URI);
         updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
                 IdentityProvisioningConstants.NEW_GROUP_CLAIM_URI);
         updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
@@ -804,8 +830,7 @@ public class OutboundProvisioningManager {
      * @return
      */
     protected List<String> getGroupNames(Map<ClaimMapping, List<String>> attributeMap) {
-        return ProvisioningUtil.getClaimValues(attributeMap,
-                                               IdentityProvisioningConstants.GROUP_CLAIM_URI, null);
+        return ProvisioningUtil.getClaimValues(attributeMap, GROUP_CLAIM_URI, null);
     }
 
     /**
@@ -853,7 +878,7 @@ public class OutboundProvisioningManager {
                 return true;
             }
             List<String> newRoleListOfUser = provisioningEntity.getAttributes().get(ClaimMapping.build
-                        (IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false));
+                        (GROUP_CLAIM_URI, null, null, false));
 
             if (userHasProvisioningRoles(newRoleListOfUser, provisioningRoleList, userName)) {
                 return true;
@@ -1013,8 +1038,7 @@ public class OutboundProvisioningManager {
 
             if (ProvisioningOperation.PUT.equals(provisioningOperation)) {
                 String oldGroupName = provisionedEntityName;
-                String currentGroupName = ProvisioningUtil
-                        .getAttributeValue(provisioningEntity, IdentityProvisioningConstants.GROUP_CLAIM_URI);
+                String currentGroupName = ProvisioningUtil.getAttributeValue(provisioningEntity, GROUP_CLAIM_URI);
                 if (!oldGroupName.equals(currentGroupName)) {
                     attributeList.put(org.wso2.carbon.identity.application.common.model.ClaimMapping
                                               .build(IdentityProvisioningConstants.OLD_GROUP_NAME_CLAIM_URI,
@@ -1027,8 +1051,7 @@ public class OutboundProvisioningManager {
                 }
             } else if (ProvisioningOperation.PATCH.equals(provisioningOperation)) {
                 String oldGroupName = provisionedEntityName;
-                String currentGroupName = ProvisioningUtil
-                        .getAttributeValue(provisioningEntity, IdentityProvisioningConstants.GROUP_CLAIM_URI);
+                String currentGroupName = ProvisioningUtil.getAttributeValue(provisioningEntity, GROUP_CLAIM_URI);
                 if (currentGroupName == null) {
                     currentGroupName = oldGroupName;
                 }
@@ -1094,6 +1117,54 @@ public class OutboundProvisioningManager {
             }
         }
 
+        return false;
+    }
+
+    /**
+     * Check whether it is needed to wait for provisioning operation getting completed.
+     * Even in the non-blocking provisioning, In Self Registration flow and Ask Password flow it is necessary to wait
+     * till the user provisioning get completed. The reason for this is that the User provisioning identifier receives
+     * only after the successful user provisioning. So if we don't wait till the user provisioning get completed, if a
+     * user claim update happens in IS side, since we don't have a user provisioning identifier in the DB, we are trying
+     * to create the user again instead of updating the user. This is critical in Self registration and Ask password
+     * flows, since during the user creation process we are doing a claim update also for lock the user account.
+     *
+     * @param provisioningEntity Provisioning Entity object.
+     * @return true if it is needed to wait(block) till the provisioning operation get completed, false otherwise.
+     */
+    private boolean needToWaitForUserProvisioning(ProvisioningEntity provisioningEntity) {
+
+        if (ProvisioningEntityType.USER.equals(provisioningEntity.getEntityType()) &&
+                provisioningEntity.getOperation().equals(ProvisioningOperation.POST)) {
+
+            // Need to wait in the self registration flow.
+            Map<ClaimMapping, List<String>> attributes = provisioningEntity.getAttributes();
+            if (attributes != null) {
+                for (Entry<ClaimMapping, List<String>> entry : attributes.entrySet()) {
+                    if (entry.getKey().getLocalClaim() != null &&
+                            StringUtils.equals(GROUP_CLAIM_URI, entry.getKey().getLocalClaim().getClaimUri())) {
+                        List<String> claimList = entry.getValue();
+                        if (claimList != null && claimList.contains(SELF_SIGNUP_ROLE)) {
+                            return true;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Need to wait in the ask password(user-invitation) flow.
+            Map<String, String> inboundAttributes = provisioningEntity.getInboundAttributes();
+            if (inboundAttributes != null) {
+                for (Entry<String, String> entry : inboundAttributes.entrySet()) {
+                    if (StringUtils.equals(ASK_PASSWORD_CLAIM, entry.getKey())) {
+                        if (StringUtils.equalsIgnoreCase(entry.getValue(), "true")) {
+                            return true;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
         return false;
     }
 }
