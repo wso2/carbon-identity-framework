@@ -58,22 +58,8 @@ public class EntitlementAdminEngine {
         this.entitlementDataFinder = new EntitlementDataFinder();
         this.policyPublisher = new PolicyPublisher();
         this.papPolicyStoreManager = new PAPPolicyStoreManager();
-        Map<PolicyVersionManager, Properties> versionManagers = EntitlementServiceComponent.
-                getEntitlementConfig().getPolicyVersionModule();
-        if (versionManagers != null && versionManagers.size() > 0) {
-            this.versionManager = versionManagers.entrySet().iterator().next().getKey();
-        } else {
-            //init without init()
-            this.versionManager = new DefaultPolicyVersionManager();
-        }
-        Map<PolicyDataStore, Properties> dataStoreModules = EntitlementServiceComponent.
-                getEntitlementConfig().getPolicyDataStore();
-        if (dataStoreModules != null && dataStoreModules.size() > 0) {
-            this.policyDataStore = dataStoreModules.entrySet().iterator().next().getKey();
-        } else {
-            //init without init()
-            this.policyDataStore = new DefaultPolicyDataStore();
-        }
+        this.versionManager = new DefaultPolicyVersionManager();
+        this.policyDataStore = new DefaultPolicyDataStore();
 
         Map<PAPStatusDataHandler, Properties> statusDataHandlers = EntitlementServiceComponent.
                 getEntitlementConfig().getPapStatusDataHandlers();
