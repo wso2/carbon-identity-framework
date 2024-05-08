@@ -7,7 +7,7 @@
     "category": "DEFAULT",
     "displayOrder": 1,
     "services": [],
-    "tags": [ "Social-Login" ],
+    "tags": [ "Social-Login", "APIAuth" ],
     "idp": {
         "name": "Google",
         "description": "",

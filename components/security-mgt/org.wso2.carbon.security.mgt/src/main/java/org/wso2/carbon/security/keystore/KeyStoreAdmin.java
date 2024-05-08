@@ -44,6 +44,7 @@ import org.wso2.carbon.security.keystore.service.PaginatedKeyStoreData;
 import org.wso2.carbon.security.util.KeyStoreMgtUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -648,8 +649,11 @@ public class KeyStoreAdmin {
      */
     private String generatePubCertFileName(String ksLocation, String uuid) {
         String tenantName = ksLocation.substring(ksLocation.lastIndexOf("/"));
-        if (tenantName.endsWith(".jks")) {
-            tenantName = tenantName.replace(".jks", "");
+        for (KeystoreUtils.StoreFileType fileType: KeystoreUtils.StoreFileType.values()) {
+            String fileExtension = KeystoreUtils.StoreFileType.getExtension(fileType);
+            if (tenantName.endsWith(fileExtension)) {
+                tenantName = tenantName.replace(fileExtension, "");
+            }
         }
         return tenantName + "-" + uuid + ".cert";
     }

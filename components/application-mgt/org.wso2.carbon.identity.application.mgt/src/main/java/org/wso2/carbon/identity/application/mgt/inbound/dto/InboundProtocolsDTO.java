@@ -45,7 +45,7 @@ public class InboundProtocolsDTO {
      */
     public void addProtocolConfiguration(InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO) {
         
-        inboundProtocolConfigurationMap.put(inboundProtocolConfigurationDTO.getProtocolName(),
+        inboundProtocolConfigurationMap.put(inboundProtocolConfigurationDTO.fetchProtocolName(),
                 inboundProtocolConfigurationDTO);
     }
     
@@ -57,6 +57,6 @@ public class InboundProtocolsDTO {
      */
     public boolean removeProtocolConfiguration(InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO) {
         
-        return inboundProtocolConfigurationMap.remove(inboundProtocolConfigurationDTO.getProtocolName()) != null;
+        return inboundProtocolConfigurationMap.remove(inboundProtocolConfigurationDTO.fetchProtocolName()) != null;
     }
 }

@@ -23,6 +23,6 @@ package org.wso2.carbon.identity.application.mgt.inbound.dto;
  */
 public interface InboundProtocolConfigurationDTO {
 
-    String getProtocolName();
+    String fetchProtocolName();
 
 }

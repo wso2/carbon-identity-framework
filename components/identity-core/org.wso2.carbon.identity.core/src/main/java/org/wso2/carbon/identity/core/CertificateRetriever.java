@@ -26,7 +26,7 @@ import java.security.cert.X509Certificate;
 /**
  * Service contract for retrieving certificates for a given certificate identifier.
  * Implementations of this interface is responsible for retrieving the certificate
- * from the relevant store. e.g. JKS file, database
+ * from the relevant store. e.g. PKCS12 file, database
  */
 public interface CertificateRetriever {
 

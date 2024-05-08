@@ -3,7 +3,7 @@
         "image": "assets/images/logos/ethereum.svg",
         "header": "Sign In With Ethereum",
         "Subheading": "Login users with their Ethereum wallet.",
-        "documentation": "{ ENV }/asgardeo/docs/guides/authentication/social-login/add-google-login/",
+        "documentation": "",
         "modal": {
             "form": {
                 "fields": [

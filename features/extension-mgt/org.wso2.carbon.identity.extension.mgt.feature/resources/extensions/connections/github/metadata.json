@@ -3,7 +3,7 @@
         "image": "assets/images/logos/github.svg",
         "header": "GitHub",
         "Subheading": "Login users with existing GitHub accounts.",
-        "documentation": "{ ENV }/asgardeo/docs/guides/authentication/social-login/add-github-login/",
+        "documentation": "",
         "modal": {
             "form": {
                 "fields": [
@@ -105,7 +105,7 @@
             },
             {
                 "key": "scope",
-                "value": "user:email,read:user"
+                "value": "user:email read:user"
             },
             {
                 "key": "UsePrimaryEmail",

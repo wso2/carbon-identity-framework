@@ -51,9 +51,19 @@ public class AuthorizedAPI {
         return appId;
     }
 
+    public void setAppId(String appId) {
+
+        this.appId = appId;
+    }
+
     public String getAPIId() {
 
         return apiId;
+    }
+
+    public void setAPIId(String apiId) {
+
+        this.apiId = apiId;
     }
 
     public String getAPIIdentifier() {
@@ -79,6 +89,11 @@ public class AuthorizedAPI {
     public String getPolicyId() {
 
         return policyId;
+    }
+
+    public void setPolicyId(String policyId) {
+
+        this.policyId = policyId;
     }
 
     public List<Scope> getScopes() {

@@ -34,6 +34,7 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -188,9 +189,15 @@ public class IdentityManagementEndpointUtil {
         try {
             if (StringUtils.isNotEmpty(tenantDomain)) {
                 ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
+                String myAccountAccessUrl;
                 try {
-                    String myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
-                            My_ACCOUNT_APPLICATION_NAME);
+                    if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME == true) {
+                        myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
+                                My_ACCOUNT_APPLICATION_NAME);
+                    } else {
+                        myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(tenantDomain,
+                                My_ACCOUNT_APPLICATION_NAME);
+                    }
                     if (StringUtils.isNotEmpty(myAccountAccessUrl)) {
                         return replaceUserTenantHintPlaceholder(myAccountAccessUrl, tenantDomain);
                     }
@@ -226,6 +233,29 @@ public class IdentityManagementEndpointUtil {
         }
         return url.replaceAll(Pattern.quote(USER_TENANT_HINT_PLACE_HOLDER), tenantDomain)
                 .replaceAll(Pattern.quote("/t/" + SUPER_TENANT), "");
+    }
+
+    /**
+     * Replace the ${organizationIdHint} placeholder in the url with the organization id.
+     *
+     * @param url URL.
+     * @param orgId Organization id.
+     * @return The value replaced url.
+     */
+    public static String getOrganizationIdHintReplacedURL(String url, String orgId) {
+
+        if (StringUtils.isBlank(url)) {
+            return url;
+        }
+        if (!url.contains(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER)) {
+            return url;
+        }
+        if (StringUtils.isNotBlank(orgId)) {
+            return url.replaceAll(Pattern.quote(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER),
+                    orgId);
+        }
+        return url.replaceAll(Pattern.quote(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER),
+                StringUtils.EMPTY);
     }
 
     /**

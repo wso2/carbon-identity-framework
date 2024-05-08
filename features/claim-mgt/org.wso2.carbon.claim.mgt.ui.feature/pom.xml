@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>claim-mgt-feature</artifactId>
-        <version>5.25.637</version>
+        <version>7.1.58-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -33,11 +33,6 @@
     <description>This feature contains the bundles required for Front-end Claim Management functionality</description>
 
     <dependencies>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.claim.metadata.mgt.ui</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt.stub</artifactId>
@@ -70,7 +65,6 @@
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.claim.mgt.ui</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.claim.mgt.stub</bundleDef>
-                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.claim.metadata.mgt.ui</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.claim.metadata.mgt.stub</bundleDef>
                             </bundles>
                             <importFeatures>

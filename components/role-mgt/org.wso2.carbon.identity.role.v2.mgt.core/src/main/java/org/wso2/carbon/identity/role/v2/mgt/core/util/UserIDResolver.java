@@ -149,7 +149,6 @@ public class UserIDResolver implements IDResolver {
 
         RealmService realmService = RoleManagementServiceComponentHolder.getInstance().getRealmService();
         UserRealm tenantUserRealm = realmService.getTenantUserRealm(tenantId);
-
         return (AbstractUserStoreManager) tenantUserRealm.getUserStoreManager();
     }
 }

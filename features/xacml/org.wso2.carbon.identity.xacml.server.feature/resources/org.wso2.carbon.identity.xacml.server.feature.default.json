@@ -22,6 +22,7 @@
   "identity.entitlement.policy_point.pap.enabled": true,
   "identity.entitlement.policy_point.pap.policy_add_start_enable": true,
   "identity.entitlement.policy_point.pap.items_per_page": "10",
+  "identity.entitlement.policy_point.pap.store_metadata": true,
   "identity.entitlement.policy_point.pap.entitlement_data_finders": [
     "org.wso2.carbon.identity.entitlement.pap.CarbonEntitlementDataFinder"
   ],

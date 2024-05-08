@@ -3,7 +3,7 @@
         "image": "assets/images/logos/google.svg",
         "header": "Google",
         "Subheading": "Login users with existing Google accounts.",
-        "documentation": "{ ENV }/asgardeo/docs/guides/authentication/social-login/add-google-login/",
+        "documentation": "",
         "modal": {
             "form": {
                 "fields": [

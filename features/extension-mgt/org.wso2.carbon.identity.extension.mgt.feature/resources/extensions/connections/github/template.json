@@ -7,7 +7,7 @@
     "displayOrder": 4,
     "docLink": "/guides/authentication/social-login/add-github-login/",
     "services": [],
-    "tags": [ "Social-Login" ],
+    "tags": [ "Social-Login", "APIAuth" ],
     "idp": {
         "name": "GitHub",
         "description": "",

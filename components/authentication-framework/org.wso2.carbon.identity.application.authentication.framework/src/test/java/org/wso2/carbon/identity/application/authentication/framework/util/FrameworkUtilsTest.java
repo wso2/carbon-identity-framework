@@ -19,6 +19,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeTest;
@@ -37,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -52,12 +54,14 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.Util;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -80,6 +84,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyObject;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -90,6 +95,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 @WithCarbonHome
@@ -771,5 +777,72 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request,
                 authenticationContext, DUMMY_CACHE_KEY);
         assertEquals(sessionContext, context);
+    }
+
+    @DataProvider(name = "idpRoleClaimUriProvider")
+    public Object[][] getIdpRoleClaimUriData() {
+
+        return new Object[][]{
+                {"IDP_ROLE_CLAIM", "IDP_ROLE_CLAIM"},
+                {"", getLocalGroupsClaimURI()},
+                {null, getLocalGroupsClaimURI()}
+        };
+    }
+
+    /*
+     Get User Role Claim URI from IDP Mapped Role Claim URI
+     */
+    @Test(dataProvider = "idpRoleClaimUriProvider")
+    public void testGetIdpRoleClaimUri(String idpRoleClaimUri,
+                                       String expectedRoleClaimUri) throws Exception {
+
+        ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
+        Mockito.when(externalIdPConfig.getRoleClaimUri()).thenReturn(idpRoleClaimUri);
+        assertEquals(FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig), expectedRoleClaimUri);
+    }
+
+    @DataProvider(name = "idpClaimMappingProvider")
+    public Object[][] getIdpClaimMappingsProvider() {
+
+        Util.mockIdentityUtil();
+        return new Object[][]{
+                {       // SP mapped role claim
+                        new ClaimMapping[]{
+                                ClaimMapping.build(getLocalGroupsClaimURI(), "IDP_ROLE_CLAIM", "", true)
+                        },
+                        "IDP_ROLE_CLAIM"
+                },
+                {       // Role claim not among SP mapped claims
+                        new ClaimMapping[]{
+                                ClaimMapping.build("LOCAL_CLAIM", "IDP_CLAIM", "", true)
+                        },
+                        null
+                },
+                {       // Role claim among claim mappings but remote claim is null
+                        new ClaimMapping[]{
+                                ClaimMapping.build(getLocalGroupsClaimURI(), null, null, true)
+                        },
+                        null
+                },
+                {      // No IDP mapped claims
+                        new ClaimMapping[0], null
+                },
+                {
+                        null, null
+                }
+        };
+    }
+
+    @Test(dataProvider = "idpClaimMappingProvider")
+    public void testGetIdpRoleClaimUriFromClaimMappings(Object claimMappings,
+                                                        String expectedRoleClaimUri) throws Exception {
+
+        Util.mockIdentityUtil();
+        ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
+        Mockito.when(externalIdPConfig.getClaimMappings()).thenReturn((ClaimMapping[]) claimMappings);
+
+        String roleClaim = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
+        assertEquals(roleClaim, expectedRoleClaimUri);
+
     }
 }

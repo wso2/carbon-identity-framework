@@ -42,6 +42,7 @@
 				<AttributeID>organizationName</AttributeID>
 				<Description>Organization</Description>
 				<DisplayOrder>3</DisplayOrder>
+				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/streetaddress</ClaimURI>
@@ -67,7 +68,7 @@
 				<Required />
 				<DisplayOrder>6</DisplayOrder>
 				<SupportedByDefault />
-                <RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+                <RegEx>^([a-zA-Z0-9!#$'\+=^_\.{|}~\-&amp;])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,10})+$</RegEx>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/telephone</ClaimURI>
@@ -791,6 +792,17 @@
 				<AttributeID>managedOrg</AttributeID>
 				<Description>Claim to store the organization which the user is stored</Description>
 				<ReadOnly />
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/preferredMFAOption</ClaimURI>
+				<DisplayName>PreferredMFAOption</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+                in your user store must be configured for this. -->
+				<AttributeID>preferredMFAOption</AttributeID>
+				<SupportedByDefault/>
+				<RegEx>^\\s*(\\{[\\s\\S]*\\}|\\[[\\s\\S]*\\])\\s*$</RegEx>
+				<ReadOnly>true</ReadOnly>
+				<Description>Set the user preferred MFA option</Description>
 			</Claim>
 		</Dialect>
 
@@ -1599,6 +1611,13 @@
 				<MappedLocalClaim>http://wso2.org/claims/emailaddress</MappedLocalClaim>
 			</Claim>
 			<Claim>
+				<ClaimURI>userid</ClaimURI>
+				<DisplayName>user Id</DisplayName>
+				<AttributeID>uid</AttributeID>
+				<Description>User Id</Description>
+				<MappedLocalClaim>http://wso2.org/claims/userid</MappedLocalClaim>
+			</Claim>
+			<Claim>
 				<ClaimURI>email_verified</ClaimURI>
 				<DisplayName>Email Verified</DisplayName>
 				<AttributeID>emailVerified</AttributeID>
@@ -1705,6 +1724,15 @@
 				<Description>Country name component</Description>
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
 		    </Claim>
+			<Claim>
+				<ClaimURI>preferredMFAOption</ClaimURI>
+				<DisplayName>PreferredMFAOption</DisplayName>
+				<AttributeID>preferredMFAOption</AttributeID>
+				<Description>Preferred MFA option</Description>
+				<Required/>
+				<SupportedByDefault/>
+				<MappedLocalClaim>http://wso2.org/claims/identity/preferredMFAOption</MappedLocalClaim>
+			</Claim>
 		</Dialect>
 		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0"
 				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:[a-zA-Z0-9$\-_\.]*$">
@@ -2610,6 +2638,16 @@
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/identity/managedOrg</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:preferredMFAOption</ClaimURI>
+				<DisplayName>PreferredMFAOption</DisplayName>
+				<AttributeID>preferredMFAOption</AttributeID>
+				<Description>Preferred MFA option</Description>
+				<Required/>
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault/>
+				<MappedLocalClaim>http://wso2.org/claims/identity/preferredMFAOption</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 	</Dialects>

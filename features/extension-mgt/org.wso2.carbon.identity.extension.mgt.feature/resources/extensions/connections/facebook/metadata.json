@@ -3,7 +3,7 @@
         "image": "assets/images/logos/facebook.svg",
         "header": "Facebook",
         "Subheading": "Enable login for users with existing Facebook accounts",
-        "documentation": "{ ENV }/asgardeo/docs/guides/authentication/social-login/add-facebook-login/",
+        "documentation": "",
         "modal": {
             "form": {
                 "fields": [

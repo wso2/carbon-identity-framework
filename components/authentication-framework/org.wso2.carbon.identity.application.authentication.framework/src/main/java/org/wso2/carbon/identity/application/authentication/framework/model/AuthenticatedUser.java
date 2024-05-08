@@ -66,6 +66,8 @@ public class AuthenticatedUser extends User {
     private String accessingOrganization;
     private String userResidentOrganization;
     private Map<ClaimMapping, String> userAttributes = new HashMap<>();
+    private String sharedUserId;
+    private String userSharedOrganizationId;
 
     /**
      * Instantiates an AuthenticatedUser
@@ -332,6 +334,11 @@ public class AuthenticatedUser extends User {
         return this.userId;
     }
 
+    public boolean isUserIdExists() {
+
+        return this.userId != null;
+    }
+
     public void setUserId(String userId) {
 
         this.userId = userId;
@@ -505,6 +512,17 @@ public class AuthenticatedUser extends User {
         this.userResidentOrganization = userResidentOrganization;
     }
 
+    /**
+     * Returns whether this user's identity is managed by an organization or not. A user who has been federated login
+     * from an internal organization is considered as an organization user.
+     *
+     * @return isOrganizationUser
+     */
+    public boolean isOrganizationUser() {
+
+        return this.isFederatedUser && StringUtils.isNotBlank(this.getUserResidentOrganization());
+    }
+
     @Override
     public boolean equals(Object o) {
 
@@ -564,5 +582,25 @@ public class AuthenticatedUser extends User {
             return authenticatedSubjectIdentifier;
         }
         return super.toString();
+    }
+
+    public String getSharedUserId() {
+
+        return sharedUserId;
+    }
+
+    public void setSharedUserId(String sharedUserId) {
+
+        this.sharedUserId = sharedUserId;
+    }
+
+    public String getUserSharedOrganizationId() {
+
+        return userSharedOrganizationId;
+    }
+
+    public void setUserSharedOrganizationId(String sharedUserOrganizationId) {
+
+        this.userSharedOrganizationId = sharedUserOrganizationId;
     }
 }

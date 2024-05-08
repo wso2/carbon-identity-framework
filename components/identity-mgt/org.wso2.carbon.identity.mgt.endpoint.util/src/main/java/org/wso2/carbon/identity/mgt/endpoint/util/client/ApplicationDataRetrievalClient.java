@@ -58,10 +58,10 @@ public class ApplicationDataRetrievalClient {
     /**
      * Gets the access url configured for the given application.
      *
-     * @param tenant tenant domain of the application
-     * @param applicationName name of the application
-     * @return the access url configured for the given application
-     * @throws ApplicationDataRetrievalClientException if IO exception occurs or access URL is not configured
+     * @param tenant tenant domain of the application.
+     * @param applicationName name of the application.
+     * @return the access url configured for the given application.
+     * @throws ApplicationDataRetrievalClientException if IO exception occurs or access URL is not configured.
      */
     public String getApplicationAccessURL(String tenant, String applicationName)
             throws ApplicationDataRetrievalClientException {
@@ -83,7 +83,16 @@ public class ApplicationDataRetrievalClient {
                     }
 
                     JSONObject application = (JSONObject) applications.get(0);
-                    return application.getString(ACCESS_URL_KEY);
+                    if (application.has(ACCESS_URL_KEY)) {
+                        return application.getString(ACCESS_URL_KEY);
+                    }
+                    /*
+                    If access URL is not stored in the DB but resolved from a listener, need to get the access url by
+                    invoking application get by id.
+                     */
+                    if (application.has(APP_ID)) {
+                        return getApplicationAccessURLByAppId(tenant, application.getString(APP_ID));
+                    }
                 }
             } finally {
                 request.releaseConnection();
@@ -91,6 +100,41 @@ public class ApplicationDataRetrievalClient {
         } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting access URL of " + applicationName + " in tenant : " + tenant;
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new ApplicationDataRetrievalClientException(msg, e);
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * Gets the access url configured for the given application.
+     *
+     * @param tenant Tenant domain of the application.
+     * @param applicationId UUID of the application.
+     * @return The access url configured for the given application
+     * @throws ApplicationDataRetrievalClientException If IO exception occurs or access URL is not configured.
+     */
+    public String getApplicationAccessURLByAppId(String tenant, String applicationId)
+            throws ApplicationDataRetrievalClientException {
+
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+            HttpGet request = new HttpGet(getApplicationsEndpoint(tenant) + "/" + applicationId);
+            setAuthorizationHeader(request);
+
+            try (CloseableHttpResponse response = httpclient.execute(request)) {
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    JSONObject jsonResponse = new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    return jsonResponse.getString(ACCESS_URL_KEY);
+                }
+            } finally {
+                request.releaseConnection();
+            }
+        } catch (IOException | JSONException e) {
+            //JSONException may occur if the application don't have an access URL configured
+            String msg = "Error while getting access URL of " + applicationId + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
                 log.debug(msg, e);
             }

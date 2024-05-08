@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -66,6 +66,9 @@ public class RoleConstants {
     public static final String APPLICATION = "application";
     public static final String ORGANIZATION = "organization";
     public static final String SYSTEM = "system";
+
+    public static final String INTERNAL_SCOPE_PREFIX = "internal_";
+    public static final String INTERNAL_ORG_SCOPE_PREFIX = "internal_org_";
 
     /**
      * Grouping of constants related to database table names.
@@ -135,7 +138,8 @@ public class RoleConstants {
         ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR("55001"),
 
         UNEXPECTED_SERVER_ERROR("65001"),
-        SORTING_NOT_IMPLEMENTED("65002");
+        SORTING_NOT_IMPLEMENTED("65002"),
+        UNSUPPORTED_USER_STORE_MANAGER("65003");
 
         private final String code;
         public static final String ROLE_MANAGEMENT_ERROR_CODE_PREFIX = "RMA-";
@@ -155,6 +159,7 @@ public class RoleConstants {
     public static final String AUDIENCE = "audience";
     public static final String AUDIENCE_ID = "audienceId";
     public static final String EQ = "eq";
+    public static final String NE = "ne";
     public static final String CO = "co";
     public static final String SW = "sw";
     public static final String EW = "ew";

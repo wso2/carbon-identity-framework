@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
+import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
@@ -86,13 +87,10 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
             registry = EntitlementServiceComponent.getRegistryService().
                     getGovernanceSystemRegistry(tenantId);
 
-            if (registry.resourceExists(policyStorePath)) {
-                policyCollection = (Collection) registry.get(policyStorePath);
-            } else {
+            if (!registry.resourceExists(policyStorePath)) {
                 policyCollection = registry.newCollection();
+                registry.put(policyStorePath, policyCollection);
             }
-
-            registry.put(policyStorePath, policyCollection);
 
             policyPath = policyStorePath + policy.getPolicyId();
 
@@ -107,7 +105,10 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
                 resource.setMediaType(PDPConstants.REGISTRY_MEDIA_TYPE);
                 AttributeDTO[] attributeDTOs = policy.getAttributeDTOs();
                 if (attributeDTOs != null) {
-                    setAttributesAsProperties(attributeDTOs, resource);
+                    // Store policy metadata based on the configured property.
+                    if (EntitlementUtil.isPolicyMetadataStoringEnabled()) {
+                        setAttributesAsProperties(attributeDTOs, resource);
+                    }
                 }
             }
             if (policy.isSetActive()) {
@@ -122,6 +123,15 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
             if (resource.getContent() == null) {
                 log.info("Prevented adding null content to resource " + policyPath);
                 return;
+            }
+
+            // Store policy metadata based on the configured property.
+            if (!EntitlementUtil.isPolicyMetadataStoringEnabled()) {
+                for (Map.Entry<Object, Object> entry : resource.getProperties().entrySet()) {
+                    if (entry.getKey().toString().startsWith(PDPConstants.POLICY_META_DATA)) {
+                        resource.getProperties().remove(entry.getKey());
+                    }
+                }
             }
             registry.put(policyPath, resource);
         } catch (RegistryException e) {

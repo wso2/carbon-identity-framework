@@ -55,6 +55,10 @@ public class RoleManagementServiceComponentHolder {
 
     public RealmService getRealmService() {
 
+        if (realmService == null) {
+            throw new RuntimeException(
+                    "RoleManagementServiceComponent v2 is not initialized properly with RealmService");
+        }
         return realmService;
     }
 

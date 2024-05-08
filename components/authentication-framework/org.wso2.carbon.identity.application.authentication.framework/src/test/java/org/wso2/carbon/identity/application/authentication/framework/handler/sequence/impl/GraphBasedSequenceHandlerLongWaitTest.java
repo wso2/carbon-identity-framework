@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
@@ -31,11 +33,13 @@ import org.wso2.carbon.identity.application.authentication.framework.dao.impl.Lo
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -53,6 +57,19 @@ import static org.mockito.Mockito.mock;
 @WithRealmService(injectToSingletons =
         {IdentityCoreServiceDataHolder.class, FrameworkServiceDataHolder.class})
 public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHandlerAbstractTest {
+
+    @BeforeClass
+    public void setUpMocks() {
+
+        IdentityEventService identityEventService = mock(IdentityEventService.class);
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+    }
+
+    @AfterClass
+    public void tearDown() {
+
+        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
+    }
 
     @Test
     public void testHandleLongWait() throws Exception {

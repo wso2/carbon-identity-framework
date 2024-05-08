@@ -84,6 +84,12 @@ public class IdPManagementUIUtil {
 
     public static final String IDP_LIST_UNIQUE_ID = "idpUniqueIdMap";
 
+    public static final String CHECKBOX_ON = "on";
+
+    public static final String PROPERTY_TRUE = "true";
+
+    public static final String PROPERTY_FALSE = "false";
+
     /**
      * Validates an URI.
      *
@@ -94,7 +100,7 @@ public class IdPManagementUIUtil {
 
         if (uriString != null) {
             try {
-                URL url = new URL(uriString);
+                new URL(uriString);
             } catch (MalformedURLException e) {
                 log.debug(e.getMessage(), e);
                 return false;
@@ -1414,6 +1420,16 @@ public class IdPManagementUIUtil {
             property.setValue("true");
         } else {
             property.setValue("false");
+        }
+        properties[10] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED);
+        property.setValue(PROPERTY_FALSE);
+        if (paramMap.get(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED_PARAM_NAME) != null
+                && CHECKBOX_ON.equals(
+                        paramMap.get(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED_PARAM_NAME))) {
+            property.setValue(PROPERTY_TRUE);
         }
         properties[10] = property;
 

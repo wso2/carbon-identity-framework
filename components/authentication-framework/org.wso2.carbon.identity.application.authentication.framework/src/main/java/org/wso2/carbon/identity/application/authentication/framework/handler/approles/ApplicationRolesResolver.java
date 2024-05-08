@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.app
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 /**
- * Application roles resolver interface. Any application roles resolver should implement this interface.
+ * Application associated roles resolver interface.
  */
 public interface ApplicationRolesResolver {
 
@@ -35,13 +35,41 @@ public interface ApplicationRolesResolver {
     int getPriority();
 
     /**
-     * Get the application roles for the authenticated user.
+     * Get the application associated roles of the authenticated user.
      *
-     * @param authenticatedUser Authenticated user to get the application roles for.
+     * @param authenticatedUser Authenticated user.
      * @param applicationId     Application ID of the application.
-     * @return Array of application roles.
-     * @throws ApplicationRolesException ApplicationRolesException when an error occurs while getting application roles.
+     * @return Array of application associated roles of the authenticated user.
+     * @throws ApplicationRolesException If an error occurs while getting app associated roles.
      */
     String[] getRoles(AuthenticatedUser authenticatedUser, String applicationId) throws ApplicationRolesException;
 
+    /**
+     * Get the application associated roles of the authenticated local user.
+     *
+     * @param authenticatedUser Authenticated user.
+     * @param applicationId     Application ID of the application.
+     * @return Array of application associated roles of the authenticated local user.
+     * @throws ApplicationRolesException If an error occurs while getting app associated roles.
+     */
+    default String[] getAppAssociatedRolesOfLocalUser(AuthenticatedUser authenticatedUser, String applicationId)
+            throws ApplicationRolesException {
+
+        return getRoles(authenticatedUser, applicationId);
+    }
+
+    /**
+     * Get the application associated roles of the authenticated federated user.
+     *
+     * @param authenticatedUser Authenticated user.
+     * @param applicationId     Application ID of the application.
+     * @param idpGroupClaimURI  IDP group claim URI.
+     * @return Array of application associated roles of the authenticated federated user.
+     * @throws ApplicationRolesException If an error occurs while getting app associated roles.
+     */
+    default String[] getAppAssociatedRolesOfFederatedUser(AuthenticatedUser authenticatedUser, String applicationId,
+                                                          String idpGroupClaimURI) throws ApplicationRolesException {
+
+        return getRoles(authenticatedUser, applicationId);
+    }
 }

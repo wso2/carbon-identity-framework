@@ -33,21 +33,18 @@ public class APIResourceManagementConstants {
     public static final String RBAC_AUTHORIZATION = "RBAC";
     public static final String NO_POLICY = "NO POLICY";
     public static final String ASC = "ASC";
-    public static final String SYSTEM_API_FILTER = "type eq SYSTEM";
-    public static final String TENANT_ADMIN_API_FILTER = "type eq TENANT_ADMIN";
-    public static final String TENANT_USER_API_FILTER = "type eq TENANT_USER";
-    public static final String ORGANIZATION_ADMIN_API_FILTER = "type eq ORGANIZATION_ADMIN";
-    public static final String ORGANIZATION_USER_API_FILTER = "type eq ORGANIZATION_USER";
-    public static final String OTHER_API_FILTER = "type eq OTHER";
-    public static final String ME_API_FILTER = "name eq Me API and type eq OTHER";
-    public static final String CONSOLE_FEATURE_API_FILTER = "type eq CONSOLE_FEATURE";
+    public static final String NON_BUSINESS_API_FILTER = "type ne BUSINESS";
+    public static final String TENANT_API_FILTER = "type eq TENANT";
+    public static final String ME_API_FILTER = "name eq Me API";
     public static final String INTERNAL_SCOPE_FILTER = "name sw internal_";
     public static final String CONSOLE_SCOPE_FILTER = "name sw console:";
     public static final String BEFORE = "before";
     public static final String AFTER = "after";
     public static final String PROPERTIES = "properties";
-    public static final String TENANT_MGT_API_NAME = "Tenant Management API";
+    public static final String BUSINESS_TYPE = "BUSINESS";
+    public static final String SYSTEM_TYPE = "SYSTEM";
     public static final String EQ = "eq";
+    public static final String NE = "ne";
     public static final String CO = "co";
     public static final String SW = "sw";
     public static final String EW = "ew";
@@ -88,8 +85,9 @@ public class APIResourceManagementConstants {
         public static final String DESCRIPTION = "description";
         public static final String REQUIRES_AUTHORIZATION = "requiresAuthorization";
         public static final String TYPE = "type";
-        public static final String SYSTEM_TYPE = "SYSTEM";
-        public static final String SYSTEM_ORG_TYPE = "SYSTEM_ORG";
+        public static final String DISABLED = "disabled";
+        public static final String TENANT_ADMIN_TYPE = "TENANT_ADMIN";
+
     }
 
     /**
@@ -110,6 +108,8 @@ public class APIResourceManagementConstants {
                 "Invalid filter value used for filtering."),
         ERROR_CODE_CREATION_RESTRICTED("60006", "API resource creation is restricted.",
                 "API resource creation is restricted in organizations."),
+        ERROR_CODE_INVALID_IDENTIFIER_VALUE("60007", "Unable to add API resources.",
+                "Invalid identifier value provided."),
 
         // Server errors.
         ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES("65001", "Error while retrieving API resources.",

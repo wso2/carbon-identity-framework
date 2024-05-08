@@ -39,4 +39,10 @@
         <Class name="org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAOImpl" />
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,MS_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Bug pattern="SING_SINGLETON_GETTER_NOT_SYNCHRONIZED"/>
+    </Match>
 </FindBugsFilter>

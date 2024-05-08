@@ -300,7 +300,7 @@ public class IdentityApplicationManagementUtil {
 
         if (uriString != null) {
             try {
-                URL url = new URL(uriString);
+                new URL(uriString);
             } catch (MalformedURLException e) {
                 log.debug(e.getMessage(), e);
                 return false;

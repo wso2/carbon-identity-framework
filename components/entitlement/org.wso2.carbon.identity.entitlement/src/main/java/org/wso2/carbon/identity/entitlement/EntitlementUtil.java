@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.entitlement;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
@@ -653,5 +654,19 @@ public class EntitlementUtil {
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         return documentBuilder;
 
+    }
+
+    /**
+     * Read PAP.Policy.Store.MetaData property from entitlement.properties file.
+     *
+     * @return true if policy meta data storing is enabled, false otherwise.
+     */
+    public static boolean isPolicyMetadataStoringEnabled() {
+
+        String propertyValue = EntitlementServiceComponent.getEntitlementConfig().
+                getEngineProperties().getProperty(PDPConstants.STORE_POLICY_META_DATA);
+
+        // The default behavior is to store policy meta data.
+        return StringUtils.isEmpty(propertyValue) || Boolean.parseBoolean(propertyValue);
     }
 }

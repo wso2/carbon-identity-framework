@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleDTO;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 
 import java.util.List;
@@ -132,6 +133,15 @@ public interface RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     Role getRole(String roleId, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Retrieve the given role.
+     *
+     * @param roleId       Role ID.
+     * @return The role object.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    Role getRole(String roleId) throws IdentityRoleManagementException;
 
     /**
      * Get permission list of the given role.
@@ -451,4 +461,16 @@ public interface RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     int getRoleAudienceRefId(String audience, String audienceId) throws IdentityRoleManagementException;
+
+    /**
+     * Get shared hybrid roles for the given main role ID.
+     *
+     * @param roleId   The main role ID.
+     * @param tenantId The tenant ID.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default List<RoleDTO> getSharedHybridRoles(String roleId, int tenantId) throws IdentityRoleManagementException {
+
+        return null;
+    }
 }

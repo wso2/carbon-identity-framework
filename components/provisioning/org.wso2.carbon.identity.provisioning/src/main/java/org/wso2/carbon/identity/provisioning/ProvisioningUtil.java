@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.APPLICATION_BASED_OUTBOUND_PROVISIONING_ENABLED;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.USE_USER_TENANT_DOMAIN_FOR_OUTBOUND_PROVISIONING_IN_SAAS_APPS;
 
 public class ProvisioningUtil {
@@ -585,5 +586,22 @@ public class ProvisioningUtil {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Check whether the application based outbound provisioning is enabled.
+     *
+     * @return true if applicationBasedOutboundProvisioningEnabled config is enabled.
+     */
+    public static boolean isApplicationBasedOutboundProvisioningEnabled() {
+
+        boolean applicationBasedOutboundProvisioningEnabled = false;
+
+        if (StringUtils.isNotEmpty(
+                IdentityUtil.getProperty(APPLICATION_BASED_OUTBOUND_PROVISIONING_ENABLED))) {
+            applicationBasedOutboundProvisioningEnabled = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(APPLICATION_BASED_OUTBOUND_PROVISIONING_ENABLED));
+        }
+        return applicationBasedOutboundProvisioningEnabled;
     }
 }

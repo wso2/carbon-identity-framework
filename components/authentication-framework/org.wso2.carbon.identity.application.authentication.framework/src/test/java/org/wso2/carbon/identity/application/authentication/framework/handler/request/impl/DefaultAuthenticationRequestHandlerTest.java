@@ -18,7 +18,9 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.mockito.stubbing.Answer;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
@@ -38,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.model.FederatedToken;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -51,7 +54,11 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -74,6 +81,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.FEDERATED_TOKENS;
 
 @PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class, LoggerUtils.class})
 @WithCarbonHome
@@ -365,6 +373,109 @@ public class DefaultAuthenticationRequestHandlerTest {
         authenticationRequestHandler.handle(request, response, context);
         assertTrue(Boolean.parseBoolean(context.getProperty(
                 FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
+    }
+
+    /**
+     * Data provider for the test to check whether the federated tokens are returned in the AuthenticationResult
+     * when the AuthenticationContext has federated tokens.
+     *
+     * @return Data provider for the test to check whether the federated tokens are returned
+     * in the AuthenticationResult.
+     */
+    @DataProvider(name = "contextProviderForFederatedToken")
+    public Object[][] getContextProviderForFederatedToken() {
+
+        List<FederatedToken> federatedTokens = new ArrayList<>();
+        federatedTokens.add(new FederatedToken("Google Maps", "yedkjfhkshdfhd"));
+
+        return new Object[][]{
+                {"AuthenticationResult returned federated tokens when the AuthenticationContext does not have", null},
+                {"AuthenticationResult did not return federated tokens when the AuthenticationContext has",
+                        federatedTokens}
+        };
+    }
+
+    /**
+     * Test to check whether the federated tokens are returned in the AuthenticationResult when the
+     * AuthenticationContext has federated tokens.
+     *
+     * @param errorMessage    Error message to be displayed if the test fails.
+     * @param federatedTokens Federated tokens to be set in the AuthenticationContext.
+     * @throws Exception Error when testing the handlePostAuthentication method.
+     */
+    @Test(dataProvider = "contextProviderForFederatedToken")
+    public void testHandlePostAuthentication(String errorMessage, List<FederatedToken> federatedTokens)
+            throws Exception {
+
+        String authenticator = "Google Maps";
+
+        AuthenticationContext context = prepareContextForPostAuthnTests();
+        context.setCallerSessionKey("1234");
+        context.setRequestType(authenticator);
+        if (federatedTokens != null) {
+            context.setProperty(FEDERATED_TOKENS, federatedTokens);
+        }
+
+        List<String> cacheDisabledAuthenticators = new ArrayList<>();
+        cacheDisabledAuthenticators.add(authenticator);
+
+        mockStatic(LoggerUtils.class);
+        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(false);
+
+        HttpServletRequest request = spy(HttpServletRequest.class);
+        mockHttpRequestAttributes(request);
+
+        when(FrameworkUtils.getCacheDisabledAuthenticators()).thenReturn(cacheDisabledAuthenticators);
+        CommonAuthResponseWrapper mockedResponse = new CommonAuthResponseWrapper(spy(HttpServletResponse.class));
+
+        authenticationRequestHandler.concludeFlow(request, mockedResponse, context);
+
+        assertNotNull(request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT),
+                "No authentication result found in the request");
+        assertTrue(
+                request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT) instanceof AuthenticationResult);
+
+        AuthenticationResult authenticationResult =
+                (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
+
+        if (federatedTokens == null) {
+            assertNull(authenticationResult.getProperty(FEDERATED_TOKENS), errorMessage);
+        } else {
+            assertNotNull(authenticationResult.getProperty(FEDERATED_TOKENS), errorMessage);
+            assertTrue(authenticationResult.getProperty(FEDERATED_TOKENS) instanceof List, errorMessage);
+            List<FederatedToken> federatedTokensAtAuthResult =
+                    (List<FederatedToken>) authenticationResult.getProperty(FEDERATED_TOKENS);
+
+            assertEquals(federatedTokensAtAuthResult.size(), 1, "Federated tokens count is not equal");
+            assertEquals(federatedTokensAtAuthResult.get(0).getIdp(), federatedTokens.get(0).getIdp(),
+                    "Federated tokens idp is not equal");
+            assertEquals(federatedTokensAtAuthResult.get(0).getAccessToken(), federatedTokens.get(0).getAccessToken(),
+                    "Federated access token is not equal");
+        }
+    }
+
+    /**
+     * Mocks the request attributes so that the objects can be evaluated.
+     *
+     * @param request HttpServletRequest object to be tested.
+     */
+    private void mockHttpRequestAttributes(HttpServletRequest request) {
+
+        // Collection to store attributes keys/values
+        final Map<String, Object> attributes = new ConcurrentHashMap<>();
+        // Mock setAttribute
+        Mockito.doAnswer((Answer<Void>) invocation -> {
+            String key = invocation.getArgument(0);
+            Object value = invocation.getArgument(1);
+            attributes.put(key, value);
+            return null;
+        }).when(request).setAttribute(Mockito.anyString(), Mockito.any());
+
+        // Mock getAttribute
+        Mockito.doAnswer((Answer<Object>) invocation -> {
+            String key = invocation.getArgument(0);
+            return attributes.get(key);
+        }).when(request).getAttribute(Mockito.anyString());
     }
 
     private AuthenticationContext prepareContextForPostAuthnTests() {

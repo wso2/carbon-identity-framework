@@ -18,14 +18,18 @@
 
 package org.wso2.carbon.identity.central.log.mgt.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
 import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -40,11 +44,14 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.LOGGABLE_USER_CLAIMS;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
 
@@ -57,10 +64,25 @@ public class LoggerUtils {
     private static final String CORRELATION_ID_MDC = "Correlation-ID";
     private static final String FLOW_ID_MDC = "Flow-ID";
     private static final String TENANT_DOMAIN = "tenantDomain";
+    public static final String ENABLE_V2_AUDIT_LOGS = "enableV2AuditLogs";
 
     /**
-    * Config value related to masking sensitive information from logs.
-    */
+     * Defines the Initiators of the logs.
+     */
+    public enum Initiator {
+        User, System
+    }
+
+    /**
+     * Defines the Targets of the logs.
+     */
+    public enum Target {
+        User, Role, Group, Application
+    }
+
+    /**
+     * Config value related to masking sensitive information from logs.
+     */
     public static boolean isLogMaskingEnable;
 
     /**
@@ -88,9 +110,17 @@ public class LoggerUtils {
     }
 
     /**
+     * This method is used to trigger audit log event whence the new audit log publishing is enabled by default.
+     *
+     * @param auditLogBuilder Audit log builder
+     */
+    public static void triggerAuditLogEvent(AuditLog.AuditLogBuilder auditLogBuilder) {
+
+        triggerAuditLogEvent(auditLogBuilder, true);
+    }
+
+    /**
      * Trigger Diagnostic Log Event.
-     * @Deprecated This method is deprecated. Use the method with {@link #triggerDiagnosticLogEvent(
-     * DiagnosticLog.DiagnosticLogBuilder)}.
      *
      * @param componentId    Component ID.
      * @param input          Input parameters.
@@ -98,6 +128,8 @@ public class LoggerUtils {
      * @param resultMessage  Result message.
      * @param actionId       Action ID.
      * @param configurations System/application level configurations.
+     * @Deprecated This method is deprecated. Use the method with {@link #triggerDiagnosticLogEvent(
+     *DiagnosticLog.DiagnosticLogBuilder)}.
      */
     @Deprecated
     public static void triggerDiagnosticLogEvent(String componentId, Map<String, Object> input, String resultStatus,
@@ -229,9 +261,10 @@ public class LoggerUtils {
     public static Map<String, String> getMaskedClaimsMap(Map<String, String> claims) {
 
         Map<String, String> maskedClaims = new HashMap<>();
+        List<String> loggableClaims = getLoggableClaimURIs();
         if (MapUtils.isNotEmpty(claims)) {
             for (Map.Entry<String, String> entry : claims.entrySet()) {
-                if (LogConstants.USER_ID_CLAIM_URI.equals(entry.getKey())) {
+                if (LogConstants.USER_ID_CLAIM_URI.equals(entry.getKey()) || loggableClaims.contains(entry.getKey())) {
                     maskedClaims.put(entry.getKey(), entry.getValue());
                 } else {
                     maskedClaims.put(entry.getKey(), getMaskedContent(entry.getValue()));
@@ -250,7 +283,8 @@ public class LoggerUtils {
      */
     public static String getMaskedClaimValue(String claimURI, String claimValue) {
 
-        if (LogConstants.USER_ID_CLAIM_URI.equals(claimURI)) {
+        List<String> loggableClaims = getLoggableClaimURIs();
+        if (LogConstants.USER_ID_CLAIM_URI.equals(claimURI) || loggableClaims.contains(claimURI)) {
             return claimValue;
         }
         return getMaskedContent(claimValue);
@@ -276,7 +310,7 @@ public class LoggerUtils {
      *
      * @param errorMessage Error message.
      * @param userName     Username.
-     * @return  Masked error message.
+     * @return Masked error message.
      */
     public static String getSanitizedErrorMessage(String errorMessage, String userName) {
 
@@ -284,5 +318,67 @@ public class LoggerUtils {
             return errorMessage.replace(userName, LoggerUtils.getMaskedContent(userName));
         }
         return errorMessage;
+    }
+
+    /**
+     * Check if the V2 audit log is enabled.
+     *
+     * @return if the V2 Audit logs is enabled.
+     */
+    public static boolean isEnableV2AuditLogs() {
+
+        return Boolean.parseBoolean(System.getProperty(ENABLE_V2_AUDIT_LOGS));
+    }
+
+    /**
+     * Get the data in a Map from the JSONObject.
+     *
+     * @param jsonObject jsonObject that has the data to be returned.
+     * @return Map of String and Object.
+     */
+    public static Map<String, Object> jsonObjectToMap(JSONObject jsonObject) {
+
+        Gson gson = new Gson();
+        return gson.fromJson(jsonObject.toString(), new TypeToken<Map<String, Object>>() {
+        }.getType());
+    }
+
+    /**
+     * Get the Initiator type.
+     *
+     * @param initiator Initiator for the logs.
+     * @return Type of the initiator.
+     */
+    public static String getInitiatorType(String initiator) {
+
+        if (initiator.equals(LoggerUtils.Initiator.System.name())) {
+            return LoggerUtils.Initiator.System.name();
+        }
+        return LoggerUtils.Initiator.User.toString();
+    }
+
+    /**
+     * Get the loggable claim uris.
+     *
+     * @return list of loggable claim uris.
+     */
+    public static List<String> getLoggableClaimURIs() {
+
+        Object configValue = IdentityConfigParser.getInstance().getConfiguration().get(LOGGABLE_USER_CLAIMS);
+        List<String> claimsFilters = new ArrayList<>();
+        if (configValue instanceof ArrayList) {
+            claimsFilters = (ArrayList) configValue;
+        } else if (configValue instanceof String) {
+            claimsFilters.add((String) configValue);
+        }
+        if (!claimsFilters.isEmpty()) {
+            // Strip leading and trailing whitespace from each string in the list.
+            List<String> strippedClaims = new ArrayList<>();
+            for (String claim : claimsFilters) {
+                strippedClaims.add(StringUtils.stripToNull(claim));
+            }
+            return strippedClaims;
+        }
+        return new ArrayList<>();
     }
 }

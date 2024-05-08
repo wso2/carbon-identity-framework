@@ -47,6 +47,7 @@ public class IdentityCoreConstants {
     public static final String UTC = "UTC";
     public static final int EVENT_LISTENER_ORDER_ID = -1;
     public static final String ENABLE_LEGACY_SAAS_AUTHENTICATION = "EnableLegacySaaSAuthentication";
+    public static final String SUPER_TENANT_ALIAS_IN_PUBLIC_URL = "SuperTenantAliasInPublicUrl";
 
     public static final String CASE_INSENSITIVE_USERNAME = "CaseInsensitiveUsername";
     public static final String USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS = "UseCaseSensitiveUsernameForCacheKeys";
@@ -102,6 +103,9 @@ public class IdentityCoreConstants {
     public static final String DB2 = "DB2";
     public static final String MICROSOFT = "Microsoft";
     public static final String S_MICROSOFT = "microsoft";
+
+    // SCIM2 constants.
+    public static final String SCIM2_USER_MAX_ITEMS_PER_PAGE_ENABLED = "SCIM2.UserEndpointMaxItemsPerPageEnabled";
 
     public static class Filter {
 

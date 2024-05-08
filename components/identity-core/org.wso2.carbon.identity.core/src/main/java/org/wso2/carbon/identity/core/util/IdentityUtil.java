@@ -103,6 +103,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
@@ -150,6 +151,7 @@ public class IdentityUtil {
     private static final String APPLICATION_DOMAIN = "Application";
     private static final String WORKFLOW_DOMAIN = "Workflow";
     private static Boolean groupsVsRolesSeparationImprovementsEnabled;
+    private static String JAVAX_TRANSFORMER_PROP_VAL = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
 
     // System Property for trust managers.
     public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
@@ -647,7 +649,17 @@ public class IdentityUtil {
      */
     public static TransformerFactory getSecuredTransformerFactory() {
 
-        TransformerFactory trfactory = TransformerFactory.newInstance();
+        TransformerFactory trfactory;
+        try {
+            // Prevent XXE Attack by ensure using the correct factory class to create TrasformerFactory instance.
+            // This will instruct Java to use to version which supports using ACCESS_EXTERNAL_DTD argument.
+            trfactory = TransformerFactory.newInstance(JAVAX_TRANSFORMER_PROP_VAL, null);
+        } catch (TransformerFactoryConfigurationError e) {
+            log.error("Failed to load default TransformerFactory", e);
+            // This part uses the default implementation of xalan.
+            trfactory = TransformerFactory.newInstance();
+        }
+
         try {
             trfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         } catch (TransformerConfigurationException e) {
@@ -1780,9 +1792,27 @@ public class IdentityUtil {
             try {
                 return IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
             } catch (IdentityException e) {
-                log.error("Error occurred while resolving Id for the user: " + username);
+                // Below log is changed to a debug log hence the exception is not thrown
+                // from the upper layer and handled gracefully.
+                log.debug("Error occurred while resolving Id for the user: " + username);
             }
         }
         return userId;
+    }
+
+    /**
+     * Read the SCIM User Endpoint Maximum Items Per Page is enabled config and returns it.
+     *
+     * @return If SCIM User Endpoint Maximum Items Per Page is enabled.
+     */
+    public static boolean isSCIM2UserMaxItemsPerPageEnabled() {
+
+        String scim2UserMaxItemsPerPageEnabledProperty =
+                IdentityUtil.getProperty(IdentityCoreConstants.SCIM2_USER_MAX_ITEMS_PER_PAGE_ENABLED);
+
+        if (StringUtils.isBlank(scim2UserMaxItemsPerPageEnabledProperty)) {
+            return true;
+        }
+        return Boolean.parseBoolean(scim2UserMaxItemsPerPageEnabledProperty);
     }
 }

@@ -52,13 +52,14 @@ import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMg
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.internal.impl.DiscoverableApplicationManagerImpl;
-import org.wso2.carbon.identity.application.mgt.listener.AdminRolePermissionsUpdateListener;
+import org.wso2.carbon.identity.application.mgt.listener.AdminRoleListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationClaimMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.listener.AuthorizedAPIManagementListener;
+import org.wso2.carbon.identity.application.mgt.listener.ConsoleAuthorizedAPIListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
@@ -152,12 +153,11 @@ public class ApplicationManagementServiceComponent {
                         .setApplicationPermissionProvider(new RegistryBasedApplicationPermissionProvider());
             }
 
-            // Register the Console Authorized API Management Listener.
-            bundleContext.registerService(ApplicationMgtListener.class,
-                    new AuthorizedAPIManagementListener(), null);
-            // Register the Admin Role Permission Update Listener.
-            bundleContext.registerService(ApplicationMgtListener.class,
-                    new AdminRolePermissionsUpdateListener(), null);
+            // Register the Admin Role Listener.
+            bundleContext.registerService(RoleManagementListener.class, new AdminRoleListener(), null);
+            // Register the Authorized API Management Listener.
+            bundleContext.registerService(AuthorizedAPIManagementListener.class, new ConsoleAuthorizedAPIListener(),
+                    null);
 
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");

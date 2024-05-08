@@ -96,6 +96,7 @@ public class LoginContextManagementUtil {
             // If the context is valid and at the first step.
             if (isStepHasMultiOption(context) && !FrameworkUtils.isIdfInitiatedFromAuthenticator(context)) {
                 context.setCurrentAuthenticator(null);
+                context.setRetrying(false);
             }
             result.addProperty("status", "success");
             response.getWriter().write(result.toString());

@@ -27,11 +27,15 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtServerException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.Scope;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for API Resource Management.
@@ -79,20 +83,74 @@ public class APIResourceManagementUtil {
 
     /**
      * Fetch the configuration from the XML file and register the system API in the given tenant.
-     *
-     * @param tenantDomain tenant domain.
      */
-    public static void addSystemAPIs(String tenantDomain) {
+    public static void addSystemAPIs() {
 
-        LOG.debug("Registering System APIs in tenant domain: " + tenantDomain);
-        Map<String, APIResource> configs = APIResourceManagementConfigBuilder.getInstance()
-                .getAPIResourceMgtConfigurations();
-        for (APIResource apiResource : configs.values()) {
-            // Skip registering tenant management API in non-super tenant domains.
-            if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)
-                    && APIResourceManagementConstants.TENANT_MGT_API_NAME.equalsIgnoreCase(apiResource.getName())) {
-                continue;
+        try {
+            String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+            Map<String, APIResource> configs = APIResourceManagementConfigBuilder.getInstance()
+                    .getAPIResourceMgtConfigurations();
+            Map<String, APIResource> duplicateConfigs = APIResourceManagementConfigBuilder.getInstance()
+                    .getDuplicateAPIResourceConfigs();
+            if (!isSystemAPIExist(tenantDomain)) {
+                LOG.debug("Registering system API resources in the server.");
+                registerAPIResources(new ArrayList<>(configs.values()), tenantDomain);
+            } else {
+                LOG.debug("System APIs are already registered in the server. Applying the latest configurations.");
+                // Remove the existing system APIs from the configs.
+                // Existing system APIs will be evaluated using the identifier.
+                HashMap<String, APIResource> tempConfigs = new HashMap<>(configs);
+                List<APIResource> systemAPIs = getSystemAPIs(tenantDomain);
+                for (APIResource systemAPI : systemAPIs) {
+                    tempConfigs.remove(systemAPI.getIdentifier());
+                }
+                // Register the new system APIs.
+                registerAPIResources(new ArrayList<>(tempConfigs.values()), tenantDomain);
+                // Handle duplicate system APIs.
+                for (APIResource oldAPIResource : duplicateConfigs.values()) {
+                    // Get the existing API resource from the DB.
+                    APIResource apiResourceFromDB = APIResourceManagerImpl.getInstance().getAPIResourceByIdentifier(
+                            oldAPIResource.getIdentifier(), tenantDomain);
+                    // Get the updated API resource from the configs.
+                    APIResource updatedAPIResource = configs.get(oldAPIResource.getIdentifier());
+                    // Get the scopes which are not in the existing API resource.
+                    List<Scope> addedScopes = updatedAPIResource.getScopes().stream()
+                            .filter(scope1 -> apiResourceFromDB.getScopes().stream()
+                                    .noneMatch(scope2 -> scope2.getName().equals(scope1.getName())))
+                            .collect(Collectors.toList());
+                    if (addedScopes.isEmpty()) {
+                        continue;
+                    }
+
+                    APIResource updatedAPIResourceFromDB = new APIResource.APIResourceBuilder()
+                            .id(apiResourceFromDB.getId())
+                            .name(apiResourceFromDB.getName())
+                            .description(apiResourceFromDB.getDescription())
+                            .identifier(apiResourceFromDB.getIdentifier())
+                            // Set the type as the updated API resource type.
+                            .type(updatedAPIResource.getType())
+                            .tenantId(apiResourceFromDB.getTenantId())
+                            .requiresAuthorization(apiResourceFromDB.isAuthorizationRequired())
+                            .scopes(updatedAPIResource.getScopes())
+                            .subscribedApplications(apiResourceFromDB.getSubscribedApplications())
+                            .properties(apiResourceFromDB.getProperties())
+                            .build();
+
+                    // If there are scopes which are not in the existing API resource, update the API resource.
+                    APIResourceManagerImpl.getInstance().updateAPIResource(updatedAPIResourceFromDB, addedScopes,
+                            new ArrayList<>(), tenantDomain);
+                }
             }
+
+            LOG.debug("System APIs successfully registered in tenant domain: " + tenantDomain);
+        } catch (APIResourceMgtException e) {
+            LOG.error("Error while registering system API resources in the server.", e);
+        }
+    }
+
+    private static void registerAPIResources(List<APIResource> apiResources, String tenantDomain) {
+
+        for (APIResource apiResource : apiResources) {
             if (apiResource != null) {
                 try {
                     APIResourceManagerImpl.getInstance().addAPIResource(apiResource, tenantDomain);
@@ -101,7 +159,6 @@ public class APIResourceManagementUtil {
                 }
             }
         }
-        LOG.debug("System APIs successfully registered in tenant domain: " + tenantDomain);
     }
 
     /**
@@ -113,57 +170,13 @@ public class APIResourceManagementUtil {
      */
     public static List<APIResource> getSystemAPIs(String tenantDomain) throws APIResourceMgtException {
 
-        List<APIResource> systemAPIs = new ArrayList<>();
         // Get APIs with SYSTEM type.
         int systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.SYSTEM_API_FILTER, APIResourceManagementConstants.ASC,
+                APIResourceManagementConstants.NON_BUSINESS_API_FILTER, APIResourceManagementConstants.ASC,
                 tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.SYSTEM_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with TENANT type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.TENANT_ADMIN_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.TENANT_ADMIN_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with TENANT type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.TENANT_USER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.TENANT_USER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with ORGANIZATION type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.ORGANIZATION_ADMIN_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.ORGANIZATION_ADMIN_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with ORGANIZATION type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.ORGANIZATION_USER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.ORGANIZATION_USER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with ME type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.OTHER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.OTHER_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        // Get APIs with CONSOLE_FEATURE type.
-        systemAPICount = APIResourceManagerImpl.getInstance().getAPIResources(null, null, 1,
-                APIResourceManagementConstants.CONSOLE_FEATURE_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getTotalCount();
-        systemAPIs.addAll(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.CONSOLE_FEATURE_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
-        return systemAPIs;
+        return new ArrayList<>(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
+                        APIResourceManagementConstants.NON_BUSINESS_API_FILTER, APIResourceManagementConstants.ASC,
+                        tenantDomain).getAPIResources());
     }
 
     /**
@@ -176,7 +189,28 @@ public class APIResourceManagementUtil {
     public static boolean isSystemAPIExist(String tenantDomain) throws APIResourceMgtException {
 
         return !APIResourceManagerImpl.getInstance()
-                .getAPIResources(null, null, 1, APIResourceManagementConstants.TENANT_ADMIN_API_FILTER,
+                .getAPIResources(null, null, 1, APIResourceManagementConstants.TENANT_API_FILTER,
                         APIResourceManagementConstants.ASC, tenantDomain).getAPIResources().isEmpty();
+    }
+
+    public static boolean isSystemAPI(String type) {
+
+        return !APIResourceManagementConstants.BUSINESS_TYPE.equalsIgnoreCase(type)
+                && !APIResourceManagementConstants.SYSTEM_TYPE.equalsIgnoreCase(type);
+    }
+
+    public static boolean isSystemAPIByAPIId(String apiId) throws APIResourceMgtException {
+
+        APIResource apiResource = APIResourceManagerImpl.getInstance().getAPIResourceById(apiId,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        return apiResource != null && isSystemAPI(apiResource.getType());
+    }
+
+    public Object getTenantId(String tenantDomain) {
+
+        if (tenantDomain == null) {
+            return null;
+        }
+        return IdentityTenantUtil.getTenantId(tenantDomain);
     }
 }

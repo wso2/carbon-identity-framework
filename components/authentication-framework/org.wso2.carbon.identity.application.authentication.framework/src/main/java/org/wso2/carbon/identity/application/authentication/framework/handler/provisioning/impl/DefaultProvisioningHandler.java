@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.pr
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -55,6 +55,7 @@ import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -64,9 +65,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ALLOW_ASSOCIATING_TO_EXISTING_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
@@ -84,6 +87,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     private static final String USER_WORKFLOW_ENGAGED_ERROR_CODE = "WFM-10001";
     private static volatile DefaultProvisioningHandler instance;
     private static final String LOCAL_DEFAULT_CLAIM_DIALECT = "http://wso2.org/claims";
+    private static Boolean allowAssociationToExistingUser;
 
     public static DefaultProvisioningHandler getInstance() {
         if (instance == null) {
@@ -96,6 +100,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         return instance;
     }
 
+    @Deprecated
     @Override
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
             String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
@@ -107,6 +112,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     }
 
+    @Deprecated
     @Override
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
             String provisioningUserStoreId, String tenantDomain, List<String> idpToLocalRoleMapping)
@@ -195,7 +201,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             handleUserProvisioning(username, userStoreManager, userStoreDomain, attributes, tenantDomain);
             handleV2Roles(username, userStoreManager, realm, roleIdList, tenantDomain);
-            PermissionUpdateUtil.updatePermissionTree(tenantId);
 
         } catch (org.wso2.carbon.user.api.UserStoreException | FederatedAssociationManagerException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
@@ -218,6 +223,20 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         Map<String, String> userClaims = prepareClaimMappings(attributes);
 
         if (userStoreManager.isExistingUser(username)) {
+            String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
+                    .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
+
+            if (StringUtils.isBlank(associatedUserName)) {
+                // If a local user is using the same username, association is not allowed unless enabled through config.
+                if (isAssociationToExistingUserAllowed()) {
+                    // Associate User
+                    associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+                } else {
+                    throw new FrameworkException(
+                            FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage(),
+                            FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode(), null);
+                }
+            }
                 /*
                 Set PROVISIONED_USER thread local property to true, to identify already provisioned
                 user claim update scenario.
@@ -276,12 +295,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         }
                     }
                 }
-            }
-            String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
-                    .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
-            if (StringUtils.isEmpty(associatedUserName)) {
-                // Associate User
-                associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
             }
         } else {
             String password = generatePassword();
@@ -706,7 +719,29 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
      * @return
      */
     protected String generatePassword() {
-        return RandomStringUtils.randomNumeric(12);
+
+        // Pick from some letters that won't be easily mistaken for each other.
+        // So, for example, omit o O and 0, 1 l and L.
+        // This will generate a random password which satisfy the following regex.
+        // ^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*])).{12}$}
+        Random secureRandom = new SecureRandom();
+        String digits = "23456789";
+        String lowercaseLetters = "abcdefghjkmnpqrstuvwxyz";
+        String uppercaseLetters = "ABCDEFGHJKMNPQRSTUVWXYZ";
+        String specialCharacters = "!@#$%&*";
+        String characters = digits + lowercaseLetters + uppercaseLetters + specialCharacters;
+        int passwordLength = 12;
+        int mandatoryCharactersCount = 4;
+
+        StringBuilder pw = new StringBuilder();
+        for (int i = 0; i < passwordLength - mandatoryCharactersCount; i++) {
+            pw.append(characters.charAt(secureRandom.nextInt(characters.length())));
+        }
+        pw.append(digits.charAt(secureRandom.nextInt(digits.length())));
+        pw.append(lowercaseLetters.charAt(secureRandom.nextInt(lowercaseLetters.length())));
+        pw.append(uppercaseLetters.charAt(secureRandom.nextInt(uppercaseLetters.length())));
+        pw.append(specialCharacters.charAt(secureRandom.nextInt(specialCharacters.length())));
+        return pw.toString();
     }
 
     /**
@@ -853,5 +888,19 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
         }
         return indelibleClaims;
+    }
+
+    /**
+     * Check whether the configuration that allows to associate the existing users is enabled or not.
+     *
+     * @return whether the association of the existing users with the federated users is allowed.
+     */
+    private Boolean isAssociationToExistingUserAllowed() {
+
+        if (allowAssociationToExistingUser == null) {
+            allowAssociationToExistingUser = Boolean.parseBoolean(
+                    IdentityUtil.getProperty(ALLOW_ASSOCIATING_TO_EXISTING_USER));
+        }
+        return allowAssociationToExistingUser;
     }
 }
