@@ -493,10 +493,6 @@ public class UserRealmProxy {
                 filteredDomain = filter.split(CarbonConstants.DOMAIN_SEPARATOR)[0];
             }
 
-            if (filter.startsWith(UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR)) {
-                filter = filter.substring(filter.indexOf(CarbonConstants.DOMAIN_SEPARATOR) + 1);
-            }
-
             String[] hybridRoles = ((AbstractUserStoreManager) userStoreMan).getHybridRoles(filter);
 
             // Filter the internal system roles created to maintain the backward compatibility.
