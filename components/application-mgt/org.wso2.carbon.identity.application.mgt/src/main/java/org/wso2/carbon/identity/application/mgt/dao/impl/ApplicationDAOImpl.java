@@ -2224,10 +2224,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
             // Set role associations.
-            if (!CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
-                serviceProvider.setAssociatedRolesConfig(
-                        getAssociatedRoles(serviceProvider.getApplicationResourceId(), connection, tenantID));
-            }
+            serviceProvider.setAssociatedRolesConfig(
+                    getAssociatedRoles(serviceProvider.getApplicationResourceId(), connection, tenantID));
             // Will be supported with 'Advance Consent Management Feature'.
             /*
             ConsentConfig consentConfig = serviceProvider.getConsentConfig();
