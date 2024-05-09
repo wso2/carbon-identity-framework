@@ -20,9 +20,9 @@ package org.wso2.carbon.identity.functions.library.mgt.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -41,22 +41,21 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-@PrepareForTest({IdentityDatabaseUtil.class, IdentityTenantUtil.class})
-@PowerMockIgnore("org.mockito.*")
 public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
 
     private static final String SAMPLE_TENANT_DOMAIN = "carbon.super";
     private static final String SAMPLE_TENANT_DOMAIN2 = "abc.com";
     private static final String DB_NAME = "FUNCTIONLIB_DB";
     private static final Log log = LogFactory.getLog(FunctionLibraryDAOImplTest.class);
+    private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
     @BeforeClass
     public void initTest() throws Exception {
@@ -66,15 +65,21 @@ public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
 
     @BeforeMethod
     public void setUp() {
+        
+        identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
 
-        mockStatic(IdentityDatabaseUtil.class);
-        mockStatic(IdentityTenantUtil.class);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SAMPLE_TENANT_DOMAIN)).thenReturn(-1234);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(-1234)).thenReturn(SAMPLE_TENANT_DOMAIN);
 
-        when(IdentityTenantUtil.getTenantId(SAMPLE_TENANT_DOMAIN)).thenReturn(-1234);
-        when(IdentityTenantUtil.getTenantDomain(-1234)).thenReturn(SAMPLE_TENANT_DOMAIN);
-
-        when(IdentityTenantUtil.getTenantId(SAMPLE_TENANT_DOMAIN2)).thenReturn(-123);
-        when(IdentityTenantUtil.getTenantDomain(-123)).thenReturn(SAMPLE_TENANT_DOMAIN2);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SAMPLE_TENANT_DOMAIN2)).thenReturn(-123);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(-123)).thenReturn(SAMPLE_TENANT_DOMAIN2);
+    }
+    
+    @AfterMethod
+    public void tearDown() {
+        identityTenantUtil.close();
+        identityDatabaseUtil.close();
     }
 
     @DataProvider(name = "createFunctionLibraryDataProvider")
@@ -125,23 +130,23 @@ public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
             functionLibrary1.setDescription("sample1");
             functionLibrary1.setFunctionLibraryScript("samplefunction1");
             try (Connection connection = DAOUtils.getConnection(DB_NAME)) {
-                when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
                 functionLibraryDAO.createFunctionLibrary(functionLibrary1, tenantDomain);
             } catch (FunctionLibraryManagementException e) {
                 log.error("FunctionLibraryManagementException");
             } catch (SQLException e) {
                 log.error("SQLException");
             }
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection1);
             functionLibraryDAO.createFunctionLibrary((FunctionLibrary) functionLibrary, tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertEquals(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                     functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                             tenantDomain).getFunctionLibraryName());
 
             // Clean after test
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection3);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection3);
             functionLibraryDAO.deleteFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                     tenantDomain);
         } catch (SQLException e) {
@@ -205,9 +210,9 @@ public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
 
             addFunctionLibraries(functionLibraryDAO, functionLibraries, tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection);
             List<FunctionLibrary> functionLibrariesList = functionLibraryDAO.listFunctionLibraries(tenantDomain);
-            assertTrue(functionLibrariesList != null && functionLibrariesList.size() != 0,
+            assertTrue(functionLibrariesList != null && !functionLibrariesList.isEmpty(),
                     "Failed to retrieve script libraries.");
 
             // Clean after test
@@ -254,7 +259,7 @@ public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
 
             addFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection);
             assertTrue(functionLibraryDAO.getFunctionLibrary(
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain) != null,
                     "Failed to retrieve script library");
@@ -299,11 +304,11 @@ public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
 
             addFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection1);
             functionLibraryDAO.deleteFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                     tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertNull(functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary)
                             .getFunctionLibraryName(), tenantDomain),
                     "Failed to delete the functionLibrary by name.");
@@ -364,10 +369,10 @@ public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
             String oldName = funLib.getFunctionLibraryName();
             funLib.setFunctionLibraryName("updatedName");
 
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection1);
             functionLibraryDAO.updateFunctionLibrary(oldName, funLib, tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertNotNull(functionLibraryDAO.getFunctionLibrary(funLib.getFunctionLibraryName(), tenantDomain),
                     "Failed to update script library.");
 
@@ -429,12 +434,12 @@ public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
 
             addFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection1);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection1);
             assertTrue(functionLibraryDAO.isFunctionLibraryExists(
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain),
                     "Failed to check existence " +
                             "by script library name.");
-            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertFalse(functionLibraryDAO.isFunctionLibraryExists("InvalidName", tenantDomain),
                     "Failed to check existence " +
                             "by script library name.");
@@ -450,7 +455,7 @@ public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
 
         for (Object functionLibrary : functionLibraries) {
             try (Connection connection1 = DAOUtils.getConnection(DB_NAME)) {
-                when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection1);
                 functionLibraryDAO.createFunctionLibrary((FunctionLibrary) functionLibrary, tenantDomain);
             }
         }
@@ -461,7 +466,7 @@ public class FunctionLibraryDAOImplTest extends IdentityBaseTest {
 
         for (Object functionLibrary : functionLibraries) {
             try (Connection connection1 = DAOUtils.getConnection(DB_NAME)) {
-                when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection1);
                 functionLibraryDAO.deleteFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                         tenantDomain);
             }

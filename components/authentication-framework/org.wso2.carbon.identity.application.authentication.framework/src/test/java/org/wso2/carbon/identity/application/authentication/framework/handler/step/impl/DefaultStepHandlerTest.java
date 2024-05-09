@@ -21,14 +21,11 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.st
 import org.apache.http.client.utils.URIBuilder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
-import org.testng.IObjectFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -48,19 +45,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 /**
  * This test ensures that the retry page is returned when relevant properties are set with the values. The default
  * behavior is to return to the login page after login failure.
  */
-@PrepareForTest({IdentityUtil.class})
 @WithCarbonHome
-@PowerMockIgnore("org.mockito.*")
 public class DefaultStepHandlerTest {
 
     @Mock
@@ -72,11 +67,6 @@ public class DefaultStepHandlerTest {
     @Spy
     DefaultStepHandler defaultStepHandler;
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
 
     @BeforeMethod
     public void setUp() {
@@ -141,60 +131,61 @@ public class DefaultStepHandlerTest {
     public void testGetRedirectUrlAsRetryPage(boolean redirectToRetryPageOnAccountLock)
             throws URISyntaxException, IOException {
 
-        // The authConfig "redirectToRetryPageOnAccountLock" has to be true to return the retry page as redirectUrl.
-        Map<String, String> authParameters = new HashMap<>();
-        authParameters.put(
-                FrameworkConstants.REDIRECT_TO_RETRY_PAGE_ON_ACCOUNT_LOCK_CONF,
-                String.valueOf(redirectToRetryPageOnAccountLock));
-        AuthenticatorConfig authenticatorConfig = spy(new AuthenticatorConfig());
-        when(defaultStepHandler.getAuthenticatorConfig()).thenReturn(authenticatorConfig);
-        when(defaultStepHandler.getAuthenticatorConfig().getParameterMap()).thenReturn(authParameters);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            // The authConfig "redirectToRetryPageOnAccountLock" has to be true to return the retry page as redirectUrl.
+            Map<String, String> authParameters = new HashMap<>();
+            authParameters.put(
+                    FrameworkConstants.REDIRECT_TO_RETRY_PAGE_ON_ACCOUNT_LOCK_CONF,
+                    String.valueOf(redirectToRetryPageOnAccountLock));
+            AuthenticatorConfig authenticatorConfig = spy(new AuthenticatorConfig());
+            when(defaultStepHandler.getAuthenticatorConfig()).thenReturn(authenticatorConfig);
+            when(defaultStepHandler.getAuthenticatorConfig().getParameterMap()).thenReturn(authParameters);
 
-        // Context needs to be passed as a parameter for the getRedirectUrl method.
-        // "SendToMultipleOptionPage" property value should be false.
-        AuthenticationContext context = spy(new AuthenticationContext());
-        context.setSendToMultiOptionPage(false);
+            // Context needs to be passed as a parameter for the getRedirectUrl method.
+            // "SendToMultipleOptionPage" property value should be false.
+            AuthenticationContext context = spy(new AuthenticationContext());
+            context.setSendToMultiOptionPage(false);
 
-        // ErrorContext has to be null.
-        // So errorContextParams will be filled with query parameters.
-        // Then errorContextParams will be used to build errorParamString.
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getIdentityErrorMsg()).thenReturn(null);
+            // ErrorContext has to be null.
+            // So errorContextParams will be filled with query parameters.
+            // Then errorContextParams will be used to build errorParamString.
+            identityUtil.when(IdentityUtil::getIdentityErrorMsg).thenReturn(null);
 
-        // RetryParam needs to be passed as a parameter for the getRedirectUrl method.
-        // Not relevant to the test flow furthermore.
-        String retryParam = "";
-        doReturn(retryParam).when(defaultStepHandler).handleIdentifierFirstLogin(context, retryParam);
+            // RetryParam needs to be passed as a parameter for the getRedirectUrl method.
+            // Not relevant to the test flow furthermore.
+            String retryParam = "";
+            doReturn(retryParam).when(defaultStepHandler).handleIdentifierFirstLogin(context, retryParam);
 
-        // The authConfig "showAuthFailureReason" can't be null and should be true.
-        String showAuthFailureReason = "true";
-        String maskUserNotExistsErrorCode = "true";
+            // The authConfig "showAuthFailureReason" can't be null and should be true.
+            String showAuthFailureReason = "true";
+            String maskUserNotExistsErrorCode = "true";
 
-        // AuthenticatorNames and loginPage needs to be passed as parameters for the getRedirectUrl method.
-        // Not relevant to the test flow furthermore.
-        String authenticatorNames = "";
-        String loginPage = "";
+            // AuthenticatorNames and loginPage needs to be passed as parameters for the getRedirectUrl method.
+            // Not relevant to the test flow furthermore.
+            String authenticatorNames = "";
+            String loginPage = "";
 
-        // The basicAuthRedirectUrl should contain the error code for the user locked state as query parameters
-        URIBuilder basicAuthRedirectUrlBuilder = new URIBuilder("http://example.com/");
-        basicAuthRedirectUrlBuilder.addParameter(
-                FrameworkConstants.ERROR_CODE,
-                UserCoreConstants.ErrorCode.USER_IS_LOCKED);
-        String basicAuthRedirectUrl = basicAuthRedirectUrlBuilder.build().toString();
-        response = spy(new CommonAuthResponseWrapper(response));
-        when(((CommonAuthResponseWrapper) response).getRedirectURL()).thenReturn(basicAuthRedirectUrl);
+            // The basicAuthRedirectUrl should contain the error code for the user locked state as query parameters
+            URIBuilder basicAuthRedirectUrlBuilder = new URIBuilder("http://example.com/");
+            basicAuthRedirectUrlBuilder.addParameter(
+                    FrameworkConstants.ERROR_CODE,
+                    UserCoreConstants.ErrorCode.USER_IS_LOCKED);
+            String basicAuthRedirectUrl = basicAuthRedirectUrlBuilder.build().toString();
+            response = spy(new CommonAuthResponseWrapper(response));
+            when(((CommonAuthResponseWrapper) response).getRedirectURL()).thenReturn(basicAuthRedirectUrl);
 
-        defaultStepHandler.getRedirectUrl(request, response, context, authenticatorNames,
-                showAuthFailureReason, retryParam, loginPage);
+            defaultStepHandler.getRedirectUrl(request, response, context, authenticatorNames,
+                    showAuthFailureReason, retryParam, loginPage);
 
-        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(response).encodeRedirectURL(captor.capture());
-        if (redirectToRetryPageOnAccountLock) {
-            Assert.assertTrue(captor.getValue().contains(
-                    FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_RETRY));
-        } else {
-            Assert.assertFalse(captor.getValue().contains(
-                    FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_RETRY));
+            ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+            verify(response).encodeRedirectURL(captor.capture());
+            if (redirectToRetryPageOnAccountLock) {
+                Assert.assertTrue(captor.getValue().contains(
+                        FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_RETRY));
+            } else {
+                Assert.assertFalse(captor.getValue().contains(
+                        FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_RETRY));
+            }
         }
     }
 }

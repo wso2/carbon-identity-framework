@@ -16,9 +16,8 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.junit.Assert;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -62,8 +61,8 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME1;
@@ -85,12 +84,15 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.ini
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.spyConnection;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSamplesPath;
 
-@PrepareForTest({PrivilegedCarbonContext.class, IdentityDatabaseUtil.class, IdentityUtil.class,
-        IdentityTenantUtil.class})
-public class ConfigurationManagerTest extends PowerMockTestCase {
+public class ConfigurationManagerTest {
 
     private ConfigurationManager configurationManager;
     private Connection connection;
+
+    private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
+    private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    private MockedStatic<IdentityUtil> identityUtil;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -101,14 +103,18 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
-        mockStatic(IdentityDatabaseUtil.class);
-        when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSource);
+
+        identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+        identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
         connection = TestUtils.getConnection();
         Connection spyConnection = spyConnection(connection);
         when(dataSource.getConnection()).thenReturn(spyConnection);
 
-        prepareConfigs();
+        privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        identityUtil = mockStatic(IdentityUtil.class);
+        prepareConfigs(privilegedCarbonContext, identityTenantUtil, identityUtil);
 
         ConfigurationManagerComponentDataHolder.getInstance().setConfigurationManagementEnabled(true);
     }
@@ -118,6 +124,11 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         connection.close();
         closeH2Base();
+
+        identityDatabaseUtil.close();
+        privilegedCarbonContext.close();
+        identityTenantUtil.close();
+        identityUtil.close();
     }
 
     @Test(priority = 1)
@@ -413,12 +424,12 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
         configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
-        mockCarbonContextForTenant(SAMPLE_TENANT_ID_ABC, SAMPLE_TENANT_DOMAIN_ABC);
+        mockCarbonContextForTenant(SAMPLE_TENANT_ID_ABC, SAMPLE_TENANT_DOMAIN_ABC, privilegedCarbonContext);
         configurationManager.addResource(resourceType.getName(), getSampleResource2Add());
 
-        mockIdentityTenantUtilForTheTest();
+        mockIdentityTenantUtilForTheTest(identityTenantUtil);
         // Mock carbon context back to the super tenant.
-        mockCarbonContextForTenant(SUPER_TENANT_ID, SUPER_TENANT_DOMAIN_NAME);
+        mockCarbonContextForTenant(SUPER_TENANT_ID, SUPER_TENANT_DOMAIN_NAME, privilegedCarbonContext);
 
         ComplexCondition condition = getSampleSearchCondition();
         Resources resources = configurationManager.getTenantResources(condition);
@@ -566,12 +577,12 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
         configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
-        mockCarbonContextForTenant(SAMPLE_TENANT_ID_ABC, SAMPLE_TENANT_DOMAIN_ABC);
+        mockCarbonContextForTenant(SAMPLE_TENANT_ID_ABC, SAMPLE_TENANT_DOMAIN_ABC, privilegedCarbonContext);
         configurationManager.addResource(resourceType.getName(), getSampleResource2Add());
 
-        mockIdentityTenantUtilForTheTest();
+        mockIdentityTenantUtilForTheTest(identityTenantUtil);
         // Mock carbon context back to the super tenant.
-        mockCarbonContextForTenant(SUPER_TENANT_ID, SUPER_TENANT_DOMAIN_NAME);
+        mockCarbonContextForTenant(SUPER_TENANT_ID, SUPER_TENANT_DOMAIN_NAME, privilegedCarbonContext);
 
         ComplexCondition condition = getSampleSearchCondition();
         Resources resources = configurationManager.getTenantResources(SAMPLE_TENANT_DOMAIN_ABC, condition);
@@ -606,15 +617,16 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         jdbcTemplate.executeUpdate(REMOVE_CREATED_TIME_COLUMN_H2);
     }
 
-    private void mockIdentityTenantUtilForTheTest() {
+    private void mockIdentityTenantUtilForTheTest(MockedStatic<IdentityTenantUtil> identityTenantUtil) {
 
-        mockStatic(IdentityTenantUtil.class);
-        IdentityTenantUtil identityTenantUtil = mock(IdentityTenantUtil.class);
-
-        when(identityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN_NAME)).thenReturn(SUPER_TENANT_ID);
-        when(identityTenantUtil.getTenantId(SAMPLE_TENANT_DOMAIN_ABC)).thenReturn(SAMPLE_TENANT_ID_ABC);
-        when(identityTenantUtil.getTenantDomain(SUPER_TENANT_ID)).thenReturn(SUPER_TENANT_DOMAIN_NAME);
-        when(identityTenantUtil.getTenantDomain(SAMPLE_TENANT_ID_ABC)).thenReturn(SAMPLE_TENANT_DOMAIN_ABC);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN_NAME))
+                .thenReturn(SUPER_TENANT_ID);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SAMPLE_TENANT_DOMAIN_ABC))
+                .thenReturn(SAMPLE_TENANT_ID_ABC);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(SUPER_TENANT_ID))
+                .thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(SAMPLE_TENANT_ID_ABC))
+                .thenReturn(SAMPLE_TENANT_DOMAIN_ABC);
     }
 
     private boolean isSearchConditionMatch(Resources resources) {
@@ -648,37 +660,36 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         return true;
     }
 
-    private void prepareConfigs() throws Exception {
+    private void prepareConfigs(MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext,
+                                MockedStatic<IdentityTenantUtil> identityTenantUtil,
+                                MockedStatic<IdentityUtil> identityUtil) throws Exception {
 
         // Mock get maximum query length call.
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(any(String.class))).thenReturn("4194304");
-        when(IdentityUtil.getEndpointURIPath(any(String.class), anyBoolean(), anyBoolean())).thenReturn(
-                "/t/bob.com/api/identity/config-mgt/v1.0/resource/file/publisher/SMSPublisher/9e038218-8e99-4dae-bf83-a78f5dcd73a8");
+        identityUtil.when(() -> IdentityUtil.getProperty(any(String.class))).thenReturn("4194304");
+        identityUtil.when(() -> IdentityUtil.getEndpointURIPath(any(String.class), anyBoolean(), anyBoolean()))
+                .thenReturn(
+                        "/t/bob.com/api/identity/config-mgt/v1.0/resource/file/publisher/SMSPublisher/9e038218-8e99-" +
+                                "4dae-bf83-a78f5dcd73a8");
         ConfigurationManagerComponentDataHolder.setUseCreatedTime(true);
         ConfigurationManagerConfigurationHolder configurationHolder = new ConfigurationManagerConfigurationHolder();
         ConfigurationDAO configurationDAO = new ConfigurationDAOImpl();
         configurationHolder.setConfigurationDAOS(Collections.singletonList(configurationDAO));
-        mockCarbonContextForTenant(SUPER_TENANT_ID, SUPER_TENANT_DOMAIN_NAME);
-        mockIdentityTenantUtility();
+        mockCarbonContextForTenant(SUPER_TENANT_ID, SUPER_TENANT_DOMAIN_NAME, privilegedCarbonContext);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(any(Integer.class)))
+                .thenReturn(SUPER_TENANT_DOMAIN_NAME);
+
         configurationManager = new ConfigurationManagerImpl(configurationHolder);
     }
 
-    private void mockCarbonContextForTenant(int tenantId, String tenantDomain) {
+    private void mockCarbonContextForTenant(int tenantId, String tenantDomain,
+                                            MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext) {
 
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext mockPrivilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
-        when(privilegedCarbonContext.getTenantDomain()).thenReturn(tenantDomain);
-        when(privilegedCarbonContext.getTenantId()).thenReturn(tenantId);
-        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
-    }
-
-    private void mockIdentityTenantUtility() {
-
-        mockStatic(IdentityTenantUtil.class);
-        IdentityTenantUtil identityTenantUtil = mock(IdentityTenantUtil.class);
-        when(identityTenantUtil.getTenantDomain(any(Integer.class))).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        privilegedCarbonContext.when(
+                PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(mockPrivilegedCarbonContext);
+        when(mockPrivilegedCarbonContext.getTenantDomain()).thenReturn(tenantDomain);
+        when(mockPrivilegedCarbonContext.getTenantId()).thenReturn(tenantId);
+        when(mockPrivilegedCarbonContext.getUsername()).thenReturn("admin");
     }
 }

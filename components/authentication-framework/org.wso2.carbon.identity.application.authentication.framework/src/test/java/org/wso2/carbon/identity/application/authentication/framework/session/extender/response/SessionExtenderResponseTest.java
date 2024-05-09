@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.response;
 
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertNotNull;
@@ -26,7 +25,7 @@ import static org.testng.Assert.assertNotNull;
 /**
  * Unit test cases for SessionExtenderResponse.
  */
-public class SessionExtenderResponseTest extends PowerMockTestCase {
+public class SessionExtenderResponseTest {
 
     @Test
     public void buildTestResponse() {

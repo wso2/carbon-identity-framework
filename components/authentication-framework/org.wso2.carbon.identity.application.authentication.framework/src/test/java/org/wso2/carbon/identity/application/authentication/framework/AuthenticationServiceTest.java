@@ -22,11 +22,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -51,16 +50,14 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link AuthenticationService}.
  */
-@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class})
-@PowerMockIgnore({"org.mockito.*"})
 public class AuthenticationServiceTest extends AbstractFrameworkTest {
 
     private static final Log log = LogFactory.getLog(AuthenticationServiceTest.class);
@@ -78,20 +75,30 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
     @Mock
     HttpServletResponse response;
 
+    private MockedStatic<ConfigurationFacade> configurationFacade;
+    private MockedStatic<FrameworkUtils> frameworkUtils;
+
     @BeforeMethod
     public void init() throws IOException {
 
         MockitoAnnotations.initMocks(this);
-        mockStatic(ConfigurationFacade.class);
-        ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
-        PowerMockito.when(ConfigurationFacade.getInstance()).thenReturn(configurationFacade);
 
-        mockStatic(FrameworkUtils.class);
+        configurationFacade = mockStatic(ConfigurationFacade.class);
+        ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
+        configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
+
+        frameworkUtils = mockStatic(FrameworkUtils.class);
         DefaultRequestCoordinator defaultRequestCoordinator = mock(DefaultRequestCoordinator.class);
-        PowerMockito.when(FrameworkUtils.getRequestCoordinator()).thenReturn(defaultRequestCoordinator);
-        PowerMockito.when(FrameworkUtils.getMaxInactiveInterval()).thenReturn(-1);
+        frameworkUtils.when(FrameworkUtils::getRequestCoordinator).thenReturn(defaultRequestCoordinator);
+        frameworkUtils.when(FrameworkUtils::getMaxInactiveInterval).thenReturn(-1);
 
         doNothing().when(defaultRequestCoordinator).handle(request, response);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+        configurationFacade.close();
+        frameworkUtils.close();
     }
 
     @DataProvider(name = "authProvider")
@@ -126,7 +133,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         if (isMultiOpsResponse) {
             List<AuthenticatorData> authenticatorDataMap = getMultiOpsAuthenticatorData(authenticatorList);
             for (AuthenticatorData authenticatorData : authenticatorDataMap) {
-                when(FrameworkUtils.getAppAuthenticatorByName(authenticatorData.getName()))
+                frameworkUtils.when(() -> FrameworkUtils.getAppAuthenticatorByName(authenticatorData.getName()))
                         .thenReturn(new MockApiBasedAuthenticator(authenticatorData.getName()));
             }
         }

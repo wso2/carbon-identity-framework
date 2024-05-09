@@ -20,14 +20,11 @@ package org.wso2.carbon.identity.user.functionality.mgt.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
-import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.user.functionality.mgt.dao.UserFunctionalityManagerDAO;
@@ -40,14 +37,13 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
-@PrepareForTest({IdentityDatabaseUtil.class})
-public class UserFunctionalityManagerDAOImplTest extends PowerMockTestCase {
+public class UserFunctionalityManagerDAOImplTest {
 
     private static final Log log = LogFactory.getLog(UserFunctionalityManagerDAOImplTest.class);
     private UserFunctionalityManagerDAO userFunctionalityManagerDAO = new UserFunctionalityManagerDAOImpl();
@@ -56,7 +52,6 @@ public class UserFunctionalityManagerDAOImplTest extends PowerMockTestCase {
     public void setUp() throws Exception {
 
         TestUtils.initiateH2Base();
-        mockStatic(IdentityDatabaseUtil.class);
     }
 
     @AfterMethod
@@ -90,43 +85,49 @@ public class UserFunctionalityManagerDAOImplTest extends PowerMockTestCase {
                                      String functionalityLockReason) {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        try (Connection connection = TestUtils.getConnection()) {
-            Connection spyConnection = TestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            FunctionalityLockStatus functionalityLockStatus =
-                    new FunctionalityLockStatus(isFunctionalityLocked, functionalityUnlockTime,
-                            functionalityLockReasonCode, functionalityLockReason);
-            try {
-                userFunctionalityManagerDAO
-                        .addFunctionalityLock(userId, tenantId, functionalityIdentifier, functionalityLockStatus);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            try (Connection connection = TestUtils.getConnection()) {
+                Connection spyConnection = TestUtils.spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                FunctionalityLockStatus functionalityLockStatus =
+                        new FunctionalityLockStatus(isFunctionalityLocked, functionalityUnlockTime,
+                                functionalityLockReasonCode, functionalityLockReason);
+                try {
+                    userFunctionalityManagerDAO
+                            .addFunctionalityLock(userId, tenantId, functionalityIdentifier, functionalityLockStatus);
+                } catch (UserFunctionalityManagementServerException e) {
+                    log.error(String.format("Error while adding functionality: %s", functionalityIdentifier), e);
+                }
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockStatus(),
+                        functionalityLockStatus.getLockStatus());
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getUnlockTime(),
+                        functionalityLockStatus.getUnlockTime());
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockReason(),
+                        functionalityLockStatus.getLockReason());
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockReasonCode(), functionalityLockStatus.getLockReasonCode());
+            } catch (SQLException e) {
+                //Mock behaviour. Hence ignored.
             } catch (UserFunctionalityManagementServerException e) {
-                log.error(String.format("Error while adding functionality: %s", functionalityIdentifier), e);
+                assertEquals(e.getMessage(),
+                        String.format("Error occurred while adding the functionality: %s, for user: %s, for tenant" +
+                                        " id: %d, having the parameters, functionality lock status: %b, functionality " +
+                                        "unlock time: %d, functionality lock reason code: %s, functionality lock reason: " +
+                                        "%s.", functionalityIdentifier, userId, tenantId, isFunctionalityLocked,
+                                functionalityUnlockTime, functionalityLockReasonCode, functionalityLockReason));
             }
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockStatus(),
-                    functionalityLockStatus.getLockStatus());
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getUnlockTime(),
-                    functionalityLockStatus.getUnlockTime());
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockReason(),
-                    functionalityLockStatus.getLockReason());
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockReasonCode(), functionalityLockStatus.getLockReasonCode());
-        } catch (SQLException e) {
-            //Mock behaviour. Hence ignored.
-        } catch (UserFunctionalityManagementServerException e) {
-            assertEquals(e.getMessage(),
-                    String.format("Error occurred while adding the functionality: %s, for user: %s, for tenant" +
-                                    " id: %d, having the parameters, functionality lock status: %b, functionality " +
-                                    "unlock time: %d, functionality lock reason code: %s, functionality lock reason: " +
-                                    "%s.", functionalityIdentifier, userId, tenantId, isFunctionalityLocked,
-                            functionalityUnlockTime, functionalityLockReasonCode, functionalityLockReason));
         }
     }
 
@@ -134,25 +135,30 @@ public class UserFunctionalityManagerDAOImplTest extends PowerMockTestCase {
     public void testUniqueKeyConstraint() {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        try (Connection connection = TestUtils.getConnection()) {
-            Connection spyConnection = TestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            FunctionalityLockStatus functionality = new FunctionalityLockStatus(false, 0, null, null);
-            FunctionalityLockStatus functionalityCopy = new FunctionalityLockStatus(false, 0, null, null);
-            try {
-                userFunctionalityManagerDAO.addFunctionalityLock("user1", 1, "functionalityIdentifier1", functionality);
-                userFunctionalityManagerDAO
-                        .addFunctionalityLock("user1", 1, "functionalityIdentifier1", functionalityCopy);
-            } catch (UserFunctionalityManagementServerException e) {
-                assertEquals(e.getMessage(),
-                        String.format("Error occurred while adding the functionality: %s, for user: %s, for tenant " +
-                                "id: %d, having the parameters, functionality lock status: %b, functionality " +
-                                "unlock time: %d, functionality lock reason code: %s, functionality lock " +
-                                "reason: %s.", "functionalityIdentifier1", "user1", 1, false, 0, null, null));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            try (Connection connection = TestUtils.getConnection()) {
+                Connection spyConnection = TestUtils.spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                FunctionalityLockStatus functionality = new FunctionalityLockStatus(false, 0, null, null);
+                FunctionalityLockStatus functionalityCopy = new FunctionalityLockStatus(false, 0, null, null);
+                try {
+                    userFunctionalityManagerDAO.addFunctionalityLock("user1", 1, "functionalityIdentifier1",
+                            functionality);
+                    userFunctionalityManagerDAO
+                            .addFunctionalityLock("user1", 1, "functionalityIdentifier1", functionalityCopy);
+                } catch (UserFunctionalityManagementServerException e) {
+                    assertEquals(e.getMessage(),
+                            String.format(
+                                    "Error occurred while adding the functionality: %s, for user: %s, for tenant " +
+                                            "id: %d, having the parameters, functionality lock status: %b, functionality " +
+                                            "unlock time: %d, functionality lock reason code: %s, functionality lock " +
+                                            "reason: %s.", "functionalityIdentifier1", "user1", 1, false, 0, null,
+                                    null));
+                }
+            } catch (SQLException e) {
+                //Mock behaviour. Hence ignored.
             }
-        } catch (SQLException e) {
-            //Mock behaviour. Hence ignored.
         }
     }
 
@@ -163,43 +169,49 @@ public class UserFunctionalityManagerDAOImplTest extends PowerMockTestCase {
                                                String functionalityLockReason) {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        try (Connection connection = TestUtils.getConnection()) {
-            Connection spyConnection = TestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            FunctionalityLockStatus
-                    functionalityLockStatus =
-                    new FunctionalityLockStatus(isFunctionalityLocked, functionalityUnlockTime,
-                            functionalityLockReasonCode, functionalityLockReason);
-            try {
-                userFunctionalityManagerDAO
-                        .addFunctionalityLock(userId, tenantId, functionalityIdentifier, functionalityLockStatus);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            try (Connection connection = TestUtils.getConnection()) {
+                Connection spyConnection = TestUtils.spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                FunctionalityLockStatus
+                        functionalityLockStatus =
+                        new FunctionalityLockStatus(isFunctionalityLocked, functionalityUnlockTime,
+                                functionalityLockReasonCode, functionalityLockReason);
+                try {
+                    userFunctionalityManagerDAO
+                            .addFunctionalityLock(userId, tenantId, functionalityIdentifier, functionalityLockStatus);
+                } catch (UserFunctionalityManagementServerException e) {
+                    log.error(String.format("Error while adding functionality: %s", functionalityIdentifier), e);
+                }
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockStatus(),
+                        isFunctionalityLocked);
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getUnlockTime(),
+                        functionalityUnlockTime);
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockReasonCode(),
+                        functionalityLockReasonCode);
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockReason(),
+                        functionalityLockReason);
+            } catch (SQLException e) {
+                //Mock behaviour. Hence ignored.
             } catch (UserFunctionalityManagementServerException e) {
-                log.error(String.format("Error while adding functionality: %s", functionalityIdentifier), e);
+                assertEquals(e.getMessage(),
+                        String.format("Error occurred while retrieving functionality lock status from DB for " +
+                                        "functionality id: %s, user Id: %s and tenant Id: %d.", functionalityIdentifier,
+                                userId, tenantId));
             }
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockStatus(),
-                    isFunctionalityLocked);
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getUnlockTime(),
-                    functionalityUnlockTime);
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockReasonCode(),
-                    functionalityLockReasonCode);
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockReason(),
-                    functionalityLockReason);
-        } catch (SQLException e) {
-            //Mock behaviour. Hence ignored.
-        } catch (UserFunctionalityManagementServerException e) {
-            assertEquals(e.getMessage(),
-                    String.format("Error occurred while retrieving functionality lock status from DB for " +
-                                    "functionality id: %s, user Id: %s and tenant Id: %d.", functionalityIdentifier,
-                            userId, tenantId));
         }
     }
 
@@ -237,55 +249,66 @@ public class UserFunctionalityManagerDAOImplTest extends PowerMockTestCase {
         FunctionalityLockStatus updatedFunctionalityLockStatus =
                 (FunctionalityLockStatus) updatedFunctionalityStatusObj;
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        try (Connection connection = TestUtils.getConnection()) {
-            Connection spyConnection = TestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            try {
-                userFunctionalityManagerDAO
-                        .addFunctionalityLock(userId, tenantId, functionalityIdentifier, functionalityLockStatus);
-            } catch (UserFunctionalityManagementServerException e) {
-                log.error(String.format("Error while adding functionality: %s", functionalityIdentifier), e);
-            }
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockStatus(),
-                    functionalityLockStatus.getLockStatus());
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getUnlockTime(),
-                    functionalityLockStatus.getUnlockTime());
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockReason(),
-                    functionalityLockStatus.getLockReason());
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockReasonCode(), functionalityLockStatus.getLockReasonCode());
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            try (Connection connection = TestUtils.getConnection()) {
+                Connection spyConnection = TestUtils.spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                try {
+                    userFunctionalityManagerDAO
+                            .addFunctionalityLock(userId, tenantId, functionalityIdentifier, functionalityLockStatus);
+                } catch (UserFunctionalityManagementServerException e) {
+                    log.error(String.format("Error while adding functionality: %s", functionalityIdentifier), e);
+                }
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockStatus(),
+                        functionalityLockStatus.getLockStatus());
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getUnlockTime(),
+                        functionalityLockStatus.getUnlockTime());
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockReason(),
+                        functionalityLockStatus.getLockReason());
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockReasonCode(), functionalityLockStatus.getLockReasonCode());
 
-            userFunctionalityManagerDAO
-                    .updateLockStatusForUser(userId, tenantId, functionalityIdentifier, updatedFunctionalityLockStatus);
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockStatus(),
-                    updatedFunctionalityLockStatus.getLockStatus());
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getUnlockTime(),
-                    updatedFunctionalityLockStatus.getUnlockTime());
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockReason(),
-                    updatedFunctionalityLockStatus.getLockReason());
-            Assert.assertEquals(
-                    userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockReasonCode(), updatedFunctionalityLockStatus.getLockReasonCode());
-        } catch (SQLException e) {
-            //Mock behaviour. Hence ignored.
-        } catch (UserFunctionalityManagementServerException e) {
-            assertEquals(e.getMessage(),
-                    String.format("Error occurred while updating the functionality: %s for user Id: " +
-                            "%s and tenant Id: %d.", functionalityIdentifier, userId, tenantId));
+                userFunctionalityManagerDAO
+                        .updateLockStatusForUser(userId, tenantId, functionalityIdentifier,
+                                updatedFunctionalityLockStatus);
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockStatus(),
+                        updatedFunctionalityLockStatus.getLockStatus());
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getUnlockTime(),
+                        updatedFunctionalityLockStatus.getUnlockTime());
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockReason(),
+                        updatedFunctionalityLockStatus.getLockReason());
+                Assert.assertEquals(
+                        userFunctionalityManagerDAO.getFunctionalityLockStatus(userId, tenantId,
+                                        functionalityIdentifier)
+                                .getLockReasonCode(), updatedFunctionalityLockStatus.getLockReasonCode());
+            } catch (SQLException e) {
+                //Mock behaviour. Hence ignored.
+            } catch (UserFunctionalityManagementServerException e) {
+                assertEquals(e.getMessage(),
+                        String.format("Error occurred while updating the functionality: %s for user Id: " +
+                                "%s and tenant Id: %d.", functionalityIdentifier, userId, tenantId));
+            }
         }
     }
 
@@ -293,23 +316,25 @@ public class UserFunctionalityManagerDAOImplTest extends PowerMockTestCase {
     public void testDeleteFunctionality() {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        try (Connection connection = TestUtils.getConnection()) {
-            Connection spyConnection = TestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            FunctionalityLockStatus functionalityLockStatus = new FunctionalityLockStatus(false, 0, null, null);
-            try {
-                userFunctionalityManagerDAO
-                        .addFunctionalityLock("userId", 1, "functionalityIdentifier1", functionalityLockStatus);
-                userFunctionalityManagerDAO.deleteMappingForUser("userId", 1, "functionalityIdentifier1");
-                userFunctionalityManagerDAO.deleteMappingForUser("userId", 2, "functionalityIdentifier2");
-                assertNull(userFunctionalityManagerDAO
-                        .getFunctionalityLockStatus("userId", 1, "functionalityIdentifier1"));
-            } catch (UserFunctionalityManagementServerException e) {
-                log.error("FunctionalityManagementServer Exception", e);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            try (Connection connection = TestUtils.getConnection()) {
+                Connection spyConnection = TestUtils.spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                FunctionalityLockStatus functionalityLockStatus = new FunctionalityLockStatus(false, 0, null, null);
+                try {
+                    userFunctionalityManagerDAO
+                            .addFunctionalityLock("userId", 1, "functionalityIdentifier1", functionalityLockStatus);
+                    userFunctionalityManagerDAO.deleteMappingForUser("userId", 1, "functionalityIdentifier1");
+                    userFunctionalityManagerDAO.deleteMappingForUser("userId", 2, "functionalityIdentifier2");
+                    assertNull(userFunctionalityManagerDAO
+                            .getFunctionalityLockStatus("userId", 1, "functionalityIdentifier1"));
+                } catch (UserFunctionalityManagementServerException e) {
+                    log.error("FunctionalityManagementServer Exception", e);
+                }
+            } catch (SQLException e) {
+                //Mock behaviour. Hence ignored.
             }
-        } catch (SQLException e) {
-            //Mock behaviour. Hence ignored.
         }
     }
 
@@ -317,35 +342,32 @@ public class UserFunctionalityManagerDAOImplTest extends PowerMockTestCase {
     public void testDeleteAllMappingsForTenant() {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        String[] functionalityIdentifiers = {"functionality1", "functionality2", "functionality3"};
-        try (Connection connection = TestUtils.getConnection()) {
-            Connection spyConnection = TestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            FunctionalityLockStatus functionalityLockStatus = new FunctionalityLockStatus(false, 0, null, null);
-            try {
-                for (String functionalityIdentifier : functionalityIdentifiers) {
-                    userFunctionalityManagerDAO
-                            .addFunctionalityLock("user", 1, functionalityIdentifier, functionalityLockStatus);
-                }
-                userFunctionalityManagerDAO.deleteAllMappingsForTenant(1);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            String[] functionalityIdentifiers = {"functionality1", "functionality2", "functionality3"};
+            try (Connection connection = TestUtils.getConnection()) {
+                Connection spyConnection = TestUtils.spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                FunctionalityLockStatus functionalityLockStatus = new FunctionalityLockStatus(false, 0, null, null);
+                try {
+                    for (String functionalityIdentifier : functionalityIdentifiers) {
+                        userFunctionalityManagerDAO
+                                .addFunctionalityLock("user", 1, functionalityIdentifier, functionalityLockStatus);
+                    }
+                    userFunctionalityManagerDAO.deleteAllMappingsForTenant(1);
 
-                for (String functionalityIdentifier : functionalityIdentifiers) {
-                    assertNull(
-                            userFunctionalityManagerDAO.getFunctionalityLockStatus("user", 1, functionalityIdentifier));
-                }
+                    for (String functionalityIdentifier : functionalityIdentifiers) {
+                        assertNull(
+                                userFunctionalityManagerDAO.getFunctionalityLockStatus("user", 1,
+                                        functionalityIdentifier));
+                    }
 
-            } catch (UserFunctionalityManagementServerException e) {
-                log.error("FunctionalityManagementServer Exception", e);
+                } catch (UserFunctionalityManagementServerException e) {
+                    log.error("FunctionalityManagementServer Exception", e);
+                }
+            } catch (SQLException e) {
+                //Mock behaviour. Hence ignored.
             }
-        } catch (SQLException e) {
-            //Mock behaviour. Hence ignored.
         }
-    }
-
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 }

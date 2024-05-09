@@ -19,8 +19,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -69,20 +68,17 @@ import javax.sql.DataSource;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_CONSENT;
 
-@PrepareForTest({IdentityConfigParser.class, OMElement.class, IdentityUtil.class, PrivilegedCarbonContext.class,
-        FrameworkServiceDataHolder.class, ConsentUtils.class, ConsentManagerConfigurationHolder.class,
-        RealmService.class, TenantManager.class, UserRealm.class, DataSource.class,
-        ConsentManagerComponentDataHolder.class})
-public class SSOConsentServiceImplTest extends PowerMockTestCase {
+public class SSOConsentServiceImplTest {
 
     private static final String TEMPORARY_CLAIM_URI = "http://wso2.org/claims/nickname";
     private SSOConsentService ssoConsentService;
@@ -97,29 +93,33 @@ public class SSOConsentServiceImplTest extends PowerMockTestCase {
     private OMElement consentElement;
 
     @Mock
-    private FrameworkServiceDataHolder frameworkServiceDataHolder;
+    private FrameworkServiceDataHolder mockFrameworkServiceDataHolder;
 
     @Mock
     private ClaimMetadataManagementService claimMetadataManagementService;
+    private MockedStatic<ConsentManagerComponentDataHolder> consentManagerComponentDataHolder;
+    private MockedStatic<IdentityConfigParser> identityConfigParser;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
+        initMocks(this);
         initiateH2Base();
         DataSource dataSource = mock(DataSource.class);
-        mockStatic(ConsentManagerComponentDataHolder.class);
-        ConsentManagerComponentDataHolder componentDataHolder = mock(ConsentManagerComponentDataHolder.class);
-        when(ConsentManagerComponentDataHolder.getInstance()).thenReturn(componentDataHolder);
-        when(componentDataHolder.getDataSource()).thenReturn(dataSource);
+
+        consentManagerComponentDataHolder = mockStatic(ConsentManagerComponentDataHolder.class);
+        ConsentManagerComponentDataHolder mockComponentDataHolder = mock(ConsentManagerComponentDataHolder.class);
+        consentManagerComponentDataHolder.when(
+                ConsentManagerComponentDataHolder::getInstance).thenReturn(mockComponentDataHolder);
+        when(mockComponentDataHolder.getDataSource()).thenReturn(dataSource);
 
         connection = getConnection();
         Connection spyConnection = spyConnection(connection);
         when(dataSource.getConnection()).thenReturn(spyConnection);
 
-        mockStatic(IdentityConfigParser.class);
-        mockStatic(OMElement.class);
-        when(IdentityConfigParser.getInstance()).thenReturn(mockConfigParser);
-        when(IdentityConfigParser.getInstance().getConfigElement(CONFIG_ELEM_CONSENT)).thenReturn(consentElement);
+        identityConfigParser = mockStatic(IdentityConfigParser.class);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockConfigParser);
+        when(mockConfigParser.getConfigElement(CONFIG_ELEM_CONSENT)).thenReturn(consentElement);
         ssoConsentService = new SSOConsentServiceImpl();
 
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
@@ -133,6 +133,8 @@ public class SSOConsentServiceImplTest extends PowerMockTestCase {
 
         connection.close();
         closeH2Base();
+        consentManagerComponentDataHolder.close();
+        identityConfigParser.close();
     }
 
     public static void closeH2Base() throws Exception {
@@ -161,117 +163,132 @@ public class SSOConsentServiceImplTest extends PowerMockTestCase {
     @Test
     public void testGetConsentRequiredClaimsWithExistingConsents() throws Exception {
 
-        ServiceProvider serviceProvider = new ServiceProvider();
-        serviceProvider.setApplicationName("Travelocity.com");
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<ConsentUtils> consentUtils = mockStatic(ConsentUtils.class);
+             MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext =
+                     mockStatic(PrivilegedCarbonContext.class);) {
 
-        User user = new User();
-        user.setTenantDomain("carbon.super");
-        user.setUserStoreDomain("PRIMARY");
-        serviceProvider.setOwner(user);
+            ServiceProvider serviceProvider = new ServiceProvider();
+            serviceProvider.setApplicationName("Travelocity.com");
 
-        ClaimConfig claimConfig = new ClaimConfig();
-        Claim tempClaim1 = new Claim();
-        tempClaim1.setClaimUri("http://wso2.org/claims/organization");
-        ClaimMapping tempClaimMapping1 = new ClaimMapping();
-        tempClaimMapping1.setRequested(true);
-        tempClaimMapping1.setMandatory(false);
-        tempClaimMapping1.setLocalClaim(tempClaim1);
-        tempClaimMapping1.setRemoteClaim(tempClaim1);
+            User user = new User();
+            user.setTenantDomain("carbon.super");
+            user.setUserStoreDomain("PRIMARY");
+            serviceProvider.setOwner(user);
 
-        Claim tempClaim2 = new Claim();
-        tempClaim2.setClaimUri("http://wso2.org/claims/country");
-        ClaimMapping tempClaimMapping2 = new ClaimMapping();
-        tempClaimMapping2.setRequested(true);
-        tempClaimMapping2.setMandatory(true);
-        tempClaimMapping2.setLocalClaim(tempClaim2);
-        tempClaimMapping2.setRemoteClaim(tempClaim2);
+            ClaimConfig claimConfig = new ClaimConfig();
+            Claim tempClaim1 = new Claim();
+            tempClaim1.setClaimUri("http://wso2.org/claims/organization");
+            ClaimMapping tempClaimMapping1 = new ClaimMapping();
+            tempClaimMapping1.setRequested(true);
+            tempClaimMapping1.setMandatory(false);
+            tempClaimMapping1.setLocalClaim(tempClaim1);
+            tempClaimMapping1.setRemoteClaim(tempClaim1);
 
-        claimConfig.setClaimMappings(new ClaimMapping[]{tempClaimMapping1, tempClaimMapping2});
-        serviceProvider.setClaimConfig(claimConfig);
-        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig
-                = new LocalAndOutboundAuthenticationConfig();
-        localAndOutboundAuthenticationConfig.setSubjectClaimUri(null);
-        serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
+            Claim tempClaim2 = new Claim();
+            tempClaim2.setClaimUri("http://wso2.org/claims/country");
+            ClaimMapping tempClaimMapping2 = new ClaimMapping();
+            tempClaimMapping2.setRequested(true);
+            tempClaimMapping2.setMandatory(true);
+            tempClaimMapping2.setLocalClaim(tempClaim2);
+            tempClaimMapping2.setRemoteClaim(tempClaim2);
 
-        AuthenticatedUser authenticatedUser = getAuthenticatedUser();
+            claimConfig.setClaimMappings(new ClaimMapping[]{tempClaimMapping1, tempClaimMapping2});
+            serviceProvider.setClaimConfig(claimConfig);
+            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig
+                    = new LocalAndOutboundAuthenticationConfig();
+            localAndOutboundAuthenticationConfig.setSubjectClaimUri(null);
+            serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
 
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty("Consent.PromptSubjectClaimRequestedConsent")).thenReturn(null);
+            AuthenticatedUser authenticatedUser = getAuthenticatedUser();
 
-        mockCarbonContextForTenant();
-        mockStatic(FrameworkServiceDataHolder.class);
-        when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
-        setConsentManagerConfigurationHolder();
+            identityUtil.when(() -> IdentityUtil.getProperty("Consent.PromptSubjectClaimRequestedConsent"))
+                    .thenReturn(null);
 
-        RealmService realmService = mock(RealmService.class);
-        configurationHolder.setRealmService(realmService);
-        ConsentManager consentManager = new ConsentManagerImpl(configurationHolder);
-        when(frameworkServiceDataHolder.getConsentManager()).thenReturn(consentManager);
+            mockCarbonContextForTenant(privilegedCarbonContext);
 
-        mockStatic(ConsentUtils.class);
-        when(ConsentUtils.getTenantDomainFromCarbonContext()).thenReturn("carbon.super");
-        mockRealmService(realmService);
-        when(frameworkServiceDataHolder.getClaimMetadataManagementService()).thenReturn(claimMetadataManagementService);
-        List<LocalClaim> localClaims = new ArrayList<>();
-        LocalClaim localClaim = new LocalClaim("http://wso2.org/claims/country");
-        LocalClaim localClaim2 = new LocalClaim("http://wso2.org/claims/organization");
-        localClaims.add(localClaim);
-        localClaims.add(localClaim2);
-        when(claimMetadataManagementService.getLocalClaims(anyString())).thenReturn(localClaims);
-        ConsentClaimsData consentClaimsData = ssoConsentService.
-                getConsentRequiredClaimsWithExistingConsents(serviceProvider, authenticatedUser);
-        assertEquals(consentClaimsData.getRequestedClaims().get(0).getClaimUri(),
-                "http://wso2.org/claims/organization",
-                "Incorrect requested claim URI");
-        assertEquals(consentClaimsData.getMandatoryClaims().get(0).getClaimUri(),
-                "http://wso2.org/claims/country",
-                "Incorrect mandatory claim URI");
-        assertNotNull(consentClaimsData.getMandatoryClaims().get(0).getClaimUri());
+            frameworkServiceDataHolder.when(
+                    FrameworkServiceDataHolder::getInstance).thenReturn(this.mockFrameworkServiceDataHolder);
+            setConsentManagerConfigurationHolder();
+
+            RealmService realmService = mock(RealmService.class);
+            configurationHolder.setRealmService(realmService);
+            ConsentManager consentManager = new ConsentManagerImpl(configurationHolder);
+            when(this.mockFrameworkServiceDataHolder.getConsentManager()).thenReturn(consentManager);
+
+            consentUtils.when(ConsentUtils::getTenantDomainFromCarbonContext).thenReturn("carbon.super");
+            mockRealmService(realmService);
+            when(this.mockFrameworkServiceDataHolder.getClaimMetadataManagementService()).thenReturn(
+                    claimMetadataManagementService);
+            List<LocalClaim> localClaims = new ArrayList<>();
+            LocalClaim localClaim = new LocalClaim("http://wso2.org/claims/country");
+            LocalClaim localClaim2 = new LocalClaim("http://wso2.org/claims/organization");
+            localClaims.add(localClaim);
+            localClaims.add(localClaim2);
+            when(claimMetadataManagementService.getLocalClaims(anyString())).thenReturn(localClaims);
+            ConsentClaimsData consentClaimsData = ssoConsentService.
+                    getConsentRequiredClaimsWithExistingConsents(serviceProvider, authenticatedUser);
+            assertEquals(consentClaimsData.getRequestedClaims().get(0).getClaimUri(),
+                    "http://wso2.org/claims/organization",
+                    "Incorrect requested claim URI");
+            assertEquals(consentClaimsData.getMandatoryClaims().get(0).getClaimUri(),
+                    "http://wso2.org/claims/country",
+                    "Incorrect mandatory claim URI");
+            assertNotNull(consentClaimsData.getMandatoryClaims().get(0).getClaimUri());
+        }
     }
 
     @Test
     public void testGetClaimsWithConsents() throws Exception {
 
-        ServiceProvider serviceProvider = new ServiceProvider();
-        serviceProvider.setApplicationName("Travelocity.com");
+        try (MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<ConsentUtils> consentUtils = mockStatic(ConsentUtils.class);
+             MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext =
+                     mockStatic(PrivilegedCarbonContext.class)) {
+            ServiceProvider serviceProvider = new ServiceProvider();
+            serviceProvider.setApplicationName("Travelocity.com");
 
-        User user = new User();
-        user.setTenantDomain("carbon.super");
-        user.setUserStoreDomain("PRIMARY");
-        serviceProvider.setOwner(user);
+            User user = new User();
+            user.setTenantDomain("carbon.super");
+            user.setUserStoreDomain("PRIMARY");
+            serviceProvider.setOwner(user);
 
-        ClaimConfig claimConfig = new ClaimConfig();
-        Claim tempClaim = new Claim();
-        tempClaim.setClaimUri(TEMPORARY_CLAIM_URI);
-        ClaimMapping tempClaimMapping = new ClaimMapping();
-        tempClaimMapping.setRequested(true);
-        tempClaimMapping.setLocalClaim(tempClaim);
-        tempClaimMapping.setRemoteClaim(tempClaim);
+            ClaimConfig claimConfig = new ClaimConfig();
+            Claim tempClaim = new Claim();
+            tempClaim.setClaimUri(TEMPORARY_CLAIM_URI);
+            ClaimMapping tempClaimMapping = new ClaimMapping();
+            tempClaimMapping.setRequested(true);
+            tempClaimMapping.setLocalClaim(tempClaim);
+            tempClaimMapping.setRemoteClaim(tempClaim);
 
-        claimConfig.setClaimMappings(new ClaimMapping[]{tempClaimMapping});
-        serviceProvider.setClaimConfig(claimConfig);
-        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig
-                = new LocalAndOutboundAuthenticationConfig();
-        localAndOutboundAuthenticationConfig.setSubjectClaimUri(null);
-        serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
+            claimConfig.setClaimMappings(new ClaimMapping[]{tempClaimMapping});
+            serviceProvider.setClaimConfig(claimConfig);
+            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig
+                    = new LocalAndOutboundAuthenticationConfig();
+            localAndOutboundAuthenticationConfig.setSubjectClaimUri(null);
+            serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
 
-        AuthenticatedUser authenticatedUser = getAuthenticatedUser();
+            AuthenticatedUser authenticatedUser = getAuthenticatedUser();
 
-        mockCarbonContextForTenant();
-        mockStatic(FrameworkServiceDataHolder.class);
-        when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
-        setConsentManagerConfigurationHolder();
+            mockCarbonContextForTenant(privilegedCarbonContext);
 
-        RealmService realmService = mock(RealmService.class);
-        configurationHolder.setRealmService(realmService);
-        ConsentManager consentManager = new ConsentManagerImpl(configurationHolder);
-        when(frameworkServiceDataHolder.getConsentManager()).thenReturn(consentManager);
+            frameworkServiceDataHolder.when(
+                    FrameworkServiceDataHolder::getInstance).thenReturn(mockFrameworkServiceDataHolder);
+            setConsentManagerConfigurationHolder();
 
-        mockStatic(ConsentUtils.class);
-        when(ConsentUtils.getTenantDomainFromCarbonContext()).thenReturn("carbon.super");
-        mockRealmService(realmService);
+            RealmService realmService = mock(RealmService.class);
+            configurationHolder.setRealmService(realmService);
+            ConsentManager consentManager = new ConsentManagerImpl(configurationHolder);
+            when(mockFrameworkServiceDataHolder.getConsentManager()).thenReturn(consentManager);
 
-        assertNotNull(ssoConsentService.getClaimsWithConsents(serviceProvider, authenticatedUser));
+            consentUtils.when(ConsentUtils::getTenantDomainFromCarbonContext).thenReturn("carbon.super");
+            mockRealmService(realmService);
+
+            assertNotNull(ssoConsentService.getClaimsWithConsents(serviceProvider, authenticatedUser));
+        }
     }
 
     public static void initiateH2Base() throws Exception {
@@ -296,14 +313,14 @@ public class SSOConsentServiceImplTest extends PowerMockTestCase {
         throw new IllegalArgumentException("DB Script file name cannot be empty.");
     }
 
-    private void mockCarbonContextForTenant() {
+    private void mockCarbonContextForTenant(MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext) {
 
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
-        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
-        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
-        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
+        PrivilegedCarbonContext mockPrivilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        privilegedCarbonContext.when(
+                PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(mockPrivilegedCarbonContext);
+        when(mockPrivilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(mockPrivilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
+        when(mockPrivilegedCarbonContext.getUsername()).thenReturn("admin");
     }
 
     private void mockRealmService(RealmService realmService) throws Exception {

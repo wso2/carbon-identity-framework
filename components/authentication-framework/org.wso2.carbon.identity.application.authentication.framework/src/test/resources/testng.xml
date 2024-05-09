@@ -17,7 +17,7 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="IdentityFrameworkTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
-    <test name="IdentityFrameworkTestsWithDebugEnabled" preserve-order="false" parallel="false">
+    <test name="IdentityFrameworkTestsWithDebugEnabled" preserve-order="true" parallel="false">
         <!--<parameter name="log-level" value="debug"/>-->
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationServiceTest"/>
@@ -69,13 +69,13 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.AuthenticationServiceTest"/>
         </classes>
     </test>
-    <test name="IdentityFrameworkTestsWithDataSources" preserve-order="false" parallel="false">
+    <test name="IdentityFrameworkTestsWithDataSources" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStoreTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilterTest"/>
         </classes>
     </test>
-    <test name="SessionDataStoreTestsWithDataSources" preserve-order="false" parallel="false">
+    <test name="SessionDataStoreTestsWithDataSources" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStoreTest"/>
         </classes>

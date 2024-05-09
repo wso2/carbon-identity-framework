@@ -22,19 +22,25 @@ import org.json.JSONObject;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -44,8 +50,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG;
@@ -53,8 +61,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_COOKIE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_COOKIE_CONFIG;
 
-@PrepareForTest({IdentityUtil.class, IdentityTenantUtil.class, FrameworkUtils.class, LoginContextManagementUtil.class})
-@PowerMockIgnore("org.mockito.*")
+@Listeners(MockitoTestNGListener.class)
 public class SessionNonceCookieUtilTest {
 
     private static final String SESSION_DATA_KEY_VALUE = "SessionDataKeyValue";
@@ -80,33 +87,43 @@ public class SessionNonceCookieUtilTest {
     @Captor
     ArgumentCaptor<String> responseCaptor;
 
+    @BeforeMethod
+    public void setUp() throws Exception {
+
+        setPrivateStaticField(SessionNonceCookieUtil.class, "nonceCookieConfig", null);
+    }
+
     @Test
-    public void nonceCookieTest() {
+    public void nonceCookieTest() throws ReflectiveOperationException {
 
-        mockNonceCookieUtils("true", "40");
-        assertTrue(SessionNonceCookieUtil.isNonceCookieEnabled());
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
 
-        // Creating old session nonce and authentication cookie.
-        Cookie[] cookies = getAuthenticationCookies();
-        Mockito.when(request.getCookies()).thenReturn(cookies);
-        Mockito.when(context.getContextIdentifier()).thenReturn(SESSION_DATA_KEY_VALUE);
+            mockNonceCookieUtils(identityUtil);
+            assertTrue(SessionNonceCookieUtil.isNonceCookieEnabled());
 
-        // Validating old session nonce cookie.
-        Mockito.when(context.getProperty(cookies[1].getName())).thenReturn(cookies[1].getValue());
-        boolean validateNonceCookie = SessionNonceCookieUtil.validateNonceCookie(request, context);
-        assertTrue(validateNonceCookie);
+            // Creating old session nonce and authentication cookie.
+            Cookie[] cookies = getAuthenticationCookies();
+            Mockito.when(request.getCookies()).thenReturn(cookies);
+            Mockito.when(context.getContextIdentifier()).thenReturn(SESSION_DATA_KEY_VALUE);
 
-        // Stimulate the flow where a new authentication flow is created when there is existing session nonce cookie.
-        Mockito.when(context.getContextIdentifier()).thenReturn(SESSION_DATA_KEY_VALUE);
-        SessionNonceCookieUtil.addNonceCookie(request, response, context);
+            // Validating old session nonce cookie.
+            Mockito.when(context.getProperty(cookies[1].getName())).thenReturn(cookies[1].getValue());
+            boolean validateNonceCookie = SessionNonceCookieUtil.validateNonceCookie(request, context);
+            assertTrue(validateNonceCookie);
 
-        Mockito.verify(response, times(1)).addCookie(cookieCaptor.capture());
-        List<Cookie> capturedCookies = cookieCaptor.getAllValues();
+            // Stimulate the flow where a new authentication flow is created when there is existing session nonce
+            // cookie.
+            Mockito.when(context.getContextIdentifier()).thenReturn(SESSION_DATA_KEY_VALUE);
+            SessionNonceCookieUtil.addNonceCookie(request, response, context);
 
-        // First, the old cookie has to be cleared with max age 0.
-        Cookie removedOldSessionNonce = capturedCookies.get(0);
-        assertEquals(removedOldSessionNonce.getName(), NONCE_COOKIE + "-" + SESSION_DATA_KEY_VALUE);
-        assertEquals(removedOldSessionNonce.getMaxAge(), TimeUnit.MINUTES.toSeconds(40) * 2);
+            Mockito.verify(response, times(1)).addCookie(cookieCaptor.capture());
+            List<Cookie> capturedCookies = cookieCaptor.getAllValues();
+
+            // First, the old cookie has to be cleared with max age 0.
+            Cookie removedOldSessionNonce = capturedCookies.get(0);
+            assertEquals(removedOldSessionNonce.getName(), NONCE_COOKIE + "-" + SESSION_DATA_KEY_VALUE);
+            assertEquals(removedOldSessionNonce.getMaxAge(), TimeUnit.MINUTES.toSeconds(40) * 2);
+        }
     }
 
 
@@ -117,43 +134,49 @@ public class SessionNonceCookieUtilTest {
     }
 
     @Test(dataProvider = "nonceCookieWhitelistedAuthenticatorsData")
-    public void nonceCookieWhitelistedAuthenticatorsTest(String authenticator, boolean expectedOutput) {
+    public void nonceCookieWhitelistedAuthenticatorsTest(String authenticator, boolean expectedOutput)
+            throws ReflectiveOperationException {
 
-        mockNonceCookieUtils("true", "40");
-        assertTrue(SessionNonceCookieUtil.isNonceCookieEnabled());
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            mockNonceCookieUtils(identityUtil);
+            assertTrue(SessionNonceCookieUtil.isNonceCookieEnabled());
 
-        // Setting the authenticator name from the data provider.
-        Mockito.when(context.getCurrentAuthenticator()).thenReturn(authenticator);
+            // Setting the authenticator name from the data provider.
+            Mockito.when(context.getCurrentAuthenticator()).thenReturn(authenticator);
 
-        boolean validateNonceCookie = SessionNonceCookieUtil.validateNonceCookie(request, context);
-        assertEquals(validateNonceCookie, expectedOutput);
+            boolean validateNonceCookie = SessionNonceCookieUtil.validateNonceCookie(request, context);
+            assertEquals(validateNonceCookie, expectedOutput);
+        }
     }
 
     @Test(dependsOnMethods = "nonceCookieWhitelistedAuthenticatorsTest")
     public void missingNonceCookieTest() throws Exception {
 
-        mockUtils();
-        Cookie[] cookies = getAuthenticationCookies();
-        Mockito.when(request.getCookies()).thenReturn(cookies);
-        Mockito.when(request.getParameter(SESSION_DATA_KEY_NAME)).thenReturn(SESSION_DATA_KEY_VALUE);
-        Mockito.when(request.getParameter(RELYING_PARTY_NAME)).thenReturn(RELYING_PARTY_VALUE);
-        Mockito.when(request.getParameter(REQUEST_PARAM_APPLICATION)).thenReturn(RELYING_PARTY_VALUE);
-        Mockito.when(request.getParameter(TENANT_DOMAIN_NAME)).thenReturn(TENANT_DOMAIN_VALUE);
-        Mockito.when(context.getContextIdentifier()).thenReturn(SESSION_DATA_KEY_VALUE);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<ApplicationManagementService> applicationManagementService =
+                     mockStatic(ApplicationManagementService.class)) {
+            mockUtils(identityUtil, identityTenantUtil, frameworkUtils, applicationManagementService);
+            Mockito.when(request.getParameter(SESSION_DATA_KEY_NAME)).thenReturn(SESSION_DATA_KEY_VALUE);
+            Mockito.when(request.getParameter(RELYING_PARTY_NAME)).thenReturn(RELYING_PARTY_VALUE);
+            Mockito.when(request.getParameter(REQUEST_PARAM_APPLICATION)).thenReturn(RELYING_PARTY_VALUE);
+            Mockito.when(context.getContextIdentifier()).thenReturn(SESSION_DATA_KEY_VALUE);
 
-        PrintWriter mockPrintWriter = Mockito.mock(PrintWriter.class);
-        Mockito.when(response.getWriter()).thenReturn(mockPrintWriter);
+            PrintWriter mockPrintWriter = Mockito.mock(PrintWriter.class);
+            Mockito.when(response.getWriter()).thenReturn(mockPrintWriter);
 
-        // Request contains an authentication contex but missing the session nonce cookie.
-        LoginContextManagementUtil.handleLoginContext(request, response);
+            // Request contains an authentication context but missing the session nonce cookie.
+            LoginContextManagementUtil.handleLoginContext(request, response);
 
-        Mockito.verify(mockPrintWriter).write(responseCaptor.capture());
-        List<String> responses = responseCaptor.getAllValues();
-        Assert.assertNotNull(responses.get(0));
+            Mockito.verify(mockPrintWriter).write(responseCaptor.capture());
+            List<String> responses = responseCaptor.getAllValues();
+            Assert.assertNotNull(responses.get(0));
 
-        JSONObject response = new JSONObject(responses.get(0));
-        Assert.assertEquals(response.get("status"), "redirect");
-        Assert.assertEquals(response.get("redirectUrl"), APP_ACCESS_URL);
+            JSONObject response = new JSONObject(responses.get(0));
+            Assert.assertEquals(response.get("status"), "redirect");
+            Assert.assertEquals(response.get("redirectUrl"), APP_ACCESS_URL);
+        }
     }
 
     private Cookie[] getAuthenticationCookies() {
@@ -164,29 +187,54 @@ public class SessionNonceCookieUtilTest {
         return cookies;
     }
 
-    private void mockUtils() throws Exception {
+    private void mockUtils(MockedStatic<IdentityUtil> identityUtil, MockedStatic<IdentityTenantUtil> identityTenantUtil,
+                           MockedStatic<FrameworkUtils> frameworkUtils,
+                           MockedStatic<ApplicationManagementService> applicationManagementService) throws Exception {
 
-        mockNonceCookieUtils("true", "40");
+        mockNonceCookieUtils(identityUtil);
 
-        mockStatic(IdentityTenantUtil.class);
-        Mockito.when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(false);
+        identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(false);
+        frameworkUtils.when(() -> FrameworkUtils.getAuthenticationContextFromCache(any())).thenReturn(context);
+        frameworkUtils.when(() -> FrameworkUtils.getCookie(any(), any())).thenReturn(null);
 
-        mockStatic(FrameworkUtils.class);
-        Mockito.when(FrameworkUtils.getAuthenticationContextFromCache(any())).thenReturn(context);
-        Mockito.when(FrameworkUtils.getCookie(any(), any())).thenReturn(null);
-
-        PowerMockito.spy(LoginContextManagementUtil.class);
-        PowerMockito.doReturn(APP_ACCESS_URL).when(LoginContextManagementUtil.class, "getAccessURLFromApplication",
-                anyString(), anyString());
+        ApplicationManagementService mockApplicationManagementService = mock(ApplicationManagementService.class);
+        ServiceProvider mockServiceProvider = mock(ServiceProvider.class);
+        applicationManagementService.when(ApplicationManagementService::getInstance)
+                .thenReturn(mockApplicationManagementService);
+        when(mockApplicationManagementService.getServiceProvider(anyString(), anyString())).thenReturn(
+                mockServiceProvider);
+        when(mockServiceProvider.getAccessUrl()).thenReturn(APP_ACCESS_URL);
     }
 
-    private void mockNonceCookieUtils(String isNonceCookieEnabled, String tempDataCleanupTimeout) {
+    private void mockNonceCookieUtils(MockedStatic<IdentityUtil> identityUtil) throws ReflectiveOperationException {
 
-        mockStatic(IdentityUtil.class);
-        Mockito.when(IdentityUtil.getProperty(NONCE_COOKIE_CONFIG)).thenReturn(isNonceCookieEnabled);
-        Mockito.when(IdentityUtil.getTempDataCleanUpTimeout()).thenReturn(Long.parseLong(tempDataCleanupTimeout));
+        identityUtil.when(() -> IdentityUtil.getProperty(NONCE_COOKIE_CONFIG)).thenReturn("true");
+        identityUtil.when(IdentityUtil::getTempDataCleanUpTimeout).thenReturn(Long.parseLong("40"));
         List<String> expectedList = Arrays.asList("Authenticator_1", "Authenticator_2");
-        Mockito.when(IdentityUtil.getPropertyAsList(NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG))
+        identityUtil.when(() -> IdentityUtil.getPropertyAsList(NONCE_COOKIE_WHITELISTED_AUTHENTICATORS_CONFIG))
                 .thenReturn(expectedList);
+        setPrivateStaticFinalField(SessionNonceCookieUtil.class, "NONCE_COOKIE_WHITELISTED_AUTHENTICATORS",
+                new HashSet<>(expectedList));
+    }
+
+    private void setPrivateStaticField(Class<?> clazz, String fieldName, Object newValue)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(null, newValue);
+    }
+
+    private static void setPrivateStaticFinalField(Class<?> clazz, String fieldName, Object newValue)
+            throws ReflectiveOperationException {
+
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+
+        Field modifiers = Field.class.getDeclaredField("modifiers");
+        modifiers.setAccessible(true);
+        modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
+        field.set(null, newValue);
     }
 }

@@ -19,20 +19,19 @@
 package org.wso2.carbon.security.keystore;
 
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.MockedStatic;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.security.keystore.service.CertData;
 import org.wso2.carbon.security.keystore.service.PaginatedKeyStoreData;
-import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.FileInputStream;
 import java.nio.file.Path;
@@ -41,12 +40,11 @@ import java.security.KeyStore;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
-@PrepareForTest({CarbonUtils.class, IdentityTenantUtil.class, IdentityUtil.class, KeyStoreManager.class,
-        ServerConfiguration.class, KeyStoreUtil.class})
+@Listeners(MockitoTestNGListener.class)
 public class KeyStoreAdminTest extends IdentityBaseTest {
 
     public static final String SERVER_TRUSTSTORE_FILE = "Security.TrustStore.Location";
@@ -72,27 +70,26 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     @Test
     public void testGetPaginatedKeystoreInfo() throws Exception {
 
-        mockStatic(ServerConfiguration.class);
-        when(ServerConfiguration.getInstance()).thenReturn(serverConfiguration);
+        try (MockedStatic<ServerConfiguration> serverConfiguration = mockStatic(ServerConfiguration.class);
+             MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+             MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
+            serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(this.serverConfiguration);
 
-        mockStatic(KeyStoreManager.class);
-        when(KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
-        when(keyStoreManager.getKeyStore("wso2carbon.jks")).thenReturn(getKeyStoreFromFile("wso2carbon.jks",
-                "wso2carbon"));
-        when(serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_FILE)).thenReturn(createPath("wso2carbon.jks").toString());
-        when(serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_PASSWORD)).thenReturn("wso2carbon");
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+            when(this.serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_FILE)).thenReturn(createPath("wso2carbon.jks").toString());
+            when(this.serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_PASSWORD)).thenReturn("wso2carbon");
 
-        mockStatic(KeyStoreUtil.class);
-        when(KeyStoreUtil.isPrimaryStore(any())).thenReturn(true);
+            keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(true);
 
-        mockStatic(KeyStoreManager.class);
-        when(KeyStoreManager.getInstance(tenantID)).thenReturn(keyStoreManager);
-        when(keyStoreManager.getPrimaryKeyStore()).thenReturn(getKeyStoreFromFile("wso2carbon.jks", "wso2carbon"));
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(tenantID)).thenReturn(this.keyStoreManager);
+            when(this.keyStoreManager.getPrimaryKeyStore()).thenReturn(getKeyStoreFromFile("wso2carbon.jks", "wso2carbon"));
 
-        keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
-        PaginatedKeyStoreData result = keyStoreAdmin.getPaginatedKeystoreInfo("wso2carbon.jks", 10);
-        int actualKeysNo = findCertDataSetSize(result.getPaginatedKeyData().getCertDataSet());
-        assertEquals(actualKeysNo, 3, "Incorrect key numbers");
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            PaginatedKeyStoreData result = keyStoreAdmin.getPaginatedKeystoreInfo("wso2carbon.jks", 10);
+            int actualKeysNo = findCertDataSetSize(result.getPaginatedKeyData().getCertDataSet());
+            assertEquals(actualKeysNo, 3, "Incorrect key numbers");
+        }
+
 
     }
 

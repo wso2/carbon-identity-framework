@@ -19,19 +19,20 @@
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.request;
 
 import org.mockito.Mock;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertNotNull;
 
 /**
  * Unit test cases for SessionExtenderRequest.
  */
-public class SessionExtenderRequestTest extends PowerMockTestCase {
+public class SessionExtenderRequestTest {
 
     @Mock
     private HttpServletRequest mockedHttpRequest;
@@ -41,6 +42,12 @@ public class SessionExtenderRequestTest extends PowerMockTestCase {
 
     @Mock
     private Cookie sessionCookie;
+
+    @BeforeMethod
+    public void setUp() {
+
+        initMocks(this);
+    }
 
     @Test
     public void buildTestRequestWithSessionIdParam() throws Exception {

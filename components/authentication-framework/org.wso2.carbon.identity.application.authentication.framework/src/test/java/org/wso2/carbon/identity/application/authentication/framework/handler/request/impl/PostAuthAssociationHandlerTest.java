@@ -18,11 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -66,20 +65,18 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 /**
  * This is a test class for {@link PostAuthAssociationHandler}.
  */
-@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, ClaimMetadataHandler.class, AdminServicesUtil.class
-        , IdentityTenantUtil.class})
-@PowerMockIgnore({"javax.xml.*", "org.mockito.*"})
 public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
 
     public static final String LOCAL_USER = "local-user";
@@ -94,47 +91,64 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
     private static final String SP_MAPPED_ROLE_1 = "everyone";
     private static final String SP_MAPPED_ROLE_2 = "splocnomrole";
 
+    private MockedStatic<FrameworkUtils> frameworkUtils;
+    private MockedStatic<ConfigurationFacade> configurationFacade;
+    private MockedStatic<ClaimMetadataHandler> claimMetadataHandler;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    private MockedStatic<AdminServicesUtil> adminServicesUtil;
+
     @BeforeMethod
     protected void setupSuite() throws Exception {
 
         configurationLoader = new UIBasedConfigurationLoader();
-        mockStatic(FrameworkUtils.class);
-        mockStatic(ConfigurationFacade.class);
-        mockStatic(ClaimMetadataHandler.class);
-        mockStatic(IdentityTenantUtil.class);
-        ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
+        frameworkUtils = mockStatic(FrameworkUtils.class);
+        configurationFacade = mockStatic(ConfigurationFacade.class);
+        claimMetadataHandler = mockStatic(ClaimMetadataHandler.class);
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        adminServicesUtil = mockStatic(AdminServicesUtil.class);
+        ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
 
-        PowerMockito.when(ConfigurationFacade.getInstance()).thenReturn(configurationFacade);
+        configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
 
-        ClaimMetadataHandler claimMetadataHandler = mock(ClaimMetadataHandler.class);
-        PowerMockito.when(ClaimMetadataHandler.getInstance()).thenReturn(claimMetadataHandler);
+        ClaimMetadataHandler mockClaimMetadataHandler = mock(ClaimMetadataHandler.class);
+        claimMetadataHandler.when(ClaimMetadataHandler::getInstance).thenReturn(mockClaimMetadataHandler);
         Map<String, String> emptyMap = new HashMap<>();
-        PowerMockito.when(ClaimMetadataHandler.getInstance().getMappingsMapFromOtherDialectToCarbon(Mockito.anyString(),
+        when(mockClaimMetadataHandler.getMappingsMapFromOtherDialectToCarbon(Mockito.anyString(),
                 Mockito.anySet(), Mockito.anyString(), Mockito.anyBoolean())).thenReturn(emptyMap);
 
         IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
         ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
-        Mockito.doReturn(externalIdPConfig).when(configurationFacade).getIdPConfigByName(Mockito.anyString(), Mockito
-                .anyString());
-        when(FrameworkUtils.isStepBasedSequenceHandlerExecuted(Mockito.any(AuthenticationContext.class)))
+        Mockito.doReturn(externalIdPConfig).when(mockConfigurationFacade).getIdPConfigByName(anyString(), anyString());
+        frameworkUtils.when(() -> FrameworkUtils.isStepBasedSequenceHandlerExecuted(any(AuthenticationContext.class)))
                 .thenCallRealMethod();
-        when(FrameworkUtils.prependUserStoreDomainToName(Mockito.anyString())).thenCallRealMethod();
-        when(FrameworkUtils.buildClaimMappings(Mockito.anyMap())).thenCallRealMethod();
-        when(FrameworkUtils.getStandardDialect(Mockito.anyString(), Mockito.any(ApplicationConfig.class)))
+        frameworkUtils.when(() -> FrameworkUtils.prependUserStoreDomainToName(anyString()))
+                .thenCallRealMethod();
+        frameworkUtils.when(() -> FrameworkUtils.buildClaimMappings(anyMap())).thenCallRealMethod();
+        frameworkUtils.when(() -> FrameworkUtils.getStandardDialect(anyString(), any(ApplicationConfig.class)))
                 .thenCallRealMethod();
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         postAuthAssociationHandler = PostAuthAssociationHandler.getInstance();
         sp = getTestServiceProvider("default-sp-1.xml");
 
-        PowerMockito.when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
-        ClaimHandler claimHandler = PowerMockito.mock(ClaimHandler.class);
+        frameworkUtils.when(FrameworkUtils::getMultiAttributeSeparator).thenReturn(",");
+        ClaimHandler claimHandler = mock(ClaimHandler.class);
         Map<String, String> claims = new HashMap<>();
         claims.put("claim1", "value1");
         claims.put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, String.format("%s,%s", ORI_ROLE_1, ORI_ROLE_2));
         when(claimHandler.handleClaimMappings(any(StepConfig.class),
                 any(AuthenticationContext.class), eq(null), anyBoolean())).thenReturn(claims);
-        PowerMockito.when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
+        frameworkUtils.when(FrameworkUtils::getClaimHandler).thenReturn(claimHandler);
+    }
+
+    @AfterMethod
+    protected void tearDown() {
+
+        frameworkUtils.close();
+        configurationFacade.close();
+        claimMetadataHandler.close();
+        identityTenantUtil.close();
+        adminServicesUtil.close();
     }
 
     @Test(description = "This test case tests the Post Authentication Association handling flow with an authenticated" +
@@ -142,16 +156,16 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
     public void testHandleWithAuthenticatedUserWithFederatedIdpAssociatedToSecondaryUserStore(boolean hasSpRoleMapping)
             throws Exception {
 
-        PowerMockito.spy(AdminServicesUtil.class);
-        PowerMockito.doReturn(null).when(AdminServicesUtil.class, "getUserRealm");
+        adminServicesUtil.when(AdminServicesUtil::getUserRealm).thenReturn(null);
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true, hasSpRoleMapping);
         FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
-        when(FrameworkUtils.getFederatedAssociationManager()).thenReturn(federatedAssociationManager);
+        frameworkUtils.when(FrameworkUtils::getFederatedAssociationManager).thenReturn(federatedAssociationManager);
         doReturn(SECONDARY + "/" + LOCAL_USER).when(federatedAssociationManager).getUserForFederatedAssociation
                 (Mockito.anyString(), eq(null), Mockito.anyString());
-        PowerMockito.when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
 
-        when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
+        frameworkUtils.when(
+                FrameworkUtils::getStepBasedSequenceHandler).thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
         PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postAuthAssociationHandler.handle(request, response,
                 context);
         AuthenticatedUser authUser = context.getSequenceConfig().getAuthenticatedUser();

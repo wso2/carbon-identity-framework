@@ -18,10 +18,8 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt;
 
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
@@ -33,22 +31,20 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.testutil.Whitebox.setInternalState;
 
-@PrepareForTest({IdentityTenantUtil.class, ClaimMetadataEventPublisherProxy.class})
-@PowerMockIgnore("jdk.internal.reflect.*")
 @WithCarbonHome
-public class ClaimMetadataManagementServiceImplTest extends PowerMockTestCase {
+public class ClaimMetadataManagementServiceImplTest {
 
     private static final String EXTERNAL_CLAIM_DIALECT_URI = "https://wso2.org";
     private static final String EXTERNAL_CLAIM_URI = "test";
@@ -61,49 +57,63 @@ public class ClaimMetadataManagementServiceImplTest extends PowerMockTestCase {
 
     @BeforeMethod
     public void setup() {
-
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantId(anyString())).thenReturn(SUPER_TENANT_ID);
-
-        mockStatic(ClaimMetadataEventPublisherProxy.class);
-        when(ClaimMetadataEventPublisherProxy.getInstance()).thenReturn(mock(ClaimMetadataEventPublisherProxy.class));
-
         service = new ClaimMetadataManagementServiceImpl();
     }
 
     @Test
     public void testAddExternalClaim() throws Exception {
 
-        CacheBackedExternalClaimDAO externalClaimDAO = Mockito.mock(CacheBackedExternalClaimDAO.class);
-        when(externalClaimDAO.getExternalClaims(anyString(), anyInt())).thenReturn(new ArrayList<>());
-        setInternalState(service, "externalClaimDAO", externalClaimDAO);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ClaimMetadataEventPublisherProxy> claimMetadataEventPublisherProxy =
+                     mockStatic(ClaimMetadataEventPublisherProxy.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SUPER_TENANT_ID);
+            claimMetadataEventPublisherProxy.when(ClaimMetadataEventPublisherProxy::getInstance)
+                    .thenReturn(mock(ClaimMetadataEventPublisherProxy.class));
+            CacheBackedExternalClaimDAO externalClaimDAO = Mockito.mock(CacheBackedExternalClaimDAO.class);
+            when(externalClaimDAO.getExternalClaims(anyString(), anyInt())).thenReturn(new ArrayList<>());
+            setInternalState(service, "externalClaimDAO", externalClaimDAO);
 
-        service.addExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
-        verify(externalClaimDAO, times(1)).addExternalClaim(any(), anyInt());
+            service.addExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
+            verify(externalClaimDAO, times(1)).addExternalClaim(any(), anyInt());
+        }
     }
 
     @Test(expectedExceptions = ClaimMetadataException.class)
     public void testAddExistingExternalClaim() throws Exception {
 
-        CacheBackedExternalClaimDAO externalClaimDAO = Mockito.mock(CacheBackedExternalClaimDAO.class);
-        when(externalClaimDAO.getExternalClaims(anyString(), anyInt()))
-                .thenReturn(Collections.singletonList(externalClaim));
-        setInternalState(service, "externalClaimDAO", externalClaimDAO);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ClaimMetadataEventPublisherProxy> claimMetadataEventPublisherProxy =
+                     mockStatic(ClaimMetadataEventPublisherProxy.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SUPER_TENANT_ID);
+            claimMetadataEventPublisherProxy.when(ClaimMetadataEventPublisherProxy::getInstance)
+                    .thenReturn(mock(ClaimMetadataEventPublisherProxy.class));
+            CacheBackedExternalClaimDAO externalClaimDAO = Mockito.mock(CacheBackedExternalClaimDAO.class);
+            when(externalClaimDAO.getExternalClaims(anyString(), anyInt()))
+                    .thenReturn(Collections.singletonList(externalClaim));
+            setInternalState(service, "externalClaimDAO", externalClaimDAO);
 
-        service.addExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
+            service.addExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
+        }
     }
 
     @Test(expectedExceptions = ClaimMetadataException.class)
     public void testAddExtClaimWithExistingLocalClaimMapping() throws Exception {
 
-        CacheBackedExternalClaimDAO externalClaimDAO = Mockito.mock(CacheBackedExternalClaimDAO.class);
-        when(externalClaimDAO.getExternalClaims(anyString(), anyInt()))
-                .thenReturn(Collections.singletonList(externalClaim));
-        when(externalClaimDAO.isLocalClaimMappedWithinDialect(MAPPED_LOCAL_CLAIM_URI, EXTERNAL_CLAIM_DIALECT_URI,
-                SUPER_TENANT_ID)).thenReturn(Boolean.TRUE);
-        setInternalState(service, "externalClaimDAO", externalClaimDAO);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ClaimMetadataEventPublisherProxy> claimMetadataEventPublisherProxy =
+                     mockStatic(ClaimMetadataEventPublisherProxy.class)) {
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SUPER_TENANT_ID);
+            claimMetadataEventPublisherProxy.when(ClaimMetadataEventPublisherProxy::getInstance)
+                    .thenReturn(mock(ClaimMetadataEventPublisherProxy.class));
+            CacheBackedExternalClaimDAO externalClaimDAO = Mockito.mock(CacheBackedExternalClaimDAO.class);
+            when(externalClaimDAO.getExternalClaims(anyString(), anyInt()))
+                    .thenReturn(Collections.singletonList(externalClaim));
+            when(externalClaimDAO.isLocalClaimMappedWithinDialect(MAPPED_LOCAL_CLAIM_URI, EXTERNAL_CLAIM_DIALECT_URI,
+                    SUPER_TENANT_ID)).thenReturn(Boolean.TRUE);
+            setInternalState(service, "externalClaimDAO", externalClaimDAO);
 
-        service.addExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
+            service.addExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
+        }
     }
 
 }

@@ -21,15 +21,13 @@ package org.wso2.carbon.identity.user.functionality.mgt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
+import org.mockito.MockedStatic;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
-import org.wso2.carbon.context.internal.CarbonContextDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -54,14 +52,14 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 
-@PrepareForTest({IdentityDatabaseUtil.class, CarbonContextDataHolder.class, IdentityUtil.class,
-        IdentityTenantUtil.class, UserFunctionalityManagerComponentDataHolder.class})
-public class UserFunctionalityManagerImplTest extends PowerMockTestCase {
+@Listeners(MockitoTestNGListener.class)
+public class UserFunctionalityManagerImplTest {
 
     private static final Log log = LogFactory.getLog(UserFunctionalityManagerImplTest.class);
     private UserFunctionalityManagerDAO userFunctionalityManagerDAO = new UserFunctionalityManagerDAOImpl();
@@ -75,46 +73,49 @@ public class UserFunctionalityManagerImplTest extends PowerMockTestCase {
     @Mock
     private UniqueIDUserStoreManager userStoreManager;
     @Mock
-    private UserFunctionalityManagerComponentDataHolder userFunctionalityManagerComponentDataHolder;
+    private UserFunctionalityManagerComponentDataHolder mockUserFunctionalityManagerComponentDataHolder;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
         TestUtils.initiateH2Base();
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(UserFunctionalityMgtConstants.ENABLE_PER_USER_FUNCTIONALITY_LOCKING))
-                .thenReturn("true");
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            identityUtil.when(() -> IdentityUtil
+                            .getProperty(UserFunctionalityMgtConstants.ENABLE_PER_USER_FUNCTIONALITY_LOCKING))
+                    .thenReturn("true");
 
-        try (Connection connection = TestUtils.getConnection()) {
-            Connection spyConnection = TestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
+            try (Connection connection = TestUtils.getConnection()) {
+                Connection spyConnection = TestUtils.spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
 
-            FunctionalityLockStatus functionalityLockStatus1 = new FunctionalityLockStatus(false, 0, null, null);
-            FunctionalityLockStatus functionalityLockStatus2 = new FunctionalityLockStatus(false, 0, null, null);
-            FunctionalityLockStatus functionalityLockStatus3 =
-                    new FunctionalityLockStatus(true, System.currentTimeMillis() + 300000, "E001",
-                            "Lock Reason 1");
-            FunctionalityLockStatus functionalityLockStatus4 =
-                    new FunctionalityLockStatus(true, System.currentTimeMillis() + 300000, "E002",
-                            "Lock Reason 2");
-            FunctionalityLockStatus functionalityLockStatus5 =
-                    new FunctionalityLockStatus(true, Long.MAX_VALUE, "E002",
-                            "Lock Reason 2");
-            try {
-                userFunctionalityManagerDAO
-                        .addFunctionalityLock("user1", 1, "FunctionalityType1", functionalityLockStatus1);
-                userFunctionalityManagerDAO
-                        .addFunctionalityLock("user2", 1, "FunctionalityType2", functionalityLockStatus2);
-                userFunctionalityManagerDAO
-                        .addFunctionalityLock("user3", 1, "FunctionalityType3", functionalityLockStatus3);
-                userFunctionalityManagerDAO
-                        .addFunctionalityLock("user3", 2, "FunctionalityType3", functionalityLockStatus4);
-                userFunctionalityManagerDAO
-                        .addFunctionalityLock("user5", 3, "FunctionalityType5", functionalityLockStatus5);
-            } catch (UserFunctionalityManagementServerException e) {
-                log.error("Error while adding functionality", e);
+                FunctionalityLockStatus functionalityLockStatus1 = new FunctionalityLockStatus(false, 0, null, null);
+                FunctionalityLockStatus functionalityLockStatus2 = new FunctionalityLockStatus(false, 0, null, null);
+                FunctionalityLockStatus functionalityLockStatus3 =
+                        new FunctionalityLockStatus(true, System.currentTimeMillis() + 300000, "E001",
+                                "Lock Reason 1");
+                FunctionalityLockStatus functionalityLockStatus4 =
+                        new FunctionalityLockStatus(true, System.currentTimeMillis() + 300000, "E002",
+                                "Lock Reason 2");
+                FunctionalityLockStatus functionalityLockStatus5 =
+                        new FunctionalityLockStatus(true, Long.MAX_VALUE, "E002",
+                                "Lock Reason 2");
+                try {
+                    userFunctionalityManagerDAO
+                            .addFunctionalityLock("user1", 1, "FunctionalityType1", functionalityLockStatus1);
+                    userFunctionalityManagerDAO
+                            .addFunctionalityLock("user2", 1, "FunctionalityType2", functionalityLockStatus2);
+                    userFunctionalityManagerDAO
+                            .addFunctionalityLock("user3", 1, "FunctionalityType3", functionalityLockStatus3);
+                    userFunctionalityManagerDAO
+                            .addFunctionalityLock("user3", 2, "FunctionalityType3", functionalityLockStatus4);
+                    userFunctionalityManagerDAO
+                            .addFunctionalityLock("user5", 3, "FunctionalityType5", functionalityLockStatus5);
+                } catch (UserFunctionalityManagementServerException e) {
+                    log.error("Error while adding functionality", e);
+                }
             }
         }
     }
@@ -147,22 +148,31 @@ public class UserFunctionalityManagerImplTest extends PowerMockTestCase {
                                                  boolean expected) {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        try {
-            try (Connection connection = TestUtils.getConnection()) {
-                Connection spyConnection = TestUtils.spyConnection(connection);
-                when(dataSource.getConnection()).thenReturn(spyConnection);
-                try {
-                    mockIsUserStoreManager(userId);
-                    assertEquals(userFunctionalityManager
-                                    .getLockStatus(userId, tenantId, functionalityIdentifier).getLockStatus(),
-                            expected);
-                } catch (UserFunctionalityManagementException | UserStoreException e) {
-                    log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<UserFunctionalityManagerComponentDataHolder> dataHolder =
+                     mockStatic(UserFunctionalityManagerComponentDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            identityUtil.when(() -> IdentityUtil
+                            .getProperty(UserFunctionalityMgtConstants.ENABLE_PER_USER_FUNCTIONALITY_LOCKING))
+                    .thenReturn("true");
+            try {
+                try (Connection connection = TestUtils.getConnection()) {
+                    Connection spyConnection = TestUtils.spyConnection(connection);
+                    when(dataSource.getConnection()).thenReturn(spyConnection);
+                    try {
+                        mockIsUserStoreManager(userId, dataHolder, identityTenantUtil);
+                        assertEquals(userFunctionalityManager
+                                        .getLockStatus(userId, tenantId, functionalityIdentifier).getLockStatus(),
+                                expected);
+                    } catch (UserFunctionalityManagementException | UserStoreException e) {
+                        log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
+                    }
                 }
+            } catch (SQLException e) {
+                log.error("SQL Exception", e);
             }
-        } catch (SQLException e) {
-            log.error("SQL Exception", e);
         }
     }
 
@@ -192,25 +202,35 @@ public class UserFunctionalityManagerImplTest extends PowerMockTestCase {
                                                    Map<String, String> properties) {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<UserFunctionalityManagerComponentDataHolder> dataHolder =
+                     mockStatic(UserFunctionalityManagerComponentDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            identityUtil.when(() -> IdentityUtil
+                            .getProperty(UserFunctionalityMgtConstants.ENABLE_PER_USER_FUNCTIONALITY_LOCKING))
+                    .thenReturn("true");
 
-        try {
-            try (Connection connection = TestUtils.getConnection()) {
-                Connection spyConnection = TestUtils.spyConnection(connection);
-                when(dataSource.getConnection()).thenReturn(spyConnection);
-                try {
-                    mockIsUserStoreManager(userId);
-                    userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, properties);
-                    assertEquals(userFunctionalityManager.getProperties(userId, tenantId, functionalityIdentifier),
-                            properties);
-                } catch (UserFunctionalityManagementException e) {
-                    log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
-                } catch (UserStoreException e) {
-                    log.error("Error while checking userid in userstore", e);
+            try {
+                try (Connection connection = TestUtils.getConnection()) {
+                    Connection spyConnection = TestUtils.spyConnection(connection);
+                    when(dataSource.getConnection()).thenReturn(spyConnection);
+                    try {
+                        mockIsUserStoreManager(userId, dataHolder, identityTenantUtil);
+                        userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier,
+                                properties);
+                        assertEquals(userFunctionalityManager.getProperties(userId, tenantId, functionalityIdentifier),
+                                properties);
+                    } catch (UserFunctionalityManagementException e) {
+                        log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
+                    } catch (UserStoreException e) {
+                        log.error("Error while checking userid in userstore", e);
+                    }
                 }
+            } catch (SQLException e) {
+                log.error("SQL Exception", e);
             }
-        } catch (SQLException e) {
-            log.error("SQL Exception", e);
         }
     }
 
@@ -283,19 +303,28 @@ public class UserFunctionalityManagerImplTest extends PowerMockTestCase {
                                                    Map<String, String> expectedProperties) {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        try (Connection connection = TestUtils.getConnection()) {
-            Connection spyConnection = TestUtils.spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            mockIsUserStoreManager(userId);
-            userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, properties);
-            userFunctionalityManager.setProperties(userId, tenantId, functionalityIdentifier, propertiesToUpdate);
-            Map<String, String> functionalityLockProperties =
-                    userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<UserFunctionalityManagerComponentDataHolder> dataHolder =
+                     mockStatic(UserFunctionalityManagerComponentDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            identityUtil.when(() -> IdentityUtil
+                            .getProperty(UserFunctionalityMgtConstants.ENABLE_PER_USER_FUNCTIONALITY_LOCKING))
+                    .thenReturn("true");
+            try (Connection connection = TestUtils.getConnection()) {
+                Connection spyConnection = TestUtils.spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                mockIsUserStoreManager(userId, dataHolder, identityTenantUtil);
+                userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, properties);
+                userFunctionalityManager.setProperties(userId, tenantId, functionalityIdentifier, propertiesToUpdate);
+                Map<String, String> functionalityLockProperties =
+                        userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
 
-            assertEquals(functionalityLockProperties, expectedProperties);
-        } catch (SQLException | UserFunctionalityManagementException | UserStoreException e) {
-            //Mock behaviour. Hence ignored.
+                assertEquals(functionalityLockProperties, expectedProperties);
+            } catch (SQLException | UserFunctionalityManagementException | UserStoreException e) {
+                //Mock behaviour. Hence ignored.
+            }
         }
     }
 
@@ -320,26 +349,35 @@ public class UserFunctionalityManagerImplTest extends PowerMockTestCase {
                                                       String expected) {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        try {
-            try (Connection connection = TestUtils.getConnection()) {
-                Connection spyConnection = TestUtils.spyConnection(connection);
-                when(dataSource.getConnection()).thenReturn(spyConnection);
-                try {
-                    mockIsUserStoreManager(userId);
-                    assertEquals(
-                            userFunctionalityManager
-                                    .getLockStatus(userId, tenantId, functionalityIdentifier)
-                                    .getLockReason(),
-                            expected);
-                } catch (UserFunctionalityManagementException e) {
-                    log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
-                } catch (UserStoreException e) {
-                    log.error("Error while checking userid in userstore", e);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<UserFunctionalityManagerComponentDataHolder> dataHolder =
+                     mockStatic(UserFunctionalityManagerComponentDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            identityUtil.when(() -> IdentityUtil
+                            .getProperty(UserFunctionalityMgtConstants.ENABLE_PER_USER_FUNCTIONALITY_LOCKING))
+                    .thenReturn("true");
+            try {
+                try (Connection connection = TestUtils.getConnection()) {
+                    Connection spyConnection = TestUtils.spyConnection(connection);
+                    when(dataSource.getConnection()).thenReturn(spyConnection);
+                    try {
+                        mockIsUserStoreManager(userId, dataHolder, identityTenantUtil);
+                        assertEquals(
+                                userFunctionalityManager
+                                        .getLockStatus(userId, tenantId, functionalityIdentifier)
+                                        .getLockReason(),
+                                expected);
+                    } catch (UserFunctionalityManagementException e) {
+                        log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
+                    } catch (UserStoreException e) {
+                        log.error("Error while checking userid in userstore", e);
+                    }
                 }
+            } catch (SQLException e) {
+                log.error("SQL Exception", e);
             }
-        } catch (SQLException e) {
-            log.error("SQL Exception", e);
         }
     }
 
@@ -364,32 +402,42 @@ public class UserFunctionalityManagerImplTest extends PowerMockTestCase {
                                              boolean expected) {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        long functionalityUnlockTime = System.currentTimeMillis() + 300000;
-        String functionalityLockReasonCode = "Lock code";
-        String functionalityLockReason = "Lock Reason 2";
-        try {
-            try (Connection connection = TestUtils.getConnection()) {
-                Connection spyConnection = TestUtils.spyConnection(connection);
-                when(dataSource.getConnection()).thenReturn(spyConnection);
-                try {
-                    mockIsUserStoreManager(userId);
-                    userFunctionalityManager.lock(userId, tenantId, functionalityIdentifier, functionalityUnlockTime,
-                            functionalityLockReasonCode, functionalityLockReason);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<UserFunctionalityManagerComponentDataHolder> dataHolder =
+                     mockStatic(UserFunctionalityManagerComponentDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            identityUtil.when(() -> IdentityUtil
+                            .getProperty(UserFunctionalityMgtConstants.ENABLE_PER_USER_FUNCTIONALITY_LOCKING))
+                    .thenReturn("true");
+            long functionalityUnlockTime = System.currentTimeMillis() + 300000;
+            String functionalityLockReasonCode = "Lock code";
+            String functionalityLockReason = "Lock Reason 2";
+            try {
+                try (Connection connection = TestUtils.getConnection()) {
+                    Connection spyConnection = TestUtils.spyConnection(connection);
+                    when(dataSource.getConnection()).thenReturn(spyConnection);
+                    try {
+                        mockIsUserStoreManager(userId, dataHolder, identityTenantUtil);
+                        userFunctionalityManager.lock(userId, tenantId, functionalityIdentifier,
+                                functionalityUnlockTime,
+                                functionalityLockReasonCode, functionalityLockReason);
 
-                    assertEquals(userFunctionalityManager
-                                    .getLockStatus(userId, tenantId, functionalityIdentifier).getLockStatus(),
-                            expected);
-                    assertEquals(userFunctionalityManager.getLockStatus(userId, tenantId, functionalityIdentifier)
-                            .getLockReason(), functionalityLockReason);
-                } catch (UserFunctionalityManagementException e) {
-                    log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
-                } catch (UserStoreException e) {
-                    log.error("Error while checking userid in userstore", e);
+                        assertEquals(userFunctionalityManager
+                                        .getLockStatus(userId, tenantId, functionalityIdentifier).getLockStatus(),
+                                expected);
+                        assertEquals(userFunctionalityManager.getLockStatus(userId, tenantId, functionalityIdentifier)
+                                .getLockReason(), functionalityLockReason);
+                    } catch (UserFunctionalityManagementException e) {
+                        log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
+                    } catch (UserStoreException e) {
+                        log.error("Error while checking userid in userstore", e);
+                    }
                 }
+            } catch (SQLException e) {
+                log.error("SQL Exception", e);
             }
-        } catch (SQLException e) {
-            log.error("SQL Exception", e);
         }
     }
 
@@ -414,43 +462,49 @@ public class UserFunctionalityManagerImplTest extends PowerMockTestCase {
                                                boolean isFunctionalityLocked) {
 
         DataSource dataSource = mock(DataSource.class);
-        TestUtils.mockDataSource(dataSource);
-        try {
-            try (Connection connection = TestUtils.getConnection()) {
-                Connection spyConnection = TestUtils.spyConnection(connection);
-                when(dataSource.getConnection()).thenReturn(spyConnection);
-                try {
-                    mockIsUserStoreManager(userId);
-                    assertEquals(userFunctionalityManager
-                                    .getLockStatus(userId, tenantId, functionalityIdentifier).getLockStatus(),
-                            isFunctionalityLocked);
-                    userFunctionalityManager.unlock(userId, tenantId, functionalityIdentifier);
-                    assertEquals(userFunctionalityManager
-                                    .getLockStatus(userId, tenantId, functionalityIdentifier).getLockStatus(),
-                            false);
-                } catch (UserFunctionalityManagementException e) {
-                    log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
-                } catch (UserStoreException e) {
-                    log.error("Error while checking userid in userstore", e);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             MockedStatic<UserFunctionalityManagerComponentDataHolder> dataHolder =
+                     mockStatic(UserFunctionalityManagerComponentDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            identityUtil.when(() -> IdentityUtil
+                            .getProperty(UserFunctionalityMgtConstants.ENABLE_PER_USER_FUNCTIONALITY_LOCKING))
+                    .thenReturn("true");
+            try {
+                try (Connection connection = TestUtils.getConnection()) {
+                    Connection spyConnection = TestUtils.spyConnection(connection);
+                    when(dataSource.getConnection()).thenReturn(spyConnection);
+                    try {
+                        mockIsUserStoreManager(userId, dataHolder, identityTenantUtil);
+                        assertEquals(userFunctionalityManager
+                                        .getLockStatus(userId, tenantId, functionalityIdentifier).getLockStatus(),
+                                isFunctionalityLocked);
+                        userFunctionalityManager.unlock(userId, tenantId, functionalityIdentifier);
+                        assertEquals(userFunctionalityManager
+                                        .getLockStatus(userId, tenantId, functionalityIdentifier).getLockStatus(),
+                                false);
+                    } catch (UserFunctionalityManagementException e) {
+                        log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
+                    } catch (UserStoreException e) {
+                        log.error("Error while checking userid in userstore", e);
+                    }
                 }
+            } catch (SQLException e) {
+                log.error("SQL Exception", e);
             }
-        } catch (SQLException e) {
-            log.error("SQL Exception", e);
         }
 
     }
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
+    private void mockIsUserStoreManager(String userId,
+                                        MockedStatic<UserFunctionalityManagerComponentDataHolder> dataHolder,
+                                        MockedStatic<IdentityTenantUtil> identityTenantUtil) throws UserStoreException {
 
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
-
-    private void mockIsUserStoreManager(String userId) throws UserStoreException {
-
-        TestUtils.mockUserFunctionalityManagerComponentDataHolder(userFunctionalityManagerComponentDataHolder);
-        TestUtils.mockIdentityTenantUtil();
-        TestUtils.mockUserStoreManager(userFunctionalityManagerComponentDataHolder, realmService, userRealm,
+        dataHolder.when(UserFunctionalityManagerComponentDataHolder::getInstance)
+                .thenReturn(mockUserFunctionalityManagerComponentDataHolder);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("carbon.super");
+        TestUtils.mockUserStoreManager(mockUserFunctionalityManagerComponentDataHolder, realmService, userRealm,
                 userStoreManager);
         when(userStoreManager.isExistingUserWithID(userId)).thenReturn(true);
     }

@@ -17,10 +17,9 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -30,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest.IdentityRequestBuilder;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.core.handler.InitConfig;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -45,17 +45,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 /**
  * Unit tests for {@link HttpIdentityRequestFactory}
  */
-@PrepareForTest(IdentityUtil.class)
-public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
+public class HttpIdentityRequestFactoryTest {
 
     private static final String ERROR_MESSAGE = "CLIENT_ERROR_MESSAGE";
 
@@ -82,10 +82,12 @@ public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
     @Test
     public void testInit() throws Exception {
         // Mock returning a null after reading event listener configs
-        Util.mockReturnNullEventListenerConfig();
-        InitConfig initConfig = new InitConfig();
-        httpIdentityRequestFactory.init(initConfig);
-        assertEquals(httpIdentityRequestFactory.properties.size(), 0);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.readEventListenerProperty(anyString(), anyString())).thenReturn(null);
+            InitConfig initConfig = new InitConfig();
+            httpIdentityRequestFactory.init(initConfig);
+            assertEquals(httpIdentityRequestFactory.properties.size(), 0);
+        }
     }
 
     @DataProvider(name = "initConfigDataProvider")
@@ -97,9 +99,14 @@ public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
     public void testInitWithDuplicateEventListenerProperties(Properties eventListenerProperties,
                                                              Properties expectedListenerProperties) throws Exception {
 
-        Util.mockReturnEventListenerConfigWithProperties(eventListenerProperties);
-        httpIdentityRequestFactory.init(new InitConfig());
-        Util.assertPropertiesEqual(httpIdentityRequestFactory.properties, expectedListenerProperties);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            IdentityEventListenerConfig identityEventListenerConfig =
+                    new IdentityEventListenerConfig("true", 1, null, eventListenerProperties);
+            identityUtil.when(() -> IdentityUtil.readEventListenerProperty(anyString(), anyString()))
+                    .thenReturn(identityEventListenerConfig);
+            httpIdentityRequestFactory.init(new InitConfig());
+            Util.assertPropertiesEqual(httpIdentityRequestFactory.properties, expectedListenerProperties);
+        }
     }
 
     @Test

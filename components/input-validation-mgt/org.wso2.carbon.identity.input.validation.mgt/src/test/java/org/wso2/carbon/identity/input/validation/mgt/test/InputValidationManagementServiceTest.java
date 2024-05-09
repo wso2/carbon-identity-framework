@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.input.validation.mgt.test;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
@@ -46,27 +46,33 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_NAME_PREFIX;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VAL_CONFIG_RESOURCE_TYPE_NAME;
 
 /**
  * Testing the InputValidationManagementService class
  */
-@PrepareForTest({ InputValidationDataHolder.class })
-public class InputValidationManagementServiceTest extends PowerMockTestCase {
+public class InputValidationManagementServiceTest {
 
     private InputValidationManagementService service;
     private String tenantName = "testTenant";
     private String fieldPassword = "password";
     private String fieldUsername = "username";
+    private MockedStatic<InputValidationDataHolder> inputValidationDataHolder;
 
     @BeforeMethod
     public void setup() {
 
         service = new InputValidationManagementServiceImpl();
-        mockStatic(InputValidationDataHolder.class);
+        inputValidationDataHolder = mockStatic(InputValidationDataHolder.class);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        inputValidationDataHolder.close();
     }
 
     @Test

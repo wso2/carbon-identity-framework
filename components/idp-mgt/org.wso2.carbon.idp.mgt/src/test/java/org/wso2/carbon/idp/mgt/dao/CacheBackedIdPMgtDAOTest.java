@@ -20,8 +20,7 @@ package org.wso2.carbon.idp.mgt.dao;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -48,6 +47,7 @@ import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.cache.IdPCacheByAuthProperty;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByHRI;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByMetadataProperty;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByName;
@@ -61,7 +61,6 @@ import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 
-import javax.sql.DataSource;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -73,12 +72,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.anyObject;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
@@ -87,9 +86,7 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIO
 /**
  * Unit tests for CacheBackedIdPManagementDAO.
  */
-@PrepareForTest({IdentityDatabaseUtil.class, DataSource.class, IdentityTenantUtil.class, IdentityUtil.class,
-        CarbonContext.class, IdpMgtServiceComponentHolder.class})
-public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
+public class CacheBackedIdPMgtDAOTest {
 
     private static final String DB_NAME = "test";
 
@@ -107,6 +104,9 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
 
     private CacheBackedIdPMgtDAO cacheBackedIdPMgtDAO;
     private IdPManagementDAO idPManagementDAO;
+
+    MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    MockedStatic<IdpMgtServiceComponentHolder> idpMgtServiceComponentHolder;
 
     private void initiateH2Database(String databaseName, String scriptPath) throws Exception {
 
@@ -152,25 +152,40 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         idPManagementDAO = new IdPManagementDAO();
         cacheBackedIdPMgtDAO = new CacheBackedIdPMgtDAO(idPManagementDAO);
         initiateH2Database(DB_NAME, getFilePath("h2.sql"));
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
-        mockStatic(IdpMgtServiceComponentHolder.class);
-        IdpMgtServiceComponentHolder idpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
-        when(IdpMgtServiceComponentHolder.getInstance()).thenReturn(idpMgtServiceComponentHolder);
+
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
+        idpMgtServiceComponentHolder = mockStatic(IdpMgtServiceComponentHolder.class);
+        IdpMgtServiceComponentHolder mockIdpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
+        idpMgtServiceComponentHolder.when(
+                IdpMgtServiceComponentHolder::getInstance).thenReturn(mockIdpMgtServiceComponentHolder);
         SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
                 IdPSecretsProcessor.class);
-        when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService())
+        when(mockIdpMgtServiceComponentHolder.getIdPSecretsProcessorService())
                 .thenReturn(idpSecretsProcessor);
-        when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService()
-                .decryptAssociatedSecrets(anyObject())).thenAnswer(invocation -> invocation.getArguments()[0]);
-        when(IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService()
-                .encryptAssociatedSecrets(anyObject())).thenAnswer(invocation -> invocation.getArguments()[0]);
+        when(mockIdpMgtServiceComponentHolder.getIdPSecretsProcessorService()
+                .decryptAssociatedSecrets(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
+        when(mockIdpMgtServiceComponentHolder.getIdPSecretsProcessorService()
+                .encryptAssociatedSecrets(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            // Deleting IDP.
+            cacheBackedIdPMgtDAO.deleteIdP("testIdP1New", -1234, TENANT_DOMAIN);
+            cacheBackedIdPMgtDAO.deleteIdP("testIdP2New", -1234, TENANT_DOMAIN);
+            cacheBackedIdPMgtDAO.deleteIdP("testIdP3New", SAMPLE_TENANT_ID2, TENANT_DOMAIN);
+        }
+
         closeH2Database();
+        identityTenantUtil.close();
+        idpMgtServiceComponentHolder.close();
     }
 
     @DataProvider
@@ -186,10 +201,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "getIdPsData")
     public void testGetIdPs(int tenantId, int idpCount) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
 
             // Directly providing initiated db connection as connection parameter.
@@ -205,14 +220,16 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "getIdPsData")
     public void testGetIdPsException(int tenantId, int idpCount) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
-            addTestIdps();
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            try (Connection connection = getConnection(DB_NAME)) {
+                identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                        .thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+                addTestIdps();
+            }
+            assertThrows(IdentityProviderManagementException.class, () ->
+                    cacheBackedIdPMgtDAO.getIdPs(null, tenantId, TENANT_DOMAIN));
         }
-        assertThrows(IdentityProviderManagementException.class, () ->
-                cacheBackedIdPMgtDAO.getIdPs(null, tenantId, TENANT_DOMAIN));
     }
 
     @DataProvider
@@ -233,11 +250,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "getIdPsSearchData")
     public void testGetIdPsSearch(int tenantId, String filter, int resultCount) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
 
             // Directly providing initiated db connection as connection parameter.
@@ -256,15 +273,16 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public void testGetIdPsSearchException(int tenantId, String filter, int resultCount)
             throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
-            addTestIdps();
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            try (Connection connection = getConnection(DB_NAME)) {
+                identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+                addTestIdps();
+            }
+            assertThrows(IdentityProviderManagementException.class, () ->
+                    cacheBackedIdPMgtDAO.getIdPsSearch(null, tenantId, TENANT_DOMAIN, filter));
         }
-        assertThrows(IdentityProviderManagementException.class, () ->
-                cacheBackedIdPMgtDAO.getIdPsSearch(null, tenantId, TENANT_DOMAIN, filter));
     }
 
     @DataProvider
@@ -289,10 +307,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public void testGetPaginatedIdPsSearch(List<ExpressionNode> expressionNodes, int limit, int offset, String order,
                                            String sortBy, List<String> attributes, int count) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             List<IdentityProvider> idpList = cacheBackedIdPMgtDAO.getPaginatedIdPsSearch(SAMPLE_TENANT_ID1,
                     expressionNodes, limit, offset, order, sortBy, attributes);
@@ -308,11 +326,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         expressionNodes.add(expressionNode);
         List<String> attributes = Arrays.asList("WrongAttribute");
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             assertThrows(IdentityProviderManagementClientException.class, () ->
                     cacheBackedIdPMgtDAO.getPaginatedIdPsSearch(SAMPLE_TENANT_ID1, expressionNodes, 2, 0,
@@ -343,10 +361,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "getTotalIdPCountData")
     public void testGetTotalIdPCount(int tenantId, List<ExpressionNode> expressionNodes, int count) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             int resultCount = cacheBackedIdPMgtDAO.getTotalIdPCount(tenantId, expressionNodes);
             assertEquals(resultCount, count);
@@ -357,14 +375,15 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public void testGetTotalIdPCountException(int tenantId, List<ExpressionNode> expressionNodes, int count)
             throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
-            addTestIdps();
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            try (Connection connection = getConnection(DB_NAME)) {
+                identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+                addTestIdps();
+            }
+            assertThrows(IdentityProviderManagementException.class, () ->
+                    cacheBackedIdPMgtDAO.getTotalIdPCount(tenantId, expressionNodes));
         }
-        assertThrows(IdentityProviderManagementException.class, () ->
-                cacheBackedIdPMgtDAO.getTotalIdPCount(tenantId, expressionNodes));
     }
 
     @DataProvider
@@ -377,15 +396,16 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
         };
     }
 
+    // TODO failing test start
     @Test(dataProvider = "getIdPByNameData")
     public void testGetIdPByName(String idpName, int tenantId, boolean isExist) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
-            
+
             // Retrieving IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName,
                     tenantId, TENANT_DOMAIN);
@@ -421,10 +441,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "getIdPByIdData")
     public void testGetIdPById(String idpName, int idpId, int tenantId, boolean isExist) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP form DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPById(connection, idpId, tenantId, TENANT_DOMAIN);
@@ -458,10 +478,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "getIDPbyResourceIdData")
     public void testGetIDPbyResourceId(String idpName, int tenantId, boolean isExist) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             String uuid = "";
             // Retrieving IDP from DB.
@@ -501,11 +521,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "getIDPNameByResourceIdData")
     public void testGetIdPNameByResourceId(String idpName, int tenantId) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
 
             String uuid = "";
@@ -516,20 +536,21 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             IdentityProvider idpFromDB = cacheBackedIdPMgtDAO.getIdPByResourceId(uuid, tenantId, TENANT_DOMAIN);
             IdentityProvider idpFromCache = idpFromCacheByResourceId(uuid);
 
-            mockStatic(CarbonContext.class);
-            CarbonContext carbonContext = mock(CarbonContext.class);
-            when(CarbonContext.getThreadLocalCarbonContext()).thenReturn(carbonContext);
-            when(CarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn(TENANT_DOMAIN);
-            // Retrieving IDP name from cache using resourceId as cache key.
-            String name = cacheBackedIdPMgtDAO.getIdPNameByResourceId(uuid);
+            try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
+                CarbonContext mockCarbonContext = mock(CarbonContext.class);
+                carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+                when(CarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn(TENANT_DOMAIN);
+                // Retrieving IDP name from cache using resourceId as cache key.
+                String name = cacheBackedIdPMgtDAO.getIdPNameByResourceId(uuid);
 
-            if (idpFromCache != null) {
-                assertEquals(idpFromCache.getIdentityProviderName(), idpName,
-                        "'getIDPNameByResourceId' method fails");
-                assertEquals(idpFromCache.getIdentityProviderName(), idpName,
-                        "'getIDPNameByResourceId' method fails");
+                if (idpFromCache != null) {
+                    assertEquals(idpFromCache.getIdentityProviderName(), idpName,
+                            "'getIDPNameByResourceId' method fails");
+                    assertEquals(idpFromCache.getIdentityProviderName(), idpName,
+                            "'getIDPNameByResourceId' method fails");
+                }
+                assertEquals(name, idpName);
             }
-            assertEquals(name, idpName);
         }
     }
 
@@ -548,10 +569,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
                                                                            String value, boolean isExist)
             throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP from DB.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByAuthenticatorPropertyValue(connection, property,
@@ -563,11 +584,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
                 idpFromCache = idpFromCacheByName(idpName);
             }
             if (isExist) {
-                assertEquals(idpResult.getIdentityProviderName(), idpName, 
+                assertEquals(idpResult.getIdentityProviderName(), idpName,
                         "''getIdPByAuthenticatorPropertyValue' method fails");
                 if (idpFromCache != null) {
                     assertEquals(idpFromCache.getIdentityProviderName(), idpName,
-                            "''getIdPByAuthenticatorPropertyValue' method fails");   
+                            "''getIdPByAuthenticatorPropertyValue' method fails");
                 }
             } else {
                 assertNull(idpResult, "'getIdPByAuthenticatorPropertyValue' method fails");
@@ -589,10 +610,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public void testGetIdPByAuthenticatorPropertyValue(String idpName, String property, String value,
                                                        String authenticator, boolean isExist) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP from DB.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByAuthenticatorPropertyValue(connection, property,
@@ -600,10 +621,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
             IdentityProvider idpFromCache = new IdentityProvider();
             if (isExist) {
                 // Retrieving IDP from cache using name as cache key.
-                idpFromCache = idpFromCacheByName(idpName);                                           
+                idpFromCache = idpFromCacheByName(idpName);
             }
             if (isExist) {
-                assertEquals(idpResult.getIdentityProviderName(), idpName, 
+                assertEquals(idpResult.getIdentityProviderName(), idpName,
                         "''getIdPByAuthenticatorPropertyValue' method fails");
                 if (idpFromCache != null) {
                     assertEquals(idpFromCache.getIdentityProviderName(), idpName,
@@ -629,10 +650,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "getIdPByRealmIdData")
     public void testGetIdPRealmId(String idpName, String realmId, int tenantId, boolean isExist) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP from DB.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByRealmId(realmId, tenantId, TENANT_DOMAIN);
@@ -669,11 +690,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "getEnabledIdPByRealmIdData")
     public void testGetEnabledIdPRealmId(String idpName, String realmId, int tenantId, boolean isExist, boolean isEnabled) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+              Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps(connection);
             // Retrieving IDP from DB.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getEnabledIdPByRealmId(realmId, tenantId, TENANT_DOMAIN);
@@ -789,10 +810,10 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "addIdPData")
     public void testAddIdP(Object identityProvider, int tenantId) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             String resourceId = cacheBackedIdPMgtDAO.addIdP(((IdentityProvider) identityProvider),
                     tenantId, TENANT_DOMAIN);
             // Retrieving IDP from DB and adding to cache.
@@ -941,13 +962,15 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "updateIdPData")
     public void testUpdateIdP(Object oldIdP, Object newIdP, int tenantId) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        mockStatic(IdentityUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityUtil.getProperty(RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE)).thenReturn("false");
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            identityUtil.when(() -> IdentityUtil.getProperty(RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE))
+                    .thenReturn("false");
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDataSource())
+                    .thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             cacheBackedIdPMgtDAO.updateIdP((IdentityProvider) newIdP, (IdentityProvider) oldIdP,
                     tenantId, TENANT_DOMAIN);
@@ -968,13 +991,13 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "updateIdPData")
     public void testGetUpdatedIdPByResourceId(Object oldIdP, Object newIdP, int tenantId) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        mockStatic(IdentityUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityUtil.getProperty(RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE)).thenReturn("false");
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityUtil.when(() -> IdentityUtil.getProperty(RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE)).thenReturn("false");
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             String oldIdPName = ((IdentityProvider) oldIdP).getIdentityProviderName();
             // Retrieving IDP from DB.
@@ -1015,13 +1038,13 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "updateIdPData")
     public void testUpdateIdPException(Object oldIdp, Object newIdp, int tenantId) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        mockStatic(IdentityUtil.class);
 
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityUtil.getProperty(RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE)).thenReturn("false");
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityUtil.when(() -> IdentityUtil.getProperty(RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE)).thenReturn("false");
 
             assertThrows(IdentityProviderManagementException.class, () ->
                     cacheBackedIdPMgtDAO.updateIdP((IdentityProvider) newIdp, ((IdentityProvider) oldIdp), tenantId,
@@ -1041,11 +1064,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "deleteIdPData")
     public void testDeleteIdP(String idpName, int tenantId) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName,
@@ -1076,11 +1099,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "deleteIdPsData")
     public void testDeleteIdPs(int tenantId) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Deleting multiple IDPs on a tenant.
             idPManagementDAO.deleteIdPs(tenantId);
@@ -1104,11 +1127,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "deleteIdPData")
     public void testDeleteIdPByResourceId(String idpName, int tenantId) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(()->IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // ResourceId of IDP retrieved from DB.
             String uuid = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN)
@@ -1125,11 +1148,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "deleteIdPData")
     public void testForceDeleteIdPByResourceId(String idpName, int tenantId) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // ResourceId of IDP retrieved from DB.
             String uuid = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN)
@@ -1156,11 +1179,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "addIdPCacheData")
     public void testAddIdPCache(String idpName, int tenantId, boolean isExist) throws Exception{
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP from DB.
             IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
@@ -1190,11 +1213,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "clearIdPCacheData")
     public void testClearIdpCache(String idpName, int tenantId, boolean isExist) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName,
@@ -1220,11 +1243,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "deleteTenantRoleData")
     public void testDeleteTenantRole(String role) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Deleting tenant role.
             cacheBackedIdPMgtDAO.deleteTenantRole(SAMPLE_TENANT_ID1, role, TENANT_DOMAIN);
@@ -1265,11 +1288,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     @Test(dataProvider = "renameTenantRoleData")
     public void testRenameTenantRoleData(String newRole, String oldRole, int count) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Renaming tenant role.
             cacheBackedIdPMgtDAO.renameTenantRole(newRole, oldRole, SAMPLE_TENANT_ID1, TENANT_DOMAIN);
@@ -1308,11 +1331,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public void testIsIdPAvailableForAuthenticatorProperty(String authenticator, String property,
                                                            String value, boolean isAvailable) throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             boolean availabilityResult = cacheBackedIdPMgtDAO.isIdPAvailableForAuthenticatorProperty(authenticator,
                     property, value, SAMPLE_TENANT_ID1);
@@ -1325,16 +1348,19 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
                                                                     String value, boolean isAvailable)
                                                                     throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
-            addTestIdps();
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+
+            try (Connection connection = getConnection(DB_NAME)) {
+                identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                        .thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+                addTestIdps();
+            }
+            assertThrows(IdentityProviderManagementException.class, () ->
+                    cacheBackedIdPMgtDAO.isIdPAvailableForAuthenticatorProperty(authenticator, property, value,
+                            SAMPLE_TENANT_ID1));
         }
-        assertThrows(IdentityProviderManagementException.class, () ->
-                cacheBackedIdPMgtDAO.isIdPAvailableForAuthenticatorProperty(authenticator, property, value,
-                        SAMPLE_TENANT_ID1));
     }
 
     @DataProvider
@@ -1350,11 +1376,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public void testGetConnectedApplications(String idpName, int limit, int offset, int count)
             throws  Exception{
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP from DB.
             IdentityProvider idp = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, SAMPLE_TENANT_ID1,
@@ -1379,11 +1405,11 @@ public class CacheBackedIdPMgtDAOTest extends PowerMockTestCase {
     public void testGetIdPNameByMetadataProperty(String idpName, String property, String value, int tenantId)
             throws Exception {
 
-        mockStatic(IdentityDatabaseUtil.class);
-        try (Connection connection = getConnection(DB_NAME)) {
-            when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
-            when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSourceMap.get(DB_NAME));
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP from DB and adding to cache using Metadata property.
             String outputName = cacheBackedIdPMgtDAO.getIdPNameByMetadataProperty(connection, property, value, tenantId,

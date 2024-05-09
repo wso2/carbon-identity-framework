@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -42,8 +42,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
@@ -55,8 +55,6 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  * Unit tests for {@link DefaultRequestCoordinator}.
  */
 @WithCarbonHome
-@PrepareForTest({IdentityTenantUtil.class, FrameworkUtils.class,
-                SessionNonceCookieUtil.class})
 public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
     private DefaultRequestCoordinator requestCoordinator;
@@ -98,22 +96,25 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
                                                         String tenantDomainInRequestParam,
                                                         String expected) throws Exception {
 
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(isTenantQualifiedUrlModeEnabled);
-        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantDomainInThreadLocal);
-        IdentityEventService identityEventService = mock(IdentityEventService.class);
-        CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtil.when(
+                    IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualifiedUrlModeEnabled);
+            identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext)
+                    .thenReturn(tenantDomainInThreadLocal);
+            IdentityEventService identityEventService = mock(IdentityEventService.class);
+            CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getParameter(TYPE)).thenReturn("oauth");
-        when(request.getParameter(LOGOUT)).thenReturn("true");
-        when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomainInRequestParam);
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getParameter(TYPE)).thenReturn("oauth");
+            when(request.getParameter(LOGOUT)).thenReturn("true");
+            when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomainInRequestParam);
 
-        HttpServletResponse response = mock(HttpServletResponse.class);
+            HttpServletResponse response = mock(HttpServletResponse.class);
 
-        AuthenticationContext context = requestCoordinator.initializeFlow(request, response);
+            AuthenticationContext context = requestCoordinator.initializeFlow(request, response);
 
-        assertEquals(context.getTenantDomain(), expected);
+            assertEquals(context.getTenantDomain(), expected);
+        }
     }
 
     @DataProvider(name = "contextDataProvider")
@@ -157,25 +158,31 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
     @Test
     public void testCookieValidationFailedException() {
-        mockStatic(FrameworkUtils.class);
-        mockStatic(SessionNonceCookieUtil.class);
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-        SequenceConfig sequenceConfig = mock(SequenceConfig.class);
-        DefaultAuthenticationRequestHandler authenticationRequestHandler = new DefaultAuthenticationRequestHandler();
-        AuthenticationContext context = mock(AuthenticationContext.class);
-        when(context.getSequenceConfig()).thenReturn(sequenceConfig);
-        when(sequenceConfig.getReqPathAuthenticators()).thenReturn(new ArrayList<>());
-        when(SessionNonceCookieUtil.isNonceCookieEnabled()).thenReturn(true);
-        when(SessionNonceCookieUtil.getNonceCookieName(context)).thenReturn("nonce");
-        when(context.isReturning()).thenReturn(true);
-        when(SessionNonceCookieUtil.validateNonceCookie(request, context)).thenReturn(false);
-        when(FrameworkUtils.getContextData(request)).thenReturn(context);
-        when(FrameworkUtils.getAuthenticationRequestHandler()).thenReturn(authenticationRequestHandler);
-        try {
-            authenticationRequestHandler.handle(request, response, context);
-        } catch (FrameworkException e) {
-            assertEquals(e.getErrorCode(), NONCE_ERROR_CODE);
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<SessionNonceCookieUtil> sessionNonceCookieUtil =
+                     mockStatic(SessionNonceCookieUtil.class)) {
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            DefaultAuthenticationRequestHandler authenticationRequestHandler =
+                    new DefaultAuthenticationRequestHandler();
+            AuthenticationContext context = mock(AuthenticationContext.class);
+            when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+            when(sequenceConfig.getReqPathAuthenticators()).thenReturn(new ArrayList<>());
+            sessionNonceCookieUtil.when(() -> SessionNonceCookieUtil.isNonceCookieEnabled()).thenReturn(true);
+            sessionNonceCookieUtil.when(() -> SessionNonceCookieUtil.getNonceCookieName(context)).thenReturn("nonce");
+            when(context.isReturning()).thenReturn(true);
+            sessionNonceCookieUtil.when(() -> SessionNonceCookieUtil.validateNonceCookie(request, context))
+                    .thenReturn(false);
+            frameworkUtils.when(() -> FrameworkUtils.getContextData(request)).thenReturn(context);
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticationRequestHandler())
+                    .thenReturn(authenticationRequestHandler);
+            try {
+                authenticationRequestHandler.handle(request, response, context);
+            } catch (FrameworkException e) {
+                assertEquals(e.getErrorCode(), NONCE_ERROR_CODE);
+            }
         }
     }
 }

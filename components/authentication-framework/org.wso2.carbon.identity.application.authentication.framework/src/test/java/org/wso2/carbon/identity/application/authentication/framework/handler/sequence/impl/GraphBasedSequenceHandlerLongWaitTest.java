@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
@@ -61,6 +62,7 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
     @BeforeClass
     public void setUpMocks() {
 
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
         IdentityEventService identityEventService = mock(IdentityEventService.class);
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }

@@ -16,15 +16,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-
 import java.util.Map;
 import java.util.Properties;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 
 public class Util {
@@ -32,17 +26,6 @@ public class Util {
     private Util() {
     }
 
-    static void mockReturnNullEventListenerConfig() {
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.readEventListenerProperty(anyString(), anyString())).thenReturn(null);
-    }
-
-    static void mockReturnEventListenerConfigWithProperties(Properties expectedProperties) {
-        IdentityEventListenerConfig identityEventListenerConfig =
-                new IdentityEventListenerConfig("true", 1, null, expectedProperties);
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.readEventListenerProperty(anyString(), anyString())).thenReturn(identityEventListenerConfig);
-    }
 
     static Object[][] getEventListenerPropertyData() {
         Properties eventListenerDuplicateProperties = new Properties();

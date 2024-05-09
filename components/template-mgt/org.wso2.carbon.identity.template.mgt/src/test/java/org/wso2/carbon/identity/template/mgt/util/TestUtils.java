@@ -19,21 +19,17 @@ package org.wso2.carbon.identity.template.mgt.util;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import javax.sql.DataSource;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 public class TestUtils {
 
@@ -91,12 +87,6 @@ public class TestUtils {
             return dataSourceMap.get(DB_NAME).getConnection();
         }
         throw new RuntimeException("No data source initiated for database: " + DB_NAME);
-    }
-
-    public static void mockDataSource(DataSource dataSource) {
-
-        mockStatic(IdentityDatabaseUtil.class);
-        when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSource);
     }
 
 }

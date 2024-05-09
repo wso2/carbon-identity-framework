@@ -19,25 +19,23 @@
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.Assert;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.ServiceURL;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * This class tests the methods of IdentityManagementServiceUtil class.
  */
-@PrepareForTest({ServiceURLBuilder.class})
-@PowerMockIgnore("org.mockito.*")
-public class IdentityManagementServiceUtilTest extends PowerMockTestCase {
+@Listeners(MockitoTestNGListener.class)
+public class IdentityManagementServiceUtilTest {
 
     @Mock
     ServiceURL serviceURL;
@@ -55,12 +53,14 @@ public class IdentityManagementServiceUtilTest extends PowerMockTestCase {
     @Test
     public void testServiceURLFormat() throws Exception {
 
-        prepareServiceURLBuilder();
-        prepareServiceURL();
-        prepareIdentityManagementServiceUtil();
+        try (MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class)) {
+            prepareServiceURLBuilder(serviceURLBuilder);
+            prepareServiceURL();
+            prepareIdentityManagementServiceUtil();
 
-        String actualURL = util.getServiceContextURL();
-        Assert.assertEquals(actualURL, SERVICE_URL);
+            String actualURL = util.getServiceContextURL();
+            Assert.assertEquals(actualURL, SERVICE_URL);
+        }
     }
 
     /**
@@ -82,13 +82,9 @@ public class IdentityManagementServiceUtilTest extends PowerMockTestCase {
     /**
      * Prepare service URL builder.
      */
-    private void prepareServiceURLBuilder() throws URLBuilderException {
+    private void prepareServiceURLBuilder(MockedStatic<ServiceURLBuilder> serviceURLBuilder) throws URLBuilderException {
 
-        mockStatic(ServiceURLBuilder.class);
-        when(ServiceURLBuilder.create()).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addPath(any())).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addFragmentParameter(any(), any())).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addParameter(any(), any())).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.build()).thenReturn(serviceURL);
+        serviceURLBuilder.when(ServiceURLBuilder::create).thenReturn(this.serviceURLBuilder);
+        when(this.serviceURLBuilder.build()).thenReturn(serviceURL);
     }
 }

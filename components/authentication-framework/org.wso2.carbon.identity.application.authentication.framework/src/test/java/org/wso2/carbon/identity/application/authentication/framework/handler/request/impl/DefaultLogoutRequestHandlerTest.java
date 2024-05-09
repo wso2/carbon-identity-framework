@@ -19,13 +19,10 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -45,7 +42,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -62,16 +58,13 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
-@PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class, LoggerUtils.class,
-        FileBasedConfigurationBuilder.class, ConfigurationFacade.class})
 @WithCarbonHome
-@PowerMockIgnore("org.mockito.*")
 public class DefaultLogoutRequestHandlerTest {
 
     private static final String DUMMY_AUTHENTICATOR = "DummyAuthenticator";
@@ -95,12 +88,6 @@ public class DefaultLogoutRequestHandlerTest {
     @Spy
     DefaultLogoutRequestHandler defaultLogoutRequestHandler;
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
-
     @BeforeMethod
     public void setUp() throws Exception {
 
@@ -109,7 +96,7 @@ public class DefaultLogoutRequestHandlerTest {
 
     @AfterMethod
     public void tearDown() throws Exception {
-
+        FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers().clear();
     }
 
     @Test
@@ -124,47 +111,56 @@ public class DefaultLogoutRequestHandlerTest {
     @Test
     public void testStepsWithNullAuthenticatedAuthenticators() throws Exception {
 
-        mockStatic(LoggerUtils.class);
-        doNothing().when(request).setAttribute(anyString(), anyBoolean());
-        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
-        AuthenticationContext context = prepareContextForTests();
-        defaultLogoutRequestHandler.handle(request, response, context);
-        assertEquals(context.getCurrentStep(), 3);
+        try (MockedStatic<FileBasedConfigurationBuilder> fileBasedConfigurationBuilder =
+                mockStatic(FileBasedConfigurationBuilder.class);
+        MockedStatic<ConfigurationFacade> configurationFacade = mockStatic(ConfigurationFacade.class);
+        MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+        MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            doNothing().when(request).setAttribute(anyString(), anyBoolean());
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+            AuthenticationContext context = prepareContextForTests(fileBasedConfigurationBuilder, configurationFacade,
+                    frameworkUtils);
+            defaultLogoutRequestHandler.handle(request, response, context);
+            assertEquals(context.getCurrentStep(), 3);
+        }
     }
 
-    private AuthenticationContext prepareContextForTests()
+    private AuthenticationContext prepareContextForTests(
+            MockedStatic<FileBasedConfigurationBuilder> fileBasedConfigurationBuilder,
+            MockedStatic<ConfigurationFacade> configurationFacade, MockedStatic<FrameworkUtils> frameworkUtils)
             throws AuthenticationFailedException, LogoutFailedException, IdentityProviderManagementException {
 
         AuthenticationContext context = new AuthenticationContext();
         context.setContextIdentifier(String.valueOf(UUID.randomUUID()));
-        addSequenceForTest(context, true);
+        addSequenceForTest(context, true, fileBasedConfigurationBuilder, configurationFacade);
         addApplicationConfig(context);
         context.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
         setUser(context, "admin");
         setPostAuthnMgtService();
         addPostAuthnHandler();
-        mockStatic(FrameworkUtils.class);
-        when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(new DefaultStepBasedSequenceHandler());
+        frameworkUtils.when(
+                FrameworkUtils::getStepBasedSequenceHandler).thenReturn(new DefaultStepBasedSequenceHandler());
         context.initializeAnalyticsData();
         context.setPreviousSessionFound(true);
         return context;
     }
 
-    private void addSequenceForTest(AuthenticationContext context, boolean isCompleted)
+    private void addSequenceForTest(AuthenticationContext context, boolean isCompleted,
+                                    MockedStatic<FileBasedConfigurationBuilder> fileBasedConfigurationBuilder,
+                                    MockedStatic<ConfigurationFacade> configurationFacade)
             throws AuthenticationFailedException, LogoutFailedException, IdentityProviderManagementException {
 
-        mockStatic(FileBasedConfigurationBuilder.class);
-        mockStatic(ConfigurationFacade.class);
-        when(ConfigurationFacade.getInstance()).thenReturn(configurationFacade);
-        when(configurationFacade.getIdPConfigByName(anyString(), anyString())).thenReturn(mockExternalIdpConfig);
+        configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(this.configurationFacade);
+        when(this.configurationFacade.getIdPConfigByName(anyString(), anyString())).thenReturn(mockExternalIdpConfig);
         when(mockApplicationAuthenticator.canHandle(request)).thenReturn(true);
         when(mockApplicationAuthenticator.getName()).thenReturn(DUMMY_AUTHENTICATOR);
         when(mockApplicationAuthenticator.process(request, response, context)).thenReturn(
                 AuthenticatorFlowStatus.SUCCESS_COMPLETED);
-        when(FileBasedConfigurationBuilder.getInstance()).thenReturn(fileBasedConfigurationBuilder);
+        fileBasedConfigurationBuilder.when(
+                FileBasedConfigurationBuilder::getInstance).thenReturn(this.fileBasedConfigurationBuilder);
         AuthenticatorConfig dummyAuthConfig = new AuthenticatorConfig(DUMMY_AUTHENTICATOR,
                 true, new HashMap<>());
-        when(fileBasedConfigurationBuilder.getAuthenticatorBean(anyString())).thenReturn(dummyAuthConfig);
+        when(this.fileBasedConfigurationBuilder.getAuthenticatorBean(anyString())).thenReturn(dummyAuthConfig);
 
         SequenceConfig sequenceConfig = new SequenceConfig();
         HashMap<Integer, StepConfig> stepMap = new HashMap<>();

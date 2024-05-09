@@ -21,8 +21,7 @@ package org.wso2.carbon.identity.secret.mgt.core;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.codec.Charsets;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -36,7 +35,6 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
@@ -55,9 +53,9 @@ import java.util.Collections;
 import javax.sql.DataSource;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -73,13 +71,11 @@ import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
-@PrepareForTest({PrivilegedCarbonContext.class, IdentityDatabaseUtil.class, IdentityUtil.class,
-        IdentityTenantUtil.class, CryptoUtil.class})
-public class SecretManagerTest extends PowerMockTestCase {
+public class SecretManagerTest {
 
     private SecretManager secretManager;
     private Connection connection;
-    private CryptoUtil cryptoUtil;
+    private CryptoUtil mockCryptoUtil;
     private SecretResolveManager secretResolveManager;
     private SecretsProcessor<IdentityProvider> identityProviderSecretsProcessor;
 
@@ -95,6 +91,11 @@ public class SecretManagerTest extends PowerMockTestCase {
     private static final String SAMPLE_SECRET_TYPE_DESCRIPTION1 = "sample-description1";
     private static final String SAMPLE_SECRET_TYPE_DESCRIPTION2 = "sample-description2";
 
+    private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
+    private MockedStatic<CryptoUtil> cryptoUtil;
+    MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
+    MockedStatic<IdentityTenantUtil> identityTenantUtil;
+
     @BeforeMethod
     public void setUp() throws Exception {
 
@@ -104,8 +105,8 @@ public class SecretManagerTest extends PowerMockTestCase {
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
-        mockStatic(IdentityDatabaseUtil.class);
-        when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSource);
+        identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+        identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
         connection = TestUtils.getConnection();
         Connection spyConnection = spyConnection(connection);
@@ -114,9 +115,9 @@ public class SecretManagerTest extends PowerMockTestCase {
         prepareConfigs();
         SecretManagerComponentDataHolder.getInstance().setSecretManagementEnabled(true);
 
-        mockStatic(CryptoUtil.class);
-        cryptoUtil = mock(CryptoUtil.class);
-        when(CryptoUtil.getDefaultCryptoUtil()).thenReturn(cryptoUtil);
+        cryptoUtil = mockStatic(CryptoUtil.class);
+        this.mockCryptoUtil = mock(CryptoUtil.class);
+        cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(this.mockCryptoUtil);
     }
 
     @AfterMethod
@@ -124,6 +125,10 @@ public class SecretManagerTest extends PowerMockTestCase {
 
         connection.close();
         closeH2Base();
+        identityDatabaseUtil.close();
+        cryptoUtil.close();
+        privilegedCarbonContext.close();
+        identityTenantUtil.close();
     }
 
     @Test(priority = 1)
@@ -230,7 +235,7 @@ public class SecretManagerTest extends PowerMockTestCase {
 
         SecretType secretType = secretManager.addSecretType(getSampleSecretTypeAdd(SAMPLE_SECRET_TYPE_NAME1, SAMPLE_SECRET_TYPE_DESCRIPTION1));
         Secret secretAdd = getSampleSecretAdd(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
-        when(cryptoUtil.encryptAndBase64Encode(secretAdd.getSecretValue().getBytes())).thenThrow(new CryptoException());
+        when(mockCryptoUtil.encryptAndBase64Encode(secretAdd.getSecretValue().getBytes())).thenThrow(new CryptoException());
         secretManager.addSecret(secretType.getName(), secretAdd);
 
         fail("Expected: " + SecretManagementServerException.class.getName());
@@ -406,7 +411,7 @@ public class SecretManagerTest extends PowerMockTestCase {
         Secret secretAdd = getSampleSecretAdd(SAMPLE_SECRET_NAME1, SAMPLE_SECRET_VALUE1);
         encryptSecret(secretAdd.getSecretValue());
         secretManager.addSecret(secretType.getName(), secretAdd);
-        when(cryptoUtil.base64DecodeAndDecrypt(ENCRYPTED_VALUE1)).thenThrow(new CryptoException());
+        when(mockCryptoUtil.base64DecodeAndDecrypt(ENCRYPTED_VALUE1)).thenThrow(new CryptoException());
         secretResolveManager.getResolvedSecret(secretType.getName(), SAMPLE_SECRET_NAME1);
 
         fail("Expected: " + SecretManagementServerException.class.getName());
@@ -540,36 +545,37 @@ public class SecretManagerTest extends PowerMockTestCase {
 
     private void mockCarbonContextForTenant(int tenantId, String tenantDomain) {
 
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
-        when(privilegedCarbonContext.getTenantDomain()).thenReturn(tenantDomain);
-        when(privilegedCarbonContext.getTenantId()).thenReturn(tenantId);
-        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
+        privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext mockPrivilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        privilegedCarbonContext.when(PrivilegedCarbonContext::getThreadLocalCarbonContext)
+                .thenReturn(mockPrivilegedCarbonContext);
+        when(mockPrivilegedCarbonContext.getTenantDomain()).thenReturn(tenantDomain);
+        when(mockPrivilegedCarbonContext.getTenantId()).thenReturn(tenantId);
+        when(mockPrivilegedCarbonContext.getUsername()).thenReturn("admin");
     }
 
     private void mockIdentityTenantUtility() {
 
-        mockStatic(IdentityTenantUtil.class);
-        IdentityTenantUtil identityTenantUtil = mock(IdentityTenantUtil.class);
-        when(identityTenantUtil.getTenantDomain(any(Integer.class))).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(any(Integer.class)))
+                .thenReturn(SUPER_TENANT_DOMAIN_NAME);
     }
 
     private void encryptSecret(String secret) throws org.wso2.carbon.core.util.CryptoException {
 
         if (SAMPLE_SECRET_VALUE2.equals(secret)) {
-            when(cryptoUtil.encryptAndBase64Encode(secret.getBytes(Charsets.UTF_8))).thenReturn(ENCRYPTED_VALUE2);
+            when(mockCryptoUtil.encryptAndBase64Encode(secret.getBytes(Charsets.UTF_8))).thenReturn(ENCRYPTED_VALUE2);
         } else {
-            when(cryptoUtil.encryptAndBase64Encode(secret.getBytes(Charsets.UTF_8))).thenReturn(ENCRYPTED_VALUE1);
+            when(mockCryptoUtil.encryptAndBase64Encode(secret.getBytes(Charsets.UTF_8))).thenReturn(ENCRYPTED_VALUE1);
         }
     }
 
     private void decryptSecret(String cipherText) throws org.wso2.carbon.core.util.CryptoException {
 
         if (ENCRYPTED_VALUE2.equals(cipherText)) {
-            when(cryptoUtil.base64DecodeAndDecrypt(cipherText)).thenReturn(SAMPLE_SECRET_VALUE2.getBytes());
+            when(mockCryptoUtil.base64DecodeAndDecrypt(cipherText)).thenReturn(SAMPLE_SECRET_VALUE2.getBytes());
         } else {
-            when(cryptoUtil.base64DecodeAndDecrypt(cipherText)).thenReturn(SAMPLE_SECRET_VALUE1.getBytes());
+            when(mockCryptoUtil.base64DecodeAndDecrypt(cipherText)).thenReturn(SAMPLE_SECRET_VALUE1.getBytes());
         }
     }
 

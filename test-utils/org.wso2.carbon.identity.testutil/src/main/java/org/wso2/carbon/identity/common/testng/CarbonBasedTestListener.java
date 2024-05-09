@@ -393,7 +393,7 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantID);
 
-            RegistryContext registryContext = RegistryContext.getBaseInstance(IdentityTenantUtil.getRealmService());
+            RegistryContext registryContext = RegistryContext.getBaseInstance(RegistryDataHolder.getInstance().getRealmService());
             DataSource dataSource = MockInitialContextFactory
                     .initializeDatasource(REG_DB_JNDI_NAME, realClass, new String[]{REG_DB_SQL_FILE});
             registryContext.setDataAccessManager(new JDBCDataAccessManager(dataSource));

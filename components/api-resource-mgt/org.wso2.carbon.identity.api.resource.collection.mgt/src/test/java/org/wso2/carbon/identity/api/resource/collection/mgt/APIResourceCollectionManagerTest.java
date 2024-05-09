@@ -19,10 +19,9 @@
 package org.wso2.carbon.identity.api.resource.collection.mgt;
 
 import org.apache.commons.lang.StringUtils;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.powermock.reflect.Whitebox;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -30,16 +29,13 @@ import org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResource
 import org.wso2.carbon.identity.api.resource.collection.mgt.internal.APIResourceCollectionMgtServiceDataHolder;
 import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollection;
 import org.wso2.carbon.identity.api.resource.collection.mgt.model.APIResourceCollectionSearchResult;
-import org.wso2.carbon.identity.api.resource.collection.mgt.util.APIResourceCollectionMgtConfigBuilder;
-import org.wso2.carbon.identity.api.resource.collection.mgt.util.FilterUtil;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
-import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
-import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -49,39 +45,43 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 @WithCarbonHome
 @WithAxisConfiguration
-@PrepareForTest({APIResourceCollectionMgtConfigBuilder.class, APIResourceCollectionManagerImpl.class, FilterUtil.class,
-        APIResourceCollectionMgtServiceDataHolder.class, APIResourceManager.class, APIResourceManagerImpl.class})
-public class APIResourceCollectionManagerTest extends PowerMockTestCase {
+public class APIResourceCollectionManagerTest {
 
     private APIResourceCollectionManager apiResourceCollectionManager;
     private Map<String, APIResourceCollection> apiResourceCollectionMapMock;
+    private MockedStatic<APIResourceCollectionMgtServiceDataHolder> apiResourceCollectionMgtServiceData;
 
     @BeforeMethod
-    public void setUp() throws APIResourceMgtException {
+    public void setUp() throws Exception {
 
-        mockStatic(APIResourceCollectionMgtServiceDataHolder.class);
+        apiResourceCollectionMgtServiceData = mockStatic(APIResourceCollectionMgtServiceDataHolder.class);
         APIResourceCollectionMgtServiceDataHolder serviceDataHolderMock =
                 mock(APIResourceCollectionMgtServiceDataHolder.class);
-        when(APIResourceCollectionMgtServiceDataHolder.getInstance()).thenReturn(serviceDataHolderMock);
+        apiResourceCollectionMgtServiceData.when(
+                APIResourceCollectionMgtServiceDataHolder::getInstance).thenReturn(serviceDataHolderMock);
 
         APIResourceManager apiResourceManagerMock = mock(APIResourceManager.class);
         when(serviceDataHolderMock.getAPIResourceManagementService()).thenReturn(apiResourceManagerMock);
         when(apiResourceManagerMock.getScopeMetadata(anyList(), anyString())).thenReturn(
                 getListOfAPIResources());
-        APIResourceCollectionMgtServiceDataHolder.getInstance().setAPIResourceManagementService(
-                APIResourceManagerImpl.getInstance());
 
         apiResourceCollectionMapMock = new HashMap<>();
         addTestAPIResourceCollections();
-        Whitebox.setInternalState(APIResourceCollectionManagerImpl.class, "apiResourceCollectionMap",
+        setPrivateStaticField(APIResourceCollectionManagerImpl.class, "apiResourceCollectionMap",
                 apiResourceCollectionMapMock);
         apiResourceCollectionManager = APIResourceCollectionManagerImpl.getInstance();
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        apiResourceCollectionMgtServiceData.close();
     }
 
     @DataProvider(name = "getAPIResourceCollectionsDataProvider")
@@ -208,5 +208,13 @@ public class APIResourceCollectionManagerTest extends PowerMockTestCase {
 
         return Base64.getEncoder().encodeToString(name.getBytes(StandardCharsets.UTF_8)).replace(
                 APIResourceCollectionManagementConstants.EQUAL_SIGN, StringUtils.EMPTY);
+    }
+
+    private void setPrivateStaticField(Class<?> clazz, String fieldName, Object newValue)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(null, newValue);
     }
 }

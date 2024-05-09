@@ -2192,7 +2192,7 @@ public class RoleDAOImpl implements RoleDAO {
      * @param usernameWithDomain Group IDs.
      * @param tenantId           Tenant ID.
      */
-    private void clearUserRolesCache(String usernameWithDomain, int tenantId) {
+    protected void clearUserRolesCache(String usernameWithDomain, int tenantId) {
 
         String userStoreDomain = IdentityUtil.extractDomainFromName(usernameWithDomain);
         if (isUserRoleCacheEnabled(tenantId, userStoreDomain)) {
@@ -3396,7 +3396,7 @@ public class RoleDAOImpl implements RoleDAO {
      *
      * @param tenantId Tenant ID.
      */
-    private void clearUserRolesCacheByTenant(int tenantId) {
+    protected void clearUserRolesCacheByTenant(int tenantId) {
 
         /*
           Ideally we need to check all user stores to see if the UserRolesCache is enabled in at least one user store
