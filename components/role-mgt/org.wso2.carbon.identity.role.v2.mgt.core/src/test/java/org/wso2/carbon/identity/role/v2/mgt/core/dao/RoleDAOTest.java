@@ -56,7 +56,9 @@ import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.authorization.AuthorizationCache;
 import org.wso2.carbon.user.core.authorization.JDBCAuthorizationManager;
+import org.wso2.carbon.user.core.common.UserRolesCache;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -113,6 +115,8 @@ public class RoleDAOTest {
     private MockedStatic<IdentityUtil> identityUtil;
     private MockedStatic<CarbonContext> carbonContext;
     private MockedStatic<UserCoreUtil> userCoreUtil;
+    private MockedStatic<UserRolesCache> userRolesCache;
+    private MockedStatic<AuthorizationCache> authorizationCache;
 
     @Mock
     UserRealm mockUserRealm;
@@ -142,13 +146,14 @@ public class RoleDAOTest {
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityUtil = mockStatic(IdentityUtil.class);
         carbonContext = mockStatic(CarbonContext.class);
+        userRolesCache = mockStatic(UserRolesCache.class);
+        authorizationCache = mockStatic(AuthorizationCache.class);
+
         initializeDataSource(getFilePath("h2.sql"));
         populateData();
 
         organizationManagementUtil = mockStatic(OrganizationManagementUtil.class);
         userCoreUtil = mockStatic(UserCoreUtil.class);
-
-        RoleManagementServiceComponentHolder.getInstance().setRealmService(mock(RealmService.class));
     }
 
     @AfterMethod
@@ -168,6 +173,8 @@ public class RoleDAOTest {
         carbonContext.close();
         organizationManagementUtil.close();
         userCoreUtil.close();
+        userRolesCache.close();
+        authorizationCache.close();
     }
 
     @Test
@@ -749,8 +756,21 @@ public class RoleDAOTest {
 
     private void mockCacheClearing(RoleDAOImpl roleDAO) throws Exception {
 
-        doNothing().when(roleDAO).clearUserRolesCache(anyString(), anyInt());
-        lenient().doNothing().when(roleDAO).clearUserRolesCacheByTenant(anyInt());
+        UserRolesCache mockUserRolesCache = mock(UserRolesCache.class);
+        userRolesCache.when(UserRolesCache::getInstance).thenReturn(mockUserRolesCache);
+        lenient().doNothing().when(mockUserRolesCache).clearCacheEntry(anyString(), anyInt(), anyString());
+
+        AuthorizationCache mockAuthorizationCache = mock(AuthorizationCache.class);
+        userRolesCache.when(AuthorizationCache::getInstance).thenReturn(mockAuthorizationCache);
+        lenient().doNothing().when(mockAuthorizationCache).clearCacheByTenant(anyInt());
+        doNothing().when(mockAuthorizationCache).clearCacheByUser(anyInt(), anyString());
+
+        RealmService mockRealmService = mock(RealmService.class);
+        when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
+        RealmConfiguration mockRealmConfiguration = mock(RealmConfiguration.class);
+        when(mockUserRealm.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        lenient().when(mockRealmConfiguration.getUserStoreProperty(anyString())).thenReturn("true");
+        RoleManagementServiceComponentHolder.getInstance().setRealmService(mockRealmService);
     }
 
     private void mockRealmConfiguration() throws UserStoreException {
