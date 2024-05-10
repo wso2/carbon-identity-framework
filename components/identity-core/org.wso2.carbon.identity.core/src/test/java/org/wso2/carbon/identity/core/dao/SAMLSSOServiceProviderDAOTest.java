@@ -460,25 +460,28 @@ public class SAMLSSOServiceProviderDAOTest {
 
     @Test
     public void testGetServiceProvider() throws Exception {
-        mockStatic(IdentityTenantUtil.class);
-        RealmService mockRealmService = mock(RealmService.class);
-        TenantManager mockTenantManager = mock(TenantManager.class);
-        when(IdentityTenantUtil.getRealmService()).thenReturn(mockRealmService);
-        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
-        when(mockTenantManager.getDomain(anyInt())).thenReturn("test.com");
 
-        Properties dummyResourceProperties = new Properties();
-        dummyResourceProperties.putAll(dummyBasicProperties);
-        Resource dummyResource = new ResourceImpl();
-        dummyResource.setProperties(dummyResourceProperties);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            RealmService mockRealmService = mock(RealmService.class);
+            TenantManager mockTenantManager = mock(TenantManager.class);
+            identityTenantUtil.when(IdentityTenantUtil::getRealmService).thenReturn(mockRealmService);
+            when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
+            when(mockTenantManager.getDomain(anyInt())).thenReturn("test.com");
 
-        String path = getPath(dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
-        when(mockRegistry.resourceExists(path)).thenReturn(true);
-        when(mockRegistry.get(path)).thenReturn(dummyResource);
+            Properties dummyResourceProperties = new Properties();
+            dummyResourceProperties.putAll(dummyBasicProperties);
+            Resource dummyResource = new ResourceImpl();
+            dummyResource.setProperties(dummyResourceProperties);
 
-        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.getServiceProvider(dummyResource.getProperty
-                (IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
-        assertEquals(serviceProviderDO.getTenantDomain(), "test.com", "Retrieved resource's tenant domain mismatch");
+            String path = getPath(dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
+            when(mockRegistry.resourceExists(path)).thenReturn(true);
+            when(mockRegistry.get(path)).thenReturn(dummyResource);
+
+            SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.getServiceProvider(dummyResource.getProperty
+                    (IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
+            assertEquals(serviceProviderDO.getTenantDomain(), "test.com",
+                    "Retrieved resource's tenant domain mismatch");
+        }
     }
 
     @Test

@@ -116,8 +116,7 @@ public class UserRealmProxyTest {
         Mockito.when(realm.getUserStoreManager()).thenReturn(userStoreManagerWithAb);
         HybridRoleManager hybridRoleManager = mock(HybridRoleManager.class);
         String[] test = {"role3x", "role4x"};
-        Mockito.when(hybridRoleManager.getHybridRoles("role")).thenReturn(test);
-        Mockito.when(((AbstractUserStoreManager)userStoreManagerWithAb).getHybridRoles("role")).thenReturn(test);
+        Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb).getHybridRoles("role")).thenReturn(test);
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)
                 .getSharedRoleNames("role", 10)).thenReturn(new String[]{"role1", "role2"});
         Mockito.when(((AbstractUserStoreManager) userStoreManagerWithAb)

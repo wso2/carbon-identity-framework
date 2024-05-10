@@ -16,7 +16,7 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="org.wso2.carbon.identity.mgt.policy.password" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+<suite name="org.wso2.carbon.identity.mgt.policy.password">
     <test name="org.wso2.carbon.identity.mgt.policy.password" preserve-order="false" parallel="false">
         <!--<parameter name="log-level" value="debug"/>-->
         <classes>

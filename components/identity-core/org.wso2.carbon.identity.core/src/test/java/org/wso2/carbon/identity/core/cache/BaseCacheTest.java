@@ -42,7 +42,7 @@ import static org.testng.Assert.assertNull;
  */
 public class BaseCacheTest {
 
-    MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
     @BeforeMethod
     public void setUp() throws Exception {

@@ -18,7 +18,7 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="UserFunctionalityManagementTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+<suite name="UserFunctionalityManagementTestSuite">
     <!--<suite thread-count="1" verbose="0" name="Surefire suite">-->
 
     <test name="UserFunctionalityManagementTests" preserve-order="true" parallel="false">
@@ -26,7 +26,7 @@
             <class name="org.wso2.carbon.identity.user.functionality.mgt.model.FunctionalityLockStatusTest"/>
             <class name="org.wso2.carbon.identity.user.functionality.mgt.UserFunctionalityManagerImplTest"/>
             <class name="org.wso2.carbon.identity.user.functionality.mgt.dao.impl.UserFunctionalityManagerDAOImplTest"/>
-            <class name="org.wso2.carbon.identity.user.functionality.mgt.dao.impl.UserFunctionalityPropertyDAOImplTest"></class>
+            <class name="org.wso2.carbon.identity.user.functionality.mgt.dao.impl.UserFunctionalityPropertyDAOImplTest"/>
         </classes>
     </test>
 </suite>

@@ -18,7 +18,7 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="org.wso2.carbon.identity.api.resource.mgt.dao" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+<suite name="org.wso2.carbon.identity.api.resource.mgt.dao">
     <test name="api-resource-mgt-tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.api.resource.mgt.dao.APIResourceManagementDAOImplTest"/>

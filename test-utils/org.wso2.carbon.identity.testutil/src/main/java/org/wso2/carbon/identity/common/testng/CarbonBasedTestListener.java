@@ -227,9 +227,6 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
             WithKeyStore withKeyStore = (WithKeyStore) annotation;
             createKeyStore(realClass, withKeyStore);
         }
-        //TODO check this
-//        Field[] fields = realClass.getDeclaredFields();
-//        processFields(fields, iMethodInstance.getInstance());
     }
 
     private boolean microserviceServerInitialized(Object instance) {

@@ -16,7 +16,7 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="SecretManagementCoreTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+<suite name="SecretManagementCoreTestSuite">
 
     <test name="SecretManagementCoreTests" preserve-order="true" parallel="false">
         <classes>

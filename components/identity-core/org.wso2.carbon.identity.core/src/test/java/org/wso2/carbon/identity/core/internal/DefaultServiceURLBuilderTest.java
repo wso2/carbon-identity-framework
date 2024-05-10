@@ -67,12 +67,12 @@ public class DefaultServiceURLBuilderTest {
 
     private final String HTTPS = "https";
 
-    MockedStatic<CarbonUtils> carbonUtils;
-    MockedStatic<ServerConfiguration> serverConfiguration;
-    MockedStatic<NetworkUtils> networkUtils;
-    MockedStatic<IdentityCoreServiceComponent> identityCoreServiceComponent;
-    MockedStatic<IdentityTenantUtil> identityTenantUtil;
-    MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
+    private MockedStatic<CarbonUtils> carbonUtils;
+    private MockedStatic<ServerConfiguration> serverConfiguration;
+    private MockedStatic<NetworkUtils> networkUtils;
+    private MockedStatic<IdentityCoreServiceComponent> identityCoreServiceComponent;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -479,8 +479,8 @@ public class DefaultServiceURLBuilderTest {
         carbonUtils.when(() -> CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn(proxyContextPath);
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
-        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantNameFromContext);
+        identityTenantUtil.when(IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(enableTenantURLSupport);
+        identityTenantUtil.when(IdentityTenantUtil::getTenantDomainFromContext).thenReturn(tenantNameFromContext);
         lenient().when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
         String relativePublicUrl = null;
