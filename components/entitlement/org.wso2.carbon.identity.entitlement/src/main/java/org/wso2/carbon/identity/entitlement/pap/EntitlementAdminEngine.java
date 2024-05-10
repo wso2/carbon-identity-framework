@@ -22,14 +22,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
+import org.wso2.carbon.identity.entitlement.dao.ConfigDAO;
+import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
+import org.wso2.carbon.identity.entitlement.dao.RegistryConfigDAOImpl;
+import org.wso2.carbon.identity.entitlement.dao.RegistryPolicyDAOImpl;
+import org.wso2.carbon.identity.entitlement.dao.RegistrySubscriberDAOImpl;
+import org.wso2.carbon.identity.entitlement.dao.SubscriberDAO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreManager;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PolicyPublisher;
-import org.wso2.carbon.identity.entitlement.policy.store.DefaultPolicyDataStore;
-import org.wso2.carbon.identity.entitlement.policy.store.PolicyDataStore;
 import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManager;
-import org.wso2.carbon.identity.entitlement.policy.version.DefaultPolicyVersionManager;
-import org.wso2.carbon.identity.entitlement.policy.version.PolicyVersionManager;
 
 import java.util.Map;
 import java.util.Properties;
@@ -46,26 +48,29 @@ public class EntitlementAdminEngine {
             new ConcurrentHashMap<String, EntitlementAdminEngine>();
     private static Log log = LogFactory.getLog(EntitlementAdminEngine.class);
     private PolicyPublisher policyPublisher;
-    private PolicyVersionManager versionManager;
     private EntitlementDataFinder entitlementDataFinder;
-    private PolicyDataStore policyDataStore;
     private PolicyStoreManager policyStoreManager;
     private PAPPolicyStoreManager papPolicyStoreManager;
     private Set<PAPStatusDataHandler> papStatusDataHandlers;
+    private ConfigDAO configDAO;
+    private PolicyDAO policyDAO;
+    private SubscriberDAO subscriberDAO;
 
     public EntitlementAdminEngine() {
 
         this.entitlementDataFinder = new EntitlementDataFinder();
         this.policyPublisher = new PolicyPublisher();
         this.papPolicyStoreManager = new PAPPolicyStoreManager();
-        this.versionManager = new DefaultPolicyVersionManager();
-        this.policyDataStore = new DefaultPolicyDataStore();
 
         Map<PAPStatusDataHandler, Properties> statusDataHandlers = EntitlementServiceComponent.
                 getEntitlementConfig().getPapStatusDataHandlers();
         papStatusDataHandlers = statusDataHandlers.keySet();
         this.policyPublisher.setPapStatusDataHandlers(papStatusDataHandlers);
-        this.policyStoreManager = new PolicyStoreManager(policyDataStore);
+        this.policyStoreManager = new PolicyStoreManager();
+        this.configDAO = new RegistryConfigDAOImpl();
+        this.policyDAO = new RegistryPolicyDAOImpl();
+        this.subscriberDAO = new RegistrySubscriberDAOImpl();
+
     }
 
     /**
@@ -97,26 +102,12 @@ public class EntitlementAdminEngine {
     }
 
     /**
-     * @return
-     */
-    public PolicyVersionManager getVersionManager() {
-        return versionManager;
-    }
-
-    /**
      * This method returns the entitlement data finder
      *
      * @return EntitlementDataFinder
      */
     public EntitlementDataFinder getEntitlementDataFinder() {
         return entitlementDataFinder;
-    }
-
-    /**
-     * @return
-     */
-    public PolicyDataStore getPolicyDataStore() {
-        return policyDataStore;
     }
 
     /**
@@ -138,4 +129,10 @@ public class EntitlementAdminEngine {
     public Set<PAPStatusDataHandler> getPapStatusDataHandlers() {
         return papStatusDataHandlers;
     }
+
+    public ConfigDAO getConfigDAO() { return configDAO; }
+
+    public PolicyDAO getPolicyDAO() { return policyDAO; }
+
+    public SubscriberDAO getSubscriberDAO() { return subscriberDAO; }
 }

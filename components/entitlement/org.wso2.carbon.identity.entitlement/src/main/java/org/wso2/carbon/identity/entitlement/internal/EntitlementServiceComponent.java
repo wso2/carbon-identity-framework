@@ -40,9 +40,10 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
+import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.listener.CacheClearingUserOperationListener;
-import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStore;
+import org.wso2.carbon.identity.entitlement.pap.EntitlementAdminEngine;
 import org.wso2.carbon.identity.entitlement.thrift.EntitlementService;
 import org.wso2.carbon.identity.entitlement.thrift.ThriftConfigConstants;
 import org.wso2.carbon.identity.entitlement.thrift.ThriftEntitlementServiceImpl;
@@ -224,18 +225,17 @@ public class EntitlementServiceComponent {
             // Start loading schema.
             new Thread(new SchemaBuilder(EntitlementConfigHolder.getInstance())).start();
 
-            // Read XACML policy files from a pre-defined location in the
-            // filesystem and load to registry at the server startup
-            PAPPolicyStore papPolicyStore = new PAPPolicyStore(
-                    registryService.getGovernanceSystemRegistry());
+            // Read XACML policy files from a pre-defined location in the filesystem
+            PolicyDAO papPolicyStore = EntitlementAdminEngine.getInstance().getPolicyDAO();
 
             String startUpPolicyAdding = EntitlementConfigHolder.getInstance().getEngineProperties().getProperty(
                     PDPConstants.START_UP_POLICY_ADDING);
 
             List<String> policyIdList = new ArrayList<>();
 
-            if (papPolicyStore != null && ArrayUtils.isNotEmpty(papPolicyStore.getAllPolicyIds())) {
-                String[] allPolicyIds = papPolicyStore.getAllPolicyIds();
+            if (papPolicyStore != null &&
+                    ArrayUtils.isNotEmpty(papPolicyStore.listPolicyIds().toArray(new String[0]))) {
+                String[] allPolicyIds = papPolicyStore.listPolicyIds().toArray(new String[0]);
                 policyIdList = Arrays.asList(allPolicyIds);
             }
 
@@ -288,7 +288,7 @@ public class EntitlementServiceComponent {
 
                 if (!customPolicies) {
                     // load default policies
-                    EntitlementUtil.addSamplePolicies(registryService.getGovernanceSystemRegistry());
+                    EntitlementUtil.addSamplePolicies();
                 }
             }
             // Cache clearing listener is always registered since cache clearing is a must when
@@ -335,8 +335,7 @@ public class EntitlementServiceComponent {
                 policyDTO.setPolicy(FileUtils.readFileToString(policyFile));
                 if (!policyIdList.contains(policyDTO.getPolicyId())) {
                     try {
-                        EntitlementUtil.addFilesystemPolicy(policyDTO, registryService
-                                .getGovernanceSystemRegistry(), true);
+                        EntitlementUtil.addFilesystemPolicy(policyDTO, true);
                     } catch (Exception e) {
                         // Log error and continue with the rest of the files.
                         log.error("Error while adding XACML policies", e);

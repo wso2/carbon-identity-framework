@@ -140,18 +140,5 @@ public interface PolicyFinderModule {
      */
     public boolean isDefaultCategoriesSupported();
 
-    /**
-     * returns whether this module supports for policy ordering.
-     *
-     * @return whether supported or not
-     */
-    public boolean isPolicyOrderingSupport();
-
-    /**
-     * returns whether this module supports for policy activation or de-activation.
-     *
-     * @return whether supported or not
-     */
-    public boolean isPolicyDeActivationSupport();
 
 }

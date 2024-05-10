@@ -26,12 +26,13 @@ import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
+import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
+import org.wso2.carbon.identity.entitlement.dao.SubscriberDAO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.StatusHolder;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pap.EntitlementAdminEngine;
-import org.wso2.carbon.identity.entitlement.policy.version.PolicyVersionManager;
 import org.wso2.carbon.registry.api.Registry;
 
 import java.util.ArrayList;
@@ -121,7 +122,8 @@ public class PolicyPublishExecutor {
                 holder = new PublisherDataHolder(policyPublisherModule.getModuleName());
             } else {
                 try {
-                    holder = publisher.retrieveSubscriber(subscriberId, true);
+                    SubscriberDAO subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberDAO();
+                    holder = subscriberManager.getSubscriber(subscriberId, true);
                 } catch (EntitlementException e) {
                     log.error("Subscriber details can not be retrieved. So skip publishing policies " +
                             "for subscriber : " + subscriberId);
@@ -173,9 +175,9 @@ public class PolicyPublishExecutor {
 
                 if (EntitlementConstants.PolicyPublish.ACTION_CREATE.equalsIgnoreCase(action) ||
                         EntitlementConstants.PolicyPublish.ACTION_UPDATE.equalsIgnoreCase(action)) {
-                    PolicyVersionManager manager = EntitlementAdminEngine.getInstance().getVersionManager();
+                    PolicyDAO policyStore = EntitlementAdminEngine.getInstance().getPolicyDAO();
                     try {
-                        policyDTO = manager.getPolicy(policyId, version);
+                        policyDTO = policyStore.getPolicy(policyId, version);
                     } catch (EntitlementException e) {
                         //  ignore
                     }
