@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.entitlement.policy.store;
 
 import org.wso2.carbon.identity.entitlement.EntitlementException;
+import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
 import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.dao.RegistryPolicyDAOImpl;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
@@ -69,6 +70,8 @@ public class PolicyStoreManager {
             dto.setSetActive(true);
         }
         policyStore.publishPolicy(dto);
+        RegistryPolicyDAOImpl
+                .invalidateCache(dto.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_UPDATE);
     }
 
     public void updatePolicy(PolicyDTO policyDTO) throws EntitlementException {
@@ -89,6 +92,8 @@ public class PolicyStoreManager {
         dto.setSetOrder(false);
 
         policyStore.publishPolicy(dto);
+        RegistryPolicyDAOImpl
+                .invalidateCache(dto.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_UPDATE);
     }
 
     public void enableDisablePolicy(PolicyDTO policyDTO) throws EntitlementException {
@@ -106,6 +111,13 @@ public class PolicyStoreManager {
         dto.setSetActive(true);
 
         policyStore.publishPolicy(dto);
+        if (policyDTO.isActive()) {
+            RegistryPolicyDAOImpl
+                    .invalidateCache(dto.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_ENABLE);
+        } else {
+            RegistryPolicyDAOImpl
+                    .invalidateCache(dto.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_DISABLE);
+        }
     }
 
     public void orderPolicy(PolicyDTO policyDTO) throws EntitlementException {
@@ -123,6 +135,8 @@ public class PolicyStoreManager {
         dto.setSetOrder(true);
 
         policyStore.publishPolicy(dto);
+        RegistryPolicyDAOImpl
+                .invalidateCache(dto.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_ORDER);
     }
 
 
@@ -132,6 +146,8 @@ public class PolicyStoreManager {
                     policyDTO.getPolicyId());
         }
         policyStore.unPublishPolicy(policyDTO.getPolicyId());
+        RegistryPolicyDAOImpl
+                .invalidateCache(policyDTO.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_DELETE);
     }
 
     public PolicyDTO getPolicy(String policyId) {
