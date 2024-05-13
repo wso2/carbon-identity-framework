@@ -51,7 +51,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.*;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.CONSOLE_APP_NAME;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.CONSOLE_CLIENT_ID;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.MY_ACCOUNT_APP_NAME;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.MY_ACCOUNT_CLIENT_ID;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.LOGGABLE_USER_CLAIMS;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
