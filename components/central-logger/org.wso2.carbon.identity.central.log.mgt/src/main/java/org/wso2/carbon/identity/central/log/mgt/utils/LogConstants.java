@@ -79,6 +79,8 @@ public class LogConstants {
         public static final String UPDATE_APP_STATE_ACTION = "update-app-state";
         public static final String CONSOLE_CLIENT_ID = "CONSOLE";
         public static final String MY_ACCOUNT_CLIENT_ID = "MY_ACCOUNT";
+        public static final String CONSOLE_APP_NAME = "Console";
+        public static final String MY_ACCOUNT_APP_NAME = "My Account";
     }
 
     /**

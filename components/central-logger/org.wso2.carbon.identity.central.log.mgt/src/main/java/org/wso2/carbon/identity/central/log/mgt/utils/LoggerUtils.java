@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.central.log.mgt.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -50,8 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.CONSOLE_CLIENT_ID;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.MY_ACCOUNT_CLIENT_ID;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.*;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.LOGGABLE_USER_CLAIMS;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
@@ -172,14 +172,8 @@ public class LoggerUtils {
             DiagnosticLog diagnosticLog = diagnosticLogBuilder.build();
             /* As the Console and MyAccount application are managed by the identity server, the diagnostic logs are not
             required to be emitted. */
-            if (diagnosticLog.getInput() != null) {
-                String clientID = (String) diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID);
-                if (clientID == null) {
-                    clientID = (String) diagnosticLog.getInput().get("client_id");
-                }
-                if (CONSOLE_CLIENT_ID.equals(clientID) || MY_ACCOUNT_CLIENT_ID.equals(clientID)) {
-                    return;
-                }
+            if (isConsoleOrMyAccountApp(diagnosticLog)) {
+                return;
             }
             IdentityEventService eventMgtService =
                     CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
@@ -393,5 +387,37 @@ public class LoggerUtils {
             return strippedClaims;
         }
         return new ArrayList<>();
+    }
+
+    private static boolean isConsoleOrMyAccountApp(DiagnosticLog diagnosticLog) {
+
+        if (diagnosticLog.getInput() == null) {
+            return false;
+        }
+        String clientID;
+        List<?> clientIDs;
+        Object clientIDInputObj = diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID);
+        if (clientIDInputObj instanceof String) {
+            return CONSOLE_CLIENT_ID.equals(clientIDInputObj) || MY_ACCOUNT_CLIENT_ID.equals(clientIDInputObj);
+        }
+        Object clientNameInputObj = diagnosticLog.getInput().get(LogConstants.InputKeys.APPLICATION_NAME);
+        if (clientNameInputObj instanceof String) {
+            return CONSOLE_APP_NAME.equals(clientNameInputObj) || MY_ACCOUNT_APP_NAME.equals(clientNameInputObj);
+        }
+        if (clientIDInputObj instanceof List<?>) {
+            clientIDs = (List<?>) diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID);
+            if (CollectionUtils.isNotEmpty(clientIDs)) {
+                clientID = (String) clientIDs.get(0);
+                return CONSOLE_CLIENT_ID.equals(clientID) || MY_ACCOUNT_CLIENT_ID.equals(clientID);
+            }
+        }
+        if (diagnosticLog.getInput().get("client_id") instanceof List<?>) {
+            clientIDs = (List<?>) diagnosticLog.getInput().get("client_id");
+            if (CollectionUtils.isNotEmpty(clientIDs)) {
+                clientID = (String) clientIDs.get(0);
+                return CONSOLE_CLIENT_ID.equals(clientID) || MY_ACCOUNT_CLIENT_ID.equals(clientID);
+            }
+        }
+        return false;
     }
 }
