@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2021-2024, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.CONSOLE_CLIENT_ID;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.MY_ACCOUNT_CLIENT_ID;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.LOGGABLE_USER_CLAIMS;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
@@ -151,7 +153,7 @@ public class LoggerUtils {
                 if (clientID == null) {
                     clientID = (String) diagnosticLog.getInput().get("client_id");
                 }
-                if ("CONSOLE".equals(clientID) || "MY_ACCOUNT".equals(clientID)) {
+                if (CONSOLE_CLIENT_ID.equals(clientID) || MY_ACCOUNT_CLIENT_ID.equals(clientID)) {
                     return;
                 }
             }
