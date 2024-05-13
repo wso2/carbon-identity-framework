@@ -146,10 +146,14 @@ public class LoggerUtils {
                     resultMessage, actionId, componentId, input, configurations);
             /* As the console application is used to manage the identity server, the diagnostic logs are not required
             to be emitted. */
-            if (diagnosticLog.getInput() != null &&
-                    ("CONSOLE".equals(diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID)) ||
-                            "CONSOLE".equals(diagnosticLog.getInput().get("client_id")))) {
-                return;
+            if (diagnosticLog.getInput() != null) {
+                String clientID = (String) diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID);
+                if (clientID == null) {
+                    clientID = (String) diagnosticLog.getInput().get("client_id");
+                }
+                if ("CONSOLE".equals(clientID) || "MY_ACCOUNT".equals(clientID)) {
+                    return;
+                }
             }
             IdentityEventService eventMgtService =
                     CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
