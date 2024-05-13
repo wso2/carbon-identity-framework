@@ -144,6 +144,13 @@ public class LoggerUtils {
             String flowId = MDC.get(FLOW_ID_MDC);
             DiagnosticLog diagnosticLog = new DiagnosticLog(id, recordedAt, requestId, flowId, resultStatus,
                     resultMessage, actionId, componentId, input, configurations);
+            /* As the console application is used to manage the identity server, the diagnostic logs are not required
+            to be emitted. */
+            if (diagnosticLog.getInput() != null &&
+                    ("CONSOLE".equals(diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID)) ||
+                            "CONSOLE".equals(diagnosticLog.getInput().get("client_id")))) {
+                return;
+            }
             IdentityEventService eventMgtService =
                     CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
             diagnosticLogProperties.put(CarbonConstants.LogEventConstants.DIAGNOSTIC_LOG, diagnosticLog);
