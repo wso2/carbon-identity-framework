@@ -99,7 +99,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                     .build();
             graph.setEnabled(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig().isEnabled());
             sequenceConfig.setAuthenticationGraph(graph);
-            graph.setStepMap(originalStepConfigMap);
+            graph.setStepMap(stepConfigMapCopy);
         }
         return sequenceConfig;
     }
