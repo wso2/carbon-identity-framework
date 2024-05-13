@@ -21,6 +21,7 @@ package org.wso2.carbon.user.mgt.recorder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.BufferedWriter;
@@ -49,7 +50,7 @@ public class DefaultUserDeletionEventRecorder implements UserDeletionEventRecord
                                       Date timeStamp, Map<String, String> properties) throws RecorderException {
 
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(username)
+        stringBuilder.append(LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username)
                 .append(COMMA)
                 .append(domainName)
                 .append(COMMA)
