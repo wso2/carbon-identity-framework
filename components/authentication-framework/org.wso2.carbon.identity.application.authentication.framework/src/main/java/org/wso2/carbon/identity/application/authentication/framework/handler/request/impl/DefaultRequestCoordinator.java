@@ -734,6 +734,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                         FrameworkConstants.LogConstants.ActionIDs.INIT_AUTH_FLOW)
                         .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
+                        .inputParam(LogConstants.InputKeys.CLIENT_ID, relyingParty)
                         .inputParam(LogConstants.InputKeys.CALLER_PATH, callerPath)
                         .inputParam(FrameworkConstants.LogConstants.TENANT_DOMAIN, tenantDomain)
                         .inputParam(FrameworkConstants.SESSION_DATA_KEY, callerSessionDataKey)
