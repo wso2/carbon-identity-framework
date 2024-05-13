@@ -1141,7 +1141,7 @@
     "applications.myaccount.simplifiedSettings"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
-  "console.application_roles.enabled": true,
+  "console.application_roles.enabled": false,
   "console.approvals.enabled": false,
   "console.approvals.scopes.feature": ["console:workflowApprovals"],
   "console.approvals.scopes.create": ["internal_humantask_view"],
