@@ -144,8 +144,8 @@ public class LoggerUtils {
             String flowId = MDC.get(FLOW_ID_MDC);
             DiagnosticLog diagnosticLog = new DiagnosticLog(id, recordedAt, requestId, flowId, resultStatus,
                     resultMessage, actionId, componentId, input, configurations);
-            /* As the console application is used to manage the identity server, the diagnostic logs are not required
-            to be emitted. */
+            /* As the Console and MyAccount application are managed by the identity server, the diagnostic logs are not
+            required to be emitted. */
             if (diagnosticLog.getInput() != null) {
                 String clientID = (String) diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID);
                 if (clientID == null) {
