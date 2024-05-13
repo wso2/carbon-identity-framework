@@ -744,7 +744,8 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.NEW_GROUP_ID_LIST, newGroupIDList);
         eventProperties.put(IdentityEventConstants.EventProperty.DELETE_GROUP_ID_LIST, deletedGroupIDList);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT);
+        Event event = createEvent(eventProperties,
+                IdentityEventConstants.Event.PRE_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT);
         doPublishEvent(event);
     }
 
