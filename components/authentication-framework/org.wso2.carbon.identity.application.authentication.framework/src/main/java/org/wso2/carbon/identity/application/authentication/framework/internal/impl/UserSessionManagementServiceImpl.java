@@ -583,7 +583,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
                         FrameworkUtils.getLoginTenantDomainFromContext());
                 if (sessionContext != null) {
-                    if (sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN) instanceof String) {
+                    if (sessionContext.getProperties() != null &&
+                            sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN) instanceof String) {
                         String tenantDomain = (String) sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN);
                         // User's sessions belongs to the requested tenant is returned.
                         if (!StringUtils.equals(FrameworkUtils.getLoginTenantDomainFromContext(), tenantDomain)) {
