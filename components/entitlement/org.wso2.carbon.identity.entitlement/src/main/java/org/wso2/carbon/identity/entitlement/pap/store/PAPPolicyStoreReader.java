@@ -49,7 +49,6 @@ public class PAPPolicyStoreReader {
         this.store = store;
     }
 
-
     /**
      * @param policyId policyId
      * @param finder   policy finder
@@ -139,10 +138,8 @@ public class PAPPolicyStoreReader {
             return null;
         }
         dto.setPolicy(null);
-        AttributeDTO[] arr = new AttributeDTO[0];
-        dto.setAttributeDTOs(arr);
-        String[] arr2 = new String[0];
-        dto.setPolicyEditorData(arr2);
+        dto.setAttributeDTOs(new AttributeDTO[0]);
+        dto.setPolicyEditorData( new String[0]);
         return dto;
     }
 

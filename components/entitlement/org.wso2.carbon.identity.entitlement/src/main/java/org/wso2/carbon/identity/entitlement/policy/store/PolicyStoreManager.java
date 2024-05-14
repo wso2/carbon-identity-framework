@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.entitlement.policy.store;
 
+import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
 import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
@@ -45,7 +46,7 @@ public class PolicyStoreManager {
 
         Map<PolicyDAO, Properties> policyCollections = EntitlementServiceComponent.
                 getEntitlementConfig().getPolicyStore();
-        if (policyCollections != null && !policyCollections.isEmpty()) {
+        if (MapUtils.isNotEmpty(policyCollections)) {
             policyStore = policyCollections.entrySet().iterator().next().getKey();
         } else {
             policyStore = new RegistryPolicyDAOImpl();

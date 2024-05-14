@@ -17,6 +17,7 @@
 */
 package org.wso2.carbon.identity.entitlement.internal;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -156,21 +157,6 @@ public class EntitlementServiceComponent {
         return null;
     }
 
-    /**
-     * @param httpService
-     */
-    /*protected void setHttpService(HttpService httpService) {
-        httpServiceInstance = httpService;
-    }
-
-    */
-
-    /**
-     * @param httpService
-     *//*
-    protected void unsetHttpService(HttpService httpService) {
-        httpServiceInstance = null;
-    }*/
     public static NotificationSender getNotificationSender() {
         return EntitlementServiceComponent.notificationSender;
     }
@@ -233,10 +219,11 @@ public class EntitlementServiceComponent {
 
             List<String> policyIdList = new ArrayList<>();
 
-            if (papPolicyStore != null &&
-                    ArrayUtils.isNotEmpty(papPolicyStore.listPolicyIds().toArray(new String[0]))) {
-                String[] allPolicyIds = papPolicyStore.listPolicyIds().toArray(new String[0]);
-                policyIdList = Arrays.asList(allPolicyIds);
+            if (papPolicyStore != null) {
+                List<String> policyIds = papPolicyStore.listPolicyIds();
+                if (CollectionUtils.isNotEmpty(policyIds)) {
+                    policyIdList = policyIds;
+                }
             }
 
             if (startUpPolicyAdding != null && Boolean.parseBoolean(startUpPolicyAdding)) {

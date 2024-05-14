@@ -45,7 +45,6 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.exceptions.ResourceNotFoundException;
 import org.wso2.carbon.registry.core.utils.RegistryUtils;
 
-import javax.xml.stream.XMLStreamException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,26 +59,28 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.xml.stream.XMLStreamException;
+
 /**
  * This implementation handles the XACML policy management in the Registry.
  */
-public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
-        implements PolicyDAO {
-
+public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements PolicyDAO {
 
     // The logger that is used for all messages
     private static final Log log = LogFactory.getLog(RegistryPolicyDAOImpl.class);
     private static final String KEY_VALUE_POLICY_META_DATA = "policyMetaData";
     private static final String MODULE_NAME = "Registry Policy Finder Module";
+    private static final String POLICY_STORE_PATH = "policyStorePath";
+    private static final String DEFAULT_POLICY_STORE_PATH = "/repository/identity/entitlement/policy/pdp/";
     private final Registry registry;
     private final String policyStorePath;
     private final int maxVersions;
 
-
     public RegistryPolicyDAOImpl() {
+
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         registry = EntitlementServiceComponent.getGovernanceRegistry(tenantId);
-        policyStorePath = EntitlementUtil.getPolicyStorePath();
+        policyStorePath = getPolicyStorePath();
         maxVersions = EntitlementUtil.getMaxNoOfPolicyVersions();
     }
 
@@ -87,7 +88,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
     public void init(Properties properties) {
 
     }
-
 
     /**
      * Adds or updates the given PAP policy.
@@ -106,7 +106,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
 
     }
 
-
     /**
      * Gets the requested policy.
      *
@@ -121,7 +120,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         return getPolicyDTO(policyId, path);
 
     }
-
 
     /**
      * Gets the requested policy version.
@@ -158,7 +156,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         return dto;
     }
 
-
     /**
      * Gets all versions of the given policy ID.
      *
@@ -190,7 +187,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
 
     }
 
-
     /**
      * Gets the name of the module.
      *
@@ -198,9 +194,9 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
      */
     @Override
     public String getModuleName() {
+
         return MODULE_NAME;
     }
-
 
     /**
      * Gets the policy for the given policy ID.
@@ -210,6 +206,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
      */
     @Override
     public String getPolicy(String policyId) {
+
         PolicyDTO dto;
         try {
             dto = getPublishedPolicy(policyId);
@@ -221,7 +218,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         return null;
     }
 
-
     /**
      * Gets the policy order.
      *
@@ -230,6 +226,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
      */
     @Override
     public int getPolicyOrder(String policyId) {
+
         PolicyDTO dto;
         try {
             dto = getPublishedPolicy(policyId);
@@ -240,7 +237,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         }
         return -1;
     }
-
 
     /**
      * Gets all supported active policies.
@@ -270,7 +266,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
 
         return policies.toArray(new String[0]);
     }
-
 
     /**
      * Gets all supported policy ids.
@@ -302,7 +297,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
 
     }
 
-
     /**
      * Gets all policy ids.
      *
@@ -310,6 +304,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
      */
     @Override
     public String[] getPolicyIdentifiers() {
+
         String[] policyIds = null;
         try {
             policyIds = listPublishedPolicyIds().toArray(new String[0]);
@@ -318,7 +313,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         }
         return policyIds;
     }
-
 
     /**
      * Gets reference policy for the given policy ID.
@@ -340,11 +334,10 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         return null;
     }
 
-
     /**
      * Gets attributes that are used for policy searching.
      *
-     * @param identifier unique identifier to separate out search attributes
+     * @param identifier     unique identifier to separate out search attributes
      * @param givenAttribute pre-given attributes to retrieve other attributes
      * @return return search attributes based on a given policy, Map of policy id with search attributes.
      */
@@ -391,7 +384,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         return attributeMap;
     }
 
-
     /**
      * Gets support attribute searching scheme of the module.
      *
@@ -399,9 +391,9 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
      */
     @Override
     public int getSupportedSearchAttributesScheme() {
+
         return PolicyFinderModule.COMBINATIONS_BY_CATEGORY_AND_PARAMETER;
     }
-
 
     /**
      * Lists all PAP policy IDs.
@@ -416,7 +408,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         return listAllPolicyIds(path);
 
     }
-
 
     /**
      * Removes the given policy from PAP.
@@ -435,7 +426,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
 
         // Restricts removing policies, that have already been published
         List<String> publishedPolicies = listPublishedPolicyIds();
-        if(publishedPolicies != null && publishedPolicies.contains(policyId)){
+        if (publishedPolicies != null && publishedPolicies.contains(policyId)) {
             log.error("Policies that have already been published, cannot be removed from PAP");
             throw new EntitlementException("Policies that have already been published, cannot be removed from PAP");
         }
@@ -461,7 +452,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         }
 
     }
-
 
     /**
      * Publishes the given policy.
@@ -562,7 +552,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         }
     }
 
-
     /**
      * Checks whether the given policy is published or not.
      *
@@ -584,7 +573,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
             return false;
         }
     }
-
 
     /**
      * Gets the requested published policy.
@@ -609,7 +597,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
 
     }
 
-
     /**
      * Lists all published policy IDs.
      *
@@ -618,9 +605,9 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
      */
     @Override
     public List<String> listPublishedPolicyIds() throws EntitlementException {
+
         return listAllPolicyIds(policyStorePath);
     }
-
 
     /**
      * Un-publishes the policy.
@@ -646,7 +633,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         }
 
     }
-
 
     /**
      * Adds or updates the given policy to PAP.
@@ -827,7 +813,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         }
     }
 
-
     /**
      * Creates a new policy version.
      *
@@ -883,7 +868,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         return version;
     }
 
-
     /**
      * Creates a property object which contains the policy metadata.
      *
@@ -904,7 +888,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
             }
         }
     }
-
 
     /**
      * Gets the requested policy from PAP.
@@ -992,7 +975,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
 
     }
 
-
     /**
      * Returns given policy as a registry resource.
      *
@@ -1001,6 +983,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
      * @throws EntitlementException If an error occurs
      */
     private Resource getPolicyResource(String policyId) throws EntitlementException {
+
         String path;
 
         if (log.isDebugEnabled()) {
@@ -1022,7 +1005,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
             throw new EntitlementException("Error while retrieving entitlement policy : " + policyId, e);
         }
     }
-
 
     /**
      * Reads All ordered active policies as PolicyDTO.
@@ -1059,7 +1041,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         }
         return policyDTOs;
     }
-
 
     /**
      * Returns all the policies as registry resources.
@@ -1102,7 +1083,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         return resources.toArray(new Resource[0]);
     }
 
-
     /**
      * Gets all policy IDs.
      *
@@ -1142,7 +1122,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
 
         return resources;
     }
-
 
     /**
      * Reads PolicyDTO for given registry resource.
@@ -1186,13 +1165,12 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         }
     }
 
-
     /**
      * Updates the given registry resource.
      *
-     * @param policy publishing policy
+     * @param policy         publishing policy
      * @param collectionPath registry collection path
-     * @param policyPath registry resource path
+     * @param policyPath     registry resource path
      * @throws EntitlementException If an error occurs
      */
     private void updateResource(PolicyStoreDTO policy, String collectionPath, String policyPath)
@@ -1236,4 +1214,19 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule
         }
     }
 
+    /**
+     * Gets the policy store path
+     *
+     * @return policy store path
+     */
+    private static String getPolicyStorePath() {
+
+        String policyStorePath;
+        policyStorePath = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties().
+                getProperty(POLICY_STORE_PATH);
+        if (policyStorePath == null) {
+            policyStorePath = DEFAULT_POLICY_STORE_PATH;
+        }
+        return policyStorePath;
+    }
 }

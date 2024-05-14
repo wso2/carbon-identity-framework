@@ -40,24 +40,21 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 /**
  * This implementation handles the subscriber management in the Registry.
  */
 public class RegistrySubscriberDAOImpl implements SubscriberDAO {
 
-
+    public static final String SUBSCRIBER_ID = "subscriberId";
     // The logger that is used for all messages
     private static final Log log = LogFactory.getLog(RegistrySubscriberDAOImpl.class);
-    public static final String SUBSCRIBER_ID = "subscriberId";
     private final Registry registry;
 
-
     public RegistrySubscriberDAOImpl() {
+
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         this.registry = EntitlementServiceComponent.getGovernanceRegistry(tenantId);
     }
-
 
     /**
      * Adds a subscriber.
@@ -66,21 +63,21 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
      * @throws EntitlementException If an error occurs
      */
     @Override
-    public void addSubscriber(PublisherDataHolder holder) throws EntitlementException{
+    public void addSubscriber(PublisherDataHolder holder) throws EntitlementException {
+
         persistSubscriber(holder, false);
     }
-
 
     /**
      * Gets the requested subscriber.
      *
-     * @param subscriberId subscriber ID
+     * @param subscriberId  subscriber ID
      * @param returnSecrets whether the subscriber should get returned with secret(decrypted) values or not
      * @return publisher data holder
      * @throws EntitlementException If an error occurs
      */
     @Override
-    public PublisherDataHolder getSubscriber(String subscriberId, boolean returnSecrets) throws EntitlementException{
+    public PublisherDataHolder getSubscriber(String subscriberId, boolean returnSecrets) throws EntitlementException {
 
         try {
             if (registry.resourceExists(PDPConstants.ENTITLEMENT_POLICY_PUBLISHER +
@@ -99,7 +96,6 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
 
     }
 
-
     /**
      * Gets all subscriber IDs.
      *
@@ -108,7 +104,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
      * @throws EntitlementException If an error occurs
      */
     @Override
-    public List<String> listSubscriberIds(String filter) throws EntitlementException{
+    public List<String> listSubscriberIds(String filter) throws EntitlementException {
 
         try {
             if (registry.resourceExists(PDPConstants.ENTITLEMENT_POLICY_PUBLISHER +
@@ -141,7 +137,6 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         return null;
     }
 
-
     /**
      * Updates a subscriber.
      *
@@ -149,10 +144,10 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
      * @throws EntitlementException If an error occurs
      */
     @Override
-    public void updateSubscriber(PublisherDataHolder holder) throws EntitlementException{
+    public void updateSubscriber(PublisherDataHolder holder) throws EntitlementException {
+
         persistSubscriber(holder, true);
     }
-
 
     /**
      * Removes the subscriber of the given subscriber ID.
@@ -161,7 +156,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
      * @throws EntitlementException If an error occurs
      */
     @Override
-    public void removeSubscriber(String subscriberId) throws EntitlementException{
+    public void removeSubscriber(String subscriberId) throws EntitlementException {
 
         String subscriberPath;
 
@@ -188,15 +183,14 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         }
     }
 
-
     /**
      * Adds or updates a subscriber.
      *
-     * @param holder publisher data holder
+     * @param holder   publisher data holder
      * @param isUpdate whether the operation is an update or an addition
      * @throws EntitlementException If an error occurs
      */
-    private void persistSubscriber(PublisherDataHolder holder, boolean isUpdate) throws EntitlementException{
+    private void persistSubscriber(PublisherDataHolder holder, boolean isUpdate) throws EntitlementException {
 
         Collection policyCollection;
         String subscriberPath;
@@ -250,13 +244,12 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         }
     }
 
-
     /**
      * Populate subscriber properties.
      *
-     * @param holder subscriber data holder
+     * @param holder    subscriber data holder
      * @param oldHolder old publisher data holder
-     * @param resource registry resource
+     * @param resource  registry resource
      */
     private void populateProperties(PublisherDataHolder holder,
                                     PublisherDataHolder oldHolder, Resource resource) {

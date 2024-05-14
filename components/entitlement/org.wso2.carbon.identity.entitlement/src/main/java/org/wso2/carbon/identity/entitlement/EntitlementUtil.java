@@ -95,6 +95,13 @@ public class EntitlementUtil {
 
     private static Log log = LogFactory.getLog(EntitlementUtil.class);
 
+    private static final String DENY_OVERRIDES = "deny-overrides";
+    private static final String PERMIT_OVERRIDES = "permit-overrides";
+    private static final String FIRST_APPLICABLE = "first-applicable";
+    private static final String ORDERED_DENY_OVERRIDES = "ordered-deny-overrides";
+    private static final String ONLY_ONE_APPLICABLE = "only-one-applicable";
+    private static final String ORDERED_PERMIT_OVERRIDES = "ordered-permit-overrides";
+
     private static final String ENHANCED_XACML_LOADING_SYSTEM_PROPERTY = "enableEnhancedXACMLLoading";
 
     /**
@@ -334,15 +341,15 @@ public class EntitlementUtil {
         throw new EntitlementException("Unsupported policy algorithm " + uri);
     }
 
-
     /**
      * Gets all supported policy combining algorithm names
      *
      * @return array of policy combining algorithm names
      */
     public static String[] getAllGlobalPolicyAlgorithmNames() {
-        return new String[] {"deny-overrides", "permit-overrides", "first-applicable", "ordered-deny-overrides",
-                "ordered-permit-overrides", "only-one-applicable"};
+
+        return new String[]{DENY_OVERRIDES, PERMIT_OVERRIDES, FIRST_APPLICABLE, ORDERED_DENY_OVERRIDES,
+                ORDERED_PERMIT_OVERRIDES, ONLY_ONE_APPLICABLE};
     }
 
     /**
@@ -350,20 +357,19 @@ public class EntitlementUtil {
      *
      * @return maximum no of status records
      */
-    public static int getMaxNoOfStatusRecords(){
+    public static int getMaxNoOfStatusRecords() {
+
         int maxRecords = 0;
         String maxRecordsString = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties().
                 getProperty(PDPConstants.MAX_NO_OF_STATUS_RECORDS);
+
         if (maxRecordsString != null) {
-            try {
-                maxRecords = Integer.parseInt(maxRecordsString);
-            } catch (Exception e) {
-                //ignore
-            }
+            maxRecords = Integer.parseInt(maxRecordsString);
         }
         if (maxRecords == 0) {
             maxRecords = PDPConstants.DEFAULT_MAX_NO_OF_STATUS_RECORDS;
         }
+
         return maxRecords;
     }
 
@@ -372,36 +378,21 @@ public class EntitlementUtil {
      *
      * @return maximum no of policy versions
      */
-    public static int getMaxNoOfPolicyVersions(){
+    public static int getMaxNoOfPolicyVersions() {
+
         int maxVersions = 0;
         String maxVersionsString = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties().
                 getProperty(PDPConstants.MAX_NO_OF_POLICY_VERSIONS);
-        try {
+
+        if (maxVersionsString != null) {
             maxVersions = Integer.parseInt(maxVersionsString);
-        } catch (Exception e) {
-            // ignore
         }
         if (maxVersions == 0) {
             maxVersions = PDPConstants.DEFAULT_MAX_NO_OF_POLICY_VERSIONS;
         }
+
         return maxVersions;
     }
-
-    /**
-     * Gets the policy store path
-     *
-     * @return policy store path
-     */
-    public static String getPolicyStorePath(){
-        String policyStorePath;
-        policyStorePath = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties().
-                getProperty(PDPConstants.POLICY_STORE_PATH);
-        if (policyStorePath == null) {
-            policyStorePath = PDPConstants.DEFAULT_POLICY_STORE_PATH;
-        }
-        return policyStorePath;
-    }
-
 
     /**
      * Creates Simple XACML request using given attribute value.Here category, attribute ids and datatypes are
@@ -464,7 +455,7 @@ public class EntitlementUtil {
     }
 
     /**
-     * This method checks whether there is a policy having the same policyId as the given policyId is in the registry
+     * This method checks whether there is a policy having the same policyId as the given policyId
      *
      * @param policyId
      * @return
@@ -479,7 +470,7 @@ public class EntitlementUtil {
 
     /**
      * This method persists a new XACML policy, which was read from filesystem,
-     * in the registry
+     * in the policy store
      *
      * @param policyDTO PolicyDTO object
      * @param promote   where policy must be promote PDP or not

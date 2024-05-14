@@ -35,7 +35,7 @@ import java.util.Set;
 
 /**
  * This is policy publisher. There can be different modules that have been plugged with this.
- * This module currently is bound with the WSO2 registry, as some meta data is store there,
+ *
  */
 public class PolicyPublisher {
 

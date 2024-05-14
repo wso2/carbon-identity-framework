@@ -23,12 +23,10 @@ import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
 
 import java.util.List;
 
-
 /**
  * This interface supports the management of subscribers.
  */
 public interface SubscriberDAO {
-
 
     /**
      * Adds a subscriber.
@@ -38,17 +36,15 @@ public interface SubscriberDAO {
      */
     void addSubscriber(PublisherDataHolder holder) throws EntitlementException;
 
-
     /**
      * Gets the requested subscriber.
      *
-     * @param subscriberId subscriber ID
+     * @param subscriberId  subscriber ID
      * @param returnSecrets whether the subscriber should get returned with secret(decrypted) values or not
      * @return publisher data holder
      * @throws EntitlementException If an error occurs
      */
     PublisherDataHolder getSubscriber(String subscriberId, boolean returnSecrets) throws EntitlementException;
-
 
     /**
      * Lists all subscriber IDs.
@@ -59,7 +55,6 @@ public interface SubscriberDAO {
      */
     List<String> listSubscriberIds(String filter) throws EntitlementException;
 
-
     /**
      * Updates a subscriber.
      *
@@ -67,7 +62,6 @@ public interface SubscriberDAO {
      * @throws EntitlementException If an error occurs
      */
     void updateSubscriber(PublisherDataHolder holder) throws EntitlementException;
-
 
     /**
      * Removes the subscriber of the given subscriber ID.

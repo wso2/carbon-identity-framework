@@ -25,12 +25,10 @@ import org.wso2.carbon.identity.entitlement.policy.finder.PolicyFinderModule;
 
 import java.util.List;
 
-
 /**
  * This interface supports the management of XACML policies.
  */
 public interface PolicyDAO extends PolicyFinderModule {
-
 
     /**
      * Adds or updates the given policy.
@@ -40,7 +38,6 @@ public interface PolicyDAO extends PolicyFinderModule {
      */
     void addOrUpdatePolicy(PolicyDTO policy) throws EntitlementException;
 
-
     /**
      * Gets the requested policy.
      *
@@ -49,7 +46,6 @@ public interface PolicyDAO extends PolicyFinderModule {
      * @throws EntitlementException If an error occurs
      */
     PolicyDTO getPAPPolicy(String policyId) throws EntitlementException;
-
 
     /**
      * Gets the requested policy version.
@@ -61,7 +57,6 @@ public interface PolicyDAO extends PolicyFinderModule {
      */
     PolicyDTO getPolicy(String policyId, String version) throws EntitlementException;
 
-
     /**
      * Gets all versions of the given policy ID.
      *
@@ -69,7 +64,6 @@ public interface PolicyDAO extends PolicyFinderModule {
      * @return array of policy versions
      */
     String[] getVersions(String policyId);
-
 
     /**
      * Lists all PAP policy IDs.
@@ -79,7 +73,6 @@ public interface PolicyDAO extends PolicyFinderModule {
      */
     List<String> listPolicyIds() throws EntitlementException;
 
-
     /**
      * Removes the given policy.
      *
@@ -87,7 +80,6 @@ public interface PolicyDAO extends PolicyFinderModule {
      * @throws EntitlementException If an error occurs
      */
     void removePolicy(String policyId) throws EntitlementException;
-
 
     /**
      * Publishes the given policy.
@@ -97,7 +89,6 @@ public interface PolicyDAO extends PolicyFinderModule {
      */
     void publishPolicy(PolicyStoreDTO policy) throws EntitlementException;
 
-
     /**
      * Checks whether the given policy is published or not.
      *
@@ -106,15 +97,13 @@ public interface PolicyDAO extends PolicyFinderModule {
      */
     boolean isPublished(String policyId);
 
-
     /**
      * Gets the requested published policy.
      *
      * @param policyId policy ID
      * @return requested policy
      */
-    PolicyDTO getPublishedPolicy(String policyId) ;
-
+    PolicyDTO getPublishedPolicy(String policyId);
 
     /**
      * Lists all published policy IDs.
@@ -123,7 +112,6 @@ public interface PolicyDAO extends PolicyFinderModule {
      * @throws EntitlementException If an error occurs
      */
     List<String> listPublishedPolicyIds() throws EntitlementException;
-
 
     /**
      * Un-publishes the policy.
