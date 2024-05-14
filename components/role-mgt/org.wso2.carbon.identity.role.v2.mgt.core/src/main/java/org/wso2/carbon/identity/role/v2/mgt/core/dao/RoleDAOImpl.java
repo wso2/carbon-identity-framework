@@ -653,7 +653,7 @@ public class RoleDAOImpl implements RoleDAO {
     public void deleteRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
         String roleName = getRoleNameByID(roleId, tenantDomain);
-        if (systemRoles.contains(roleName)) {
+        if (systemRoles.contains(roleName) && !isSubOrgByTenant(tenantDomain)) {
             throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
                     "Invalid operation. Role: " + roleName + " Cannot be deleted since it's a read only system role.");
         }
@@ -661,8 +661,9 @@ public class RoleDAOImpl implements RoleDAO {
         UserRealm userRealm;
         try {
             userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())
-                    || isInternalAdminOrSystemRole(roleId, tenantDomain, userRealm)) {
+            if (!isSubOrgByTenant(tenantDomain) &&
+                    (UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())
+                    || isInternalAdminOrSystemRole(roleId, tenantDomain, userRealm))) {
                 throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
                         "Invalid operation. Role: " + roleName + " Cannot be deleted.");
             }
