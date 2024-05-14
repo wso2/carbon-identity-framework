@@ -2275,7 +2275,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             RoleManagementService roleManagementService = holder.getRoleManagementServiceV2();
             try {
                 List<RoleBasicInfo> chunkOfRoles;
-                int offset = 0;
+                int offset = 1;
                 int maximumPage = IdentityUtil.getMaximumItemPerPage();
                 List<RoleBasicInfo> allRoles = new ArrayList<>();
                 if (roleManagementService != null) {
@@ -2288,7 +2288,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             allRoles.addAll(chunkOfRoles);
                             offset += chunkOfRoles.size(); // Move to the next chunk
                         }
-                    } while (!chunkOfRoles.isEmpty());
+                    } while (chunkOfRoles.size() == maximumPage);
 
                     List<String> roleIds = allRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.
                             toList());
