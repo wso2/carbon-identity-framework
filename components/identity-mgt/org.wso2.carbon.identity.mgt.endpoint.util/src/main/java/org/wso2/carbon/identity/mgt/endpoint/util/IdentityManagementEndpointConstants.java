@@ -51,6 +51,7 @@ public class IdentityManagementEndpointConstants {
 
     public static final class PasswordRecoveryOptions {
         public static final String EMAIL = "EMAIL";
+        public static final String SMSOTP = "SMSOTP";
         public static final String SECURITY_QUESTIONS = "SECURITY_QUESTIONS";
     }
 
