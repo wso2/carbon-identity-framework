@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.api.resource.mgt;
 
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -44,7 +43,7 @@ import java.util.List;
 @WithRegistry
 @WithRealmService(injectToSingletons = {OrganizationManagementDataHolder.class})
 @WithH2Database(files = {"dbscripts/h2.sql"})
-public class APIResourceManagerTest extends PowerMockTestCase {
+public class APIResourceManagerTest {
 
     private String tenantDomain;
     private APIResourceManager apiResourceManager;

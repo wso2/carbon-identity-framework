@@ -19,15 +19,13 @@
 package org.wso2.carbon.idp.mgt.util;
 
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
-
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -40,10 +38,10 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
-
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
@@ -53,11 +51,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
  * Unit tests for IdPManagementUtil.
  */
 @WithCarbonHome
-@PrepareForTest({IdentityUtil.class, IdentityApplicationConstants.class, IdentityProviderManager.class,
-        IdentityApplicationManagementUtil.class, IdPManagementServiceComponent.class})
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
-        ".*", "org.apache.xerces.*","org.mockito.*"})
-public class IdPManagementUtilTest extends PowerMockTestCase {
+@Listeners(MockitoTestNGListener.class)
+public class IdPManagementUtilTest {
 
     @Mock
     private IdentityProviderManager mockedIdentityProviderManager;
@@ -82,21 +77,23 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     @Test(dataProvider = "getTenantIdOfDomainData")
     public void testGetTenantIdOfDomain(String tenantDomain, int tenantId, String expectedResult) throws Exception {
 
-        mockStatic(IdentityUtil.class);
-        mockStatic(IdPManagementServiceComponent.class);
-        when(IdPManagementServiceComponent.getRealmService()).thenReturn(mockedRealmService);
-        when(mockedRealmService.getTenantManager()).thenReturn(mockedTenantManager);
-        when(mockedTenantManager.getTenantId(tenantDomain)).thenReturn(tenantId);
+        try (MockedStatic<IdPManagementServiceComponent> idPManagementServiceComponent =
+                mockStatic(IdPManagementServiceComponent.class)) {
+            idPManagementServiceComponent.when(
+                    IdPManagementServiceComponent::getRealmService).thenReturn(mockedRealmService);
+            lenient().when(mockedRealmService.getTenantManager()).thenReturn(mockedTenantManager);
+            lenient().when(mockedTenantManager.getTenantId(tenantDomain)).thenReturn(tenantId);
 
-        String result;
-        try {
-            int id = IdPManagementUtil.getTenantIdOfDomain(tenantDomain);
-            assertEquals(id, tenantId);
-            result = "success";
-        } catch (IllegalArgumentException e) {
-            result = "fail";
+            String result;
+            try {
+                int id = IdPManagementUtil.getTenantIdOfDomain(tenantDomain);
+                assertEquals(id, tenantId);
+                result = "success";
+            } catch (IllegalArgumentException e) {
+                result = "fail";
+            }
+            assertEquals(result, expectedResult);
         }
-        assertEquals(result, expectedResult);
     }
 
     @DataProvider
@@ -114,9 +111,10 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     @Test(dataProvider = "getResidentIdPEntityIdData")
     public void testGetResidentIdPEntityId(String localEntityId, String expectedEntityId) {
 
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty("SSOService.EntityId")).thenReturn(localEntityId);
-        assertEquals(IdPManagementUtil.getResidentIdPEntityId(), expectedEntityId);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty("SSOService.EntityId")).thenReturn(localEntityId);
+            assertEquals(IdPManagementUtil.getResidentIdPEntityId(), expectedEntityId);
+        }
     }
 
     @DataProvider
@@ -134,26 +132,31 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     public void testGetIdleSessionTimeOut(String tenetDomain, boolean validity, String value, int timeOut)
             throws Exception {
 
-        mockStatic(IdentityProviderManager.class);
-        mockStatic(IdentityUtil.class);
-        mockStatic(IdentityApplicationManagementUtil.class);
+        try (MockedStatic<IdentityProviderManager> identityProviderManager =
+                     mockStatic(IdentityProviderManager.class);
+             MockedStatic<IdentityApplicationManagementUtil> identityApplicationManagementUtil =
+                     mockStatic(IdentityApplicationManagementUtil.class)) {
 
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
+            IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
 
-        when(IdentityProviderManager.getInstance()).thenReturn(mockedIdentityProviderManager);
-        when(mockedIdentityProviderManager.getResidentIdP(tenetDomain)).thenReturn(mockedIdentityProvider);
-        when(mockedIdentityProvider.getIdpProperties()).thenReturn(idpProperties);
+            identityProviderManager.when(IdentityProviderManager::getInstance)
+                    .thenReturn(mockedIdentityProviderManager);
+            when(mockedIdentityProviderManager.getResidentIdP(tenetDomain)).thenReturn(mockedIdentityProvider);
+            when(mockedIdentityProvider.getIdpProperties()).thenReturn(idpProperties);
 
-        if (validity) {
-            when(IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
-                    SESSION_IDLE_TIME_OUT)).thenReturn(mockedIdentityProviderProperty);
-        } else {
-            when(IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
-                    SESSION_IDLE_TIME_OUT)).thenReturn(null);
+            if (validity) {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                SESSION_IDLE_TIME_OUT)).thenReturn(mockedIdentityProviderProperty);
+            } else {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                SESSION_IDLE_TIME_OUT)).thenReturn(null);
+            }
+
+            lenient().when(mockedIdentityProviderProperty.getValue()).thenReturn(value);
+            assertEquals(IdPManagementUtil.getIdleSessionTimeOut(tenetDomain), timeOut);
         }
-
-        when(mockedIdentityProviderProperty.getValue()).thenReturn(value);
-        assertEquals(IdPManagementUtil.getIdleSessionTimeOut(tenetDomain), timeOut);
     }
 
     @DataProvider
@@ -171,26 +174,31 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     public void testGetRememberMeTimeout(String tenetDomain, boolean validity, String value, int timeOut)
             throws Exception {
 
-        mockStatic(IdentityProviderManager.class);
-        mockStatic(IdentityUtil.class);
-        mockStatic(IdentityApplicationManagementUtil.class);
+        try (MockedStatic<IdentityProviderManager> identityProviderManager =
+                     mockStatic(IdentityProviderManager.class);
+             MockedStatic<IdentityApplicationManagementUtil> identityApplicationManagementUtil =
+                     mockStatic(IdentityApplicationManagementUtil.class)) {
 
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
+            IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
 
-        when(IdentityProviderManager.getInstance()).thenReturn(mockedIdentityProviderManager);
-        when(mockedIdentityProviderManager.getResidentIdP(anyString())).thenReturn(mockedIdentityProvider);
-        when(mockedIdentityProvider.getIdpProperties()).thenReturn(idpProperties);
+            identityProviderManager.when(IdentityProviderManager::getInstance)
+                    .thenReturn(mockedIdentityProviderManager);
+            when(mockedIdentityProviderManager.getResidentIdP(anyString())).thenReturn(mockedIdentityProvider);
+            when(mockedIdentityProvider.getIdpProperties()).thenReturn(idpProperties);
 
-        if (validity) {
-            when(IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
-                    REMEMBER_ME_TIME_OUT)).thenReturn(mockedIdentityProviderProperty);
-        } else {
-            when(IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
-                    REMEMBER_ME_TIME_OUT)).thenReturn(null);
+            if (validity) {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                REMEMBER_ME_TIME_OUT)).thenReturn(mockedIdentityProviderProperty);
+            } else {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                REMEMBER_ME_TIME_OUT)).thenReturn(null);
+            }
+
+            lenient().when(mockedIdentityProviderProperty.getValue()).thenReturn(value);
+            assertEquals(IdPManagementUtil.getRememberMeTimeout(tenetDomain), timeOut);
         }
-
-        when(mockedIdentityProviderProperty.getValue()).thenReturn(value);
-        assertEquals(IdPManagementUtil.getRememberMeTimeout(tenetDomain), timeOut);
     }
 
     @DataProvider

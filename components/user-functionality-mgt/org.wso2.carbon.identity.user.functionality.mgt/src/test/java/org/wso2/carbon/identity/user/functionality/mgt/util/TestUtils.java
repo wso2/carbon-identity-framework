@@ -20,15 +20,10 @@ package org.wso2.carbon.identity.user.functionality.mgt.util;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
-import org.powermock.api.mockito.PowerMockito;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.functionality.mgt.internal.UserFunctionalityManagerComponentDataHolder;
 import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.api.UserRealmService;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.common.User;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.nio.file.Paths;
@@ -37,15 +32,11 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.sql.DataSource;
 
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 public class TestUtils {
 
@@ -57,13 +48,6 @@ public class TestUtils {
 
         Connection spy = spy(connection);
         doNothing().when(spy).close();
-        return spy;
-    }
-
-    public static Connection spyConnectionWithError(Connection connection) throws SQLException {
-
-        Connection spy = spy(connection);
-        doThrow(new SQLException("Test Exception")).when(spy).prepareStatement(anyString());
         return spy;
     }
 
@@ -105,33 +89,14 @@ public class TestUtils {
         throw new RuntimeException("No data source initiated for database: " + DB_NAME);
     }
 
-    public static void mockDataSource(DataSource dataSource) {
-
-        mockStatic(IdentityDatabaseUtil.class);
-        when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSource);
-    }
-
-   public static void mockUserFunctionalityManagerComponentDataHolder(UserFunctionalityManagerComponentDataHolder userFunctionalityManagerComponentDataHolder) {
-
-        mockStatic(UserFunctionalityManagerComponentDataHolder.class);
-        PowerMockito.when(UserFunctionalityManagerComponentDataHolder.getInstance()).thenReturn(userFunctionalityManagerComponentDataHolder);
-
-    }
-
-    public static void mockIdentityTenantUtil() {
-
-        mockStatic(IdentityTenantUtil.class);
-        PowerMockito.when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("carbon.super");
-    }
-
     public static void mockUserStoreManager(UserFunctionalityManagerComponentDataHolder
                                               userFunctionalityManagerComponentDataHolder,
                                             RealmService realmService, UserRealm userRealm,
                                             UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        PowerMockito.when(userFunctionalityManagerComponentDataHolder.getRealmService()).thenReturn(realmService);
-        PowerMockito.when(realmService.getTenantUserRealm(anyInt())).thenReturn(userRealm);
-        PowerMockito.when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
+        when(userFunctionalityManagerComponentDataHolder.getRealmService()).thenReturn(realmService);
+        when(realmService.getTenantUserRealm(anyInt())).thenReturn(userRealm);
+        when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
     }
 }

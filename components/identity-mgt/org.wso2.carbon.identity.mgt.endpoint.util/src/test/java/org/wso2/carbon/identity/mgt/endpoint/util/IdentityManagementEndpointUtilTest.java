@@ -19,10 +19,10 @@
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.core.ServiceURL;
@@ -36,16 +36,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 
 /**
  * This class tests the methods of IdentityManagementEndpointUtil class.
  */
-@PrepareForTest({ServiceURLBuilder.class, IdentityTenantUtil.class})
-@PowerMockIgnore("org.mockito.*")
-public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
+@Listeners(MockitoTestNGListener.class)
+public class IdentityManagementEndpointUtilTest {
 
     @Mock
     ServiceURL serviceURL;
@@ -206,8 +205,12 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
     public void testGetBasePath(boolean isTenantQualifiedUrlsEnabled, String contextUrl, String tenantDomain,
             String context, String expected) throws Exception {
 
-        prepareGetBasePathTest(isTenantQualifiedUrlsEnabled, contextUrl, context);
-        assertEquals(IdentityManagementEndpointUtil.getBasePath(tenantDomain, context), expected);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class)) {
+            prepareGetBasePathTest(isTenantQualifiedUrlsEnabled, contextUrl, context, identityTenantUtil,
+                    serviceURLBuilder);
+            assertEquals(IdentityManagementEndpointUtil.getBasePath(tenantDomain, context), expected);
+        }
     }
 
     @DataProvider(name = "getBasePathTestData2")
@@ -311,32 +314,38 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
     public void testGetBasePath2(boolean isTenantQualifiedUrlsEnabled, String contextUrl, String tenantDomain,
             boolean isEndpointTenantAware, String context, String expected) throws Exception {
 
-        prepareGetBasePathTest(isTenantQualifiedUrlsEnabled, contextUrl, context);
-        assertEquals(IdentityManagementEndpointUtil.getBasePath(tenantDomain, context, isEndpointTenantAware),
-                expected);
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<ServiceURLBuilder> serviceURLBuilder = mockStatic(ServiceURLBuilder.class)) {
+            prepareGetBasePathTest(isTenantQualifiedUrlsEnabled, contextUrl, context, identityTenantUtil,
+                    serviceURLBuilder);
+            assertEquals(IdentityManagementEndpointUtil.getBasePath(tenantDomain, context, isEndpointTenantAware),
+                    expected);
+        }
     }
 
-    private void prepareGetBasePathTest(boolean isTenantQualifiedUrlsEnabled, String contextUrl, String context)
-            throws Exception {
+    private void prepareGetBasePathTest(boolean isTenantQualifiedUrlsEnabled, String contextUrl, String context,
+                                        MockedStatic<IdentityTenantUtil> identityTenantUtil,
+                                        MockedStatic<ServiceURLBuilder> serviceURLBuilder) throws Exception {
 
-        prepareServiceURLBuilder();
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(isTenantQualifiedUrlsEnabled);
+
+        prepareServiceURLBuilder(serviceURLBuilder);
+        identityTenantUtil.when(
+                IdentityTenantUtil::isTenantQualifiedUrlsEnabled).thenReturn(isTenantQualifiedUrlsEnabled);
         if (isTenantQualifiedUrlsEnabled) {
-            when(serviceURL.getAbsoluteInternalURL()).thenReturn(SAMPLE_TENANTED_URL + context);
+            lenient().when(serviceURL.getAbsoluteInternalURL()).thenReturn(SAMPLE_TENANTED_URL + context);
         } else {
-            when(serviceURL.getAbsoluteInternalURL()).thenReturn(SAMPLE_URL);
+            lenient().when(serviceURL.getAbsoluteInternalURL()).thenReturn(SAMPLE_URL);
         }
         Whitebox.setInternalState(IdentityManagementServiceUtil.getInstance(), "contextURL", contextUrl);
     }
 
-    private void prepareServiceURLBuilder() throws URLBuilderException {
+    private void prepareServiceURLBuilder(MockedStatic<ServiceURLBuilder> serviceURLBuilder)
+            throws URLBuilderException {
 
-        mockStatic(ServiceURLBuilder.class);
-        when(ServiceURLBuilder.create()).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addPath(any())).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addFragmentParameter(any(), any())).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addParameter(any(), any())).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.build()).thenReturn(serviceURL);
+        serviceURLBuilder.when(ServiceURLBuilder::create).thenReturn(this.serviceURLBuilder);
+        lenient().when(this.serviceURLBuilder.addPath(any())).thenReturn(this.serviceURLBuilder);
+        lenient().when(this.serviceURLBuilder.addFragmentParameter(any(), any())).thenReturn(this.serviceURLBuilder);
+        lenient().when(this.serviceURLBuilder.addParameter(any(), any())).thenReturn(this.serviceURLBuilder);
+        lenient().when(this.serviceURLBuilder.build()).thenReturn(serviceURL);
     }
 }

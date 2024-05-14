@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.cors.mgt.core.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.mockito.MockedStatic;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -40,7 +41,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -65,41 +65,45 @@ public class CarbonUtils {
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
     }
 
-    public static void mockCarbonContextForTenant(int tenantId, String tenantDomain) {
+    public static void mockCarbonContextForTenant(int tenantId, String tenantDomain,
+                                                  MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext) {
 
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext mockPrivilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
-        when(privilegedCarbonContext.getTenantDomain()).thenReturn(tenantDomain);
-        when(privilegedCarbonContext.getTenantId()).thenReturn(tenantId);
-        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
+        privilegedCarbonContext.when(
+                PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(mockPrivilegedCarbonContext);
+        when(mockPrivilegedCarbonContext.getTenantDomain()).thenReturn(tenantDomain);
+        when(mockPrivilegedCarbonContext.getTenantId()).thenReturn(tenantId);
+        when(mockPrivilegedCarbonContext.getUsername()).thenReturn("admin");
     }
 
-    public static void mockIdentityTenantUtility() {
+    public static void mockIdentityTenantUtility(MockedStatic<IdentityTenantUtil> identityTenantUtil) {
 
-        mockStatic(IdentityTenantUtil.class);
-        IdentityTenantUtil identityTenantUtil = mock(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantDomain(SUPER_TENANT_ID)).thenReturn(SUPER_TENANT_DOMAIN_NAME);
-        when(IdentityTenantUtil.getTenantDomain(SampleTenant.ID)).thenReturn(SampleTenant.DOMAIN_NAME);
-        when(IdentityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN_NAME)).thenReturn(SUPER_TENANT_ID);
-        when(IdentityTenantUtil.getTenantId(SampleTenant.DOMAIN_NAME)).thenReturn(SampleTenant.ID);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(SUPER_TENANT_ID))
+                .thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(SampleTenant.ID))
+                .thenReturn(SampleTenant.DOMAIN_NAME);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN_NAME))
+                .thenReturn(SUPER_TENANT_ID);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SampleTenant.DOMAIN_NAME))
+                .thenReturn(SampleTenant.ID);
     }
 
-    public static void mockApplicationManagementService() {
+    public static void mockApplicationManagementService(
+            MockedStatic<ApplicationManagementService> applicationManagementService) {
 
-        ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+        ApplicationManagementService mockApplicationManagementService = mock(ApplicationManagementService.class);
 
-        mockStatic(ApplicationManagementService.class);
-        when(ApplicationManagementService.getInstance()).thenReturn(applicationManagementService);
+        applicationManagementService.when(
+                ApplicationManagementService::getInstance).thenReturn(mockApplicationManagementService);
         try {
             ApplicationBasicInfo applicationBasicInfo1 = new ApplicationBasicInfo();
             applicationBasicInfo1.setApplicationId(SampleApp1.ID);
-            when(applicationManagementService.getApplicationBasicInfoByResourceId(eq(SampleApp1.UUID),
+            when(mockApplicationManagementService.getApplicationBasicInfoByResourceId(eq(SampleApp1.UUID),
                     any(String.class))).thenReturn(applicationBasicInfo1);
             ApplicationBasicInfo applicationBasicInfo2 = new ApplicationBasicInfo();
             applicationBasicInfo2.setApplicationId(SampleApp2.ID);
-            when(applicationManagementService.getApplicationBasicInfoByResourceId(eq(SampleApp2.UUID),
+            when(mockApplicationManagementService.getApplicationBasicInfoByResourceId(eq(SampleApp2.UUID),
                     any(String.class))).thenReturn(applicationBasicInfo2);
         } catch (IdentityApplicationManagementException e) {
             if (log.isDebugEnabled()) {

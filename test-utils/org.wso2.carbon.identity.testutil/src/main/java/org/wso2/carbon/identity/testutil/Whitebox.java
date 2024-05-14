@@ -25,7 +25,7 @@ import java.lang.reflect.Method;
 
 /**
  * Some White-Box utilities, to call/set internal states with reflection.
- * Mockito and PowerMockito has Witebox class. But seems not quite simple.
+ * Mockito has Whitebox class. But seems not quite simple.
  */
 public class Whitebox {
 

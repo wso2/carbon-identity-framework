@@ -22,14 +22,12 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.reflect.Whitebox;
-import org.testng.IObjectFactory;
+import org.mockito.MockedStatic;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -55,7 +53,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
-import java.net.SocketException;
+import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.Arrays;
@@ -71,8 +69,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -80,11 +79,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-
-@PrepareForTest({IdentityConfigParser.class, ServerConfiguration.class, CarbonUtils.class,
-        IdentityCoreServiceComponent.class, NetworkUtils.class, IdentityTenantUtil.class})
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
-        ".*", "org.apache.xerces.*","org.mockito.*"})
+@Listeners(MockitoTestNGListener.class)
 public class IdentityUtilTest {
 
     @Mock
@@ -110,32 +105,37 @@ public class IdentityUtilTest {
     @Mock
     private HttpServletRequest mockRequest;
 
+    MockedStatic<CarbonUtils> carbonUtils;
+    MockedStatic<ServerConfiguration> serverConfiguration;
+    MockedStatic<NetworkUtils> networkUtils;
+    MockedStatic<IdentityCoreServiceComponent> identityCoreServiceComponent;
+    MockedStatic<IdentityConfigParser> identityConfigParser;
+    MockedStatic<IdentityTenantUtil> identityTenantUtil;
+
     @BeforeMethod
     public void setUp() throws Exception {
-        mockStatic(CarbonUtils.class);
-        mockStatic(ServerConfiguration.class);
-        mockStatic(NetworkUtils.class);
-        mockStatic(IdentityCoreServiceComponent.class);
-        mockStatic(IdentityConfigParser.class);
-        mockStatic(CarbonUtils.class);
-        mockStatic(IdentityTenantUtil.class);
 
-        when(ServerConfiguration.getInstance()).thenReturn(mockServerConfiguration);
-        when(IdentityCoreServiceComponent.getConfigurationContextService()).thenReturn(mockConfigurationContextService);
-        when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
-        when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
-        when(IdentityTenantUtil.getRealmService()).thenReturn(mockRealmService);
-        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
-        when(CarbonUtils.getCarbonHome()).thenReturn("carbon.home");
-        when(mockRequest.getRemoteAddr()).thenReturn("127.0.0.1");
-        when(mockUserStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
-        when(mockRealmService.getBootstrapRealmConfiguration()).thenReturn(mockRealmConfiguration);
-        when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
-        try {
-            when(NetworkUtils.getLocalHostname()).thenReturn("localhost");
-        } catch (SocketException e) {
-            // Mock behaviour, hence ignored
-        }
+        carbonUtils = mockStatic(CarbonUtils.class);
+        serverConfiguration = mockStatic(ServerConfiguration.class);
+        networkUtils = mockStatic(NetworkUtils.class);
+        identityCoreServiceComponent = mockStatic(IdentityCoreServiceComponent.class);
+        identityConfigParser = mockStatic(IdentityConfigParser.class);
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+
+        serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(mockServerConfiguration);
+        identityCoreServiceComponent.when(
+                IdentityCoreServiceComponent::getConfigurationContextService).thenReturn(mockConfigurationContextService);
+        lenient().when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
+        lenient().when(mockConfigurationContext.getAxisConfiguration()).thenReturn(mockAxisConfiguration);
+        identityTenantUtil.when(IdentityTenantUtil::getRealmService).thenReturn(mockRealmService);
+        lenient().when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
+        carbonUtils.when(CarbonUtils::getCarbonHome).thenReturn("carbon.home");
+        lenient().when(mockRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        lenient().when(mockUserStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        lenient().when(mockRealmService.getBootstrapRealmConfiguration()).thenReturn(mockRealmConfiguration);
+        lenient().when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+
+        networkUtils.when(NetworkUtils::getLocalHostname).thenReturn("localhost");
 
         System.setProperty(IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP_PROPERTY, "9763");
         System.setProperty(IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTPS_PROPERTY, "9443");
@@ -148,6 +148,13 @@ public class IdentityUtilTest {
 
         IdentityLogTokenParser.getInstance().getLogTokenMap().remove("authz");
         IdentityLogTokenParser.getInstance().getLogTokenMap().remove("access");
+
+        carbonUtils.close();
+        serverConfiguration.close();
+        networkUtils.close();
+        identityCoreServiceComponent.close();
+        identityConfigParser.close();
+        identityTenantUtil.close();
     }
 
     @DataProvider
@@ -195,7 +202,7 @@ public class IdentityUtilTest {
         Map<String, Object> mockConfig = new HashMap<>();
         mockConfig.put(key, value);
 
-        Whitebox.setInternalState(IdentityUtil.class, "configuration", mockConfig);
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfig);
         assertEquals(IdentityUtil.getProperty(key), expected, String.format("Property value mismatch for input: key " +
                 "= %s, value = %s", key, String.valueOf(value)));
     }
@@ -208,7 +215,7 @@ public class IdentityUtilTest {
         IdentityEventListenerConfig config = new IdentityEventListenerConfig("true", 0, key, new Properties());
         Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> mockedMap = new HashMap<>();
         mockedMap.put(key, config);
-        Whitebox.setInternalState(IdentityUtil.class, "eventListenerConfiguration", mockedMap);
+        setPrivateStaticField(IdentityUtil.class, "eventListenerConfiguration", mockedMap);
 
         IdentityEventListenerConfig configResponse = IdentityUtil.readEventListenerProperty("ListenerType", "ListenerName");
         assertEquals(configResponse.getEnable(), "true", "Listener should be enabled");
@@ -220,7 +227,7 @@ public class IdentityUtilTest {
     }
 
     @DataProvider
-    public Object[][] getIdentityCacheConfigTestData() {
+    public Object[][] getIdentityCacheConfigTestData() throws Exception {
         Map<IdentityCacheConfigKey, IdentityCacheConfig> mockedCacheConfig = new HashMap<>();
 
         IdentityCacheConfigKey cacheConfigKey1 = new IdentityCacheConfigKey("manager1", "key1");
@@ -229,7 +236,7 @@ public class IdentityUtilTest {
         IdentityCacheConfigKey cacheConfigKey2 = new IdentityCacheConfigKey("manager2", "");
         IdentityCacheConfig cacheConfig2 = new IdentityCacheConfig(cacheConfigKey1);
         mockedCacheConfig.put(cacheConfigKey2, cacheConfig2);
-        Whitebox.setInternalState(IdentityUtil.class, "identityCacheConfigurationHolder", mockedCacheConfig);
+        setPrivateStaticField(IdentityUtil.class, "identityCacheConfigurationHolder", mockedCacheConfig);
         return new Object[][]{
                 {"manager1", "key1", cacheConfig1},
                 {"manager1", "", null},
@@ -269,7 +276,7 @@ public class IdentityUtilTest {
 
         Map<String, IdentityCookieConfig> mockIdentityCookiesConfigurationHolder = new HashMap<>();
         mockIdentityCookiesConfigurationHolder.put("cookie", new IdentityCookieConfig("cookieName"));
-        Whitebox.setInternalState(IdentityUtil.class, "identityCookiesConfigurationHolder",
+        setPrivateStaticField(IdentityUtil.class, "identityCookiesConfigurationHolder",
                 mockIdentityCookiesConfigurationHolder);
         assertEquals(IdentityUtil.getIdentityCookiesConfigurationHolder(), mockIdentityCookiesConfigurationHolder,
                 "Returned cookie holder doesn't match the given.");
@@ -278,14 +285,14 @@ public class IdentityUtilTest {
     @Test(dataProvider = "getReverseProxyConfigData")
     public void testGetProxyContext(String defaultContext1, String proxyContext1,
                                     String defaultContext2, String proxyContext2,
-                                    String expectedDefaultContext, String expectedProxyContext) {
+                                    String expectedDefaultContext, String expectedProxyContext) throws Exception {
 
         Map<String, ReverseProxyConfig> mockReverseProxyConfigurationHolder = new HashMap<>();
         mockReverseProxyConfigurationHolder.put(defaultContext1,
                 new ReverseProxyConfig(defaultContext1, proxyContext1));
         mockReverseProxyConfigurationHolder.put(defaultContext2,
                 new ReverseProxyConfig(defaultContext2, proxyContext2));
-        Whitebox.setInternalState(IdentityUtil.class, "reverseProxyConfigurationHolder",
+        setPrivateStaticField(IdentityUtil.class, "reverseProxyConfigurationHolder",
                 mockReverseProxyConfigurationHolder);
         assertEquals(IdentityUtil.getProxyContext(expectedDefaultContext), expectedProxyContext,
                 "Returned proxy context is incorrect.");
@@ -296,7 +303,7 @@ public class IdentityUtilTest {
         Map<String, IdentityCookieConfig> mockIdentityCookiesConfigurationHolder = new HashMap<>();
         IdentityCookieConfig cookieConfig = new IdentityCookieConfig("cookieName");
         mockIdentityCookiesConfigurationHolder.put("cookie", cookieConfig);
-        Whitebox.setInternalState(IdentityUtil.class, "identityCookiesConfigurationHolder",
+        setPrivateStaticField(IdentityUtil.class, "identityCookiesConfigurationHolder",
                 mockIdentityCookiesConfigurationHolder);
         assertEquals(IdentityUtil.getIdentityCookieConfig("cookie"), cookieConfig, "Invalid cookie config value " +
                 "for: cookie");
@@ -321,19 +328,22 @@ public class IdentityUtilTest {
         mockedCookieConfig.put("cookie", new IdentityCookieConfig("cookieName"));
 
         when(mockConfigParser.getConfiguration()).thenReturn(mockConfig);
-        when(IdentityConfigParser.getEventListenerConfiguration()).thenReturn(mockedEventListenerConfig);
-        when(IdentityConfigParser.getIdentityCacheConfigurationHolder()).thenReturn(mockedCacheConfig);
-        when(IdentityConfigParser.getIdentityCookieConfigurationHolder()).thenReturn(mockedCookieConfig);
-        when(IdentityConfigParser.getInstance()).thenReturn(mockConfigParser);
+        identityConfigParser.when(
+                IdentityConfigParser::getEventListenerConfiguration).thenReturn(mockedEventListenerConfig);
+        identityConfigParser.when(
+                IdentityConfigParser::getIdentityCacheConfigurationHolder).thenReturn(mockedCacheConfig);
+        identityConfigParser.when(
+                IdentityConfigParser::getIdentityCookieConfigurationHolder).thenReturn(mockedCookieConfig);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockConfigParser);
         IdentityUtil.populateProperties();
-        assertEquals(Whitebox.getField(IdentityUtil.class, "configuration").get(IdentityUtil.class), mockConfig,
+        assertEquals(getPrivateStaticField(IdentityUtil.class, "configuration"), mockConfig,
                 "Configuration is not set properly during config population");
-        assertEquals(Whitebox.getField(IdentityUtil.class, "eventListenerConfiguration").get(IdentityUtil.class),
+        assertEquals(getPrivateStaticField(IdentityUtil.class, "eventListenerConfiguration"),
                 mockedEventListenerConfig, "eventListenerConfiguration is not set properly during config population");
         assertEquals(IdentityUtil.getIdentityCookiesConfigurationHolder(), mockedCookieConfig,
                 "cookieConfiguration is not set properly during config population");
-        assertEquals(Whitebox.getField(IdentityUtil.class, "identityCacheConfigurationHolder").get(IdentityUtil
-                .class), mockedCacheConfig, "identityCacheConfigurationHolder is not set properly during config population");
+        assertEquals(getPrivateStaticField(IdentityUtil.class, "identityCacheConfigurationHolder"), mockedCacheConfig,
+                "identityCacheConfigurationHolder is not set properly during config population");
     }
 
     @DataProvider
@@ -418,7 +428,7 @@ public class IdentityUtilTest {
     public void testGetIdentityConfigDirPath() throws Exception {
 
         String mockedCarbonConfigDirPath = Paths.get("home", "mockedPath").toString();
-        when(CarbonUtils.getCarbonConfigDirPath()).thenReturn(mockedCarbonConfigDirPath);
+        carbonUtils.when(CarbonUtils::getCarbonConfigDirPath).thenReturn(mockedCarbonConfigDirPath);
         String mockedIdentityConfigDirPath = Paths.get(mockedCarbonConfigDirPath, "identity").toString();
         assertEquals(IdentityUtil.getIdentityConfigDirPath(), mockedIdentityConfigDirPath, "Config dir path doesn't " +
                                                                                          "match the expected.");
@@ -449,12 +459,12 @@ public class IdentityUtilTest {
     public void testGetServerURL(String host, int port, String proxyCtx, String ctxRoot, String endpoint, boolean
             addProxyContextPath, boolean addWebContextRoot, String expected) throws Exception {
 
-        when(CarbonUtils.getTransportPort(any(AxisConfiguration.class), anyString())).thenReturn(9443);
-        when(CarbonUtils.getTransportProxyPort(any(AxisConfiguration.class), anyString())).thenReturn(port);
-        when(CarbonUtils.getManagementTransport()).thenReturn("https");
+        carbonUtils.when(() -> CarbonUtils.getTransportPort(any(AxisConfiguration.class), anyString())).thenReturn(9443);
+        carbonUtils.when(() -> CarbonUtils.getTransportProxyPort(any(AxisConfiguration.class), anyString())).thenReturn(port);
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn("https");
         when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(host);
-        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.WEB_CONTEXT_ROOT)).thenReturn(ctxRoot);
-        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.PROXY_CONTEXT_PATH)).thenReturn(proxyCtx);
+        lenient().when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.WEB_CONTEXT_ROOT)).thenReturn(ctxRoot);
+        lenient().when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.PROXY_CONTEXT_PATH)).thenReturn(proxyCtx);
 
         assertEquals(IdentityUtil.getServerURL(endpoint, addProxyContextPath, addWebContextRoot), expected, String
                 .format("Generated server url doesn't match the expected for input: host = %s, " +
@@ -472,16 +482,7 @@ public class IdentityUtilTest {
 
     @DataProvider
     public Object[][] getUserstoreUsernameCaseSensitiveData() {
-        try {
-            when(mockTenantManager.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).thenReturn
-                    (MultitenantConstants.SUPER_TENANT_ID);
-            when(mockTenantManager.getTenantId("wso2.com")).thenReturn(1);
-            when(mockTenantManager.getTenantId("none.com")).thenReturn(MultitenantConstants.INVALID_TENANT_ID);
-            when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
-            when(mockUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(mockUserStoreManager);
-        } catch (UserStoreException e) {
-            // Ignored, since this is a mock behaviour
-        }
+
         return new Object[][]{
                 {"admin", "false", true},
                 {"admin@carbon.super", "false", true},
@@ -495,7 +496,14 @@ public class IdentityUtilTest {
     @Test(dataProvider = "getUserstoreUsernameCaseSensitiveData")
     public void testIsUserStoreInUsernameCaseSensitive(String username, String caseInsensitivePropertyValue, boolean
             expected) throws Exception {
-        when(mockRealmConfiguration.getUserStoreProperty(IdentityCoreConstants.CASE_INSENSITIVE_USERNAME)).thenReturn
+
+        lenient().when(mockTenantManager.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)).thenReturn
+                (MultitenantConstants.SUPER_TENANT_ID);
+        lenient().when(mockTenantManager.getTenantId("wso2.com")).thenReturn(1);
+        lenient().when(mockTenantManager.getTenantId("none.com")).thenReturn(MultitenantConstants.INVALID_TENANT_ID);
+        lenient().when(mockRealmService.getTenantUserRealm(anyInt())).thenReturn(mockUserRealm);
+        lenient().when(mockUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(mockUserStoreManager);
+        lenient().when(mockRealmConfiguration.getUserStoreProperty(IdentityCoreConstants.CASE_INSENSITIVE_USERNAME)).thenReturn
                 (caseInsensitivePropertyValue);
         assertEquals(IdentityUtil.isUserStoreInUsernameCaseSensitive(username), expected, String.format("Expected " +
                         "value mismatch for input: username = %s, caseInsensitivePropertyValue = %s.", username,
@@ -559,7 +567,7 @@ public class IdentityUtilTest {
     public void testGetCleanUpTimeout(String value, long expected) throws Exception {
         Map<String, Object> mockConfiguration = new HashMap<>();
         mockConfiguration.put(IdentityConstants.ServerConfig.CLEAN_UP_TIMEOUT, value);
-        Whitebox.setInternalState(IdentityUtil.class, "configuration", mockConfiguration);
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfiguration);
         assertEquals(IdentityUtil.getCleanUpTimeout(), expected, "Expected value mismatches returned for input: " +
                 value);
     }
@@ -578,7 +586,7 @@ public class IdentityUtilTest {
     public void testGetCleanUpPeriod(String value, long expected) throws Exception {
         Map<String, Object> mockConfiguration = new HashMap<>();
         mockConfiguration.put(IdentityConstants.ServerConfig.CLEAN_UP_PERIOD, value);
-        Whitebox.setInternalState(IdentityUtil.class, "configuration", mockConfiguration);
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfiguration);
         assertEquals(IdentityUtil.getCleanUpPeriod("ignoredParam"), expected, "Expected value mismatches returned " +
                 "for input: " + value);
     }
@@ -597,7 +605,7 @@ public class IdentityUtilTest {
     public void testGetOperationCleanUpTimeout(String value, long expected) throws Exception {
         Map<String, Object> mockConfiguration = new HashMap<>();
         mockConfiguration.put(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT, value);
-        Whitebox.setInternalState(IdentityUtil.class, "configuration", mockConfiguration);
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfiguration);
         assertEquals(IdentityUtil.getOperationCleanUpTimeout(), expected, "Expected value mismatches returned for " +
                 "input: " + value);
     }
@@ -616,7 +624,7 @@ public class IdentityUtilTest {
     public void testGetOperationCleanUpPeriod(String value, long expected) throws Exception {
         Map<String, Object> mockConfiguration = new HashMap<>();
         mockConfiguration.put(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD, value);
-        Whitebox.setInternalState(IdentityUtil.class, "configuration", mockConfiguration);
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfiguration);
         assertEquals(IdentityUtil.getOperationCleanUpPeriod("IgnoredParam"), expected, "Expected value mismatches " +
                 "returned for input: " + value);
     }
@@ -675,8 +683,6 @@ public class IdentityUtilTest {
 
     @DataProvider
     public Object[][] getFillURLPlaceholdersData() {
-        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.WEB_CONTEXT_ROOT)).thenReturn("/");
-        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.PROXY_CONTEXT_PATH)).thenReturn("proxyCtx");
         return new Object[][]{
                 {"", "https", ""},
                 {"${carbon.host}:${carbon.management.port}", "http", "localhost:9763"},
@@ -692,7 +698,9 @@ public class IdentityUtilTest {
 
     @Test(dataProvider = "getFillURLPlaceholdersData")
     public void testFillURLPlaceholders(String stringWithPlaceholders, String mgtTransport, String expected) throws Exception {
-        when(CarbonUtils.getManagementTransport()).thenReturn(mgtTransport);
+        lenient().when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.WEB_CONTEXT_ROOT)).thenReturn("/");
+        lenient().when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.PROXY_CONTEXT_PATH)).thenReturn("proxyCtx");
+        carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn(mgtTransport);
         assertEquals(IdentityUtil.fillURLPlaceholders(stringWithPlaceholders), expected, String.format("Returned " +
                 "value doesn't match the expected value for input: stringWithPlaceholders = %s, mgtTransport " +
                 "= %s.", stringWithPlaceholders, mgtTransport));
@@ -792,7 +800,7 @@ public class IdentityUtilTest {
         return new Object[][]{
                 {Collections.EMPTY_MAP, "127.0.0.1"},
                 {xFwdForMap, "10.100.5.101"},
-                {unknownEntryMap, "192.168.1.1"},
+                {unknownEntryMap, "127.0.0.1"},
         };
     }
 
@@ -800,7 +808,7 @@ public class IdentityUtilTest {
     public void testGetClientIpAddress(Map<String, String> headers, String expected) throws Exception {
 
         for (Map.Entry<String, String> entry : headers.entrySet()) {
-            when(mockRequest.getHeader(entry.getKey())).thenReturn(entry.getValue());
+            lenient().when(mockRequest.getHeader(entry.getKey())).thenReturn(entry.getValue());
         }
         assertEquals(IdentityUtil.getClientIpAddress(mockRequest), expected, String.format("Invalid response " +
                 "for input: headers = %s.", headers));
@@ -820,7 +828,7 @@ public class IdentityUtilTest {
     public void testGetClockSkewInSeconds(String value, int expected) throws Exception {
         Map<String, Object> mockConfiguration = new HashMap<>();
         mockConfiguration.put(IdentityConstants.ServerConfig.CLOCK_SKEW, value);
-        Whitebox.setInternalState(IdentityUtil.class, "configuration", mockConfiguration);
+        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfiguration);
         assertEquals(IdentityUtil.getClockSkewInSeconds(), expected, String.format("Invalid response " +
                 "for input: value = %s.", value));
     }
@@ -835,9 +843,19 @@ public class IdentityUtilTest {
         assertTrue(IdentityUtil.isSupportedByUserStore(null, "op4"), "Expected true for op4 in null userstore");
     }
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
+    private void setPrivateStaticField(Class<?> clazz, String fieldName, Object newValue)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(null, newValue);
     }
 
+    private Object getPrivateStaticField(Class<?> clazz, String fieldName)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field.get(null);
+    }
 }

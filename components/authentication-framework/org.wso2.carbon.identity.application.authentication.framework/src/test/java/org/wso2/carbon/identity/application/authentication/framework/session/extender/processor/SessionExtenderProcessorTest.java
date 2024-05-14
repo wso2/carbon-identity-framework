@@ -18,25 +18,21 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.processor;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequest;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.testng.Assert.assertTrue;
 
 /**
  * Unit test cases for SessionExtenderProcessor.
  */
-@PrepareForTest({SessionContextCache.class})
-public class SessionExtenderProcessorTest extends PowerMockTestCase {
+public class SessionExtenderProcessorTest {
 
     private SessionExtenderProcessor sessionExtenderProcessor;
 

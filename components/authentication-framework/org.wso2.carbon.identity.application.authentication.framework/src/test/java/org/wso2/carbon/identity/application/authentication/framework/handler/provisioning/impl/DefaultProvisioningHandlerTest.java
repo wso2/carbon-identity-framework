@@ -16,27 +16,21 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-@PrepareForTest(FrameworkUtils.class)
-//@PowerMockIgnore({"org.xml.*","org.w3c.*"})
-public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
+public class DefaultProvisioningHandlerTest {
 
     private DefaultProvisioningHandler provisioningHandler;
 
@@ -63,11 +57,6 @@ public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
     public void testHandle() throws Exception {
     }
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
-
     @DataProvider(name = "associateUserEmptyInputProvider")
     public Object[][] getAssociatedUserEmptyInputs() {
         return new Object[][]{
@@ -82,9 +71,10 @@ public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
     public void testAssociateUserEmptyInputs(String subject,
                                              String idp) throws Exception {
 
-        mockStatic(FrameworkUtils.class);
-        doNothing().when(FrameworkUtils.class, "startTenantFlow", "tenantDomain");
-        provisioningHandler.associateUser("dummy_user_name", "DUMMY_DOMAIN", "dummy.com", subject, idp);
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            frameworkUtils.when(() -> FrameworkUtils.startTenantFlow("tenantDomain")).thenAnswer(invocation -> null);
+            provisioningHandler.associateUser("dummy_user_name", "DUMMY_DOMAIN", "dummy.com", subject, idp);
+        }
     }
 
     @Test

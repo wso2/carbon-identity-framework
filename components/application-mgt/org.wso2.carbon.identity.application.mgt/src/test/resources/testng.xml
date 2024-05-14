@@ -17,7 +17,7 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.application.mgt.test">
-    <test name="org.wso2.carbon.identity.application.mgt.test" preserve-order="false" parallel="false">
+    <test name="org.wso2.carbon.identity.application.mgt.test" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.application.mgt.ApplicationMgtUtilTest"/>
             <class name="org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImplTest"/>
