@@ -486,6 +486,11 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     }
 
     @Override
+    public void preGetAssociatedApplicationIdsByRoleId(String roleId, String tenantDomain)
+            throws IdentityRoleManagementException {
+    }
+
+    @Override
     public void postGetAssociatedApplicationIdsByRoleId(List<String> associatedApplicationByRoleId, String roleId,
                                                         String tenantDomain) throws IdentityRoleManagementException {
         try {
