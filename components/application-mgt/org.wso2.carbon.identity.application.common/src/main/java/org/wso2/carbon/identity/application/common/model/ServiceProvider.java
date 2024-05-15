@@ -142,7 +142,7 @@ public class ServiceProvider implements Serializable {
     private AssociatedRolesConfig associatedRolesConfig;
 
     @XmlElement(name = APP_ACCESS_ENABLED)
-    private boolean applicationAccessEnabled;
+    private boolean applicationAccessEnabled = true;
 
     @IgnoreNullElement
     @XmlElement(name = IS_API_BASED_AUTHENTICATION_ENABLED)
