@@ -837,11 +837,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
 
         ResolvedSecret responseDTO = secretResolveManager.getResolvedSecret(FrameworkConstants.SECRET_TYPE, secretName);
 
-        if (responseDTO != null) {
-            secretValue = responseDTO.getResolvedSecretValue();
-        } else {
-            log.error("No secret available with " + secretName + "name.");
-        }
+        secretValue = responseDTO.getResolvedSecretValue();
         return secretValue;
     }
 
