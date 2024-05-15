@@ -58,7 +58,9 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     protected boolean mandateTenantedPath = false;
     protected Map<String, String> parameters = new HashMap<>();
     protected Map<String, String> fragmentParams = new HashMap<>();
-    protected boolean skipCustomDomain = false;
+    // This flag is added to skip custom domain configurations.
+    // When set to true, custom domain configurations for the tenant will be ignored when building service urls.
+    protected boolean skipDomainBranding = false;
 
     /**
      * Returns {@link ServiceURLBuilder} appended the URL path.
@@ -214,8 +216,9 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     }
 
     @Override
-    public ServiceURLBuilder setSkipCustomDomain(boolean skipCustomDomain) {
-        this.skipCustomDomain = skipCustomDomain;
+    public ServiceURLBuilder setSkipDomainBranding(boolean skipDomainBranding) {
+
+        this.skipDomainBranding = skipDomainBranding;
         return this;
     }
 

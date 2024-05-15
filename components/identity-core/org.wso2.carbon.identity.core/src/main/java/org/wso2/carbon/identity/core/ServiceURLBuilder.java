@@ -73,10 +73,10 @@ public interface ServiceURLBuilder {
     /**
      * Returns {@link ServiceURLBuilder} after setting skipCustomDomain flag
      *
-     * @param skipCustomDomain          Tenant domain.
+     * @param skipDomainBranding          Tenant domain.
      * @return  {@link ServiceURLBuilder}
      */
-    default ServiceURLBuilder setSkipCustomDomain(boolean skipCustomDomain) {
+    default ServiceURLBuilder setSkipDomainBranding(boolean skipDomainBranding) {
 
         return this;
     }
