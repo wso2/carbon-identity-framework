@@ -55,6 +55,9 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.Serializable;
@@ -186,6 +189,8 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                     (PromptExecutor) this::addShowPrompt);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
                     (LoadExecutor) this::loadLocalLibrary);
+            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_GET_SECRET_BY_NAME,
+                    (GetSecret) this::getSecretByName);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap = jsFunctionRegistrar
@@ -194,6 +199,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
             }
             Invocable invocable = (Invocable) engine;
             engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
+            engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForSecretsFunction());
             removeDefaultFunctions(engine);
 
             String identifier = UUID.randomUUID().toString();
@@ -818,6 +824,28 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
     }
 
     /**
+     * Get the secret by name.
+     *
+     * @param secretName secretName
+     * @return secretValue
+     * @throws FunctionLibraryManagementException
+     */
+    public String getSecretByName(String secretName) throws SecretManagementException {
+
+        SecretResolveManager secretResolveManager = FrameworkServiceComponent.getSecretConfigManager();
+        String secretValue = null;
+
+        ResolvedSecret responseDTO = secretResolveManager.getResolvedSecret(FrameworkConstants.SECRET_TYPE, secretName);
+
+        if (responseDTO != null) {
+            secretValue = responseDTO.getResolvedSecretValue();
+        } else {
+            log.error("No secret available with " + secretName + "name.");
+        }
+        return secretValue;
+    }
+
+    /**
      * Adds a function to show a prompt in Javascript code.
      *
      * @param parameterMap parameterMap
@@ -1068,6 +1096,15 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
         String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
     }
 
+    /**
+     * Functional interface to get secret by name.
+     */
+    @FunctionalInterface
+    public interface GetSecret {
+
+        String getSecretByName(String secretName) throws SecretManagementException;
+    }
+
     @Deprecated
     public void exitFunction(Object... arg) {
 
@@ -1197,6 +1234,8 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                             graphBuilder::addShowPrompt);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB, (LoadExecutor)
                             graphBuilder::loadLocalLibrary);
+                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_GET_SECRET_BY_NAME, (GetSecret)
+                            graphBuilder::getSecretByName);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
                             .getJsFunctionRegistry();
                     if (jsFunctionRegistry != null) {

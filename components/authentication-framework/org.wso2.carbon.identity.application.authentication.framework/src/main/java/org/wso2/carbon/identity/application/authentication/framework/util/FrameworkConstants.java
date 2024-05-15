@@ -24,6 +24,7 @@ package org.wso2.carbon.identity.application.authentication.framework.util;
 public abstract class FrameworkConstants {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
+    public static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
     public static final String QUERY_PARAMS = "commonAuthQueryParams";
     public static final String SUBJECT = "subject";
     public static final String DEFAULT_SEQUENCE = "default";
@@ -596,6 +597,7 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
         public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
+        public static final String JS_FUNC_GET_SECRET_BY_NAME = "getSecretByName";
         public static final String JS_AUTH_FAILURE = "fail";
         public static final String JS_ENDPOINT_PARAMS = "endpointParams";
 

@@ -36,6 +36,9 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -500,6 +503,28 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     }
 
     /**
+     * Get the secret by name.
+     *
+     * @param secretName secretName
+     * @return secretValue
+     * @throws SecretManagementException
+     */
+    public String getSecretByName(String secretName) throws SecretManagementException {
+
+        SecretResolveManager secretResolveManager = FrameworkServiceComponent.getSecretConfigManager();
+        String secretValue = null;
+
+        ResolvedSecret responseDTO = secretResolveManager.getResolvedSecret(FrameworkConstants.SECRET_TYPE, secretName);
+
+        if (responseDTO != null) {
+            secretValue = responseDTO.getResolvedSecretValue();
+        } else {
+            log.error("No secret available with " + secretName + "name.");
+        }
+        return secretValue;
+    }
+
+    /**
      * Adds a function to show a prompt in Javascript code.
      *
      * @param parameterMap parameterMap
@@ -643,6 +668,15 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     public interface LoadExecutor {
 
         String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
+    }
+
+    /**
+     * Functional interface to get secret by name.
+     */
+    @FunctionalInterface
+    public interface GetSecret {
+
+        String getSecretByName(String secretName) throws SecretManagementException;
     }
 
     @Deprecated
