@@ -365,7 +365,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw new IdentityApplicationManagementException("This service is not supported.");
             }
 
-            applicationBasicInfos = ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfoBySPProperty(key, value);
+            applicationBasicInfos = ((AbstractApplicationDAOImpl) appDAO)
+                    .getApplicationBasicInfoBySPProperty(key, value);
         } finally {
             endTenantFlow();
         }

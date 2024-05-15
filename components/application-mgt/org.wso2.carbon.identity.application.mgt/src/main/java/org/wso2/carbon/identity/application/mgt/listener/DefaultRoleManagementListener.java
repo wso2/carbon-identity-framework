@@ -52,6 +52,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
@@ -497,13 +498,17 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             Role role = ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2()
                    .getRole(roleId, tenantDomain);
             if (ORGANIZATION.equalsIgnoreCase(role.getAudience())) {
-                ApplicationBasicInfo[] associatedApplications = ApplicationManagementService.getInstance().getApplicationBasicInfoBySPProperty(tenantDomain, PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername(),"allowedAudienceForAssociatedRoles",ORGANIZATION);
+                ApplicationBasicInfo[] associatedApplications = ApplicationManagementService.getInstance()
+                        .getApplicationBasicInfoBySPProperty(tenantDomain,
+                                PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername(),
+                                ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, ORGANIZATION);
                 associatedApplicationByRoleId.addAll(Arrays.stream(associatedApplications)
                         .map(ApplicationBasicInfo::getUuid).collect(Collectors.toList()));
             }
         } catch (IdentityRoleManagementException | IdentityApplicationManagementException e) {
             throw new IdentityRoleManagementException(
-                String.format("Error occurred while getting associated apps of role : %s in tenant domain : %s", tenantDomain), e);
+                String.format("Error occurred while getting associated apps of role : %s in tenant domain : %s",
+                        tenantDomain), e);
         }
     }
 
