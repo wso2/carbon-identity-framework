@@ -646,6 +646,27 @@ public interface RoleManagementListener {
     void postDeleteRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException;
 
+    /**
+     * Invoked before getting the associate applications for a role in the given tenant domain.
+     *
+     * @param roleId                        The unique identifier of the role.
+     * @param tenantDomain  The domain in which the operation was performed.
+     * @throws IdentityRoleManagementException If an error occurs during the post-deletion phase.
+     */
+    void preGetAssociatedApplicationIdsByRoleId(String roleId, String tenantDomain)
+            throws IdentityRoleManagementException;
+
+    /**
+     * Invoked after getting the associate applications for a role in the given tenant domain.
+     *
+     * @param associatedApplicationByRoleId The list of associate app ids for a role id.
+     * @param roleId                        The unique identifier of the role.
+     * @param tenantDomain  The domain in which the operation was performed.
+     * @throws IdentityRoleManagementException If an error occurs during the post-deletion phase.
+     */
+    void postGetAssociatedApplicationIdsByRoleId(List<String> associatedApplicationByRoleId, String roleId, String tenantDomain)
+            throws IdentityRoleManagementException;
+
     default void preGetPermissionListOfRoles(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {}
 
