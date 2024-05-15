@@ -137,8 +137,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID_PACKAGE_NAME_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLE_APP_ID_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLE_APP_ID_PROPERTY_NAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_ACCESS_ENABLED_DISPLAY_NAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_ACCESS_ENABLED_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_APPLICATION_ACCESS_ENABLED_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ATTESTATION;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ID_SP_PROPERTY_NAME;
@@ -2438,7 +2438,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private boolean getAppAccessEnabled(List<ServiceProviderProperty> propertyList) {
 
         String value = propertyList.stream()
-                .filter(property -> APPLICATION_ACCESS_ENABLED_PROPERTY_NAME.equals(property.getName()))
+                .filter(property -> IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME.equals(property.getName()))
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse("true");
@@ -5276,8 +5276,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private ServiceProviderProperty buildIsApplicationAccessEnabledProperty(ServiceProvider sp) {
 
         ServiceProviderProperty isAppAccessEnabledProperty = new ServiceProviderProperty();
-        isAppAccessEnabledProperty.setName(APPLICATION_ACCESS_ENABLED_PROPERTY_NAME);
-        isAppAccessEnabledProperty.setDisplayName(APPLICATION_ACCESS_ENABLED_DISPLAY_NAME);
+        isAppAccessEnabledProperty.setName(IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME);
+        isAppAccessEnabledProperty.setDisplayName(IS_APPLICATION_ACCESS_ENABLED_DISPLAY_NAME);
         isAppAccessEnabledProperty.setValue(String.valueOf(sp.isApplicationAccessEnabled()));
         return isAppAccessEnabledProperty;
     }

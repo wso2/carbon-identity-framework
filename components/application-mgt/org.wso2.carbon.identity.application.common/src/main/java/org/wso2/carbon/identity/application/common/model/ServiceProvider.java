@@ -53,7 +53,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
-    private static final String APP_ACCESS_ENABLED = "applicationAccessEnabled";
+    private static final String IS_APPLICATION_ACCESS_ENABLED = "IsApplicationAccessEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
 
@@ -141,8 +141,8 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
 
-    @XmlElement(name = APP_ACCESS_ENABLED)
-    private boolean applicationAccessEnabled = true;
+    @XmlElement(name = IS_APPLICATION_ACCESS_ENABLED)
+    private boolean isApplicationAccessEnabled = true;
 
     @IgnoreNullElement
     @XmlElement(name = IS_API_BASED_AUTHENTICATION_ENABLED)
@@ -277,7 +277,7 @@ public class ServiceProvider implements Serializable {
             } else if (ASSOCIATED_ROLES_CONFIG.equals(elementName)) {
                 // build role association.
                 serviceProvider.setAssociatedRolesConfig(AssociatedRolesConfig.build(element));
-            } else if (APP_ACCESS_ENABLED.equals(elementName)) {
+            } else if (IS_APPLICATION_ACCESS_ENABLED.equals(elementName)) {
                 if (element.getText() != null && "true".equals(element.getText())) {
                     serviceProvider.setApplicationAccessEnabled(true);
                 } else  {
@@ -614,11 +614,11 @@ public class ServiceProvider implements Serializable {
     }
 
     public boolean isApplicationAccessEnabled() {
-        return applicationAccessEnabled;
+        return isApplicationAccessEnabled;
     }
 
     public void setApplicationAccessEnabled(boolean applicationAccessEnabled) {
-        this.applicationAccessEnabled = applicationAccessEnabled;
+        this.isApplicationAccessEnabled = applicationAccessEnabled;
     }
 }
 
