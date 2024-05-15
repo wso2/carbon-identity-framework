@@ -382,6 +382,7 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="spProperties" nillable="true" type="ax2173:ServiceProviderProperty"/>
                     <xs:element minOccurs="0" name="templateId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="applicationRoles" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="AssociatedRolesConfig">

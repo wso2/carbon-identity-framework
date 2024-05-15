@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
+import org.wso2.carbon.identity.application.mgt.provider.ApplicationRoleProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -78,6 +79,9 @@ public class ApplicationManagementServiceComponentHolder {
 
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
+
+    private ApplicationRoleProvider applicationRoleProvider;
+    private boolean isInternalApplicationRolesEnabled = false;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -386,7 +390,7 @@ public class ApplicationManagementServiceComponentHolder {
 
         this.secretResolveManager = secretResolveManager;
     }
-    
+
     /**
      * Add application inbound config service.
      *
@@ -394,10 +398,10 @@ public class ApplicationManagementServiceComponentHolder {
      */
     public void addApplicationInboundAuthConfigHandler(ApplicationInboundAuthConfigHandler
                                                                applicationInboundAuthConfigHandler) {
-        
+
         applicationInboundAuthConfigHandlers.add(applicationInboundAuthConfigHandler);
     }
-    
+
     /**
      * Remove application inbound config service.
      *
@@ -405,17 +409,38 @@ public class ApplicationManagementServiceComponentHolder {
      */
     public void removeApplicationInboundConfigHandler(ApplicationInboundAuthConfigHandler
                                                               applicationInboundAuthConfigHandler) {
-        
+
         applicationInboundAuthConfigHandlers.remove(applicationInboundAuthConfigHandler);
     }
-    
+
     /**
      * Get application inbound config service.
      *
      * @return List of application inbound config services.
      */
     public List<ApplicationInboundAuthConfigHandler> getApplicationInboundAuthConfigHandler() {
-        
+
         return applicationInboundAuthConfigHandlers;
+    }
+
+    public ApplicationRoleProvider getApplicationRoleProvider() {
+
+        return applicationRoleProvider;
+    }
+
+    public void setApplicationRoleProvider(
+            ApplicationRoleProvider applicationRoleProvider) {
+
+        this.applicationRoleProvider = applicationRoleProvider;
+    }
+
+    public boolean isInternalApplicationRolesEnabled() {
+
+        return isInternalApplicationRolesEnabled;
+    }
+
+    public void setInternalApplicationRolesEnabled(boolean isInternalApplicationRolesEnabled) {
+
+        this.isInternalApplicationRolesEnabled = isInternalApplicationRolesEnabled;
     }
 }
