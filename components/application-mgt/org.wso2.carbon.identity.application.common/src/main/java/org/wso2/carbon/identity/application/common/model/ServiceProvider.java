@@ -280,7 +280,9 @@ public class ServiceProvider implements Serializable {
             } else if (APP_ACCESS_ENABLED.equals(elementName)) {
                 if (element.getText() != null && "true".equals(element.getText())) {
                     serviceProvider.setApplicationAccessEnabled(true);
-                } else serviceProvider.setApplicationAccessEnabled(!"false".equals(element.getText()));
+                } else  {
+                    serviceProvider.setApplicationAccessEnabled(!"false".equals(element.getText()));
+                }
             }
         }
 
