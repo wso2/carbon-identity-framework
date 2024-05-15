@@ -661,9 +661,8 @@ public class RoleDAOImpl implements RoleDAO {
         UserRealm userRealm;
         try {
             userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (!isSubOrgByTenant(tenantDomain) &&
-                    (UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())
-                    || isInternalAdminOrSystemRole(roleId, tenantDomain, userRealm))) {
+            if ((UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())
+                    || isInternalAdminOrSystemRole(roleId, tenantDomain, userRealm)) && !isSubOrgByTenant(tenantDomain)) {
                 throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
                         "Invalid operation. Role: " + roleName + " Cannot be deleted.");
             }
