@@ -364,7 +364,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
                 .getInstance();
         roleManagementEventPublisherProxy.publishPreDeleteRoleWithException(roleId, tenantDomain);
-        //doPreValidateRoleDeletion(roleId, tenantDomain);
         roleDAO.deleteRole(roleId, tenantDomain);
         roleManagementEventPublisherProxy.publishPostDeleteRole(roleId, tenantDomain);
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
@@ -377,20 +376,6 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                     getUser(tenantDomain), roleId));
         }
     }
-
-//    private void doPreValidateRoleDeletion(String roleId, String tenantDomain) throws IdentityRoleManagementException {
-
-//        RoleBasicInfo roleBasicInfo = getRoleBasicInfoById(roleId, tenantDomain);
-//        String roleAudience = roleBasicInfo.getAudience();
-//        if (APPLICATION.equalsIgnoreCase(roleAudience)) {
-//            return;
-//        }
-//        List<String> associatedApplicationByRoleId = getAssociatedApplicationByRoleId(roleId, tenantDomain);
-//        if (CollectionUtils.isNotEmpty(associatedApplicationByRoleId)) {
-//            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(),
-//                    "Unable to delete the role since it is associated with applications.");
-//        }
-//    }
 
     @Override
     public List<UserBasicInfo> getUserListOfRole(String roleId, String tenantDomain)
