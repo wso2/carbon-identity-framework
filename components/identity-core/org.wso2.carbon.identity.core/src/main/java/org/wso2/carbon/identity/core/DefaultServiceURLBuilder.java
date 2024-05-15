@@ -58,6 +58,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     protected boolean mandateTenantedPath = false;
     protected Map<String, String> parameters = new HashMap<>();
     protected Map<String, String> fragmentParams = new HashMap<>();
+    protected boolean skipCustomDomain = false;
 
     /**
      * Returns {@link ServiceURLBuilder} appended the URL path.
@@ -209,6 +210,12 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     public ServiceURLBuilder addFragmentParameter(String key, String value) {
 
         fragmentParams.put(key, value);
+        return this;
+    }
+
+    @Override
+    public ServiceURLBuilder setSkipCustomDomain(boolean skipCustomDomain) {
+        this.skipCustomDomain = skipCustomDomain;
         return this;
     }
 

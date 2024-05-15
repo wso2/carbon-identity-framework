@@ -70,6 +70,16 @@ public interface ServiceURLBuilder {
      */
     ServiceURLBuilder addFragmentParameter(String key, String value);
 
+    /**
+     * Returns {@link ServiceURLBuilder} after setting skipCustomDomain flag
+     *
+     * @param skipCustomDomain          Tenant domain.
+     * @return  {@link ServiceURLBuilder}
+     */
+    default ServiceURLBuilder setSkipCustomDomain(boolean skipCustomDomain) {
+
+        return this;
+    }
 
     /**
      * Returns {@link ServiceURLBuilder} with tenant domain set for the context.
