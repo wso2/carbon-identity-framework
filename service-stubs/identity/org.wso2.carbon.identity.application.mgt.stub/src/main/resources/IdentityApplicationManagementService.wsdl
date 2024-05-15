@@ -1901,13 +1901,13 @@
     </wsdl:binding>
     <wsdl:service name="IdentityApplicationManagementService">
         <wsdl:port name="IdentityApplicationManagementServiceHttpsSoap11Endpoint" binding="tns:IdentityApplicationManagementServiceSoap11Binding">
-            <soap:address location="https://api.asg.io/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsSoap11Endpoint/"/>
+            <soap:address location="https://localhost:9443/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsSoap11Endpoint/"/>
         </wsdl:port>
         <wsdl:port name="IdentityApplicationManagementServiceHttpsSoap12Endpoint" binding="tns:IdentityApplicationManagementServiceSoap12Binding">
-            <soap12:address location="https://api.asg.io/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsSoap12Endpoint/"/>
+            <soap12:address location="https://localhost:9443/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsSoap12Endpoint/"/>
         </wsdl:port>
         <wsdl:port name="IdentityApplicationManagementServiceHttpsEndpoint" binding="tns:IdentityApplicationManagementServiceHttpBinding">
-            <http:address location="https://api.asg.io/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsEndpoint/"/>
+            <http:address location="https://localhost:9443/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsEndpoint/"/>
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>
