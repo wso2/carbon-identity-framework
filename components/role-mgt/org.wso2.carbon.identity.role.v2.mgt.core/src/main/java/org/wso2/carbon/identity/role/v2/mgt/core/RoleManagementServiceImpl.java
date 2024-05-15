@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -880,7 +879,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public List<String> getAssociatedApplicationByRoleId(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance().getRoleManagementListenerList();
+        List<RoleManagementListener> roleManagementListenerList =
+                RoleManagementServiceComponentHolder.getInstance().getRoleManagementListenerList();
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
                 roleManagementListener.preGetAssociatedApplicationIdsByRoleId(roleId, tenantDomain);
@@ -889,7 +889,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         List<String> associatedApplicationIds = roleDAO.getAssociatedApplicationIdsByRoleId(roleId, tenantDomain);
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
-                roleManagementListener.postGetAssociatedApplicationIdsByRoleId(associatedApplicationIds, roleId, tenantDomain);
+                roleManagementListener.postGetAssociatedApplicationIdsByRoleId(associatedApplicationIds,
+                        roleId, tenantDomain);
             }
         }
         return associatedApplicationIds;

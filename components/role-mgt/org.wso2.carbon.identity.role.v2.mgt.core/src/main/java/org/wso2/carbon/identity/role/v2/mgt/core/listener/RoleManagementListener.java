@@ -664,8 +664,8 @@ public interface RoleManagementListener {
      * @param tenantDomain  The domain in which the operation was performed.
      * @throws IdentityRoleManagementException If an error occurs during the post-deletion phase.
      */
-    void postGetAssociatedApplicationIdsByRoleId(List<String> associatedApplicationByRoleId, String roleId, String tenantDomain)
-            throws IdentityRoleManagementException;
+    void postGetAssociatedApplicationIdsByRoleId(List<String> associatedApplicationByRoleId, String roleId,
+                                                 String tenantDomain) throws IdentityRoleManagementException;
 
     default void preGetPermissionListOfRoles(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {}
