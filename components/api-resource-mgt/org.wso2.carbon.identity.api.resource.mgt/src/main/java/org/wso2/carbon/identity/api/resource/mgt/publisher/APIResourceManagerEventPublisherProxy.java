@@ -1,20 +1,19 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
- *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.api.resource.mgt.publisher;
@@ -59,8 +58,8 @@ public class APIResourceManagerEventPublisherProxy {
     /**
      * Publish the pre add API resource event.
      *
-     * @param apiResource   API resource.
-     * @param tenantDomain  Tenant domain.
+     * @param apiResource  API resource.
+     * @param tenantDomain Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
     public void publishPreAddAPIResourceWithException(APIResource apiResource, String tenantDomain)
@@ -76,8 +75,8 @@ public class APIResourceManagerEventPublisherProxy {
     /**
      * Publish the post add API resource event.
      *
-     * @param apiResource   API resource.
-     * @param tenantDomain  Tenant domain.
+     * @param apiResource  API resource.
+     * @param tenantDomain Tenant domain.
      */
     public void publishPostAddAPIResource(APIResource apiResource, String tenantDomain) {
 
@@ -95,8 +94,8 @@ public class APIResourceManagerEventPublisherProxy {
     /**
      * Publish the pre delete API resource by id event.
      *
-     * @param apiResourceId  API resource id.
-     * @param tenantDomain   Tenant domain.
+     * @param apiResourceId API resource id.
+     * @param tenantDomain  Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
     public void publishPreDeleteAPIResourceByIdWithException(String apiResourceId, String tenantDomain)
@@ -112,8 +111,8 @@ public class APIResourceManagerEventPublisherProxy {
     /**
      * Publish the post delete API resource by id event.
      *
-     * @param apiResourceId  API resource id.
-     * @param tenantDomain   Tenant domain.
+     * @param apiResourceId API resource id.
+     * @param tenantDomain  Tenant domain.
      */
     public void publishPostDeleteAPIResourceById(String apiResourceId, String tenantDomain) {
 
@@ -131,10 +130,10 @@ public class APIResourceManagerEventPublisherProxy {
     /**
      * Publish the pre update API resource event.
      *
-     * @param apiResource    API resource.
-     * @param addedScopes    Added scopes.
-     * @param removedScopes  Removed scopes.
-     * @param tenantDomain   Tenant domain.
+     * @param apiResource   API resource.
+     * @param addedScopes   Added scopes.
+     * @param removedScopes Removed scopes.
+     * @param tenantDomain  Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
     public void publishPreUpdateAPIResourceWithException(APIResource apiResource, List<Scope> addedScopes,
@@ -153,10 +152,10 @@ public class APIResourceManagerEventPublisherProxy {
     /**
      * Publish the post update API resource event.
      *
-     * @param apiResource    API resource.
-     * @param addedScopes    Added scopes.
-     * @param removedScopes  Removed scopes.
-     * @param tenantDomain   Tenant domain.
+     * @param apiResource   API resource.
+     * @param addedScopes   Added scopes.
+     * @param removedScopes Removed scopes.
+     * @param tenantDomain  Tenant domain.
      */
     public void publishPostUpdateAPIResource(APIResource apiResource, List<Scope> addedScopes,
                                              List<String> removedScopes, String tenantDomain) {
@@ -253,10 +252,10 @@ public class APIResourceManagerEventPublisherProxy {
     /**
      * Publish the pre put API resource scopes event.
      *
-     * @param apiResourceId  API resource id.
-     * @param currentScopes  Old scopes.
-     * @param scopes         New scopes.
-     * @param tenantDomain   Tenant domain.
+     * @param apiResourceId API resource id.
+     * @param currentScopes Old scopes.
+     * @param scopes        New scopes.
+     * @param tenantDomain  Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
     public void publishPrePutScopesWithException(String apiResourceId, List<Scope> currentScopes, List<Scope> scopes,
@@ -274,10 +273,10 @@ public class APIResourceManagerEventPublisherProxy {
     /**
      * Publish the post put API resource scopes event.
      *
-     * @param apiResourceId  API resource id.
-     * @param currentScopes  Old scopes.
-     * @param scopes         New scopes.
-     * @param tenantDomain   Tenant domain.
+     * @param apiResourceId API resource id.
+     * @param currentScopes Old scopes.
+     * @param scopes        New scopes.
+     * @param tenantDomain  Tenant domain.
      */
     public void publishPostPutScopes(String apiResourceId, List<Scope> currentScopes, List<Scope> scopes,
                                      String tenantDomain) {
