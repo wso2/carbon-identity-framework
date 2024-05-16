@@ -50,7 +50,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
@@ -185,7 +184,7 @@ public class MutualSSLManager {
      *
      * @return availability of mutualSSLManagerEnabled feature.
      */
-    private static boolean isMutualSSLManagerEnabled(String mutualSSLManagerEnabled) {
+    protected static boolean isMutualSSLManagerEnabled(String mutualSSLManagerEnabled) {
 
         boolean isMutualSSLManagerEnabled = true;
         if (StringUtils.isNotEmpty(mutualSSLManagerEnabled)) {
@@ -201,7 +200,7 @@ public class MutualSSLManager {
      * @return Absolute file path
      * @throws IOException
      */
-    private static String buildFilePath(String path) throws IOException {
+    protected static String buildFilePath(String path) throws IOException {
 
         if (StringUtils.isNotEmpty(path) && path.startsWith(Constants.TenantConstants.RELATIVE_PATH_START_CHAR)) {
             // Relative file path is given

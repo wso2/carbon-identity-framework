@@ -16,8 +16,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -25,17 +24,18 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponse.HttpIdentityResponseBuilder;
 import org.wso2.carbon.identity.core.handler.InitConfig;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Properties;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
-@PrepareForTest(IdentityUtil.class)
-@PowerMockIgnore("org.mockito.*")
 public class HttpIdentityResponseFactoryTest {
 
     private HttpIdentityResponseFactory httpIdentityResponseFactory;
@@ -53,10 +53,12 @@ public class HttpIdentityResponseFactoryTest {
     @Test
     public void testInit() throws Exception {
         // Mock returning a null after reading event listener configs
-        Util.mockReturnNullEventListenerConfig();
-        InitConfig initConfig = new InitConfig();
-        httpIdentityResponseFactory.init(initConfig);
-        assertEquals(httpIdentityResponseFactory.properties.size(), 0);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.readEventListenerProperty(anyString(), anyString())).thenReturn(null);
+            InitConfig initConfig = new InitConfig();
+            httpIdentityResponseFactory.init(initConfig);
+            assertEquals(httpIdentityResponseFactory.properties.size(), 0);
+        }
     }
 
     @DataProvider(name = "initConfigDataProvider")
@@ -68,9 +70,14 @@ public class HttpIdentityResponseFactoryTest {
     public void testInitWithDuplicateEventListenerProperties(Properties eventListenerProperties,
                                                              Properties expectedListenerProperties) throws Exception {
 
-        Util.mockReturnEventListenerConfigWithProperties(eventListenerProperties);
-        httpIdentityResponseFactory.init(new InitConfig());
-        Util.assertPropertiesEqual(httpIdentityResponseFactory.properties, expectedListenerProperties);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            IdentityEventListenerConfig identityEventListenerConfig =
+                    new IdentityEventListenerConfig("true", 1, null, eventListenerProperties);
+            identityUtil.when(() -> IdentityUtil.readEventListenerProperty(anyString(), anyString()))
+                    .thenReturn(identityEventListenerConfig);
+            httpIdentityResponseFactory.init(new InitConfig());
+            Util.assertPropertiesEqual(httpIdentityResponseFactory.properties, expectedListenerProperties);
+        }
     }
 
     @Test

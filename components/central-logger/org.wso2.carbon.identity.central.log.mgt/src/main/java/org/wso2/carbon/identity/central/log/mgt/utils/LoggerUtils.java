@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2021-2024, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.central.log.mgt.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -50,6 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.CONSOLE_APP_NAME;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ApplicationManagement.CONSOLE_CLIENT_ID;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.ENABLE_LOG_MASKING;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.LOGGABLE_USER_CLAIMS;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
@@ -168,6 +171,11 @@ public class LoggerUtils {
         try {
             Map<String, Object> diagnosticLogProperties = new HashMap<>();
             DiagnosticLog diagnosticLog = diagnosticLogBuilder.build();
+            /* As the Console application is used to access the identity server resources, the diagnostic logs are not
+            required to be emitted. */
+            if (isConsoleApp(diagnosticLog)) {
+                return;
+            }
             IdentityEventService eventMgtService =
                     CentralLogMgtServiceComponentHolder.getInstance().getIdentityEventService();
             diagnosticLogProperties.put(CarbonConstants.LogEventConstants.DIAGNOSTIC_LOG, diagnosticLog);
@@ -380,5 +388,37 @@ public class LoggerUtils {
             return strippedClaims;
         }
         return new ArrayList<>();
+    }
+
+    private static boolean isConsoleApp(DiagnosticLog diagnosticLog) {
+
+        if (diagnosticLog.getInput() == null) {
+            return false;
+        }
+        String clientID;
+        List<?> clientIDs;
+        Object clientIDInputObj = diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID);
+        if (clientIDInputObj instanceof String) {
+            return CONSOLE_CLIENT_ID.equals(clientIDInputObj);
+        }
+        Object clientNameInputObj = diagnosticLog.getInput().get(LogConstants.InputKeys.APPLICATION_NAME);
+        if (clientNameInputObj instanceof String) {
+            return CONSOLE_APP_NAME.equals(clientNameInputObj);
+        }
+        if (clientIDInputObj instanceof List<?>) {
+            clientIDs = (List<?>) diagnosticLog.getInput().get(LogConstants.InputKeys.CLIENT_ID);
+            if (CollectionUtils.isNotEmpty(clientIDs)) {
+                clientID = (String) clientIDs.get(0);
+                return CONSOLE_CLIENT_ID.equals(clientID);
+            }
+        }
+        if (diagnosticLog.getInput().get("client_id") instanceof List<?>) {
+            clientIDs = (List<?>) diagnosticLog.getInput().get("client_id");
+            if (CollectionUtils.isNotEmpty(clientIDs)) {
+                clientID = (String) clientIDs.get(0);
+                return CONSOLE_CLIENT_ID.equals(clientID);
+            }
+        }
+        return false;
     }
 }

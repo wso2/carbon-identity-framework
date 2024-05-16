@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -135,6 +135,7 @@ import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_EXIS
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_GROUP_FROM_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_USER_FROM_ROLE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_USER_FROM_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_HYBRID_ROLE_UUID_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_ROLE_NAME_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_SCIM_ROLE_NAME_SQL;
@@ -635,8 +636,12 @@ public class RoleDAOImpl implements RoleDAO {
                         addUsersSQL);
 
                 // Delete existing users from the role.
+                String removeUserFromRoleSql = REMOVE_USER_FROM_ROLE_SQL;
+                if (MICROSOFT.equals(databaseProductName)) {
+                    removeUserFromRoleSql = REMOVE_USER_FROM_ROLE_SQL_MSSQL;
+                }
                 processBatchUpdateForUsers(roleName, deletedUserNamesList, tenantId, primaryDomainName, connection,
-                        REMOVE_USER_FROM_ROLE_SQL);
+                        removeUserFromRoleSql);
 
                 IdentityDatabaseUtil.commitUserDBTransaction(connection);
             } catch (SQLException e) {

@@ -77,6 +77,8 @@ public class LogConstants {
         public static final String DELETE_OAUTH_APPLICATION_ACTION = "delete-oauth-application";
         public static final String REGENERATE_CLIENT_SECRET_ACTION = "regenerate-client-secret";
         public static final String UPDATE_APP_STATE_ACTION = "update-app-state";
+        public static final String CONSOLE_CLIENT_ID = "CONSOLE";
+        public static final String CONSOLE_APP_NAME = "Console";
     }
 
     /**

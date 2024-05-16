@@ -19,7 +19,6 @@
 package org.wso2.carbon.idp.mgt.listener;
 
 import org.junit.Assert;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
@@ -28,7 +27,7 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
  * Unit tests for IDPMgtAuditLogger.
  */
 @WithCarbonHome
-public class IDPMgtAuditLoggerTest extends PowerMockTestCase {
+public class IDPMgtAuditLoggerTest {
 
     IDPMgtAuditLogger idpMgtAuditLogger = new IDPMgtAuditLogger();
 

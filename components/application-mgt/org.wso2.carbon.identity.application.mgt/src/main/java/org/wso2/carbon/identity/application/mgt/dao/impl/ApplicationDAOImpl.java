@@ -149,6 +149,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ISSUER_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_APPLICATION_ACCESS_ENABLED_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME;
@@ -2180,6 +2182,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
             serviceProvider.setTemplateId(getTemplateId(propertyList));
+            serviceProvider.setApplicationAccessEnabled(getAppAccessEnabled(propertyList));
             serviceProvider.setManagementApp(getIsManagementApp(propertyList));
             serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
             serviceProvider.setAPIBasedAuthenticationEnabled(getIsAPIBasedAuthenticationEnabled(propertyList));
@@ -2275,7 +2278,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             RoleManagementService roleManagementService = holder.getRoleManagementServiceV2();
             try {
                 List<RoleBasicInfo> chunkOfRoles;
-                int offset = 0;
+                int offset = 1;
                 int maximumPage = IdentityUtil.getMaximumItemPerPage();
                 List<RoleBasicInfo> allRoles = new ArrayList<>();
                 if (roleManagementService != null) {
@@ -2288,7 +2291,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             allRoles.addAll(chunkOfRoles);
                             offset += chunkOfRoles.size(); // Move to the next chunk
                         }
-                    } while (!chunkOfRoles.isEmpty());
+                    } while (chunkOfRoles.size() == maximumPage);
 
                     List<String> roleIds = allRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.
                             toList());
@@ -2429,6 +2432,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
+        return Boolean.parseBoolean(value);
+    }
+
+    private boolean getAppAccessEnabled(List<ServiceProviderProperty> propertyList) {
+
+        String value = propertyList.stream()
+                .filter(property -> IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse("true");
+        // This is to ensure the previously created applications will have the flag,
+        // enabled unless set to false explicitly. Newly created apps will have this flag enabled by default.
         return Boolean.parseBoolean(value);
     }
 
@@ -5136,6 +5151,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(sp);
         spPropertyMap.put(isB2BSSAppProperty.getName(), isB2BSSAppProperty);
 
+        ServiceProviderProperty isApplicationAccessEnabledProperty = buildIsApplicationAccessEnabledProperty(sp);
+        spPropertyMap.put(isApplicationAccessEnabledProperty.getName(), isApplicationAccessEnabledProperty);
+
         ServiceProviderProperty allowedRoleAudienceProperty = buildAllowedRoleAudienceProperty(sp);
         spPropertyMap.put(allowedRoleAudienceProperty.getName(), allowedRoleAudienceProperty);
 
@@ -5255,13 +5273,26 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return isB2BSSAppProperty;
     }
 
+    private ServiceProviderProperty buildIsApplicationAccessEnabledProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty isAppAccessEnabledProperty = new ServiceProviderProperty();
+        isAppAccessEnabledProperty.setName(IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME);
+        isAppAccessEnabledProperty.setDisplayName(IS_APPLICATION_ACCESS_ENABLED_DISPLAY_NAME);
+        isAppAccessEnabledProperty.setValue(String.valueOf(sp.isApplicationAccessEnabled()));
+        return isAppAccessEnabledProperty;
+    }
+
     private ServiceProviderProperty buildAllowedRoleAudienceProperty(ServiceProvider serviceProvider) {
 
         ServiceProviderProperty allowedRoleAudienceProperty = new ServiceProviderProperty();
         allowedRoleAudienceProperty.setName(ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME);
         AssociatedRolesConfig associatedRolesConfig = serviceProvider.getAssociatedRolesConfig();
         if (associatedRolesConfig == null) {
-            allowedRoleAudienceProperty.setValue(RoleConstants.ORGANIZATION);
+            if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+                allowedRoleAudienceProperty.setValue(RoleConstants.ORGANIZATION);
+            } else {
+                allowedRoleAudienceProperty.setValue(RoleConstants.APPLICATION);
+            }
             return allowedRoleAudienceProperty;
         }
         String allowedAudience = StringUtils.isNotBlank(associatedRolesConfig.getAllowedAudience()) ?

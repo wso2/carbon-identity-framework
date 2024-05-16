@@ -52,10 +52,10 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.mockito.ArgumentMatchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.mockito.Mockito.mock;
 
 public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest {
 
@@ -121,7 +121,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         HttpServletRequest req = mock(HttpServletRequest.class);
         Map<String, Object> attributes = new HashMap<>();
         doAnswer(m -> attributes.put(m.getArgument(0), m.getArgument(1))).when(req)
-                .setAttribute(anyString(), anyObject());
+                .setAttribute(anyString(), any());
 
         doAnswer(m -> attributes.get(m.getArgument(0))).when(req).getAttribute(anyString());
 

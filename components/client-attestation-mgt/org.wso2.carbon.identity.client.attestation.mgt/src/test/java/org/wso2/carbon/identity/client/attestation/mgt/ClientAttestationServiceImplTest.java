@@ -19,9 +19,9 @@
 
 package org.wso2.carbon.identity.client.attestation.mgt;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -36,32 +36,36 @@ import org.wso2.carbon.identity.client.attestation.mgt.services.ClientAttestatio
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 /**
  * Testing the ClientAttestationServiceImpl class
  */
-@PrepareForTest({ ClientAttestationServiceImpl.class, ClientAttestationMgtDataHolder.class,
-        ApplicationManagementService.class})
-public class ClientAttestationServiceImplTest extends PowerMockTestCase {
+public class ClientAttestationServiceImplTest {
 
     private ClientAttestationService clientAttestationService;
     private ApplicationManagementService applicationManagementService;
+    private MockedStatic<ClientAttestationMgtDataHolder> clientAttestationMgtDataHolder;
 
     @BeforeMethod
     public void setup() {
 
         clientAttestationService = new ClientAttestationServiceImpl();
 
-        ClientAttestationMgtDataHolder clientAttestationMgtDataHolder = mock(ClientAttestationMgtDataHolder.class);
-        mockStatic(ClientAttestationMgtDataHolder.class);
+        ClientAttestationMgtDataHolder mockClientAttestationMgtDataHolder = mock(ClientAttestationMgtDataHolder.class);
+        clientAttestationMgtDataHolder = mockStatic(ClientAttestationMgtDataHolder.class);
         applicationManagementService = mock(ApplicationManagementService.class);
-        mockStatic(ApplicationManagementService.class);
-        when(ClientAttestationMgtDataHolder.getInstance())
-                .thenReturn(clientAttestationMgtDataHolder);
-        when(ClientAttestationMgtDataHolder.getInstance().getApplicationManagementService())
+        clientAttestationMgtDataHolder.when(ClientAttestationMgtDataHolder::getInstance)
+                .thenReturn(mockClientAttestationMgtDataHolder);
+        when(mockClientAttestationMgtDataHolder.getApplicationManagementService())
                 .thenReturn(applicationManagementService);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        clientAttestationMgtDataHolder.close();
     }
 
     @DataProvider(name = "validateAttestationDataProvider")

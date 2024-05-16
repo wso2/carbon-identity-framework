@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.response;
 
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.slf4j.MDC;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -28,8 +27,8 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.exception.SessionExtenderClientException;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.exception.SessionExtenderServerException;
 
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -42,7 +41,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.sess
 /**
  * Unit test cases for SessionExtenderResponseFactory.
  */
-public class SessionExtenderResponseFactoryTest extends PowerMockTestCase {
+public class SessionExtenderResponseFactoryTest {
 
     private SessionExtenderResponseFactory sessionExtenderResponseFactory;
 

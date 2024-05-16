@@ -16,7 +16,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.services;
 
-import org.powermock.api.mockito.PowerMockito;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -38,8 +38,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.powermock.api.mockito.PowerMockito.doAnswer;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -64,6 +65,12 @@ public class PostAuthenticationMgtServiceTest extends IdentityBaseTest {
         FrameworkServiceDataHolder.getInstance().addPostAuthenticationHandler(testPostHandlerWithRedirect);
     }
 
+    @AfterMethod
+    void tearDown() {
+
+        FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers().clear();
+    }
+
     @DataProvider(name = "singlePostAuthenticatorData")
     public Object[][] singlePostAuthenticatorData() {
 
@@ -80,8 +87,8 @@ public class PostAuthenticationMgtServiceTest extends IdentityBaseTest {
     @Test(dataProvider = "singlePostAuthenticatorData")
     public void testHandlePostAuthentication(boolean isSampleAuthenticatorEnabled, String userName) throws Exception {
 
-        HttpServletRequest request = PowerMockito.mock(HttpServletRequest.class);
-        HttpServletResponse response = PowerMockito.mock(HttpServletResponse.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
         AuthenticationContext context = new AuthenticationContext();
         context.setContextIdentifier(String.valueOf(UUID.randomUUID()));
 
@@ -137,8 +144,8 @@ public class PostAuthenticationMgtServiceTest extends IdentityBaseTest {
             PostAuthenticationFailedException.class)
     public void testHandlePostAuthenticationExceptions(boolean alterCookie, String userName) throws Exception {
 
-        HttpServletRequest request = PowerMockito.mock(HttpServletRequest.class);
-        HttpServletResponse response = PowerMockito.mock(HttpServletResponse.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
         AuthenticationContext context = new AuthenticationContext();
         context.setContextIdentifier(String.valueOf(UUID.randomUUID()));
 
