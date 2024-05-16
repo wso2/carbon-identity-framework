@@ -34,6 +34,7 @@ import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
@@ -103,6 +104,7 @@ public class AuthorizedAPIManagementServiceImplTest {
         identityEventService = mock(IdentityEventService.class);
         doNothing().when(identityEventService).handleEvent(any());
         ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }
 
     @AfterMethod
