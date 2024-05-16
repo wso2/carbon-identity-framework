@@ -68,7 +68,7 @@ public class APIResourceManagerEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_RESOURCE, apiResource);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_ADD_API_RESOURCE);
+        Event event = createEvent(IdentityEventConstants.Event.PRE_ADD_API_RESOURCE, eventProperties);
         doPublishEvent(event);
     }
 
@@ -84,7 +84,7 @@ public class APIResourceManagerEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_RESOURCE, apiResource);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_ADD_API_RESOURCE);
+        Event event = createEvent(IdentityEventConstants.Event.POST_ADD_API_RESOURCE, eventProperties);
         doPublishEvent(event);
     }
 
@@ -101,7 +101,7 @@ public class APIResourceManagerEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_DELETE_API_RESOURCE);
+        Event event = createEvent(IdentityEventConstants.Event.PRE_DELETE_API_RESOURCE, eventProperties);
         doPublishEvent(event);
     }
 
@@ -118,7 +118,7 @@ public class APIResourceManagerEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_DELETE_API_RESOURCE);
+        Event event = createEvent(IdentityEventConstants.Event.POST_DELETE_API_RESOURCE, eventProperties);
         doPublishEvent(event);
     }
 
@@ -140,7 +140,7 @@ public class APIResourceManagerEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.ADDED_SCOPES, addedScopes);
         eventProperties.put(IdentityEventConstants.EventProperty.DELETED_SCOPES, removedScopes);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_UPDATE_API_RESOURCE);
+        Event event = createEvent(IdentityEventConstants.Event.PRE_UPDATE_API_RESOURCE, eventProperties);
         doPublishEvent(event);
     }
 
@@ -162,7 +162,7 @@ public class APIResourceManagerEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.ADDED_SCOPES, addedScopes);
         eventProperties.put(IdentityEventConstants.EventProperty.DELETED_SCOPES, removedScopes);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_API_RESOURCE);
+        Event event = createEvent(IdentityEventConstants.Event.POST_UPDATE_API_RESOURCE, eventProperties);
         doPublishEvent(event);
     }
 
@@ -179,7 +179,7 @@ public class APIResourceManagerEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_DELETE_API_RESOURCE_SCOPES);
+        Event event = createEvent(IdentityEventConstants.Event.PRE_DELETE_API_RESOURCE_SCOPES, eventProperties);
         doPublishEvent(event);
     }
 
@@ -196,7 +196,7 @@ public class APIResourceManagerEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_DELETE_API_RESOURCE_SCOPES);
+        Event event = createEvent(IdentityEventConstants.Event.POST_DELETE_API_RESOURCE_SCOPES, eventProperties);
         doPublishEvent(event);
     }
 
@@ -215,7 +215,7 @@ public class APIResourceManagerEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
         eventProperties.put(IdentityEventConstants.EventProperty.SCOPE_NAME, scopeName);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_DELETE_SCOPE);
+        Event event = createEvent(IdentityEventConstants.Event.PRE_DELETE_SCOPE, eventProperties);
         doPublishEvent(event);
     }
 
@@ -234,7 +234,7 @@ public class APIResourceManagerEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
         eventProperties.put(IdentityEventConstants.EventProperty.SCOPE_NAME, scopeName);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_DELETE_SCOPE);
+        Event event = createEvent(IdentityEventConstants.Event.POST_DELETE_SCOPE, eventProperties);
         doPublishEvent(event);
     }
 
@@ -255,7 +255,7 @@ public class APIResourceManagerEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.OLD_SCOPES, currentScopes);
         eventProperties.put(IdentityEventConstants.EventProperty.NEW_SCOPES, scopes);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_PUT_API_RESOURCE_SCOPES);
+        Event event = createEvent(IdentityEventConstants.Event.PRE_PUT_API_RESOURCE_SCOPES, eventProperties);
         doPublishEvent(event);
     }
 
@@ -276,11 +276,11 @@ public class APIResourceManagerEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.OLD_SCOPES, currentScopes);
         eventProperties.put(IdentityEventConstants.EventProperty.NEW_SCOPES, scopes);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_PUT_API_RESOURCE_SCOPES);
+        Event event = createEvent(IdentityEventConstants.Event.POST_PUT_API_RESOURCE_SCOPES, eventProperties);
         doPublishEvent(event);
     }
 
-    private Event createEvent(Map<String, Object> eventProperties, String eventName) {
+    private Event createEvent(String eventName, Map<String, Object> eventProperties) {
 
         return new Event(eventName, eventProperties);
     }
