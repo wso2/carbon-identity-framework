@@ -18,12 +18,14 @@
 
 package org.wso2.carbon.identity.api.resource.mgt;
 
+import org.mockito.Mock;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
@@ -32,11 +34,17 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.internal.OrganizationManagementDataHolder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 
 @WithAxisConfiguration
 @WithCarbonHome
@@ -47,12 +55,17 @@ public class APIResourceManagerTest {
 
     private String tenantDomain;
     private APIResourceManager apiResourceManager;
+    @Mock
+    private IdentityEventService identityEventService;
 
     @BeforeMethod
-    public void setUp() {
+    public void setUp() throws IdentityEventException {
 
         apiResourceManager = APIResourceManagerImpl.getInstance();
         tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        identityEventService = mock(IdentityEventService.class);
+        doNothing().when(identityEventService).handleEvent(any());
+        APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }
 
     @AfterMethod
