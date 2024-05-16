@@ -619,6 +619,7 @@ public class ServiceProvider implements Serializable {
     }
 
     public void setApplicationAccessEnabled(boolean applicationAccessEnabled) {
+
         this.isApplicationAccessEnabled = applicationAccessEnabled;
     }
 }
