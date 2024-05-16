@@ -63,7 +63,7 @@ public class APIResourceManagerEventPublisherProxy {
      * @param tenantDomain  Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPreAddAPIResource(APIResource apiResource, String tenantDomain) throws  APIResourceMgtException {
+    public void publishPreAddAPIResource(APIResource apiResource, String tenantDomain) throws APIResourceMgtException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_RESOURCE, apiResource);
