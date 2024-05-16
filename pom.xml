@@ -70,6 +70,7 @@
         <module>components/central-logger</module>
         <module>components/input-validation-mgt</module>
         <module>components/client-attestation-mgt</module>
+        <module>components/registry-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -579,6 +580,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.light.registry.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
