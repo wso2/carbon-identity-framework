@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementC
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAPIResourceMgtDAO;
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
+import org.wso2.carbon.identity.api.resource.mgt.publisher.APIResourceManagerEventPublisherProxy;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
@@ -115,6 +116,9 @@ public class APIResourceManagerImpl implements APIResourceManager {
                         APIResourceManagementConstants.ErrorMessages.ERROR_CODE_INVALID_IDENTIFIER_VALUE);
             }
 
+            APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+            publisherProxy.publishPreAddAPIResource(apiResource, tenantDomain);
+
             // Check whether the API resource already exists. This is being handled in the service layer since the
             // system APIs are registered in the database in a tenant-agnostic manner.
             if (getAPIResourceByIdentifier(apiResource.getIdentifier(), tenantDomain) != null) {
@@ -127,7 +131,10 @@ public class APIResourceManagerImpl implements APIResourceManager {
             if (APIResourceManagementUtil.isSystemAPI(apiResource.getType())) {
                 tenantId = 0;
             }
-            return CACHE_BACKED_DAO.addAPIResource(apiResource, tenantId);
+
+            APIResource apiResourceCreated = CACHE_BACKED_DAO.addAPIResource(apiResource, tenantId);
+            publisherProxy.publishPostAddAPIResource(apiResource, tenantDomain);
+            return apiResourceCreated;
         } catch (OrganizationManagementException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_API_RESOURCE, e);
@@ -137,15 +144,21 @@ public class APIResourceManagerImpl implements APIResourceManager {
     @Override
     public void deleteAPIResourceById(String apiResourceId, String tenantDomain) throws APIResourceMgtException {
 
+        APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+        publisherProxy.publishPreDeleteAPIResourceById(apiResourceId, tenantDomain);
         CACHE_BACKED_DAO.deleteAPIResourceById(apiResourceId, IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostDeleteAPIResourceById(apiResourceId, tenantDomain);
     }
 
     @Override
     public void updateAPIResource(APIResource apiResource, List<Scope> addedScopes, List<String> removedScopes,
                                   String tenantDomain) throws APIResourceMgtException {
 
+        APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+        publisherProxy.publishPreUpdateAPIResource(apiResource, addedScopes, removedScopes, tenantDomain);
         CACHE_BACKED_DAO.updateAPIResource(apiResource, addedScopes, removedScopes,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostUpdateAPIResource(apiResource, addedScopes, removedScopes, tenantDomain);
     }
 
     @Override
@@ -166,21 +179,30 @@ public class APIResourceManagerImpl implements APIResourceManager {
     @Override
     public void deleteAPIScopesById(String apiResourceId, String tenantDomain) throws APIResourceMgtException {
 
+        APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+        publisherProxy.publishPreDeleteAPIScopesById(apiResourceId, tenantDomain);
         CACHE_BACKED_DAO.deleteAllScopes(apiResourceId, IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostDeleteAPIScopesById(apiResourceId, tenantDomain);
     }
 
     @Override
     public void deleteAPIScopeByScopeName(String apiResourceId, String scopeName, String tenantDomain)
             throws APIResourceMgtException {
 
+        APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+        publisherProxy.publishPreDeleteAPIScopeByScopeName(apiResourceId, scopeName, tenantDomain);
         CACHE_BACKED_DAO.deleteScope(apiResourceId, scopeName, IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostDeleteAPIScopeByScopeName(apiResourceId, scopeName, tenantDomain);
     }
 
     @Override
     public void putScopes(String apiResourceId, List<Scope> currentScopes, List<Scope> scopes, String tenantDomain)
             throws APIResourceMgtException {
 
+        APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+        publisherProxy.publishPrePutScopes(apiResourceId, currentScopes, scopes, tenantDomain);
         CACHE_BACKED_DAO.putScopes(apiResourceId, currentScopes, scopes, IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostPutScopes(apiResourceId, currentScopes, scopes, tenantDomain);
     }
 
     @Override
