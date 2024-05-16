@@ -115,6 +115,7 @@ public class ApplicationConstants {
     public static final String MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS = "MyAccount.AccessURL";
     public static final String CONSOLE_APPLICATION_CLIENT_ID = "CONSOLE";
     public static final String CONSOLE_APPLICATION_INBOUND_TYPE = "oauth2";
+    public static final String MY_ACCOUNT_APPLICATION_CLIENT_ID = "MY_ACCOUNT";
     public static final String TENANT_DOMAIN_PLACEHOLDER = "{TENANT_DOMAIN}";
     public static final String CONSOLE_ACCESS_ORIGIN = "Console.Origin";
     public static final String MYACCOUNT_ACCESS_ORIGIN = "MyAccount.Origin";
