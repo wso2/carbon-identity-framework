@@ -98,16 +98,20 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_ACCESS_DENIED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_ACCESS_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.IS_API_BASED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REDIRECT_URL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CLIENT_ID_IN_REQUEST;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
@@ -249,6 +253,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
                 associateTransientRequestData(request, responseWrapper, context);
             }
+
+            // Check if the login access to the application is enabled.
+            checkIfApplicationAccessEnabled(request, responseWrapper, context);
 
             if (context != null) {
                 // Adding the context identifier(sessionDataKey) to the request to be used when the context
@@ -472,6 +479,31 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (!context.isPassiveAuthenticate()) {
                     FrameworkUtils.removeALORCookie(request, response);
                 }
+            }
+        }
+    }
+
+    private void checkIfApplicationAccessEnabled(HttpServletRequest request, CommonAuthResponseWrapper responseWrapper,
+                                                 AuthenticationContext context) throws IOException, FrameworkException {
+
+        String type = request.getParameter(TYPE);
+        String clientId = request.getParameter(CLIENT_ID_IN_REQUEST);
+
+        // Validate parameters
+        if (StringUtils.isBlank(type)) {
+            type = context.getRequestType();
+        }
+        if (StringUtils.isBlank(clientId)) {
+            clientId = context.getRelyingParty();
+        }
+        if (StringUtils.isNotBlank(type) && StringUtils.isNotBlank(clientId)) {
+            ServiceProvider serviceProvider = getServiceProvider(type, clientId, getTenantDomain(request));
+            if (serviceProvider != null && !serviceProvider.isApplicationAccessEnabled()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Access to the application is disabled for the service provider with client id: " + clientId);
+                }
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
+                        ERROR_DESCRIPTION_ACCESS_DENIED, ERROR_DESCRIPTION_ACCESS_DISABLED);
             }
         }
     }
