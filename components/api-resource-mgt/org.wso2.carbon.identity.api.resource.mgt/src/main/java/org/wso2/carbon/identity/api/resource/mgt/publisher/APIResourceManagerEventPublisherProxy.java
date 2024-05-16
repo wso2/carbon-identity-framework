@@ -63,7 +63,8 @@ public class APIResourceManagerEventPublisherProxy {
      * @param tenantDomain  Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPreAddAPIResource(APIResource apiResource, String tenantDomain) throws APIResourceMgtException {
+    public void publishPreAddAPIResourceWithException(APIResource apiResource, String tenantDomain)
+            throws APIResourceMgtException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_RESOURCE, apiResource);
@@ -77,15 +78,18 @@ public class APIResourceManagerEventPublisherProxy {
      *
      * @param apiResource   API resource.
      * @param tenantDomain  Tenant domain.
-     * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPostAddAPIResource(APIResource apiResource, String tenantDomain) throws APIResourceMgtException {
+    public void publishPostAddAPIResource(APIResource apiResource, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_RESOURCE, apiResource);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(IdentityEventConstants.Event.POST_ADD_API_RESOURCE, eventProperties);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (APIResourceMgtException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -95,7 +99,7 @@ public class APIResourceManagerEventPublisherProxy {
      * @param tenantDomain   Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPreDeleteAPIResourceById(String apiResourceId, String tenantDomain)
+    public void publishPreDeleteAPIResourceByIdWithException(String apiResourceId, String tenantDomain)
             throws APIResourceMgtException {
 
         Map<String, Object> eventProperties = new HashMap<>();
@@ -110,16 +114,18 @@ public class APIResourceManagerEventPublisherProxy {
      *
      * @param apiResourceId  API resource id.
      * @param tenantDomain   Tenant domain.
-     * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPostDeleteAPIResourceById(String apiResourceId, String tenantDomain)
-            throws APIResourceMgtException {
+    public void publishPostDeleteAPIResourceById(String apiResourceId, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(IdentityEventConstants.Event.POST_DELETE_API_RESOURCE, eventProperties);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (APIResourceMgtException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -131,8 +137,8 @@ public class APIResourceManagerEventPublisherProxy {
      * @param tenantDomain   Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPreUpdateAPIResource(APIResource apiResource, List<Scope> addedScopes,
-                                            List<String> removedScopes, String tenantDomain)
+    public void publishPreUpdateAPIResourceWithException(APIResource apiResource, List<Scope> addedScopes,
+                                                         List<String> removedScopes, String tenantDomain)
             throws APIResourceMgtException {
 
         Map<String, Object> eventProperties = new HashMap<>();
@@ -151,11 +157,9 @@ public class APIResourceManagerEventPublisherProxy {
      * @param addedScopes    Added scopes.
      * @param removedScopes  Removed scopes.
      * @param tenantDomain   Tenant domain.
-     * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
     public void publishPostUpdateAPIResource(APIResource apiResource, List<Scope> addedScopes,
-                                             List<String> removedScopes, String tenantDomain)
-            throws APIResourceMgtException {
+                                             List<String> removedScopes, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_RESOURCE, apiResource);
@@ -163,7 +167,11 @@ public class APIResourceManagerEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.DELETED_SCOPES, removedScopes);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(IdentityEventConstants.Event.POST_UPDATE_API_RESOURCE, eventProperties);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (APIResourceMgtException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -173,7 +181,7 @@ public class APIResourceManagerEventPublisherProxy {
      * @param tenantDomain  Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPreDeleteAPIScopesById(String apiResourceId, String tenantDomain)
+    public void publishPreDeleteAPIScopesByIdWithException(String apiResourceId, String tenantDomain)
             throws APIResourceMgtException {
 
         Map<String, Object> eventProperties = new HashMap<>();
@@ -188,16 +196,18 @@ public class APIResourceManagerEventPublisherProxy {
      *
      * @param apiResourceId API resource id.
      * @param tenantDomain  Tenant domain.
-     * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPostDeleteAPIScopesById(String apiResourceId, String tenantDomain)
-            throws APIResourceMgtException {
+    public void publishPostDeleteAPIScopesById(String apiResourceId, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(IdentityEventConstants.Event.POST_DELETE_API_RESOURCE_SCOPES, eventProperties);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (APIResourceMgtException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -208,8 +218,8 @@ public class APIResourceManagerEventPublisherProxy {
      * @param tenantDomain  Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPreDeleteAPIScopeByScopeName(String apiResourceId, String scopeName, String tenantDomain)
-            throws APIResourceMgtException {
+    public void publishPreDeleteAPIScopeByScopeNameWithException(String apiResourceId, String scopeName,
+                                                                 String tenantDomain) throws APIResourceMgtException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
@@ -225,17 +235,19 @@ public class APIResourceManagerEventPublisherProxy {
      * @param apiResourceId API resource id.
      * @param scopeName     Scope name.
      * @param tenantDomain  Tenant domain.
-     * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPostDeleteAPIScopeByScopeName(String apiResourceId, String scopeName, String tenantDomain)
-            throws APIResourceMgtException {
+    public void publishPostDeleteAPIScopeByScopeName(String apiResourceId, String scopeName, String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
         eventProperties.put(IdentityEventConstants.EventProperty.SCOPE_NAME, scopeName);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(IdentityEventConstants.Event.POST_DELETE_SCOPE, eventProperties);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (APIResourceMgtException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -247,8 +259,8 @@ public class APIResourceManagerEventPublisherProxy {
      * @param tenantDomain   Tenant domain.
      * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
-    public void publishPrePutScopes(String apiResourceId, List<Scope> currentScopes, List<Scope> scopes,
-                                    String tenantDomain) throws APIResourceMgtException {
+    public void publishPrePutScopesWithException(String apiResourceId, List<Scope> currentScopes, List<Scope> scopes,
+                                                 String tenantDomain) throws APIResourceMgtException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
@@ -266,10 +278,9 @@ public class APIResourceManagerEventPublisherProxy {
      * @param currentScopes  Old scopes.
      * @param scopes         New scopes.
      * @param tenantDomain   Tenant domain.
-     * @throws APIResourceMgtException If an error occurred while publishing the event.
      */
     public void publishPostPutScopes(String apiResourceId, List<Scope> currentScopes, List<Scope> scopes,
-                                     String tenantDomain) throws APIResourceMgtException {
+                                     String tenantDomain) {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiResourceId);
@@ -277,7 +288,11 @@ public class APIResourceManagerEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.NEW_SCOPES, scopes);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(IdentityEventConstants.Event.POST_PUT_API_RESOURCE_SCOPES, eventProperties);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (APIResourceMgtException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     private Event createEvent(String eventName, Map<String, Object> eventProperties) {

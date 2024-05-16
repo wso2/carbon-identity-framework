@@ -117,7 +117,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
             }
 
             APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
-            publisherProxy.publishPreAddAPIResource(apiResource, tenantDomain);
+            publisherProxy.publishPreAddAPIResourceWithException(apiResource, tenantDomain);
 
             // Check whether the API resource already exists. This is being handled in the service layer since the
             // system APIs are registered in the database in a tenant-agnostic manner.
@@ -145,7 +145,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
     public void deleteAPIResourceById(String apiResourceId, String tenantDomain) throws APIResourceMgtException {
 
         APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
-        publisherProxy.publishPreDeleteAPIResourceById(apiResourceId, tenantDomain);
+        publisherProxy.publishPreDeleteAPIResourceByIdWithException(apiResourceId, tenantDomain);
         CACHE_BACKED_DAO.deleteAPIResourceById(apiResourceId, IdentityTenantUtil.getTenantId(tenantDomain));
         publisherProxy.publishPostDeleteAPIResourceById(apiResourceId, tenantDomain);
     }
@@ -155,7 +155,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
                                   String tenantDomain) throws APIResourceMgtException {
 
         APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
-        publisherProxy.publishPreUpdateAPIResource(apiResource, addedScopes, removedScopes, tenantDomain);
+        publisherProxy.publishPreUpdateAPIResourceWithException(apiResource, addedScopes, removedScopes, tenantDomain);
         CACHE_BACKED_DAO.updateAPIResource(apiResource, addedScopes, removedScopes,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         publisherProxy.publishPostUpdateAPIResource(apiResource, addedScopes, removedScopes, tenantDomain);
@@ -180,7 +180,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
     public void deleteAPIScopesById(String apiResourceId, String tenantDomain) throws APIResourceMgtException {
 
         APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
-        publisherProxy.publishPreDeleteAPIScopesById(apiResourceId, tenantDomain);
+        publisherProxy.publishPreDeleteAPIScopesByIdWithException(apiResourceId, tenantDomain);
         CACHE_BACKED_DAO.deleteAllScopes(apiResourceId, IdentityTenantUtil.getTenantId(tenantDomain));
         publisherProxy.publishPostDeleteAPIScopesById(apiResourceId, tenantDomain);
     }
@@ -190,7 +190,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
             throws APIResourceMgtException {
 
         APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
-        publisherProxy.publishPreDeleteAPIScopeByScopeName(apiResourceId, scopeName, tenantDomain);
+        publisherProxy.publishPreDeleteAPIScopeByScopeNameWithException(apiResourceId, scopeName, tenantDomain);
         CACHE_BACKED_DAO.deleteScope(apiResourceId, scopeName, IdentityTenantUtil.getTenantId(tenantDomain));
         publisherProxy.publishPostDeleteAPIScopeByScopeName(apiResourceId, scopeName, tenantDomain);
     }
@@ -200,7 +200,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
             throws APIResourceMgtException {
 
         APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
-        publisherProxy.publishPrePutScopes(apiResourceId, currentScopes, scopes, tenantDomain);
+        publisherProxy.publishPrePutScopesWithException(apiResourceId, currentScopes, scopes, tenantDomain);
         CACHE_BACKED_DAO.putScopes(apiResourceId, currentScopes, scopes, IdentityTenantUtil.getTenantId(tenantDomain));
         publisherProxy.publishPostPutScopes(apiResourceId, currentScopes, scopes, tenantDomain);
     }
