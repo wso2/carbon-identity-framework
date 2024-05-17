@@ -183,7 +183,8 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
             try {
                 javascriptResourceLimit = Integer.parseInt(statementLimit);
             } catch (NumberFormatException e) {
-                LOG.warn("Error while parsing the script statement limit. Defaulting to " + DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT, e);
+                LOG.warn("Error while parsing the script statement limit. Defaulting to " +
+                        DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT, e);
                 javascriptResourceLimit = DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT;
             }
         } else {
