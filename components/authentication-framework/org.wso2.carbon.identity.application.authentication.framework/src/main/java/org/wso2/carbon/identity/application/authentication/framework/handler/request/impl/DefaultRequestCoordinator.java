@@ -255,7 +255,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             // Check if the login access to the application is enabled.
-            checkIfApplicationAccessEnabled(request, responseWrapper, context);
+            if (!checkIfApplicationAccessEnabled(request, responseWrapper, context)) {
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
+                        ERROR_DESCRIPTION_ACCESS_DENIED, ERROR_DESCRIPTION_ACCESS_DISABLED);
+                return;
+            };
 
             if (context != null) {
                 // Adding the context identifier(sessionDataKey) to the request to be used when the context
@@ -483,7 +487,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private void checkIfApplicationAccessEnabled(HttpServletRequest request, CommonAuthResponseWrapper responseWrapper,
+    private boolean checkIfApplicationAccessEnabled(HttpServletRequest request, CommonAuthResponseWrapper responseWrapper,
                                                  AuthenticationContext context) throws IOException, FrameworkException {
 
         String type = request.getParameter(TYPE);
@@ -500,12 +504,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             ServiceProvider serviceProvider = getServiceProvider(type, clientId, getTenantDomain(request));
             if (serviceProvider != null && !serviceProvider.isApplicationAccessEnabled()) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Access to the application is disabled for the service provider with client id: " + clientId);
+                    log.debug("Access to the application is disabled for the service provider with client id: "
+                            + clientId);
                 }
-                FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
-                        ERROR_DESCRIPTION_ACCESS_DENIED, ERROR_DESCRIPTION_ACCESS_DISABLED);
+                return false;
             }
         }
+        return true;
     }
 
     protected void unwrapResponse(CommonAuthResponseWrapper responseWrapper, String sessionDataKey,
