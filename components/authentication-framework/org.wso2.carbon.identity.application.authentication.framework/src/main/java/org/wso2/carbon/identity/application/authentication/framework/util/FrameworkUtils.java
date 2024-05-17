@@ -254,6 +254,7 @@ public class FrameworkUtils {
     private static Boolean authenticatorNameInAuthConfigPreference;
     private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
+    private static final String GRAALJS_SCRIPTER_CLASS_NAME = "org.graalvm.polyglot.Context";
 
     private FrameworkUtils() {
     }
@@ -4015,22 +4016,27 @@ public class FrameworkUtils {
 
         String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.SCRIPT_ENGINE_CONFIG);
         if (scriptEngineName != null) {
-            if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
-                return new JsOpenJdkNashornGraphBuilderFactory();
-            } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.GRAAL_JS, scriptEngineName)) {
+            if (StringUtils.equalsIgnoreCase(FrameworkConstants.GRAAL_JS, scriptEngineName)) {
                 return new JsGraalGraphBuilderFactory();
+            } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
+                return new JsOpenJdkNashornGraphBuilderFactory();
             }
         }
         // Config is not set. Hence going with class for name approach.
         try {
-            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
-            return new JsOpenJdkNashornGraphBuilderFactory();
+            Class.forName(GRAALJS_SCRIPTER_CLASS_NAME);
+            return new JsGraalGraphBuilderFactory();
         } catch (ClassNotFoundException e) {
             try {
-                Class.forName(JDK_SCRIPTER_CLASS_NAME);
-                return new JsGraphBuilderFactory();
+                Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
+                return new JsOpenJdkNashornGraphBuilderFactory();
             } catch (ClassNotFoundException classNotFoundException) {
-                return null;
+                try {
+                    Class.forName(JDK_SCRIPTER_CLASS_NAME);
+                    return new JsGraphBuilderFactory();
+                } catch (ClassNotFoundException ex) {
+                    return null;
+                }
             }
         }
     }
