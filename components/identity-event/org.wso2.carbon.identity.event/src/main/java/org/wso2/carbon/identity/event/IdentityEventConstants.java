@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -257,6 +257,31 @@ public class IdentityEventConstants {
 
         public static final String POST_APP_USER_ATTRIBUTE_UPDATE = "POST_APP_USER_ATTRIBUTE_UPDATE";
 
+        // API Resource Management events.
+        public static final String PRE_ADD_API_RESOURCE = "PRE_ADD_API_RESOURCE";
+
+        public static final String POST_ADD_API_RESOURCE = "POST_ADD_API_RESOURCE";
+
+        public static final String PRE_DELETE_API_RESOURCE = "PRE_DELETE_API_RESOURCE";
+
+        public static final String POST_DELETE_API_RESOURCE = "POST_DELETE_API_RESOURCE";
+
+        public static final String PRE_UPDATE_API_RESOURCE = "PRE_UPDATE_API_RESOURCE";
+
+        public static final String POST_UPDATE_API_RESOURCE = "POST_UPDATE_API_RESOURCE";
+
+        public static final String PRE_DELETE_API_RESOURCE_SCOPES = "PRE_DELETE_API_RESOURCE_SCOPES";
+
+        public static final String POST_DELETE_API_RESOURCE_SCOPES = "POST_DELETE_API_RESOURCE_SCOPES";
+
+        public static final String PRE_DELETE_SCOPE = "PRE_DELETE_SCOPE";
+
+        public static final String POST_DELETE_SCOPE = "POST_DELETE_SCOPE";
+
+        public static final String PRE_PUT_API_RESOURCE_SCOPES = "PRE_PUT_API_RESOURCE_SCOPES";
+
+        public static final String POST_PUT_API_RESOURCE_SCOPES = "POST_PUT_API_RESOURCE_SCOPES";
+
         // Application Authorized API
         public static final String PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT = "PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
         public static final String POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT = "POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
@@ -389,10 +414,14 @@ public class IdentityEventConstants {
         public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
         public static final String REQUIRED_ATTRIBUTES = "requiredAttributes";
 
-        // Application Authorized API
+        // API Resource and Application Authorized API related event properties.
+        public static final String API_RESOURCE = "API_RESOURCE";
         public static final String API_ID = "API_ID";
+        public static final String SCOPE_NAME = "SCOPE_NAME";
         public static final String ADDED_SCOPES = "ADDED_SCOPES";
         public static final String DELETED_SCOPES = "DELETED_SCOPES";
+        public static final String OLD_SCOPES = "OLD_SCOPES";
+        public static final String NEW_SCOPES = "NEW_SCOPES";
 
         public static final String SCENARIO = "SCENARIO";
 

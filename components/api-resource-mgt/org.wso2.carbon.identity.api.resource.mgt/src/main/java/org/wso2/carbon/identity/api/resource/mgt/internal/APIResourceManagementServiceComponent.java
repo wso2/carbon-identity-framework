@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 
 /**
@@ -104,4 +105,24 @@ public class APIResourceManagementServiceComponent {
         /* reference Organization Management service to guarantee that this component will wait until organization
         management service is started */
     }
+
+    @Reference(
+            name = "identity.event.service",
+            service = IdentityEventService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityEventService"
+    )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+
+        APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        LOG.debug("IdentityEventService set in API Resource Management bundle.");
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+
+        APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(null);
+        LOG.debug("IdentityEventService unset in API Resource Management bundle.");
+    }
+
 }

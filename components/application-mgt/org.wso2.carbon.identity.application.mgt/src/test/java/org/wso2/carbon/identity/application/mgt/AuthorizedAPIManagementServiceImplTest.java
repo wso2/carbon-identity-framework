@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -34,6 +34,7 @@ import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
@@ -103,6 +104,7 @@ public class AuthorizedAPIManagementServiceImplTest {
         identityEventService = mock(IdentityEventService.class);
         doNothing().when(identityEventService).handleEvent(any());
         ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
     }
 
     @AfterMethod
