@@ -1239,7 +1239,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         Map<Integer, StepConfig> stepMap = effectiveSequence.getStepMap();
         if (MapUtils.isEmpty(stepMap)) {
             stepMap = effectiveSequence.getAuthenticationGraph().getStepMap();
-            effectiveSequence.setStepMap(stepMap);
         }
         StepConfig stepConfig = stepMap.get(1);
         if (stepConfig == null) {
