@@ -283,10 +283,19 @@ public class IdentityEventConstants {
         public static final String POST_PUT_API_RESOURCE_SCOPES = "POST_PUT_API_RESOURCE_SCOPES";
 
         // Application Authorized API
-        public static final String PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT = "PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
-        public static final String POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT = "POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
-        public static final String PRE_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT = "PRE_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
-        public static final String POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT = "POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String PRE_ADD_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "PRE_ADD_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String POST_ADD_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "POST_ADD_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String PRE_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "PRE_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+
     }
 
     /**
@@ -422,6 +431,7 @@ public class IdentityEventConstants {
         public static final String DELETED_SCOPES = "DELETED_SCOPES";
         public static final String OLD_SCOPES = "OLD_SCOPES";
         public static final String NEW_SCOPES = "NEW_SCOPES";
+        public static final String AUTHORIZED_API = "AUTHORIZED_API";
 
         public static final String SCENARIO = "SCENARIO";
 
