@@ -75,12 +75,8 @@ public class GraalSerializer implements JsGenericSerializer<Context> {
             return list;
         } else if (value instanceof Value) {
             Value valueObj = (Value) value;
-            if (valueObj.isHostObject() && valueObj.asHostObject().getClass().isArray()) {
-                return valueObj.asHostObject();
-            } else if (valueObj.canExecute()) {
+            if (valueObj.canExecute()) {
                 return GraalSerializableJsFunction.toSerializableForm(valueObj);
-            } else if (valueObj.isProxyObject()) {
-                return valueObj.asProxyObject();
             } else if (valueObj.isNumber()) {
                 return valueObj.asInt();
             } else if (valueObj.isString()) {
@@ -106,6 +102,8 @@ public class GraalSerializer implements JsGenericSerializer<Context> {
                     arrayItems.add((Serializable) serializedObj);
                 }
                 return arrayItems;
+            } else if (valueObj.isProxyObject()) {
+                return toJsSerializableInternal(valueObj.asProxyObject());
             } else if (valueObj.hasMembers()) {
                 Map<String, Serializable> serializedMap = new HashMap<>();
                 valueObj.getMemberKeys().forEach((key) -> {
@@ -145,27 +143,21 @@ public class GraalSerializer implements JsGenericSerializer<Context> {
                 log.error("Error when recreating JS Object", e);
             }
         } else if (value instanceof Map) {
-            Map<String, Object> deserializedMap = new HashMap<>();
+            context.eval(POLYGLOT_LANGUAGE, "_tempMap = {}");
+            Value tempMap = context.getBindings(POLYGLOT_LANGUAGE).getMember("_tempMap");
             for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
                 Object deserializedObj = fromJsSerializableInternal(entry.getValue(), context);
-                deserializedMap.put(entry.getKey(), deserializedObj);
+                tempMap.putMember(entry.getKey(), deserializedObj);
             }
-            return deserializedMap;
+            //remove from bindings
+            context.getBindings(POLYGLOT_LANGUAGE).removeMember("_tempMap");
+            return tempMap;
         } else if (value instanceof List) {
             Value deserializedValue = context.eval(POLYGLOT_LANGUAGE, "[]");
             List<?> valueList = (List<?>) value;
             int listSize = valueList.size();
             for (int index = 0; index < listSize; index++) {
                 Object deserializedObject = fromJsSerializableInternal(valueList.get(index), context);
-                deserializedValue.setArrayElement(index, deserializedObject);
-            }
-            return deserializedValue;
-        } else if (value.getClass().isArray()) {
-            Value deserializedValue = context.eval(POLYGLOT_LANGUAGE, "[]");
-            int arraySize = java.lang.reflect.Array.getLength(value);
-            for (int index = 0; index < arraySize; index++) {
-                Object deserializedObject =
-                        fromJsSerializableInternal(java.lang.reflect.Array.get(value, index), context);
                 deserializedValue.setArrayElement(index, deserializedObject);
             }
             return deserializedValue;
