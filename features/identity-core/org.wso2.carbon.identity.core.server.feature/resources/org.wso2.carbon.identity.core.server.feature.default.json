@@ -769,6 +769,7 @@
   "authentication.adaptive.execution_supervisor.thread_count": "1",
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
   "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
+  "authentication.adaptive.graaljs.script_statements_limit": "0",
 
   "federated.idp.role_claim_value_attribute_separator": ",",
   "configuration.store.query_length.max": "4194304",

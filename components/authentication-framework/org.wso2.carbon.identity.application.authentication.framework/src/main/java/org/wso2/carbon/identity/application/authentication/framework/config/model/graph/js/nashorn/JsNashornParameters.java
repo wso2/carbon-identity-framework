@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 
 import java.util.Map;
@@ -33,11 +31,8 @@ import java.util.Map;
  */
 public class JsNashornParameters extends JsParameters implements AbstractJsObject {
 
-    private static final Log LOG = LogFactory.getLog(JsNashornParameters.class);
-
     public JsNashornParameters(Map wrapped) {
 
         super(wrapped);
     }
-
 }
