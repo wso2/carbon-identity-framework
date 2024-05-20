@@ -334,6 +334,18 @@ public abstract class AbstractRoleManagementListener implements RoleManagementLi
     }
 
     @Override
+    public void preGetAssociatedApplicationIdsByRoleId(String roleId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetAssociatedApplicationIdsByRoleId(List<String> associatedApplicationByRoleId, String roleId,
+                                                        String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
     public int getExecutionOrderId() {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
