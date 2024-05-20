@@ -75,7 +75,9 @@ public class GraalSerializer implements JsGenericSerializer<Context> {
             return list;
         } else if (value instanceof Value) {
             Value valueObj = (Value) value;
-            if (valueObj.canExecute()) {
+            if (valueObj.isHostObject() && valueObj.asHostObject().getClass().isArray()) {
+                return valueObj.asHostObject();
+            } else if (valueObj.canExecute()) {
                 return GraalSerializableJsFunction.toSerializableForm(valueObj);
             } else if (valueObj.isProxyObject()) {
                 return valueObj.asProxyObject();
@@ -133,8 +135,9 @@ public class GraalSerializer implements JsGenericSerializer<Context> {
     }
 
     public static Object fromJsSerializableInternal(Object value, Context context) throws FrameworkException {
-
-        if (value instanceof GraalSerializableJsFunction) {
+        if (value == null) {
+            return null;
+        } else if (value instanceof GraalSerializableJsFunction) {
             GraalSerializableJsFunction serializableJsFunction = (GraalSerializableJsFunction) value;
             try {
                 return context.eval("js", "(" + serializableJsFunction.getSource() + ")");
@@ -154,6 +157,15 @@ public class GraalSerializer implements JsGenericSerializer<Context> {
             int listSize = valueList.size();
             for (int index = 0; index < listSize; index++) {
                 Object deserializedObject = fromJsSerializableInternal(valueList.get(index), context);
+                deserializedValue.setArrayElement(index, deserializedObject);
+            }
+            return deserializedValue;
+        } else if (value.getClass().isArray()) {
+            Value deserializedValue = context.eval(POLYGLOT_LANGUAGE, "[]");
+            int arraySize = java.lang.reflect.Array.getLength(value);
+            for (int index = 0; index < arraySize; index++) {
+                Object deserializedObject =
+                        fromJsSerializableInternal(java.lang.reflect.Array.get(value, index), context);
                 deserializedValue.setArrayElement(index, deserializedObject);
             }
             return deserializedValue;

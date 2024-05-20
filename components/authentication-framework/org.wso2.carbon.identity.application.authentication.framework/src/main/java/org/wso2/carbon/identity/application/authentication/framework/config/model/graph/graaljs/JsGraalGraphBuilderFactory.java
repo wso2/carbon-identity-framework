@@ -94,10 +94,9 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
              * Since, we don't have a difference between global and engine scopes, we need to identify what are the
              * custom functions and the logger object we added bindings to, and not persist them since we will anyways
              * bind them again.
-             * The functions will be host objects and can be executed. The logger object will be host object and will
-             * not have any array elements.
+             * The functions will be host objects and can be executed. The Logger object needs to be identified by name.
              */
-            if (!(binding.isHostObject() && (binding.canExecute() || !binding.hasArrayElements()))) {
+            if (!((binding.isHostObject() && binding.canExecute()) || key.equals("Log"))) {
                 persistableMap.put(key, GraalSerializer.getInstance().toJsSerializable(binding));
             }
         });

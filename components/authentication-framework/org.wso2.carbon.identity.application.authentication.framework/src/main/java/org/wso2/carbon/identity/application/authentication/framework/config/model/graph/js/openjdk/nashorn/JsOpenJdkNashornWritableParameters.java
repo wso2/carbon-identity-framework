@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
+
 import java.util.Map;
 
 /**
@@ -30,6 +32,16 @@ public class JsOpenJdkNashornWritableParameters extends JsOpenJdkNashornParamete
     public JsOpenJdkNashornWritableParameters(Map wrapped) {
 
         super(wrapped);
+    }
+
+    public Object getMember(String name) {
+
+        Object member = getWrapped().get(name);
+        if (member instanceof Map) {
+            return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                    .createJsWritableParameters((Map) member);
+        }
+        return member;
     }
 
     public void removeMember(String name) {

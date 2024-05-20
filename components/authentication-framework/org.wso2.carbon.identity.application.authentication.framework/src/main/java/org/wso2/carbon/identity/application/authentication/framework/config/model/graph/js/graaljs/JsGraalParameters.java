@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 
 import java.util.Map;
@@ -37,6 +38,21 @@ public class JsGraalParameters extends JsParameters implements ProxyObject {
     public JsGraalParameters(Map wrapped) {
 
         super(wrapped);
+    }
+
+    @Override
+    public Object getMember(String name) {
+
+        Object member = getWrapped().get(name);
+        if (member instanceof Map) {
+            return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                    .createJsParameters((Map) member);
+        }
+        if (member != null && member.getClass().isArray()) {
+            return ProxyArray.fromArray((Object[]) member);
+        } else {
+            return member;
+        }
     }
 
     @Override

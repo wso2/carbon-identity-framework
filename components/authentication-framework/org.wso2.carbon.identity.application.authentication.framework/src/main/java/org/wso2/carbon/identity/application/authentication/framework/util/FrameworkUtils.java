@@ -4020,6 +4020,8 @@ public class FrameworkUtils {
                 return new JsGraalGraphBuilderFactory();
             } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
                 return new JsOpenJdkNashornGraphBuilderFactory();
+            } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.NASHORN, scriptEngineName)) {
+                return new JsGraphBuilderFactory();
             }
         }
         // Config is not set. Hence going with class for name approach.

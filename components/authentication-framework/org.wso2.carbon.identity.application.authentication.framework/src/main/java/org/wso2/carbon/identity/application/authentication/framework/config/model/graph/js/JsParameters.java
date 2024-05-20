@@ -46,7 +46,7 @@ public abstract class JsParameters extends AbstractJSObjectWrapper<Map> implemen
         Object member = getWrapped().get(name);
         if (member instanceof Map) {
             return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                    .createJsWritableParameters((Map) member);
+                    .createJsParameters((Map) member);
         }
         return member;
     }

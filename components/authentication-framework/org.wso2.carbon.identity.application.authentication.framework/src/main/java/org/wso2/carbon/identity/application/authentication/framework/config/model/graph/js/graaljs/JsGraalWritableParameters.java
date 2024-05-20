@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,16 @@ public class JsGraalWritableParameters extends JsGraalParameters implements Prox
     public JsGraalWritableParameters(Map wrapped) {
 
         super(wrapped);
+    }
+
+    public Object getMember(String name) {
+
+        Object member = getWrapped().get(name);
+        if (member instanceof Map) {
+            return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                    .createJsWritableParameters((Map) member);
+        }
+        return member;
     }
 
     public boolean removeMember(String name) {
