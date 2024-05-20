@@ -515,7 +515,7 @@ public class RoleDAOImpl implements RoleDAO {
     public List<Permission> getPermissionListOfRole(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (isSubOrgByTenant(tenantDomain)) {
+        if (isOrganization(tenantDomain)) {
             return getPermissionsOfSharedRole(roleId, tenantDomain);
         } else {
             return getPermissions(roleId, tenantDomain);
@@ -526,7 +526,7 @@ public class RoleDAOImpl implements RoleDAO {
     public List<String> getPermissionListOfRoles(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (isSubOrgByTenant(tenantDomain)) {
+        if (isOrganization(tenantDomain)) {
             return getPermissionsOfSharedRoles(roleIds, tenantDomain);
         } else {
             return getPermissionListOfRolesByIds(roleIds, tenantDomain);
@@ -653,7 +653,7 @@ public class RoleDAOImpl implements RoleDAO {
     public void deleteRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
         String roleName = getRoleNameByID(roleId, tenantDomain);
-        if (systemRoles.contains(roleName) && !isSubOrgByTenant(tenantDomain)) {
+        if (systemRoles.contains(roleName) && !isOrganization(tenantDomain)) {
             throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
                     "Invalid operation. Role: " + roleName + " Cannot be deleted since it's a read only system role.");
         }
@@ -663,7 +663,7 @@ public class RoleDAOImpl implements RoleDAO {
             userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
             if ((UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())
                     || isInternalAdminOrSystemRole(roleId, tenantDomain, userRealm))
-                    && !isSubOrgByTenant(tenantDomain)) {
+                    && !isOrganization(tenantDomain)) {
                 throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
                         "Invalid operation. Role: " + roleName + " Cannot be deleted.");
             }
@@ -995,7 +995,7 @@ public class RoleDAOImpl implements RoleDAO {
                     roles.add(roleBasicInfo);
                 }
             }
-            if (!isSubOrgByTenant(tenantDomain)) {
+            if (!isOrganization(tenantDomain)) {
                 roles.add(getEveryOneRole(tenantDomain));
             }
         } catch (SQLException e) {
@@ -1185,7 +1185,7 @@ public class RoleDAOImpl implements RoleDAO {
                     roleIds.add(roleId);
                 }
             }
-            if (!isSubOrgByTenant(tenantDomain)) {
+            if (!isOrganization(tenantDomain)) {
                 roleIds.add(getEveryOneRoleId(tenantDomain));
             }
         } catch (SQLException e) {
@@ -1529,7 +1529,7 @@ public class RoleDAOImpl implements RoleDAO {
                 addRoleID(roleId, roleName, audienceRefId, tenantDomain, connection);
                 addPermissions(roleId, permissions, tenantDomain, connection);
 
-                if (APPLICATION.equals(audience) && !isSubOrgByTenant(tenantDomain)) {
+                if (APPLICATION.equals(audience) && !isOrganization(tenantDomain)) {
                     addAppRoleAssociation(roleId, audienceId, connection);
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -1586,7 +1586,7 @@ public class RoleDAOImpl implements RoleDAO {
      * @return is Shared Organization.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private boolean isSubOrgByTenant(String tenantDomain) throws IdentityRoleManagementException {
+    private boolean isOrganization(String tenantDomain) throws IdentityRoleManagementException {
 
         try {
             return OrganizationManagementUtil.isOrganization(tenantDomain);
