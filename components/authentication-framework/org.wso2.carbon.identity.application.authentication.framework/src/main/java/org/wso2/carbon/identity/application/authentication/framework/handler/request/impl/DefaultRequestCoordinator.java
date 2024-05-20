@@ -500,15 +500,19 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (StringUtils.isBlank(clientId)) {
             clientId = context.getRelyingParty();
         }
-        if (StringUtils.isNotBlank(type) && StringUtils.isNotBlank(clientId)) {
-            ServiceProvider serviceProvider = getServiceProvider(type, clientId, getTenantDomain(request));
-            if (serviceProvider != null && !serviceProvider.isApplicationAccessEnabled()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Access to the application is disabled for the service provider with client id: "
-                            + clientId);
-                }
-                return false;
+        ServiceProvider serviceProvider = getServiceProvider(type, clientId, getTenantDomain(request));
+        if (serviceProvider == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Service provider is null for client id: " + clientId);
             }
+            return false;
+        }
+        if (!serviceProvider.isApplicationAccessEnabled()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Access to the application is disabled for the service provider with client id: "
+                        + clientId);
+            }
+            return false;
         }
         return true;
     }
