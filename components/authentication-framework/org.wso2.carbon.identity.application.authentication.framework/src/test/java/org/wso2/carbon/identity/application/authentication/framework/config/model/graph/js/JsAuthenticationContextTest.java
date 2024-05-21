@@ -24,8 +24,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -34,7 +32,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,7 +47,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 @Test
-public class JsNashornAuthenticationContextTest {
+public class JsAuthenticationContextTest {
 
     public static final String TEST_IDP = "testIdP";
     private static final String LAST_ATTEMPTED_USER_USERNAME = "lastAttemptedUsername";
@@ -62,12 +59,9 @@ public class JsNashornAuthenticationContextTest {
     private ScriptEngine scriptEngine;
 
     @BeforeClass
-    public void setUp() throws NoSuchFieldException, IllegalAccessException {
+    public void setUp() {
 
         scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
-        Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperBaseFactory");
-        wrapperFactory.setAccessible(true);
-        wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new JsWrapperFactory());
     }
 
     @Test

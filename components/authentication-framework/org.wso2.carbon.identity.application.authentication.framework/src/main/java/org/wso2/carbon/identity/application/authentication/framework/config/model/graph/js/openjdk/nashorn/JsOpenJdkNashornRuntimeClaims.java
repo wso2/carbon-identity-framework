@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseRuntimeClaims;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
@@ -26,8 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
  * Represent the user's runtime claims.
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
-public class JsOpenJdkNashornRuntimeClaims extends JsOpenJdkNashornClaims
-        implements JsBaseRuntimeClaims, AbstractOpenJdkNashornJsObject {
+public class JsOpenJdkNashornRuntimeClaims extends JsOpenJdkNashornClaims {
 
     public JsOpenJdkNashornRuntimeClaims(AuthenticationContext context, int step, String idp) {
 
@@ -39,6 +38,7 @@ public class JsOpenJdkNashornRuntimeClaims extends JsOpenJdkNashornClaims
         super(context, user, false);
     }
 
+    @Override
     public Object getMember(String claimUri) {
 
         if (authenticatedUser != null) {
@@ -47,6 +47,7 @@ public class JsOpenJdkNashornRuntimeClaims extends JsOpenJdkNashornClaims
         return null;
     }
 
+    @Override
     public boolean hasMember(String claimUri) {
 
         if (authenticatedUser != null) {
@@ -55,10 +56,43 @@ public class JsOpenJdkNashornRuntimeClaims extends JsOpenJdkNashornClaims
         return false;
     }
 
+    @Override
     public void setMember(String claimUri, Object claimValue) {
 
         if (authenticatedUser != null) {
             setRuntimeClaim(claimUri, claimValue);
         }
+    }
+
+    private Object getRuntimeClaim(String claimUri) {
+
+        String runtimeClaimValue = getContext().getRuntimeClaim(claimUri);
+        if (runtimeClaimValue != null) {
+            return runtimeClaimValue;
+        }
+        if (isFederatedIdP()) {
+            return getFederatedClaim(claimUri);
+        }
+        return getLocalClaim(claimUri);
+    }
+
+    private boolean hasRuntimeClaim(String claimUri) {
+
+        String claim = getContext().getRuntimeClaim(claimUri);
+        if (claim != null) {
+            return true;
+        }
+        if (isFederatedIdP()) {
+            return hasFederatedClaim(claimUri);
+        }
+        return hasLocalClaim(claimUri);
+    }
+
+    private void setRuntimeClaim(String claimUri, Object claimValue) {
+
+        if (claimValue == null) {
+            claimValue = StringUtils.EMPTY;
+        }
+        getContext().addRuntimeClaim(claimUri, String.valueOf(claimValue));
     }
 }

@@ -228,7 +228,6 @@ public abstract class FrameworkConstants {
     public static final String THREAD_LOCAL_SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.LimitScriptEngineCreation";
     public static final String OPENJDK_NASHORN = "openjdkNashorn";
     public static final String NASHORN = "nashorn";
-    public static final String GRAAL_JS = "graaljs";
 
     // Attribute sync related constants.
     public static final String ATTRIBUTE_SYNC_METHOD = "attributeSyncMethod";
@@ -609,11 +608,6 @@ public abstract class FrameworkConstants {
         public static final String SUBJECT_IDENTIFIER_PARAM = "markAsSubjectIdentifierStep";
         public static final String SUBJECT_ATTRIBUTE_PARAM = "markAsSubjectAttributeStep";
         public static final String SKIP_PROMPT = "skipPrompt";
-
-        public static final String POLYGLOT_SOURCE = "src.js";
-        public static final String POLYGLOT_LANGUAGE = "js";
-        public static final String GRAALJS = "graaljs";
-        public static final String NASHORN = "nashorn";
     }
 
     /**
@@ -673,9 +667,6 @@ public abstract class FrameworkConstants {
                 = "AdaptiveAuthExecutionSupervisorResult";
         public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG
                 = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
-        public static final String GRAALJS_SCRIPT_STATEMENTS_LIMIT
-                = "AdaptiveAuth.GraalJS.ScriptStatementsLimit";
-        public static final int DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT = 0;
     }
 
     /**

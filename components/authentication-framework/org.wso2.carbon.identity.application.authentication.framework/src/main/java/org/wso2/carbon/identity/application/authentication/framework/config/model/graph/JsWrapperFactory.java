@@ -18,17 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsHeaders;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornCookie;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornParameters;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornRuntimeClaims;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornServletResponse;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornStep;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornSteps;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
@@ -57,14 +52,6 @@ public class JsWrapperFactory implements JsWrapperBaseFactory {
 
         return new JsNashornAuthenticatedUser(authenticationContext, authenticatedUser);
     }
-
-    @Override
-    public JsNashornAuthenticatedUser createJsAuthenticatedUser(AuthenticationContext context,
-                                                             AuthenticatedUser wrappedUser, int step, String idp) {
-
-        return new JsNashornAuthenticatedUser(context, wrappedUser, step, idp);
-    }
-
     @Override
     public JsNashornAuthenticationContext createJsAuthenticationContext(AuthenticationContext authenticationContext) {
 
@@ -99,50 +86,5 @@ public class JsWrapperFactory implements JsWrapperBaseFactory {
     public JsNashornServletResponse createJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
         return new JsNashornServletResponse(wrapped);
-    }
-
-    @Override
-    public JsNashornClaims createJsClaims(AuthenticationContext context, int step, String idp,
-                                       boolean isRemoteClaimRequest) {
-
-        return new JsNashornClaims(context, step, idp, isRemoteClaimRequest);
-    }
-
-    @Override
-    public JsNashornClaims createJsClaims(AuthenticationContext context, AuthenticatedUser user,
-                                       boolean isRemoteClaimRequest) {
-
-        return new JsNashornClaims(context, user, isRemoteClaimRequest);
-    }
-
-    @Override
-    public JsNashornRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, int step, String idp) {
-
-        return new JsNashornRuntimeClaims(context, step, idp);
-    }
-
-    @Override
-    public JsNashornRuntimeClaims createJsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
-
-        return new JsNashornRuntimeClaims(context, user);
-    }
-
-    @Override
-    public JsNashornStep createJsStep(AuthenticationContext context, int step, String authenticatedIdp,
-                                   String authenticatedAuthenticator) {
-
-        return new JsNashornStep(context, step, authenticatedIdp, authenticatedAuthenticator);
-    }
-
-    @Override
-    public JsHeaders createJsHeaders(Map wrapped, HttpServletResponse response) {
-
-        return new JsHeaders(wrapped, response);
-    }
-
-    @Override
-    public JsNashornSteps createJsSteps(AuthenticationContext context) {
-
-        return new JsNashornSteps(context);
     }
 }

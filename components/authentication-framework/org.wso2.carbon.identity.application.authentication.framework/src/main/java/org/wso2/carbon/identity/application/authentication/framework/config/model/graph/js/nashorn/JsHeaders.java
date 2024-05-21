@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.CommonJsHeaders;
+import jdk.nashorn.api.scripting.AbstractJSObject;
 
 import java.util.Map;
 
@@ -29,35 +29,58 @@ import javax.servlet.http.HttpServletResponse;
  * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class JsHeaders extends CommonJsHeaders implements AbstractJsObject {
+public class JsHeaders extends AbstractJSObject {
+
+    private Map wrapped;
+    private HttpServletResponse response;
 
     public JsHeaders(Map wrapped, HttpServletResponse response) {
 
-        super(wrapped, response);
+        this.wrapped = wrapped;
+        this.response = response;
     }
 
     @Override
     public Object getMember(String name) {
 
-        Object member = super.getMember(name);
-        return member != null ? member : AbstractJsObject.super.getMember(name);
+        if (wrapped == null) {
+            return super.getMember(name);
+        } else {
+            return wrapped.get(name);
+        }
+    }
+
+    @Override
+    public boolean hasMember(String name) {
+
+        if (wrapped == null) {
+            return false;
+        } else {
+            return wrapped.get(name) != null;
+        }
     }
 
     @Override
     public void removeMember(String name) {
 
-        boolean isRemoved = super.removeMemberObject(name);
-        if (!isRemoved) {
-            AbstractJsObject.super.removeMember(name);
+        if (wrapped == null) {
+            super.removeMember(name);
+        } else {
+            if (wrapped.containsKey(name)) {
+                wrapped.remove(name);
+            }
         }
     }
 
     @Override
     public void setMember(String name, Object value) {
 
-        boolean isSet = super.setMemberObject(name, value);
-        if (!isSet) {
-            AbstractJsObject.super.setMember(name, value);
+        if (wrapped == null) {
+            super.setMember(name, value);
+        } else {
+            wrapped.put(name, value);
+            //adds a new header to the response.
+            response.addHeader(name, String.valueOf(value));
         }
     }
 }

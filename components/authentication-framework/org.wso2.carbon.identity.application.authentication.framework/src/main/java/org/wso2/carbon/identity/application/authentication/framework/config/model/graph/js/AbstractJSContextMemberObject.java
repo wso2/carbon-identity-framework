@@ -1,7 +1,7 @@
 /*
- *  Copyright (c) 2018-2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License.
  *  You may obtain a copy of the License at
@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * Represents the abstract class for all context objects
@@ -48,11 +47,5 @@ public class AbstractJSContextMemberObject implements Serializable {
     public AuthenticationContext getContext() {
 
         return context;
-    }
-
-    public boolean hasMember (String name) {
-
-        Objects.requireNonNull(name);
-        return false;
     }
 }

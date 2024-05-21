@@ -19,10 +19,8 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
@@ -103,71 +101,6 @@ public abstract class JsAuthenticatedUser extends AbstractJSObjectWrapper<Authen
         initializeContext(context);
     }
 
-    public Object getMember(String name) {
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT_IDENTIFIER:
-                return getWrapped().getAuthenticatedSubjectIdentifier();
-            case FrameworkConstants.JSAttributes.JS_USERNAME:
-                return getWrapped().getUserName();
-            case FrameworkConstants.JSAttributes.JS_UNIQUE_ID:
-                Object userId = null;
-                try {
-                    userId = getWrapped().getUserId();
-                } catch (UserIdNotFoundException e) {
-                    LOG.error("Error while retrieving user Id of user : " + getWrapped().getLoggableUserId(), e);
-                }
-                return userId;
-            case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
-                return getWrapped().getUserStoreDomain();
-            case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                return getWrapped().getTenantDomain();
-            case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
-                if (StringUtils.isNotBlank(idp)) {
-                    return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                            .createJsClaims(getContext(), step, idp, false);
-                }
-                    // Represent step independent user
-                return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                        .createJsClaims(getContext(), getWrapped(), false);
-            case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
-                if (StringUtils.isNotBlank(idp)) {
-                    return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                            .createJsClaims(getContext(), step, idp, true);
-                }
-                // Represent step independent user
-                return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                        .createJsClaims(getContext(), getWrapped(), true);
-
-            case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
-                return getLocalRoles();
-            case FrameworkConstants.JSAttributes.JS_CLAIMS:
-                if (StringUtils.isNotBlank(idp)) {
-                    return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                            .createJsRuntimeClaims(getContext(), step, idp);
-                }
-                // Represent step independent user
-                return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
-                        .createJsRuntimeClaims(getContext(), getWrapped());
-            default:
-                return super.getMember(name);
-        }
-    }
-
-    public Object getMemberKeys() {
-
-        return new String[]{
-                FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT_IDENTIFIER,
-                FrameworkConstants.JSAttributes.JS_USERNAME,
-                FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN,
-                FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN,
-                FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS,
-                FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS,
-                FrameworkConstants.JSAttributes.JS_LOCAL_ROLES,
-                FrameworkConstants.JSAttributes.JS_CLAIMS
-        };
-    }
-
     public void setMember(String name, Object value) {
 
         switch (name) {
@@ -193,10 +126,10 @@ public abstract class JsAuthenticatedUser extends AbstractJSObjectWrapper<Authen
                 return getWrapped().getUserStoreDomain() != null;
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain() != null;
-            case FrameworkConstants.JSAttributes.JS_CLAIMS:
             case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
+                return idp != null;
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
-                return true;
+                return idp != null && !FrameworkConstants.LOCAL.equals(idp);
             default:
                 return super.hasMember(name);
         }

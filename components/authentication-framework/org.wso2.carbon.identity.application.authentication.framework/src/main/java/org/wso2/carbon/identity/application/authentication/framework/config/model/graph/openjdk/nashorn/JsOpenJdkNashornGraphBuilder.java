@@ -35,7 +35,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DynamicDecisionNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.EndStep;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GenericSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionMonitorData;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
@@ -89,6 +88,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
     private Map<Integer, StepConfig> stepNamedMap;
     private AuthenticationGraph result = new AuthenticationGraph();
     private AuthGraphNode currentNode = null;
+    private AuthenticationContext authenticationContext;
     private ScriptEngine engine;
     private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
     private static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
@@ -162,11 +162,6 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
     }
 
     @Override
-    public AuthenticationDecisionEvaluator getScriptEvaluator(GenericSerializableJsFunction fn) {
-
-        return  new JsBasedEvaluator((OpenJdkNashornSerializableJsFunction) fn);
-    }
-
     public AuthenticationDecisionEvaluator getScriptEvaluator(BaseSerializableJsFunction fn) {
 
         return new JsBasedEvaluator((OpenJdkNashornSerializableJsFunction) fn);
@@ -430,7 +425,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
      * @param stepOptions   Options provided from the script for the step.
      * @param stepConfigMap StepConfigs of each step as a map.
      */
-    protected void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions,
+    private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions,
                                    Map<Integer, StepConfig> stepConfigMap) {
 
         stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
@@ -874,7 +869,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
         }
         DynamicDecisionNode decisionNode = new DynamicDecisionNode();
         addEventListeners(decisionNode, eventsMap);
-        if (!decisionNode.getGenericFunctionMap().isEmpty()) {
+        if (!decisionNode.getFunctionMap().isEmpty()) {
             attachToLeaf(currentNode, decisionNode);
         }
     }
@@ -886,7 +881,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
         }
         DynamicDecisionNode decisionNode = new DynamicDecisionNode();
         addEventListeners(decisionNode, eventsMap);
-        if (!decisionNode.getGenericFunctionMap().isEmpty()) {
+        if (!decisionNode.getFunctionMap().isEmpty()) {
             attachToLeaf(currentNode, decisionNode);
             currentNode = decisionNode;
         }
@@ -929,12 +924,12 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                 OpenJdkNashornSerializableJsFunction jsFunction = OpenJdkNashornSerializableJsFunction
                         .toSerializableForm((ScriptObjectMirror) value);
                 if (jsFunction != null) {
-                    showPromptNode.addGenericHandler(key, jsFunction);
+                    showPromptNode.addHandler(key, jsFunction);
                 } else {
                     log.error("Event handler : " + key + " is not a function : " + value);
                 }
             } else if (value instanceof OpenJdkNashornSerializableJsFunction) {
-                showPromptNode.addGenericHandler(key, (OpenJdkNashornSerializableJsFunction) value);
+                showPromptNode.addHandler(key, (OpenJdkNashornSerializableJsFunction) value);
             }
         });
     }
@@ -947,7 +942,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
      * @param destination Current node.
      * @param newNode     New node to attach.
      */
-    protected static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
+    private static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
 
         if (destination instanceof StepConfigGraphNode) {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) destination);
@@ -966,12 +961,63 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
     }
 
     /**
+     * Attach the new node to end of the base node.
+     * The new node is added to each leaf node of the Tree structure given in the destination node.
+     * Effectively this will join all the leaf nodes to new node, converting the tree into a graph.
+     *
+     * @param baseNode     Base node.
+     * @param nodeToAttach Node to attach.
+     */
+    private static void attachToLeaf(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
+
+        if (baseNode instanceof StepConfigGraphNode) {
+            StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) baseNode);
+            if (stepConfigGraphNode.getNext() == null) {
+                stepConfigGraphNode.setNext(nodeToAttach);
+                if (nodeToAttach != null) {
+                    nodeToAttach.setParent(stepConfigGraphNode);
+                }
+            } else {
+                attachToLeaf(stepConfigGraphNode.getNext(), nodeToAttach);
+            }
+        } else if (baseNode instanceof LongWaitNode) {
+            LongWaitNode longWaitNode = (LongWaitNode) baseNode;
+            longWaitNode.setDefaultEdge(nodeToAttach);
+            if (nodeToAttach != null) {
+                nodeToAttach.setParent(longWaitNode);
+            }
+        } else if (baseNode instanceof ShowPromptNode) {
+            ShowPromptNode showPromptNode = (ShowPromptNode) baseNode;
+            showPromptNode.setDefaultEdge(nodeToAttach);
+            if (nodeToAttach != null) {
+                nodeToAttach.setParent(showPromptNode);
+            }
+        } else if (baseNode instanceof DynamicDecisionNode) {
+            DynamicDecisionNode dynamicDecisionNode = (DynamicDecisionNode) baseNode;
+            dynamicDecisionNode.setDefaultEdge(nodeToAttach);
+            if (nodeToAttach != null) {
+                nodeToAttach.setParent(dynamicDecisionNode);
+            }
+        } else if (baseNode instanceof EndStep) {
+            if (log.isDebugEnabled()) {
+                log.debug("The destination is an End Step. Unable to attach the node : " + nodeToAttach);
+            }
+        } else if (baseNode instanceof FailNode) {
+            if (log.isDebugEnabled()) {
+                log.debug("The destination is an Fail Step. Unable to attach the node : " + nodeToAttach);
+            }
+        } else {
+            log.error("Unknown graph node found : " + baseNode);
+        }
+    }
+
+    /**
      * Creates the StepConfigGraphNode with given StepConfig.
      *
      * @param stepConfig Step Config Object.
      * @return built and wrapped new StepConfigGraphNode.
      */
-    protected static StepConfigGraphNode wrap(StepConfig stepConfig) {
+    private static StepConfigGraphNode wrap(StepConfig stepConfig) {
 
         return new StepConfigGraphNode(stepConfig);
     }
@@ -1232,7 +1278,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
 
         private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
 
-            return (ScriptEngine) FrameworkServiceDataHolder.getInstance().getJsGenericGraphBuilderFactory()
+            return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
                     .createEngine(authenticationContext);
         }
     }

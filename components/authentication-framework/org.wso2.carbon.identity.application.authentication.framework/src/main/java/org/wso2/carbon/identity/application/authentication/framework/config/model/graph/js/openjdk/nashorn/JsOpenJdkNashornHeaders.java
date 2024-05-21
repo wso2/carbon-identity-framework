@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.openjdk.nashorn;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.CommonJsHeaders;
+import org.openjdk.nashorn.api.scripting.AbstractJSObject;
 
 import java.util.Map;
 
@@ -31,39 +31,58 @@ import javax.servlet.http.HttpServletResponse;
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  * Since Nashorn is deprecated in JDK 11 and onwards. We are introducing OpenJDK Nashorn engine.
  */
-public class JsOpenJdkNashornHeaders extends CommonJsHeaders implements AbstractOpenJdkNashornJsObject {
+public class JsOpenJdkNashornHeaders extends AbstractJSObject {
+
+    private Map wrapped;
+    private HttpServletResponse response;
 
     public JsOpenJdkNashornHeaders(Map wrapped, HttpServletResponse response) {
 
-        super(wrapped, response);
+        this.wrapped = wrapped;
+        this.response = response;
     }
 
     @Override
     public Object getMember(String name) {
 
-        Object member = super.getMember(name);
-        if (member != null) {
-            return member;
+        if (wrapped == null) {
+            return super.getMember(name);
         } else {
-            return AbstractOpenJdkNashornJsObject.super.getMember(name);
+            return wrapped.get(name);
+        }
+    }
+
+    @Override
+    public boolean hasMember(String name) {
+
+        if (wrapped == null) {
+            return false;
+        } else {
+            return wrapped.get(name) != null;
         }
     }
 
     @Override
     public void removeMember(String name) {
 
-        boolean isRemoved = super.removeMemberObject(name);
-        if (!isRemoved) {
-            AbstractOpenJdkNashornJsObject.super.removeMember(name);
+        if (wrapped == null) {
+            super.removeMember(name);
+        } else {
+            if (wrapped.containsKey(name)) {
+                wrapped.remove(name);
+            }
         }
     }
 
     @Override
     public void setMember(String name, Object value) {
 
-        boolean isSet = super.setMemberObject(name, value);
-        if (!isSet) {
-            AbstractOpenJdkNashornJsObject.super.setMember(name, value);
+        if (wrapped == null) {
+            super.setMember(name, value);
+        } else {
+            wrapped.put(name, value);
+            //adds a new header to the response.
+            response.addHeader(name, String.valueOf(value));
         }
     }
 }
