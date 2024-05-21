@@ -4026,16 +4026,16 @@ public class FrameworkUtils {
         }
         // Config is not set. Hence going with class for name approach.
         try {
-            Class.forName(GRAALJS_SCRIPTER_CLASS_NAME);
-            return new JsGraalGraphBuilderFactory();
+            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
+            return new JsOpenJdkNashornGraphBuilderFactory();
         } catch (ClassNotFoundException e) {
             try {
-                Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
-                return new JsOpenJdkNashornGraphBuilderFactory();
+                Class.forName(JDK_SCRIPTER_CLASS_NAME);
+                return new JsGraphBuilderFactory();
             } catch (ClassNotFoundException classNotFoundException) {
                 try {
-                    Class.forName(JDK_SCRIPTER_CLASS_NAME);
-                    return new JsGraphBuilderFactory();
+                    Class.forName(GRAALJS_SCRIPTER_CLASS_NAME);
+                    return new JsGraalGraphBuilderFactory();
                 } catch (ClassNotFoundException ex) {
                     return null;
                 }
