@@ -147,6 +147,7 @@ public class IdentityCoreServiceComponent {
 
             String migrate = System.getProperty("migrate");
             String component = System.getProperty("component");
+            String dryRun = System.getProperty("dryRun");
             if (Boolean.parseBoolean(migrate) && component != null && component.contains("identity")) {
                 if (migrationClient == null) {
                     log.warn("Waiting for migration client.");
@@ -156,6 +157,10 @@ public class IdentityCoreServiceComponent {
                     migrationClient.execute();
                     ctxt.getBundleContext().registerService(ServerStartupObserver.class.getName(),
                             new MigrationClientStartupObserver(migrationClient), null) ;
+                    if (dryRun != null) {
+                        log.info("Dry run completed. Exiting the server.");
+                        System.exit(0);
+                    }
                 }
             }
 
