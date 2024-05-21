@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -516,6 +517,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                 LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                         FrameworkConstants.LogConstants.ActionIDs.HANDLE_CLAIM_MAPPING)
+                        .inputParam(LogConstants.InputKeys.APPLICATION_NAME, appConfig.getApplicationName())
                         .resultMessage("Handling service provider requested claims.")
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
