@@ -348,7 +348,7 @@ public class AuthenticationService {
 
         AuthenticationResult authenticationResult =
                 (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
-        if (authenticationResult == null) {
+        if (authenticationResult == null && request.getSessionDataKey() != null) {
             AuthenticationResultCacheEntry authenticationResultCacheEntry =
                     FrameworkUtils.getAuthenticationResultFromCache(request.getSessionDataKey());
             if (authenticationResultCacheEntry != null) {
@@ -390,6 +390,13 @@ public class AuthenticationService {
                     AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_FIND_APPLICATION.code(),
                     String.format(AuthServiceConstants.ErrorMessage.ERROR_UNABLE_TO_FIND_APPLICATION.description(),
                             clientId, tenantDomain));
+        }
+
+        // Check if the application is enabled to proceed with authentication.
+        if (!serviceProvider.isApplicationAccessEnabled()) {
+            throw new AuthServiceClientException(
+                    AuthServiceConstants.ErrorMessage.ERROR_DISABLED_CLIENT.code(),
+                    AuthServiceConstants.ErrorMessage.ERROR_DISABLED_CLIENT.description());
         }
 
         // Check whether api based authentication is enabled for the SP.
@@ -526,6 +533,8 @@ public class AuthenticationService {
                 return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FLOW_TIMEOUT;
             case FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL:
                 return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_CONTEXT_NULL;
+            case FrameworkConstants.ERROR_DESCRIPTION_ACCESS_DENIED:
+                return AuthServiceConstants.ErrorMessage.ERROR_DISABLED_CLIENT;
             default:
                 return null;
         }
