@@ -255,11 +255,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             // Check if the login access to the application is enabled.
-            if (!checkIfApplicationAccessEnabled(request, responseWrapper, context)) {
+            if (!checkIfApplicationAccessEnabled(request, context)) {
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
                         ERROR_DESCRIPTION_ACCESS_DENIED, ERROR_DESCRIPTION_ACCESS_DISABLED);
                 return;
-            };
+            }
 
             if (context != null) {
                 // Adding the context identifier(sessionDataKey) to the request to be used when the context
@@ -487,8 +487,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private boolean checkIfApplicationAccessEnabled(HttpServletRequest request, CommonAuthResponseWrapper responseWrapper,
-                                                 AuthenticationContext context) throws IOException, FrameworkException {
+    private boolean checkIfApplicationAccessEnabled(HttpServletRequest request, AuthenticationContext context)
+            throws FrameworkException {
 
         String type = request.getParameter(TYPE);
         String clientId = request.getParameter(CLIENT_ID_IN_REQUEST);
