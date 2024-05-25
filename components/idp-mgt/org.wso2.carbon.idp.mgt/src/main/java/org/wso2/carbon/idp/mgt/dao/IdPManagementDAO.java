@@ -121,10 +121,14 @@ public class IdPManagementDAO {
     private static final Log log = LogFactory.getLog(IdPManagementDAO.class);
 
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
-    private static final String DEPRECATED_RECOVERY_NOTIFICATION_PASSWORD_CONFIG
+    private static final String NOTIFICATION_PASSWORD_ENABLE_PROPERTY
             = "Recovery.Notification.Password.Enable";
     private static final String EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY
             = "Recovery.Notification.Password.emailLink.Enable";
+    private static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY
+            = "Recovery.Notification.Password.smsOtp.Enable";
+    private static final String ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED
+            = "ConfigSwitching.OnInitialUse.EnableSMSOTPPasswordRecoveryIfConnectorEnabled";
 
     /**
      * @param dbConnection
@@ -988,11 +992,12 @@ public class IdPManagementDAO {
                                                                         int idpId, int tenantId)
             throws SQLException {
 
-        String recoveryNotificationPasswordValue = "";
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<IdentityProviderProperty> idpProperties = new ArrayList<IdentityProviderProperty>();
-        boolean isRecoveryNotificationPasswordPropertyAvailable = false;
+        boolean isRecoveryNotificationPasswordRecoveryEnabled = false;
+        boolean isEmailLinkNotificationPasswordRecoveryEnabled = false;
+        boolean isSmsOtpNotificationPasswordRecoveryEnabled = false;
 
         try {
             String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
@@ -1003,17 +1008,23 @@ public class IdPManagementDAO {
             while (rs.next()) {
                 IdentityProviderProperty property = new IdentityProviderProperty();
                 property.setName(rs.getString("NAME"));
-                if (DEPRECATED_RECOVERY_NOTIFICATION_PASSWORD_CONFIG.equals(property.getName())) {
-                    isRecoveryNotificationPasswordPropertyAvailable = true;
-                    recoveryNotificationPasswordValue = rs.getString("VALUE");
+                if (NOTIFICATION_PASSWORD_ENABLE_PROPERTY.equals(property.getName())) {
+                    isRecoveryNotificationPasswordRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isEmailLinkNotificationPasswordRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (SMS_OTP_PASSWORD_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isSmsOtpNotificationPasswordRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
                 }
                 property.setValue(rs.getString("VALUE"));
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
             }
-            if (isRecoveryNotificationPasswordPropertyAvailable) {
-                handlePropertyChanges(dbConnection, tenantId, idpId, idpProperties,
-                        recoveryNotificationPasswordValue);
+            // If recovery notification are inconsistent, correct the configurations.
+            if (isRecoveryNotificationPasswordRecoveryEnabled && !isEmailLinkNotificationPasswordRecoveryEnabled
+                    && !isSmsOtpNotificationPasswordRecoveryEnabled) {
+                performConfigCorrectionForPasswordRecoveryConfigs(dbConnection, tenantId, idpId, idpProperties);
             }
         } catch (DataAccessException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
@@ -5947,19 +5958,31 @@ public class IdPManagementDAO {
         propertiesFromConnectors.get(otpLengthProperty).setValue(Integer.toString(otpLength));
     }
 
-    private void handlePropertyChanges(Connection dbConnection, int tenantId,
-                                       int idpId, List<IdentityProviderProperty> idpProperties,
-                                       String recoveryNotificationPasswordValue)
-        throws SQLException {
+    private void performConfigCorrectionForPasswordRecoveryConfigs(Connection dbConnection, int tenantId,
+                                       int idpId, List<IdentityProviderProperty> idpProperties) throws SQLException {
 
-        // Set value of Recovery.Notification.Password.Enable to Recovery.Notification.Password.emailLink.Enable
-        // property to keep backward compatibility. This is only run once per tenant.
-        IdentityProviderProperty property = new IdentityProviderProperty();
-        property.setName(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
-        property.setValue(recoveryNotificationPasswordValue);
-        idpProperties.add(property);
-        idpProperties.stream().filter(idpProperty -> DEPRECATED_RECOVERY_NOTIFICATION_PASSWORD_CONFIG.equals(idpProperty.getName()))
-                .findFirst().ifPresent(idpProperties::remove);
+        // Enable all recovery options when Recovery.Notification.Password.Enable value is set as enabled.
+        // This keeps functionality consistent with previous API versions for migrating customers.
+        idpProperties.stream().filter(idp -> idp.getName().equals(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY)).findFirst()
+                .ifPresentOrElse(
+                        emailLinkProperty -> emailLinkProperty.setValue(String.valueOf(true)),
+                        () -> {
+                            IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+                            identityProviderProperty.setName(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+                            identityProviderProperty.setValue("true");
+                            idpProperties.add(identityProviderProperty);
+                        });
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED))) {
+            idpProperties.stream().filter(idp -> idp.getName().equals(SMS_OTP_PASSWORD_RECOVERY_PROPERTY)).findFirst()
+                    .ifPresentOrElse(
+                            smsOtpProperty -> smsOtpProperty.setValue(String.valueOf(true)),
+                            () -> {
+                                IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+                                identityProviderProperty.setName(SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
+                                identityProviderProperty.setValue("true");
+                                idpProperties.add(identityProviderProperty);
+                            });
+        }
         updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
     }
 }
