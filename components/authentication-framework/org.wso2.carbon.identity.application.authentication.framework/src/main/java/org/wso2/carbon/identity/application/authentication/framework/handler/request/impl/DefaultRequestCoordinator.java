@@ -98,15 +98,15 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_ACCESS_DENIED;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_ACCESS_DISABLED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.IS_API_BASED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REDIRECT_URL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CLIENT_ID_IN_REQUEST;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CLIENT_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
@@ -254,10 +254,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 associateTransientRequestData(request, responseWrapper, context);
             }
 
-            // Check if the login access to the application is enabled.
-            if (!checkIfApplicationAccessEnabled(request, context)) {
+            // Check if the application is enabled.
+            if (!checkIfApplicationEnabled(request, context)) {
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
-                        ERROR_DESCRIPTION_ACCESS_DENIED, ERROR_DESCRIPTION_ACCESS_DISABLED);
+                        ERROR_STATUS_APP_DISABLED, ERROR_DESCRIPTION_APP_DISABLED);
                 return;
             }
 
@@ -487,11 +487,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private boolean checkIfApplicationAccessEnabled(HttpServletRequest request, AuthenticationContext context)
+    private boolean checkIfApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
             throws FrameworkException {
 
         String type = request.getParameter(TYPE);
-        String clientId = request.getParameter(CLIENT_ID_IN_REQUEST);
+        String clientId = request.getParameter(CLIENT_ID);
 
         // Validate parameters
         if (StringUtils.isBlank(type)) {

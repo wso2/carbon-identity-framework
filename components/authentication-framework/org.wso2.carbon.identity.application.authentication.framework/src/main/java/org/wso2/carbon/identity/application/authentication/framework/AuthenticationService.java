@@ -533,7 +533,7 @@ public class AuthenticationService {
                 return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_FLOW_TIMEOUT;
             case FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL:
                 return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_CONTEXT_NULL;
-            case FrameworkConstants.ERROR_DESCRIPTION_ACCESS_DENIED:
+            case FrameworkConstants.ERROR_STATUS_APP_DISABLED:
                 return AuthServiceConstants.ErrorMessage.ERROR_DISABLED_CLIENT;
             default:
                 return null;

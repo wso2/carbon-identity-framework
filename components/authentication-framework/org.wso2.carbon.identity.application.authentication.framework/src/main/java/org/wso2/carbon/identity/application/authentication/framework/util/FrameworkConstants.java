@@ -249,8 +249,8 @@ public abstract class FrameworkConstants {
     public static final String ERROR_DESCRIPTION_AUTH_CONTEXT_NULL = "authentication.context.null.description";
     public static final String ERROR_STATUS_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout";
     public static final String ERROR_DESCRIPTION_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout.description";
-    public static final String ERROR_DESCRIPTION_ACCESS_DENIED = "authentication.flow.access.denied.description";
-    public static final String ERROR_DESCRIPTION_ACCESS_DISABLED = "authentication.flow.access.disabled.description";
+    public static final String ERROR_STATUS_APP_DISABLED = "authentication.flow.app.disabled";
+    public static final String ERROR_DESCRIPTION_APP_DISABLED = "authentication.flow.app.disabled.description";
     public static final String IS_SENT_TO_RETRY = "isSentToRetry";
     public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
     public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
@@ -437,7 +437,7 @@ public abstract class FrameworkConstants {
         public static final String CORRELATION_ID = "crId";
         public static final String IS_IDF_INITIATED_FROM_AUTHENTICATOR = "isIdfInitiatedFromAuthenticator";
         public static final String SESSION_ID = "sessionId";
-        public static final String CLIENT_ID_IN_REQUEST = "client_id";
+        public static final String CLIENT_ID = "client_id";
 
 
         private RequestParams() {
