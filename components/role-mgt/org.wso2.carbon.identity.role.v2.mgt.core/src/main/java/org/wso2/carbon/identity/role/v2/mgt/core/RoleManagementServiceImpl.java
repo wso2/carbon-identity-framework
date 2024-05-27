@@ -741,8 +741,14 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                                                     String mainRoleTenantDomain, String sharedRoleTenantDomain)
             throws IdentityRoleManagementException {
 
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                .getInstance();
+        roleManagementEventPublisherProxy.publishPreAddMainRoleToSharedRoleRelationshipWithException(mainRoleUUID,
+                sharedRoleUUID, mainRoleTenantDomain, sharedRoleTenantDomain);
         roleDAO.addMainRoleToSharedRoleRelationship(mainRoleUUID, sharedRoleUUID, mainRoleTenantDomain,
                 sharedRoleTenantDomain);
+        roleManagementEventPublisherProxy.publishPostAddMainRoleToSharedRoleRelationship(mainRoleUUID, sharedRoleUUID,
+                mainRoleTenantDomain, sharedRoleTenantDomain);
     }
 
     @Override

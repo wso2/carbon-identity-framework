@@ -247,13 +247,24 @@ public class IdentityEventConstants {
         public static final String PRE_GET_GROUP_LIST_OF_ROLES_V2_EVENT = "PRE_GET_GROUP_LIST_OF_ROLES_V2_EVENT";
         public static final String POST_GET_GROUP_LIST_OF_ROLES_V2_EVENT = "POST_GET_GROUP_LIST_OF_ROLES_V2_EVENT";
         public static final String PRE_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT = "PRE_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT";
-        public static final String PRE_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT = "PRE_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT";
-        public static final String POST_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT = "POST_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT";
-        public static final String POST_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT = "POST_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT";
-        public static final String PRE_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT = "PRE_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT";
-        public static final String POST_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT = "POST_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT";
-        public static final String PRE_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT = "PRE_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
-        public static final String POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT = "POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
+        public static final String PRE_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT =
+                "PRE_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT =
+                "POST_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT =
+                "POST_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT =
+                "PRE_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT =
+                "POST_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT =
+                "PRE_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
+        public static final String POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT =
+                "POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
+        public static final String PRE_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT =
+                "PRE_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT";
+        public static final String POST_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT =
+                "POST_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT";
 
         public static final String POST_APP_USER_ATTRIBUTE_UPDATE = "POST_APP_USER_ATTRIBUTE_UPDATE";
 
@@ -314,6 +325,8 @@ public class IdentityEventConstants {
         public static final String USER_NAME = "user-name";
         public static final String ROLE_NAME = "role-name";
         public static final String ROLE_ID = "role-id";
+        public static final String SHARED_ROLE_ID = "shared-role-id";
+        public static final String SHARED_ROLE_TENANT_DOMAIN = "shared-role-tenant-domain";
         public static final String USER_STORE_DOMAIN = "userstore-domain";
         public static final String CONFIRMATION_CODE = "confirmation-code";
         public static final String TEMPORARY_PASSWORD = "temporary-password";

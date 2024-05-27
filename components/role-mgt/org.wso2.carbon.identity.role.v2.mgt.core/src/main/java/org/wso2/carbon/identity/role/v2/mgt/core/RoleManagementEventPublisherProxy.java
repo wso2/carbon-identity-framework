@@ -805,6 +805,56 @@ public class RoleManagementEventPublisherProxy {
         }
     }
 
+    /**
+     * Publish event before adding main role to shared role relationship.
+     *
+     * @param mainRoleUUID           Main role UUID.
+     * @param sharedRoleUUID         Shared role UUID.
+     * @param mainRoleTenantDomain   Main role tenant domain.
+     * @param sharedRoleTenantDomain Shared role tenant domain.
+     * @throws IdentityRoleManagementException If an error occurs during the pre-add main role to shared role relation.
+     */
+    public void publishPreAddMainRoleToSharedRoleRelationshipWithException(String mainRoleUUID, String sharedRoleUUID,
+                                                                           String mainRoleTenantDomain,
+                                                                           String sharedRoleTenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, mainRoleUUID);
+        eventProperties.put(IdentityEventConstants.EventProperty.SHARED_ROLE_ID, sharedRoleUUID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, mainRoleTenantDomain);
+        eventProperties.put(IdentityEventConstants.EventProperty.SHARED_ROLE_TENANT_DOMAIN, sharedRoleTenantDomain);
+        Event event = createEvent(eventProperties,
+                IdentityEventConstants.Event.PRE_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT);
+        doPublishEvent(event);
+    }
+
+    /**
+     * Publish event after adding main role to shared role relationship.
+     *
+     * @param mainRoleUUID           Main role UUID.
+     * @param sharedRoleUUID         Shared role UUID.
+     * @param mainRoleTenantDomain   Main role tenant domain.
+     * @param sharedRoleTenantDomain Shared role tenant domain.
+     */
+    public void publishPostAddMainRoleToSharedRoleRelationship(String mainRoleUUID, String sharedRoleUUID,
+                                                               String mainRoleTenantDomain,
+                                                               String sharedRoleTenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, mainRoleUUID);
+        eventProperties.put(IdentityEventConstants.EventProperty.SHARED_ROLE_ID, sharedRoleUUID);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, mainRoleTenantDomain);
+        eventProperties.put(IdentityEventConstants.EventProperty.SHARED_ROLE_TENANT_DOMAIN, sharedRoleTenantDomain);
+        Event event = createEvent(eventProperties,
+                IdentityEventConstants.Event.POST_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
     private Event createEvent(Map<String, Object> eventProperties, String eventName) {
 
         return new Event(eventName, eventProperties);
@@ -815,8 +865,8 @@ public class RoleManagementEventPublisherProxy {
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Event: " + event.getEventName() + " is published for the role management operation in " +
-                        "the tenant with the tenantId: "
-                        + event.getEventProperties().get(IdentityEventConstants.EventProperty.TENANT_ID));
+                        "the tenant domain: "
+                        + event.getEventProperties().get(IdentityEventConstants.EventProperty.TENANT_DOMAIN));
             }
             IdentityEventService eventService =
                     RoleManagementServiceComponentHolder.getInstance().getIdentityEventService();
