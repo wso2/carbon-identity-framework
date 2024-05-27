@@ -2182,7 +2182,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
             serviceProvider.setTemplateId(getTemplateId(propertyList));
-            serviceProvider.setApplicationAccessEnabled(getAppAccessEnabled(propertyList));
+            serviceProvider.setApplicationEnabled(getAppAccessEnabled(propertyList));
             serviceProvider.setManagementApp(getIsManagementApp(propertyList));
             serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
             serviceProvider.setAPIBasedAuthenticationEnabled(getIsAPIBasedAuthenticationEnabled(propertyList));
@@ -5278,7 +5278,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty isAppAccessEnabledProperty = new ServiceProviderProperty();
         isAppAccessEnabledProperty.setName(IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME);
         isAppAccessEnabledProperty.setDisplayName(IS_APPLICATION_ACCESS_ENABLED_DISPLAY_NAME);
-        isAppAccessEnabledProperty.setValue(String.valueOf(sp.isApplicationAccessEnabled()));
+        isAppAccessEnabledProperty.setValue(String.valueOf(sp.isApplicationEnabled()));
         return isAppAccessEnabledProperty;
     }
 

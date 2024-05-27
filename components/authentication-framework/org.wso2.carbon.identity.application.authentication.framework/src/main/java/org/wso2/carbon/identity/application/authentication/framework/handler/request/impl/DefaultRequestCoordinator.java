@@ -98,8 +98,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.IS_API_BASED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER;
@@ -166,6 +166,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         AuthenticationContext context = null;
         String sessionDataKey = request.getParameter("sessionDataKey");
         try {
+            // Check if the application is enabled only for the initial request.
+            if (!checkIfApplicationEnabled(request)) {
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, null,
+                        ERROR_STATUS_APP_DISABLED, ERROR_DESCRIPTION_APP_DISABLED);
+                return;
+            }
             IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW, true);
             AuthenticationRequestCacheEntry authRequest = null;
             boolean returning = false;
@@ -252,13 +258,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     returning = true;
                 }
                 associateTransientRequestData(request, responseWrapper, context);
-            }
-
-            // Check if the application is enabled.
-            if (!checkIfApplicationEnabled(request, context)) {
-                FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
-                        ERROR_STATUS_APP_DISABLED, ERROR_DESCRIPTION_APP_DISABLED);
-                return;
             }
 
             if (context != null) {
@@ -489,19 +488,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private boolean checkIfApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
-            throws FrameworkException {
+    private boolean checkIfApplicationEnabled(HttpServletRequest request) throws FrameworkException {
 
         String type = request.getParameter(TYPE);
         String clientId = request.getParameter(CLIENT_ID);
-
-        // Validate parameters
-        if (StringUtils.isBlank(type)) {
-            type = context.getRequestType();
-        }
-        if (StringUtils.isBlank(clientId)) {
-            clientId = context.getRelyingParty();
-        }
         ServiceProvider serviceProvider = getServiceProvider(type, clientId, getTenantDomain(request));
         if (serviceProvider == null) {
             if (log.isDebugEnabled()) {
@@ -509,9 +499,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
             return false;
         }
-        if (!serviceProvider.isApplicationAccessEnabled()) {
+        if (!serviceProvider.isApplicationEnabled()) {
             if (log.isDebugEnabled()) {
-                log.debug("Access to the application is disabled for the service provider with client id: "
+                log.debug("Application is disabled for the service provider with client id: "
                         + clientId);
             }
             return false;

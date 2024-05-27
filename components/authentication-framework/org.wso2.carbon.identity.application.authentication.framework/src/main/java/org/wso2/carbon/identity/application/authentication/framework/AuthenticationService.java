@@ -393,7 +393,7 @@ public class AuthenticationService {
         }
 
         // Check if the application is enabled to proceed with authentication.
-        if (!serviceProvider.isApplicationAccessEnabled()) {
+        if (!serviceProvider.isApplicationEnabled()) {
             throw new AuthServiceClientException(
                     AuthServiceConstants.ErrorMessage.ERROR_DISABLED_CLIENT.code(),
                     AuthServiceConstants.ErrorMessage.ERROR_DISABLED_CLIENT.description());
