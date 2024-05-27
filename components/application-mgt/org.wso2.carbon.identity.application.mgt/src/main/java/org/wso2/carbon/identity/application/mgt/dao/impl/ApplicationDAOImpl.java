@@ -149,8 +149,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ISSUER_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_APPLICATION_ACCESS_ENABLED_DISPLAY_NAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_ENABLED_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME;
@@ -2182,7 +2182,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
             serviceProvider.setTemplateId(getTemplateId(propertyList));
-            serviceProvider.setApplicationEnabled(getAppAccessEnabled(propertyList));
+            serviceProvider.setApplicationEnabled(getIsAppEnabled(propertyList));
             serviceProvider.setManagementApp(getIsManagementApp(propertyList));
             serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
             serviceProvider.setAPIBasedAuthenticationEnabled(getIsAPIBasedAuthenticationEnabled(propertyList));
@@ -2435,10 +2435,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return Boolean.parseBoolean(value);
     }
 
-    private boolean getAppAccessEnabled(List<ServiceProviderProperty> propertyList) {
+    private boolean getIsAppEnabled(List<ServiceProviderProperty> propertyList) {
 
         String value = propertyList.stream()
-                .filter(property -> IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME.equals(property.getName()))
+                .filter(property -> APPLICATION_ENABLED_PROPERTY_NAME.equals(property.getName()))
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse("true");
@@ -5275,11 +5275,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private ServiceProviderProperty buildIsApplicationAccessEnabledProperty(ServiceProvider sp) {
 
-        ServiceProviderProperty isAppAccessEnabledProperty = new ServiceProviderProperty();
-        isAppAccessEnabledProperty.setName(IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME);
-        isAppAccessEnabledProperty.setDisplayName(IS_APPLICATION_ACCESS_ENABLED_DISPLAY_NAME);
-        isAppAccessEnabledProperty.setValue(String.valueOf(sp.isApplicationEnabled()));
-        return isAppAccessEnabledProperty;
+        ServiceProviderProperty isAppEnabledProperty = new ServiceProviderProperty();
+        isAppEnabledProperty.setName(APPLICATION_ENABLED_PROPERTY_NAME);
+        isAppEnabledProperty.setDisplayName(APPLICATION_ENABLED_DISPLAY_NAME);
+        isAppEnabledProperty.setValue(String.valueOf(sp.isApplicationEnabled()));
+        return isAppEnabledProperty;
     }
 
     private ServiceProviderProperty buildAllowedRoleAudienceProperty(ServiceProvider serviceProvider) {
