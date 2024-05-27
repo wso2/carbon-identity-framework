@@ -37,6 +37,9 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -502,6 +505,24 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     }
 
     /**
+     * Get the secret by name.
+     *
+     * @param secretName secretName
+     * @return secretValue
+     * @throws SecretManagementException
+     */
+    public String getSecretByName(String secretName) throws SecretManagementException {
+
+        SecretResolveManager secretResolveManager = FrameworkServiceComponent.getSecretConfigManager();
+        String secretValue = null;
+
+        ResolvedSecret responseDTO = secretResolveManager.getResolvedSecret(FrameworkConstants.SECRET_TYPE, secretName);
+
+        secretValue = responseDTO.getResolvedSecretValue();
+        return secretValue;
+    }
+
+    /**
      * Load Executor implementation to load local libraries.
      */
     public class JsGraalLoadExecutorImpl implements LoadExecutor {
@@ -511,6 +532,36 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
 
             return JsGraphBuilder.this.loadLocalLibrary(libraryName);
         }
+    }
+
+    /**
+     * Load Executor implementation to load local libraries.
+     */
+    public class JsGraalGetSecretImpl implements GetSecret {
+
+        @HostAccess.Export
+        public String getSecretByName(String secretName) throws SecretManagementException {
+
+            return JsGraphBuilder.this.getSecretByName(secretName);
+        }
+    }
+
+    /**
+     * Functional interface to get secret by name.
+     */
+    @FunctionalInterface
+    public interface GetSecret {
+
+        String getSecretByName(String secretName) throws SecretManagementException;
+    }
+
+    /**
+     * Functional interface to load authentication library.
+     */
+    @FunctionalInterface
+    public interface LoadExecutor {
+
+        String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
     }
 
     /**
@@ -649,15 +700,6 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     public interface RestrictedFunction {
 
         void exit(Object... arg);
-    }
-
-    /**
-     * Functional interface to load authentication library.
-     */
-    @FunctionalInterface
-    public interface LoadExecutor {
-
-        String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
     }
 
     /**

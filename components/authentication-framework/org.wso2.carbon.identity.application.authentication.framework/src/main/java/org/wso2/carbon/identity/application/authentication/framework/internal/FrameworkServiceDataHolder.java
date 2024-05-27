@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginSer
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -98,6 +99,7 @@ public class FrameworkServiceDataHolder {
     private IdentityEventService identityEventService;
     private FunctionLibraryManagementService functionLibraryManagementService = null;
     private String requireCode = "";
+    private String secretsCode = "";
     private boolean userSessionMappingEnabled;
 
     /*
@@ -121,6 +123,7 @@ public class FrameworkServiceDataHolder {
     private boolean isOrganizationManagementEnable = false;
     private OrganizationManager organizationManager;
     private RoleManagementService roleManagementServiceV2;
+    private SecretResolveManager secretConfigManager;
 
     private FrameworkServiceDataHolder() {
 
@@ -549,6 +552,16 @@ public class FrameworkServiceDataHolder {
         this.functionLibraryManagementService = functionLibraryManagementService;
     }
 
+    public SecretResolveManager getSecretConfigManager() {
+
+        return secretConfigManager;
+    }
+
+    public void setSecretConfigManager(SecretResolveManager secretConfigManager) {
+
+        this.secretConfigManager = secretConfigManager;
+    }
+
     /**
      * Get require() function's code.
      *
@@ -567,6 +580,26 @@ public class FrameworkServiceDataHolder {
     public void setCodeForRequireFunction(String requireCode) {
 
         this.requireCode = requireCode;
+    }
+
+    /**
+     * Get secrets() function's code.
+     *
+     * @return code snippet of secrets()
+     */
+    public String getCodeForSecretsFunction() {
+
+        return secretsCode;
+    }
+
+    /**
+     * Set secrets() function's code.
+     *
+     * @param secretsCode code snippet of secrets() function
+     */
+    public void setCodeForSecretsFunction(String secretsCode) {
+
+        this.secretsCode = secretsCode;
     }
 
     /**
