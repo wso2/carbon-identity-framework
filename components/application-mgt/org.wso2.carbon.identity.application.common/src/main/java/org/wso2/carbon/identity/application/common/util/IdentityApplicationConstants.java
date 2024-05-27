@@ -122,8 +122,8 @@ public class IdentityApplicationConstants {
     public static final String IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME = "Is API Based Authentication Enabled";
     public static final String IS_ATTESTATION_ENABLED_PROPERTY_NAME = "IsAttestationEnabled";
     public static final String IS_ATTESTATION_ENABLED_DISPLAY_NAME = "Is Client Attestation Enabled";
-    public static final String IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME = "IsApplicationAccessEnabled";
-    public static final String IS_APPLICATION_ACCESS_ENABLED_DISPLAY_NAME = "Is Application Access Enabled";
+    public static final String IS_APPLICATION_ACCESS_ENABLED_PROPERTY_NAME = "applicationEnabled";
+    public static final String IS_APPLICATION_ACCESS_ENABLED_DISPLAY_NAME = "Application Enabled";
     public static final String ANDROID_PACKAGE_NAME_PROPERTY_NAME = "androidPackageName";
     public static final String ANDROID_PACKAGE_NAME_DISPLAY_NAME = "Android mobile application package name";
     public static final String APPLE_APP_ID_PROPERTY_NAME = "appleAppId";

@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -88,8 +88,8 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             Map<Integer, StepConfig> stepConfigMapCopy = new HashMap<>();
             originalStepConfigMap.forEach((k, v) -> stepConfigMapCopy.put(k, new StepConfig(v)));
             sequenceConfig.getStepMap().clear();
-            JsBaseGraphBuilderFactory jsGraphBuilderFactory = FrameworkServiceDataHolder.getInstance()
-                    .getJsGraphBuilderFactory();
+            JsGenericGraphBuilderFactory jsGraphBuilderFactory = FrameworkServiceDataHolder.getInstance()
+                    .getJsGenericGraphBuilderFactory();
             JsBaseGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMapCopy);
             context.setServiceProviderName(serviceProvider.getApplicationName());
             context.setServiceProviderResourceId(serviceProvider.getApplicationResourceId());

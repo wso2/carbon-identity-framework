@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.2.20-SNAPSHOT</version>
+    <version>7.2.33-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -1782,6 +1782,32 @@
                 <artifactId>jackson-dataformat-cbor</artifactId>
                 <version>${com.fasterxml.jackson.cbor.version}</version>
             </dependency>
+<!--            GraalVM related dependencies-->
+            <dependency>
+                <groupId>org.graalvm.sdk</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.truffle</groupId>
+                <artifactId>truffle-api</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.regex</groupId>
+                <artifactId>regex</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ibm.icu</groupId>
+                <artifactId>icu4j</artifactId>
+                <version>${icu.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -2085,6 +2111,11 @@
         <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
 
         <h2database.version>2.2.224</h2database.version>
+
+        <graalvm.version>22.3.4</graalvm.version>
+        <graalvm.version.range>[22.3.0,23.0.0)</graalvm.version.range>
+        <!-- ICU version must be reflecting graalvm version -->
+        <icu.version>71.1</icu.version>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <maven.spotbugsplugin.version>4.8.4.0</maven.spotbugsplugin.version>

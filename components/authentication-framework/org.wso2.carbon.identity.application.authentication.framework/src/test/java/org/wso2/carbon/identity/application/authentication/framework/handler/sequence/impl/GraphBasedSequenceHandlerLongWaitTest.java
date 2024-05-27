@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.graalvm.polyglot.HostAccess;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -27,7 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.AsyncProces
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -117,13 +118,14 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
 
     public static class AsyncAnalyticsCbFunctionImpl implements Fn1 {
 
+        @HostAccess.Export
         public void publishEvent(String siddhiAppName, String inStreamName, String outStreamName,
                                  Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
             AsyncProcess asyncProcess = new AsyncProcess((ctx, r) -> {
                 r.accept(ctx, Collections.emptyMap(), "onSuccess");
             });
-            JsNashornGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+            JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
         }
     }
 }

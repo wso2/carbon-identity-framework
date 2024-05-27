@@ -53,7 +53,7 @@ import static org.testng.Assert.assertTrue;
  * Tests for graph builder with Javascript.
  */
 @Test
-public class JsGraphBuilderTest extends AbstractFrameworkTest {
+public class JsNashornGraphBuilderTest extends AbstractFrameworkTest {
 
     private JsGraphBuilderFactory jsGraphBuilderFactory;
 

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -54,14 +55,14 @@ import javax.script.ScriptException;
 public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
 
     private static final Log log = LogFactory.getLog(JsGraphBuilder.class);
-    private Map<Integer, StepConfig> stepNamedMap;
-    private AuthenticationGraph result = new AuthenticationGraph();
-    private AuthGraphNode currentNode = null;
-    private AuthenticationContext authenticationContext;
+    protected Map<Integer, StepConfig> stepNamedMap;
+    protected AuthenticationGraph result = new AuthenticationGraph();
+    protected AuthGraphNode currentNode = null;
+    protected AuthenticationContext authenticationContext;
     private ScriptEngine engine;
-    private static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
-    private static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
-    private static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
+    protected static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
+    protected static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
+    protected static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
     private static final String REMOVE_FUNCTIONS = "var quit=function(){Log.error('quit function is restricted.')};" +
             "var exit=function(){Log.error('exit function is restricted.')};" +
             "var print=function(){Log.error('print function is restricted.')};" +
@@ -73,6 +74,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
             "var $ARG=null;var $ENV=null;var $EXEC=null;" +
             "var $OPTIONS=null;var $OUT=null;var $ERR=null;var $EXIT=null;" +
             "Object.defineProperty(this, 'engine', {});";
+
     /**
      * Returns the built graph.
      *
@@ -247,7 +249,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
      * @param stepOptions   Options provided from the script for the step.
      * @param stepConfigMap StepConfigs of each step as a map.
      */
-    private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions,
+    protected void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions,
                                    Map<Integer, StepConfig> stepConfigMap) {
 
         stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
@@ -470,7 +472,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     public static void addPrompt(String templateId, Map<String, Object> parameters, Map<String, Object> handlers,
                                  Map<String, Object> callbacks) {
 
-        FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getCurrentBuilder()
+        FrameworkServiceDataHolder.getInstance().getJsGenericGraphBuilderFactory().getCurrentBuilder()
                 .addPromptInternal(templateId, parameters, handlers, callbacks);
     }
 
@@ -500,6 +502,18 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     }
 
     /**
+     * Load Executor implementation to load local libraries.
+     */
+    public class JsGraalLoadExecutorImpl implements LoadExecutor {
+
+        @HostAccess.Export
+        public String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException {
+
+            return JsGraphBuilder.this.loadLocalLibrary(libraryName);
+        }
+    }
+
+    /**
      * Adds a function to show a prompt in Javascript code.
      *
      * @param parameterMap parameterMap
@@ -507,7 +521,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     public static void addLongWaitProcess(AsyncProcess asyncProcess,
                                           Map<String, Object> parameterMap) {
 
-        FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getCurrentBuilder()
+        FrameworkServiceDataHolder.getInstance().getJsGenericGraphBuilderFactory().getCurrentBuilder()
                 .addLongWaitProcessInternal(asyncProcess, parameterMap);
     }
 
@@ -519,7 +533,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
      * @param destination Current node.
      * @param newNode     New node to attach.
      */
-    private static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
+    protected static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
 
         if (destination instanceof StepConfigGraphNode) {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) destination);
@@ -545,7 +559,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
      * @param baseNode     Base node.
      * @param nodeToAttach Node to attach.
      */
-    private static void attachToLeaf(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
+    protected static void attachToLeaf(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
 
         if (baseNode instanceof StepConfigGraphNode) {
             StepConfigGraphNode stepConfigGraphNode = ((StepConfigGraphNode) baseNode);
@@ -594,7 +608,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
      * @param stepConfig Step Config Object.
      * @return built and wrapped new StepConfigGraphNode.
      */
-    private static StepConfigGraphNode wrap(StepConfig stepConfig) {
+    protected static StepConfigGraphNode wrap(StepConfig stepConfig) {
 
         return new StepConfigGraphNode(stepConfig);
     }
@@ -623,6 +637,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     @FunctionalInterface
     public interface PromptExecutor {
 
+        @HostAccess.Export
         void prompt(String template, Object... parameterMap);
     }
 
@@ -643,6 +658,15 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     public interface LoadExecutor {
 
         String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
+    }
+
+    /**
+     * Functional interface for sending error in the authentication script.
+     */
+    @FunctionalInterface
+    public interface SendErrorFunction {
+
+        void sendError(String url, Map<String, Object> parameterMap);
     }
 
     @Deprecated

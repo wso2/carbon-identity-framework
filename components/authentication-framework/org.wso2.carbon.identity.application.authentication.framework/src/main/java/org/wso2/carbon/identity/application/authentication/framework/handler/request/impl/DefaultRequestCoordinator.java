@@ -437,6 +437,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             I18nErrorCodeWrapper errorWrapper = ErrorToI18nCodeTranslator.translate(e.getErrorCode());
             FrameworkUtils.removeCookie(request, responseWrapper,
                     FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
+            log.error(String.format("Error occurred while evaluating post authentication : %s : %s.",
+                    errorWrapper.getStatusMsg(), e.getMessage()));
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
                     e.getErrorCode());
             FrameworkUtils.sendToRetryPage(request, responseWrapper, context, errorWrapper.getStatus(),
@@ -1280,7 +1282,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         Map<Integer, StepConfig> stepMap = effectiveSequence.getStepMap();
         if (MapUtils.isEmpty(stepMap)) {
             stepMap = effectiveSequence.getAuthenticationGraph().getStepMap();
-            effectiveSequence.setStepMap(stepMap);
         }
         StepConfig stepConfig = stepMap.get(1);
         if (stepConfig == null) {
