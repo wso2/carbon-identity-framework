@@ -441,7 +441,6 @@ public abstract class FrameworkConstants {
         public static final String SESSION_ID = "sessionId";
         public static final String CLIENT_ID = "client_id";
 
-
         private RequestParams() {
         }
     }

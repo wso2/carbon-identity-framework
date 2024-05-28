@@ -615,6 +615,7 @@ public class ServiceProvider implements Serializable {
     }
 
     public boolean isApplicationEnabled() {
+
         return isApplicationEnabled;
     }
 

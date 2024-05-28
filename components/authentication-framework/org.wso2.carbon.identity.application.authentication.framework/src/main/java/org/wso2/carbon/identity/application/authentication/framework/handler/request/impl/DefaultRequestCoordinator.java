@@ -255,7 +255,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             // Check if the application is enabled.
-            if (!checkIfApplicationEnabled(request, context)) {
+            if (!isApplicationEnabled(request, context)) {
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, null,
                         ERROR_STATUS_APP_DISABLED, ERROR_DESCRIPTION_APP_DISABLED);
                 return;
@@ -489,22 +489,23 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private boolean checkIfApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
+    private boolean isApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
             throws FrameworkException {
 
         String type = request.getParameter(TYPE);
-        String clientId = request.getParameter(CLIENT_ID);
+        String clientId = request.getParameter(FrameworkConstants.RequestParams.ISSUER);
         if (StringUtils.isBlank(type)) {
             type = context.getRequestType();
         }
         if (StringUtils.isBlank(clientId)) {
+            clientId = request.getParameter(CLIENT_ID);
+        }
+        if (StringUtils.isBlank(clientId)) {
             clientId = context.getRelyingParty();
         }
+
         ServiceProvider serviceProvider = getServiceProvider(type, clientId, getTenantDomain(request));
         if (serviceProvider == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Service provider is null for client id: " + clientId);
-            }
             return false;
         }
         if (!serviceProvider.isApplicationEnabled()) {
