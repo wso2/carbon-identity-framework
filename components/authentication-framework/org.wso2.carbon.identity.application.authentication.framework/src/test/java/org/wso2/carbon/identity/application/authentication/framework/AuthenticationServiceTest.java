@@ -196,7 +196,8 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
             authenticationService.handleAuthentication(authServiceRequest);
         } catch (AuthServiceClientException e) {
             Assert.assertEquals(AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION.code(), e.getErrorCode());
-            Assert.assertEquals(AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION.description(), e.getMessage());
+            Assert.assertEquals(AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION.description(),
+                    e.getMessage());
         }
     }
 

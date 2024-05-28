@@ -565,7 +565,7 @@
                 <xs:sequence>
                     <xs:element minOccurs="0" name="APIBasedAuthenticationEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="accessUrl" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="applicationAccessEnabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="applicationEnabled" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="applicationID" type="xs:int"/>
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationResourceId" nillable="true" type="xs:string"/>
