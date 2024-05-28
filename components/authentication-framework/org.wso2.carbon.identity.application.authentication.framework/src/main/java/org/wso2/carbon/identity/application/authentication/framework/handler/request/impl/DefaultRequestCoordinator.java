@@ -489,7 +489,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private boolean isApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
+    protected boolean isApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
             throws FrameworkException {
 
         String type = request.getParameter(TYPE);

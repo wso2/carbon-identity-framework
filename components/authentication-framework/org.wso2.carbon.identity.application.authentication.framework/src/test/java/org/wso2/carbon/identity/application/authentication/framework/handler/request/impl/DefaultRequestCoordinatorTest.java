@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.junit.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -30,6 +31,10 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -41,6 +46,7 @@ import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -183,6 +189,49 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             } catch (FrameworkException e) {
                 assertEquals(e.getErrorCode(), NONCE_ERROR_CODE);
             }
+        }
+    }
+
+    @Test
+    public void testApplicationDisabled() {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<SessionNonceCookieUtil> sessionNonceCookieUtil =
+                     mockStatic(SessionNonceCookieUtil.class);
+             MockedStatic<ApplicationManagementService> applicationManagementService =
+                     mockStatic(ApplicationManagementService.class)) {
+
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            AuthenticationContext context = mock(AuthenticationContext.class);
+            DefaultRequestCoordinator defaultRequestCoordinator = new DefaultRequestCoordinator();
+
+            // Mocking request and context parameters
+            when(request.getParameter(FrameworkConstants.RequestParams.ISSUER)).thenReturn("some-client-id");
+            when(context.getRequestType()).thenReturn("some-type");
+            when(context.getTenantDomain()).thenReturn("some-tenant-domain");
+
+            // Mocking ServiceProvider and its properties
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isApplicationEnabled()).thenReturn(false);  // ServiceProvider is disabled
+
+            // Mocking ApplicationManagementService behavior
+            ApplicationManagementService mockApplicationManagementService = mock(ApplicationManagementService.class);
+            when(mockApplicationManagementService.getServiceProviderByClientId(anyString(),
+                    anyString(), anyString())).thenReturn(serviceProvider);
+            applicationManagementService.when(ApplicationManagementService::getInstance).
+                    thenReturn(mockApplicationManagementService);
+
+            // Mocking FrameworkUtils
+            frameworkUtils.when(() -> FrameworkUtils.getContextData(request)).thenReturn(context);
+
+            // Execute the method under test
+            boolean isEnabled = defaultRequestCoordinator.isApplicationEnabled(request, context);
+
+            // Assertions
+            Assert.assertFalse(isEnabled);
+
+        } catch (IdentityApplicationManagementException | FrameworkException e) {
+            Assert.fail();
         }
     }
 }
