@@ -454,7 +454,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         "for session with sessionDataKey: " + request.getParameter("sessionDataKey"));
             } else {
                 log.error("Exception in Authentication Framework", e);
-                System.out.println("are we here?????????");
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
         } finally {
@@ -502,7 +501,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
         ServiceProvider serviceProvider = getServiceProvider(type, relyingParty, getTenantDomain(request));
         if (serviceProvider == null) {
-            System.out.println(" am i herererer==========");
             throw new FrameworkException("Unable to retrieve service provider for client_id: " + relyingParty);
         }
         if (!serviceProvider.isApplicationEnabled()) {
