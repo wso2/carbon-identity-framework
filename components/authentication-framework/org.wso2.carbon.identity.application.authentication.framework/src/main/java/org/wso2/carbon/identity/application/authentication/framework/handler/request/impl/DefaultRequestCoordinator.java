@@ -166,12 +166,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         AuthenticationContext context = null;
         String sessionDataKey = request.getParameter("sessionDataKey");
         try {
-            // Check if the application is enabled only for the initial request.
-            if (!checkIfApplicationEnabled(request)) {
-                FrameworkUtils.sendToRetryPage(request, responseWrapper, null,
-                        ERROR_STATUS_APP_DISABLED, ERROR_DESCRIPTION_APP_DISABLED);
-                return;
-            }
             IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW, true);
             AuthenticationRequestCacheEntry authRequest = null;
             boolean returning = false;
@@ -258,6 +252,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     returning = true;
                 }
                 associateTransientRequestData(request, responseWrapper, context);
+            }
+
+            // Check if the application is enabled.
+            if (!checkIfApplicationEnabled(request, context)) {
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, null,
+                        ERROR_STATUS_APP_DISABLED, ERROR_DESCRIPTION_APP_DISABLED);
+                return;
             }
 
             if (context != null) {
@@ -488,10 +489,17 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private boolean checkIfApplicationEnabled(HttpServletRequest request) throws FrameworkException {
+    private boolean checkIfApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
+            throws FrameworkException {
 
         String type = request.getParameter(TYPE);
         String clientId = request.getParameter(CLIENT_ID);
+        if (StringUtils.isBlank(type)) {
+            type = context.getRequestType();
+        }
+        if (StringUtils.isBlank(clientId)) {
+            clientId = context.getRelyingParty();
+        }
         ServiceProvider serviceProvider = getServiceProvider(type, clientId, getTenantDomain(request));
         if (serviceProvider == null) {
             if (log.isDebugEnabled()) {
