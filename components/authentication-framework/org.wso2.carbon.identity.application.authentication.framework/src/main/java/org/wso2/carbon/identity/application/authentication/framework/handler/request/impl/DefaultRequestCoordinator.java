@@ -106,7 +106,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REDIRECT_URL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CLIENT_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
@@ -256,7 +255,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
             // Check if the application is enabled.
             if (!isApplicationEnabled(request, context)) {
-                FrameworkUtils.sendToRetryPage(request, responseWrapper, null,
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, context,
                         ERROR_STATUS_APP_DISABLED, ERROR_DESCRIPTION_APP_DISABLED);
                 return;
             }
@@ -455,6 +454,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         "for session with sessionDataKey: " + request.getParameter("sessionDataKey"));
             } else {
                 log.error("Exception in Authentication Framework", e);
+                System.out.println("are we here?????????");
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
         } finally {
@@ -489,7 +489,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    protected boolean isApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
+    private boolean isApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
             throws FrameworkException {
 
         String type = request.getParameter(TYPE);
@@ -500,9 +500,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         if (StringUtils.isBlank(relyingParty)) {
             relyingParty = context.getRelyingParty();
         }
-
         ServiceProvider serviceProvider = getServiceProvider(type, relyingParty, getTenantDomain(request));
         if (serviceProvider == null) {
+            System.out.println(" am i herererer==========");
             throw new FrameworkException("Unable to retrieve service provider for client_id: " + relyingParty);
         }
         if (!serviceProvider.isApplicationEnabled()) {
