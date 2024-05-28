@@ -143,7 +143,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
             Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
 
             bindings.putMember(JS_FUNC_EXECUTE_STEP, new JsGraalStepExecuter());
-            bindings.putMember(JS_FUNC_SEND_ERROR, new SendErrorAsyncFunctionImpl());
+            bindings.putMember(JS_FUNC_SEND_ERROR, new SendErrorFunctionImpl());
             bindings.putMember(JS_FUNC_SHOW_PROMPT, new JsGraalPromptExecutorImpl());
             bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new JsGraalLoadExecutorImpl());
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
@@ -591,7 +591,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
                 Value bindings = context.getBindings(POLYGLOT_LANGUAGE);
 
                 bindings.putMember(JS_FUNC_EXECUTE_STEP, new JsGraalStepExecuterInAsyncEvent());
-                bindings.putMember(JS_FUNC_SEND_ERROR, new SendErrorFunctionImpl());
+                bindings.putMember(JS_FUNC_SEND_ERROR, new SendErrorAsyncFunctionImpl());
                 bindings.putMember(JS_AUTH_FAILURE, new FailAuthenticationFunctionImpl());
                 bindings.putMember(JS_FUNC_SHOW_PROMPT, new JsGraalPromptExecutorImpl());
                 bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new JsGraalLoadExecutorImpl());
