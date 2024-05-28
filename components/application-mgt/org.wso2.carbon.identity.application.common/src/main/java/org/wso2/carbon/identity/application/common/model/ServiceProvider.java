@@ -53,7 +53,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
-    private static final String IS_APPLICATION_ENABLED = "applicationEnabled";
+    private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
 

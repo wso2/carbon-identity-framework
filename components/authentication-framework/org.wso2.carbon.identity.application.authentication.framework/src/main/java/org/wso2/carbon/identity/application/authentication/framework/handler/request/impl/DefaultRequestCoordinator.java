@@ -501,11 +501,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
         ServiceProvider serviceProvider = getServiceProvider(type, relyingParty, getTenantDomain(request));
         if (serviceProvider == null) {
-            throw new FrameworkException("Unable to retrieve service provider for client_id: " + relyingParty);
+            throw new FrameworkException("Unable to retrieve service provider for relying party : " + relyingParty);
         }
         if (!serviceProvider.isApplicationEnabled()) {
             if (log.isDebugEnabled()) {
-                log.debug("Application is disabled for the service provider with client id: " + relyingParty);
+                log.debug("Application is disabled for the service provider with relying party: " + relyingParty);
             }
             return false;
         }

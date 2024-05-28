@@ -439,6 +439,7 @@ public abstract class FrameworkConstants {
         public static final String CORRELATION_ID = "crId";
         public static final String IS_IDF_INITIATED_FROM_AUTHENTICATOR = "isIdfInitiatedFromAuthenticator";
         public static final String SESSION_ID = "sessionId";
+
         private RequestParams() {
         }
     }
