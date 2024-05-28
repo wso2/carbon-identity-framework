@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.core.MDCAwareExecutors;
+import org.wso2.carbon.identity.core.ThreadLocalAwareExecutors;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Map;
@@ -53,7 +53,7 @@ public class AsyncSequenceExecutor {
             poolSize = 5;
         }
 
-        executorService = MDCAwareExecutors.newFixedThreadPool(poolSize);
+        executorService = ThreadLocalAwareExecutors.newFixedThreadPool(poolSize);
     }
 
     public void exec(AsyncCaller caller, AsyncReturn returnFunction, AuthenticationContext authenticationContext)

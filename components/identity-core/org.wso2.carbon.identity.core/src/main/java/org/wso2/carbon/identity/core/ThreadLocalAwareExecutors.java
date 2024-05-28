@@ -24,15 +24,16 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * MDC aware executors class. This will return a ExecutorService
+ * Thread Local aware executors class. This will return a ExecutorService
  * object which resolves MDC thread local in a multithreaded manner.
  */
-public final class MDCAwareExecutors {
+public final class ThreadLocalAwareExecutors {
 
-    private MDCAwareExecutors() {}
+    private ThreadLocalAwareExecutors() { }
 
     public static ExecutorService newFixedThreadPool(final int nThreads) {
-        return new MDCAwareThreadPoolExecutor(nThreads, nThreads,
+
+        return new ThreadLocalAwareThreadPoolExecutor(nThreads, nThreads,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>());
     }

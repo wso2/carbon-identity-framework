@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.pro
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.core.MDCAwareExecutors;
+import org.wso2.carbon.identity.core.ThreadLocalAwareExecutors;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -38,7 +38,7 @@ import java.util.concurrent.ExecutorService;
 public class JITProvisioningIdentityProviderMgtListener extends AbstractIdentityProviderMgtListener {
 
     private static final Log log = LogFactory.getLog(JITProvisioningIdentityProviderMgtListener.class);
-    private static final ExecutorService threadPool = MDCAwareExecutors.newFixedThreadPool(1);
+    private static final ExecutorService threadPool = ThreadLocalAwareExecutors.newFixedThreadPool(1);
 
     @Override
     public boolean doPostDeleteIdPByResourceId(String resourceId, IdentityProvider identityProvider,
