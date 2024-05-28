@@ -197,6 +197,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.AUTHENTICATOR_NAME_IN_AUTH_CONFIG;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
@@ -3908,10 +3909,10 @@ public class FrameworkUtils {
             serviceProvider = context.getSequenceConfig().getApplicationConfig().getApplicationName();
         }
         /*
-         Skip My Account application redirections to use ServiceURLBuilder for URL generation
-         since My Account is SaaS.
+         Skip My Account and Console application redirections to use ServiceURLBuilder for URL generation
+         since custom domain branding capabilities are not provided for them.
          */
-        if (!MY_ACCOUNT_APP.equals(serviceProvider)) {
+        if (!(MY_ACCOUNT_APP.equals(serviceProvider) || CONSOLE_APP.equals(serviceProvider))) {
             if (callerPath != null && callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
                 String callerTenant = callerPath.split("/")[2];
                 String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
