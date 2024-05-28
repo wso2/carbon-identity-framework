@@ -395,8 +395,8 @@ public class AuthenticationService {
         // Check if the application is enabled to proceed with authentication.
         if (!serviceProvider.isApplicationEnabled()) {
             throw new AuthServiceClientException(
-                    AuthServiceConstants.ErrorMessage.ERROR_DISABLED_CLIENT.code(),
-                    AuthServiceConstants.ErrorMessage.ERROR_DISABLED_CLIENT.description());
+                    AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION.code(),
+                    AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION.description());
         }
 
         // Check whether api based authentication is enabled for the SP.
@@ -534,7 +534,7 @@ public class AuthenticationService {
             case FrameworkConstants.ERROR_STATUS_AUTH_CONTEXT_NULL:
                 return AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATION_CONTEXT_NULL;
             case FrameworkConstants.ERROR_STATUS_APP_DISABLED:
-                return AuthServiceConstants.ErrorMessage.ERROR_DISABLED_CLIENT;
+                return AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION;
             default:
                 return null;
         }

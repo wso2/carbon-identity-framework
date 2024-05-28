@@ -87,7 +87,7 @@ public class AuthServiceConstants {
         ERROR_INVALID_LOGOUT_REQUEST("60010",
                 "Invalid logout request.",
                 "Received logout request is invalid."),
-        ERROR_DISABLED_CLIENT("60011",
+        ERROR_DISABLED_APPLICATION("60011",
                 "Application is disabled.",
                 "Application is disabled. Unable to proceed with authentication as application access " +
                         "is restricted."),

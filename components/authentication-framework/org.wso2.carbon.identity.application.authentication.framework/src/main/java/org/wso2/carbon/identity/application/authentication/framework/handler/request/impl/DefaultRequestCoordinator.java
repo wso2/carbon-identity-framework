@@ -493,25 +493,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             throws FrameworkException {
 
         String type = request.getParameter(TYPE);
-        String clientId = request.getParameter(FrameworkConstants.RequestParams.ISSUER);
+        String relyingParty = request.getParameter(FrameworkConstants.RequestParams.ISSUER);
         if (StringUtils.isBlank(type)) {
             type = context.getRequestType();
         }
-        if (StringUtils.isBlank(clientId)) {
-            clientId = request.getParameter(CLIENT_ID);
-        }
-        if (StringUtils.isBlank(clientId)) {
-            clientId = context.getRelyingParty();
+        if (StringUtils.isBlank(relyingParty)) {
+            relyingParty = context.getRelyingParty();
         }
 
-        ServiceProvider serviceProvider = getServiceProvider(type, clientId, getTenantDomain(request));
+        ServiceProvider serviceProvider = getServiceProvider(type, relyingParty, getTenantDomain(request));
         if (serviceProvider == null) {
-            return false;
+            throw new FrameworkException("Unable to retrieve service provider for client_id: " + relyingParty);
         }
         if (!serviceProvider.isApplicationEnabled()) {
             if (log.isDebugEnabled()) {
-                log.debug("Application is disabled for the service provider with client id: "
-                        + clientId);
+                log.debug("Application is disabled for the service provider with client id: " + relyingParty);
             }
             return false;
         }

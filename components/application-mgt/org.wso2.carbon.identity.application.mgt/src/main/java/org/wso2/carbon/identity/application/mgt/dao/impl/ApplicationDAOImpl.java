@@ -2182,7 +2182,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
             serviceProvider.setTemplateId(getTemplateId(propertyList));
-            serviceProvider.setApplicationEnabled(getIsAppEnabled(propertyList));
+            serviceProvider.setApplicationEnabled(getIsApplicationEnabled(propertyList));
             serviceProvider.setManagementApp(getIsManagementApp(propertyList));
             serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
             serviceProvider.setAPIBasedAuthenticationEnabled(getIsAPIBasedAuthenticationEnabled(propertyList));
@@ -2435,7 +2435,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return Boolean.parseBoolean(value);
     }
 
-    private boolean getIsAppEnabled(List<ServiceProviderProperty> propertyList) {
+    private boolean getIsApplicationEnabled(List<ServiceProviderProperty> propertyList) {
 
         String value = propertyList.stream()
                 .filter(property -> APPLICATION_ENABLED_PROPERTY_NAME.equals(property.getName()))
@@ -5151,8 +5151,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(sp);
         spPropertyMap.put(isB2BSSAppProperty.getName(), isB2BSSAppProperty);
 
-        ServiceProviderProperty isApplicationAccessEnabledProperty = buildIsApplicationAccessEnabledProperty(sp);
-        spPropertyMap.put(isApplicationAccessEnabledProperty.getName(), isApplicationAccessEnabledProperty);
+        ServiceProviderProperty isApplicationEnabledProperty = buildIsApplicationEnabledProperty(sp);
+        spPropertyMap.put(isApplicationEnabledProperty.getName(), isApplicationEnabledProperty);
 
         ServiceProviderProperty allowedRoleAudienceProperty = buildAllowedRoleAudienceProperty(sp);
         spPropertyMap.put(allowedRoleAudienceProperty.getName(), allowedRoleAudienceProperty);
@@ -5273,7 +5273,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return isB2BSSAppProperty;
     }
 
-    private ServiceProviderProperty buildIsApplicationAccessEnabledProperty(ServiceProvider sp) {
+    private ServiceProviderProperty buildIsApplicationEnabledProperty(ServiceProvider sp) {
 
         ServiceProviderProperty isAppEnabledProperty = new ServiceProviderProperty();
         isAppEnabledProperty.setName(APPLICATION_ENABLED_PROPERTY_NAME);
