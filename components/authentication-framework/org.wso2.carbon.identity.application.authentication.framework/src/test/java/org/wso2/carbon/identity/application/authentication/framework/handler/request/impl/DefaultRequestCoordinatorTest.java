@@ -195,8 +195,6 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     public void testApplicationDisabled() {
 
         try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
-             MockedStatic<SessionNonceCookieUtil> sessionNonceCookieUtil =
-                     mockStatic(SessionNonceCookieUtil.class);
              MockedStatic<ApplicationManagementService> applicationManagementService =
                      mockStatic(ApplicationManagementService.class)) {
 
