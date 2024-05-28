@@ -40,7 +40,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.auth.
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
@@ -180,7 +179,8 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         String tenantDomain = "dummyTenantDomain";
         ServiceProvider serviceProvider = mock(ServiceProvider.class);
         when(serviceProvider.isApplicationEnabled()).thenReturn(false);  // ServiceProvider is disabled
-        ApplicationManagementServiceImpl mockApplicationManagementService = mock(ApplicationManagementServiceImpl.class);
+        ApplicationManagementServiceImpl mockApplicationManagementService =
+                mock(ApplicationManagementServiceImpl.class);
         applicationManagementService.when(ApplicationManagementService::getInstance)
                 .thenReturn(mockApplicationManagementService);;
 
