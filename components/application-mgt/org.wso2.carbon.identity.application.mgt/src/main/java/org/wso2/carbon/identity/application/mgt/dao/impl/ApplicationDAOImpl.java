@@ -146,11 +146,11 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_ENABLED_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ISSUER_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_ENABLED_DISPLAY_NAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME;
