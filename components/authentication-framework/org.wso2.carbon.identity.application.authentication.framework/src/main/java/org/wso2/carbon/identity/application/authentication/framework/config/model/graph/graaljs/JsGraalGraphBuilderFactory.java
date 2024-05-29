@@ -131,6 +131,7 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
          * functional interfaces we have for existing conditional authentication functions.
          */
         return HostAccess.newBuilder(HostAccess.EXPLICIT)
+                .allowListAccess(true)
                 .targetTypeMapping(Value.class, JsAuthenticationContext.class,
                         (v) -> v.asProxyObject() instanceof JsAuthenticationContext,
                         (v) -> (JsAuthenticationContext) v.asProxyObject())
