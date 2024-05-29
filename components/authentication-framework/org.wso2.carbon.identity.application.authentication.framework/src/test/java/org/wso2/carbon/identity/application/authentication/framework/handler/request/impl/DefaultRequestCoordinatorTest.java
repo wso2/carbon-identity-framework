@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
-import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
