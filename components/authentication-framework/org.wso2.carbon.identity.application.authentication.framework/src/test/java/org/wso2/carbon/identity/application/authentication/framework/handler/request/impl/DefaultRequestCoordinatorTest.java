@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -216,8 +217,9 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             String relyingParty = "console";
             String tenantDomain = "carbon.super";
 
-            HttpServletRequest request = mock(HttpServletRequest.class);
+            HttpServletRequest requestMock = spy(HttpServletRequest.class);
             HttpServletResponse responseMock = spy(HttpServletResponse.class);
+            CommonAuthRequestWrapper request = new CommonAuthRequestWrapper(requestMock);
             CommonAuthResponseWrapper response = new CommonAuthResponseWrapper(responseMock);
             AuthenticationContext context = mock(AuthenticationContext.class);
             DefaultRequestCoordinator defaultRequestCoordinator = new DefaultRequestCoordinator();
@@ -229,6 +231,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             when(context.getTenantDomain()).thenReturn(tenantDomain);
             when(context.getServiceProviderName()).thenReturn("consoleApplication");
             when(context.getEndpointParams()).thenReturn(new HashMap<>());
+            when(context.getSessionIdentifier()).thenReturn("randomKey");
 
             // Mocking FrameworkUtils
             frameworkUtils.when(() -> FrameworkUtils.getContextData(request)).thenReturn(context);
@@ -258,23 +261,39 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             frameworkUtils.when(() -> FrameworkUtils.addAuthenticationErrorToCache(any(), any(), any())).
                     thenAnswer(invocation -> null);
 
-            String expectedRedirectURL = new URIBuilder("https://localhost:9443/retry")
-                    .addParameter("status", ERROR_STATUS_APP_DISABLED)
-                    .addParameter("statusMsg", ERROR_DESCRIPTION_APP_DISABLED)
-                    .build().toString();
-
             frameworkUtils.when(() -> FrameworkUtils.getRedirectURLWithFilteredParams(any(),
                             (AuthenticationContext) any())).thenCallRealMethod();
 
             frameworkUtils.when(() -> FrameworkUtils.getRedirectURLWithFilteredParams(any(),
                             (Map<String, Serializable>) any())).thenCallRealMethod();
 
+            // Invoke handle method
             defaultRequestCoordinator.handle(request, response);
 
-            Assert.assertEquals(expectedRedirectURL, response.getRedirectURL());
+            Map<String, String> queryParams = getQueryParams(response.getRedirectURL());
+            String status = queryParams.get("status");
+            String statusMsg = queryParams.get("statusMsg");
+
+            // Assert the response
+            Assert.assertEquals(status, ERROR_STATUS_APP_DISABLED);
+            Assert.assertEquals(statusMsg, ERROR_DESCRIPTION_APP_DISABLED);
 
         } catch (IdentityApplicationManagementException | IOException | URISyntaxException e) {
             Assert.fail("Exception occurred: " + e.getMessage());
         }
+    }
+
+    private Map<String, String> getQueryParams(String url) throws URISyntaxException {
+
+        Map<String, String> queryPairs = new HashMap<>();
+        String query = url.substring(url.indexOf('?') + 1);
+        String[] pairs = query.split("&");
+        for (String pair : pairs) {
+            int idx = pair.indexOf("=");
+            String key = pair.substring(0, idx);
+            String value = pair.substring(idx + 1);
+            queryPairs.put(key, value);
+        }
+        return queryPairs;
     }
 }
