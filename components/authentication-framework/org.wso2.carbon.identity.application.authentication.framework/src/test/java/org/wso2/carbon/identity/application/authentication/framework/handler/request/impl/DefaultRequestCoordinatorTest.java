@@ -61,7 +61,8 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.*;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
@@ -249,7 +250,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             when(configurationFacadeInstance.getAuthenticationEndpointRetryURL())
                     .thenReturn("https://localhost:9443/retry");
 
-            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any(), any(),any())).
+            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any(), any(), any())).
                     thenCallRealMethod();
 
             frameworkUtils.when(() -> FrameworkUtils.getRedirectURL(any(), any())).thenCallRealMethod();
@@ -263,12 +264,10 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
                     .build().toString();
 
             frameworkUtils.when(() -> FrameworkUtils.getRedirectURLWithFilteredParams(any(),
-                            (AuthenticationContext) any())).
-                    thenCallRealMethod();
+                            (AuthenticationContext) any())).thenCallRealMethod();
 
             frameworkUtils.when(() -> FrameworkUtils.getRedirectURLWithFilteredParams(any(),
-                            (Map<String, Serializable>) any())).
-                    thenCallRealMethod();
+                            (Map<String, Serializable>) any())).thenCallRealMethod();
 
             defaultRequestCoordinator.handle(request, response);
 
