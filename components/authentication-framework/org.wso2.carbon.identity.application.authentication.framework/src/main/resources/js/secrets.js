@@ -16,9 +16,14 @@
  * under the License.
  */
 
-// This is the secrets.js file that is used to retrieve secrets from the secret manager.
-var secrets = new Proxy({}, {
+var internalSecrets = new Proxy({}, {
     get: function(target, prop) {
-        return getSecretByName(prop);
+        if (!(prop in target)) {
+            // Retrieve the secret and store it in the target object for persistence
+            target[prop] = getSecretByName(prop);
+        }
+        return target[prop];
     }
 });
+
+var secrets = internalSecrets;
