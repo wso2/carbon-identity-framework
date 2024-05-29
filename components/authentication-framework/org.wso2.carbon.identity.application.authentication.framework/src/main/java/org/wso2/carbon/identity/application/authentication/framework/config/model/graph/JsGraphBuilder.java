@@ -507,9 +507,9 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
     /**
      * Get the secret by name.
      *
-     * @param secretName secretName
-     * @return secretValue
-     * @throws SecretManagementException
+     * @param secretName secretName.
+     * @return secretValue.
+     * @throws SecretManagementException Secret management exception.
      */
     public String getSecretByName(String secretName) throws SecretManagementException {
 
