@@ -863,7 +863,7 @@ public class FrameworkServiceComponent {
     protected void setSecretConfigManager(SecretResolveManager secretConfigManager) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Secret Config Manager is set form functions");
+            log.debug("Secret Config Manager is set from functions");
         }
         FrameworkServiceDataHolder.getInstance().setSecretConfigManager(secretConfigManager);
     }
@@ -922,8 +922,7 @@ public class FrameworkServiceComponent {
             secretsCode = IOUtils.toString(resourceStream);
             FrameworkServiceDataHolder.getInstance().setCodeForSecretsFunction(secretsCode);
         } catch (IOException e) {
-            log.error("Failed to read secrets.js file. Therefore, secrets object doesn't support in" +
-                    "adaptive authentication scripts.", e);
+            log.error("Secrets object for secret resolution will not be available for adaptive auth scripts.", e);
         }
     }
 
