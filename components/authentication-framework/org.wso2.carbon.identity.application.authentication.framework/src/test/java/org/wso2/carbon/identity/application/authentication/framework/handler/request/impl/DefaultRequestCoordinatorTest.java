@@ -18,33 +18,51 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.junit.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
@@ -184,5 +202,97 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
                 assertEquals(e.getErrorCode(), NONCE_ERROR_CODE);
             }
         }
+    }
+
+    @Test
+    public void testApplicationDisabled() {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<ApplicationManagementService> applicationManagementService =
+                     mockStatic(ApplicationManagementService.class);
+             MockedStatic<ConfigurationFacade> configurationFacade = mockStatic(ConfigurationFacade.class)) {
+
+            String requestType = "oauth2";
+            String relyingParty = "console";
+            String tenantDomain = "carbon.super";
+
+            HttpServletRequest requestMock = spy(HttpServletRequest.class);
+            HttpServletResponse responseMock = spy(HttpServletResponse.class);
+            CommonAuthRequestWrapper request = new CommonAuthRequestWrapper(requestMock);
+            CommonAuthResponseWrapper response = new CommonAuthResponseWrapper(responseMock);
+            AuthenticationContext context = mock(AuthenticationContext.class);
+            DefaultRequestCoordinator defaultRequestCoordinator = new DefaultRequestCoordinator();
+
+            // Mocking request and context parameters
+            when(request.getParameter(FrameworkConstants.RequestParams.ISSUER)).thenReturn(relyingParty);
+            when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomain);
+            when(context.getRequestType()).thenReturn(requestType);
+            when(context.getTenantDomain()).thenReturn(tenantDomain);
+            when(context.getServiceProviderName()).thenReturn("consoleApplication");
+            when(context.getEndpointParams()).thenReturn(new HashMap<>());
+            when(context.getSessionIdentifier()).thenReturn("randomKey");
+
+            // Mocking FrameworkUtils
+            frameworkUtils.when(() -> FrameworkUtils.getContextData(request)).thenReturn(context);
+
+            // Mocking ApplicationManagementService behavior
+            ApplicationManagementServiceImpl mockApplicationManagementService =
+                    mock(ApplicationManagementServiceImpl.class);
+            applicationManagementService.when(ApplicationManagementService::getInstance)
+                    .thenReturn(mockApplicationManagementService);
+
+            // Mocking ServiceProvider and its properties
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isApplicationEnabled()).thenReturn(false);  // ServiceProvider is disabled
+            when(mockApplicationManagementService.getServiceProviderByClientId(anyString(), anyString(), anyString()))
+                    .thenReturn(serviceProvider);
+
+            ConfigurationFacade configurationFacadeInstance = mock(ConfigurationFacade.class);
+            configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(configurationFacadeInstance);
+            when(configurationFacadeInstance.getAuthenticationEndpointRetryURL())
+                    .thenReturn("https://localhost:9443/retry");
+
+            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any(), any(), any())).
+                    thenCallRealMethod();
+
+            frameworkUtils.when(() -> FrameworkUtils.getRedirectURL(any(), any())).thenCallRealMethod();
+
+            frameworkUtils.when(() -> FrameworkUtils.addAuthenticationErrorToCache(any(), any(), any())).
+                    thenAnswer(invocation -> null);
+
+            frameworkUtils.when(() -> FrameworkUtils.getRedirectURLWithFilteredParams(any(),
+                            (AuthenticationContext) any())).thenCallRealMethod();
+
+            frameworkUtils.when(() -> FrameworkUtils.getRedirectURLWithFilteredParams(any(),
+                            (Map<String, Serializable>) any())).thenCallRealMethod();
+
+            // Invoke handle method
+            defaultRequestCoordinator.handle(request, response);
+
+            Map<String, String> queryParams = getQueryParams(response.getRedirectURL());
+            String status = queryParams.get(FrameworkConstants.STATUS_PARAM);
+            String statusMsg = queryParams.get(FrameworkConstants.STATUS_MSG_PARAM);
+
+            // Assert the response
+            Assert.assertEquals(status, ERROR_STATUS_APP_DISABLED);
+            Assert.assertEquals(statusMsg, ERROR_DESCRIPTION_APP_DISABLED);
+
+        } catch (IdentityApplicationManagementException | IOException | URISyntaxException e) {
+            Assert.fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    private Map<String, String> getQueryParams(String url) throws URISyntaxException {
+
+        Map<String, String> queryPairs = new HashMap<>();
+        String query = url.substring(url.indexOf('?') + 1);
+        String[] pairs = query.split("&");
+        for (String pair : pairs) {
+            int idx = pair.indexOf("=");
+            String key = pair.substring(0, idx);
+            String value = pair.substring(idx + 1);
+            queryPairs.put(key, value);
+        }
+        return queryPairs;
     }
 }

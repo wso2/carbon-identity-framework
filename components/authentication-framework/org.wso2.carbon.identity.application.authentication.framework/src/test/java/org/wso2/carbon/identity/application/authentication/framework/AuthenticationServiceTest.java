@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceClientException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.model.auth.service.AuthServiceErrorInfo;
@@ -39,6 +40,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.auth.
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,6 +54,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -78,6 +83,8 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
     private MockedStatic<ConfigurationFacade> configurationFacade;
     private MockedStatic<FrameworkUtils> frameworkUtils;
 
+    private MockedStatic<ApplicationManagementService> applicationManagementService;
+
     @BeforeMethod
     public void init() throws IOException {
 
@@ -92,6 +99,8 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         frameworkUtils.when(FrameworkUtils::getRequestCoordinator).thenReturn(defaultRequestCoordinator);
         frameworkUtils.when(FrameworkUtils::getMaxInactiveInterval).thenReturn(-1);
 
+        applicationManagementService = mockStatic(ApplicationManagementService.class);
+
         doNothing().when(defaultRequestCoordinator).handle(request, response);
     }
 
@@ -99,6 +108,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
     public void tearDown() {
         configurationFacade.close();
         frameworkUtils.close();
+        applicationManagementService.close();
     }
 
     @DataProvider(name = "authProvider")
@@ -157,6 +167,37 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
             Assert.assertEquals(authServiceResponseData.get().isAuthenticatorSelectionRequired(), isMultiOpsResponse);
             List<AuthenticatorData> actual = authServiceResponseData.get().getAuthenticatorOptions();
             validateReturnedAuthenticators(actual, expected, isMultiOpsResponse);
+        }
+    }
+
+    @Test
+    public void testHandleAppDisabledInitialAuthentication() throws Exception {
+
+        AuthenticationService authenticationService = new AuthenticationService();
+        AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
+        String clientId = "dummyClientId";
+        String tenantDomain = "dummyTenantDomain";
+        ServiceProvider serviceProvider = mock(ServiceProvider.class);
+        when(serviceProvider.isApplicationEnabled()).thenReturn(false);  // ServiceProvider is disabled
+        ApplicationManagementServiceImpl mockApplicationManagementService =
+                mock(ApplicationManagementServiceImpl.class);
+        applicationManagementService.when(ApplicationManagementService::getInstance)
+                .thenReturn(mockApplicationManagementService);;
+
+        when(request.getAttribute(AuthServiceConstants.REQ_ATTR_IS_INITIAL_API_BASED_AUTH_REQUEST)).thenReturn(true);
+        when(request.getAttribute(AuthServiceConstants.REQ_ATTR_RELYING_PARTY)).thenReturn(clientId);
+        when(request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN)).thenReturn(tenantDomain);
+        when(mockApplicationManagementService.getServiceProviderByClientId(anyString(), anyString(), anyString()))
+                .thenReturn(serviceProvider);
+        when(request.getAttribute(AuthServiceConstants.REQ_ATTR_IS_INITIAL_API_BASED_AUTH_REQUEST)).thenReturn(true);
+        when(request.getAttribute(AuthServiceConstants.REQ_ATTR_RELYING_PARTY)).thenReturn(clientId);
+        when(request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN)).thenReturn(tenantDomain);
+        try {
+            authenticationService.handleAuthentication(authServiceRequest);
+        } catch (AuthServiceClientException e) {
+            Assert.assertEquals(AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION.code(), e.getErrorCode());
+            Assert.assertEquals(AuthServiceConstants.ErrorMessage.ERROR_DISABLED_APPLICATION.description(),
+                    e.getMessage());
         }
     }
 

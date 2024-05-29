@@ -98,6 +98,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.IS_API_BASED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER;
@@ -108,6 +110,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
@@ -248,6 +251,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     returning = true;
                 }
                 associateTransientRequestData(request, responseWrapper, context);
+            }
+
+            // Check if the application is enabled.
+            if (!isApplicationEnabled(request, context)) {
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, null, ERROR_STATUS_APP_DISABLED,
+                        ERROR_DESCRIPTION_APP_DISABLED);
+                return;
             }
 
             if (context != null) {
@@ -476,6 +486,30 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
             }
         }
+    }
+
+    private boolean isApplicationEnabled(HttpServletRequest request, AuthenticationContext context)
+            throws FrameworkException {
+
+        String type = request.getParameter(TYPE);
+        String relyingParty = request.getParameter(FrameworkConstants.RequestParams.ISSUER);
+        if (StringUtils.isBlank(type)) {
+            type = context.getRequestType();
+        }
+        if (StringUtils.isBlank(relyingParty)) {
+            relyingParty = context.getRelyingParty();
+        }
+        ServiceProvider serviceProvider = getServiceProvider(type, relyingParty, getTenantDomain(request));
+        if (serviceProvider == null) {
+            throw new FrameworkException("Unable to retrieve service provider for relying party : " + relyingParty);
+        }
+        if (!serviceProvider.isApplicationEnabled()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Application is disabled for the service provider with relying party: " + relyingParty);
+            }
+            return false;
+        }
+        return true;
     }
 
     protected void unwrapResponse(CommonAuthResponseWrapper responseWrapper, String sessionDataKey,
