@@ -271,8 +271,8 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             defaultRequestCoordinator.handle(request, response);
 
             Map<String, String> queryParams = getQueryParams(response.getRedirectURL());
-            String status = queryParams.get("status");
-            String statusMsg = queryParams.get("statusMsg");
+            String status = queryParams.get(FrameworkConstants.STATUS_PARAM);
+            String statusMsg = queryParams.get(FrameworkConstants.STATUS_MSG_PARAM);
 
             // Assert the response
             Assert.assertEquals(status, ERROR_STATUS_APP_DISABLED);
