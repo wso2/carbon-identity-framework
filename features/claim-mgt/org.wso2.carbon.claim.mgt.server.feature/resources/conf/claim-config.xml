@@ -810,6 +810,7 @@
 				<AttributeID>mobileNumbers</AttributeID>
 				<Description>Claim to store mobile numbers of the user</Description>
 				<ReadOnly>false</ReadOnly>
+				<SupportedByDefault />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/verifiedMobileNumbers</ClaimURI>
@@ -817,6 +818,23 @@
 				<AttributeID>verifiedMobileNumbers</AttributeID>
 				<Description>Claim to store verified mobile numbers of the user</Description>
 				<ReadOnly>false</ReadOnly>
+				<SupportedByDefault />
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/emailAddresses</ClaimURI>
+				<DisplayName>Email Addresses</DisplayName>
+				<AttributeID>emailAddresses</AttributeID>
+				<Description>Claim to store email addresses of the user</Description>
+				<ReadOnly>false</ReadOnly>
+				<SupportedByDefault />
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/verifiedEmailAddresses</ClaimURI>
+				<DisplayName>Verified Email Addresses</DisplayName>
+				<AttributeID>verifiedEmailAddresses</AttributeID>
+				<Description>Claim to store verified email addresses of the user</Description>
+				<ReadOnly>false</ReadOnly>
+				<SupportedByDefault />
 			</Claim>
 		</Dialect>
 
@@ -1752,6 +1770,7 @@
 				<DisplayName>Mobile Numbers</DisplayName>
 				<AttributeID>mobileNumbers</AttributeID>
 				<Description>Mobile Numbers</Description>
+				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/mobileNumbers</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -1759,7 +1778,24 @@
 				<DisplayName>Verified Mobile Numbers</DisplayName>
 				<AttributeID>verifiedMobileNumbers</AttributeID>
 				<Description>Verified Mobile Numbers</Description>
+				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/verifiedMobileNumbers</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>emailAddresses</ClaimURI>
+				<DisplayName>Email Addresses</DisplayName>
+				<AttributeID>emailAddresses</AttributeID>
+				<Description>Email Addresses</Description>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/emailAddresses</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>verifiedEmailAddresses</ClaimURI>
+				<DisplayName>Verified Email Addresses</DisplayName>
+				<AttributeID>verifiedEmailAddresses</AttributeID>
+				<Description>Verified Email Addresses</Description>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/verifiedEmailAddresses</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0"
@@ -2684,8 +2720,7 @@
 				<DisplayName>Mobile Numbers</DisplayName>
 				<AttributeID>mobileNumbers</AttributeID>
 				<Description>Mobile Numbers</Description>
-				<Required/>
-				<SupportedByDefault/>
+				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/mobileNumbers</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -2693,9 +2728,24 @@
 				<DisplayName>Verified Mobile Numbers</DisplayName>
 				<AttributeID>verifiedMobileNumbers</AttributeID>
 				<Description>Verified Mobile Numbers</Description>
-				<Required/>
-				<SupportedByDefault/>
+				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/verifiedMobileNumbers</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:scim:wso2:schema:emailAddresses</ClaimURI>
+				<DisplayName>Email Addresses</DisplayName>
+				<AttributeID>emailAddresses</AttributeID>
+				<Description>Email Addresses</Description>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/emailAddresses</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:scim:wso2:schema:verifiedEmailAddresses</ClaimURI>
+				<DisplayName>Verified Email Addresses</DisplayName>
+				<AttributeID>verifiedEmailAddresses</AttributeID>
+				<Description>Verified Email Addresses</Description>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/verifiedEmailAddresses</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 	</Dialects>
