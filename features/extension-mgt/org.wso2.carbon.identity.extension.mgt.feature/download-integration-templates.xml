@@ -1,0 +1,69 @@
+<!--
+  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project name="extension-management-feature" basedir=".">
+
+    <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="target/lib/ant-contrib.jar"/>
+
+    <target name="download-integration-templates">
+        <xmlproperty file="integration-templates.xml"/>
+
+        <property name="types.list" value="${configuration.templates.template.type}"/>
+        <property name="names.list" value="${configuration.templates.template.name}"/>
+        <property name="versions.list" value="${configuration.templates.template.version}"/>
+
+        <for list="${versions.list}" param="version">
+            <sequential>
+                <if>
+                    <isset property="regex" />
+                    <then>
+                        <var name="regex" value="${regex},(.*)"/>
+                    </then>
+                    <else>
+                        <var name="regex" value="(.*)"/>
+                    </else>
+                </if>
+            </sequential>
+        </for>
+
+        <mkdir dir="target/integration-templates"/>
+
+        <var name="index" value="1"/>
+        <for list="${versions.list}" param="version">
+            <sequential>
+                <propertyregex property="type" override="true" input="${types.list}" regexp="${regex}" select="\${index}" />
+                <propertyregex property="name" override="true" input="${names.list}" regexp="${regex}" select="\${index}" />
+                <get 
+                    src="https://github.com/${configuration.repo.owner}/${configuration.repo.name}/releases/download/@${type}/${name}-v@{version}/${name}-v@{version}.zip" 
+                    dest="target/integration-templates" 
+                    verbose="false" 
+                    usetimestamp="true"
+                />
+                <unzip src="target/integration-templates/${name}-v@{version}.zip" dest="target/integration-templates" overwrite="true"/>
+                <math result="index" operand1="${index}" operation="+" operand2="1" datatype="int" />
+            </sequential>
+        </for>
+    </target>
+
+    <target name="move-integration-templates">
+        <move todir="resources/extensions">
+            <fileset dir="target/integration-templates" excludes="*.zip"/>
+        </move>
+    </target>
+
+    <target name="integration-templates" depends="download-integration-templates,move-integration-templates"/>
+
+</project>
