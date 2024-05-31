@@ -62,6 +62,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.AUTHENTICATOR_PARAMS;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_AUTH_FAILURE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_GET_SECRET_BY_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR;
@@ -146,6 +147,7 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
             bindings.putMember(JS_FUNC_SEND_ERROR, new SendErrorFunctionImpl());
             bindings.putMember(JS_FUNC_SHOW_PROMPT, new JsGraalPromptExecutorImpl());
             bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new JsGraalLoadExecutorImpl());
+            bindings.putMember(JS_FUNC_GET_SECRET_BY_NAME, new JsGraalGetSecretImpl());
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap =
@@ -156,6 +158,11 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
             context.eval(Source
                     .newBuilder(POLYGLOT_LANGUAGE,
                             FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction(),
+                            POLYGLOT_SOURCE)
+                    .build());
+            context.eval(Source
+                    .newBuilder(POLYGLOT_LANGUAGE,
+                            FrameworkServiceDataHolder.getInstance().getCodeForSecretsFunction(),
                             POLYGLOT_SOURCE)
                     .build());
 
@@ -595,6 +602,16 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
                 bindings.putMember(JS_AUTH_FAILURE, new FailAuthenticationFunctionImpl());
                 bindings.putMember(JS_FUNC_SHOW_PROMPT, new JsGraalPromptExecutorImpl());
                 bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new JsGraalLoadExecutorImpl());
+                bindings.putMember(JS_FUNC_GET_SECRET_BY_NAME, new JsGraalGetSecretImpl());
+                /*
+                TODO: Need to improve the JsSerializable implementation to persist this function in the context
+                 without re-evaluating.
+                 */
+                context.eval(Source
+                        .newBuilder(POLYGLOT_LANGUAGE,
+                                FrameworkServiceDataHolder.getInstance().getCodeForSecretsFunction(),
+                                POLYGLOT_SOURCE)
+                        .build());
                 JsFunctionRegistry jsFunctionRegistrar =
                         FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
                 if (jsFunctionRegistrar != null) {
