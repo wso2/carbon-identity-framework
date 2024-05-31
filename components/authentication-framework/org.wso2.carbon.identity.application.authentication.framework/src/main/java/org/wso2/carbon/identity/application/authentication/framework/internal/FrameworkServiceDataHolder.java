@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -99,7 +100,7 @@ public class FrameworkServiceDataHolder {
     private IdentityEventService identityEventService;
     private FunctionLibraryManagementService functionLibraryManagementService = null;
     private String requireCode = "";
-    private String secretsCode = "";
+    private String secretsCode = StringUtils.EMPTY;
     private boolean userSessionMappingEnabled;
 
     /*

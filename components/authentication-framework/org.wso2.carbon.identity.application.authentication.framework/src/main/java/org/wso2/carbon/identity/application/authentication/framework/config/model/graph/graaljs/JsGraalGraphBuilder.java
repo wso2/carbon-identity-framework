@@ -603,6 +603,11 @@ public class JsGraalGraphBuilder extends JsGraphBuilder {
                 bindings.putMember(JS_FUNC_SHOW_PROMPT, new JsGraalPromptExecutorImpl());
                 bindings.putMember(JS_FUNC_LOAD_FUNC_LIB, new JsGraalLoadExecutorImpl());
                 bindings.putMember(JS_FUNC_GET_SECRET_BY_NAME, new JsGraalGetSecretImpl());
+                context.eval(Source
+                        .newBuilder(POLYGLOT_LANGUAGE,
+                                FrameworkServiceDataHolder.getInstance().getCodeForSecretsFunction(),
+                                POLYGLOT_SOURCE)
+                        .build());
                 JsFunctionRegistry jsFunctionRegistrar =
                         FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
                 if (jsFunctionRegistrar != null) {

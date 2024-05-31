@@ -912,7 +912,7 @@ public class FrameworkServiceComponent {
     }
 
     /**
-     * Load and read the JS function in require.js file.
+     * Load and read the JS function in secrets.js file.
      */
     private void loadCodeForSecrets() {
 
