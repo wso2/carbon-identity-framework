@@ -72,14 +72,11 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
     private static final String MODULE_NAME = "Registry Policy Finder Module";
     private static final String POLICY_STORE_PATH = "policyStorePath";
     private static final String DEFAULT_POLICY_STORE_PATH = "/repository/identity/entitlement/policy/pdp/";
-    private final Registry registry;
     private final String policyStorePath;
     private final int maxVersions;
 
     public RegistryPolicyDAOImpl() {
 
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        registry = EntitlementServiceComponent.getGovernanceRegistry(tenantId);
         policyStorePath = getPolicyStorePath();
         maxVersions = EntitlementUtil.getMaxNoOfPolicyVersions();
     }
@@ -135,7 +132,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
         // Zero indicates the current version
         if (version == null || version.trim().isEmpty()) {
             try {
-                assert registry != null;
+                Registry registry = getRegistry();
                 Collection collection = (Collection) registry.get(PDPConstants.ENTITLEMENT_POLICY_VERSION + policyId);
                 if (collection != null) {
                     version = collection.getProperty("version");
@@ -169,7 +166,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
         Collection collection = null;
         try {
             try {
-                assert registry != null;
+                Registry registry = getRegistry();
                 collection = (Collection) registry.get(PDPConstants.ENTITLEMENT_POLICY_VERSION + policyId);
             } catch (ResourceNotFoundException e) {
                 // ignore
@@ -433,6 +430,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
 
         try {
             path = PDPConstants.ENTITLEMENT_POLICY_PAP + policyId;
+            Registry registry = getRegistry();
             if (!registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Trying to access an entitlement policy which does not exist");
@@ -476,6 +474,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
 
             // Restricts publishing policies that are not in PAP
             PAPPath = PDPConstants.ENTITLEMENT_POLICY_PAP + policy.getPolicyId();
+            Registry registry = getRegistry();
             if (!registry.resourceExists(PAPPath)) {
                 throw new EntitlementException("Policies that are not included in the PAP, cannot be published");
             }
@@ -499,7 +498,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
                 resource.setContent(policy.getPolicy());
                 resource.setMediaType(PDPConstants.REGISTRY_MEDIA_TYPE);
                 AttributeDTO[] attributeDTOs = policy.getAttributeDTOs();
-                if (attributeDTOs != null) {
+                if (attributeDTOs != null && EntitlementUtil.isPolicyMetadataStoringEnabled()) {
                     setAttributesAsProperties(attributeDTOs, resource);
                 }
             }
@@ -515,6 +514,14 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
             if (resource.getContent() == null) {
                 log.info("Prevented adding null content to resource " + policyPath);
                 return;
+            }
+            // Store policy metadata based on the configured property.
+            if (!EntitlementUtil.isPolicyMetadataStoringEnabled()) {
+                for (Map.Entry<Object, Object> entry : resource.getProperties().entrySet()) {
+                    if (entry.getKey().toString().startsWith(PDPConstants.POLICY_META_DATA)) {
+                        resource.getProperties().remove(entry.getKey());
+                    }
+                }
             }
             registry.put(policyPath, resource);
 
@@ -566,6 +573,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
             return false;
         }
         try {
+            Registry registry = getRegistry();
             policyPath = policyStorePath + policyId;
             return registry.resourceExists(policyPath);
         } catch (RegistryException e) {
@@ -624,6 +632,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
         }
 
         try {
+            Registry registry = getRegistry();
             // Removes from PDP
             policyPath = policyStorePath + policyId;
             registry.delete(policyPath);
@@ -662,7 +671,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
 
         try {
             path = policyPath + policyId;
-
+            Registry registry = getRegistry();
             if (registry.resourceExists(path)) {
                 resource = registry.get(path);
             } else {
@@ -825,8 +834,8 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
 
         try {
             Collection collection = null;
+            Registry registry = getRegistry();
             try {
-                assert registry != null;
                 collection = (Collection) registry.get(PDPConstants.ENTITLEMENT_POLICY_VERSION +
                         policyDTO.getPolicyId());
             } catch (ResourceNotFoundException e) {
@@ -903,7 +912,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
         }
 
         try {
-
+            Registry registry = getRegistry();
             if (!registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Trying to access an entitlement policy which does not exist");
@@ -992,7 +1001,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
 
         try {
             path = policyStorePath + policyId;
-
+            Registry registry = getRegistry();
             if (!registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Trying to access an entitlement policy which does not exist");
@@ -1019,7 +1028,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
         Resource[] resources;
         resources = getAllPolicyResource();
 
-        if (resources == null) {
+        if (resources.length == 0) {
             return new PolicyDTO[0];
         }
         List<PolicyDTO> policyDTOList = new ArrayList<>();
@@ -1061,12 +1070,12 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
 
         try {
             path = policyStorePath;
-
+            Registry registry = getRegistry();
             if (!registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Trying to access an entitlement policy which does not exist");
                 }
-                return null;
+                return new Resource[0];
             }
             collection = (Collection) registry.get(path);
             children = collection.getChildren();
@@ -1101,12 +1110,12 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
         }
 
         try {
-
+            Registry registry = getRegistry();
             if (!registry.resourceExists(path)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Trying to access an entitlement policy which does not exist");
                 }
-                return null;
+                return Collections.emptyList();
             }
             collection = (Collection) registry.get(path);
             children = collection.getChildren();
@@ -1180,6 +1189,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
         Resource resource;
 
         try {
+            Registry registry = getRegistry();
             policyCollection = (Collection) registry.get(collectionPath);
             resource = registry.get(policyPath);
 
@@ -1228,5 +1238,11 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
             policyStorePath = DEFAULT_POLICY_STORE_PATH;
         }
         return policyStorePath;
+    }
+
+    private Registry getRegistry() {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        return EntitlementServiceComponent.getGovernanceRegistry(tenantId);
     }
 }

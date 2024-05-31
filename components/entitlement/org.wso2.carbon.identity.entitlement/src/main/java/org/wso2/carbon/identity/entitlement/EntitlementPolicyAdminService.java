@@ -510,7 +510,7 @@ public class EntitlementPolicyAdminService {
             throw new EntitlementException("There are no policies to publish");
         }
 
-        if (subscriberIds == null || subscriberIds.length < 1) {
+        if (subscriberIds.length < 1) {
             throw new EntitlementException("There are no subscribers to publish");
         }
 

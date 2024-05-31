@@ -164,7 +164,7 @@ public class PolicyStoreManager {
         return policyDTO;
     }
 
-    public String[] getPolicyIds() throws EntitlementException {
+    public String[] getPolicyIds() {
         return policyStore.getOrderedPolicyIdentifiers();
     }
 

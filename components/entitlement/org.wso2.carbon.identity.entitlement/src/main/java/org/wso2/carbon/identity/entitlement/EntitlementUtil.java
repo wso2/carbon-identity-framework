@@ -64,16 +64,9 @@ import org.wso2.carbon.identity.entitlement.pap.EntitlementAdminEngine;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreManager;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreReader;
 import org.wso2.carbon.registry.core.Registry;
-import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.xml.sax.SAXException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.Validator;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -87,6 +80,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
 
 /**
  * Provides utility functionalities used across different classes.
@@ -559,28 +560,6 @@ public class EntitlementUtil {
         PolicyDAO store = EntitlementAdminEngine.getInstance().getPolicyDAO();
         policyReader = new PAPPolicyStoreReader(store);
         return policyReader.readPolicyDTO(policyId);
-    }
-
-
-    /**
-     * This helper method creates properties object which contains the policy meta data.
-     *
-     * @param attributeDTOs List of AttributeDTO
-     * @param resource      registry resource
-     */
-    public static void setAttributesAsProperties(AttributeDTO[] attributeDTOs, Resource resource) {
-
-        int attributeElementNo = 0;
-        if (attributeDTOs != null) {
-            for (AttributeDTO attributeDTO : attributeDTOs) {
-                resource.setProperty("policyMetaData" + attributeElementNo,
-                        attributeDTO.getCategory() + "," +
-                                attributeDTO.getAttributeValue() + "," +
-                                attributeDTO.getAttributeId() + "," +
-                                attributeDTO.getAttributeDataType());
-                attributeElementNo++;
-            }
-        }
     }
 
     /**
