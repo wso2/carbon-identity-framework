@@ -4057,4 +4057,27 @@
     <AllowLegacyRoleClaimBehaviour>{{legacy_claims.allow_legacy_role_claim_behaviour}}</AllowLegacyRoleClaimBehaviour>
     {% endif %}
 
+    {% if cache_invalidator.mb.enabled is defined %}
+    <CacheInvalidator>
+        <MB>
+            <Enabled>{{cache_invalidator.mb.enabled}}</Enabled>
+            <Type>{{cache_invalidator.mb.broker_type}}</Type>
+            <InitialNamingFactory>{{cache_invalidator.mb.initial_naming_factory}}</InitialNamingFactory>
+            <ProviderURL>{{cache_invalidator.mb.provider_url}}</ProviderURL>
+            <TopicName>{{cache_invalidator.mb.topic_name}}</TopicName>
+            <ProducerName>{{cache_invalidator.mb.producer_name}}</ProducerName>
+            <Username>{{cache_invalidator.mb.username}}</Username>
+            <Password>{{cache_invalidator.mb.password}}</Password>
+            <HybridMode>{{cache_invalidator.mb.hybrid_mode_enabled}}</HybridMode>
+        </MB>
+        {% for cache_manager in cache_invalidator.sync_block_list.cache_manager %}
+        <CacheManager name="{{cache_manager.name}}">
+            {% for cache_name in cache_manager.list %}
+            <Cache name="{{cache_name}}"/>
+            {% endfor %}
+        </CacheManager>
+        {% endfor %}
+    </CacheInvalidator>
+    {% endif %}
+
 </Server>

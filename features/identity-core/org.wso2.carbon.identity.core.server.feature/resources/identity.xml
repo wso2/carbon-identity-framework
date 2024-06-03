@@ -2619,4 +2619,16 @@
          when an account is locked. -->
         <SetAccountLockAuthFailureReason>false</SetAccountLockAuthFailureReason>
     </APIResponse>
+
+    <CacheInvalidator>
+        <MB>
+            <Enabled>false</Enabled>
+            <Type>jms</Type>
+            <InitialNamingFactory>org.apache.activemq.jndi.ActiveMQInitialContextFactory</InitialNamingFactory>
+            <ProviderURL>failover:tcp://localhost:61616</ProviderURL>
+            <TopicName>ISCacheInvalidation</TopicName>
+            <ProducerName>producer1</ProducerName>
+            <HybridMode>false</HybridMode>
+        </MB>
+    </CacheInvalidator>
 </Server>
