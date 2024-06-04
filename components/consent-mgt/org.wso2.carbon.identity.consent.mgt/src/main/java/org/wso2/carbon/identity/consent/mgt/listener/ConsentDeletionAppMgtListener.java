@@ -24,6 +24,7 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.consent.mgt.IdentityConsentMgtUtils;
@@ -112,6 +113,50 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
         if (log.isDebugEnabled()) {
             log.debug(String.format("Deleting consents on deletion of application: %s, in tenant domain: %s.",
                                     applicationName, tenantDomain));
+        }
+        try {
+            List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(consentSearchLimit, 0,
+                    "*", tenantDomain, applicationName, null, null);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("%d number of consents found for application %s", receiptListResponses.size(),
+                        applicationName));
+            }
+            receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Deleting receipt with id : %s, issued for user: ", receiptListResponse
+                            .getConsentReceiptId(), receiptListResponse.getPiiPrincipalId()));
+                }
+                consentManager.deleteReceipt(receiptListResponse.getConsentReceiptId());
+            }));
+
+        } catch (ConsentManagementException e) {
+            throw new IdentityApplicationManagementException("Error while deleting user consents for application "
+                    + applicationName, e);
+        }
+        return true;
+    }
+
+    /**
+     * When an application is disabled, it will delete all relevant receipts issued against that application.
+     *
+     * @param serviceProvider Service provider which is disabled.
+     * @param tenantDomain    Tenant domain of the application.
+     * @param userName        Username of the person who does the deletion.
+     * @return true.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
+     */
+    @Override
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        ConsentManager consentManager = IdentityConsentDataHolder.getInstance().getConsentManager();
+        if (serviceProvider.isApplicationEnabled()) {
+            return true;
+        }
+        String applicationName = serviceProvider.getApplicationName();
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Deleting consents since application: %s, in tenant domain: %s is disabled.",
+                    applicationName, tenantDomain));
         }
         try {
             List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(consentSearchLimit, 0,
