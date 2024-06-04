@@ -48,6 +48,8 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
     private static final String CONSENT_SEARCH_LIMIT_PROPERTY = "Consent.Search.Limit";
     protected final Properties properties = new Properties();
     private static int consentSearchLimit = 100;
+    private static final int CONSENT_SEARCH_OFFSET_PROPERTY = 0;
+    private static final String CONSENT_SEARCH_PII_PRINCIPAL_ID = "*";
 
     /**
      * Overridden to check the configuration for this listener enabling and also to check whether globally consent
@@ -114,26 +116,7 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
             log.debug(String.format("Deleting consents on deletion of application: %s, in tenant domain: %s.",
                                     applicationName, tenantDomain));
         }
-        try {
-            List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(consentSearchLimit, 0,
-                    "*", tenantDomain, applicationName, null, null);
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("%d number of consents found for application %s", receiptListResponses.size(),
-                        applicationName));
-            }
-            receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> {
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("Deleting receipt with id : %s, issued for user: ", receiptListResponse
-                            .getConsentReceiptId(), receiptListResponse.getPiiPrincipalId()));
-                }
-                consentManager.deleteReceipt(receiptListResponse.getConsentReceiptId());
-            }));
-
-        } catch (ConsentManagementException e) {
-            throw new IdentityApplicationManagementException("Error while deleting user consents for application "
-                    + applicationName, e);
-        }
-        return true;
+        return removeConsentReceipts(tenantDomain, consentManager, applicationName);
     }
 
     /**
@@ -149,18 +132,25 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
     public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
-        ConsentManager consentManager = IdentityConsentDataHolder.getInstance().getConsentManager();
         if (serviceProvider.isApplicationEnabled()) {
             return true;
         }
+        ConsentManager consentManager = IdentityConsentDataHolder.getInstance().getConsentManager();
         String applicationName = serviceProvider.getApplicationName();
         if (log.isDebugEnabled()) {
             log.debug(String.format("Deleting consents since application: %s, in tenant domain: %s is disabled.",
                     applicationName, tenantDomain));
         }
+        return removeConsentReceipts(tenantDomain, consentManager, applicationName);
+    }
+
+    private boolean removeConsentReceipts(String tenantDomain, ConsentManager consentManager, String applicationName)
+            throws IdentityApplicationManagementException {
+
         try {
-            List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(consentSearchLimit, 0,
-                    "*", tenantDomain, applicationName, null, null);
+            List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(consentSearchLimit,
+                    CONSENT_SEARCH_OFFSET_PROPERTY, CONSENT_SEARCH_PII_PRINCIPAL_ID, tenantDomain, applicationName,
+                    null, null);
             if (log.isDebugEnabled()) {
                 log.debug(String.format("%d number of consents found for application %s", receiptListResponses.size(),
                         applicationName));
