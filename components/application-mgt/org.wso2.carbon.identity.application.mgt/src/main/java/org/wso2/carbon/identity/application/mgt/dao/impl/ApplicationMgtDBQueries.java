@@ -71,6 +71,8 @@ public class ApplicationMgtDBQueries {
             "AUTHENTICATOR_NAME, APP_ID) VALUES (?,?,?)";
     public static final String STORE_PRO_CONNECTORS = "INSERT INTO SP_PROVISIONING_CONNECTOR (TENANT_ID, IDP_NAME, " +
             "CONNECTOR_NAME, APP_ID,IS_JIT_ENABLED, BLOCKING, RULE_ENABLED) VALUES (?,?,?,?,?,?,?)";
+    public static final String STORE_TRUSTED_APP_CONFIG = "INSERT INTO SP_TRUSTED_APP_CONFIG (SP_ID, PLATFORM_TYPE, " +
+            "APP_IDENTIFIER, THUMBPRINTS, IS_FIDO_TRUSTED, TWA_ENABLED, TENANT_ID) VALUES (?,?,?,?,?,?,?)";
 
     // LOAD Queries
     public static final String LOAD_APP_ID_BY_APP_NAME = "SELECT ID FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?";
@@ -251,6 +253,9 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_UM_PERMISSIONS = "SELECT UM_ID, UM_RESOURCE_ID FROM UM_PERMISSION WHERE " +
             "UM_RESOURCE_ID LIKE ?";
     public static final String LOAD_UM_PERMISSIONS_W = "SELECT UM_ID FROM UM_PERMISSION WHERE UM_RESOURCE_ID = ?";
+    // TODO need to write dbscripts for other db types
+    public static final String LOAD_TRUSTED_APP_CONFIG_BY_APP_ID = "SELECT PLATFORM_TYPE, APP_IDENTIFIER, " +
+            "THUMBPRINTS, IS_FIDO_TRUSTED, TWA_ENABLED FROM SP_TRUSTED_APP_CONFIG WHERE SP_ID = ? AND TENANT_ID = ?";
 
     // DELETE queries
     public static final String REMOVE_APP_FROM_APPMGT_APP = "DELETE FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?";
@@ -271,6 +276,8 @@ public class ApplicationMgtDBQueries {
             "TENANT_ID = ?";
     public static final String REMOVE_UM_PERMISSIONS = "DELETE FROM UM_PERMISSION WHERE UM_ID = ?";
     public static final String REMOVE_UM_ROLE_PERMISSION = "DELETE FROM UM_ROLE_PERMISSION WHERE UM_PERMISSION_ID = ?";
+    public static final String REMOVE_TRUSTED_APP_CONFIG = "DELETE FROM SP_TRUSTED_APP_CONFIG WHERE SP_ID = ? AND " +
+            "TENANT_ID = ?";
 
     // DELETE query - Oauth
     @Deprecated

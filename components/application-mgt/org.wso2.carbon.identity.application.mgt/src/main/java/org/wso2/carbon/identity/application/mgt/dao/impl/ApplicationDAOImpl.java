@@ -62,6 +62,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.model.TrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
@@ -146,6 +147,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IOS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ISSUER_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME;
@@ -602,6 +604,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         updateOutboundProvisioningConfiguration(applicationId,
                 serviceProvider.getOutboundProvisioningConfig(), connection);
+        updateTrustedAppMetadata(serviceProvider.getApplicationID(), serviceProvider.getTrustedAppMetadata(),
+                connection);
 
         if (serviceProvider.getPermissionAndRoleConfig() != null) {
             updatePermissionAndRoleConfiguration(serviceProvider.getApplicationID(),
@@ -647,6 +651,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         deletePermissionAndRoleConfiguration(applicationId, connection);
         // deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
         deleteAssociatedRolesConfigurations(connection, serviceProvider.getApplicationResourceId());
+        deleteTrustedAppMetadata(applicationId, connection);
     }
 
     private void deleteAssociatedRolesConfigurations(Connection connection, String applicationId) throws SQLException {
@@ -2196,6 +2201,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         (getAndroidAttestationServiceCredentials(serviceProvider));
             }
             serviceProvider.setClientAttestationMetaData(clientAttestationMetaData);
+            serviceProvider.setTrustedAppMetadata(getTrustedAppMetadata(applicationId, connection, tenantID));
             serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                     applicationId, connection, tenantID));
             serviceProvider
@@ -3500,6 +3506,126 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteReqAuthPrepStmt);
+        }
+    }
+
+    /**
+     * Get trusted app metadata of the application.
+     *
+     * @param applicationId Application ID.
+     * @param connection    Database connection.
+     * @param tenantID      Tenant ID.
+     * @return trustedAppMetadata Trusted app configurations.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving trusted app configurations.
+     */
+    private TrustedAppMetadata getTrustedAppMetadata(int applicationId, Connection connection, int tenantID)
+            throws IdentityApplicationManagementException {
+
+        PreparedStatement loadTrustedAppConfigs = null;
+        ResultSet trustedAppConfigResultSet = null;
+        TrustedAppMetadata trustedAppMetadata = new TrustedAppMetadata();
+
+        try {
+            loadTrustedAppConfigs = connection
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_TRUSTED_APP_CONFIG_BY_APP_ID);
+            loadTrustedAppConfigs.setInt(1, applicationId);
+            loadTrustedAppConfigs.setInt(2, tenantID);
+            trustedAppConfigResultSet = loadTrustedAppConfigs.executeQuery();
+
+            while (trustedAppConfigResultSet.next()) {
+                String platformType = trustedAppConfigResultSet.getString(1);
+                if (ANDROID.equals(platformType)) {
+                    trustedAppMetadata.setAndroidPackageName(trustedAppConfigResultSet.getString(2));
+                    trustedAppMetadata.setAndroidThumbprints(trustedAppConfigResultSet.getString(3));
+                } else if (IOS.equals(platformType)) {
+                    trustedAppMetadata.setAppleAppId(trustedAppConfigResultSet.getString(2));
+                }
+                trustedAppMetadata.setIsFidoTrusted(trustedAppConfigResultSet.getBoolean(4));
+                trustedAppMetadata.setIsTWAEnabled(trustedAppConfigResultSet.getBoolean(5));
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving trusted app configurations.", e);
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(loadTrustedAppConfigs);
+            IdentityApplicationManagementUtil.closeResultSet(trustedAppConfigResultSet);
+        }
+        return trustedAppMetadata;
+    }
+
+    /**
+     * Update trusted app metadata of the application.
+     *
+     * @param applicationId  Application ID.
+     * @param trustedAppMetadata Trusted app configurations.
+     * @param connection     Database connection.
+     * @throws IdentityApplicationManagementException If an error occurs while updating trusted app configurations.
+     */
+    private void updateTrustedAppMetadata(int applicationId, TrustedAppMetadata trustedAppMetadata,
+                                          Connection connection) throws IdentityApplicationManagementException {
+
+        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        PreparedStatement storeTrustedAppConfigs = null;
+
+        try {
+            storeTrustedAppConfigs = connection
+                    .prepareStatement(ApplicationMgtDBQueries.STORE_TRUSTED_APP_CONFIG);
+            if (trustedAppMetadata != null) {
+                if (trustedAppMetadata.getAndroidPackageName() != null) {
+                    storeTrustedAppConfigs.setInt(1, applicationId);
+                    storeTrustedAppConfigs.setString(2, ANDROID);
+                    storeTrustedAppConfigs.setString(3, trustedAppMetadata.getAndroidPackageName());
+                    storeTrustedAppConfigs.setString(4, trustedAppMetadata.getAndroidThumbprints());
+                    storeTrustedAppConfigs.setBoolean(5, trustedAppMetadata.getIsFidoTrusted());
+                    storeTrustedAppConfigs.setBoolean(6, trustedAppMetadata.getIsTWAEnabled());
+                    storeTrustedAppConfigs.setInt(7, tenantID);
+                    storeTrustedAppConfigs.addBatch();
+                }
+                if (trustedAppMetadata.getAppleAppId() != null) {
+                    storeTrustedAppConfigs.setInt(1, applicationId);
+                    storeTrustedAppConfigs.setString(2, IOS);
+                    storeTrustedAppConfigs.setString(3, trustedAppMetadata.getAppleAppId());
+                    storeTrustedAppConfigs.setString(4, null);
+                    storeTrustedAppConfigs.setBoolean(5, trustedAppMetadata.getIsFidoTrusted());
+                    storeTrustedAppConfigs.setBoolean(6, trustedAppMetadata.getIsTWAEnabled());
+                    storeTrustedAppConfigs.setInt(7, tenantID);
+                    storeTrustedAppConfigs.addBatch();
+                }
+                storeTrustedAppConfigs.executeBatch();
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while storing trusted app configurations.", e);
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(storeTrustedAppConfigs);
+        }
+    }
+
+
+    /**
+     * Delete trusted app metadata of the application.
+     *
+     * @param applicationID Application ID.
+     * @param connection   Database connection.
+     * @throws SQLException If an error occurs while deleting trusted app configurations.
+     */
+    private void deleteTrustedAppMetadata(int applicationID, Connection connection)
+            throws SQLException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting trusted app configurations for application ID: " + applicationID);
+        }
+
+        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+
+        PreparedStatement deleteTrustedAppConfigsPrepStmt = null;
+        try {
+            deleteTrustedAppConfigsPrepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.REMOVE_TRUSTED_APP_CONFIG);
+            deleteTrustedAppConfigsPrepStmt.setInt(1, applicationID);
+            deleteTrustedAppConfigsPrepStmt.setInt(2, tenantID);
+            deleteTrustedAppConfigsPrepStmt.execute();
+
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(deleteTrustedAppConfigsPrepStmt);
         }
     }
 

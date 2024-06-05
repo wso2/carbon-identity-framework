@@ -132,6 +132,7 @@ public class IdentityApplicationConstants {
                 = "ANDROID_ATTESTATION_CREDENTIALS";
     public static final String CLIENT_ATTESTATION = "CLIENT_ATTESTATION";
     public static final String ANDROID = "ANDROID";
+    public static final String IOS = "IOS";
 
     /**
      * Config elements.
