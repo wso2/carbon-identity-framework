@@ -193,7 +193,8 @@ public class ConsentDeletionAppMgtListenerTest {
 
             when(configParser.getConfiguration()).thenReturn(getConfiguration());
 
-            Assert.assertEquals("Successfully added the consent receipt",
+            // Assert to ensure the data is available in the database to proceed with the test.
+            Assert.assertEquals("Consent receipt data not available in the database to proceed with the test.",
                     consentManager.searchReceipts(100, 0, CONSENT_SEARCH_PII_PRINCIPAL_ID,
                             TENANT_DOMAIN, APPLICATION_NAME, null).size(), 1);
 
@@ -204,7 +205,7 @@ public class ConsentDeletionAppMgtListenerTest {
             consentDeletionAppMgtListener.doPostUpdateApplication(getServiceProvider(), TENANT_DOMAIN,
                     getAuthenticatedUser().getUserName());
 
-            Assert.assertEquals("Successfully removed the consent receipt",
+            Assert.assertEquals("Consent receipt is not removed when application is disabled",
                     consentManager.searchReceipts(100, 0, CONSENT_SEARCH_PII_PRINCIPAL_ID,
                             TENANT_DOMAIN, APPLICATION_NAME, null).size(), 0);
         }
