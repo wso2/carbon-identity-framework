@@ -343,6 +343,15 @@ public class UserSessionStore {
                 if (log.isDebugEnabled()) {
                     log.debug("Stored user session data for user " + userId + " with session id: " + sessionId);
                 }
+            } catch (SQLIntegrityConstraintViolationException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                if (isExistingMapping(userId, sessionId)) {
+                    throw new DuplicatedAuthUserException("Mapping between user Id: " + userId + " and session Id: "
+                            + sessionId + " already exists in the database.", e1);
+                } else {
+                    throw new UserSessionException("Error while storing mapping between user Id: " + userId +
+                            " and session Id: " + sessionId, e1);
+                }
             } catch (SQLException e1) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while storing mapping between user Id: " + userId +
