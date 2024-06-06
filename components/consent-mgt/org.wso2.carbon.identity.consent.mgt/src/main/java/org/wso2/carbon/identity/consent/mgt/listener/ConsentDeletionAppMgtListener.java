@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -48,8 +48,8 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
     private static final String CONSENT_SEARCH_LIMIT_PROPERTY = "Consent.Search.Limit";
     protected final Properties properties = new Properties();
     private static int consentSearchLimit = 100;
-    private static final int CONSENT_SEARCH_OFFSET_PROPERTY = 0;
-    private static final String CONSENT_SEARCH_PII_PRINCIPAL_ID = "*";
+    public static final int CONSENT_SEARCH_OFFSET_PROPERTY = 0;
+    public static final String CONSENT_SEARCH_PII_PRINCIPAL_ID = "*";
 
     /**
      * Overridden to check the configuration for this listener enabling and also to check whether globally consent
