@@ -83,7 +83,9 @@ import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_CONSENT;
 import static org.wso2.carbon.identity.consent.mgt.listener.ConsentDeletionAppMgtListener.CONSENT_SEARCH_PII_PRINCIPAL_ID;
 
-
+/*
+  Unit tests for ConsentDeletionAppMgtListener.
+ */
 public class ConsentDeletionAppMgtListenerTest {
 
     @Mock
