@@ -230,13 +230,15 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     }
 
     @Test(dataProvider = "getDuplicatedSessionsForUsers", dependsOnMethods = {"testStoreUserSessionData"},
-            expectedExceptions = UserSessionException.class)
+            expectedExceptions = {UserSessionException.class, DuplicatedAuthUserException.class})
     public void testExceptionAtStoreUserSessionDataForDuplicatedSession(String userId, String sessionId) throws
             Exception {
 
         try (Connection connection = getConnection(DB_NAME);
+             Connection connection1 = getConnection(DB_NAME);
              MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
+            mockIdentityDataBaseUtilConnection(connection1, false, identityDatabaseUtil);
             UserSessionStore.getInstance().storeUserSessionData(userId, sessionId);
         }
     }
