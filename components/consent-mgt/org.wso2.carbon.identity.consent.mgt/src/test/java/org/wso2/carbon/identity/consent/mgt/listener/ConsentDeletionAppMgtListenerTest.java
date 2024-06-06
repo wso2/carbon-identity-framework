@@ -52,6 +52,8 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.consent.mgt.internal.IdentityConsentDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -59,30 +61,26 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
-import javax.sql.DataSource;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
-
-import static org.mockito.MockitoAnnotations.initMocks;
-import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_CONSENT;
-
-import org.wso2.carbon.identity.application.common.model.Claim;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_CONSENT;
 import static org.wso2.carbon.identity.consent.mgt.listener.ConsentDeletionAppMgtListener.CONSENT_SEARCH_PII_PRINCIPAL_ID;
 
 
@@ -199,20 +197,20 @@ public class ConsentDeletionAppMgtListenerTest {
 
             when(configParser.getConfiguration()).thenReturn(getConfiguration());
 
-            PIICategory piiCategory1 = new PIICategory(1, "http://wso2.org/claims/lastname", 
-                    "Last Name",false, TENANT_ID, "Last Name");
+            PIICategory piiCategory1 = new PIICategory(1, "http://wso2.org/claims/lastname",
+                    "Last Name", false, TENANT_ID, "Last Name");
 
             consentManager.addPIICategory(piiCategory1);
 
             consentManager.addConsent(buildInput());
 
-            Purpose purpose = new Purpose(1,"DEFAULT", "For core functionalities of the product",
+            Purpose purpose = new Purpose(1, "DEFAULT", "For core functionalities of the product",
                     "DEFAULT", "SP", TENANT_ID);
             consentManager.addPurpose(purpose);
 
             Assert.assertEquals("Successfully added the consent receipt",
-                    consentManager.searchReceipts(100,0, CONSENT_SEARCH_PII_PRINCIPAL_ID,
-                            TENANT_DOMAIN,APPLICATION_NAME,null).size(),1);
+                    consentManager.searchReceipts(100, 0, CONSENT_SEARCH_PII_PRINCIPAL_ID,
+                            TENANT_DOMAIN, APPLICATION_NAME, null).size(), 1);
 
             identityConsentDataHolder.when(IdentityConsentDataHolder::getInstance).
                     thenReturn(mockIdentityConsentDataHolder);
@@ -222,8 +220,8 @@ public class ConsentDeletionAppMgtListenerTest {
                     getAuthenticatedUser().getUserName());
 
             Assert.assertEquals("Successfully removed the consent receipt",
-                    consentManager.searchReceipts(100,0, CONSENT_SEARCH_PII_PRINCIPAL_ID,
-                            TENANT_DOMAIN, APPLICATION_NAME, null).size(),0);
+                    consentManager.searchReceipts(100, 0, CONSENT_SEARCH_PII_PRINCIPAL_ID,
+                            TENANT_DOMAIN, APPLICATION_NAME, null).size(), 0);
         }
     }
 
@@ -253,7 +251,7 @@ public class ConsentDeletionAppMgtListenerTest {
 
         List<PIICategoryValidity> piiCategoryValidities = new ArrayList<>();
         PIICategoryValidity piiCategoryValidity = new PIICategoryValidity(null, "VALID_UNTIL:INDEFINITE",
-                1,null, true);
+                1, null, true);
         piiCategoryValidities.add(piiCategoryValidity);
         receiptPurposeInput.setPiiCategory(piiCategoryValidities);
 
@@ -327,7 +325,7 @@ public class ConsentDeletionAppMgtListenerTest {
         return authenticatedUser;
     }
 
-    private ServiceProvider getServiceProvider () {
+    private ServiceProvider getServiceProvider() {
         ServiceProvider serviceProvider = new ServiceProvider();
         serviceProvider.setApplicationName(APPLICATION_NAME);
         serviceProvider.setApplicationID(1);
