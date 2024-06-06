@@ -197,17 +197,6 @@ public class ConsentDeletionAppMgtListenerTest {
 
             when(configParser.getConfiguration()).thenReturn(getConfiguration());
 
-            PIICategory piiCategory1 = new PIICategory(1, "http://wso2.org/claims/lastname",
-                    "Last Name", false, TENANT_ID, "Last Name");
-
-            consentManager.addPIICategory(piiCategory1);
-
-            consentManager.addConsent(buildInput());
-
-            Purpose purpose = new Purpose(1, "DEFAULT", "For core functionalities of the product",
-                    "DEFAULT", "SP", TENANT_ID);
-            consentManager.addPurpose(purpose);
-
             Assert.assertEquals("Successfully added the consent receipt",
                     consentManager.searchReceipts(100, 0, CONSENT_SEARCH_PII_PRINCIPAL_ID,
                             TENANT_DOMAIN, APPLICATION_NAME, null).size(), 1);
@@ -223,51 +212,6 @@ public class ConsentDeletionAppMgtListenerTest {
                     consentManager.searchReceipts(100, 0, CONSENT_SEARCH_PII_PRINCIPAL_ID,
                             TENANT_DOMAIN, APPLICATION_NAME, null).size(), 0);
         }
-    }
-
-    private ReceiptInput buildInput() {
-
-        ReceiptInput receiptInput = new ReceiptInput();
-        receiptInput.setLanguage("us_EN");
-        receiptInput.setJurisdiction("NONE");
-        receiptInput.setPolicyUrl("NONE");
-        receiptInput.setVersion("KI-CR-v1.1.0");
-        receiptInput.setTenantId(TENANT_ID);
-        receiptInput.setTenantDomain(TENANT_DOMAIN);
-        receiptInput.setCollectionMethod("Web Form - Sign-in");
-        receiptInput.setPiiPrincipalId(USER_NAME);
-
-        List<ReceiptServiceInput> services = new ArrayList<>();
-        ReceiptServiceInput receiptServiceInput = new ReceiptServiceInput();
-        receiptServiceInput.setService(APPLICATION_NAME);
-        receiptServiceInput.setTenantDomain(TENANT_DOMAIN);
-        receiptServiceInput.setTenantId(TENANT_ID);
-        receiptServiceInput.setSpDescription("test sp");
-        receiptServiceInput.setSpDisplayName("testServiceProvider");
-
-        List<ReceiptPurposeInput> receiptPurposeInputs = new ArrayList<>();
-        ReceiptPurposeInput receiptPurposeInput = new ReceiptPurposeInput();
-        receiptPurposeInput.setConsentType("EXPLICIT");
-
-        List<PIICategoryValidity> piiCategoryValidities = new ArrayList<>();
-        PIICategoryValidity piiCategoryValidity = new PIICategoryValidity(null, "VALID_UNTIL:INDEFINITE",
-                1, null, true);
-        piiCategoryValidities.add(piiCategoryValidity);
-        receiptPurposeInput.setPiiCategory(piiCategoryValidities);
-
-        List<Integer> purposeCategoryId = new ArrayList<>();
-        purposeCategoryId.add(1);
-        receiptPurposeInput.setPurposeCategoryId(purposeCategoryId);
-        receiptPurposeInput.setPurposeId(1);
-        receiptPurposeInput.setTermination("VALID_UNTIL:INDEFINITE");
-        receiptPurposeInput.setThirdPartyDisclosure(false);
-        receiptPurposeInput.setPrimaryPurpose(true);
-        receiptPurposeInputs.add(receiptPurposeInput);
-        receiptServiceInput.setPurposes(receiptPurposeInputs);
-        services.add(receiptServiceInput);
-        receiptInput.setServices(services);
-
-        return receiptInput;
     }
 
     public static void initiateH2Base() throws Exception {

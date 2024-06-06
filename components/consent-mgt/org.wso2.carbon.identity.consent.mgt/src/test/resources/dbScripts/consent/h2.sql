@@ -120,6 +120,28 @@ ALTER TABLE CM_SP_PURPOSE_PII_CAT_ASSOC
 ALTER TABLE CM_CONSENT_RECEIPT_PROPERTY
   ADD CONSTRAINT CM_CONSENT_RECEIPT_PRT_fk0 FOREIGN KEY (CONSENT_RECEIPT_ID) REFERENCES CM_RECEIPT (CONSENT_RECEIPT_ID);
 
-INSERT INTO CM_PURPOSE (NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID) VALUES ('DEFAULT', 'For core functionalities of the product', 'DEFAULT', 'SP', '-1234');
+INSERT INTO CM_PURPOSE (NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID) VALUES ('DEFAULT', 'For core functionalities of the product', 'DEFAULT', 'SP', 1);
 
-INSERT INTO CM_PURPOSE_CATEGORY (NAME, DESCRIPTION, TENANT_ID) VALUES ('DEFAULT','For core functionalities of the product', '-1234');
+INSERT INTO CM_PURPOSE_CATEGORY (NAME, DESCRIPTION, TENANT_ID) VALUES ('DEFAULT','For core functionalities of the product', 1);
+
+INSERT INTO CM_PII_CATEGORY (NAME, DESCRIPTION, DISPLAY_NAME, IS_SENSITIVE, TENANT_ID)
+VALUES
+    ('http://wso2.org/claims/modified', 'Last Modified timestamp of the user', 'Last Modified Time', 0, 1),
+    ('http://wso2.org/claims/lastname', 'Last Name of the user', 'Last Name', 0, 1),
+    ('http://wso2.org/claims/username', 'Username of the user', 'Username', 0, 1),
+    ('http://wso2.org/claims/givenname', 'First Name of the user', 'First Name', 0, 1);
+
+INSERT INTO CM_RECEIPT (CONSENT_RECEIPT_ID, VERSION, JURISDICTION, CONSENT_TIMESTAMP, COLLECTION_METHOD, LANGUAGE,
+                        PII_PRINCIPAL_ID, PRINCIPAL_TENANT_ID, POLICY_URL, STATE, PII_CONTROLLER)
+VALUES ('af2a5cf2-b0fb-41f6-8acf-78fe0e13b2e9','KI-CR-v1.1.0', 'NONE', '2024-06-05 16:31:16.980', 'Web Form - Sign-in',
+        'us_EN', 'DEFAULT/testuser@wso2.com', 1, 'NONE','ACTIVE',
+        '{"piiController":"change-me","piiControllerUrl":"change-me","Address":{"addressCountry":"change-me",' ||
+        '"streetAddress":"change-me","postalCode":"change-me", "addressLocality":"change-me",' ||
+        '"addressRegion":"change-me","postOfficeBoxNumber":"change-me"}, "phone":"change-me","contact":"change-me",' ||
+        '"onBehalf":false,"email":"change-me"}');
+
+INSERT INTO CM_RECEIPT_SP_ASSOC (CONSENT_RECEIPT_ID, SP_NAME, SP_DISPLAY_NAME, SP_DESCRIPTION, SP_TENANT_ID) VALUES
+('af2a5cf2-b0fb-41f6-8acf-78fe0e13b2e9', 'testServiceProvider', 'testServiceProvider', 'test service provider', 1);
+
+INSERT INTO CM_SP_PURPOSE_ASSOC (RECEIPT_SP_ASSOC, PURPOSE_ID, CONSENT_TYPE, IS_PRIMARY_PURPOSE, TERMINATION, THIRD_PARTY_DISCLOSURE) VALUES
+(1, 1, 'EXPLICIT', 1, 'VALID_UNTIL:INDEFINITE', 0);
