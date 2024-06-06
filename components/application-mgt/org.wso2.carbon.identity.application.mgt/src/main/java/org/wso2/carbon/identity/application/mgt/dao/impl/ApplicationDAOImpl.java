@@ -130,6 +130,7 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ADVANCED_CONFIG;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_APPLICATION_ENABLED_REQUEST_ATTRIBUTE_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
@@ -2399,6 +2400,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                     AssociatedRolesConfig configExcludingRoles = new AssociatedRolesConfig();
                                     configExcludingRoles.setAllowedAudience(property.getValue());
                                     serviceProvider.setAssociatedRolesConfig(configExcludingRoles);
+                                });
+                    }
+                    if (ALLOWED_APPLICATION_ENABLED_REQUEST_ATTRIBUTE_NAME.equals(requiredAttribute)) {
+                        propertyList.stream()
+                                .filter(property -> IS_APPLICATION_ENABLED_PROPERTY_NAME.equals(property.getName()))
+                                .findFirst()
+                                .ifPresent(property -> {
+                                    serviceProvider.setApplicationEnabled(Boolean.parseBoolean(property.getValue()));
                                 });
                     }
                 }
