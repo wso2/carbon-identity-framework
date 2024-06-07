@@ -1769,42 +1769,6 @@
 				<SupportedByDefault/>
 				<MappedLocalClaim>http://wso2.org/claims/identity/preferredMFAOption</MappedLocalClaim>
 			</Claim>
-			<Claim>
-				<ClaimURI>emailAddresses</ClaimURI>
-				<DisplayName>Email Addresses</DisplayName>
-				<AttributeID>emailAddresses</AttributeID>
-				<Description>Email Addresses</Description>
-				<SupportedByDefault />
-				<DisplayOrder>11</DisplayOrder>
-				<MappedLocalClaim>http://wso2.org/claims/emailAddresses</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>verifiedEmailAddresses</ClaimURI>
-				<DisplayName>Verified Email Addresses</DisplayName>
-				<AttributeID>verifiedEmailAddresses</AttributeID>
-				<Description>Verified Email Addresses</Description>
-				<SupportedByDefault />
-				<DisplayOrder>12</DisplayOrder>
-				<MappedLocalClaim>http://wso2.org/claims/verifiedEmailAddresses</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>mobileNumbers</ClaimURI>
-				<DisplayName>Mobile Numbers</DisplayName>
-				<AttributeID>mobileNumbers</AttributeID>
-				<Description>Mobile Numbers</Description>
-				<SupportedByDefault />
-				<DisplayOrder>13</DisplayOrder>
-				<MappedLocalClaim>http://wso2.org/claims/mobileNumbers</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>verifiedMobileNumbers</ClaimURI>
-				<DisplayName>Verified Mobile Numbers</DisplayName>
-				<AttributeID>verifiedMobileNumbers</AttributeID>
-				<Description>Verified Mobile Numbers</Description>
-				<SupportedByDefault />
-				<DisplayOrder>14</DisplayOrder>
-				<MappedLocalClaim>http://wso2.org/claims/verifiedMobileNumbers</MappedLocalClaim>
-			</Claim>
 		</Dialect>
 		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0"
 				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:[a-zA-Z0-9$\-_\.]*$">
