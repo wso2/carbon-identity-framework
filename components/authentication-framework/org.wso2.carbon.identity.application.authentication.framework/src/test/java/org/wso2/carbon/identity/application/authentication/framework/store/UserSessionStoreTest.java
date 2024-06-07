@@ -215,7 +215,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     @Test
     public void testGetIdPIdForLocalIdP() throws Exception {
 
-        Assert.assertEquals(-1, UserSessionStore.getInstance().getIdPId("LOCAL"), "Expected -1 as the IdP " +
+        Assert.assertEquals(-1, UserSessionStore.getInstance().getIdPId("LOCAL", -1234), "Expected -1 as the IdP " +
                 "Id for LOCAL IdP.");
     }
 
