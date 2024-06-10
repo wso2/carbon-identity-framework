@@ -1270,6 +1270,9 @@
         {% if saml.metadata.define_name_id_policy_if_unspecified is defined %}
             <SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified>{{saml.metadata.define_name_id_policy_if_unspecified}}</SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified>
         {% endif %}
+        {% if saml.separate_multi_attributes_from_idp is defined %}
+            <SeparateMultiAttributesFromIdP>{{saml.separate_multi_attributes_from_idp}}</SeparateMultiAttributesFromIdP>
+        {% endif %}
     </SSOService>
 
     <Consent>
