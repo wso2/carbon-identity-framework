@@ -298,9 +298,12 @@ public class DefaultClaimHandler implements ClaimHandler {
                                 serviceProviderMappedUserRoles : StringUtils.EMPTY);
             }
             if (CollectionUtils.isNotEmpty(federatedUserRolesUnmappedExclusive)) {
+                Set<String> federatedUserRolesUnmappedInclusiveSetWithoutDomain =
+                        federatedUserRolesUnmappedExclusive.stream().map(UserCoreUtil::removeDomainFromName)
+                                .collect(Collectors.toSet());
                 localUnfilteredClaims.put(FrameworkConstants.APP_ROLES_CLAIM,
                         String.join(FrameworkUtils.getMultiAttributeSeparator(),
-                                federatedUserRolesUnmappedExclusive));
+                                federatedUserRolesUnmappedInclusiveSetWithoutDomain));
             }
         }
 
@@ -780,11 +783,11 @@ public class DefaultClaimHandler implements ClaimHandler {
                             appAssociatedRoles));
                 }
                 if (isAppRoleClaimRequested) {
-                    appAssociatedRoles = appAssociatedRoles.stream()
+                    List<String> appAssociatedRolesWithoutDomain = appAssociatedRoles.stream()
                             .map(UserCoreUtil::removeDomainFromName)
                             .collect(Collectors.toList());;
                     allLocalClaims.put(FrameworkConstants.APP_ROLES_CLAIM, String.join(FrameworkUtils
-                            .getMultiAttributeSeparator(), appAssociatedRoles));
+                            .getMultiAttributeSeparator(), appAssociatedRolesWithoutDomain));
                 }
             } else {
                 if (isRoleClaimRequested && !Boolean.parseBoolean(IdentityUtil.getProperty(
