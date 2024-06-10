@@ -345,17 +345,19 @@ public class UserSessionStore {
                 }
             } catch (SQLIntegrityConstraintViolationException e1) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
-                if (isExistingMapping(userId, sessionId)) {
+                throw new DuplicatedAuthUserException("Mapping between user Id: " + userId + " and session Id: "
+                        + sessionId + " already exists in the database.", e1);
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                // Handle constrain violation issue in JDBC drivers which does not throw
+                // SQLIntegrityConstraintViolationException
+                if (StringUtils.containsIgnoreCase(e1.getMessage(), "USER_SESSION_STORE_CONSTRAINT")) {
                     throw new DuplicatedAuthUserException("Mapping between user Id: " + userId + " and session Id: "
                             + sessionId + " already exists in the database.", e1);
                 } else {
                     throw new UserSessionException("Error while storing mapping between user Id: " + userId +
                             " and session Id: " + sessionId, e1);
                 }
-            } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw new UserSessionException("Error while storing mapping between user Id: " + userId +
-                        " and session Id: " + sessionId, e1);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while storing mapping between user Id: " + userId +

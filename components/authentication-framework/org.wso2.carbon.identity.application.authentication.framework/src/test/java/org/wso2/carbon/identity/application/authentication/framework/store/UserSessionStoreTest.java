@@ -235,10 +235,8 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
             Exception {
 
         try (Connection connection = getConnection(DB_NAME);
-             Connection connection1 = getConnection(DB_NAME);
              MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
-            mockIdentityDataBaseUtilConnection(connection1, false, identityDatabaseUtil);
             UserSessionStore.getInstance().storeUserSessionData(userId, sessionId);
         }
     }
