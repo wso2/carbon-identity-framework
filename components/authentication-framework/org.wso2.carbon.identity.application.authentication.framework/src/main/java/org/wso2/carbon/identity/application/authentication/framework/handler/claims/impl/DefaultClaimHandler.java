@@ -61,6 +61,7 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
@@ -779,6 +780,9 @@ public class DefaultClaimHandler implements ClaimHandler {
                             appAssociatedRoles));
                 }
                 if (isAppRoleClaimRequested) {
+                    appAssociatedRoles = appAssociatedRoles.stream()
+                            .map(UserCoreUtil::removeDomainFromName)
+                            .collect(Collectors.toList());;
                     allLocalClaims.put(FrameworkConstants.APP_ROLES_CLAIM, String.join(FrameworkUtils
                             .getMultiAttributeSeparator(), appAssociatedRoles));
                 }
