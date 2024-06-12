@@ -65,6 +65,7 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -238,13 +239,18 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // remove SessionContext from the cache and auth cookie before sending logout request to federated IDP,
         // without waiting till a logout response is received from federated IDP.
         // remove the SessionContext from the cache
-        FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier(), context.getLoginTenantDomain());
         // remove the cookie
-        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
-            FrameworkUtils.removeAuthCookie(request, response, context.getLoginTenantDomain());
+        if (validateSession(sessionContext, sequenceConfig.getApplicationId())) {
+            if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+                FrameworkUtils.removeAuthCookie(request, response, context.getLoginTenantDomain());
+            } else {
+                FrameworkUtils.removeAuthCookie(request, response);
+            }
         } else {
-            FrameworkUtils.removeAuthCookie(request, response);
+            FrameworkUtils.addSessionContextToCache(context.getSessionIdentifier(), sessionContext,
+                    context.getTenantDomain(), context.getLoginTenantDomain());
         }
+
         if (context.isPreviousSessionFound()) {
             // if this is the start of the logout sequence
             if (context.getCurrentStep() == 0) {
@@ -403,6 +409,41 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         } catch (ServletException | IOException e) {
             throw new FrameworkException(e.getMessage(), e);
         }
+    }
+
+    private boolean validateSession(SessionContext sessionContext, String app) {
+
+        try {
+            String userId = sessionContext.getAuthenticatedSequences().get(app).getAuthenticatedUser().getUserId();
+            Map<String, SequenceConfig> map = sessionContext.getAuthenticatedSequences();
+            List<String> keys = new ArrayList<>();
+            for (String key : map.keySet()) {
+                if (StringUtils.equals(userId, map.get(key).getAuthenticatedUser().getUserId())){
+                    keys.add(key);
+                }
+            }
+            if (!keys.isEmpty()) {
+                for (String key : keys) {
+                    sessionContext.getAuthenticatedSequences().remove(key);
+                    sessionContext.getAuthenticatedIdPsOfApp().remove(key);
+                }
+                List<String> keysets = new ArrayList<>();
+                for (String key : sessionContext.getAuthenticatedIdPs().keySet()) {
+                    if (StringUtils.equals(userId, sessionContext.getAuthenticatedIdPs().get(key).getUser().getUserId())) {
+                        keysets.add(key);
+                    }
+                }
+                if (!keysets.isEmpty()) {
+                    for (String key : keysets) {
+                        sessionContext.getAuthenticatedIdPs().remove(key);
+                    }
+                }
+                return false;
+            }
+        } catch (UserIdNotFoundException e) {
+            return true;
+        }
+        return true;
     }
 
     protected void sendResponse(HttpServletRequest request, HttpServletResponse response,
