@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>consent-mgt</artifactId>
-        <version>7.2.46-SNAPSHOT</version>
+        <version>7.3.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -79,7 +79,7 @@
             <scope>provided</scope>
         </dependency>
 
-       <!--  Test related dependencies  -->
+        <!--  Test related dependencies  -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
