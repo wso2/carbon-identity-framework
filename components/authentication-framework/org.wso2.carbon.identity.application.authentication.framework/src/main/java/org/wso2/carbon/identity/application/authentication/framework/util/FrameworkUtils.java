@@ -3222,7 +3222,7 @@ public class FrameworkUtils {
                 columnName = columnName.toLowerCase();
             }
 
-            String schemaPattern = null;
+            String schemaPattern = connection.getSchema();
             if (metaData.getDriverName().contains("Oracle")) {
                 if (log.isDebugEnabled()) {
                     log.debug("DB type detected as Oracle. Setting schemaPattern to " + metaData.getUserName());
@@ -3231,6 +3231,7 @@ public class FrameworkUtils {
                 // in all users in the DB unless specified.
                 schemaPattern = metaData.getUserName();
             }
+            String catalogName = connection.getCatalog();
             try (ResultSet resultSet = metaData.getColumns(null, schemaPattern, tableName, columnName)) {
                 if (resultSet.next()) {
                     if (log.isDebugEnabled()) {
