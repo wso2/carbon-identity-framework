@@ -6047,7 +6047,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
             if (ApplicationMgtUtil.isConsoleOrMyAccount(basicInfo.getApplicationName())) {
                 basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL), basicInfo.getApplicationName()));
+                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL),
+                        basicInfo.getApplicationName()));
             }
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
@@ -6104,7 +6105,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
             if (ApplicationMgtUtil.isConsoleOrMyAccount(basicInfo.getApplicationName())) {
                 basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL), basicInfo.getApplicationName()));
+                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL),
+                        basicInfo.getApplicationName()));
             }
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
