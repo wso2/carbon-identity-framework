@@ -277,8 +277,8 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 tenantDomain);
         try {
             for (RoleV2 role : roles) {
-                getRoleManagementServiceV2().updatePermissionListOfRole(role.getId(), null, removedPermissions,
-                        tenantDomain);
+                getRoleManagementServiceV2().updatePermissionListOfRole(role.getId(), new ArrayList<>(),
+                        removedPermissions, tenantDomain);
             }
         } catch (IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException("Error while updating permission list of roles " +
