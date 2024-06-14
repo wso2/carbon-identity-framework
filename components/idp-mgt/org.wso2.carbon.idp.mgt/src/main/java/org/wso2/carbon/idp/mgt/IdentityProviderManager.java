@@ -327,6 +327,8 @@ public class IdentityProviderManager implements IdpManager {
         IdentityProviderProperty[] identityMgtProperties = residentIdp.getIdpProperties();
         List<IdentityProviderProperty> newProperties = new ArrayList<>();
 
+        IdPManagementUtil.validatePasswordRecoveryPropertyValues(configurationDetails);
+
         for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
             IdentityProviderProperty prop = new IdentityProviderProperty();
             String key = identityMgtProperty.getName();
@@ -2664,4 +2666,6 @@ public class IdentityProviderManager implements IdpManager {
         }
         return false;
     }
+
+
 }
