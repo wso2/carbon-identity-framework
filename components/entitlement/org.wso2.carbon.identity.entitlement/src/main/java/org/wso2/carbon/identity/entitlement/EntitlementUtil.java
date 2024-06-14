@@ -89,21 +89,19 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
+import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.DENY_OVERRIDES;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.FIRST_APPLICABLE;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.ONLY_ONE_APPLICABLE;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.ORDERED_DENY_OVERRIDES;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.ORDERED_PERMIT_OVERRIDES;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.PERMIT_OVERRIDES;
+
 /**
  * Provides utility functionalities used across different classes.
  */
 public class EntitlementUtil {
 
     private static Log log = LogFactory.getLog(EntitlementUtil.class);
-
-    private static final String DENY_OVERRIDES = "deny-overrides";
-    private static final String PERMIT_OVERRIDES = "permit-overrides";
-    private static final String FIRST_APPLICABLE = "first-applicable";
-    private static final String ORDERED_DENY_OVERRIDES = "ordered-deny-overrides";
-    private static final String ONLY_ONE_APPLICABLE = "only-one-applicable";
-    private static final String ORDERED_PERMIT_OVERRIDES = "ordered-permit-overrides";
-
-    private static final String ENHANCED_XACML_LOADING_SYSTEM_PROPERTY = "enableEnhancedXACMLLoading";
 
     /**
      * Return an instance of a named cache that is common to all tenants.
@@ -500,7 +498,7 @@ public class EntitlementUtil {
             }
 
             policyDTO.setPromote(promote);
-            policyAdmin.addOrUpdatePolicy(policyDTO);
+            policyAdmin.addOrUpdatePolicy(policyDTO, true);
 
             if (promote) {
                 EntitlementAdminEngine adminEngine = EntitlementAdminEngine.getInstance();

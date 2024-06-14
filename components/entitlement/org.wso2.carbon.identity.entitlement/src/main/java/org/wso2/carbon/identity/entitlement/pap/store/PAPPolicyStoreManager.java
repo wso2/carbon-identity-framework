@@ -36,8 +36,8 @@ public class PAPPolicyStoreManager {
         storeReader = new PAPPolicyStoreReader(store);
     }
 
-    public void addOrUpdatePolicy(PolicyDTO policy) throws EntitlementException {
-        store.addOrUpdatePolicy(policy);
+    public void addOrUpdatePolicy(PolicyDTO policy, boolean enableVersioning) throws EntitlementException {
+        store.addOrUpdatePolicy(policy, enableVersioning);
     }
 
     public void removePolicy(String policyId) throws EntitlementException {

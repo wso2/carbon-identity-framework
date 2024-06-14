@@ -298,4 +298,14 @@ public class PDPConstants {
     public static final String MAX_NO_OF_POLICY_VERSIONS = "maxVersions";
 
     public static final int DEFAULT_MAX_NO_OF_POLICY_VERSIONS = 5;
+
+    public static final class Algorithms {
+
+        public static final String DENY_OVERRIDES = "deny-overrides";
+        public static final String PERMIT_OVERRIDES = "permit-overrides";
+        public static final String FIRST_APPLICABLE = "first-applicable";
+        public static final String ORDERED_DENY_OVERRIDES = "ordered-deny-overrides";
+        public static final String ONLY_ONE_APPLICABLE = "only-one-applicable";
+        public static final String ORDERED_PERMIT_OVERRIDES = "ordered-permit-overrides";
+    }
 }

@@ -100,9 +100,9 @@ public class EntitlementPolicyAdminService {
     /**
      * This method finds the policy file from given registry path and adds the policy
      *
+     * @deprecated since the functionality cannot be support by the rdbms based implementation
      * @param policyRegistryPath given registry path
-     * @throws org.wso2.carbon.identity.entitlement.EntitlementException throws when fails or registry error
-     *                                                                   occurs
+     * @throws org.wso2.carbon.identity.entitlement.EntitlementException throws when fails or registry error occurs
      */
     public void importPolicyFromRegistry(String policyRegistryPath) throws EntitlementException {
 
@@ -115,7 +115,7 @@ public class EntitlementPolicyAdminService {
         // Finding from which registry by comparing prefix of resource path
         String resourceUri = policyRegistryPath.substring(policyRegistryPath.lastIndexOf(':') + 1);
         String registryIdentifier = policyRegistryPath.substring(0,
-                                                                 policyRegistryPath.lastIndexOf(':'));
+                policyRegistryPath.lastIndexOf(':'));
         if ("conf".equals(registryIdentifier)) {
             registry = (Registry) CarbonContext.getThreadLocalCarbonContext().
                     getRegistry(RegistryType.SYSTEM_CONFIGURATION);
@@ -437,7 +437,7 @@ public class EntitlementPolicyAdminService {
     public String[] getSubscriberIds(String searchString) throws EntitlementException {
         SubscriberDAO subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberDAO();
         String[] ids = subscriberManager.listSubscriberIds(searchString).toArray(new String[0]);
-        if (ids != null) {
+        if (ids.length != 0) {
             return ids;
         } else {
             return new String[0];
@@ -658,7 +658,7 @@ public class EntitlementPolicyAdminService {
         PAPPolicyStoreManager storeManager = EntitlementAdminEngine.
                 getInstance().getPapPolicyStoreManager();
         if (storeManager.isExistPolicy(policyId)) {
-            storeManager.addOrUpdatePolicy(policyDTO);
+            storeManager.addOrUpdatePolicy(policyDTO, false);
         }
         publishToPDP(new String[]{policyDTO.getPolicyId()}, EntitlementConstants.PolicyPublish.ACTION_ORDER, null,
                      false, newOrder);
@@ -672,7 +672,7 @@ public class EntitlementPolicyAdminService {
         PAPPolicyStoreManager storeManager = EntitlementAdminEngine.
                 getInstance().getPapPolicyStoreManager();
         if (storeManager.isExistPolicy(policyId)) {
-            storeManager.addOrUpdatePolicy(policyDTO);
+            storeManager.addOrUpdatePolicy(policyDTO, false);
         }
 
         if (enable) {
@@ -764,7 +764,7 @@ public class EntitlementPolicyAdminService {
                     throw new EntitlementException("Unsupported Entitlement Policy. Policy can not be parsed");
                 }
             }
-            policyAdmin.addOrUpdatePolicy(policyDTO);
+            policyAdmin.addOrUpdatePolicy(policyDTO, true);
         } catch (EntitlementException e) {
             handleStatus(operation, policyDTO, false, e.getMessage());
             throw e;

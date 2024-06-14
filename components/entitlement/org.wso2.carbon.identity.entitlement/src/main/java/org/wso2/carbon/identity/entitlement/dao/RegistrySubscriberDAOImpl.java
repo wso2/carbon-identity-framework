@@ -36,6 +36,7 @@ import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,7 +48,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
 
     public static final String SUBSCRIBER_ID = "subscriberId";
     // The logger that is used for all messages
-    private static final Log log = LogFactory.getLog(RegistrySubscriberDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(RegistrySubscriberDAOImpl.class);
     private final Registry registry;
 
     public RegistrySubscriberDAOImpl() {
@@ -88,7 +89,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                 return new PublisherDataHolder(resource, returnSecrets);
             }
         } catch (RegistryException e) {
-            log.error("Error while retrieving subscriber detail of id : " + subscriberId, e);
+            LOG.error("Error while retrieving subscriber detail of id : " + subscriberId, e);
             throw new EntitlementException("Error while retrieving subscriber detail of id : " + subscriberId, e);
         }
 
@@ -131,10 +132,10 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                 return list;
             }
         } catch (RegistryException e) {
-            log.error("Error while retrieving subscriber ids", e);
+            LOG.error("Error while retrieving subscriber ids", e);
             throw new EntitlementException("Error while retrieving subscriber ids", e);
         }
-        return null;
+        return Collections.emptyList();
     }
 
     /**
@@ -161,12 +162,12 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         String subscriberPath;
 
         if (subscriberId == null) {
-            log.error("SubscriberDAO Id can not be null");
+            LOG.error("SubscriberDAO Id can not be null");
             throw new EntitlementException("SubscriberDAO Id can not be null");
         }
 
         if (EntitlementConstants.PDP_SUBSCRIBER_ID.equals(subscriberId.trim())) {
-            log.error("Can not delete PDP publisher");
+            LOG.error("Can not delete PDP publisher");
             throw new EntitlementException("Can not delete PDP publisher");
         }
 
@@ -178,7 +179,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                 registry.delete(subscriberPath);
             }
         } catch (RegistryException e) {
-            log.error("Error while deleting subscriber details", e);
+            LOG.error("Error while deleting subscriber details", e);
             throw new EntitlementException("Error while deleting subscriber details", e);
         }
     }
@@ -197,7 +198,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         String subscriberId = null;
 
         if (holder == null || holder.getPropertyDTOs() == null) {
-            log.error("Publisher data can not be null");
+            LOG.error("Publisher data can not be null");
             throw new EntitlementException("Publisher data can not be null");
         }
 
@@ -208,7 +209,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         }
 
         if (subscriberId == null) {
-            log.error("SubscriberDAO Id can not be null");
+            LOG.error("SubscriberDAO Id can not be null");
             throw new EntitlementException("SubscriberDAO Id can not be null");
         }
 
@@ -239,7 +240,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
             registry.put(subscriberPath, resource);
 
         } catch (RegistryException e) {
-            log.error("Error while persisting subscriber details", e);
+            LOG.error("Error while persisting subscriber details", e);
             throw new EntitlementException("Error while persisting subscriber details", e);
         }
     }
@@ -269,7 +270,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                                     encryptAndBase64Encode(dto.getValue().getBytes());
                             dto.setValue(encryptedValue);
                         } catch (CryptoException e) {
-                            log.error("Error while encrypting secret value of subscriber. " +
+                            LOG.error("Error while encrypting secret value of subscriber. " +
                                     "Secret would not be persist.", e);
                             continue;
                         }
@@ -285,5 +286,4 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         }
         resource.setProperty(PublisherDataHolder.MODULE_NAME, holder.getModuleName());
     }
-
 }

@@ -40,9 +40,9 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
     public static final String POLICY_COMBINING_PREFIX_1 = "urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:";
     public static final String POLICY_COMBINING_PREFIX_3 = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:";
     // The logger that is used for all messages
-    private static final Log log = LogFactory.getLog(RegistryConfigDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(RegistryConfigDAOImpl.class);
     private static final String GLOBAL_POLICY_COMBINING_ALGORITHM = "globalPolicyCombiningAlgorithm";
-    private final String policyDataCollection = PDPConstants.ENTITLEMENT_POLICY_DATA;
+    private static final String POLICY_DATA_COLLECTION = PDPConstants.ENTITLEMENT_POLICY_DATA;
     private final Registry registry;
 
     public RegistryConfigDAOImpl() {
@@ -61,8 +61,8 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
 
         String algorithm = null;
         try {
-            if (registry.resourceExists(policyDataCollection)) {
-                Collection collection = (Collection) registry.get(policyDataCollection);
+            if (registry.resourceExists(POLICY_DATA_COLLECTION)) {
+                Collection collection = (Collection) registry.get(POLICY_DATA_COLLECTION);
                 algorithm = collection.getProperty(GLOBAL_POLICY_COMBINING_ALGORITHM);
             }
 
@@ -70,17 +70,18 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
                 // Reads the algorithm from entitlement.properties file
                 algorithm = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties().
                         getProperty(PDPConstants.PDP_GLOBAL_COMBINING_ALGORITHM);
-                log.info("The global policy combining algorithm which is defined in the configuration file, " +
+                LOG.info("The global policy combining algorithm which is defined in the configuration file, " +
                         "is used.");
                 try {
                     return EntitlementUtil.getPolicyCombiningAlgorithm(algorithm);
                 } catch (Exception e) {
-                    log.debug(e);
+                    LOG.warn(e);
                 }
             }
 
             if (algorithm != null && !algorithm.trim().isEmpty()) {
-                if ("first-applicable".equals(algorithm) || "only-one-applicable".equals(algorithm)) {
+                if (PDPConstants.Algorithms.FIRST_APPLICABLE.equals(algorithm) ||
+                        PDPConstants.Algorithms.ONLY_ONE_APPLICABLE.equals(algorithm)) {
                     algorithm = POLICY_COMBINING_PREFIX_1 + algorithm;
                 } else {
                     algorithm = POLICY_COMBINING_PREFIX_3 + algorithm;
@@ -89,12 +90,12 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
             }
 
         } catch (RegistryException | EntitlementException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Exception while getting global policy combining algorithm from policy data store.", e);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Exception while getting global policy combining algorithm from policy data store.", e);
             }
         }
 
-        log.warn("Global policy combining algorithm is not defined. Therefore the default algorithm is used.");
+        LOG.warn("Global policy combining algorithm is not defined. Therefore the default algorithm is used.");
         return new DenyOverridesPolicyAlg();
     }
 
@@ -109,20 +110,20 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
 
         try {
             Collection policyCollection;
-            if (registry.resourceExists(policyDataCollection)) {
-                policyCollection = (Collection) registry.get(policyDataCollection);
+            if (registry.resourceExists(POLICY_DATA_COLLECTION)) {
+                policyCollection = (Collection) registry.get(POLICY_DATA_COLLECTION);
             } else {
                 policyCollection = registry.newCollection();
             }
 
             policyCollection.setProperty(GLOBAL_POLICY_COMBINING_ALGORITHM, policyCombiningAlgorithm);
-            registry.put(policyDataCollection, policyCollection);
+            registry.put(POLICY_DATA_COLLECTION, policyCollection);
 
             // Performs cache invalidation
             EntitlementEngine.getInstance().invalidatePolicyCache();
 
         } catch (RegistryException e) {
-            log.error("Error while updating global policy combining algorithm in policy store ", e);
+            LOG.error("Error while updating global policy combining algorithm in policy store ", e);
             throw new EntitlementException("Error while updating global policy combining algorithm in policy store");
         }
     }
@@ -137,22 +138,21 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
 
         String algorithm = null;
         try {
-            if (registry.resourceExists(policyDataCollection)) {
-                Collection collection = (Collection) registry.get(policyDataCollection);
+            if (registry.resourceExists(POLICY_DATA_COLLECTION)) {
+                Collection collection = (Collection) registry.get(POLICY_DATA_COLLECTION);
                 algorithm = collection.getProperty(GLOBAL_POLICY_COMBINING_ALGORITHM);
             }
         } catch (RegistryException e) {
-            if (log.isDebugEnabled()) {
-                log.debug(e);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(e);
             }
         }
 
         // set default
         if (algorithm == null) {
-            algorithm = "deny-overrides";
+            algorithm = PDPConstants.Algorithms.DENY_OVERRIDES;
         }
 
         return algorithm;
     }
-
 }

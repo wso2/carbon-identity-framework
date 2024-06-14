@@ -61,7 +61,7 @@ public abstract class AbstractPolicyFinderModule implements PolicyFinderModule {
 
         log.debug("Start retrieving ordered policy identifiers at : " + new Date());
         String[] policyIdentifiers = getPolicyIdentifiers();
-        if (policyIdentifiers != null) {
+        if (policyIdentifiers != null && !isPolicyOrderingSupport()) {
             PolicyDTO[] policyDTOs = EntitlementAdminEngine.getInstance().
                     getPolicyStoreManager().getLightPolicies();
             Arrays.sort(policyDTOs, new PolicyOrderComparator());
@@ -82,14 +82,19 @@ public abstract class AbstractPolicyFinderModule implements PolicyFinderModule {
 
     @Override
     public String[] getActivePolicies() {
+
         log.debug("Start retrieving active policies at : " + new Date());
         List<String> policies = new ArrayList<String>();
         String[] policyIdentifiers = getOrderedPolicyIdentifiers();
         if (policyIdentifiers != null) {
             for (String identifier : policyIdentifiers) {
-                PolicyDTO data = EntitlementAdminEngine.getInstance().
-                        getPolicyStoreManager().getPolicy(identifier);
-                if (data != null && data.isActive()) {
+                if (!isPolicyDeActivationSupport()) {
+                    PolicyDTO policyDTO = EntitlementAdminEngine.getInstance().
+                            getPolicyStoreManager().getPolicy(identifier);
+                    if (policyDTO != null && policyDTO.isActive()) {
+                        policies.add(policyDTO.getPolicy());
+                    }
+                } else {
                     String policy = getPolicy(identifier);
                     if (policy != null) {
                         policies.add(policy);
@@ -102,10 +107,19 @@ public abstract class AbstractPolicyFinderModule implements PolicyFinderModule {
 
     }
 
-
     @Override
     public boolean isDefaultCategoriesSupported() {
         return true;
+    }
+
+    @Override
+    public boolean isPolicyOrderingSupport() {
+        return false;
+    }
+
+    @Override
+    public boolean isPolicyDeActivationSupport() {
+        return false;
     }
 
     @Override
@@ -123,5 +137,4 @@ public abstract class AbstractPolicyFinderModule implements PolicyFinderModule {
      * @return
      */
     protected abstract String[] getPolicyIdentifiers();
-
 }

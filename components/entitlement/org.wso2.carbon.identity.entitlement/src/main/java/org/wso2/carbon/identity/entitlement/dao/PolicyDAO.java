@@ -36,7 +36,7 @@ public interface PolicyDAO extends PolicyFinderModule {
      * @param policy policy
      * @throws EntitlementException If an error occurs
      */
-    void addOrUpdatePolicy(PolicyDTO policy) throws EntitlementException;
+    void addOrUpdatePolicy(PolicyDTO policy, boolean enableVersioning) throws EntitlementException;
 
     /**
      * Gets the requested policy.
@@ -119,5 +119,4 @@ public interface PolicyDAO extends PolicyFinderModule {
      * @param policyId policy ID
      */
     void unPublishPolicy(String policyId);
-
 }
