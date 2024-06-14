@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -1082,7 +1082,9 @@ public class ApplicationMgtUtil {
      * @param absoluteUrl     The URL which need to resolve from placeholders.
      * @return The resolved URL from placeholders.
      * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     * @deprecated use {@link #resolveOriginUrlFromPlaceholders(String, String)}
      */
+    @Deprecated
     public static String resolveOriginUrlFromPlaceholders(String absoluteUrl) throws URLBuilderException {
 
         String basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
