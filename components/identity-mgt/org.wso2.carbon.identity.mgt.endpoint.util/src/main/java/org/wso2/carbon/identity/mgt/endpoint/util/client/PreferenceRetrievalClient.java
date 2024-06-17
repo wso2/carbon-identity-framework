@@ -142,7 +142,6 @@ public class PreferenceRetrievalClient {
      * @return returns true if  notification based password recovery enabled.
      * @throws PreferenceRetrievalClientException
      */
-    @Deprecated
     public boolean checkNotificationBasedPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, RECOVERY_CONNECTOR, NOTIFICATION_PASSWORD_RECOVERY_PROPERTY);
