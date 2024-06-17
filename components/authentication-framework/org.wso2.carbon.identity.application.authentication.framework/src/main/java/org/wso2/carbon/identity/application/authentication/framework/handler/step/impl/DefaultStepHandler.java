@@ -722,6 +722,7 @@ public class DefaultStepHandler implements StepHandler {
             diagnosticLogBuilder.inputParam(LogConstants.InputKeys.IDP, idpName)
                     .inputParam("selected authenticator", authenticator.getName())
                     .inputParam(LogConstants.InputKeys.STEP, currentStep)
+                    .inputParam(LogConstants.InputKeys.CLIENT_ID, context.getRelyingParty())
                     .resultMessage("Executing the authentication step.")
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);

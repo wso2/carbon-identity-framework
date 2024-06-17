@@ -18,16 +18,13 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.stubbing.Answer;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -70,11 +67,11 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -83,9 +80,7 @@ import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.FEDERATED_TOKENS;
 
-@PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class, LoggerUtils.class})
 @WithCarbonHome
-@PowerMockIgnore("org.mockito.*")
 public class DefaultAuthenticationRequestHandlerTest {
 
     @Mock
@@ -97,12 +92,6 @@ public class DefaultAuthenticationRequestHandlerTest {
     @Spy
     DefaultAuthenticationRequestHandler authenticationRequestHandler;
 
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
-
     @BeforeMethod
     public void setUp() throws Exception {
 
@@ -111,7 +100,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
     @AfterMethod
     public void tearDown() throws Exception {
-
+        FrameworkServiceDataHolder.getInstance().getPostAuthenticationHandlers().clear();
     }
 
     @Test
@@ -157,37 +146,40 @@ public class DefaultAuthenticationRequestHandlerTest {
     public void testHandleRememberMeOptionFromLoginPage(String rememberMeParam,
                                                         boolean expectedResult) throws Exception {
 
-        doReturn(rememberMeParam).when(request).getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
+        try (MockedStatic<SessionNonceCookieUtil> sessionNonceCookieUtil =
+                     mockStatic(SessionNonceCookieUtil.class)) {
+            doReturn(rememberMeParam).when(request).getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
 
-        AuthenticationContext context = spy(new AuthenticationContext());
-        SequenceConfig sequenceConfig = spy(new SequenceConfig());
-        when(sequenceConfig.isCompleted()).thenReturn(true);
-        ServiceProvider serviceProvider = spy(new ServiceProvider());
-        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = spy(new
-            LocalAndOutboundAuthenticationConfig());
-        when(localAndOutboundAuthenticationConfig.getAuthenticationType()).thenReturn(ApplicationConstants
-            .AUTH_TYPE_LOCAL);
-        serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
-        ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider, SUPER_TENANT_DOMAIN_NAME));
-        sequenceConfig.setApplicationConfig(applicationConfig);
+            AuthenticationContext context = spy(new AuthenticationContext());
+            SequenceConfig sequenceConfig = spy(new SequenceConfig());
+            when(sequenceConfig.isCompleted()).thenReturn(true);
+            ServiceProvider serviceProvider = spy(new ServiceProvider());
+            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = spy(new
+                    LocalAndOutboundAuthenticationConfig());
+            when(localAndOutboundAuthenticationConfig.getAuthenticationType()).thenReturn(ApplicationConstants
+                    .AUTH_TYPE_LOCAL);
+            serviceProvider.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
+            ApplicationConfig applicationConfig = spy(new ApplicationConfig(serviceProvider, SUPER_TENANT_DOMAIN_NAME));
+            sequenceConfig.setApplicationConfig(applicationConfig);
 
-        context.setSequenceConfig(sequenceConfig);
+            context.setSequenceConfig(sequenceConfig);
 
-        // mock the context to show that flow is returning back from login page
-        when(context.isReturning()).thenReturn(true);
-        when(context.getCurrentStep()).thenReturn(0);
+            // mock the context to show that flow is returning back from login page
+            when(context.isReturning()).thenReturn(true);
+            when(context.getCurrentStep()).thenReturn(0);
 
+            //mock session nonce cookie validation
 
-        //mock session nonce cookie validation
-        mockStatic(SessionNonceCookieUtil.class);
-        when(SessionNonceCookieUtil.validateNonceCookie(any(), any())).thenReturn(true);
+            sessionNonceCookieUtil.when(() -> SessionNonceCookieUtil.validateNonceCookie(any(), any()))
+                    .thenReturn(true);
 
-        // Mock conclude flow and post authentication flows to isolate remember me option
-        doNothing().when(authenticationRequestHandler).concludeFlow(request, response, context);
+            // Mock conclude flow and post authentication flows to isolate remember me option
+            doNothing().when(authenticationRequestHandler).concludeFlow(request, response, context);
 
-        authenticationRequestHandler.handle(request, response, context);
+            authenticationRequestHandler.handle(request, response, context);
 
-        assertEquals(context.isRememberMe(), expectedResult);
+            assertEquals(context.isRememberMe(), expectedResult);
+        }
     }
 
     @DataProvider(name = "RequestParamDataProvider")
@@ -304,75 +296,82 @@ public class DefaultAuthenticationRequestHandlerTest {
                                              String errorUri,
                                              String requestType) throws Exception {
 
-        AuthenticationResult authenticationResult = new AuthenticationResult();
-        doReturn(authenticationResult).when(request).getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            AuthenticationResult authenticationResult = new AuthenticationResult();
+            doReturn(authenticationResult).when(request).getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
 
-        // Populate the context with error details
-        AuthenticationContext context = new AuthenticationContext();
-        context.setProperty(FrameworkConstants.AUTH_ERROR_CODE, errorCode);
-        context.setProperty(FrameworkConstants.AUTH_ERROR_MSG, errorMessage);
-        context.setProperty(FrameworkConstants.AUTH_ERROR_URI, errorUri);
+            // Populate the context with error details
+            AuthenticationContext context = new AuthenticationContext();
+            context.setProperty(FrameworkConstants.AUTH_ERROR_CODE, errorCode);
+            context.setProperty(FrameworkConstants.AUTH_ERROR_MSG, errorMessage);
+            context.setProperty(FrameworkConstants.AUTH_ERROR_URI, errorUri);
 
-        // request type is does not cache authentication result
-        context.setRequestType(requestType);
-        response = spy(new CommonAuthResponseWrapper(response));
+            // request type is does not cache authentication result
+            context.setRequestType(requestType);
+            response = spy(new CommonAuthResponseWrapper(response));
 
-        // if request type caches authentication result we need to mock required dependent objects
-        AuthenticationResultCacheEntry cacheEntry = spy(new AuthenticationResultCacheEntry());
-        when(cacheEntry.getResult()).thenReturn(authenticationResult);
-        mockStatic(FrameworkUtils.class);
-        when(FrameworkUtils.getAuthenticationResultFromCache(isNull())).thenReturn(cacheEntry);
+            // if request type caches authentication result we need to mock required dependent objects
+            AuthenticationResultCacheEntry cacheEntry = spy(new AuthenticationResultCacheEntry());
+            when(cacheEntry.getResult()).thenReturn(authenticationResult);
+            frameworkUtils.when(() -> FrameworkUtils.getAuthenticationResultFromCache(isNull())).thenReturn(cacheEntry);
 
-        authenticationRequestHandler.populateErrorInformation(request, response, context);
+            authenticationRequestHandler.populateErrorInformation(request, response, context);
 
-        // Assert stuff
-        AuthenticationResult modifiedAuthenticationResult =
-                (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
+            // Assert stuff
+            AuthenticationResult modifiedAuthenticationResult =
+                    (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
 
-        assertNotNull(modifiedAuthenticationResult);
-        assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE), errorCode);
-        assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG), errorMessage);
-        assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_URI), errorUri);
+            assertNotNull(modifiedAuthenticationResult);
+            assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_CODE), errorCode);
+            assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_MSG), errorMessage);
+            assertEquals(modifiedAuthenticationResult.getProperty(FrameworkConstants.AUTH_ERROR_URI), errorUri);
+        }
     }
 
     @Test
     public void testPostAuthenticationHandlers() throws Exception {
 
-        mockStatic(LoggerUtils.class);
-        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
-        Cookie[] cookies = new Cookie[1];
-        AuthenticationContext context = prepareContextForPostAuthnTests();
-        authenticationRequestHandler.handle(request, response, context);
-        assertNull(context.getParameter(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED));
-        String pastrCookie = context.getParameter(FrameworkConstants.PASTR_COOKIE).toString();
-        cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getContextIdentifier(),
-                pastrCookie);
-        when(request.getCookies()).thenReturn(cookies);
-        when(FrameworkUtils.getCookie(any(HttpServletRequest.class), isNull())).thenReturn
-                (cookies[0]);
-        LoggerUtils.isLogMaskingEnable = false;
-        authenticationRequestHandler.handle(request, response, context);
-        assertTrue(Boolean.parseBoolean(context.getProperty(
-                FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
+        try (MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+            Cookie[] cookies = new Cookie[1];
+            AuthenticationContext context = prepareContextForPostAuthnTests(frameworkUtils);
+            authenticationRequestHandler.handle(request, response, context);
+            assertNull(context.getParameter(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED));
+            String pastrCookie = context.getParameter(FrameworkConstants.PASTR_COOKIE).toString();
+            cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getContextIdentifier(),
+                    pastrCookie);
+            when(request.getCookies()).thenReturn(cookies);
+            frameworkUtils.when(() -> FrameworkUtils.getCookie(any(HttpServletRequest.class), isNull())).thenReturn
+                    (cookies[0]);
+            LoggerUtils.isLogMaskingEnable = false;
+            authenticationRequestHandler.handle(request, response, context);
+            assertTrue(Boolean.parseBoolean(context.getProperty(
+                    FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
+        }
     }
 
     @Test(expectedExceptions = PostAuthenticationFailedException.class)
     public void testPostAuthenticationHandlerFailures() throws Exception {
 
-        Cookie[] cookies = new Cookie[1];
-        AuthenticationContext context = prepareContextForPostAuthnTests();
-        when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(new DefaultStepBasedSequenceHandler());
-        authenticationRequestHandler.handle(request, response, context);
-        assertNull(context.getParameter(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED));
-        String pastrCookie = context.getParameter(FrameworkConstants.PASTR_COOKIE).toString();
-        cookies[0] = new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getContextIdentifier(), pastrCookie);
-        when(request.getCookies()).thenReturn(cookies);
-        when(FrameworkUtils.getCookie(any(HttpServletRequest.class), anyString())).thenReturn
-                (new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getContextIdentifier(),
-                        "someGibberishValue"));
-        authenticationRequestHandler.handle(request, response, context);
-        assertTrue(Boolean.parseBoolean(context.getProperty(
-                FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
+            Cookie[] cookies = new Cookie[1];
+            AuthenticationContext context = prepareContextForPostAuthnTests(frameworkUtils);
+            frameworkUtils.when(
+                    FrameworkUtils::getStepBasedSequenceHandler).thenReturn(new DefaultStepBasedSequenceHandler());
+            authenticationRequestHandler.handle(request, response, context);
+            assertNull(context.getParameter(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED));
+            String pastrCookie = context.getParameter(FrameworkConstants.PASTR_COOKIE).toString();
+            cookies[0] =
+                    new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getContextIdentifier(), pastrCookie);
+            when(request.getCookies()).thenReturn(cookies);
+            frameworkUtils.when(() -> FrameworkUtils.getCookie(any(HttpServletRequest.class), anyString())).thenReturn
+                    (new Cookie(FrameworkConstants.PASTR_COOKIE + "-" + context.getContextIdentifier(),
+                            "someGibberishValue"));
+            authenticationRequestHandler.handle(request, response, context);
+            assertTrue(Boolean.parseBoolean(context.getProperty(
+                    FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
+        }
     }
 
     /**
@@ -407,50 +406,54 @@ public class DefaultAuthenticationRequestHandlerTest {
     public void testHandlePostAuthentication(String errorMessage, List<FederatedToken> federatedTokens)
             throws Exception {
 
-        String authenticator = "Google Maps";
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<LoggerUtils> loggerUtils = mockStatic(LoggerUtils.class)) {
+            String authenticator = "Google Maps";
 
-        AuthenticationContext context = prepareContextForPostAuthnTests();
-        context.setCallerSessionKey("1234");
-        context.setRequestType(authenticator);
-        if (federatedTokens != null) {
-            context.setProperty(FEDERATED_TOKENS, federatedTokens);
-        }
+            AuthenticationContext context = prepareContextForPostAuthnTests(frameworkUtils);
+            context.setCallerSessionKey("1234");
+            context.setRequestType(authenticator);
+            if (federatedTokens != null) {
+                context.setProperty(FEDERATED_TOKENS, federatedTokens);
+            }
 
-        List<String> cacheDisabledAuthenticators = new ArrayList<>();
-        cacheDisabledAuthenticators.add(authenticator);
+            List<String> cacheDisabledAuthenticators = new ArrayList<>();
+            cacheDisabledAuthenticators.add(authenticator);
 
-        mockStatic(LoggerUtils.class);
-        when(LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(false);
+            loggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
 
-        HttpServletRequest request = spy(HttpServletRequest.class);
-        mockHttpRequestAttributes(request);
+            HttpServletRequest request = spy(HttpServletRequest.class);
+            mockHttpRequestAttributes(request);
 
-        when(FrameworkUtils.getCacheDisabledAuthenticators()).thenReturn(cacheDisabledAuthenticators);
-        CommonAuthResponseWrapper mockedResponse = new CommonAuthResponseWrapper(spy(HttpServletResponse.class));
+            frameworkUtils.when(FrameworkUtils::getCacheDisabledAuthenticators).thenReturn(cacheDisabledAuthenticators);
+            CommonAuthResponseWrapper mockedResponse = new CommonAuthResponseWrapper(spy(HttpServletResponse.class));
 
-        authenticationRequestHandler.concludeFlow(request, mockedResponse, context);
+            authenticationRequestHandler.concludeFlow(request, mockedResponse, context);
 
-        assertNotNull(request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT),
-                "No authentication result found in the request");
-        assertTrue(
-                request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT) instanceof AuthenticationResult);
+            assertNotNull(request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT),
+                    "No authentication result found in the request");
+            assertTrue(
+                    request.getAttribute(
+                            FrameworkConstants.RequestAttribute.AUTH_RESULT) instanceof AuthenticationResult);
 
-        AuthenticationResult authenticationResult =
-                (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
+            AuthenticationResult authenticationResult =
+                    (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);
 
-        if (federatedTokens == null) {
-            assertNull(authenticationResult.getProperty(FEDERATED_TOKENS), errorMessage);
-        } else {
-            assertNotNull(authenticationResult.getProperty(FEDERATED_TOKENS), errorMessage);
-            assertTrue(authenticationResult.getProperty(FEDERATED_TOKENS) instanceof List, errorMessage);
-            List<FederatedToken> federatedTokensAtAuthResult =
-                    (List<FederatedToken>) authenticationResult.getProperty(FEDERATED_TOKENS);
+            if (federatedTokens == null) {
+                assertNull(authenticationResult.getProperty(FEDERATED_TOKENS), errorMessage);
+            } else {
+                assertNotNull(authenticationResult.getProperty(FEDERATED_TOKENS), errorMessage);
+                assertTrue(authenticationResult.getProperty(FEDERATED_TOKENS) instanceof List, errorMessage);
+                List<FederatedToken> federatedTokensAtAuthResult =
+                        (List<FederatedToken>) authenticationResult.getProperty(FEDERATED_TOKENS);
 
-            assertEquals(federatedTokensAtAuthResult.size(), 1, "Federated tokens count is not equal");
-            assertEquals(federatedTokensAtAuthResult.get(0).getIdp(), federatedTokens.get(0).getIdp(),
-                    "Federated tokens idp is not equal");
-            assertEquals(federatedTokensAtAuthResult.get(0).getAccessToken(), federatedTokens.get(0).getAccessToken(),
-                    "Federated access token is not equal");
+                assertEquals(federatedTokensAtAuthResult.size(), 1, "Federated tokens count is not equal");
+                assertEquals(federatedTokensAtAuthResult.get(0).getIdp(), federatedTokens.get(0).getIdp(),
+                        "Federated tokens idp is not equal");
+                assertEquals(federatedTokensAtAuthResult.get(0).getAccessToken(),
+                        federatedTokens.get(0).getAccessToken(),
+                        "Federated access token is not equal");
+            }
         }
     }
 
@@ -478,7 +481,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         }).when(request).getAttribute(Mockito.anyString());
     }
 
-    private AuthenticationContext prepareContextForPostAuthnTests() {
+    private AuthenticationContext prepareContextForPostAuthnTests(MockedStatic<FrameworkUtils> frameworkUtils) {
 
         AuthenticationContext context = new AuthenticationContext();
         context.setContextIdentifier(String.valueOf(UUID.randomUUID()));
@@ -487,8 +490,8 @@ public class DefaultAuthenticationRequestHandlerTest {
         setUser(context, "admin");
         setPostAuthnMgtService();
         addPostAuthnHandler();
-        mockStatic(FrameworkUtils.class);
-        when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(new DefaultStepBasedSequenceHandler());
+        frameworkUtils.when(
+                FrameworkUtils::getStepBasedSequenceHandler).thenReturn(new DefaultStepBasedSequenceHandler());
         context.initializeAnalyticsData();
         return context;
     }

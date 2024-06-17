@@ -301,6 +301,11 @@
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
         <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
 
+        <MutualTLSAliases>
+            <Enabled>{{oauth.mtls_aliases.enabled}}</Enabled>
+            <Hostname>{{oauth.mtls_aliases.hostname}}</Hostname>
+        </MutualTLSAliases>
+
         <EnableSHA256OAuth2JWKThumbprint>{{oauth.jwk_thumbprint_enable_sha256}}</EnableSHA256OAuth2JWKThumbprint>
 
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
@@ -1050,6 +1055,8 @@
         -->
         <DCRM>
             <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
+            <ClientAuthenticationRequired>{{oauth.dcr.authentication_required}}</ClientAuthenticationRequired>
+            <MandatorySoftwareStatement>{{oauth.dcr.mandate_ssa}}</MandatorySoftwareStatement>
             {% if oauth.dcr.ssa_jkws is defined %}
             <SoftwareStatementJWKS>{{oauth.dcr.ssa_jkws}}</SoftwareStatementJWKS>
             {% endif %}
@@ -2878,7 +2885,7 @@
         </Resource>
         <Resource context="(.*)/api/users/v1/offline-invite-link(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
-            <Scopes>internal_offline_invite</Scopes>
+            <Scopes>internal_user_mgt_create</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
@@ -3614,6 +3621,11 @@
         <AuthenticatorNameInAuthConfig>
             <Enable>{{authentication.adaptive.authenticator_name_in_auth_config.enable}}</Enable>
         </AuthenticatorNameInAuthConfig>
+
+        <!--Number of statements that can be run with GraalJS script engine on one execution-->
+        <GraalJS>
+            <ScriptStatementsLimit>{{authentication.adaptive.graaljs.script_statements_limit}}</ScriptStatementsLimit>
+        </GraalJS>
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
@@ -4043,6 +4055,29 @@
     {% if legacy_claims.allow_legacy_role_claim_behaviour is defined %}
     <!-- Config to allow legacy roles claim behaviors -->
     <AllowLegacyRoleClaimBehaviour>{{legacy_claims.allow_legacy_role_claim_behaviour}}</AllowLegacyRoleClaimBehaviour>
+    {% endif %}
+
+    {% if cache_invalidator.mb.enabled is defined %}
+    <CacheInvalidator>
+        <MB>
+            <Enabled>{{cache_invalidator.mb.enabled}}</Enabled>
+            <Type>{{cache_invalidator.mb.broker_type}}</Type>
+            <InitialNamingFactory>{{cache_invalidator.mb.initial_naming_factory}}</InitialNamingFactory>
+            <ProviderURL>{{cache_invalidator.mb.provider_url}}</ProviderURL>
+            <TopicName>{{cache_invalidator.mb.topic_name}}</TopicName>
+            <ProducerName>{{cache_invalidator.mb.producer_name}}</ProducerName>
+            <Username>{{cache_invalidator.mb.username}}</Username>
+            <Password>{{cache_invalidator.mb.password}}</Password>
+            <HybridMode>{{cache_invalidator.mb.hybrid_mode_enabled}}</HybridMode>
+        </MB>
+        {% for cache_manager in cache_invalidator.sync_block_list.cache_manager %}
+        <CacheManager name="{{cache_manager.name}}">
+            {% for cache_name in cache_manager.list %}
+            <Cache name="{{cache_name}}"/>
+            {% endfor %}
+        </CacheManager>
+        {% endfor %}
+    </CacheInvalidator>
     {% endif %}
 
 </Server>

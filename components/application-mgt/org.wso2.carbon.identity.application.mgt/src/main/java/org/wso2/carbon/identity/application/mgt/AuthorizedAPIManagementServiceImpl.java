@@ -62,6 +62,9 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
     public void addAuthorizedAPI(String applicationId, AuthorizedAPI authorizedAPI, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
+                ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
+        publisherProxy.publishPreAddAuthorizedAPIForApplication(applicationId, authorizedAPI, tenantDomain);
         Collection<AuthorizedAPIManagementListener> listeners = ApplicationMgtListenerServiceComponent
                 .getAuthorizedAPIManagementListeners();
         for (AuthorizedAPIManagementListener listener : listeners) {
@@ -78,6 +81,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
         for (AuthorizedAPIManagementListener listener : listeners) {
             listener.postAddAuthorizedAPI(applicationId, authorizedAPI, tenantDomain);
         }
+        publisherProxy.publishPostAddAuthorizedAPIForApplication(applicationId, authorizedAPI, tenantDomain);
     }
 
     @Override
@@ -273,8 +277,8 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 tenantDomain);
         try {
             for (RoleV2 role : roles) {
-                getRoleManagementServiceV2().updatePermissionListOfRole(role.getId(), null, removedPermissions,
-                        tenantDomain);
+                getRoleManagementServiceV2().updatePermissionListOfRole(role.getId(), new ArrayList<>(),
+                        removedPermissions, tenantDomain);
             }
         } catch (IdentityRoleManagementException e) {
             throw new IdentityApplicationManagementException("Error while updating permission list of roles " +

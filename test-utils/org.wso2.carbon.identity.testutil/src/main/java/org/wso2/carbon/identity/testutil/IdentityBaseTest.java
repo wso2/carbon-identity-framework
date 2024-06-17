@@ -19,7 +19,6 @@
 
 package org.wso2.carbon.identity.testutil;
 
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
@@ -40,10 +39,7 @@ import org.wso2.carbon.identity.testutil.log.LogUtil;
  * }
  *
  * Test cases that should run twice with debug and info or any other log levels need to be extended from this class.
- *
- * @see org.powermock.modules.testng.PowerMockTestCase
  */
-@PowerMockIgnore({"javax.management.*", "javax.script.*"})
 public abstract class IdentityBaseTest {
 
 	public IdentityBaseTest() {

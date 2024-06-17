@@ -146,13 +146,8 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
             // here we can get policy data store by using EntitlementAdminEngine. But we are not
             // use it here.  As we need not to have a dependant on EntitlementAdminEngine
             PolicyDataStore policyDataStore;
-            Map<PolicyDataStore, Properties> dataStoreModules = EntitlementServiceComponent.
-                    getEntitlementConfig().getPolicyDataStore();
-            if (dataStoreModules != null && dataStoreModules.size() > 0) {
-                policyDataStore = dataStoreModules.entrySet().iterator().next().getKey();
-            } else {
-                policyDataStore = new DefaultPolicyDataStore();
-            }
+            policyDataStore = new DefaultPolicyDataStore();
+
             policyCombiningAlgorithm = policyDataStore.getGlobalPolicyAlgorithm();
 
             tempPolicyCollection.setPolicyCombiningAlgorithm(policyCombiningAlgorithm);

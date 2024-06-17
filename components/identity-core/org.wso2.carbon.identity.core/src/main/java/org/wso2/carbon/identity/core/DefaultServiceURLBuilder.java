@@ -58,6 +58,9 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     protected boolean mandateTenantedPath = false;
     protected Map<String, String> parameters = new HashMap<>();
     protected Map<String, String> fragmentParams = new HashMap<>();
+    // This flag is added to skip custom domain configurations.
+    // When set to true, custom domain configurations for the tenant will be ignored when building service urls.
+    protected boolean skipDomainBranding = false;
 
     /**
      * Returns {@link ServiceURLBuilder} appended the URL path.
@@ -78,12 +81,32 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
      *
      * @return {@link ServiceURL}.
      * @throws URLBuilderException If error occurred while constructing the URL.
+     * @deprecated Use {@link #build(String)} (String)} instead.
      */
     @Override
+    @Deprecated
     public ServiceURL build() throws URLBuilderException {
 
+        return buildServiceURL(fetchProxyHostName());
+    }
+
+    /**
+     * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
+     * root and the tenant domain (appended if required).
+     *
+     * @param hostname Hostname.
+     * @return {@link ServiceURL}.
+     * @throws URLBuilderException If error occurred while constructing the URL.
+     */
+    @Override
+    public ServiceURL build(String hostname) throws URLBuilderException {
+
+        return buildServiceURL(hostname);
+    }
+
+    private ServiceURL buildServiceURL(String proxyHostName) throws URLBuilderException {
+
         String protocol = fetchProtocol();
-        String proxyHostName = fetchProxyHostName();
         String internalHostName = fetchInternalHostName();
         String authenticationEndpointHostName = fetchAuthenticationEndpointHostName();
         String authenticationEndpointPath = fetchAuthenticationEndpointPath();
@@ -189,6 +212,13 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     public ServiceURLBuilder addFragmentParameter(String key, String value) {
 
         fragmentParams.put(key, value);
+        return this;
+    }
+
+    @Override
+    public ServiceURLBuilder setSkipDomainBranding(boolean skipDomainBranding) {
+
+        this.skipDomainBranding = skipDomainBranding;
         return this;
     }
 

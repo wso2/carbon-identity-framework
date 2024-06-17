@@ -25,8 +25,8 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 
 import java.util.List;
 
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;

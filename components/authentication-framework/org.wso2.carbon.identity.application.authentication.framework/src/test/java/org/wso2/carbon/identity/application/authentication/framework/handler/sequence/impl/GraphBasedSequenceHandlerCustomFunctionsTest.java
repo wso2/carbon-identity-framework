@@ -19,19 +19,21 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.graalvm.polyglot.HostAccess;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.JsNashornAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
@@ -81,6 +83,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
         IdentityEventService identityEventService = mock(IdentityEventService.class);
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = true;
     }
 
     @AfterClass
@@ -89,17 +92,17 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         CentralLogMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
     }
 
-    public static String customFunction1(JsNashornAuthenticationContext context) {
+    public static String customFunction1(JsBaseAuthenticationContext context) {
 
         return "testResult1";
     }
 
-    public static Boolean customBoolean(JsNashornAuthenticationContext context) {
+    public static Boolean customBoolean(JsBaseAuthenticationContext context) {
 
         return true;
     }
 
-    public static Boolean customBoolean2(JsNashornAuthenticationContext context, String value) {
+    public static Boolean customBoolean2(JsBaseAuthenticationContext context, String value) {
 
         return true;
     }
@@ -111,7 +114,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<JsNashornAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
+                (Function<JsBaseAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
                         ::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn2", new CustomFunctionImpl2());
 
@@ -134,16 +137,13 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<JsNashornAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
+                (Function<JsBaseAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
                         ::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
-                (Function<JsNashornAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
+                (Function<JsBaseAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
                         ::customBoolean);
-
-        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (BiFunction<JsNashornAuthenticationContext, String, Boolean>)
-                        GraphBasedSequenceHandlerCustomFunctionsTest
-                        ::customBoolean2);
+        CustomBoolean2Impl customBoolean2 = new CustomBoolean2Impl();
+        jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2", customBoolean2);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
@@ -186,14 +186,14 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<JsNashornAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
+                (Function<JsBaseAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
                         ::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
-                (Function<JsNashornAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
+                (Function<JsBaseAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
                         ::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (BiFunction<JsNashornAuthenticationContext, String, Boolean>)
+                (BiFunction<JsBaseAuthenticationContext, String, Boolean>)
                         GraphBasedSequenceHandlerCustomFunctionsTest
                         ::customBoolean2);
 
@@ -220,14 +220,14 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<JsNashornAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
+                (Function<JsBaseAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
                         ::customFunction1);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction",
-                (Function<JsNashornAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
+                (Function<JsBaseAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest
                         ::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (BiFunction<JsNashornAuthenticationContext, String, Boolean>)
+                (BiFunction<JsBaseAuthenticationContext, String, Boolean>)
                         GraphBasedSequenceHandlerCustomFunctionsTest
                         ::customBoolean2);
 
@@ -252,7 +252,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         JsFunctionRegistry jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "fn1",
-                (Function<JsNashornAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
+                (Function<JsBaseAuthenticationContext, String>) GraphBasedSequenceHandlerCustomFunctionsTest
                         ::customFunction1);
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
@@ -295,6 +295,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         return processAndGetAuthenticationContext(acrArray, sp1);
     }
 
+    //
     private AuthenticationContext processAndGetAuthenticationContext(String[] acrArray, ServiceProvider sp1)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, FrameworkException {
 
@@ -333,7 +334,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 attributes.put(key, value);
                 return null;
             }
-        }).when(request).setAttribute(Mockito.anyString(), Mockito.anyObject());
+        }).when(request).setAttribute(Mockito.anyString(), Mockito.any());
 
         // Mock getAttribute
         Mockito.doAnswer(new Answer<Object>() {
@@ -348,9 +349,15 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     }
 
     @FunctionalInterface
+    public interface CustomBoolean2Interface extends Serializable {
+
+        boolean getTrueFunction2(JsBaseAuthenticationContext context, String param1);
+    }
+
+    @FunctionalInterface
     public interface CustomFunctionInterface2 extends Serializable {
 
-        String customFunction2(JsNashornAuthenticationContext context, String param1, String param2);
+        String customFunction2(JsBaseAuthenticationContext context, String param1, String param2);
     }
 
     public static class MockFailingAuthenticator extends MockAuthenticator {
@@ -387,9 +394,18 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
     public class CustomFunctionImpl2 implements CustomFunctionInterface2 {
 
-        public String customFunction2(JsNashornAuthenticationContext context, String param1, String param2) {
+        public String customFunction2(JsBaseAuthenticationContext context, String param1, String param2) {
 
             return "testResult2";
+        }
+    }
+
+    public class CustomBoolean2Impl implements CustomBoolean2Interface {
+
+        @HostAccess.Export
+        public boolean getTrueFunction2(JsBaseAuthenticationContext context, String param1) {
+
+            return true;
         }
     }
 }

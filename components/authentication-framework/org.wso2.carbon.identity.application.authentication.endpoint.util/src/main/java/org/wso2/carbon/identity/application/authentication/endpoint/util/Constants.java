@@ -277,6 +277,10 @@ public class Constants {
                 "authentication.context.null_authentication.context.null.description";
         public static final String AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION_I18N_KEY =
                 "authentication.context.null";
+        public static final String APPLICATION_DISABLED_APPLICATION_DISABLED_DESCRIPTION =
+                "authentication.flow.app.disabled_authentication.flow.app.disabled.description";
+        public static final String APPLICATION_DISABLED_APPLICATION_DISABLED_DESCRIPTION_I18N_KEY =
+                "authentication.flow.app.disabled";
         public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION =
                 "authentication.flow.timeout_authentication.flow.timeout.description";
         public static final String AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY =
@@ -383,6 +387,8 @@ public class Constants {
                     Constants.ErrorToi18nMappingConstants.CLIENT_NOT_AUTHORIZED_TO_USE_REQUESTED_GRANT_TYPE_I18N_KEY);
             ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION,
                     Constants.ErrorToi18nMappingConstants.AUTHENTICATION_CONTEXT_NULL_AUTHENTICATION_CONTEXT_NULL_DESCRIPTION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(ErrorToi18nMappingConstants.APPLICATION_DISABLED_APPLICATION_DISABLED_DESCRIPTION,
+                    ErrorToi18nMappingConstants.APPLICATION_DISABLED_APPLICATION_DISABLED_DESCRIPTION_I18N_KEY);
             ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION,
                     Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY);
             ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION,

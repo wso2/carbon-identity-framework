@@ -404,14 +404,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                 + " coming from " + externalIdPConfig.getIdPName()
                                 + " do have a local account, with the username " + username);
                     }
-                    //When the local user association is enabled, user email id will be used to create the association.
-                    //Since the default provisioning handler removes the email domain, in case the username equals to
-                    //the email address, tenant domain is appended to the username.
-                    if (externalIdPConfig.isAssociateLocalUserEnabled() &&
-                            StringUtils.equals(UserCoreUtil.removeDomainFromName(username),
-                                    localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
-                        username = UserCoreUtil.addTenantDomainToEntry(username, context.getTenantDomain());
-                    }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
                             stepConfig);
                 }

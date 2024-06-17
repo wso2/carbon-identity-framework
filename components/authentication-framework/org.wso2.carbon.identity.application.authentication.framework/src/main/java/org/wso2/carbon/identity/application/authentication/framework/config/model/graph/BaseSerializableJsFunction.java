@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import java.io.Serializable;
-
 import javax.script.ScriptEngine;
 
 /**
@@ -30,7 +28,7 @@ import javax.script.ScriptEngine;
  * The current authentication context holds this function in serialized form.
  *
  */
-public interface BaseSerializableJsFunction extends Serializable {
+public interface BaseSerializableJsFunction extends GenericSerializableJsFunction<ScriptEngine> {
 
     void setSource(String name);
 

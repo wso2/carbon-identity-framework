@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -114,6 +114,7 @@ import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_ROLE_
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_SCIM_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.DELETE_USER_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_DB2;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_INFORMIX;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_WITH_UUID_MSSQL;
@@ -129,10 +130,12 @@ import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLES_BY
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_ROLE_NAME_BY_ID_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_GROUP_FROM_ROLE_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_USER_FROM_ROLE_SQL;
+import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.REMOVE_USER_FROM_ROLE_SQL_MSSQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_HYBRID_ROLE_UUID_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_ROLE_NAME_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.dao.SQLQueries.UPDATE_SCIM_ROLE_NAME_SQL;
@@ -633,8 +636,12 @@ public class RoleDAOImpl implements RoleDAO {
                         addUsersSQL);
 
                 // Delete existing users from the role.
+                String removeUserFromRoleSql = REMOVE_USER_FROM_ROLE_SQL;
+                if (MICROSOFT.equals(databaseProductName)) {
+                    removeUserFromRoleSql = REMOVE_USER_FROM_ROLE_SQL_MSSQL;
+                }
                 processBatchUpdateForUsers(roleName, deletedUserNamesList, tenantId, primaryDomainName, connection,
-                        REMOVE_USER_FROM_ROLE_SQL);
+                        removeUserFromRoleSql);
 
                 IdentityDatabaseUtil.commitUserDBTransaction(connection);
             } catch (SQLException e) {
@@ -1122,10 +1129,15 @@ public class RoleDAOImpl implements RoleDAO {
         }
 
         List<String> disabledDomainName = getDisabledDomainNames();
+        String sql = GET_USER_LIST_OF_ROLE_SQL;
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    GET_USER_LIST_OF_ROLE_SQL, RoleTableColumns.UM_ID)) {
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            if (MICROSOFT.equals(databaseProductName)) {
+                sql = GET_USER_LIST_OF_ROLE_SQL_MSSQL;
+            }
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql,
+                    RoleTableColumns.UM_ID)) {
                 statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -1187,10 +1199,14 @@ public class RoleDAOImpl implements RoleDAO {
         if (primaryDomainName != null) {
             primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
         }
-
+        String sql = GET_GROUP_LIST_OF_ROLE_SQL;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    GET_GROUP_LIST_OF_ROLE_SQL, RoleTableColumns.UM_ID)) {
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            if (MICROSOFT.equals(databaseProductName)) {
+                sql = GET_GROUP_LIST_OF_ROLE_SQL_MSSQL;
+            }
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql,
+                    RoleTableColumns.UM_ID)) {
                 statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {

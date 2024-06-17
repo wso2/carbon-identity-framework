@@ -17,7 +17,7 @@
  */
 package org.wso2.carbon.identity.event.handler;
 
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -72,7 +72,7 @@ public class AbstractEventHandlerTest extends IdentityBaseTest {
             public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
                 return moduleConfigurationMap.get(invocationOnMock.getArguments()[0]);
             }
-        }).when(identityEventConfigBuilder).getModuleConfigurations(Matchers.anyString());
+        }).when(identityEventConfigBuilder).getModuleConfigurations(ArgumentMatchers.anyString());
         ModuleConfiguration moduleConfiguration2 = new ModuleConfiguration(new Properties(), subscriptionList);
         moduleConfigurationMap.put("TestEventHandler", moduleConfiguration2);
     }

@@ -19,14 +19,12 @@
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -39,21 +37,18 @@ import java.sql.SQLException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Test class that includes unit tests of Session Data Store.
  */
 @WithCarbonHome
-@PrepareForTest({IdentityDatabaseUtil.class, IdPManagementUtil.class, IdentityUtil.class, IdentityTenantUtil.class,
-        CarbonContext.class, CarbonContext.class, PrivilegedCarbonContext.class,
-        ServerConfiguration.class, SessionCleanUpService.class, FrameworkServiceDataHolder.class})
 public class SessionDataStoreTest extends DataStoreBaseTest {
 
     private static final String DB_NAME = "SESSION_DATA_STORE";
@@ -86,60 +81,75 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
     public void testPersistSessionData(String key, String type, Object entry, long nanoTime, int tenantId) throws
             Exception {
 
-        Connection connection = getConnection(DB_NAME);
-        mockIdentityDataBaseUtilConnection(connection, true);
-        mockCarbonContext();
-        mockIdentityUtils();
-        mockDataHolder();
-        SessionDataStore.getInstance().persistSessionData(key, type, entry, nanoTime, tenantId);
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> idPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            Connection connection = getConnection(DB_NAME);
+            mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
+            mockCarbonContext(carbonContext);
+            mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
+            mockDataHolder(frameworkServiceDataHolder);
+            SessionDataStore.getInstance().persistSessionData(key, type, entry, nanoTime, tenantId);
+        }
     }
 
     @Test(dependsOnMethods = "testPersistSessionData")
     public void testRemoveExpiredSessionData() throws Exception {
 
-        Connection connection = getConnection(DB_NAME);
-        mockIdentityDataBaseUtilConnection(connection, true);
-        mockCarbonContext();
-        mockIdentityUtils();
-        SessionDataStore.getInstance().removeExpiredSessionData();
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> idPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            Connection connection = getConnection(DB_NAME);
+            mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
+            mockCarbonContext(carbonContext);
+            mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
+            SessionDataStore.getInstance().removeExpiredSessionData();
+        }
     }
 
-    private void mockCarbonContext() {
+    private void mockCarbonContext(MockedStatic<CarbonContext> carbonContext) {
 
-        mockStatic(CarbonContext.class);
-        CarbonContext carbonContext = mock(CarbonContext.class);
-        when(CarbonContext.getThreadLocalCarbonContext()).thenReturn(carbonContext);
-        when(CarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("abc.com");
+        CarbonContext mockCarbonContext = mock(CarbonContext.class);
+        carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+        when(mockCarbonContext.getTenantDomain()).thenReturn("abc.com");
     }
 
-    private void mockIdentityUtils() {
+    private void mockIdentityUtils(MockedStatic<IdentityTenantUtil> identityTenantUtil,
+                                   MockedStatic<IdPManagementUtil> idPManagementUtil,
+                                   MockedStatic<IdentityUtil> identityUtil) {
 
-        mockStatic(IdentityTenantUtil.class);
-        mockStatic(IdPManagementUtil.class);
-        when(IdPManagementUtil.getRememberMeTimeout(any(String.class))).thenReturn(11111111);
-        when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("abc.com");
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getCleanUpPeriod(any(String.class))).thenReturn(new Long(11111111));
+        idPManagementUtil.when(() -> IdPManagementUtil.getRememberMeTimeout(any(String.class))).thenReturn(11111111);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("abc.com");
+        identityUtil.when(() -> IdentityUtil.getCleanUpPeriod(any(String.class))).thenReturn(new Long(11111111));
     }
 
-    private void mockDataHolder() {
+    private void mockDataHolder(MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder) {
 
-        mockStatic(FrameworkServiceDataHolder.class);
-        when(FrameworkServiceDataHolder.getInstance()).thenReturn(mockFrameworkServiceDataHolder);
+        frameworkServiceDataHolder.when(
+                FrameworkServiceDataHolder::getInstance).thenReturn(mockFrameworkServiceDataHolder);
         when(mockFrameworkServiceDataHolder.getSessionSerializer()).thenReturn(new JavaSessionSerializer());
     }
 
-    private void mockIdentityDataBaseUtilConnection(Connection connection, Boolean shouldApplyTransaction) throws
-            SQLException {
+    private void mockIdentityDataBaseUtilConnection(Connection connection, Boolean shouldApplyTransaction,
+                                                    MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil)
+            throws SQLException {
 
         Connection connection1 = spy(connection);
         doNothing().when(connection1).close();
-        mockStatic(IdentityDatabaseUtil.class);
+
         if (shouldApplyTransaction) {
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection1);
         } else {
-            when(IdentityDatabaseUtil.getDBConnection(shouldApplyTransaction)).thenReturn(connection1);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(shouldApplyTransaction))
+                    .thenReturn(connection1);
         }
-        when(IdentityDatabaseUtil.getSessionDBConnection(shouldApplyTransaction)).thenReturn(connection1);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getSessionDBConnection(shouldApplyTransaction))
+                .thenReturn(connection1);
     }
 }

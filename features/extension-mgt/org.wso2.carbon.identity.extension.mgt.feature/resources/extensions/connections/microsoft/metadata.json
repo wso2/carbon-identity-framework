@@ -100,7 +100,7 @@
             },
             {
                 "key": "Scopes",
-                "value": "email,openid,profile"
+                "value": "email openid profile"
             },
             {
                 "key": "commonAuthQueryParams",

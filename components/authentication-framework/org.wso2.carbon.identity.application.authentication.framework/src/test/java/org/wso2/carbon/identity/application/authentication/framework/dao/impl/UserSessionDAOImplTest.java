@@ -20,15 +20,13 @@ package org.wso2.carbon.identity.application.authentication.framework.dao.impl;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -41,14 +39,11 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import static org.mockito.Mockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 
-@PrepareForTest({IdentityDatabaseUtil.class, DataSource.class})
-@PowerMockIgnore("jdk.internal.reflect.*")
 @WithH2Database(files = {"dbScripts/h2.sql"})
-public class UserSessionDAOImplTest extends PowerMockIdentityBaseTest {
+public class UserSessionDAOImplTest extends IdentityBaseTest {
 
     UserSessionDAOImpl userSessionDAO;
 
@@ -97,18 +92,12 @@ public class UserSessionDAOImplTest extends PowerMockIdentityBaseTest {
         throw new RuntimeException("No datasource initiated for database: " + database);
     }
 
-    private void prepareConnection(Connection connection1, boolean b) {
-
-        mockStatic(IdentityDatabaseUtil.class);
-        PowerMockito.when(IdentityDatabaseUtil.getDBConnection(b)).thenReturn(connection1);
-    }
-
-    private void setupSessionStore() throws Exception {
+    private void setupSessionStore(MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil) throws Exception {
 
         initiateH2Base(DB_NAME, getFilePath("h2.sql"));
 
         try (Connection connection1 = getConnection(DB_NAME)) {
-            prepareConnection(connection1, false);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection1);
 
             String sql = "INSERT INTO IDN_FED_AUTH_SESSION_MAPPING " +
                     "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES ( '" +
@@ -121,7 +110,8 @@ public class UserSessionDAOImplTest extends PowerMockIdentityBaseTest {
         }
 
         try (Connection connection1 = getConnection(DB_NAME)) {
-            prepareConnection(connection1, false);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection1);
+
             String query = "SELECT * FROM IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID=?";
             PreparedStatement statement2 = connection1.prepareStatement(query);
             statement2.setString(1, IDP_SESSION_INDEX);
@@ -137,16 +127,18 @@ public class UserSessionDAOImplTest extends PowerMockIdentityBaseTest {
     @Test
     public void testGetFederatedAuthSessionDetails() throws Exception {
 
-        setupSessionStore();
-        DataSource dataSource = mock(DataSource.class);
-        mockStatic(IdentityDatabaseUtil.class);
-        when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSource);
-        when(IdentityDatabaseUtil.getSessionDataSource()).thenReturn(dataSource);
-        when(dataSource.getConnection()).thenReturn(getConnection(DB_NAME));
-        FederatedUserSession federatedUserSession = userSessionDAO.getFederatedAuthSessionDetails(IDP_SESSION_INDEX);
-        assertEquals(federatedUserSession.getSessionId(), SESSION_CONTEXT_KEY);
-        assertEquals(federatedUserSession.getIdpName(), IDP_NAME);
-        assertEquals(federatedUserSession.getAuthenticatorName(), AUTHENTICATOR_ID);
-        assertEquals(federatedUserSession.getProtocolType(), PROTOCOL_TYPE);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            setupSessionStore(identityDatabaseUtil);
+            DataSource dataSource = mock(DataSource.class);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getSessionDataSource).thenReturn(dataSource);
+            identityDatabaseUtil.when(dataSource::getConnection).thenReturn(getConnection(DB_NAME));
+            FederatedUserSession federatedUserSession =
+                    userSessionDAO.getFederatedAuthSessionDetails(IDP_SESSION_INDEX);
+            assertEquals(federatedUserSession.getSessionId(), SESSION_CONTEXT_KEY);
+            assertEquals(federatedUserSession.getIdpName(), IDP_NAME);
+            assertEquals(federatedUserSession.getAuthenticatorName(), AUTHENTICATOR_ID);
+            assertEquals(federatedUserSession.getProtocolType(), PROTOCOL_TYPE);
+        }
     }
 }

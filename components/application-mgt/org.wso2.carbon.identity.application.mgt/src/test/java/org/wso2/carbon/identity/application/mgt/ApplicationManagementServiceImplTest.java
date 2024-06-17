@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -96,11 +94,11 @@ import java.util.Collections;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static org.mockito.ArgumentMatchers.anyObject;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
@@ -110,8 +108,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  */
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbscripts/identity.sql"})
-@PowerMockIgnore({"org.mockito.*"})
-public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
+public class ApplicationManagementServiceImplTest {
 
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
     private static final String APPLICATION_NAME_1 = "Test application1";
@@ -147,16 +144,16 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
         SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
                 IdPSecretsProcessor.class);
         IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(idpSecretsProcessor);
-        when(idpSecretsProcessor.encryptAssociatedSecrets(anyObject())).thenAnswer(
+        when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
-        when(idpSecretsProcessor.decryptAssociatedSecrets(anyObject())).thenAnswer(invocation ->
+        when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(invocation ->
                 invocation.getArguments()[0]);
 
         SecretManager secretManager = mock(SecretManagerImpl.class);
         Secret secret = mock(Secret.class);
         ApplicationManagementServiceComponentHolder.getInstance().setSecretManager(secretManager);
         when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(false);
-        when(secretManager.addSecret(anyString(), anyObject())).thenAnswer(
+        when(secretManager.addSecret(anyString(), any())).thenAnswer(
                 invocation -> invocation.getArguments()[1]);
         when(secretManager.updateSecretValue(anyString(), anyString(), anyString())).thenReturn(secret);
         ResolvedSecret resolvedSecret = new ResolvedSecret();
@@ -279,8 +276,13 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         applicationManagementService.addApplication((ServiceProvider) serviceProvider, tenantDomain, username);
 
-        Assert.assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
-                addApplication((ServiceProvider) newServiceProvider, tenantDomain, username));
+        try {
+            Assert.assertThrows(IdentityApplicationManagementClientException.class, () -> applicationManagementService.
+                    addApplication((ServiceProvider) newServiceProvider, tenantDomain, username));
+        } finally {
+            applicationManagementService.deleteApplication(((ServiceProvider) serviceProvider).getApplicationName(),
+                    tenantDomain, username);
+        }
     }
 
     @DataProvider(name = "getApplicationDataProvider")
@@ -599,6 +601,7 @@ public class ApplicationManagementServiceImplTest extends PowerMockTestCase {
 
         Assert.assertEquals(steps.length, 1);
         Assert.assertEquals(steps[0].getStepOrder(), 1);
+        applicationManagementService.deleteApplication(APPLICATION_NAME_1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
     }
 
 

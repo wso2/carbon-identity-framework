@@ -346,6 +346,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         ApplicationDAO appDAO;
+        ApplicationBasicInfo[] applicationBasicInfos;
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
@@ -358,16 +359,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             startTenantFlow(tenantDomain, username);
             appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+
+            if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
+                log.error("Get application basic info service is not supported.");
+                throw new IdentityApplicationManagementException("This service is not supported.");
+            }
+
+            applicationBasicInfos = ((AbstractApplicationDAOImpl) appDAO)
+                    .getApplicationBasicInfoBySPProperty(key, value);
         } finally {
             endTenantFlow();
         }
 
-        if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
-            log.error("Get application basic info service is not supported.");
-            throw new IdentityApplicationManagementException("This service is not supported.");
-        }
-
-        return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfoBySPProperty(key, value);
+        return applicationBasicInfos;
     }
 
     /**

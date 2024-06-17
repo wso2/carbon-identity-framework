@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -130,6 +130,7 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ADVANCED_CONFIG;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_APPLICATION_ENABLED_REQUEST_ATTRIBUTE_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
@@ -149,6 +150,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ISSUER_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_APPLICATION_ENABLED_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_APPLICATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME;
@@ -1966,7 +1969,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setAccessUrl(basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL));
                 if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
                     serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                            basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+                            basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL), applicationName));
                 }
                 String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
                 if (ApplicationMgtUtil.isConsole(serviceProvider.getApplicationName())) {
@@ -2180,6 +2183,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
             serviceProvider.setTemplateId(getTemplateId(propertyList));
+            serviceProvider.setApplicationEnabled(getIsApplicationEnabled(propertyList));
             serviceProvider.setManagementApp(getIsManagementApp(propertyList));
             serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
             serviceProvider.setAPIBasedAuthenticationEnabled(getIsAPIBasedAuthenticationEnabled(propertyList));
@@ -2224,10 +2228,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
             // Set role associations.
-            if (!CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
-                serviceProvider.setAssociatedRolesConfig(
-                        getAssociatedRoles(serviceProvider.getApplicationResourceId(), connection, tenantID));
-            }
+            serviceProvider.setAssociatedRolesConfig(
+                    getAssociatedRoles(serviceProvider.getApplicationResourceId(), connection, tenantID));
             // Will be supported with 'Advance Consent Management Feature'.
             /*
             ConsentConfig consentConfig = serviceProvider.getConsentConfig();
@@ -2277,7 +2279,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             RoleManagementService roleManagementService = holder.getRoleManagementServiceV2();
             try {
                 List<RoleBasicInfo> chunkOfRoles;
-                int offset = 0;
+                int offset = 1;
                 int maximumPage = IdentityUtil.getMaximumItemPerPage();
                 List<RoleBasicInfo> allRoles = new ArrayList<>();
                 if (roleManagementService != null) {
@@ -2290,7 +2292,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             allRoles.addAll(chunkOfRoles);
                             offset += chunkOfRoles.size(); // Move to the next chunk
                         }
-                    } while (!chunkOfRoles.isEmpty());
+                    } while (chunkOfRoles.size() == maximumPage);
 
                     List<String> roleIds = allRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.
                             toList());
@@ -2400,6 +2402,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                     serviceProvider.setAssociatedRolesConfig(configExcludingRoles);
                                 });
                     }
+                    if (ALLOWED_APPLICATION_ENABLED_REQUEST_ATTRIBUTE_NAME.equals(requiredAttribute)) {
+                        propertyList.stream()
+                                .filter(property -> IS_APPLICATION_ENABLED_PROPERTY_NAME.equals(property.getName()))
+                                .findFirst()
+                                .ifPresent(property -> {
+                                    serviceProvider.setApplicationEnabled(Boolean.parseBoolean(property.getValue()));
+                                });
+                    }
                 }
             }
             return serviceProvider;
@@ -2431,6 +2441,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
+        return Boolean.parseBoolean(value);
+    }
+
+    private boolean getIsApplicationEnabled(List<ServiceProviderProperty> propertyList) {
+
+        String value = propertyList.stream()
+                .filter(property -> IS_APPLICATION_ENABLED_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse("true");
+        // This is to ensure the previously created applications will have the flag,
+        // enabled unless set to false explicitly. Newly created apps will have this flag enabled by default.
         return Boolean.parseBoolean(value);
     }
 
@@ -2545,7 +2567,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setAccessUrl(rs.getString(ApplicationTableColumns.ACCESS_URL));
                 if (ApplicationMgtUtil.isConsoleOrMyAccount(serviceProvider.getApplicationName())) {
                     serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                            rs.getString(ApplicationTableColumns.ACCESS_URL)));
+                            rs.getString(ApplicationTableColumns.ACCESS_URL), serviceProvider.getApplicationName()));
                 }
                 String tenantDomain = IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID));
                 if (ApplicationMgtUtil.isConsole(serviceProvider.getApplicationName())) {
@@ -5138,6 +5160,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(sp);
         spPropertyMap.put(isB2BSSAppProperty.getName(), isB2BSSAppProperty);
 
+        ServiceProviderProperty isApplicationEnabledProperty = buildIsApplicationEnabledProperty(sp);
+        spPropertyMap.put(isApplicationEnabledProperty.getName(), isApplicationEnabledProperty);
+
         ServiceProviderProperty allowedRoleAudienceProperty = buildAllowedRoleAudienceProperty(sp);
         spPropertyMap.put(allowedRoleAudienceProperty.getName(), allowedRoleAudienceProperty);
 
@@ -5257,13 +5282,26 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return isB2BSSAppProperty;
     }
 
+    private ServiceProviderProperty buildIsApplicationEnabledProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty isAppEnabledProperty = new ServiceProviderProperty();
+        isAppEnabledProperty.setName(IS_APPLICATION_ENABLED_PROPERTY_NAME);
+        isAppEnabledProperty.setDisplayName(IS_APPLICATION_ENABLED_DISPLAY_NAME);
+        isAppEnabledProperty.setValue(String.valueOf(sp.isApplicationEnabled()));
+        return isAppEnabledProperty;
+    }
+
     private ServiceProviderProperty buildAllowedRoleAudienceProperty(ServiceProvider serviceProvider) {
 
         ServiceProviderProperty allowedRoleAudienceProperty = new ServiceProviderProperty();
         allowedRoleAudienceProperty.setName(ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME);
         AssociatedRolesConfig associatedRolesConfig = serviceProvider.getAssociatedRolesConfig();
         if (associatedRolesConfig == null) {
-            allowedRoleAudienceProperty.setValue(RoleConstants.ORGANIZATION);
+            if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+                allowedRoleAudienceProperty.setValue(RoleConstants.ORGANIZATION);
+            } else {
+                allowedRoleAudienceProperty.setValue(RoleConstants.APPLICATION);
+            }
             return allowedRoleAudienceProperty;
         }
         String allowedAudience = StringUtils.isNotBlank(associatedRolesConfig.getAllowedAudience()) ?
@@ -6009,7 +6047,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
             if (ApplicationMgtUtil.isConsoleOrMyAccount(basicInfo.getApplicationName())) {
                 basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL),
+                        basicInfo.getApplicationName()));
             }
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
@@ -6066,7 +6105,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
             if (ApplicationMgtUtil.isConsoleOrMyAccount(basicInfo.getApplicationName())) {
                 basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL),
+                        basicInfo.getApplicationName()));
             }
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(

@@ -60,9 +60,10 @@ public class ConditionalAuthenticationMgtServiceTest {
                                              "func1", new Object());
 
         return new Object[][]{
-                {emptyRegistry, new String[]{"executeStep", "selectAcrFrom", "sendError", "Log.info", "require"}},
+                {emptyRegistry, new String[]{"executeStep", "selectAcrFrom", "sendError", "Log.info", "require",
+                        "secrets"}},
                 {registryWithCustomFunctions, new String[]{"executeStep", "selectAcrFrom", "sendError", "Log.info",
-                        "require", "func1"}},
+                        "require", "secrets", "func1"}},
         };
     }
 }

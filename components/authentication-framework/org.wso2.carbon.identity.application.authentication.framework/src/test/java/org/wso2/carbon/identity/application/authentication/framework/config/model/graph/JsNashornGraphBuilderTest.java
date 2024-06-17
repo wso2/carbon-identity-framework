@@ -42,8 +42,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -53,7 +53,7 @@ import static org.testng.Assert.assertTrue;
  * Tests for graph builder with Javascript.
  */
 @Test
-public class JsGraphBuilderTest extends AbstractFrameworkTest {
+public class JsNashornGraphBuilderTest extends AbstractFrameworkTest {
 
     private JsGraphBuilderFactory jsGraphBuilderFactory;
 

@@ -117,11 +117,14 @@ public class IdentityApplicationConstants {
 
     public static final String ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME = "allowedAudienceForAssociatedRoles";
     public static final String ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME = "associatedRoles.allowedAudience";
+    public static final String ALLOWED_APPLICATION_ENABLED_REQUEST_ATTRIBUTE_NAME = "applicationEnabled";
 
     public static final String IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME = "isAPIBasedAuthenticationEnabled";
     public static final String IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME = "Is API Based Authentication Enabled";
     public static final String IS_ATTESTATION_ENABLED_PROPERTY_NAME = "IsAttestationEnabled";
     public static final String IS_ATTESTATION_ENABLED_DISPLAY_NAME = "Is Client Attestation Enabled";
+    public static final String IS_APPLICATION_ENABLED_PROPERTY_NAME = "IsApplicationEnabled";
+    public static final String IS_APPLICATION_ENABLED_DISPLAY_NAME = "Is Application Enabled";
     public static final String ANDROID_PACKAGE_NAME_PROPERTY_NAME = "androidPackageName";
     public static final String ANDROID_PACKAGE_NAME_DISPLAY_NAME = "Android mobile application package name";
     public static final String APPLE_APP_ID_PROPERTY_NAME = "appleAppId";

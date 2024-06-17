@@ -53,6 +53,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+    private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
 
@@ -140,6 +141,9 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
 
+    @IgnoreNullElement
+    @XmlElement(name = IS_APPLICATION_ENABLED)
+    private boolean isApplicationEnabled = true;
 
     @IgnoreNullElement
     @XmlElement(name = IS_API_BASED_AUTHENTICATION_ENABLED)
@@ -166,6 +170,7 @@ public class ServiceProvider implements Serializable {
 
         // by default set to true.
         serviceProvider.setSaasApp(true);
+        serviceProvider.setApplicationEnabled(true);
 
         Iterator<?> iter = serviceProviderOM.getChildElements();
 
@@ -273,6 +278,12 @@ public class ServiceProvider implements Serializable {
             } else if (ASSOCIATED_ROLES_CONFIG.equals(elementName)) {
                 // build role association.
                 serviceProvider.setAssociatedRolesConfig(AssociatedRolesConfig.build(element));
+            } else if (IS_APPLICATION_ENABLED.equals(elementName)) {
+                if (element.getText() != null && "true".equals(element.getText())) {
+                    serviceProvider.setApplicationEnabled(true);
+                } else  {
+                    serviceProvider.setApplicationEnabled(!"false".equals(element.getText()));
+                }
             }
         }
 
@@ -601,6 +612,16 @@ public class ServiceProvider implements Serializable {
     public void setClientAttestationMetaData(ClientAttestationMetaData clientAttestationMetaData) {
 
         this.clientAttestationMetaData = clientAttestationMetaData;
+    }
+
+    public boolean isApplicationEnabled() {
+
+        return isApplicationEnabled;
+    }
+
+    public void setApplicationEnabled(boolean applicationEnabled) {
+
+        this.isApplicationEnabled = applicationEnabled;
     }
 }
 

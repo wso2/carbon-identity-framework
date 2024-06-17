@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -42,19 +42,25 @@ public class SQLQueries {
 
     public static final String ADD_USER_TO_ROLE_SQL = "INSERT INTO UM_HYBRID_USER_ROLE (UM_USER_NAME, UM_ROLE_ID, "
             + "UM_TENANT_ID, UM_DOMAIN_ID) VALUES (:UM_USER_NAME;,(SELECT UM_ID FROM UM_HYBRID_ROLE WHERE "
-            + "UM_ROLE_NAME=:UM_ROLE_NAME; AND UM_TENANT_ID=:UM_TENANT_ID;), :UM_TENANT_ID;, (SELECT UM_DOMAIN_ID "
-            + "FROM UM_DOMAIN WHERE UM_TENANT_ID=:UM_TENANT_ID; AND UM_DOMAIN_NAME=:UM_DOMAIN_NAME;))";
+            + "UM_ROLE_NAME=:UM_ROLE_NAME; AND UM_TENANT_ID=:UM_TENANT_ID; LIMIT 1), :UM_TENANT_ID;, (SELECT "
+            + "UM_DOMAIN_ID FROM UM_DOMAIN WHERE UM_TENANT_ID=:UM_TENANT_ID; AND UM_DOMAIN_NAME=:UM_DOMAIN_NAME;))";
 
     public static final String ADD_USER_TO_ROLE_SQL_MSSQL =
             "INSERT INTO UM_HYBRID_USER_ROLE (UM_USER_NAME, UM_ROLE_ID, "
-                    + "UM_TENANT_ID,  UM_DOMAIN_ID) SELECT (:UM_USER_NAME;),(SELECT UM_ID FROM UM_HYBRID_ROLE WHERE "
-                    + "UM_ROLE_NAME=:UM_ROLE_NAME; AND UM_TENANT_ID=:UM_TENANT_ID;), (:UM_TENANT_ID;), "
+                    + "UM_TENANT_ID,  UM_DOMAIN_ID) SELECT (:UM_USER_NAME;),(SELECT TOP 1 UM_ID FROM UM_HYBRID_ROLE "
+                    + "WHERE UM_ROLE_NAME=:UM_ROLE_NAME; AND UM_TENANT_ID=:UM_TENANT_ID;), (:UM_TENANT_ID;), "
                     + "(SELECT UM_DOMAIN_ID FROM UM_DOMAIN WHERE UM_TENANT_ID=:UM_TENANT_ID; AND "
                     + "UM_DOMAIN_NAME=:UM_DOMAIN_NAME;)";
 
     public static final String REMOVE_USER_FROM_ROLE_SQL =
             "DELETE FROM UM_HYBRID_USER_ROLE WHERE UM_USER_NAME=:UM_USER_NAME; AND "
                     + "UM_ROLE_ID=(SELECT UM_ID FROM UM_HYBRID_ROLE WHERE UM_ROLE_NAME=:UM_ROLE_NAME; AND "
+                    + "UM_TENANT_ID=:UM_TENANT_ID; LIMIT 1) AND UM_TENANT_ID=:UM_TENANT_ID; AND UM_DOMAIN_ID=(SELECT "
+                    + "UM_DOMAIN_ID FROM UM_DOMAIN WHERE "
+                    + "UM_TENANT_ID=:UM_TENANT_ID; AND UM_DOMAIN_NAME=:UM_DOMAIN_NAME;)";
+    public static final String REMOVE_USER_FROM_ROLE_SQL_MSSQL =
+            "DELETE FROM UM_HYBRID_USER_ROLE WHERE UM_USER_NAME=:UM_USER_NAME; AND "
+                    + "UM_ROLE_ID=(SELECT TOP 1 UM_ID FROM UM_HYBRID_ROLE WHERE UM_ROLE_NAME=:UM_ROLE_NAME; AND "
                     + "UM_TENANT_ID=:UM_TENANT_ID;) AND UM_TENANT_ID=:UM_TENANT_ID; AND UM_DOMAIN_ID=(SELECT "
                     + "UM_DOMAIN_ID FROM UM_DOMAIN WHERE "
                     + "UM_TENANT_ID=:UM_TENANT_ID; AND UM_DOMAIN_NAME=:UM_DOMAIN_NAME;)";
@@ -90,12 +96,23 @@ public class SQLQueries {
     public static final String GET_USER_LIST_OF_ROLE_SQL =
             "SELECT UM_USER_NAME, UM_DOMAIN_NAME FROM UM_HYBRID_USER_ROLE, UM_DOMAIN WHERE "
                     + "UM_ROLE_ID=(SELECT UM_ID FROM UM_HYBRID_ROLE WHERE UM_ROLE_NAME=:UM_ROLE_NAME; AND "
+                    + "UM_TENANT_ID=:UM_TENANT_ID; LIMIT 1) AND UM_HYBRID_USER_ROLE.UM_TENANT_ID=:UM_TENANT_ID; "
+                    + "AND UM_HYBRID_USER_ROLE.UM_DOMAIN_ID=UM_DOMAIN.UM_DOMAIN_ID";
+    public static final String GET_USER_LIST_OF_ROLE_SQL_MSSQL =
+            "SELECT UM_USER_NAME, UM_DOMAIN_NAME FROM UM_HYBRID_USER_ROLE, UM_DOMAIN WHERE "
+                    + "UM_ROLE_ID=(SELECT TOP 1 UM_ID FROM UM_HYBRID_ROLE WHERE UM_ROLE_NAME=:UM_ROLE_NAME; AND "
                     + "UM_TENANT_ID=:UM_TENANT_ID;) AND UM_HYBRID_USER_ROLE.UM_TENANT_ID=:UM_TENANT_ID; "
                     + "AND UM_HYBRID_USER_ROLE.UM_DOMAIN_ID=UM_DOMAIN.UM_DOMAIN_ID";
 
     public static final String GET_GROUP_LIST_OF_ROLE_SQL =
             "SELECT UM_GROUP_NAME, UM_DOMAIN_NAME FROM UM_HYBRID_GROUP_ROLE, UM_DOMAIN WHERE "
                     + "UM_ROLE_ID=(SELECT UM_ID FROM UM_HYBRID_ROLE WHERE UM_ROLE_NAME=:UM_ROLE_NAME; AND "
+                    + "UM_TENANT_ID=:UM_TENANT_ID; LIMIT 1) AND UM_HYBRID_GROUP_ROLE.UM_TENANT_ID=:UM_TENANT_ID; "
+                    + "AND UM_HYBRID_GROUP_ROLE.UM_DOMAIN_ID=UM_DOMAIN.UM_DOMAIN_ID";
+
+    public static final String GET_GROUP_LIST_OF_ROLE_SQL_MSSQL =
+            "SELECT UM_GROUP_NAME, UM_DOMAIN_NAME FROM UM_HYBRID_GROUP_ROLE, UM_DOMAIN WHERE "
+                    + "UM_ROLE_ID=(SELECT TOP 1 UM_ID FROM UM_HYBRID_ROLE WHERE UM_ROLE_NAME=:UM_ROLE_NAME; AND "
                     + "UM_TENANT_ID=:UM_TENANT_ID;) AND UM_HYBRID_GROUP_ROLE.UM_TENANT_ID=:UM_TENANT_ID; "
                     + "AND UM_HYBRID_GROUP_ROLE.UM_DOMAIN_ID=UM_DOMAIN.UM_DOMAIN_ID";
 

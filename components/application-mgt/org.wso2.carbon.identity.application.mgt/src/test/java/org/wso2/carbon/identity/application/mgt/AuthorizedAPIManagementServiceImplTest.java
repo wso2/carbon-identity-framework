@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,11 +19,12 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.mockito.Mock;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -33,6 +34,7 @@ import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
@@ -71,9 +73,9 @@ import static java.lang.Boolean.FALSE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -82,7 +84,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
 @WithRegistry
 @WithRealmService(injectToSingletons = {OrganizationManagementDataHolder.class})
 @WithH2Database(files = {"dbscripts/identity.sql"})
-public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
+public class AuthorizedAPIManagementServiceImplTest {
 
     private String tenantDomain;
     private APIResourceManager apiResourceManager;
@@ -102,6 +104,14 @@ public class AuthorizedAPIManagementServiceImplTest extends PowerMockTestCase {
         identityEventService = mock(IdentityEventService.class);
         doNothing().when(identityEventService).handleEvent(any());
         ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+    }
+
+    @AfterMethod
+    public void tearDown() throws Exception {
+
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
+        applicationManagementService.deleteApplication("TestApp", tenantDomain, "user 1");
     }
 
     @DataProvider

@@ -25,8 +25,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 
 /**
- * This utility class is used to configure log Appenders and log levels by IdentityBaseTest and
- * PowerMockIdentityBaseTest classes.
+ * This utility class is used to configure log Appenders and log levels by IdentityBaseTest class.
  */
 public class LogUtil {
 

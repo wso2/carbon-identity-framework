@@ -720,8 +720,6 @@
         <Scopes>
             <Scope displayName="View Email Template" name="internal_org_email_mgt_view" 
                     description="View email templates and types in the organization"/>
-            <Scope displayName="Update Email Template" name="internal_org_email_mgt_update"
-                    description="Update email templates and types in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Entitlement Management API" identifier="/api/identity/entitlement/"

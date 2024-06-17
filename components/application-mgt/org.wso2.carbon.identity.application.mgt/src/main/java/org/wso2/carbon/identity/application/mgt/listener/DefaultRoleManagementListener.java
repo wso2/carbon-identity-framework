@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
@@ -46,13 +47,17 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_PERMISSION;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 
 /**
  * Default Role Management Listener implementation of Role Management V2 Listener,
@@ -479,6 +484,32 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     public void postDeleteRolesByApplication(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
+    }
+
+    @Override
+    public void preGetAssociatedApplicationIdsByRoleId(String roleId, String tenantDomain)
+            throws IdentityRoleManagementException {
+    }
+
+    @Override
+    public void postGetAssociatedApplicationIdsByRoleId(List<String> associatedApplicationByRoleId, String roleId,
+                                                        String tenantDomain) throws IdentityRoleManagementException {
+        try {
+            Role role = ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2()
+                   .getRole(roleId, tenantDomain);
+            if (ORGANIZATION.equalsIgnoreCase(role.getAudience())) {
+                ApplicationBasicInfo[] associatedApplications = ApplicationManagementService.getInstance()
+                        .getApplicationBasicInfoBySPProperty(tenantDomain,
+                                PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername(),
+                                ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, ORGANIZATION);
+                associatedApplicationByRoleId.addAll(Arrays.stream(associatedApplications)
+                        .map(ApplicationBasicInfo::getUuid).collect(Collectors.toList()));
+            }
+        } catch (IdentityRoleManagementException | IdentityApplicationManagementException e) {
+            throw new IdentityRoleManagementException(
+                String.format("Error occurred while getting associated apps of role : %s in tenant domain : %s",
+                        tenantDomain), e);
+        }
     }
 
     /**

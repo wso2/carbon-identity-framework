@@ -29,7 +29,7 @@ import java.util.Map;
 public class DynamicDecisionNode extends AbstractAuthGraphNode implements AuthGraphNode {
 
     private static final long serialVersionUID = -2151385170280964420L;
-    private Map<String, BaseSerializableJsFunction> functionMap = new HashMap<>();
+    private Map<String, GenericSerializableJsFunction> functionMap = new HashMap<>();
     private AuthGraphNode defaultEdge;
 
     @Override
@@ -39,10 +39,23 @@ public class DynamicDecisionNode extends AbstractAuthGraphNode implements AuthGr
     }
 
     public Map<String, BaseSerializableJsFunction> getFunctionMap() {
+
+        if (isFunctionMapInstanceOfBaseSerializableJsFunction()) {
+            return Collections.unmodifiableMap((Map<String, BaseSerializableJsFunction>) (Map) functionMap);
+        }
+        return null;
+    }
+
+    public Map<String, GenericSerializableJsFunction> getGenericFunctionMap() {
+
         return Collections.unmodifiableMap(functionMap);
     }
 
     public void addFunction(String outcome, BaseSerializableJsFunction function) {
+        functionMap.put(outcome, function);
+    }
+
+    public void addGenericFunction(String outcome, GenericSerializableJsFunction function) {
         functionMap.put(outcome, function);
     }
 
@@ -52,5 +65,14 @@ public class DynamicDecisionNode extends AbstractAuthGraphNode implements AuthGr
 
     public void setDefaultEdge(AuthGraphNode defaultEdge) {
         this.defaultEdge = defaultEdge;
+    }
+
+    private boolean isFunctionMapInstanceOfBaseSerializableJsFunction() {
+
+        if (functionMap == null || functionMap.isEmpty()) {
+            return true;
+        }
+        // Get the first element of the map and check if that is an instance of BaseSerializableJsFunction
+        return functionMap.entrySet().iterator().next().getValue() instanceof BaseSerializableJsFunction;
     }
 }

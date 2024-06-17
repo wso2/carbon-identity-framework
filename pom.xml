@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.1.45-SNAPSHOT</version>
+    <version>7.3.5-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -1621,21 +1621,12 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powermock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-testng-common</artifactId>
-                <version>${powermock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-testng</artifactId>
-                <version>${powermock.version}</version>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-testng</artifactId>
+                <version>${mockito-testng.version}</version>
                 <scope>test</scope>
             </dependency>
             <!-- Common test utility -->
@@ -1790,6 +1781,32 @@
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-cbor</artifactId>
                 <version>${com.fasterxml.jackson.cbor.version}</version>
+            </dependency>
+<!--            GraalVM related dependencies-->
+            <dependency>
+                <groupId>org.graalvm.sdk</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.truffle</groupId>
+                <artifactId>truffle-api</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.regex</groupId>
+                <artifactId>regex</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ibm.icu</groupId>
+                <artifactId>icu4j</artifactId>
+                <version>${icu.version}</version>
             </dependency>
         </dependencies>
 
@@ -2083,17 +2100,22 @@
         <log4j.slf4j.version>2.17.1</log4j.slf4j.version>
 
         <!-- Unit test versions -->
-        <testng.version>6.9.10</testng.version>
+        <testng.version>7.10.1</testng.version>
         <jacoco.version>0.8.4</jacoco.version>
         <jmockit.version>1.44</jmockit.version>
-        <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
-        <mockito.version>2.23.4</mockito.version>
-        <powermock.version>2.0.2</powermock.version>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+        <mockito.version>5.3.1</mockito.version>
+        <mockito-testng.version>0.5.2</mockito-testng.version>
 
         <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
         <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
 
         <h2database.version>2.2.224</h2database.version>
+
+        <graalvm.version>22.3.4</graalvm.version>
+        <graalvm.version.range>[22.3.0,23.0.0)</graalvm.version.range>
+        <!-- ICU version must be reflecting graalvm version -->
+        <icu.version>71.1</icu.version>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <maven.spotbugsplugin.version>4.8.4.0</maven.spotbugsplugin.version>
@@ -2266,6 +2288,10 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
