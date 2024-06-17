@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.Resen
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.ResetRequest;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.recovery.v2.ResetResponse;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -172,8 +173,8 @@ public class RecoveryApiV2 {
         Object localVarPostBody = recoveryInitRequest;
         // Verify the required parameter 'recoveryInitRequest' is set.
         if (recoveryInitRequest == null) {
-            throw new ApiException(400, "Missing the required parameter 'recoveryInitRequest' when calling " +
-                    "initializeRecovery");
+            throw new ApiException(HttpServletResponse.SC_BAD_REQUEST,
+                    "Missing the required parameter 'recoveryInitRequest' when calling initializeRecovery");
         }
         if (StringUtils.isBlank(tenantDomain)) {
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -219,7 +220,8 @@ public class RecoveryApiV2 {
         Object localVarPostBody = recoveryRequest;
         // Verify if the required parameter 'recoveryRequest' is set.
         if (recoveryRequest == null) {
-            throw new ApiException(400, "Missing the required parameter 'recoveryRequest' when requesting recovery");
+            throw new ApiException(HttpServletResponse.SC_BAD_REQUEST,
+                    "Missing the required parameter 'recoveryRequest' when requesting recovery");
         }
         if (StringUtils.isBlank(tenantDomain)) {
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -254,7 +256,8 @@ public class RecoveryApiV2 {
 
         // Verify if the required parameter 'recoveryRequest' is set.
         if (resendRequest == null) {
-            throw new ApiException(400, "Missing the required parameter 'resendRequest' when requesting recovery");
+            throw new ApiException(HttpServletResponse.SC_BAD_REQUEST,
+                    "Missing the required parameter 'resendRequest' when requesting recovery");
         }
         if (StringUtils.isBlank(tenantDomain)) {
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -280,7 +283,8 @@ public class RecoveryApiV2 {
 
         // Verify if the required parameter 'recoveryRequest' is set.
         if (confirmRequest == null) {
-            throw new ApiException(400, "Missing the required parameter 'confirmRequest' when requesting recovery");
+            throw new ApiException(HttpServletResponse.SC_BAD_REQUEST,
+                    "Missing the required parameter 'confirmRequest' when requesting recovery");
         }
         if (StringUtils.isBlank(tenantDomain)) {
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -306,7 +310,8 @@ public class RecoveryApiV2 {
 
         // Verify if the required parameter 'recoveryRequest' is set.
         if (resetRequest == null) {
-            throw new ApiException(400, "Missing the required parameter 'resetRequest' when requesting recovery");
+            throw new ApiException(HttpServletResponse.SC_BAD_REQUEST,
+                    "Missing the required parameter 'resetRequest' when requesting recovery");
         }
         if (StringUtils.isBlank(tenantDomain)) {
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;

@@ -160,10 +160,10 @@ public class PreferenceRetrievalClient {
     }
 
     /**
-     * Check notification based password recovery is enabled or not.
+     * Check SMS OTP based password recovery is enabled or not.
      *
      * @param tenant Tenant domain name.
-     * @return Returns true if notification based password recovery enabled.
+     * @return Returns true if SMS OTP based password recovery enabled.
      * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
      */
     public boolean checkSMSOTPBasedPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
@@ -193,8 +193,8 @@ public class PreferenceRetrievalClient {
     public boolean checkPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
 
         List<String> propertyNameList = new ArrayList<String>();
-        propertyNameList.add(QUESTION_PASSWORD_RECOVERY_PROPERTY);
         propertyNameList.add(NOTIFICATION_PASSWORD_RECOVERY_PROPERTY);
+        propertyNameList.add(QUESTION_PASSWORD_RECOVERY_PROPERTY);
         return checkMultiplePreference(tenant, RECOVERY_CONNECTOR, propertyNameList);
     }
 
