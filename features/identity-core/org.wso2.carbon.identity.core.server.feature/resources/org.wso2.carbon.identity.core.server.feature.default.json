@@ -1148,7 +1148,7 @@
   "console.applications.disabled_features": [
     "applications.loginFlow.ai",
     "applications.loginFlow.legacyEditor",
-    "applications.myaccount.simplifiedSettings"
+    "applications.myaccount.saasMyaccountSettings"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
