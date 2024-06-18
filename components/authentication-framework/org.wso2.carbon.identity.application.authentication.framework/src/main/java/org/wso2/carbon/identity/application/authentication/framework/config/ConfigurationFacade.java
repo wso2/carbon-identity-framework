@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -325,11 +326,19 @@ public class ConfigurationFacade {
 
     private String buildUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig) {
 
+        String applicationName = null;
+        applicationName = PrivilegedCarbonContext.getThreadLocalCarbonContext().getApplicationName();
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             try {
                 String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-                return ServiceURLBuilder.create().addPath(defaultContext).setOrganization(organizationId).build()
-                        .getAbsolutePublicURL();
+                ServiceURLBuilder serviceURLBuilder =
+                        ServiceURLBuilder.create().addPath(defaultContext).setOrganization(organizationId);
+                if (FrameworkConstants.Application.MY_ACCOUNT_APP.equals(applicationName) ||
+                        FrameworkConstants.Application.CONSOLE_APP.equals(applicationName)) {
+                    serviceURLBuilder.setSkipDomainBranding(true);
+                }
+
+                return serviceURLBuilder.build().getAbsolutePublicURL();
             } catch (URLBuilderException e) {
                 throw new IdentityRuntimeException(
                         "Error while building tenant qualified url for context: " + defaultContext, e);
