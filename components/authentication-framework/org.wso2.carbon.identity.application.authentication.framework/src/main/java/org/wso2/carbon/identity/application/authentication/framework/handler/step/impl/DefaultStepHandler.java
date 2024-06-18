@@ -133,10 +133,8 @@ public class DefaultStepHandler implements StepHandler {
                 .get(context.getCurrentStep());
 
         Optional<String> appName = FrameworkUtils.getApplicationName(context);
-
         appName.ifPresent(name ->
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setApplicationName(name));
-
         List<AuthenticatorConfig> authConfigList = stepConfig.getAuthenticatorList();
 
         String authenticatorNames = FrameworkUtils.getAuthenticatorIdPMappingString(authConfigList);

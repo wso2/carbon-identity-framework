@@ -326,8 +326,7 @@ public class ConfigurationFacade {
 
     private String buildUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig) {
 
-        String applicationName = null;
-        applicationName = PrivilegedCarbonContext.getThreadLocalCarbonContext().getApplicationName();
+        String applicationName = PrivilegedCarbonContext.getThreadLocalCarbonContext().getApplicationName();
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             try {
                 String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
@@ -337,7 +336,6 @@ public class ConfigurationFacade {
                         FrameworkConstants.Application.CONSOLE_APP.equals(applicationName)) {
                     serviceURLBuilder.setSkipDomainBranding(true);
                 }
-
                 return serviceURLBuilder.build().getAbsolutePublicURL();
             } catch (URLBuilderException e) {
                 throw new IdentityRuntimeException(
