@@ -230,7 +230,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     }
 
     @Test(dataProvider = "getDuplicatedSessionsForUsers", dependsOnMethods = {"testStoreUserSessionData"},
-            expectedExceptions = UserSessionException.class)
+            expectedExceptions = {UserSessionException.class, DuplicatedAuthUserException.class})
     public void testExceptionAtStoreUserSessionDataForDuplicatedSession(String userId, String sessionId) throws
             Exception {
 
