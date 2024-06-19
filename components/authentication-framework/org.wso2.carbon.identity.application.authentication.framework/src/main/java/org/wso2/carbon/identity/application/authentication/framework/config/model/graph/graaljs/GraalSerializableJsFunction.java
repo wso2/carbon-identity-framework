@@ -75,12 +75,8 @@ public class GraalSerializableJsFunction implements GenericSerializableJsFunctio
     public Object apply(Context polyglotContext, Object... params) {
 
         if (isPolyglotFunction) {
-            try {
-                Value jsFunction = polyglotContext.eval("js", "(" + getSource() + ")");
-                return jsFunction.execute(params);
-            } catch (PolyglotException e) {
-                log.error("Error when executing function", e);
-            }
+            Value jsFunction = polyglotContext.eval("js", "(" + getSource() + ")");
+            return jsFunction.execute(params);
         }
 
         return null;
