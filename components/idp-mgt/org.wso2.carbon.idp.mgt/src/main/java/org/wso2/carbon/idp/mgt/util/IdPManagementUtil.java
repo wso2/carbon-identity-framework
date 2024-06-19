@@ -47,11 +47,6 @@ public class IdPManagementUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUtil.class);
 
-    private static final String RECOVERY_NOTIFICATION_PASSWORD_PROPERTY = "Recovery.Notification.Password.Enable";
-    private static final String EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY
-            = "Recovery.Notification.Password.emailLink.Enable";
-    private static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY = "Recovery.Notification.Password.smsOtp.Enable";
-
     private static String tenantContext;
     private static String tenantParameter;
 
@@ -289,13 +284,13 @@ public class IdPManagementUtil {
     public static void validatePasswordRecoveryPropertyValues(Map<String, String> configurationDetails)
             throws IdentityProviderManagementClientException {
 
-        if (configurationDetails.containsKey(RECOVERY_NOTIFICATION_PASSWORD_PROPERTY) ||
-                configurationDetails.containsKey(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
-                configurationDetails.containsKey(SMS_OTP_PASSWORD_RECOVERY_PROPERTY)) {
+        if (configurationDetails.containsKey(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY) ||
+                configurationDetails.containsKey(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY)) {
             // Perform process only if notification based password recovery connector or options are updated.
-            String recNotPwProp = configurationDetails.get(RECOVERY_NOTIFICATION_PASSWORD_PROPERTY);
-            String emailLinkPwRecProp = configurationDetails.get(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
-            String smsOtpPwRecProp = configurationDetails.get(SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
+            String recNotPwProp = configurationDetails.get(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY);
+            String emailLinkPwRecProp = configurationDetails.get(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+            String smsOtpPwRecProp = configurationDetails.get(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
             boolean recoveryNotificationPasswordProperty = Boolean.parseBoolean(recNotPwProp);
             boolean smsOtpPasswordRecoveryProperty = Boolean.parseBoolean(emailLinkPwRecProp);
             boolean emailLinkPasswordRecoveryProperty = Boolean.parseBoolean(smsOtpPwRecProp);

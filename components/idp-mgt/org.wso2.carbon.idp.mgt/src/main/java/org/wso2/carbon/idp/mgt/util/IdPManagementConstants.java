@@ -121,6 +121,14 @@ public class IdPManagementConstants {
     public static final String EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY = "OnlyNumericCharactersForOtp";
     public static final String EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY = "AlphanumericCharactersForOtp";
 
+    // Resident IDP Password Recovery Configs
+    public static final String NOTIFICATION_PASSWORD_ENABLE_PROPERTY
+            = "Recovery.Notification.Password.Enable";
+    public static final String EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY
+            = "Recovery.Notification.Password.emailLink.Enable";
+    public static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY
+            = "Recovery.Notification.Password.smsOtp.Enable";
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +

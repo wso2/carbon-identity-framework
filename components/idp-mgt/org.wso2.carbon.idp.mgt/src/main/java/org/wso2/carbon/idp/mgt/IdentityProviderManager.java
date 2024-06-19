@@ -2666,6 +2666,4 @@ public class IdentityProviderManager implements IdpManager {
         }
         return false;
     }
-
-
 }
