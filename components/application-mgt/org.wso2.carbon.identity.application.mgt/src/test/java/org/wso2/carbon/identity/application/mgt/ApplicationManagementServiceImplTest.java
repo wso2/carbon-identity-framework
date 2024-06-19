@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorCo
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
@@ -999,6 +1000,51 @@ public class ApplicationManagementServiceImplTest {
 
         Assert.assertEquals(retrievedSP.getClientAttestationMetaData().isAttestationEnabled(), !isAttestationEnabled);
         Assert.assertNull(retrievedSP.getClientAttestationMetaData().getAndroidAttestationServiceCredentials());
+        // Deleting added application.
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+    }
+
+    @DataProvider(name = "trustedAppMetadataDataProvider")
+    public Object[][] trustedAppMetadataDataProvider() {
+
+        return new Object[][]{
+                {"com.wso2.sample.mobile.application", "sampleThumbprint1", "APPLETEAMID.com.wso2.mobile.sample"},
+                {"com.wso2.sample.mobile.application", "sampleThumbprint1, sampleThumbprint1", null},
+                {null, null, "APPLETEAMID.com.wso2.mobile.sample"}
+        };
+    }
+
+    @Test(dataProvider = "trustedAppMetadataDataProvider")
+    public void testTrustedAppMetadata(String androidPackageName, String androidThumbprints, String appleAppId)
+            throws Exception {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP);
+
+        SpTrustedAppMetadata trustedAppMetadata = new SpTrustedAppMetadata();
+        trustedAppMetadata.setAndroidPackageName(androidPackageName);
+        trustedAppMetadata.setAppleAppId(appleAppId);
+        trustedAppMetadata.setAndroidThumbprints(androidThumbprints);
+        trustedAppMetadata.setIsFidoTrusted(true);
+        trustedAppMetadata.setIsTWAEnabled(true);
+        inputSP.setTrustedAppMetadata(trustedAppMetadata);
+
+        // Adding new application.
+        String addedSpId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+        ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(addedSpId,
+                SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAndroidPackageName(), androidPackageName);
+        Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAndroidThumbprints(), androidThumbprints);
+        Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAppleAppId(), appleAppId);
+        Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getIsFidoTrusted(),
+                trustedAppMetadata.getIsFidoTrusted());
+        Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getIsTWAEnabled(),
+                trustedAppMetadata.getIsTWAEnabled());
+
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
                 REGISTRY_SYSTEM_USERNAME);

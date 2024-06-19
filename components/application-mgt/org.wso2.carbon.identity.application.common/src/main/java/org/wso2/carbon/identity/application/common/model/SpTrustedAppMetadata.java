@@ -36,8 +36,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "SpTrustedAppMetadata")
 public class SpTrustedAppMetadata implements Serializable {
 
-    //TODO why is serialVersionUID needed?
-    private static final long serialVersionUID = -753653473009612026L;
+    private static final long serialVersionUID = 8734858467750306551L;
     private static final String ANDROID_PACKAGE_NAME = "AndroidPackageName";
     private static final String ANDROID_THUMBPRINTS = "AndroidThumbprints";
     private static final String APPLE_APP_ID = "AppleAppId";
@@ -48,7 +47,6 @@ public class SpTrustedAppMetadata implements Serializable {
     @XmlElement(name = ANDROID_PACKAGE_NAME)
     private String androidPackageName;
 
-    //TODO handle thumbprints differently
     @IgnoreNullElement
     @XmlElement(name = ANDROID_THUMBPRINTS)
     private String androidThumbprints;
@@ -72,10 +70,9 @@ public class SpTrustedAppMetadata implements Serializable {
      * @return A new SpTrustedAppMetadata object populated with data from the OMElement.
      */
     public static SpTrustedAppMetadata build(OMElement trustedAppMetadataOM) {
+
         SpTrustedAppMetadata spTrustedAppMetadata = new SpTrustedAppMetadata();
-
         Iterator<?> iter = trustedAppMetadataOM.getChildElements();
-
         while (iter.hasNext()) {
             OMElement element = (OMElement) (iter.next());
             String elementName = element.getLocalName();

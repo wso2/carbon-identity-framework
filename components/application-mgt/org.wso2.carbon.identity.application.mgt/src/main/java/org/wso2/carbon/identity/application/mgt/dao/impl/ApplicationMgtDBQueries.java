@@ -253,7 +253,6 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_UM_PERMISSIONS = "SELECT UM_ID, UM_RESOURCE_ID FROM UM_PERMISSION WHERE " +
             "UM_RESOURCE_ID LIKE ?";
     public static final String LOAD_UM_PERMISSIONS_W = "SELECT UM_ID FROM UM_PERMISSION WHERE UM_RESOURCE_ID = ?";
-    // TODO need to write dbscripts for other db types
     public static final String LOAD_TRUSTED_APPS_BY_APP_ID = "SELECT PLATFORM_TYPE, APP_IDENTIFIER, " +
             "THUMBPRINTS, IS_FIDO_TRUSTED, TWA_ENABLED FROM SP_TRUSTED_APPS WHERE SP_ID = ? AND TENANT_ID = ?";
 

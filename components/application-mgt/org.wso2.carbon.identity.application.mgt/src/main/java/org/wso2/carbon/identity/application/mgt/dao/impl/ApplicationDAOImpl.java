@@ -604,8 +604,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         updateOutboundProvisioningConfiguration(applicationId,
                 serviceProvider.getOutboundProvisioningConfig(), connection);
-        updateTrustedAppMetadata(serviceProvider.getApplicationID(), serviceProvider.getTrustedAppMetadata(),
-                connection);
+        updateTrustedAppMetadata(applicationId, serviceProvider.getTrustedAppMetadata(), connection);
 
         if (serviceProvider.getPermissionAndRoleConfig() != null) {
             updatePermissionAndRoleConfiguration(serviceProvider.getApplicationID(),

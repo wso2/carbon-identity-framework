@@ -56,7 +56,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
-    private static final String TRUSTED_APP_METADATA = "SpTrustedAppMetadata";
+    private static final String TRUSTED_APP_METADATA = "TrustedAppMetadata";
 
     @XmlTransient
     @JsonIgnore
@@ -156,7 +156,7 @@ public class ServiceProvider implements Serializable {
 
     @IgnoreNullElement
     @XmlElement(name = TRUSTED_APP_METADATA)
-    private SpTrustedAppMetadata spTrustedAppMetadata;
+    private SpTrustedAppMetadata trustedAppMetadata;
 
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
@@ -624,12 +624,12 @@ public class ServiceProvider implements Serializable {
 
     public SpTrustedAppMetadata getTrustedAppMetadata() {
 
-        return spTrustedAppMetadata;
+        return trustedAppMetadata;
     }
 
     public void setTrustedAppMetadata(SpTrustedAppMetadata trustedAppMetadata) {
 
-        this.spTrustedAppMetadata = trustedAppMetadata;
+        this.trustedAppMetadata = trustedAppMetadata;
     }
 
     public boolean isApplicationEnabled() {
