@@ -62,7 +62,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
-import org.wso2.carbon.identity.application.common.model.TrustedAppMetadata;
+import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
@@ -3518,16 +3518,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @return trustedAppMetadata Trusted app configurations.
      * @throws IdentityApplicationManagementException If an error occurs while retrieving trusted app configurations.
      */
-    private TrustedAppMetadata getTrustedAppMetadata(int applicationId, Connection connection, int tenantID)
+    private SpTrustedAppMetadata getTrustedAppMetadata(int applicationId, Connection connection, int tenantID)
             throws IdentityApplicationManagementException {
 
         PreparedStatement loadTrustedAppConfigs = null;
         ResultSet trustedAppConfigResultSet = null;
-        TrustedAppMetadata trustedAppMetadata = new TrustedAppMetadata();
+        SpTrustedAppMetadata trustedAppMetadata = new SpTrustedAppMetadata();
 
         try {
             loadTrustedAppConfigs = connection
-                    .prepareStatement(ApplicationMgtDBQueries.LOAD_TRUSTED_APP_CONFIG_BY_APP_ID);
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_TRUSTED_APPS_BY_APP_ID);
             loadTrustedAppConfigs.setInt(1, applicationId);
             loadTrustedAppConfigs.setInt(2, tenantID);
             trustedAppConfigResultSet = loadTrustedAppConfigs.executeQuery();
@@ -3560,7 +3560,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @param connection     Database connection.
      * @throws IdentityApplicationManagementException If an error occurs while updating trusted app configurations.
      */
-    private void updateTrustedAppMetadata(int applicationId, TrustedAppMetadata trustedAppMetadata,
+    private void updateTrustedAppMetadata(int applicationId, SpTrustedAppMetadata trustedAppMetadata,
                                           Connection connection) throws IdentityApplicationManagementException {
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
@@ -3568,7 +3568,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try {
             storeTrustedAppConfigs = connection
-                    .prepareStatement(ApplicationMgtDBQueries.STORE_TRUSTED_APP_CONFIG);
+                    .prepareStatement(ApplicationMgtDBQueries.STORE_TRUSTED_APPS);
             if (trustedAppMetadata != null) {
                 if (trustedAppMetadata.getAndroidPackageName() != null) {
                     storeTrustedAppConfigs.setInt(1, applicationId);
@@ -3619,7 +3619,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement deleteTrustedAppConfigsPrepStmt = null;
         try {
             deleteTrustedAppConfigsPrepStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.REMOVE_TRUSTED_APP_CONFIG);
+                    .prepareStatement(ApplicationMgtDBQueries.REMOVE_TRUSTED_APPS);
             deleteTrustedAppConfigsPrepStmt.setInt(1, applicationID);
             deleteTrustedAppConfigsPrepStmt.setInt(2, tenantID);
             deleteTrustedAppConfigsPrepStmt.execute();

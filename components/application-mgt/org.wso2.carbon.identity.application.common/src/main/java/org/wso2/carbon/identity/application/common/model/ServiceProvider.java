@@ -56,7 +56,7 @@ public class ServiceProvider implements Serializable {
     private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
-    private static final String TRUSTED_APP_METADATA = "TrustedAppMetadata";
+    private static final String TRUSTED_APP_METADATA = "SpTrustedAppMetadata";
 
     @XmlTransient
     @JsonIgnore
@@ -156,7 +156,7 @@ public class ServiceProvider implements Serializable {
 
     @IgnoreNullElement
     @XmlElement(name = TRUSTED_APP_METADATA)
-    private TrustedAppMetadata trustedAppMetadata;
+    private SpTrustedAppMetadata spTrustedAppMetadata;
 
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
@@ -282,7 +282,7 @@ public class ServiceProvider implements Serializable {
                 serviceProvider.setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
             } else if (TRUSTED_APP_METADATA.equals(elementName)) {
                 // build trusted app metadata.
-                serviceProvider.setTrustedAppMetadata(TrustedAppMetadata.build(element));
+                serviceProvider.setTrustedAppMetadata(SpTrustedAppMetadata.build(element));
             } else if (ASSOCIATED_ROLES_CONFIG.equals(elementName)) {
                 // build role association.
                 serviceProvider.setAssociatedRolesConfig(AssociatedRolesConfig.build(element));
@@ -622,14 +622,14 @@ public class ServiceProvider implements Serializable {
         this.clientAttestationMetaData = clientAttestationMetaData;
     }
 
-    public TrustedAppMetadata getTrustedAppMetadata() {
+    public SpTrustedAppMetadata getTrustedAppMetadata() {
 
-        return trustedAppMetadata;
+        return spTrustedAppMetadata;
     }
 
-    public void setTrustedAppMetadata(TrustedAppMetadata trustedAppMetadata) {
+    public void setTrustedAppMetadata(SpTrustedAppMetadata trustedAppMetadata) {
 
-        this.trustedAppMetadata = trustedAppMetadata;
+        this.spTrustedAppMetadata = trustedAppMetadata;
     }
 
     public boolean isApplicationEnabled() {

@@ -21,19 +21,20 @@ package org.wso2.carbon.identity.application.common.model;
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 
+import java.io.Serializable;
+import java.util.Iterator;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.Serializable;
-import java.util.Iterator;
 
 /**
  * Trusted app metadata of an application.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlRootElement(name = "TrustedAppMetadata")
-public class TrustedAppMetadata implements Serializable {
+@XmlRootElement(name = "SpTrustedAppMetadata")
+public class SpTrustedAppMetadata implements Serializable {
 
     //TODO why is serialVersionUID needed?
     private static final long serialVersionUID = -753653473009612026L;
@@ -65,13 +66,13 @@ public class TrustedAppMetadata implements Serializable {
     private boolean isTWAEnabled;
 
     /**
-     * Creates an instance of the TrustedAppMetadata class by parsing an OMElement.
+     * Creates an instance of the SpTrustedAppMetadata class by parsing an OMElement.
      *
-     * @param trustedAppMetadataOM The OMElement to parse and build the TrustedAppMetadata object from.
-     * @return A new TrustedAppMetadata object populated with data from the OMElement.
+     * @param trustedAppMetadataOM The OMElement to parse and build the SpTrustedAppMetadata object from.
+     * @return A new SpTrustedAppMetadata object populated with data from the OMElement.
      */
-    public static TrustedAppMetadata build(OMElement trustedAppMetadataOM) {
-        TrustedAppMetadata trustedAppMetadata = new TrustedAppMetadata();
+    public static SpTrustedAppMetadata build(OMElement trustedAppMetadataOM) {
+        SpTrustedAppMetadata spTrustedAppMetadata = new SpTrustedAppMetadata();
 
         Iterator<?> iter = trustedAppMetadataOM.getChildElements();
 
@@ -80,22 +81,22 @@ public class TrustedAppMetadata implements Serializable {
             String elementName = element.getLocalName();
 
             if (ANDROID_PACKAGE_NAME.equals(elementName)) {
-                trustedAppMetadata.setAndroidPackageName(element.getText());
+                spTrustedAppMetadata.setAndroidPackageName(element.getText());
             }
             if (ANDROID_THUMBPRINTS.equals(elementName)) {
-                trustedAppMetadata.setAndroidThumbprints(element.getText());
+                spTrustedAppMetadata.setAndroidThumbprints(element.getText());
             }
             if (APPLE_APP_ID.equals(elementName)) {
-                trustedAppMetadata.setAppleAppId(element.getText());
+                spTrustedAppMetadata.setAppleAppId(element.getText());
             }
             if (IS_FIDO_TRUSTED.equals(elementName)) {
-                trustedAppMetadata.setIsFidoTrusted(Boolean.parseBoolean(element.getText()));
+                spTrustedAppMetadata.setIsFidoTrusted(Boolean.parseBoolean(element.getText()));
             }
             if (IS_TWA_ENABLED.equals(elementName)) {
-                trustedAppMetadata.setIsTWAEnabled(Boolean.parseBoolean(element.getText()));
+                spTrustedAppMetadata.setIsTWAEnabled(Boolean.parseBoolean(element.getText()));
             }
         }
-        return trustedAppMetadata;
+        return spTrustedAppMetadata;
     }
 
     /**
