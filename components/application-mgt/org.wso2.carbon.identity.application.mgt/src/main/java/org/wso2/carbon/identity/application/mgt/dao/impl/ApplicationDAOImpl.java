@@ -3524,6 +3524,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ResultSet trustedAppConfigResultSet = null;
         SpTrustedAppMetadata trustedAppMetadata = new SpTrustedAppMetadata();
 
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving trusted app configurations for Application " + applicationId);
+        }
         try {
             loadTrustedAppConfigs = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_TRUSTED_APPS_BY_APP_ID);
@@ -3565,28 +3568,28 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         PreparedStatement storeTrustedAppConfigs = null;
 
+        if (log.isDebugEnabled()) {
+            log.debug("Adding trusted app configurations for Application " + applicationId);
+        }
         try {
             storeTrustedAppConfigs = connection
                     .prepareStatement(ApplicationMgtDBQueries.STORE_TRUSTED_APPS);
             if (trustedAppMetadata != null) {
+                storeTrustedAppConfigs.setInt(1, applicationId);
+                storeTrustedAppConfigs.setBoolean(5, trustedAppMetadata.getIsFidoTrusted());
+                storeTrustedAppConfigs.setBoolean(6, trustedAppMetadata.getIsTWAEnabled());
+                storeTrustedAppConfigs.setInt(7, tenantID);
+
                 if (trustedAppMetadata.getAndroidPackageName() != null) {
-                    storeTrustedAppConfigs.setInt(1, applicationId);
                     storeTrustedAppConfigs.setString(2, ANDROID);
                     storeTrustedAppConfigs.setString(3, trustedAppMetadata.getAndroidPackageName());
                     storeTrustedAppConfigs.setString(4, trustedAppMetadata.getAndroidThumbprints());
-                    storeTrustedAppConfigs.setBoolean(5, trustedAppMetadata.getIsFidoTrusted());
-                    storeTrustedAppConfigs.setBoolean(6, trustedAppMetadata.getIsTWAEnabled());
-                    storeTrustedAppConfigs.setInt(7, tenantID);
                     storeTrustedAppConfigs.addBatch();
                 }
                 if (trustedAppMetadata.getAppleAppId() != null) {
-                    storeTrustedAppConfigs.setInt(1, applicationId);
                     storeTrustedAppConfigs.setString(2, IOS);
                     storeTrustedAppConfigs.setString(3, trustedAppMetadata.getAppleAppId());
                     storeTrustedAppConfigs.setString(4, null);
-                    storeTrustedAppConfigs.setBoolean(5, trustedAppMetadata.getIsFidoTrusted());
-                    storeTrustedAppConfigs.setBoolean(6, trustedAppMetadata.getIsTWAEnabled());
-                    storeTrustedAppConfigs.setInt(7, tenantID);
                     storeTrustedAppConfigs.addBatch();
                 }
                 storeTrustedAppConfigs.executeBatch();
@@ -3597,7 +3600,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementUtil.closeStatement(storeTrustedAppConfigs);
         }
     }
-
 
     /**
      * Delete trusted app metadata of the application.

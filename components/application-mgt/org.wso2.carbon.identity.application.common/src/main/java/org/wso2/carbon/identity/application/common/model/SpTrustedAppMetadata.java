@@ -102,6 +102,7 @@ public class SpTrustedAppMetadata implements Serializable {
      * @return The Android package name.
      */
     public String getAndroidPackageName() {
+
         return androidPackageName;
     }
 
@@ -111,6 +112,7 @@ public class SpTrustedAppMetadata implements Serializable {
      * @param androidPackageName The Android package name to set.
      */
     public void setAndroidPackageName(String androidPackageName) {
+
         this.androidPackageName = androidPackageName;
     }
 
