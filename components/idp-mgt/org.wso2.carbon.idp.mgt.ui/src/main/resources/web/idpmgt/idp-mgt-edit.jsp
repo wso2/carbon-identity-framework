@@ -106,8 +106,8 @@
     boolean isEnableAssertionEncription = false;
     boolean isEnableAssertionSigning = false;
 
-    String signatureAlgorithm = IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1;
-    String digestAlgorithm = IdentityApplicationConstants.XML.DigestAlgorithm.SHA1;
+    String signatureAlgorithm = IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA256;
+    String digestAlgorithm = IdentityApplicationConstants.XML.DigestAlgorithm.SHA256;
     String authenticationContextClass = StringUtils.EMPTY;
     String customAuthnContextClass = "";
     String authenticationContextComparisonLevel = IdentityApplicationConstants.SAML2.AuthnContextComparison.EXACT;
