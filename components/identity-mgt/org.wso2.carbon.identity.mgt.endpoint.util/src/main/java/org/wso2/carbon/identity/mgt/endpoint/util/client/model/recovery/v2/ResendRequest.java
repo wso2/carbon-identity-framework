@@ -112,10 +112,13 @@ public class ResendRequest {
     @Override
     public String toString() {
 
-        return "class ResendRequest {\n" +
-                "    resendCode: " + toIndentedString(resendCode) + "\n" +
-                "    properties: " + toIndentedString(properties) + "\n" +
-                "}";
+        StringBuilder sb = new StringBuilder();
+        sb.append("class ResendRequest {\n");
+
+        sb.append("    resendCode: ").append(toIndentedString(resendCode)).append("\n");
+        sb.append("    properties: ").append(toIndentedString(properties)).append("\n");
+        sb.append("}");
+        return sb.toString();
     }
 
     /**

@@ -112,10 +112,12 @@ public class ResetResponse {
     @Override
     public String toString() {
 
-        return "class ResendResponse {\n" +
-                "    code: " + toIndentedString(code) + "\n" +
-                "    message: " + toIndentedString(message) + "\n" +
-                "}";
+        StringBuilder sb = new StringBuilder();
+        sb.append("class ResendResponse {\n");
+        sb.append("    code: ").append(toIndentedString(code)).append("\n");
+        sb.append("    message: ").append(toIndentedString(message)).append("\n");
+        sb.append("}");
+        return sb.toString();
     }
 
     /**

@@ -214,13 +214,15 @@ public class ResendResponse {
     @Override
     public String toString() {
 
-        return "class ResendResponse {\n" +
-                "    code: " + toIndentedString(code) + "\n" +
-                "    message: " + toIndentedString(message) + "\n" +
-                "    notificationChannel: " + toIndentedString(notificationChannel) + "\n" +
-                "    resendCode: " + toIndentedString(resendCode) + "\n" +
-                "    links: " + toIndentedString(links) + "\n" +
-                "}";
+        StringBuilder sb = new StringBuilder();
+        sb.append("class ResendResponse {\n");
+        sb.append("    code: ").append(toIndentedString(code)).append("\n");
+        sb.append("    message: ").append(toIndentedString(message)).append("\n");
+        sb.append("    notificationChannel: ").append(toIndentedString(notificationChannel)).append("\n");
+        sb.append("    resendCode: ").append(toIndentedString(resendCode)).append("\n");
+        sb.append("    links: ").append(toIndentedString(links)).append("\n");
+        sb.append("}");
+        return sb.toString();
     }
 
     /**
@@ -234,6 +236,4 @@ public class ResendResponse {
         }
         return o.toString().replace("\n", "\n    ");
     }
-
-
 }

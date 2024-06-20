@@ -154,10 +154,24 @@ public class ResetRequest {
     @Override
     public String toString() {
 
-        return "class ConfirmRequest {" +
-                "    confirmationCode: " + resetCode + "\n" +
-                "    otp: " + flowConfirmationCode + "\n" +
-                "    properties: " + properties + "\n" +
-                "}";
+        StringBuilder sb = new StringBuilder();
+        sb.append("class ResendResponse {\n");
+        sb.append("    resetCode: ").append(toIndentedString(resetCode)).append("\n");
+        sb.append("    flowConfirmationCode: ").append(toIndentedString(flowConfirmationCode)).append("\n");
+        sb.append("    properties: ").append(toIndentedString(properties)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces
+     * (except the first line).
+     */
+    private String toIndentedString(Object o) {
+
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n     ");
     }
 }
