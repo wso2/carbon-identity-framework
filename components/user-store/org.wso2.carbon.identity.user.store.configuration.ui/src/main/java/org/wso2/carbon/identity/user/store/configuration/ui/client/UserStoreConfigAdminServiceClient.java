@@ -234,6 +234,28 @@ public class UserStoreConfigAdminServiceClient {
         return result;
     }
 
+    /**
+     * Test user store connectivity.
+     * @param userStoreDTO User store DTO.
+     * @return true or false.
+     * @throws Exception
+     */
+    public boolean testUserStoreConnection(UserStoreDTO userStoreDTO)
+            throws Exception {
+        boolean result;
+
+        try {
+            result = stub.testUserStoreConnection(userStoreDTO);
+        } catch (UserStoreConfigAdminServiceIdentityUserStoreMgtException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(e.getFaultMessage().getIdentityUserStoreMgtException().getMessage(), e);
+            }
+            throw new AxisFault(e.getFaultMessage().getIdentityUserStoreMgtException().getMessage());
+        }
+
+        return result;
+    }
+
     protected void handleException(UserStoreConfigAdminServiceIdentityUserStoreMgtException e) throws AxisFault  {
         String errorMessage;
         if (e.getFaultMessage().getIdentityUserStoreMgtException() != null) {

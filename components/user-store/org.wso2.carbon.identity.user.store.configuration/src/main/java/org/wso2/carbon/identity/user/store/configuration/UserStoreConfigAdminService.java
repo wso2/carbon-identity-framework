@@ -435,6 +435,17 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 driverName, connectionURL, username, connectionPassword, messageID);
     }
 
+    /**
+     * Test user store connectivity.
+     * @param userStoreDTO user store DTO
+     * @return true or false
+     * @throws IdentityUserStoreMgtException
+     */
+    public boolean testUserStoreConnection(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+        return UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().
+                testUserStoreConnection(userStoreDTO);
+    }
+
     private IdentityUserStoreMgtException buildIdentityUserStoreMgtException(IdentityUserStoreClientException e,
                                                                              String defaultMessage) {
 

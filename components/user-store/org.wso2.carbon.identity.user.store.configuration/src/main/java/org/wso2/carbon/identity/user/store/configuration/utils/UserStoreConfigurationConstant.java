@@ -60,6 +60,11 @@ public class UserStoreConfigurationConstant {
     public static final String OPERATION = "Operation";
     public static final String ATTRIBUTES_DIR = "attributes";
     public static final String USERSTORE_DIR = "userstore";
+    public static final String DRIVER_NAME = "driverName";
+    public static final String URL = "url";
+    public static final String PASSWORD = "password";
+    public static final String USERNAME = "userName";
+    public static final String DUMMY_MESSAGE_ID = "DUMMY-MESSAGE-ID";
 
     private UserStoreConfigurationConstant() {
 

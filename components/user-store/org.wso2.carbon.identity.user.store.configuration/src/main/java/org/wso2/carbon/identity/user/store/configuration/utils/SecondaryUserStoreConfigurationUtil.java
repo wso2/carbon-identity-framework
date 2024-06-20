@@ -66,6 +66,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -946,4 +947,20 @@ public class SecondaryUserStoreConfigurationUtil {
         }
         return new IdentityUserStoreClientException(errorMessage, e);
     }
+
+    /**
+     * Convert PropertyDTO Array to a map
+     * @param properties PropertyDTO array from UserDTO.
+     * @return Properties Map.
+     */
+    public static Map<String, String> convertPropertiesDTOArrayToMap(PropertyDTO[] properties) {
+        Map<String, String> map = new HashMap<String, String>();
+
+        for (PropertyDTO property : properties) {
+            map.put(property.getName(), property.getValue());
+        }
+
+        return map;
+    }
+
 }
