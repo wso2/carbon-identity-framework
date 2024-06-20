@@ -2632,9 +2632,9 @@
         </MB>
     </CacheInvalidator>
 
-    <ConfigSwitching>
+    <OnDemandConfig>
         <OnInitialUse>
             <EnableSMSOTPPasswordRecoveryIfConnectorEnabled>false</EnableSMSOTPPasswordRecoveryIfConnectorEnabled>
         </OnInitialUse>
-    </ConfigSwitching>
+    </OnDemandConfig>
 </Server>

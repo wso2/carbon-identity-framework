@@ -122,7 +122,7 @@ public class IdPManagementDAO {
 
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
     private static final String ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED
-            = "ConfigSwitching.OnInitialUse.EnableSMSOTPPasswordRecoveryIfConnectorEnabled";
+            = "OnDemandConfig.OnInitialUse.EnableSMSOTPPasswordRecoveryIfConnectorEnabled";
 
     /**
      * @param dbConnection

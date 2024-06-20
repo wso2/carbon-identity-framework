@@ -1559,6 +1559,6 @@
   "connector.challenge_questions.enable": false,
   "tenant_mgt.enable_email_domain": false,
 
-  "config_correction.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false
+  "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false
 }
 
