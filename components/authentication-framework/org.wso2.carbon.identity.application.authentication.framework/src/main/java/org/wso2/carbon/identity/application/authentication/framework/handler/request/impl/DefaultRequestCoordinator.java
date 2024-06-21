@@ -254,7 +254,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             // Check if the application is enabled.
-            if (!isApplicationEnabled(request, context)) {
+            if (context != null && !isApplicationEnabled(request, context)) {
                 FrameworkUtils.sendToRetryPage(request, responseWrapper, null, ERROR_STATUS_APP_DISABLED,
                         ERROR_DESCRIPTION_APP_DISABLED);
                 return;
