@@ -30,9 +30,11 @@ import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -450,6 +452,18 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     @Deprecated
     public abstract AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
             throws IdentityApplicationManagementException;
+
+    /**
+     * Get the list of trusted mobile applications based on the requested platform type.
+     *
+     * @param platformType Platform type of the trusted apps.
+     * @return List of trusted apps of all tenants.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the trusted apps.
+     */
+    public List<TrustedApp> getTrustedApps(String platformType) throws IdentityApplicationManagementException {
+
+        return new ArrayList<>();
+    }
 
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,

@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -2943,6 +2944,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         appDAO.addAssociatedRoleToApplication(serviceProvider.getApplicationResourceId(), roleId);
+    }
+
+    /**
+     * Get the list of trusted mobile applications based on the requested platform type.
+     *
+     * @param platformType Platform type of the trusted apps.
+     * @return List of trusted apps of all tenants.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the trusted apps.
+     */
+    @Override
+    public List<TrustedApp> getTrustedApps(String platformType) throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getTrustedApps(platformType);
     }
 
     private void doPreUpdateChecks(String storedAppName, ServiceProvider updatedApp, String tenantDomain,

@@ -25,8 +25,10 @@ import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.TrustedApp;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -417,5 +419,17 @@ public interface ApplicationDAO {
             throws IdentityApplicationManagementException {
 
         throw new NotImplementedException();
+    }
+
+    /**
+     * Returns the list of trusted mobile applications of all tenants based on the requested platform type.
+     *
+     * @param platformType Platform type of the trusted apps.
+     * @return List of trusted apps of all tenants.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the trusted apps.
+     */
+    default List<TrustedApp> getTrustedApps(String platformType) throws IdentityApplicationManagementException {
+
+        return new ArrayList<>();
     }
 }

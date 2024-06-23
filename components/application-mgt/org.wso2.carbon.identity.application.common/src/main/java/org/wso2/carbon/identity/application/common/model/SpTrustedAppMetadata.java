@@ -25,7 +25,6 @@ import org.apache.commons.collections.CollectionUtils;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -210,5 +209,23 @@ public class SpTrustedAppMetadata implements Serializable {
     public void setIsConsentGranted(Boolean isConsentGranted) {
 
         this.isConsentGranted = isConsentGranted;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        SpTrustedAppMetadata that = (SpTrustedAppMetadata) o;
+        return isFidoTrusted == that.isFidoTrusted &&
+                isTWAEnabled == that.isTWAEnabled &&
+                Objects.equals(androidPackageName, that.androidPackageName) &&
+                Objects.equals(androidThumbprints, that.androidThumbprints) &&
+                Objects.equals(appleAppId, that.appleAppId);
     }
 }

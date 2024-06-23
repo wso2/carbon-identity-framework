@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
+import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
@@ -95,6 +96,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.List;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -105,6 +107,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IOS;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -136,6 +140,9 @@ public class ApplicationManagementServiceImplTest {
     private static final String USERNAME_1 = "user 1";
     private static final String USERNAME_2 = "user 2";
     private static final String RANDOM_STRING = "random string";
+    private static final String ANDROID_PACKAGE_NAME_1 = "com.wso2.sample.mobile.application";
+    private static final String ANDROID_PACKAGE_NAME_2 = "com.wso2.sample.mobile.application2";
+    private static final String APPLE_APP_ID = "APPLETEAMID.com.wso2.mobile.sample";
 
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
@@ -941,7 +948,7 @@ public class ApplicationManagementServiceImplTest {
 
 
         return new Object[][]{
-                {true, "com.wso2.sample.mobile.application", "sampleCredentials", "APPLETEAMID.com.wso2.mobile.sample"}
+                {true, ANDROID_PACKAGE_NAME_1, "sampleCredentials", APPLE_APP_ID}
         };
     }
 
@@ -1016,20 +1023,20 @@ public class ApplicationManagementServiceImplTest {
         String[] thumbprints2 = {"sampleThumbprint1", "sampleThumbprint2"};
 
         return new Object[][]{
-                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", false, false,
+                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, false, false,
                         true},
-                {"com.wso2.sample.mobile.application", thumbprints2, null, false, false, true},
-                {null, null, "APPLETEAMID.com.org.mobile.sample", false, false, true},
+                {ANDROID_PACKAGE_NAME_1, thumbprints2, null, false, false, true},
+                {null, null, APPLE_APP_ID, false, false, true},
                 // Check if consent property is handled correctly.
-                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", false, true,
+                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, false, true,
                         true},
-                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", false, null,
+                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, false, null,
                         true},
-                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, true,
+                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, true, true,
                         true},
-                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, false,
+                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, true, false,
                         false},
-                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, null,
+                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, true, null,
                         null}
         };
     }
@@ -1071,6 +1078,61 @@ public class ApplicationManagementServiceImplTest {
             applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
                     REGISTRY_SYSTEM_USERNAME);
         }
+    }
+
+    @DataProvider(name = "testGetTrustedAppsDataProvider")
+    public Object[][] testGetTrustedAppsDataProvider() {
+
+        SpTrustedAppMetadata trustedAppMetadata1 = new SpTrustedAppMetadata();
+        trustedAppMetadata1.setAndroidPackageName(ANDROID_PACKAGE_NAME_1);
+        trustedAppMetadata1.setAppleAppId(APPLE_APP_ID);
+        trustedAppMetadata1.setAndroidThumbprints("sampleThumbprint1");
+        trustedAppMetadata1.setIsFidoTrusted(true);
+
+        SpTrustedAppMetadata trustedAppMetadata2 = new SpTrustedAppMetadata();
+        trustedAppMetadata2.setAndroidPackageName(ANDROID_PACKAGE_NAME_2);
+        trustedAppMetadata2.setAppleAppId(null);
+        trustedAppMetadata2.setAndroidThumbprints("sampleThumbprint1, sampleThumbprint2");
+        trustedAppMetadata2.setIsFidoTrusted(true);
+
+        return new Object[][]{
+                {trustedAppMetadata1, trustedAppMetadata2, 1},
+                {trustedAppMetadata1, trustedAppMetadata1, 2}
+        };
+    }
+
+    @Test(dataProvider = "testGetTrustedAppsDataProvider")
+    public void testGetTrustedApps(SpTrustedAppMetadata trustedAppMetadata1, SpTrustedAppMetadata trustedAppMetadata2,
+                                   int appleTrustedAppCount) throws Exception {
+
+        // Adding 2 applications with different trusted app metadata.
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+        serviceProvider1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(serviceProvider1);
+        serviceProvider1.setTrustedAppMetadata(trustedAppMetadata1);
+        applicationManagementService.createApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+
+        ServiceProvider serviceProvider2 = new ServiceProvider();
+        serviceProvider2.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(serviceProvider2);
+        serviceProvider2.setTrustedAppMetadata(trustedAppMetadata2);
+        applicationManagementService.createApplication(serviceProvider2, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+
+        // Get trusted apps for android and apple platforms.
+        List<TrustedApp> androidTrustedApps = applicationManagementService.getTrustedApps(ANDROID);
+        List<TrustedApp> appleTrustedApps = applicationManagementService.getTrustedApps(IOS);
+
+        Assert.assertEquals(androidTrustedApps.size(), 2);
+        Assert.assertEquals(appleTrustedApps.size(), appleTrustedAppCount);
+
+        Assert.assertEquals(androidTrustedApps.get(0).getAppIdentifier(), trustedAppMetadata1.getAndroidPackageName());
+        Assert.assertEquals(androidTrustedApps.get(1).getAppIdentifier(), trustedAppMetadata2.getAndroidPackageName());
+        Assert.assertEquals(appleTrustedApps.get(0).getAppIdentifier(), trustedAppMetadata1.getAppleAppId());
+
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {
