@@ -3580,13 +3580,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 storeTrustedAppConfigs.setBoolean(6, trustedAppMetadata.getIsTWAEnabled());
                 storeTrustedAppConfigs.setInt(7, tenantID);
 
-                if (trustedAppMetadata.getAndroidPackageName() != null) {
+                if (StringUtils.isNotBlank(trustedAppMetadata.getAndroidPackageName())) {
                     storeTrustedAppConfigs.setString(2, ANDROID);
                     storeTrustedAppConfigs.setString(3, trustedAppMetadata.getAndroidPackageName());
                     storeTrustedAppConfigs.setString(4, trustedAppMetadata.getAndroidThumbprints());
                     storeTrustedAppConfigs.addBatch();
                 }
-                if (trustedAppMetadata.getAppleAppId() != null) {
+                if (StringUtils.isNotBlank(trustedAppMetadata.getAppleAppId())) {
                     storeTrustedAppConfigs.setString(2, IOS);
                     storeTrustedAppConfigs.setString(3, trustedAppMetadata.getAppleAppId());
                     storeTrustedAppConfigs.setString(4, null);
