@@ -72,14 +72,7 @@ public class JsLogger {
                 logger.debug(stringBuilder.toString());
                 resultMessage = stringBuilder.toString();
             }
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
-                        .resultMessage("Debug: " + resultMessage)
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
-            }
+            logDiagnosticEvent("Debug: " + resultMessage, DiagnosticLog.ResultStatus.SUCCESS);
         }
     }
 
@@ -87,14 +80,7 @@ public class JsLogger {
     public void debug(String value) {
 
         logger.debug(value);
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
-                    .resultMessage("Debug: " + value)
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
-        }
+        logDiagnosticEvent("Debug: " + value, DiagnosticLog.ResultStatus.SUCCESS);
     }
 
     @HostAccess.Export
@@ -118,14 +104,7 @@ public class JsLogger {
     public void info(String value) {
 
         logger.info(value);
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
-                    .resultMessage("Info: " + value)
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
-        }
+        logDiagnosticEvent("Info: " + value, DiagnosticLog.ResultStatus.SUCCESS);
     }
 
     @HostAccess.Export
@@ -149,14 +128,7 @@ public class JsLogger {
     public void error(String value) {
 
         logger.error(value);
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
-                    .resultMessage("Error: " + value)
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.FAILED));
-        }
+        logDiagnosticEvent("Error: " + value, DiagnosticLog.ResultStatus.FAILED);
     }
 
     @HostAccess.Export
