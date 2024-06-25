@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.entitlement;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.entitlement.dao.ConfigDAO;
 import org.wso2.carbon.identity.entitlement.dto.PDPDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.PIPFinderDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.PolicyFinderDataHolder;
@@ -527,8 +528,8 @@ public class EntitlementAdminService {
      */
     public String getGlobalPolicyAlgorithm() throws EntitlementException {
 
-        return EntitlementAdminEngine.getInstance().
-                getPolicyDataStore().getGlobalPolicyAlgorithmName();
+        ConfigDAO configDAO = EntitlementAdminEngine.getInstance().getConfigDAO();
+        return configDAO.getGlobalPolicyAlgorithmName();
     }
 
     /**
@@ -539,7 +540,8 @@ public class EntitlementAdminService {
      */
     public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
-        EntitlementAdminEngine.getInstance().
-                getPolicyDataStore().setGlobalPolicyAlgorithm(policyCombiningAlgorithm);
+        ConfigDAO configDAO = EntitlementAdminEngine.getInstance().getConfigDAO();
+        configDAO.setGlobalPolicyAlgorithm(policyCombiningAlgorithm);
+
     }
 }

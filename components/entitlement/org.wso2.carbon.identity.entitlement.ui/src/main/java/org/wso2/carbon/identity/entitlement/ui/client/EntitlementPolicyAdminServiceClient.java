@@ -247,9 +247,11 @@ public class EntitlementPolicyAdminServiceClient {
     /**
      * Import XACML policy from registry
      *
+     * @deprecated since the functionality cannot be support by the rdbms based implementation
      * @param policyRegistryPath registry path
      * @throws AxisFault
      */
+    @Deprecated
     public void importPolicyFromRegistry(String policyRegistryPath) throws AxisFault {
 
         try {

@@ -24,6 +24,7 @@ import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
+import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.pap.EntitlementDataFinderModule;
 import org.wso2.carbon.identity.entitlement.pip.PIPAttributeFinder;
 import org.wso2.carbon.identity.entitlement.pip.PIPExtension;
@@ -33,7 +34,6 @@ import org.wso2.carbon.identity.entitlement.policy.finder.PolicyFinderModule;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PolicyPublisherModule;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PostPublisherModule;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PublisherVerificationModule;
-import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManageModule;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -331,8 +331,8 @@ public class EntitlementExtensionBuilder {
             }
 
             finderModule.init(finderModuleProps);
-            if (finderModule instanceof PolicyStoreManageModule) {
-                holder.addPolicyStore((PolicyStoreManageModule) finderModule, finderModuleProps);
+            if (finderModule instanceof PolicyDAO) {
+                holder.addPolicyStore((PolicyDAO) finderModule, finderModuleProps);
             }
             holder.addPolicyFinderModule(finderModule, finderModuleProps);
         }
@@ -374,12 +374,12 @@ public class EntitlementExtensionBuilder {
     private void populatePolicyStoreModule(Properties properties, EntitlementConfigHolder holder)
             throws Exception {
 
-        PolicyStoreManageModule policyStoreStore = null;
+        PolicyDAO policyStoreStore = null;
 
         if (properties.getProperty("PDP.Policy.Store.Module") != null) {
             String className = properties.getProperty("PDP.Policy.Store.Module");
             Class clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
-            policyStoreStore = (PolicyStoreManageModule) clazz.newInstance();
+            policyStoreStore = (PolicyDAO) clazz.newInstance();
 
             int j = 1;
             Properties storeProps = new Properties();

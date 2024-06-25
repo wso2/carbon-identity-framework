@@ -20,23 +20,24 @@ package org.wso2.carbon.identity.entitlement.pap.store;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.PDPConstants;
+import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
+import org.wso2.carbon.identity.entitlement.dao.RegistryPolicyDAOImpl;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.registry.core.Resource;
 
 public class PAPPolicyStoreManager {
 
     private static final Log log = LogFactory.getLog(PAPPolicyStoreManager.class);
-    private PAPPolicyStore store;
+    private PolicyDAO store;
     private PAPPolicyStoreReader storeReader;
 
     public PAPPolicyStoreManager() {
-        store = new PAPPolicyStore();
+        store = new RegistryPolicyDAOImpl();
         storeReader = new PAPPolicyStoreReader(store);
     }
 
-    public void addOrUpdatePolicy(PolicyDTO policy) throws EntitlementException {
-        store.addOrUpdatePolicy(policy, PDPConstants.ENTITLEMENT_POLICY_PAP);
+    public void addOrUpdatePolicy(PolicyDTO policy, boolean enableVersioning) throws EntitlementException {
+        store.addOrUpdatePolicy(policy, enableVersioning);
     }
 
     public void removePolicy(String policyId) throws EntitlementException {
@@ -44,7 +45,7 @@ public class PAPPolicyStoreManager {
     }
 
     public String[] getPolicyIds() throws EntitlementException {
-        return store.getAllPolicyIds();
+        return store.listPolicyIds().toArray(new String[0]);
     }
 
     public PolicyDTO getPolicy(String policyId) throws EntitlementException {
