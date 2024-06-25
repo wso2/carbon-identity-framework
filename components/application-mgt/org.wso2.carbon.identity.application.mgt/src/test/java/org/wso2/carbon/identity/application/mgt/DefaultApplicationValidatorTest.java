@@ -17,20 +17,30 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.lang.StringUtils;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 
 /**
  * Test class for DefaultApplicationValidator.
@@ -170,6 +180,60 @@ public class DefaultApplicationValidatorTest {
             Assert.assertTrue(validationErrors.isEmpty(), "There are validation messages. This is a valid case " +
                     "there should not be any validation messages. Validation messages: " +
                     String.join("|", validationErrors));
+        }
+    }
+
+    @DataProvider(name = "validateTrustedAppMetadataDataProvider")
+    public Object[][] validateTrustedAppMetadataDataProvider() {
+
+        String errorThumbprints = String.join(",", Collections.nCopies(21, "thumbprint"));
+        return new Object[][]{
+                {"thumbprint1,thumbprint2", false, false, false},
+                {errorThumbprints, false, false, true},
+                {"thumbprint1,thumbprint2", true, true, false},
+                {"thumbprint1,thumbprint2", true, false, true}
+        };
+    }
+
+    @Test(dataProvider = "validateTrustedAppMetadataDataProvider")
+    public void testValidateTrustedAppMetadata(String thumbprints, boolean consentRequired, boolean consentGranted,
+                                               boolean isValidationFailScenario)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
+        ServiceProvider sp = new ServiceProvider();
+        SpTrustedAppMetadata spTrustedAppMetadata = new SpTrustedAppMetadata();
+        spTrustedAppMetadata.setIsFidoTrusted(true);
+        spTrustedAppMetadata.setAndroidPackageName("com.wso2.sample");
+        spTrustedAppMetadata.setAndroidThumbprints(thumbprints);
+        sp.setTrustedAppMetadata(spTrustedAppMetadata);
+
+        ServiceProviderProperty[] spProperties = new ServiceProviderProperty[1];
+        ServiceProviderProperty trustedAppConsentProperty = new ServiceProviderProperty();
+        trustedAppConsentProperty.setName(TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME);
+        trustedAppConsentProperty.setValue(String.valueOf(consentGranted));
+        spProperties[0] = trustedAppConsentProperty;
+        sp.setSpProperties(spProperties);
+
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)).
+                    thenReturn(String.valueOf(consentRequired));
+
+            List<String> validationErrors = new ArrayList<>();
+
+            DefaultApplicationValidator defaultApplicationValidator = new DefaultApplicationValidator();
+            Method validateTrustedAppMetadata = DefaultApplicationValidator.class.getDeclaredMethod(
+                    "validateTrustedAppMetadata", List.class, ServiceProvider.class);
+            validateTrustedAppMetadata.setAccessible(true);
+            validateTrustedAppMetadata.invoke(defaultApplicationValidator, validationErrors, sp);
+
+            if (isValidationFailScenario) {
+                Assert.assertFalse(validationErrors.isEmpty(), "This is an invalid scenario. There should be " +
+                        "validation messages.");
+            } else {
+                Assert.assertTrue(validationErrors.isEmpty(), "There are validation messages. This is a valid case " +
+                        "there should not be any validation messages. Validation messages: " +
+                        String.join("|", validationErrors));
+            }
         }
     }
 }

@@ -41,6 +41,8 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
@@ -66,6 +68,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.user.mgt.UserMgtConstants.APPLICATION_DOMAIN;
@@ -92,13 +96,18 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     private static final String GROUPS_ARE_PROHIBITED_FOR_ROLE_MAPPING = "Groups including: %s, are " +
             "prohibited for role mapping. Use roles instead.";
+    private static final String MAX_THUMBPRINT_COUNT_EXCEEDED = "Maximum thumbprint count exceeded for Android " +
+            "trusted app metadata.";
+    private static final String TRUSTED_APP_NOT_CONSENTED = "Consent not granted for trusted app.";
     public static final String IS_HANDLER = "IS_HANDLER";
+    public static final String ATTRIBUTE_SEPARATOR = ",";
     private static Pattern loopPattern;
     private static final int MODE_DEFAULT = 1;
     private static final int MODE_ESCAPE = 2;
     private static final int MODE_STRING = 3;
     private static final int MODE_SINGLE_LINE = 4;
     private static final int MODE_MULTI_LINE = 5;
+    private static final int MAX_ANDROID_THUMBPRINT_COUNT = 20;
 
     public DefaultApplicationValidator() {
 
@@ -124,6 +133,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 tenantDomain);
         validateRequestPathAuthenticationConfig(validationErrors, serviceProvider.getRequestPathAuthenticatorConfigs(),
                 tenantDomain);
+        validateTrustedAppMetadata(validationErrors, serviceProvider);
         validateOutBoundProvisioning(validationErrors, serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
         validateClaimsConfigs(validationErrors, serviceProvider.getClaimConfig(),
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null ? serviceProvider
@@ -302,6 +312,38 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                     validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, config.getName()));
                 }
             }
+        }
+    }
+
+    /**
+     * Validate trusted app related configurations and append to the validation msg list.
+     *
+     * @param validationMsg   validation error messages.
+     * @param serviceProvider service provider.
+     */
+    private void validateTrustedAppMetadata(List<String> validationMsg, ServiceProvider serviceProvider) {
+
+        SpTrustedAppMetadata trustedAppMetadata = serviceProvider.getTrustedAppMetadata();
+        if (trustedAppMetadata == null) {
+            return;
+        }
+
+        if (StringUtils.isNotBlank((trustedAppMetadata.getAndroidThumbprints()))) {
+            String[] thumbprints = trustedAppMetadata.getAndroidThumbprints().split(ATTRIBUTE_SEPARATOR);
+            if (thumbprints.length > MAX_ANDROID_THUMBPRINT_COUNT) {
+                validationMsg.add(MAX_THUMBPRINT_COUNT_EXCEEDED);
+            }
+        }
+
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)) &&
+                trustedAppMetadata.getIsFidoTrusted()) {
+            for (ServiceProviderProperty spProperty : serviceProvider.getSpProperties()) {
+                if (StringUtils.equals(spProperty.getName(), TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME) &&
+                        Boolean.parseBoolean(spProperty.getValue())) {
+                    return;
+                }
+            }
+            validationMsg.add(TRUSTED_APP_NOT_CONSENTED);
         }
     }
 
