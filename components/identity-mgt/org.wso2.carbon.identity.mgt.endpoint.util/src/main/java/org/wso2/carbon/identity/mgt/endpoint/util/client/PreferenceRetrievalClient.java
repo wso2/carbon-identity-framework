@@ -36,6 +36,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
@@ -58,7 +59,6 @@ public class PreferenceRetrievalClient {
     private static final String GOVERNANCE_API_RELATIVE_PATH = "/api/server/v1/identity-governance";
     private static final String SELF_REGISTRATION_PROPERTY = "SelfRegistration.Enable";
     private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
-    private static final String NOTIFICATION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Notification.Password.Enable";
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
     private static final String SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY = "SelfRegistration.LockOnCreation";
     private static final String MULTI_ATTRIBUTE_LOGIN_PROPERTY = "account.multiattributelogin.handler.enable";
@@ -141,7 +141,33 @@ public class PreferenceRetrievalClient {
      */
     public boolean checkNotificationBasedPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
 
-        return checkPreference(tenant, RECOVERY_CONNECTOR, NOTIFICATION_PASSWORD_RECOVERY_PROPERTY);
+        return checkPreference(tenant, RECOVERY_CONNECTOR,
+                IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY);
+    }
+
+    /**
+     * Check email link based password recovery is enabled or not.
+     *
+     * @param tenant Tenant domain name.
+     * @return Returns true if email link based password recovery enabled.
+     * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
+     */
+    public boolean checkEmailLinkBasedPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, RECOVERY_CONNECTOR,
+                IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+    }
+
+    /**
+     * Check SMS OTP based password recovery is enabled or not.
+     *
+     * @param tenant Tenant domain name.
+     * @return Returns true if SMS OTP based password recovery enabled.
+     * @throws PreferenceRetrievalClientException PreferenceRetrievalClientException.
+     */
+    public boolean checkSMSOTPBasedPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, RECOVERY_CONNECTOR, IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
     }
 
     /**
@@ -166,7 +192,7 @@ public class PreferenceRetrievalClient {
     public boolean checkPasswordRecovery(String tenant) throws PreferenceRetrievalClientException {
 
         List<String> propertyNameList = new ArrayList<String>();
-        propertyNameList.add(NOTIFICATION_PASSWORD_RECOVERY_PROPERTY);
+        propertyNameList.add(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY);
         propertyNameList.add(QUESTION_PASSWORD_RECOVERY_PROPERTY);
         return checkMultiplePreference(tenant, RECOVERY_CONNECTOR, propertyNameList);
     }

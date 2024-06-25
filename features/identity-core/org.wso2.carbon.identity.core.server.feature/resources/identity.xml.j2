@@ -4083,4 +4083,10 @@
     </CacheInvalidator>
     {% endif %}
 
+    <OnDemandConfig>
+        <OnInitialUse>
+            <EnableSMSOTPPasswordRecoveryIfConnectorEnabled>{{on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled}}</EnableSMSOTPPasswordRecoveryIfConnectorEnabled>
+        </OnInitialUse>
+    </OnDemandConfig>
+
 </Server>
