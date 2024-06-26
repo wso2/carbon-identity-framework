@@ -219,7 +219,6 @@
       "oauth.jwk_thumbprint_enable_sha256": false,
       "use_client_id_as_sub_claim_for_app_tokens": false,
       "remove_username_from_introspection_response_for_app_tokens": false,
-      "legacy_authz_runtime.enable": true,
       "tenant_context.enable_tenant_qualified_urls": "false",
       "tenant_context.enable_tenanted_sessions": "false",
       "session.nonce.cookie.default_whitelist_authenticators": [],
