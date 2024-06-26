@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -25,7 +25,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -34,7 +33,6 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -182,21 +180,11 @@ public class AuthenticatedUser extends User {
         String userId = null;
         if (userName != null && userStoreDomain != null && tenantDomain != null) {
             try {
-                String tenantDomain = this.getTenantDomain();
-                /* When the user resident organization is set in the authenticated user, use that to resolve the user's
-                tenant domain. The below check should be removed once console app is registered per each tenant. */
-                if (StringUtils.isNotEmpty(this.userResidentOrganization)) {
-                    tenantDomain = FrameworkServiceDataHolder.getInstance().getOrganizationManager()
-                            .resolveTenantDomain(this.userResidentOrganization);
-                }
-                int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+                int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
                 userId = FrameworkUtils.resolveUserIdFromUsername(tenantId,
                         this.getUserStoreDomain(), this.getUserName());
             } catch (UserSessionException e) {
                 log.error("Error while resolving the user id from username for local user.");
-            } catch (OrganizationManagementException e) {
-                log.error("Error while resolving the tenant domain by organization id: " +
-                        this.userResidentOrganization);
             }
         } else {
             if (log.isDebugEnabled()) {
@@ -217,13 +205,8 @@ public class AuthenticatedUser extends User {
             try {
                 int tenantId = IdentityTenantUtil.getTenantId(this.getTenantDomain());
                 int idpId = UserSessionStore.getInstance().getIdPId(this.getFederatedIdPName(), tenantId);
-                String subjectIdentifier = this.getAuthenticatedSubjectIdentifier();
-                /* The federated user from another organization is happening via organization SSO login flow. In that
-                case the subject identifier is set in the authenticated username */
-                if (StringUtils.isNotEmpty(this.userResidentOrganization)) {
-                    subjectIdentifier = this.userName;
-                }
-                userId = UserSessionStore.getInstance().getFederatedUserId(subjectIdentifier, tenantId, idpId);
+                userId = UserSessionStore.getInstance()
+                        .getFederatedUserId(this.getAuthenticatedSubjectIdentifier(), tenantId, idpId);
                 try {
                     if (userId == null) {
                         userId = UUID.randomUUID().toString();
@@ -355,6 +338,10 @@ public class AuthenticatedUser extends User {
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Trying to resolve the user id for the federated user: " + toFullQualifiedUsername());
+            }
+            // The federated users from the organization SSO flow will have the user-id set as the username.
+            if (this.isOrganizationUser()) {
+                return this.getUserName();
             }
             userId = this.getFederatedUserIdInternal();
         }
