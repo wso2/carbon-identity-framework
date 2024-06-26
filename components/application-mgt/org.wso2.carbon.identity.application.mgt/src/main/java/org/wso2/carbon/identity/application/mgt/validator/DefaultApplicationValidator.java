@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.common.model.script.AuthenticationSc
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
@@ -99,6 +100,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String MAX_THUMBPRINT_COUNT_EXCEEDED = "Maximum thumbprint count exceeded for Android " +
             "trusted app metadata.";
     private static final String TRUSTED_APP_NOT_CONSENTED = "Consent not granted for trusted app.";
+    private static final String INCORRECT_TRUSTED_ANDROID_APP_DETAILS = "Both package name and thumbprints are " +
+            "required when configuring an android application as a trusted mobile application.";
     public static final String IS_HANDLER = "IS_HANDLER";
     public static final String ATTRIBUTE_SEPARATOR = ",";
     private static Pattern loopPattern;
@@ -328,6 +331,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             return;
         }
 
+        // Validate the android thumbprints count.
         if (StringUtils.isNotBlank((trustedAppMetadata.getAndroidThumbprints()))) {
             String[] thumbprints = trustedAppMetadata.getAndroidThumbprints().split(ATTRIBUTE_SEPARATOR);
             if (thumbprints.length > MAX_ANDROID_THUMBPRINT_COUNT) {
@@ -335,15 +339,19 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             }
         }
 
+        // Validate consent for trusted apps.
         if (Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)) &&
-                trustedAppMetadata.getIsFidoTrusted()) {
-            for (ServiceProviderProperty spProperty : serviceProvider.getSpProperties()) {
-                if (StringUtils.equals(spProperty.getName(), TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME) &&
-                        Boolean.parseBoolean(spProperty.getValue())) {
-                    return;
-                }
-            }
+                trustedAppMetadata.getIsFidoTrusted() &&
+                !ApplicationMgtUtil.isTrustedAppConsentGranted(serviceProvider)) {
             validationMsg.add(TRUSTED_APP_NOT_CONSENTED);
+        }
+
+        // Validate the android app details.
+        if ((StringUtils.isNotBlank(trustedAppMetadata.getAndroidPackageName()) &&
+                StringUtils.isBlank(trustedAppMetadata.getAndroidThumbprints())) ||
+                (StringUtils.isBlank(trustedAppMetadata.getAndroidPackageName()) &&
+                        StringUtils.isNotBlank(trustedAppMetadata.getAndroidThumbprints()))) {
+            validationMsg.add(INCORRECT_TRUSTED_ANDROID_APP_DETAILS);
         }
     }
 

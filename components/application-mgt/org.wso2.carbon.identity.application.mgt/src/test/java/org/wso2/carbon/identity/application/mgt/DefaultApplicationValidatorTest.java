@@ -188,16 +188,18 @@ public class DefaultApplicationValidatorTest {
 
         String errorThumbprints = String.join(",", Collections.nCopies(21, "thumbprint"));
         return new Object[][]{
-                {"thumbprint1,thumbprint2", false, false, false},
-                {errorThumbprints, false, false, true},
-                {"thumbprint1,thumbprint2", true, true, false},
-                {"thumbprint1,thumbprint2", true, false, true}
+                {"com.wso2.sample", "thumbprint1,thumbprint2", false, false, false},
+                {"com.wso2.sample", errorThumbprints, false, false, true},
+                {"com.wso2.sample", "thumbprint1,thumbprint2", true, true, false},
+                {"com.wso2.sample", "thumbprint1,thumbprint2", true, false, true},
+                {"", "thumbprint1,thumbprint2", true, false, true},
+                {"com.wso2.sample", "", true, false, true}
         };
     }
 
     @Test(dataProvider = "validateTrustedAppMetadataDataProvider")
-    public void testValidateTrustedAppMetadata(String thumbprints, boolean consentRequired, boolean consentGranted,
-                                               boolean isValidationFailScenario)
+    public void testValidateTrustedAppMetadata(String androidPackageName, String thumbprints, boolean consentRequired,
+                                               boolean consentGranted, boolean isValidationFailScenario)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         ServiceProvider sp = new ServiceProvider();
