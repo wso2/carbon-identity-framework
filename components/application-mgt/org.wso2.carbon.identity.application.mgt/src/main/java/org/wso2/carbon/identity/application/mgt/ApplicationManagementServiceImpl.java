@@ -152,13 +152,15 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.*;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID_PACKAGE_NAME_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLE_APP_ID_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_FOUND;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_APPLICATIONS_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
@@ -3409,7 +3411,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (serviceProvider != null) {
             String trustedAppConsent = Arrays.stream(serviceProvider.getSpProperties())
-                    .filter(spProp -> StringUtils.equals(spProp.getName(), TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME))
+                    .filter(spProp -> StringUtils.equals(spProp.getName(),
+                            TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME))
                     .map(ServiceProviderProperty::getValue)
                     .findFirst()
                     .orElse(null);
@@ -3426,7 +3429,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @param tenantDomain  Tenant domain.
      * @param serviceProvider Service provider.
      */
-    private void publishTrustedAppConsentAuditLog(String username, String tenantDomain, ServiceProvider serviceProvider) {
+    private void publishTrustedAppConsentAuditLog(String username, String tenantDomain,
+                                                  ServiceProvider serviceProvider) {
 
         JSONObject dataObject = new JSONObject();
         dataObject.put("TrustedAppConsent", "Trusted app consent granted for the application: " + serviceProvider
