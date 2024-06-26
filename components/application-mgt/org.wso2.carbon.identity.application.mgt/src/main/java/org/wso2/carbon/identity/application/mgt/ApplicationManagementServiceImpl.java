@@ -26,6 +26,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
@@ -52,6 +53,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -150,6 +152,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.*;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_FOUND;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
@@ -169,6 +172,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.valida
 import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.doRollback;
 import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.rollbackInbounds;
 import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.updateOrInsertInbound;
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getInitiatorId;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
@@ -260,6 +264,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
                     .data(buildSPData(serviceProvider));
             triggerAuditLogEvent(auditLogBuilder, true);
+            if (isTrustedAppConsentGranted(serviceProvider)) {
+                publishTrustedAppConsentAuditLog(username, tenantDomain, serviceProvider);
+            }
         }
         return serviceProvider;
     }
@@ -749,6 +756,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
                     .data(buildSPData(serviceProvider));
             triggerAuditLogEvent(auditLogBuilder, true);
+            if (isTrustedAppConsentUpdated(serviceProvider, tenantDomain)) {
+                publishTrustedAppConsentAuditLog(username, tenantDomain, serviceProvider);
+            }
         }
     }
 
@@ -2576,6 +2586,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
                     .data(buildSPData(application));
             triggerAuditLogEvent(auditLogBuilder, true);
+            if (isTrustedAppConsentGranted(application)) {
+                publishTrustedAppConsentAuditLog(username, tenantDomain, application);
+            }
         }
         return resourceId;
     }
@@ -2720,7 +2733,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         " failed for application with resourceId: " + resourceId);
             }
         }
-        
+
+        ServiceProvider storedApp;
         try {
             startTenantFlow(tenantDomain, username);
             
@@ -2737,7 +2751,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             doPreUpdateChecks(storedAppName, updatedApp, tenantDomain, username);
             
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            ServiceProvider storedApp = getApplicationByResourceId(resourceId, tenantDomain);
+            storedApp = getApplicationByResourceId(resourceId, tenantDomain);
             appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
             postApplicationUserAttributeUpdate(updatedApp, storedApp, tenantDomain);
             
@@ -2766,9 +2780,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
                     .data(buildSPData(updatedApp));
             triggerAuditLogEvent(auditLogBuilder, true);
+            if (isTrustedAppConsentUpdated(storedApp, updatedApp)) {
+                publishTrustedAppConsentAuditLog(username, tenantDomain, updatedApp);
+            }
         }
     }
-    
+
     /**
      * Update the application by resource id. This method update the inbound protocol configurations of the application
      * by calling the relevant protocol handlers if available.
@@ -2783,7 +2800,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                               InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO,
                                               String tenantDomain, String username)
             throws IdentityApplicationManagementException {
-        
+
         if (inboundProtocolConfigurationDTO == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Inbound protocol configuration is not provided for the application: " + resourceId +
@@ -3380,5 +3397,83 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private static OrganizationManager getOrganizationManager() {
 
         return ApplicationManagementServiceComponentHolder.getInstance().getOrganizationManager();
+    }
+
+    /**
+     * Check whether the trusted app consent is granted for the application.
+     *
+     * @param serviceProvider Service provider.
+     * @return True if 'trustedAppConsentGranted' spProperty of the application is true.
+     */
+    private boolean isTrustedAppConsentGranted(ServiceProvider serviceProvider) {
+
+        if (serviceProvider != null) {
+            String trustedAppConsent = Arrays.stream(serviceProvider.getSpProperties())
+                    .filter(spProp -> StringUtils.equals(spProp.getName(), TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME))
+                    .map(ServiceProviderProperty::getValue)
+                    .findFirst()
+                    .orElse(null);
+            return Boolean.parseBoolean(trustedAppConsent);
+        }
+        return false;
+    }
+
+    /**
+     * Publish the audit log to highlight the event of granting consent for this application to be published as a
+     * trusted app.
+     *
+     * @param username      Username of the user who initiated the request.
+     * @param tenantDomain  Tenant domain.
+     * @param serviceProvider Service provider.
+     */
+    private void publishTrustedAppConsentAuditLog(String username, String tenantDomain, ServiceProvider serviceProvider) {
+
+        JSONObject dataObject = new JSONObject();
+        dataObject.put("TrustedAppConsent", "Trusted app consent granted for the application: " + serviceProvider
+                .getApplicationName());
+        SpTrustedAppMetadata trustedAppMetadata = serviceProvider.getTrustedAppMetadata();
+        if (trustedAppMetadata != null) {
+            dataObject.put(ANDROID_PACKAGE_NAME_PROPERTY_NAME, trustedAppMetadata.getAndroidPackageName());
+            dataObject.put(APPLE_APP_ID_PROPERTY_NAME, trustedAppMetadata.getAppleAppId());
+        }
+
+        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
+                getAppId(serviceProvider), LoggerUtils.Target.Application.name(),
+                LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
+                .data(jsonObjectToMap(dataObject));
+        triggerAuditLogEvent(auditLogBuilder, true);
+    }
+
+    /**
+     * Check whether consent is newly granted for trusted app.
+     *
+     * @param updatedApp   Updated service provider.
+     * @param tenantDomain Tenant domain.
+     * @return True if the consent for trusted apps is updated from false to true.
+     */
+    private boolean isTrustedAppConsentUpdated(ServiceProvider updatedApp, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        boolean updatedSpConsent = isTrustedAppConsentGranted(updatedApp);
+        if (updatedSpConsent && StringUtils.isNotEmpty(getAppId(updatedApp))) {
+            String storedSpConsent = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                    .getSPPropertyValueByPropertyKey(getAppId(updatedApp), TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME,
+                            tenantDomain);
+            return !Boolean.parseBoolean(storedSpConsent);
+        }
+        return false;
+    }
+
+    /**
+     * Check whether consent is newly granted for trusted app.
+     *
+     * @param storedApp    Stored service provider.
+     * @param updatedApp   Updated service provider.
+     * @return True if the consent for trusted apps is updated from false to true.
+     */
+    private boolean isTrustedAppConsentUpdated(ServiceProvider storedApp, ServiceProvider updatedApp) {
+
+        return isTrustedAppConsentGranted(updatedApp) && !isTrustedAppConsentGranted(storedApp);
     }
 }
