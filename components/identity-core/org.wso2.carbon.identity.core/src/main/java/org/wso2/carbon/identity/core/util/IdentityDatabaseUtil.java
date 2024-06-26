@@ -1,7 +1,7 @@
 /*
-*Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+*Copyright (c) (2005-2024), WSO2 LLC. (http://www.wso2.com).
 *
-*WSO2 Inc. licenses this file to you under the Apache License,
+*WSO2 LLC. licenses this file to you under the Apache License,
 *Version 2.0 (the "License"); you may not use this file except
 *in compliance with the License.
 *You may obtain a copy of the License at
@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
+import org.wso2.carbon.identity.core.persistence.RegistryDataPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 
 import java.sql.Connection;
@@ -142,6 +143,21 @@ public class IdentityDatabaseUtil {
     public static void commitTransaction(Connection dbConnection) {
 
         JDBCPersistenceManager.getInstance().commitTransaction(dbConnection);
+    }
+
+    public static Connection getGovernanceDBConnection(boolean shouldApplyTransaction) throws IdentityRuntimeException {
+
+        return RegistryDataPersistenceManager.getInstance().getDBConnection(shouldApplyTransaction);
+    }
+
+    public static void commitGovernanceDBTransaction(Connection dbConnection) {
+
+        RegistryDataPersistenceManager.getInstance().commitTransaction(dbConnection);
+    }
+
+    public static void rollbackGovernanceDBTransaction(Connection dbConnection) {
+
+        RegistryDataPersistenceManager.getInstance().rollbackTransaction(dbConnection);
     }
 
     /**
