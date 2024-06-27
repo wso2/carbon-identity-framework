@@ -103,6 +103,7 @@
         <module>components/api-resource-mgt</module>
         <module>features/api-resource-mgt</module>
         <module>features/client-attestation-mgt</module>
+        <module>components/action-mgt</module>
     </modules>
 
 
