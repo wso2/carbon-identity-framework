@@ -41,7 +41,6 @@ public class SpTrustedAppMetadata implements Serializable {
     private static final String ANDROID_THUMBPRINTS = "AndroidThumbprints";
     private static final String APPLE_APP_ID = "AppleAppId";
     private static final String IS_FIDO_TRUSTED = "IsFidoTrusted";
-    private static final String IS_TWA_ENABLED = "IsTWAEnabled";
 
     @IgnoreNullElement
     @XmlElement(name = ANDROID_PACKAGE_NAME)
@@ -58,10 +57,6 @@ public class SpTrustedAppMetadata implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_FIDO_TRUSTED)
     private boolean isFidoTrusted;
-
-    @IgnoreNullElement
-    @XmlElement(name = IS_TWA_ENABLED)
-    private boolean isTWAEnabled;
 
     /**
      * Creates an instance of the SpTrustedAppMetadata class by parsing an OMElement.
@@ -88,9 +83,6 @@ public class SpTrustedAppMetadata implements Serializable {
             }
             if (IS_FIDO_TRUSTED.equals(elementName)) {
                 spTrustedAppMetadata.setIsFidoTrusted(Boolean.parseBoolean(element.getText()));
-            }
-            if (IS_TWA_ENABLED.equals(elementName)) {
-                spTrustedAppMetadata.setIsTWAEnabled(Boolean.parseBoolean(element.getText()));
             }
         }
         return spTrustedAppMetadata;
@@ -174,25 +166,5 @@ public class SpTrustedAppMetadata implements Serializable {
     public void setIsFidoTrusted(boolean isFidoTrusted) {
 
         this.isFidoTrusted = isFidoTrusted;
-    }
-
-    /**
-     * Get the TWA enabled status.
-     *
-     * @return The TWA enabled status.
-     */
-    public boolean getIsTWAEnabled() {
-
-        return isTWAEnabled;
-    }
-
-    /**
-     * Set the TWA enabled status.
-     *
-     * @param isTWAEnabled The TWA enabled status to set.
-     */
-    public void setIsTWAEnabled(boolean isTWAEnabled) {
-
-        this.isTWAEnabled = isTWAEnabled;
     }
 }

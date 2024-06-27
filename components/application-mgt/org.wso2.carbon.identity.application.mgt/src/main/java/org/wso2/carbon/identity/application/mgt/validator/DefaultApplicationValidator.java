@@ -41,7 +41,6 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -69,7 +68,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
@@ -101,7 +99,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             "without data.";
     private static final String MAX_THUMBPRINT_COUNT_EXCEEDED = "Maximum thumbprint count exceeded for Android " +
             "trusted app metadata.";
-    private static final String TRUSTED_APP_NOT_CONSENTED = "Consent not granted for trusted app.";
+    private static final String TRUSTED_APP_NOT_CONSENTED = "Consent should be granted for trusted apps " +
+            "if FIDO trusted app feature is enabled.";
     private static final String INCORRECT_TRUSTED_ANDROID_APP_DETAILS = "Both package name and thumbprints are " +
             "required when configuring an android application as a trusted mobile application.";
     public static final String IS_HANDLER = "IS_HANDLER";

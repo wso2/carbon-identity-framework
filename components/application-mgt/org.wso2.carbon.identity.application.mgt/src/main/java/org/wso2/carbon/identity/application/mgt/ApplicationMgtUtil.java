@@ -44,8 +44,8 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;

@@ -1028,7 +1028,6 @@ public class ApplicationManagementServiceImplTest {
         trustedAppMetadata.setAppleAppId(appleAppId);
         trustedAppMetadata.setAndroidThumbprints(androidThumbprints);
         trustedAppMetadata.setIsFidoTrusted(true);
-        trustedAppMetadata.setIsTWAEnabled(true);
         inputSP.setTrustedAppMetadata(trustedAppMetadata);
 
         // Adding new application.
@@ -1042,8 +1041,6 @@ public class ApplicationManagementServiceImplTest {
         Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAppleAppId(), appleAppId);
         Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getIsFidoTrusted(),
                 trustedAppMetadata.getIsFidoTrusted());
-        Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getIsTWAEnabled(),
-                trustedAppMetadata.getIsTWAEnabled());
 
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,

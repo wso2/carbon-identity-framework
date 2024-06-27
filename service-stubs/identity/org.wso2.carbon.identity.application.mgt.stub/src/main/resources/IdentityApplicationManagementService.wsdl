@@ -619,7 +619,6 @@
                     <xs:element minOccurs="0" name="androidThumbprints" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="appleAppId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="isFidoTrusted" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="isTWAEnabled" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="InboundAuthenticationConfig">
