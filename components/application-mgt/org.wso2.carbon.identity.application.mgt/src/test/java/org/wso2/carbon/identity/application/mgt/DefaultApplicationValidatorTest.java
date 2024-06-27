@@ -188,25 +188,30 @@ public class DefaultApplicationValidatorTest {
 
         String errorThumbprints = String.join(",", Collections.nCopies(21, "thumbprint"));
         return new Object[][]{
-                {"com.wso2.sample", "thumbprint1,thumbprint2", false, false, false},
-                {"com.wso2.sample", errorThumbprints, false, false, true},
-                {"com.wso2.sample", "thumbprint1,thumbprint2", true, true, false},
-                {"com.wso2.sample", "thumbprint1,thumbprint2", true, false, true},
-                {"", "thumbprint1,thumbprint2", true, false, true},
-                {"com.wso2.sample", "", true, false, true}
+                {"com.wso2.sample", "thumbprint1,thumbprint2", "sample.app.id", false, false, false},
+                {"com.wso2.sample", "thumbprint1,thumbprint2", "", false, false, false},
+                {"", "", "sample.app.id", false, false, false},
+                {"", "", "", false, false, true},
+                {"com.wso2.sample", errorThumbprints, "sample.app.id", false, false, true},
+                {"com.wso2.sample", "thumbprint1,thumbprint2", "sample.app.id", true, true, false},
+                {"com.wso2.sample", "thumbprint1,thumbprint2", "sample.app.id", true, false, true},
+                {"", "thumbprint1,thumbprint2", "sample.app.id", true, false, true},
+                {"com.wso2.sample", "", "sample.app.id", true, false, true}
         };
     }
 
     @Test(dataProvider = "validateTrustedAppMetadataDataProvider")
-    public void testValidateTrustedAppMetadata(String androidPackageName, String thumbprints, boolean consentRequired,
-                                               boolean consentGranted, boolean isValidationFailScenario)
+    public void testValidateTrustedAppMetadata(String androidPackageName, String thumbprints, String appleAppId,
+                                               boolean consentRequired, boolean consentGranted,
+                                               boolean isValidationFailScenario)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         ServiceProvider sp = new ServiceProvider();
         SpTrustedAppMetadata spTrustedAppMetadata = new SpTrustedAppMetadata();
         spTrustedAppMetadata.setIsFidoTrusted(true);
-        spTrustedAppMetadata.setAndroidPackageName("com.wso2.sample");
+        spTrustedAppMetadata.setAndroidPackageName(androidPackageName);
         spTrustedAppMetadata.setAndroidThumbprints(thumbprints);
+        spTrustedAppMetadata.setAppleAppId(appleAppId);
         sp.setTrustedAppMetadata(spTrustedAppMetadata);
 
         ServiceProviderProperty[] spProperties = new ServiceProviderProperty[1];

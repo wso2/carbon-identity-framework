@@ -97,6 +97,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     private static final String GROUPS_ARE_PROHIBITED_FOR_ROLE_MAPPING = "Groups including: %s, are " +
             "prohibited for role mapping. Use roles instead.";
+    private static final String TRUSTED_APP_FEATURE_ENABLED_WITHOUT_DATA = "Trusted app feature is enabled " +
+            "without data.";
     private static final String MAX_THUMBPRINT_COUNT_EXCEEDED = "Maximum thumbprint count exceeded for Android " +
             "trusted app metadata.";
     private static final String TRUSTED_APP_NOT_CONSENTED = "Consent not granted for trusted app.";
@@ -329,6 +331,12 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         SpTrustedAppMetadata trustedAppMetadata = serviceProvider.getTrustedAppMetadata();
         if (trustedAppMetadata == null) {
             return;
+        }
+
+        // Validate if feature is enabled without data.
+        if (trustedAppMetadata.getIsFidoTrusted() && StringUtils.isBlank(trustedAppMetadata.getAndroidPackageName()) &&
+                StringUtils.isBlank(trustedAppMetadata.getAppleAppId())) {
+            validationMsg.add(TRUSTED_APP_FEATURE_ENABLED_WITHOUT_DATA);
         }
 
         // Validate the android thumbprints count.
