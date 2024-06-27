@@ -244,8 +244,10 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         ServiceProvider storedApp = getApplication(serviceProvider.getApplicationID());
         clearAllAppCache(storedApp, tenantDomain);
         // Clear the trusted app cache only if the trusted app metadata is changed.
-        if ((storedApp.getTrustedAppMetadata() != null) &&
-                (!storedApp.getTrustedAppMetadata().equals(serviceProvider.getTrustedAppMetadata()))) {
+        if ((storedApp.getTrustedAppMetadata() != null &&
+                !storedApp.getTrustedAppMetadata().equals(serviceProvider.getTrustedAppMetadata())) ||
+                (storedApp.getTrustedAppMetadata() == null &&
+                        isTrustedAppDataAvailable(serviceProvider.getTrustedAppMetadata()))) {
             clearTrustedAppCache();
         }
         appDAO.updateApplication(serviceProvider, tenantDomain);
@@ -486,8 +488,10 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         clearAllAppCache(storedApp, tenantDomain);
 
         // Clear the trusted app cache only if the trusted app metadata is changed.
-        if ((storedApp.getTrustedAppMetadata() != null) &&
-                (!storedApp.getTrustedAppMetadata().equals(updatedApp.getTrustedAppMetadata()))) {
+        if ((storedApp.getTrustedAppMetadata() != null &&
+                !storedApp.getTrustedAppMetadata().equals(updatedApp.getTrustedAppMetadata())) ||
+                (storedApp.getTrustedAppMetadata() == null &&
+                        isTrustedAppDataAvailable(updatedApp.getTrustedAppMetadata()))) {
             clearTrustedAppCache();
         }
         appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
