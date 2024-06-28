@@ -628,6 +628,7 @@ public class IdPManagementDAO {
                         sqlQuery += ", " + IdPManagementConstants.PROVISIONING + " ";
                         break;
                     case IdPManagementConstants.IDP_GROUPS:
+                        // Skip since the IDP groups are resolved and added to the IDP object separately.
                         break;
                     default:
                         throw IdPManagementUtil.handleClientException(
