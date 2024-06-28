@@ -134,6 +134,7 @@
   "authentication.authenticator.magiclink.enable": true,
   "authentication.authenticator.magiclink.ExpiryTime": "300",
   "authentication.authenticator.magiclink.parameters.Tags": "Passwordless",
+  "authentication.authenticator.magiclink.parameters.MagicLinkAuthenticationEndpointURL": "authenticationendpoint/magic_link_notification.do",
 
   "authentication.authenticator.mobile_connect.name": "MobileConnectAuthenticator",
   "authentication.authenticator.mobile_connect.enable": true,

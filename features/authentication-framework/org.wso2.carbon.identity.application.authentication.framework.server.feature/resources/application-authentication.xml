@@ -198,6 +198,7 @@
         </AuthenticatorConfig>
         <AuthenticatorConfig name="MagicLinkAuthenticator" enabled="true">
             <Parameter name="ExpiryTime">300</Parameter>
+            <Parameter name="MagicLinkAuthenticationEndpointURL">authenticationendpoint/magic_link_notification.do</Parameter>
         </AuthenticatorConfig>
     </AuthenticatorConfigs>
 
