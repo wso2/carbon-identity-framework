@@ -627,6 +627,8 @@ public class IdPManagementDAO {
                     case IdPManagementConstants.IDP_PROVISIONING:
                         sqlQuery += ", " + IdPManagementConstants.PROVISIONING + " ";
                         break;
+                    case IdPManagementConstants.IDP_GROUPS:
+                        break;
                     default:
                         throw IdPManagementUtil.handleClientException(
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_IDP_ATTRIBUTE_INVALID, attribute);
