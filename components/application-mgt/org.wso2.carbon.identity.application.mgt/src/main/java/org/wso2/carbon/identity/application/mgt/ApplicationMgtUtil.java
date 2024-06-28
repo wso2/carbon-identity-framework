@@ -78,6 +78,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_ORIGIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
@@ -1224,5 +1225,51 @@ public class ApplicationMgtUtil {
     public static boolean isTrustedAppConsentRequired() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY));
+    }
+
+    /**
+     * Check whether the trusted app consent is granted for the application.
+     *
+     * @param serviceProvider Service provider.
+     * @return True if 'trustedAppConsentGranted' spProperty of the application is true.
+     */
+    public static boolean isTrustedAppConsentGranted(ServiceProvider serviceProvider) {
+
+        if (serviceProvider != null && serviceProvider.getTrustedAppMetadata() != null) {
+            return serviceProvider.getTrustedAppMetadata().getIsConsentGranted();
+        }
+        return false;
+    }
+
+    /**
+     * Check whether consent is newly granted for trusted app.
+     *
+     * @param updatedApp   Updated service provider.
+     * @param tenantDomain Tenant domain.
+     * @return True if the consent for trusted apps is updated from false to true.
+     */
+    public static boolean isTrustedAppConsentUpdatedToGranted(ServiceProvider updatedApp, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        boolean updatedSpConsent = isTrustedAppConsentGranted(updatedApp);
+        if (updatedSpConsent && StringUtils.isNotEmpty(getAppId(updatedApp))) {
+            String storedSpConsent = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                    .getSPPropertyValueByPropertyKey(getAppId(updatedApp), TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME,
+                            tenantDomain);
+            return !Boolean.parseBoolean(storedSpConsent);
+        }
+        return false;
+    }
+
+    /**
+     * Check whether consent is newly granted for trusted app.
+     *
+     * @param storedApp    Stored service provider.
+     * @param updatedApp   Updated service provider.
+     * @return True if the consent for trusted apps is updated from false to true.
+     */
+    public static boolean isTrustedAppConsentUpdatedToGranted(ServiceProvider storedApp, ServiceProvider updatedApp) {
+
+        return isTrustedAppConsentGranted(updatedApp) && !isTrustedAppConsentGranted(storedApp);
     }
 }

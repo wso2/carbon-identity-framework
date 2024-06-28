@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -152,15 +154,12 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID_PACKAGE_NAME_PROPERTY_NAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLE_APP_ID_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_FOUND;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_APPLICATIONS_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
@@ -169,6 +168,9 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTen
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getAppId;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isTrustedAppConsentGranted;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isTrustedAppConsentRequired;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isTrustedAppConsentUpdatedToGranted;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.validateTenant;
 import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.doRollback;
@@ -266,7 +268,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
                     .data(buildSPData(serviceProvider));
             triggerAuditLogEvent(auditLogBuilder, true);
-            if (isTrustedAppConsentGranted(serviceProvider)) {
+
+            if (isTrustedAppConsentRequired() && isTrustedAppConsentGranted(serviceProvider)) {
                 publishTrustedAppConsentAuditLog(username, tenantDomain, serviceProvider);
             }
         }
@@ -758,7 +761,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
                     .data(buildSPData(serviceProvider));
             triggerAuditLogEvent(auditLogBuilder, true);
-            if (isTrustedAppConsentUpdated(serviceProvider, tenantDomain)) {
+
+            if (isTrustedAppConsentRequired() && isTrustedAppConsentUpdatedToGranted(serviceProvider, tenantDomain)) {
                 publishTrustedAppConsentAuditLog(username, tenantDomain, serviceProvider);
             }
         }
@@ -2588,7 +2592,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
                     .data(buildSPData(application));
             triggerAuditLogEvent(auditLogBuilder, true);
-            if (isTrustedAppConsentGranted(application)) {
+
+            if (isTrustedAppConsentRequired() && isTrustedAppConsentGranted(application)) {
                 publishTrustedAppConsentAuditLog(username, tenantDomain, application);
             }
         }
@@ -2782,7 +2787,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
                     .data(buildSPData(updatedApp));
             triggerAuditLogEvent(auditLogBuilder, true);
-            if (isTrustedAppConsentUpdated(storedApp, updatedApp)) {
+
+            if (isTrustedAppConsentRequired() && isTrustedAppConsentUpdatedToGranted(storedApp, updatedApp)) {
                 publishTrustedAppConsentAuditLog(username, tenantDomain, updatedApp);
             }
         }
@@ -3402,26 +3408,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     /**
-     * Check whether the trusted app consent is granted for the application.
-     *
-     * @param serviceProvider Service provider.
-     * @return True if 'trustedAppConsentGranted' spProperty of the application is true.
-     */
-    private boolean isTrustedAppConsentGranted(ServiceProvider serviceProvider) {
-
-        if (serviceProvider != null) {
-            String trustedAppConsent = Arrays.stream(serviceProvider.getSpProperties())
-                    .filter(spProp -> StringUtils.equals(spProp.getName(),
-                            TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME))
-                    .map(ServiceProviderProperty::getValue)
-                    .findFirst()
-                    .orElse(null);
-            return Boolean.parseBoolean(trustedAppConsent);
-        }
-        return false;
-    }
-
-    /**
      * Publish the audit log to highlight the event of granting consent for this application to be published as a
      * trusted app.
      *
@@ -3432,52 +3418,25 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private void publishTrustedAppConsentAuditLog(String username, String tenantDomain,
                                                   ServiceProvider serviceProvider) {
 
-        JSONObject dataObject = new JSONObject();
-        dataObject.put("TrustedAppConsent", "Trusted app consent granted for the application: " + serviceProvider
-                .getApplicationName());
+        JSONObject trustedAppAuditData = new JSONObject();
         SpTrustedAppMetadata trustedAppMetadata = serviceProvider.getTrustedAppMetadata();
         if (trustedAppMetadata != null) {
-            dataObject.put(ANDROID_PACKAGE_NAME_PROPERTY_NAME, trustedAppMetadata.getAndroidPackageName());
-            dataObject.put(APPLE_APP_ID_PROPERTY_NAME, trustedAppMetadata.getAppleAppId());
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                trustedAppAuditData =
+                        new JSONObject(mapper.writeValueAsString(trustedAppMetadata));
+            } catch (JsonProcessingException e) {
+                log.error("Error while converting trusted app object to json.");
+            }
         }
+        trustedAppAuditData.put("TrustedAppConsent", "Trusted app consent granted for the application: " +
+                serviceProvider.getApplicationName());
 
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                 getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
                 getAppId(serviceProvider), LoggerUtils.Target.Application.name(),
                 LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
-                .data(jsonObjectToMap(dataObject));
+                .data(jsonObjectToMap(trustedAppAuditData));
         triggerAuditLogEvent(auditLogBuilder, true);
-    }
-
-    /**
-     * Check whether consent is newly granted for trusted app.
-     *
-     * @param updatedApp   Updated service provider.
-     * @param tenantDomain Tenant domain.
-     * @return True if the consent for trusted apps is updated from false to true.
-     */
-    private boolean isTrustedAppConsentUpdated(ServiceProvider updatedApp, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        boolean updatedSpConsent = isTrustedAppConsentGranted(updatedApp);
-        if (updatedSpConsent && StringUtils.isNotEmpty(getAppId(updatedApp))) {
-            String storedSpConsent = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
-                    .getSPPropertyValueByPropertyKey(getAppId(updatedApp), TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME,
-                            tenantDomain);
-            return !Boolean.parseBoolean(storedSpConsent);
-        }
-        return false;
-    }
-
-    /**
-     * Check whether consent is newly granted for trusted app.
-     *
-     * @param storedApp    Stored service provider.
-     * @param updatedApp   Updated service provider.
-     * @return True if the consent for trusted apps is updated from false to true.
-     */
-    private boolean isTrustedAppConsentUpdated(ServiceProvider storedApp, ServiceProvider updatedApp) {
-
-        return isTrustedAppConsentGranted(updatedApp) && !isTrustedAppConsentGranted(storedApp);
     }
 }
