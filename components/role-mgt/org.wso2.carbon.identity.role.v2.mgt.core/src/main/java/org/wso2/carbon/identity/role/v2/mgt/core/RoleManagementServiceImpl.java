@@ -1124,8 +1124,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
      * Validate user removal from role.
      *
      * @param deletedUserIDList Deleted user ID list.
-     * @param roleId             Role ID.
-     * @param tenantDomain         Tenant domain.
+     * @param roleId            Role ID.
+     * @param tenantDomain      Tenant domain.
      * @throws IdentityRoleManagementException Error occurred while validating user removal from role.
      */
     private void validateUserRemovalFromRole(List<String> deletedUserIDList, String roleId, String tenantDomain)
