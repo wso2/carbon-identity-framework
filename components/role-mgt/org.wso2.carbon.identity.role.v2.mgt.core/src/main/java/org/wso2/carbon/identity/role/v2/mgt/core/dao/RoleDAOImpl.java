@@ -2976,6 +2976,7 @@ public class RoleDAOImpl implements RoleDAO {
                     "Role id: " + roleId + " does not exist in the system.");
         }
         String roleName = getRoleNameByID(roleId, tenantDomain);
+        RoleAudience roleAudience = getAudienceByRoleID(roleId, tenantDomain);
         if (CollectionUtils.isEmpty(newUserIDList) && CollectionUtils.isEmpty(deletedUserIDList)) {
             LOG.debug("User lists are empty.");
             return;
@@ -2991,7 +2992,7 @@ public class RoleDAOImpl implements RoleDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
         // Validate the user removal operation based on the default system roles.
-        validateUserRemovalFromRole(deletedUserNamesList, roleName, tenantDomain);
+        validateUserRemovalFromRole(deletedUserNamesList, roleName, tenantDomain, roleAudience);
         int audienceRefId = getAudienceRefByID(roleId, tenantDomain);
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
 
@@ -3135,25 +3136,41 @@ public class RoleDAOImpl implements RoleDAO {
      * @param deletedUserNamesList Deleted user name list.
      * @param roleName             Role name.
      * @param tenantDomain         Tenant domain.
+     * @param roleAudience         The role Audience.
      * @throws IdentityRoleManagementException Error occurred while validating user removal from role.
      */
-    private void validateUserRemovalFromRole(List<String> deletedUserNamesList, String roleName, String tenantDomain)
+    private void validateUserRemovalFromRole(List<String> deletedUserNamesList, String roleName, String tenantDomain,
+                                             RoleAudience roleAudience)
             throws IdentityRoleManagementException {
 
         if (!IdentityUtil.isSystemRolesEnabled() || deletedUserNamesList.isEmpty()) {
             return;
         }
         try {
+            boolean isOrganization = OrganizationManagementUtil.isOrganization(tenantDomain);
+            // No restriction when removing access from an organization user.
+            if (isOrganization) {
+                return;
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format("Error while checking the tenant domain: %s is an organization.", tenantDomain), e);
+        }
+
+        try {
             String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
             UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
             String adminUserName = userRealm.getRealmConfiguration().getAdminUserName();
+            String adminRoleName = userRealm.getRealmConfiguration().getAdminRoleName();
+
             org.wso2.carbon.user.core.UserStoreManager userStoreManager =
                     (org.wso2.carbon.user.core.UserStoreManager) userRealm
                             .getUserStoreManager();
             boolean isUseCaseSensitiveUsernameForCacheKeys = IdentityUtil
                     .isUseCaseSensitiveUsernameForCacheKeys(userStoreManager);
             // Only the tenant owner can remove users from Administrator role.
-            if (RoleConstants.ADMINISTRATOR.equalsIgnoreCase(roleName)) {
+            if (StringUtils.equals(adminRoleName, roleName)
+                    && RoleConstants.ORGANIZATION.equals(roleAudience.getAudience())) {
                 if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
                         !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
                                 .equalsIgnoreCase(username, adminUserName))) {
