@@ -1047,6 +1047,11 @@
       "id": "T3JnYW5pemF0aW9uVXNlckludml0YXRpb24",
       "displayName": "Organization User Invitation",
       "description": "This email is sent when the organization admin invites a user to the organization"
+    },
+    {
+      "id": "SW1wZXJzb25hdGlvbkVtYWlsTm90aWZpY2F0aW9u",
+      "displayName": "Impersonation Email Notification",
+      "description": "This email is sent to the impersonated user when the impersonation session is started"
     }
   ],
   "console.ui.app_copyright": "WSO2 Identity Server",
