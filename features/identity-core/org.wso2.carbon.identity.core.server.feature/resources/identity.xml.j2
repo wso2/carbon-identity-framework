@@ -58,6 +58,7 @@
                 <!-- All temporary authentication context data older than CleanUpTimeout value are considered as expired
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>{{session_data.cleanup.expire_pre_session_data_after}}</CleanUpTimeout>
+                <EnablePeriodicCleanup>{{session_data.cleanup.enable_periodic_pre_session_data_cleanup}}</EnablePeriodicCleanup>
             </TempDataCleanup>
             <SessionAndTempDataSeparation>
                 <Enable>{{session_data.session_data_persist.session_and_temp_data_separation_enabled.enable}}</Enable>

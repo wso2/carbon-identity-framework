@@ -147,6 +147,7 @@ public class SessionDataStore {
     private boolean sessionDataCleanupEnabled = true;
     private boolean operationDataCleanupEnabled = false;
     private static boolean tempDataCleanupEnabled = false;
+    private static boolean periodicTempDataCleanupEnabled = false;
     private static boolean sessionAndTempDataSeparationEnabled = false;
 
     static {
@@ -163,6 +164,12 @@ public class SessionDataStore {
                     = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable");
             if (StringUtils.isNotBlank(isTempDataCleanupEnabledVal)) {
                 tempDataCleanupEnabled = Boolean.parseBoolean(isTempDataCleanupEnabledVal);
+            }
+
+            String isPeriodicTempDataCleanupEnabledVal = IdentityUtil.getProperty
+                    ("JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.EnablePeriodicCleanup");
+            if (StringUtils.isNotBlank(isTempDataCleanupEnabledVal)) {
+                periodicTempDataCleanupEnabled = Boolean.parseBoolean(isPeriodicTempDataCleanupEnabledVal);
             }
 
             sessionAndTempDataSeparationEnabled = Boolean.parseBoolean(IdentityUtil
@@ -273,7 +280,8 @@ public class SessionDataStore {
             operationDataCleanupEnabled = Boolean.parseBoolean(isOperationCleanUpEnabledVal);
         }
 
-        if (sessionDataCleanupEnabled || operationDataCleanupEnabled || tempDataCleanupEnabled) {
+        if (sessionDataCleanupEnabled || operationDataCleanupEnabled ||
+                (tempDataCleanupEnabled && periodicTempDataCleanupEnabled)) {
             long sessionCleanupPeriod = IdentityUtil.getCleanUpPeriod(
                     CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
             if (log.isDebugEnabled()) {
@@ -491,7 +499,7 @@ public class SessionDataStore {
         if (sessionDataCleanupEnabled) {
             removeExpiredSessionData(sqlDeleteExpiredDataTask);
         }
-        if (tempDataCleanupEnabled) {
+        if (tempDataCleanupEnabled && periodicTempDataCleanupEnabled) {
             removeExpiredSessionData(replaceTableName(sqlDeleteExpiredDataTask));
         }
         if (operationDataCleanupEnabled) {
