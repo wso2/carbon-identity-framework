@@ -1159,10 +1159,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
             Role role = getRole(roleId, tenantDomain);
             // Only the tenant owner can remove users from Administrator role.
-            if (StringUtils.equals(adminRoleName, role.getName())
-                    && RoleConstants.ORGANIZATION.equals(role.getAudience()) ||
-                    RoleConstants.ADMINISTRATOR.equals(role.getName()) &&
-                            RoleConstants.CONSOLE_APP_AUDIENCE_NAME.equals(role.getAudienceName())) {
+            if ((StringUtils.equals(adminRoleName, role.getName())
+                    && RoleConstants.ORGANIZATION.equals(role.getAudience()))
+                    || (RoleConstants.ADMINISTRATOR.equals(role.getName()) &&
+                            RoleConstants.CONSOLE_APP_AUDIENCE_NAME.equals(role.getAudienceName()))) {
                 if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
                         !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
                                 .equalsIgnoreCase(username, adminUserName))) {
