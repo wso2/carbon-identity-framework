@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
@@ -48,6 +49,9 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleDTO;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.UserIDResolver;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.IOException;
@@ -70,6 +74,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
     private static final Log log = LogFactory.getLog(RoleManagementServiceImpl.class);
     private final RoleDAO roleDAO = RoleMgtDAOFactory.getInstance().getRoleDAO();
+    private final UserIDResolver userIDResolver = new UserIDResolver();
 
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
@@ -420,6 +425,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         roleManagementEventPublisherProxy.publishPreUpdateUserListOfRoleWithException(roleId, newUserIDList,
                 deletedUserIDList,
                 tenantDomain);
+        // Validate the user removal operation based on the default system roles.
+        validateUserRemovalFromRole(deletedUserIDList, roleId, tenantDomain);
         roleDAO.updateUserListOfRole(roleId, newUserIDList, deletedUserIDList, tenantDomain);
         roleManagementEventPublisherProxy.publishPostUpdateUserListOfRole(roleId, newUserIDList, deletedUserIDList,
                 tenantDomain);
@@ -1111,5 +1118,86 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             setExpressionNodeList(node.getLeftNode(), expression);
             setExpressionNodeList(node.getRightNode(), expression);
         }
+    }
+
+    /**
+     * Validate user removal from role.
+     *
+     * @param deletedUserIDList Deleted user ID list.
+     * @param roleId             Role ID.
+     * @param tenantDomain         Tenant domain.
+     * @throws IdentityRoleManagementException Error occurred while validating user removal from role.
+     */
+    private void validateUserRemovalFromRole(List<String> deletedUserIDList, String roleId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        if (!IdentityUtil.isSystemRolesEnabled() || deletedUserIDList.isEmpty()) {
+            return;
+        }
+        try {
+            boolean isOrganization = OrganizationManagementUtil.isOrganization(tenantDomain);
+            // No restriction when removing access from an organization user.
+            if (isOrganization) {
+                return;
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format("Error while checking the tenant domain: %s is an organization.", tenantDomain), e);
+        }
+
+        try {
+            String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
+            UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+            String adminUserName = userRealm.getRealmConfiguration().getAdminUserName();
+            String adminRoleName = userRealm.getRealmConfiguration().getAdminRoleName();
+
+            org.wso2.carbon.user.core.UserStoreManager userStoreManager =
+                    (org.wso2.carbon.user.core.UserStoreManager) userRealm
+                            .getUserStoreManager();
+            boolean isUseCaseSensitiveUsernameForCacheKeys = IdentityUtil
+                    .isUseCaseSensitiveUsernameForCacheKeys(userStoreManager);
+
+            Role role = getRole(roleId, tenantDomain);
+            // Only the tenant owner can remove users from Administrator role.
+            if (StringUtils.equals(adminRoleName, role.getName())
+                    && RoleConstants.ORGANIZATION.equals(role.getAudience()) ||
+                    RoleConstants.ADMINISTRATOR.equals(role.getName()) &&
+                            RoleConstants.CONSOLE_APP_AUDIENCE_NAME.equals(role.getAudienceName())) {
+                if ((isUseCaseSensitiveUsernameForCacheKeys && !StringUtils.equals(username, adminUserName)) || (
+                        !isUseCaseSensitiveUsernameForCacheKeys && !StringUtils
+                                .equalsIgnoreCase(username, adminUserName))) {
+                    String errorMessage = "Invalid operation. Only the tenant owner can remove users from the role: %s";
+                    throw new IdentityRoleManagementClientException(RoleConstants.Error.OPERATION_FORBIDDEN.getCode(),
+                            String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                } else {
+                    List<String> deletedUserNamesList = getUserNamesByIDs(deletedUserIDList, tenantDomain);
+                    // Tenant owner cannot be removed from Administrator role.
+                    if (deletedUserNamesList.contains(adminUserName)) {
+                        String errorMessage = "Invalid operation. Tenant owner cannot be removed from the role: %s";
+                        throw new IdentityRoleManagementClientException(RoleConstants.Error.OPERATION_FORBIDDEN
+                                .getCode(),
+                                String.format(errorMessage, RoleConstants.ADMINISTRATOR));
+                    }
+                }
+            }
+        } catch (UserStoreException e) {
+            String errorMessage = "Error while validating user removal from the role: %s in the tenantDomain: %s";
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format(errorMessage, roleId, tenantDomain), e);
+        }
+    }
+
+    /**
+     * Get usernames by IDs.
+     *
+     * @param userIDs      User IDs.
+     * @param tenantDomain Tenant Domain.
+     * @return List of usernames.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private List<String> getUserNamesByIDs(List<String> userIDs, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return userIDResolver.getNamesByIDs(userIDs, tenantDomain);
     }
 }
