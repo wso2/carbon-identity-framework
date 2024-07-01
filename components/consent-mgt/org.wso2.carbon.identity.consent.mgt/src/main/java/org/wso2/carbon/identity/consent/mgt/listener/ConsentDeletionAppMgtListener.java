@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,6 +24,7 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.consent.mgt.IdentityConsentMgtUtils;
@@ -47,6 +48,8 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
     private static final String CONSENT_SEARCH_LIMIT_PROPERTY = "Consent.Search.Limit";
     protected final Properties properties = new Properties();
     private static int consentSearchLimit = 100;
+    public static final int CONSENT_SEARCH_OFFSET_PROPERTY = 0;
+    public static final String CONSENT_SEARCH_PII_PRINCIPAL_ID = "*";
 
     /**
      * Overridden to check the configuration for this listener enabling and also to check whether globally consent
@@ -113,9 +116,41 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
             log.debug(String.format("Deleting consents on deletion of application: %s, in tenant domain: %s.",
                                     applicationName, tenantDomain));
         }
+        return removeConsentReceipts(tenantDomain, consentManager, applicationName);
+    }
+
+    /**
+     * When an application is disabled, it will delete all relevant receipts issued against that application.
+     *
+     * @param serviceProvider Service provider which is disabled.
+     * @param tenantDomain    Tenant domain of the application.
+     * @param userName        Username of the person who does the deletion.
+     * @return true.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
+     */
+    @Override
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        if (serviceProvider.isApplicationEnabled()) {
+            return true;
+        }
+        ConsentManager consentManager = IdentityConsentDataHolder.getInstance().getConsentManager();
+        String applicationName = serviceProvider.getApplicationName();
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Deleting consents since application: %s, in tenant domain: %s is disabled.",
+                    applicationName, tenantDomain));
+        }
+        return removeConsentReceipts(tenantDomain, consentManager, applicationName);
+    }
+
+    private boolean removeConsentReceipts(String tenantDomain, ConsentManager consentManager, String applicationName)
+            throws IdentityApplicationManagementException {
+
         try {
-            List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(consentSearchLimit, 0,
-                    "*", tenantDomain, applicationName, null, null);
+            List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(consentSearchLimit,
+                    CONSENT_SEARCH_OFFSET_PROPERTY, CONSENT_SEARCH_PII_PRINCIPAL_ID, tenantDomain, applicationName,
+                    null, null);
             if (log.isDebugEnabled()) {
                 log.debug(String.format("%d number of consents found for application %s", receiptListResponses.size(),
                         applicationName));
