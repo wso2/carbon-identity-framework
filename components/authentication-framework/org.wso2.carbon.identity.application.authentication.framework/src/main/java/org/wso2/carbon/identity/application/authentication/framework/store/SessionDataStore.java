@@ -147,7 +147,7 @@ public class SessionDataStore {
     private boolean sessionDataCleanupEnabled = true;
     private boolean operationDataCleanupEnabled = false;
     private static boolean tempDataCleanupEnabled = false;
-    private static boolean periodicTempDataCleanupEnabled = false;
+    private static boolean periodicTempDataCleanupEnabled = true;
     private static boolean sessionAndTempDataSeparationEnabled = false;
 
     static {

@@ -53,7 +53,7 @@
                 <!-- All temporary authentication context data older than CleanUpTimeout value are considered as expired
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>40</CleanUpTimeout>
-                <EnablePeriodicCleanup>false</EnablePeriodicCleanup>
+                <EnablePeriodicCleanup>true</EnablePeriodicCleanup>
             </TempDataCleanup>
             <UserSessionMapping>
                 <Enable>true</Enable>
