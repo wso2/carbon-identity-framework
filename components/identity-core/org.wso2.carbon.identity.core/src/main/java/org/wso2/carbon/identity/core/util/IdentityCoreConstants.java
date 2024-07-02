@@ -106,6 +106,10 @@ public class IdentityCoreConstants {
 
     // SCIM2 constants.
     public static final String SCIM2_USER_MAX_ITEMS_PER_PAGE_ENABLED = "SCIM2.UserEndpointMaxItemsPerPageEnabled";
+    public static final String MAXIMUM_ACTIONS_PER_TYPE_PROPERTY = "MaximumActionsPerType";
+
+    // Actions constants.
+    public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
 
     public static class Filter {
 
