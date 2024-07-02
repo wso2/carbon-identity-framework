@@ -1808,6 +1808,13 @@
                 <artifactId>icu4j</artifactId>
                 <version>${icu.version}</version>
             </dependency>
+
+            <!--Ant-contrib for the extended functionality within the Ant build process-->
+            <dependency>
+                <groupId>ant-contrib</groupId>
+                <artifactId>ant-contrib</artifactId>
+                <version>${version.ant.contrib}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -2139,6 +2146,8 @@
         <com.google.api.http.clients.osgi.version.range>[1.41.2,1.44.0)</com.google.api.http.clients.osgi.version.range>
         <org.wso2.orbit.io.opencensus.version>0.31.1.wso2v3</org.wso2.orbit.io.opencensus.version>
         <org.wso2.orbit.io.grpc.version>1.59.0.wso2v1</org.wso2.orbit.io.grpc.version>
+
+        <version.ant.contrib>1.0b3</version.ant.contrib>
     </properties>
 
     <build>
