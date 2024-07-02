@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.listener;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -217,11 +218,11 @@ public class RoleManagementV2AuditLogger extends AbstractRoleManagementListener 
             return;
         }
         JSONObject data = new JSONObject();
-        if (ArrayUtils.isNotEmpty(addedPermissions.toArray())) {
+        if (CollectionUtils.isNotEmpty(addedPermissions)) {
             data.put(ADDED_PERMISSIONS_FIELD, new JSONArray(addedPermissions.stream().map(Permission::getName)
                     .collect(Collectors.toList())));
         }
-        if (ArrayUtils.isNotEmpty(deletedPermissions.toArray())) {
+        if (CollectionUtils.isNotEmpty(deletedPermissions)) {
             data.put(DELETED_PERMISSIONS_FIELD, new JSONArray(deletedPermissions.stream().map(Permission::getName)
                     .collect(Collectors.toList())));
         }

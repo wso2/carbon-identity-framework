@@ -1150,7 +1150,7 @@
   "console.applications.disabled_features": [
     "applications.loginFlow.ai",
     "applications.loginFlow.legacyEditor",
-    "applications.myaccount.simplifiedSettings"
+    "applications.myaccount.saasMyaccountSettings"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
@@ -1559,5 +1559,8 @@
   
   "super_tenant.alias_in_public_url": "",
   "connector.challenge_questions.enable": false,
-  "tenant_mgt.enable_email_domain": false
+  "tenant_mgt.enable_email_domain": false,
+
+  "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -122,6 +122,8 @@ public class ApplicationConstants {
     public static final String TENANT_DOMAIN_PLACEHOLDER = "{TENANT_DOMAIN}";
     public static final String CONSOLE_ACCESS_ORIGIN = "Console.Origin";
     public static final String MYACCOUNT_ACCESS_ORIGIN = "MyAccount.Origin";
+    public static final String CONSOLE_PORTAL_PATH = "Console.AppBaseName";
+    public static final String MYACCOUNT_PORTAL_PATH = "MyAccount.AppBaseName";
 
     /**
      * Group the constants related to logs.

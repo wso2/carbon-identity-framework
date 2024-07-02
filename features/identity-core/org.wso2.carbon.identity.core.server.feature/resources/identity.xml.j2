@@ -144,6 +144,9 @@
         {% if service_provider.fetch_chunk_size is defined %}
         <FetchChunkSize>{{service_provider.fetch_chunk_size}}</FetchChunkSize>
         {% endif %}
+        {% if service_provider.use_username_as_sub_claim is defined %}
+        <UseUsernameAsSubClaim>{{service_provider.use_username_as_sub_claim}}</UseUsernameAsSubClaim>
+        {% endif %}
     </ServiceProviders>
 
     <Connectors>
@@ -1269,6 +1272,9 @@
         <SAMLAssertionEncyptWithAppCert>{{saml.metadata.assertion_encrypt_with_app_cert}}</SAMLAssertionEncyptWithAppCert>
         {% if saml.metadata.define_name_id_policy_if_unspecified is defined %}
             <SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified>{{saml.metadata.define_name_id_policy_if_unspecified}}</SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified>
+        {% endif %}
+        {% if saml.separate_multi_attributes_from_idp is defined %}
+            <SeparateMultiAttributesFromIdP>{{saml.separate_multi_attributes_from_idp}}</SeparateMultiAttributesFromIdP>
         {% endif %}
     </SSOService>
 
@@ -4081,5 +4087,11 @@
         {% endfor %}
     </CacheInvalidator>
     {% endif %}
+
+    <OnDemandConfig>
+        <OnInitialUse>
+            <EnableSMSOTPPasswordRecoveryIfConnectorEnabled>{{on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled}}</EnableSMSOTPPasswordRecoveryIfConnectorEnabled>
+        </OnInitialUse>
+    </OnDemandConfig>
 
 </Server>

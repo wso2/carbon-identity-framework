@@ -1173,13 +1173,19 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
+        String userNameWithDomain = preferredUserNameValue;
+        if (!preferredUserNameValue.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            String domainName = userStoreManager.getRealmConfiguration()
+                    .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            userNameWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + preferredUserNameValue;
+        }
         String userName;
         boolean authenticated =
                 authenticationResult.getAuthenticationStatus() == AuthenticationResult.AuthenticationStatus.SUCCESS;
         if (authenticated) {
             userName = authenticationResult.getAuthenticatedUser().get().getUsername();
         } else {
-            String[] users = userStoreManager.getUserList(preferredUserNameClaim, preferredUserNameValue, null);
+            String[] users = userStoreManager.getUserList(preferredUserNameClaim, userNameWithDomain, null);
             if (users.length == 1) {
                 userName = UserCoreUtil.removeDomainFromName(users[0]);
             } else {

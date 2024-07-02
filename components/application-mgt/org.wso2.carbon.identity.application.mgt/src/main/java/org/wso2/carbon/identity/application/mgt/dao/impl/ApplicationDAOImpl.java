@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -1979,7 +1979,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setAccessUrl(basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL));
                 if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
                     serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                            basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+                            basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL), applicationName));
                 }
                 String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
                 if (ApplicationMgtUtil.isConsole(serviceProvider.getApplicationName())) {
@@ -2592,7 +2592,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setAccessUrl(rs.getString(ApplicationTableColumns.ACCESS_URL));
                 if (ApplicationMgtUtil.isConsoleOrMyAccount(serviceProvider.getApplicationName())) {
                     serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                            rs.getString(ApplicationTableColumns.ACCESS_URL)));
+                            rs.getString(ApplicationTableColumns.ACCESS_URL), serviceProvider.getApplicationName()));
                 }
                 String tenantDomain = IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID));
                 if (ApplicationMgtUtil.isConsole(serviceProvider.getApplicationName())) {
@@ -6207,7 +6207,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
             if (ApplicationMgtUtil.isConsoleOrMyAccount(basicInfo.getApplicationName())) {
                 basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL),
+                        basicInfo.getApplicationName()));
             }
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
@@ -6264,7 +6265,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
             if (ApplicationMgtUtil.isConsoleOrMyAccount(basicInfo.getApplicationName())) {
                 basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL),
+                        basicInfo.getApplicationName()));
             }
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(

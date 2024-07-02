@@ -92,7 +92,7 @@ public class RecoveryResponse {
     }
     public void setFlowConfirmationCode(String flowConfirmationCode) {
 
-        this.message = flowConfirmationCode;
+        this.flowConfirmationCode = flowConfirmationCode;
     }
 
     /**
@@ -172,6 +172,7 @@ public class RecoveryResponse {
         RecoveryResponse passwordRecoveryInternalNotifyResponse = (RecoveryResponse) o;
         return Objects.equals(this.code, passwordRecoveryInternalNotifyResponse.code) &&
                 Objects.equals(this.message, passwordRecoveryInternalNotifyResponse.message) &&
+                Objects.equals(this.flowConfirmationCode, passwordRecoveryInternalNotifyResponse.flowConfirmationCode) &&
                 Objects.equals(this.notificationChannel, passwordRecoveryInternalNotifyResponse.notificationChannel) &&
                 Objects.equals(this.resendCode, passwordRecoveryInternalNotifyResponse.resendCode) &&
                 Objects.equals(this.links, passwordRecoveryInternalNotifyResponse.links);
@@ -180,7 +181,7 @@ public class RecoveryResponse {
     @Override
     public int hashCode() {
 
-        return Objects.hash(code, message, notificationChannel, resendCode, links);
+        return Objects.hash(code, message, flowConfirmationCode, notificationChannel, resendCode, links);
     }
 
     @Override
@@ -191,6 +192,7 @@ public class RecoveryResponse {
 
         sb.append("    code: ").append(toIndentedString(code)).append("\n");
         sb.append("    message: ").append(toIndentedString(message)).append("\n");
+        sb.append("    flowConfirmationCode: ").append(toIndentedString(flowConfirmationCode)).append("\n");
         sb.append("    notificationChannel: ").append(toIndentedString(notificationChannel)).append("\n");
         sb.append("    resendCode: ").append(toIndentedString(resendCode)).append("\n");
         sb.append("    links: ").append(toIndentedString(links)).append("\n");

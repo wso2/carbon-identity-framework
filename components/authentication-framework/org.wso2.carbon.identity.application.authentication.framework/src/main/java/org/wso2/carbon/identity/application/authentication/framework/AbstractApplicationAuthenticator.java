@@ -354,6 +354,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     private void publishAuthenticationStepAttemptFailure(HttpServletRequest request, AuthenticationContext context,
                                                          User user, String errorCode) {
 
+        if (user == null) {
+            user = context.getLastAuthenticatedUser();
+        }
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_CODE, errorCode);
         publishAuthenticationStepAttempt(request, context, user, false);
     }

@@ -407,6 +407,7 @@ public class IdentityEventConstants {
         public static final String UPDATED_DISABLED_STATUS = "updatedDisableStatus";
         public static final String CORRELATION_ID = "correlation-id";
         public static final String APPLICATION_NAME = "application-name";
+        public static final String SERVICE_PROVIDER_UUID = "serviceProviderUUID";
         public static final String APPLICATION_ID = "application-id";
         public static final String USER_AGENT = "user-agent";
         public static final String RESEND_CODE = "resend-code";

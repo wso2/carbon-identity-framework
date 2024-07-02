@@ -2631,4 +2631,10 @@
             <HybridMode>false</HybridMode>
         </MB>
     </CacheInvalidator>
+
+    <OnDemandConfig>
+        <OnInitialUse>
+            <EnableSMSOTPPasswordRecoveryIfConnectorEnabled>false</EnableSMSOTPPasswordRecoveryIfConnectorEnabled>
+        </OnInitialUse>
+    </OnDemandConfig>
 </Server>
