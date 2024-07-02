@@ -102,6 +102,9 @@ public class IdentityApplicationConstants {
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_NAME = "isManagementApp";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME = "Is Management Application";
     public static final String ADVANCED_CONFIG = "advancedConfigurations";
+    public static final String TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME = "trustedAppConsentGranted";
+    public static final String TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME =
+            "Is consent granted for trusted app";
 
     public static final String IDP_ISSUER_NAME = "idpIssuerName";
 
@@ -133,6 +136,8 @@ public class IdentityApplicationConstants {
                 = "ANDROID_ATTESTATION_CREDENTIALS";
     public static final String CLIENT_ATTESTATION = "CLIENT_ATTESTATION";
     public static final String ANDROID = "ANDROID";
+    public static final String IOS = "IOS";
+    public static final String ATTRIBUTE_SEPARATOR = ",";
 
     /**
      * Config elements.
