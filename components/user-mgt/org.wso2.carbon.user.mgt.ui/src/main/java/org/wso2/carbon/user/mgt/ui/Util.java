@@ -54,10 +54,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 
 public class Util {
 
@@ -280,13 +282,39 @@ public class Util {
     }
 
     public static char[] generateRandomPassword(ServletContext context, HttpSession session) {
-        char[] tempPass = "password".toCharArray();
+
         try {
             return getAskPasswordTempPassGenerator(context, session).generatePassword();
         } catch (Exception e) {
             log.error("Error while generating the temporary password. Used the default password as temp password", e);
-            return tempPass;
+            return generateTemporaryPassword();
         }
+    }
+
+    private static char[] generateTemporaryPassword() {
+
+        // Pick from some letters that won't be easily mistaken for each other.
+        // So, for example, omit o O and 0, 1 l and L.
+        // This will generate a random password which satisfy the following regex.
+        // ^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*])).{12}$}
+        Random secureRandom = new SecureRandom();
+        String digits = "23456789";
+        String lowercaseLetters = "abcdefghjkmnpqrstuvwxyz";
+        String uppercaseLetters = "ABCDEFGHJKMNPQRSTUVWXYZ";
+        String specialCharacters = "!@#$%&*";
+        String characters = digits + lowercaseLetters + uppercaseLetters + specialCharacters;
+        int passwordLength = 12;
+        int mandatoryCharactersCount = 4;
+
+        StringBuilder pw = new StringBuilder();
+        for (int i = 0; i < passwordLength - mandatoryCharactersCount; i++) {
+            pw.append(characters.charAt(secureRandom.nextInt(characters.length())));
+        }
+        pw.append(digits.charAt(secureRandom.nextInt(digits.length())));
+        pw.append(lowercaseLetters.charAt(secureRandom.nextInt(lowercaseLetters.length())));
+        pw.append(uppercaseLetters.charAt(secureRandom.nextInt(uppercaseLetters.length())));
+        pw.append(specialCharacters.charAt(secureRandom.nextInt(specialCharacters.length())));
+        return pw.toString().toCharArray();
     }
 
     public static RandomPasswordGenerator getAskPasswordTempPassGenerator(ServletContext context, HttpSession session) {
