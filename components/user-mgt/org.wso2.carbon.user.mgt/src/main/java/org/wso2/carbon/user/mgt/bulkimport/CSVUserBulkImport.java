@@ -44,17 +44,18 @@ import java.util.Map;
 public class CSVUserBulkImport extends UserBulkImport {
 
     private static final Log log = LogFactory.getLog(CSVUserBulkImport.class);
-    private BufferedReader reader;
     private BulkImportConfig config;
 
     public CSVUserBulkImport(BulkImportConfig config) {
         this.config = config;
-        this.reader = new BufferedReader(new InputStreamReader(config.getInStream(), Charset.forName("UTF-8")));
     }
 
     public void addUserList(UserStoreManager userStore) throws UserAdminException {
-        CSVReader csvReader = new CSVReader(reader, ',', '"', 1);
-        try {
+
+        CSVReader csvReader = null;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(config.getInStream(), Charset.forName("UTF-8")))) {
+
+            csvReader = new CSVReader(reader, ',', '"', 1);
             userStoreDomain = config.getUserStoreDomain();
             String[] line = csvReader.readNext();
             boolean isDuplicate = false;
