@@ -104,6 +104,7 @@
         <module>features/api-resource-mgt</module>
         <module>features/client-attestation-mgt</module>
         <module>components/action-mgt</module>
+        <module>features/action-mgt</module>
     </modules>
 
 
@@ -297,6 +298,12 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.client.attestation.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.action.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

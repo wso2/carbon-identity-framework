@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.identity.action.mgt;
 
+import org.wso2.carbon.identity.action.mgt.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.mgt.model.Action;
-import org.wso2.carbon.identity.action.mgt.model.ActionType;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Action Manager Interface.
@@ -96,11 +97,21 @@ public interface ActionManager {
     Action deactivateAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException;
 
     /**
-     * Get Action Types.
+     * Get Actions count per Action Type.
      *
      * @param tenantDomain Tenant domain.
-     * @return Action Types response.
-     * @throws ActionMgtException If an error occurs while retrieving the Action.
+     * @return Map of Action count for configured action types.
+     * @throws ActionMgtException If an error occurs while retrieving the Actions count.
      */
-    List<ActionType> getActionTypes(String tenantDomain) throws ActionMgtException;
+    Map<String, Integer> getActionsCountPerType(String tenantDomain) throws ActionMgtException;
+
+    /**
+     * Get Action of a given Action ID.
+     *
+     * @param actionId     Action ID.
+     * @param tenantDomain Tenant domain.
+     * @return Action response.
+     * @throws ActionMgtException If an error occurs while retrieving the Action of a given Action ID.
+     */
+    Action getActionByActionId(String actionId, String tenantDomain) throws ActionMgtException;
 }

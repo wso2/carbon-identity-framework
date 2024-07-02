@@ -27,54 +27,6 @@ public class ActionMgtConstants {
     public static final String INACTIVE_STATUS = "INACTIVE";
     public static final String URI_ATTRIBUTE = "uri";
     public static final String AUTHN_TYPE_ATTRIBUTE = "authnType";
-    public static final String AUTHN_PROP_USERNAME_ATTRIBUTE = "username";
-    public static final String AUTHN_PROP_PASSWORD_ATTRIBUTE = "password";
-
-    /**
-     * Action Type.
-     */
-    public enum ActionTypes {
-
-         PRE_ISSUE_ACCESS_TOKEN("preIssueAccessToken", "PRE_ISSUE_ACCESS_TOKEN",
-                 "Pre Issue Access Token", "Configure an extension point for modifying access " +
-                 "token via a custom service."),
-         PRE_UPDATE_PASSWORD("preUpdatePassword", "PRE_UPDATE_PASSWORD",
-                 "Pre Update Password", "Configure an extension point for modifying user " +
-                 "password via a custom service.");
-
-        private final String pathParam;
-        private final String actionType;
-        private final String displayName;
-        private final String description;
-
-        ActionTypes(String pathParam, String actionType, String displayName, String description) {
-
-            this.pathParam = pathParam;
-            this.actionType = actionType;
-            this.displayName = displayName;
-            this.description = description;
-        }
-
-        public String getPathParam() {
-
-            return pathParam;
-        }
-
-        public String getActionType() {
-
-            return actionType;
-        }
-
-        public String getDisplayName() {
-
-            return displayName;
-        }
-
-        public String getDescription() {
-
-            return description;
-        }
-    }
 
     /**
      * Error messages.
@@ -105,7 +57,12 @@ public class ActionMgtConstants {
         ERROR_CODE_ERROR_WHILE_DELETING_ACTION("65007", "Error while deleting Action.",
                 "Error while deleting Action from the database."),
         ERROR_CODE_ERROR_WHILE_UPDATING_ACTION_STATUS("65008", "Error while updating Action status.",
-                "Error while updating Action status in the database.");
+                "Error while updating Action status in the database."),
+        ERROR_CODE_ERROR_WHILE_RETRIEVING_ACTION_BY_ID("65009", "Error while retrieving Action by ID.",
+                "Error while retrieving Action from the database."),
+        ERROR_CODE_ERROR_WHILE_RETRIEVING_ACTIONS_COUNT_PER_TYPE("65010",
+                "Error while retrieving Actions count per Action Type.",
+                "Error while retrieving Actions count from the database.");
 
         private final String code;
         private final String message;

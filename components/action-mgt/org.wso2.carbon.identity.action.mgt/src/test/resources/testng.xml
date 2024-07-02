@@ -19,11 +19,11 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.action.mgt.dao">
-    <!--    <test name="api-resource-mgt-tests" preserve-order="true" parallel="false">-->
+    <!--    <test name="action-mgt-tests" preserve-order="true" parallel="false">-->
     <!--        <classes>-->
-    <!--            <class name="org.wso2.carbon.identity.api.resource.mgt.dao.APIResourceManagementDAOImplTest"/>-->
-    <!--            <class name="org.wso2.carbon.identity.api.resource.mgt.dao.CacheBackedAPIResourceManagementDAOTest"/>-->
-    <!--            <class name="org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerTest"/>-->
+    <!--            <class name="org.wso2.carbon.identity.action.mgt.dao.ActionManagementDAOImplTest"/>-->
+    <!--            <class name="org.wso2.carbon.identity.action.mgt.dao.CacheBackedActionManagementDAOTest"/>-->
+    <!--            <class name="org.wso2.carbon.identity.action.mgt.ActionManagerTest"/>-->
     <!--        </classes>-->
     <!--    </test>-->
 </suite>

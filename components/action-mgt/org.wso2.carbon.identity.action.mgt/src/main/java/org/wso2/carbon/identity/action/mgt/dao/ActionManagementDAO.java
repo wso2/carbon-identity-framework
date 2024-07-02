@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.identity.action.mgt.dao;
 
-import org.wso2.carbon.identity.action.mgt.ActionMgtException;
+import org.wso2.carbon.identity.action.mgt.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.mgt.model.Action;
-import org.wso2.carbon.identity.action.mgt.model.ActionType;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This interface performs CRUD operations for {@link Action}
@@ -97,11 +97,21 @@ public interface ActionManagementDAO {
     Action deactivateAction(String actionType, String actionId, Integer tenantId) throws ActionMgtException;
 
     /**
-     * Get Action Types.
+     * Get Actions count per Action Type.
      *
      * @param tenantId Tenant Id.
-     * @return List of <code>ActionType</code>.
-     * @throws ActionMgtException If an error occurs while retrieving the Action.
+     * @return Map of Action count for configured action types.
+     * @throws ActionMgtException If an error occurs while retrieving the Actions count.
      */
-    List<ActionType> getActionTypes(Integer tenantId) throws ActionMgtException;
+    Map<String, Integer> getActionsCountPerType(Integer tenantId) throws ActionMgtException;
+
+    /**
+     * Get {@link Action} of a given Action Type and Action ID.
+     *
+     * @param actionId Action ID.
+     * @param tenantId Tenant Id.
+     * @return <code>Action</code>.
+     * @throws ActionMgtException If an error occurs while retrieving the Action of a given Action ID.
+     */
+    Action getActionByActionId(String actionId, Integer tenantId) throws ActionMgtException;
 }

@@ -20,15 +20,15 @@ package org.wso2.carbon.identity.action.mgt.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.action.mgt.ActionMgtException;
 import org.wso2.carbon.identity.action.mgt.cache.ActionCacheByType;
 import org.wso2.carbon.identity.action.mgt.cache.ActionCacheEntry;
 import org.wso2.carbon.identity.action.mgt.cache.ActionTypeCacheKey;
 import org.wso2.carbon.identity.action.mgt.dao.ActionManagementDAO;
+import org.wso2.carbon.identity.action.mgt.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.mgt.model.Action;
-import org.wso2.carbon.identity.action.mgt.model.ActionType;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class implements the {@link ActionManagementDAO} interface.
@@ -49,23 +49,6 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
     public Action addAction(String actionType, Action action, Integer tenantId)
             throws ActionMgtException {
 
-//        Action actionResponse = actionManagementDAO.addAction(actionType, action, tenantId);
-//
-//        ActionTypeCacheKey cacheKey = new ActionTypeCacheKey(actionType);
-//        ActionCacheEntry entry = actionCacheByType.getValueFromCache(cacheKey, tenantId);
-//
-//        if (entry != null) {
-//            if (LOG.isDebugEnabled()) {
-//                LOG.debug("Cache entry found for Action Type " + actionType +
-//                        ". Hence modifying the cache with new action.");
-//            }
-//            List<Action> actions = entry.getActions();
-//            actions.add(actionResponse);
-//
-//            actionCacheByType.clearCacheEntry(cacheKey, tenantId);
-//            actionCacheByType.addToCache(cacheKey, new ActionCacheEntry(actions), tenantId);
-//        }
-//        return actionResponse;
         return actionManagementDAO.addAction(actionType, action, tenantId);
     }
 
@@ -88,7 +71,7 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
 
         List<Action> actions = actionManagementDAO.getActionsByActionType(actionType, tenantId);
 
-        if (actions != null) {
+        if (actions != null && !actions.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Entry fetched from DB for Action Type " + actionType + ". Updating cache.");
             }
@@ -131,8 +114,14 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
     }
 
     @Override
-    public List<ActionType> getActionTypes(Integer tenantId) throws ActionMgtException {
+    public Map<String, Integer> getActionsCountPerType(Integer tenantId) throws ActionMgtException {
 
-        return actionManagementDAO.getActionTypes(tenantId);
+        return actionManagementDAO.getActionsCountPerType(tenantId);
+    }
+
+    @Override
+    public Action getActionByActionId(String actionId, Integer tenantId) throws ActionMgtException {
+
+        return actionManagementDAO.getActionByActionId(actionId, tenantId);
     }
 }

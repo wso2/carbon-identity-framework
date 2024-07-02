@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.mgt;
+package org.wso2.carbon.identity.action.mgt.exception;
 
 /**
  * Action management client exception.

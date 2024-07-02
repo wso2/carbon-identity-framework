@@ -20,12 +20,12 @@ package org.wso2.carbon.identity.action.mgt;
 
 import org.wso2.carbon.identity.action.mgt.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.mgt.dao.impl.CacheBackedActionMgtDAO;
+import org.wso2.carbon.identity.action.mgt.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.mgt.model.Action;
-import org.wso2.carbon.identity.action.mgt.model.ActionType;
-import org.wso2.carbon.identity.action.mgt.util.ActionManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Action management service.
@@ -49,49 +49,50 @@ public class ActionManagerImpl implements ActionManager {
     public Action addAction(String actionType, Action action, String tenantDomain)
             throws ActionMgtException {
 
-        return CACHE_BACKED_DAO.addAction(ActionManagementUtil.getvalidatedActionType(actionType), action,
-                IdentityTenantUtil.getTenantId(tenantDomain));
+        return CACHE_BACKED_DAO.addAction(actionType, action, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
     public List<Action> getActionsByActionType(String actionType, String tenantDomain) throws ActionMgtException {
 
-        return CACHE_BACKED_DAO.getActionsByActionType(ActionManagementUtil.getvalidatedActionType(actionType),
-                IdentityTenantUtil.getTenantId(tenantDomain));
+        return CACHE_BACKED_DAO.getActionsByActionType(actionType, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
     public Action updateAction(String actionType, String actionId, Action actionUpdateModel,
                                String tenantDomain) throws ActionMgtException {
 
-        return CACHE_BACKED_DAO.updateAction(ActionManagementUtil.getvalidatedActionType(actionType), actionId,
-                actionUpdateModel, IdentityTenantUtil.getTenantId(tenantDomain));
+        return CACHE_BACKED_DAO.updateAction(actionType, actionId, actionUpdateModel,
+                IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
     public void deleteAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
 
-        CACHE_BACKED_DAO.deleteAction(ActionManagementUtil.getvalidatedActionType(actionType), actionId,
-                IdentityTenantUtil.getTenantId(tenantDomain));
+        CACHE_BACKED_DAO.deleteAction(actionType, actionId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
     public Action activateAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
 
-        return CACHE_BACKED_DAO.activateAction(ActionManagementUtil.getvalidatedActionType(actionType), actionId,
-                IdentityTenantUtil.getTenantId(tenantDomain));
+        return CACHE_BACKED_DAO.activateAction(actionType, actionId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
     public Action deactivateAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
 
-        return CACHE_BACKED_DAO.deactivateAction(ActionManagementUtil.getvalidatedActionType(actionType), actionId,
-                IdentityTenantUtil.getTenantId(tenantDomain));
+        return CACHE_BACKED_DAO.deactivateAction(actionType, actionId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
-    public List<ActionType> getActionTypes(String tenantDomain) throws ActionMgtException {
+    public Map<String, Integer> getActionsCountPerType(String tenantDomain) throws ActionMgtException {
 
-        return CACHE_BACKED_DAO.getActionTypes(IdentityTenantUtil.getTenantId(tenantDomain));
+        return CACHE_BACKED_DAO.getActionsCountPerType(IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public Action getActionByActionId(String actionId, String tenantDomain) throws ActionMgtException {
+
+        return CACHE_BACKED_DAO.getActionByActionId(actionId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 }

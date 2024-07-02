@@ -57,7 +57,7 @@ public class AuthType {
     }
 
     private TypeEnum type;
-    private Map<String, String> properties = null;
+    private Map<String, Object> properties = null;
 
     public AuthType() {
     }
@@ -78,12 +78,12 @@ public class AuthType {
         this.type = type;
     }
 
-    public Map<String, String> getProperties() {
+    public Map<String, Object> getProperties() {
 
         return properties;
     }
 
-    public void setProperties(Map<String, String> properties) {
+    public void setProperties(Map<String, Object> properties) {
 
         this.properties = properties;
     }
@@ -94,7 +94,7 @@ public class AuthType {
     public static class AuthTypeBuilder {
 
         private TypeEnum type;
-        private Map<String, String> properties = null;
+        private Map<String, Object> properties = null;
 
         public AuthTypeBuilder() {
         }
@@ -105,7 +105,7 @@ public class AuthType {
             return this;
         }
 
-        public AuthTypeBuilder properties(Map<String, String> properties) {
+        public AuthTypeBuilder properties(Map<String, Object> properties) {
 
             this.properties = properties;
             return this;

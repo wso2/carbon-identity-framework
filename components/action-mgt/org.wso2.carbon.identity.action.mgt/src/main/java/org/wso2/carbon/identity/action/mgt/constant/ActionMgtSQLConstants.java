@@ -55,7 +55,7 @@ public class ActionMgtSQLConstants {
             " DESCRIPTION AS ACTION_DESCRIPTION," +
             " STATUS AS ACTION_STATUS" +
             " FROM IDN_ACTION WHERE TYPE = ? AND TENANT_ID = ?";
-    public static final String UPDATE_ACTION_BASIC_INFO = "UPDATE IDN_ACTION SET TYPE = ?, NAME = ?, DESCRIPTION = ? " +
+    public static final String UPDATE_ACTION_BASIC_INFO = "UPDATE IDN_ACTION SET NAME = ?, DESCRIPTION = ? " +
             "WHERE UUID = ? AND TYPE = ? AND TENANT_ID = ?";
     public static final String DELETE_ACTION_ENDPOINT_PROPERTIES = "DELETE FROM IDN_ACTION_ENDPOINT WHERE " +
             "ACTION_UUID = ? AND TENANT_ID = ?";
