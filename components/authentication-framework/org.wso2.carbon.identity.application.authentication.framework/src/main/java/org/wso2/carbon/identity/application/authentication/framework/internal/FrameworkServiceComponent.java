@@ -900,9 +900,8 @@ public class FrameworkServiceComponent {
      */
     private void loadCodeForRequire() {
 
-        try {
-            ClassLoader loader = FrameworkServiceComponent.class.getClassLoader();
-            InputStream resourceStream = loader.getResourceAsStream("js/require.js");
+        ClassLoader loader = FrameworkServiceComponent.class.getClassLoader();
+        try (InputStream resourceStream = loader.getResourceAsStream("js/require.js")) {
             requireCode = IOUtils.toString(resourceStream);
             FrameworkServiceDataHolder.getInstance().setCodeForRequireFunction(requireCode);
         } catch (IOException e) {
