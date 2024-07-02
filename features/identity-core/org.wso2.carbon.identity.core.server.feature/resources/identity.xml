@@ -765,6 +765,13 @@
         Default value : true
         -->
         <RemoveUsernameFromIntrospectionResponseForAppTokens>true</RemoveUsernameFromIntrospectionResponseForAppTokens>
+
+        <!-- Configuration to pass a list of keys which are restricted to be sent as query parameters. -->
+        <RestrictedQueryParameters>
+            <Parameter>username</Parameter>
+            <Parameter>password</Parameter>
+            <Parameter>client_secret</Parameter>
+        </RestrictedQueryParameters>
     </OAuth>
 
     <RestApiAuthentication>
