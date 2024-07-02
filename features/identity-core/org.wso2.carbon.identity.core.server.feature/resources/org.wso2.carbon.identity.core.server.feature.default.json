@@ -211,6 +211,7 @@
   "oauth.scope_validator.xacml.enable": true,
   "oauth.scope_validator.xacml.class": "org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator",
   "oauth.scope_validator.authz_implicit.enable": true,
+  "oauth.scope_validator.preserve_case_sensitivity": false,
   "oauth.grant_type.saml_bearer.user_type": "FEDERATED",
 
   "oauth.prompt_consent": "$ref{authentication.consent.prompt}",

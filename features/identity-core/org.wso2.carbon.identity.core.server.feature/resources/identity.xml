@@ -476,6 +476,7 @@
         Supported versions: IS 5.8.1  onwards
         -->
         <ScopeValidationEnabledForAuthzCodeAndImplicitGrant>true</ScopeValidationEnabledForAuthzCodeAndImplicitGrant>
+        <ScopeValidationPreserveCaseSensitivity>false</ScopeValidationPreserveCaseSensitivity>
 
         <!-- Scope handlers list. The handlers registered here will be executed at the scope validation phase while
              issuing access tokens. -->
