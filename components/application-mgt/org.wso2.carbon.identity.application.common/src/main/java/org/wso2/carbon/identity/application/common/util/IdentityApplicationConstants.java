@@ -137,6 +137,7 @@ public class IdentityApplicationConstants {
     public static final String CLIENT_ATTESTATION = "CLIENT_ATTESTATION";
     public static final String ANDROID = "ANDROID";
     public static final String IOS = "IOS";
+    public static final String ATTRIBUTE_SEPARATOR = ",";
 
     /**
      * Config elements.

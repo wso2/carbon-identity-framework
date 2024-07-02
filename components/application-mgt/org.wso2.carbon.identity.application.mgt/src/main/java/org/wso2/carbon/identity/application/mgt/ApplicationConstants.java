@@ -106,6 +106,8 @@ public class ApplicationConstants {
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
     public static final String TRUSTED_APP_CONSENT_REQUIRED_PROPERTY = "ApplicationMgt.TrustedAppConsentRequired";
+    public static final String TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY =
+            "ApplicationMgt.TrustedAppMaxThumbprintCount";
 
     public static final String NON_EXISTING_USER_CODE = "30007 - ";
 

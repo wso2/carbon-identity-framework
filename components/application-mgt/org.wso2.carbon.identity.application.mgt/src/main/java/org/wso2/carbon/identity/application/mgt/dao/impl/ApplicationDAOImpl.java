@@ -140,6 +140,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLE_APP_ID_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLE_APP_ID_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ATTESTATION;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
@@ -166,8 +167,11 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.NAME_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORACLE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.UNION_SEPARATOR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getConsoleAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig;
@@ -555,7 +559,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         int applicationId = serviceProvider.getApplicationID();
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         try {
-            deleteApplicationConfigurations(connection, serviceProvider, applicationId);
+            deleteApplicationConfigurations(connection, serviceProvider, applicationId, tenantDomain);
             addApplicationConfigurations(connection, serviceProvider, tenantDomain);
 
             IdentityDatabaseUtil.commitTransaction(connection);
@@ -605,7 +609,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         updateOutboundProvisioningConfiguration(applicationId,
                 serviceProvider.getOutboundProvisioningConfig(), connection);
-        updateSpTrustedAppMetadata(applicationId, serviceProvider.getTrustedAppMetadata(), connection);
+        updateSpTrustedAppMetadata(applicationId, serviceProvider.getTrustedAppMetadata(), connection, tenantID);
 
         if (serviceProvider.getPermissionAndRoleConfig() != null) {
             updatePermissionAndRoleConfiguration(serviceProvider.getApplicationID(),
@@ -639,7 +643,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     private void deleteApplicationConfigurations(Connection connection, ServiceProvider serviceProvider,
-                                                 int applicationId) throws SQLException {
+                                                 int applicationId, String tenantDomain) throws SQLException {
+
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
 
         // delete all in-bound authentication requests.
         deleteInboundAuthRequestConfiguration(serviceProvider.getApplicationID(), connection);
@@ -651,7 +657,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         deletePermissionAndRoleConfiguration(applicationId, connection);
         // deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
         deleteAssociatedRolesConfigurations(connection, serviceProvider.getApplicationResourceId());
-        deleteSpTrustedAppMetadata(applicationId, connection);
+        deleteSpTrustedAppMetadata(applicationId, connection, tenantID);
     }
 
     private void deleteAssociatedRolesConfigurations(Connection connection, String applicationId) throws SQLException {
@@ -2201,7 +2207,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         (getAndroidAttestationServiceCredentials(serviceProvider));
             }
             serviceProvider.setClientAttestationMetaData(clientAttestationMetaData);
-            serviceProvider.setTrustedAppMetadata(getSpTrustedAppMetadata(applicationId, connection, tenantID));
+            serviceProvider.setTrustedAppMetadata(
+                    getSpTrustedAppMetadata(applicationId, connection, tenantID, propertyList));
             serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                     applicationId, connection, tenantID));
             serviceProvider
@@ -2537,6 +2544,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
+    }
+
+    private boolean getTrustedAppConsent(List<ServiceProviderProperty> propertyList) {
+
+        String consent = propertyList.stream()
+                .filter(property -> TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+        if (StringUtils.EMPTY.equals(consent)) {
+            return false;
+        }
+        return Boolean.parseBoolean(consent);
     }
 
     /**
@@ -3520,13 +3540,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     /**
      * Get trusted app metadata of the application.
      *
-     * @param applicationId Application ID.
-     * @param connection    Database connection.
-     * @param tenantID      Tenant ID.
+     * @param applicationId  Application ID.
+     * @param connection     Database connection.
+     * @param tenantID       Tenant ID.
+     * @param spPropertyList Sp property list.
      * @return trustedAppMetadata Trusted app configurations.
      * @throws IdentityApplicationManagementException If an error occurs while retrieving trusted app configurations.
      */
-    private SpTrustedAppMetadata getSpTrustedAppMetadata(int applicationId, Connection connection, int tenantID)
+    private SpTrustedAppMetadata getSpTrustedAppMetadata(int applicationId, Connection connection, int tenantID,
+                                                         List<ServiceProviderProperty> spPropertyList)
             throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
@@ -3545,12 +3567,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     String platformType = appConfigResultSet.getString(1);
                     if (ANDROID.equals(platformType)) {
                         spTrustedAppMetadata.setAndroidPackageName(appConfigResultSet.getString(2));
-                        spTrustedAppMetadata.setAndroidThumbprints(appConfigResultSet.getString(3));
+                        if (appConfigResultSet.getString(3) != null) {
+                            spTrustedAppMetadata.setAndroidThumbprints(
+                                    appConfigResultSet.getString(3).split(ATTRIBUTE_SEPARATOR));
+                        } else {
+                            spTrustedAppMetadata.setAndroidThumbprints(new String[0]);
+                        }
                     } else if (IOS.equals(platformType)) {
                         spTrustedAppMetadata.setAppleAppId(appConfigResultSet.getString(2));
                     }
                     spTrustedAppMetadata.setIsFidoTrusted(appConfigResultSet.getBoolean(4));
                 }
+                spTrustedAppMetadata.setIsConsentGranted(getTrustedAppConsent(spPropertyList));
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while retrieving trusted app configurations.", e);
@@ -3564,15 +3592,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @param applicationId  Application ID.
      * @param trustedAppMetadata Trusted app configurations.
      * @param connection     Database connection.
+     * @param tenantID       Tenant ID.
      * @throws IdentityApplicationManagementException If an error occurs while updating trusted app configurations.
      */
     private void updateSpTrustedAppMetadata(int applicationId, SpTrustedAppMetadata trustedAppMetadata,
-                                            Connection connection) throws IdentityApplicationManagementException {
+                                            Connection connection, int tenantID)
+            throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
             log.debug("Adding trusted app configurations for application: " + applicationId);
         }
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         try (PreparedStatement storeAppConfigs = connection
                     .prepareStatement(ApplicationMgtDBQueries.STORE_TRUSTED_APPS)) {
@@ -3584,7 +3613,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 if (StringUtils.isNotBlank(trustedAppMetadata.getAndroidPackageName())) {
                     storeAppConfigs.setString(2, ANDROID);
                     storeAppConfigs.setString(3, trustedAppMetadata.getAndroidPackageName());
-                    storeAppConfigs.setString(4, trustedAppMetadata.getAndroidThumbprints());
+                    if (trustedAppMetadata.getAndroidThumbprints() != null) {
+                        storeAppConfigs.setString(4, String.join(ATTRIBUTE_SEPARATOR,
+                                trustedAppMetadata.getAndroidThumbprints()));
+                    } else {
+                        storeAppConfigs.setString(4, null);
+                    }
                     storeAppConfigs.addBatch();
                 }
                 if (StringUtils.isNotBlank(trustedAppMetadata.getAppleAppId())) {
@@ -3605,14 +3639,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      *
      * @param applicationID Application ID.
      * @param connection   Database connection.
+     * @param tenantID     Tenant ID.
      * @throws SQLException If an error occurs while deleting trusted app configurations.
      */
-    private void deleteSpTrustedAppMetadata(int applicationID, Connection connection) throws SQLException {
+    private void deleteSpTrustedAppMetadata(int applicationID, Connection connection, int tenantID)
+            throws SQLException {
 
         if (log.isDebugEnabled()) {
             log.debug("Deleting trusted app configurations for application: " + applicationID);
         }
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         try (PreparedStatement deleteAppConfigsPrepStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.REMOVE_TRUSTED_APPS)) {
@@ -5295,6 +5330,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAndroidAttestationServiceCredentialAsSecret(sp);
         }
 
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)) &&
+                sp.getTrustedAppMetadata() != null) {
+            ServiceProviderProperty trustedAppConsentProperty = buildTrustedAppConsentProperty(sp);
+            spPropertyMap.put(trustedAppConsentProperty.getName(), trustedAppConsentProperty);
+        }
         sp.setSpProperties(spPropertyMap.values().toArray(new ServiceProviderProperty[0]));
     }
 
@@ -5480,6 +5520,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         property.setValue(String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isUseUserstoreDomainInRoles()));
         return property;
+    }
+
+    private ServiceProviderProperty buildTrustedAppConsentProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty trustedAppConsentProperty = new ServiceProviderProperty();
+        trustedAppConsentProperty.setName(TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME);
+        trustedAppConsentProperty.setDisplayName(TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME);
+
+        trustedAppConsentProperty.setValue(String.valueOf(sp.getTrustedAppMetadata().getIsConsentGranted()));
+        return trustedAppConsentProperty;
     }
 
     private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -65,6 +67,7 @@ import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
@@ -101,6 +104,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -1008,15 +1012,21 @@ public class ApplicationManagementServiceImplTest {
     @DataProvider(name = "trustedAppMetadataDataProvider")
     public Object[][] trustedAppMetadataDataProvider() {
 
+        String[] thumbprints1 = {"sampleThumbprint1"};
+        String[] thumbprints2 = {"sampleThumbprint1", "sampleThumbprint2"};
+
         return new Object[][]{
-                {"com.wso2.sample.mobile.application", "sampleThumbprint1", "APPLETEAMID.com.wso2.mobile.sample"},
-                {"com.wso2.sample.mobile.application", "sampleThumbprint1, sampleThumbprint1", null},
-                {null, null, "APPLETEAMID.com.wso2.mobile.sample"}
+                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", false, false},
+                {"com.wso2.sample.mobile.application", thumbprints2, null, false, false},
+                {null, null, "APPLETEAMID.com.org.mobile.sample", false, false},
+                // Check if consent property is handled correctly.
+                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, true}
         };
     }
 
     @Test(dataProvider = "trustedAppMetadataDataProvider")
-    public void testTrustedAppMetadata(String androidPackageName, String androidThumbprints, String appleAppId)
+    public void testTrustedAppMetadata(String androidPackageName, String[] androidThumbprints, String appleAppId,
+                                       boolean isConsentRequired, boolean isConsentGranted)
             throws Exception {
 
         ServiceProvider inputSP = new ServiceProvider();
@@ -1028,23 +1038,29 @@ public class ApplicationManagementServiceImplTest {
         trustedAppMetadata.setAppleAppId(appleAppId);
         trustedAppMetadata.setAndroidThumbprints(androidThumbprints);
         trustedAppMetadata.setIsFidoTrusted(true);
+        trustedAppMetadata.setIsConsentGranted(isConsentGranted);
         inputSP.setTrustedAppMetadata(trustedAppMetadata);
 
-        // Adding new application.
-        String addedSpId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
-                REGISTRY_SYSTEM_USERNAME);
-        ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(addedSpId,
-                SUPER_TENANT_DOMAIN_NAME);
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class,
+                Mockito.CALLS_REAL_METHODS)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)).
+                    thenReturn(String.valueOf(isConsentRequired));
+            // Adding new application.
+            String addedSpId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+            ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(addedSpId,
+                    SUPER_TENANT_DOMAIN_NAME);
 
-        Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAndroidPackageName(), androidPackageName);
-        Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAndroidThumbprints(), androidThumbprints);
-        Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAppleAppId(), appleAppId);
-        Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getIsFidoTrusted(),
-                trustedAppMetadata.getIsFidoTrusted());
+            Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAndroidPackageName(), androidPackageName);
+            Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAndroidThumbprints(), androidThumbprints);
+            Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAppleAppId(), appleAppId);
+            Assert.assertTrue(retrievedSP.getTrustedAppMetadata().getIsFidoTrusted());
+            Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getIsConsentGranted(), isConsentGranted);
 
-        // Deleting added application.
-        applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
-                REGISTRY_SYSTEM_USERNAME);
+            // Deleting added application.
+            applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+        }
     }
 
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {

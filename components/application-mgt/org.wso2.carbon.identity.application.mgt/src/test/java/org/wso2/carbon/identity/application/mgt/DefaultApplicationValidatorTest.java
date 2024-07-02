@@ -23,7 +23,6 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
@@ -39,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 
 /**
@@ -186,22 +184,33 @@ public class DefaultApplicationValidatorTest {
     @DataProvider(name = "validateTrustedAppMetadataDataProvider")
     public Object[][] validateTrustedAppMetadataDataProvider() {
 
-        String errorThumbprints = String.join(",", Collections.nCopies(21, "thumbprint"));
+        String[] validThumbprints = {"thumbprint1", "thumbprint2"};
+        String[] inValidThumbprints = Collections.nCopies(21, "thumbprint").toArray(new String[0]);
+
         return new Object[][]{
-                {"com.wso2.sample", "thumbprint1,thumbprint2", "sample.app.id", false, false, false},
-                {"com.wso2.sample", "thumbprint1,thumbprint2", "", false, false, false},
-                {"", "", "sample.app.id", false, false, false},
-                {"", "", "", false, false, true},
-                {"com.wso2.sample", errorThumbprints, "sample.app.id", false, false, true},
-                {"com.wso2.sample", "thumbprint1,thumbprint2", "sample.app.id", true, true, false},
-                {"com.wso2.sample", "thumbprint1,thumbprint2", "sample.app.id", true, false, true},
-                {"", "thumbprint1,thumbprint2", "sample.app.id", true, false, true},
-                {"com.wso2.sample", "", "sample.app.id", true, false, true}
+                // Valid scenario with both android and iOS configurations.
+                {"com.wso2.sample", validThumbprints, "sample.app.id", false, false, false},
+                // Valid scenario with only android configurations.
+                {"com.wso2.sample", validThumbprints, "", false, false, false},
+                // Valid scenario with only iOS configurations.
+                {"", new String[0], "sample.app.id", false, false, false},
+                // Invalid scenario without both android and iOS configurations.
+                {"", new String[0], "", false, false, true},
+                // Invalid scenario with invalid thumbprints.
+                {"com.wso2.sample", inValidThumbprints, "sample.app.id", false, false, true},
+                // Valid scenario with consent required config enabled.
+                {"com.wso2.sample", validThumbprints, "sample.app.id", true, true, false},
+                // Invalid scenario with consent required config enabled and consent not granted.
+                {"com.wso2.sample", validThumbprints, "sample.app.id", true, false, true},
+                // Invalid scenario with empty android package name and non-empty thumbprints.
+                {"", validThumbprints, "sample.app.id", true, false, true},
+                // Invalid scenario with non-empty android package name and empty thumbprints.
+                {"com.wso2.sample", new String[0], "sample.app.id", true, false, true}
         };
     }
 
     @Test(dataProvider = "validateTrustedAppMetadataDataProvider")
-    public void testValidateTrustedAppMetadata(String androidPackageName, String thumbprints, String appleAppId,
+    public void testValidateTrustedAppMetadata(String androidPackageName, String[] thumbprints, String appleAppId,
                                                boolean consentRequired, boolean consentGranted,
                                                boolean isValidationFailScenario)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -209,17 +218,11 @@ public class DefaultApplicationValidatorTest {
         ServiceProvider sp = new ServiceProvider();
         SpTrustedAppMetadata spTrustedAppMetadata = new SpTrustedAppMetadata();
         spTrustedAppMetadata.setIsFidoTrusted(true);
+        spTrustedAppMetadata.setIsConsentGranted(consentGranted);
         spTrustedAppMetadata.setAndroidPackageName(androidPackageName);
         spTrustedAppMetadata.setAndroidThumbprints(thumbprints);
         spTrustedAppMetadata.setAppleAppId(appleAppId);
         sp.setTrustedAppMetadata(spTrustedAppMetadata);
-
-        ServiceProviderProperty[] spProperties = new ServiceProviderProperty[1];
-        ServiceProviderProperty trustedAppConsentProperty = new ServiceProviderProperty();
-        trustedAppConsentProperty.setName(TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME);
-        trustedAppConsentProperty.setValue(String.valueOf(consentGranted));
-        spProperties[0] = trustedAppConsentProperty;
-        sp.setSpProperties(spProperties);
 
         try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
             identityUtil.when(() -> IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)).
@@ -242,5 +245,22 @@ public class DefaultApplicationValidatorTest {
                         String.join("|", validationErrors));
             }
         }
+    }
+
+    @Test
+    public void testValidateTrustedAppWithEmptyMetadataObj() throws NoSuchMethodException, InvocationTargetException,
+            IllegalAccessException {
+
+        ServiceProvider sp = new ServiceProvider();
+        List<String> validationErrors = new ArrayList<>();
+
+        DefaultApplicationValidator defaultApplicationValidator = new DefaultApplicationValidator();
+        Method validateTrustedAppMetadata = DefaultApplicationValidator.class.getDeclaredMethod(
+                "validateTrustedAppMetadata", List.class, ServiceProvider.class);
+        validateTrustedAppMetadata.setAccessible(true);
+        validateTrustedAppMetadata.invoke(defaultApplicationValidator, validationErrors, sp);
+
+        Assert.assertTrue(validationErrors.isEmpty(), "Validation should be skipped and there should not be any " +
+                "error messages.");
     }
 }

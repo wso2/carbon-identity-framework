@@ -44,7 +44,6 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
@@ -79,7 +78,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_ORIGIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
@@ -1213,25 +1211,5 @@ public class ApplicationMgtUtil {
             }
             gen.writeEndObject();
         }
-    }
-
-    /**
-     * Check whether the trusted app consent is granted for the application.
-     *
-     * @param serviceProvider Service provider.
-     * @return True if 'trustedAppConsentGranted' spProperty of the application is true.
-     */
-    public static boolean isTrustedAppConsentGranted(ServiceProvider serviceProvider) {
-
-        if (serviceProvider != null) {
-            String trustedAppConsent = Arrays.stream(serviceProvider.getSpProperties())
-                    .filter(spProp -> StringUtils.equals(spProp.getName(),
-                            TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME))
-                    .map(ServiceProviderProperty::getValue)
-                    .findFirst()
-                    .orElse(null);
-            return Boolean.parseBoolean(trustedAppConsent);
-        }
-        return false;
     }
 }

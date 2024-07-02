@@ -20,9 +20,12 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axis2.databinding.annotation.IgnoreNullElement;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -41,6 +44,7 @@ public class SpTrustedAppMetadata implements Serializable {
     private static final String ANDROID_THUMBPRINTS = "AndroidThumbprints";
     private static final String APPLE_APP_ID = "AppleAppId";
     private static final String IS_FIDO_TRUSTED = "IsFidoTrusted";
+    private static final String IS_CONSENT_GRANTED = "IsConsentGranted";
 
     @IgnoreNullElement
     @XmlElement(name = ANDROID_PACKAGE_NAME)
@@ -48,7 +52,7 @@ public class SpTrustedAppMetadata implements Serializable {
 
     @IgnoreNullElement
     @XmlElement(name = ANDROID_THUMBPRINTS)
-    private String androidThumbprints;
+    private String[] androidThumbprints;
 
     @IgnoreNullElement
     @XmlElement(name = APPLE_APP_ID)
@@ -57,6 +61,10 @@ public class SpTrustedAppMetadata implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = IS_FIDO_TRUSTED)
     private boolean isFidoTrusted;
+
+    @IgnoreNullElement
+    @XmlElement(name = IS_CONSENT_GRANTED)
+    private boolean isConsentGranted;
 
     /**
      * Creates an instance of the SpTrustedAppMetadata class by parsing an OMElement.
@@ -76,13 +84,29 @@ public class SpTrustedAppMetadata implements Serializable {
                 spTrustedAppMetadata.setAndroidPackageName(element.getText());
             }
             if (ANDROID_THUMBPRINTS.equals(elementName)) {
-                spTrustedAppMetadata.setAndroidThumbprints(element.getText());
+
+                Iterator<?> thumbprintsIter = element.getChildElements();
+                List<String> thumbprintsArrList = new ArrayList<>();
+
+                while (thumbprintsIter.hasNext()) {
+                    OMElement thumbprintElement = (OMElement) (thumbprintsIter.next());
+                    if (thumbprintElement.getText() != null) {
+                        thumbprintsArrList.add(thumbprintElement.getText());
+                    }
+                }
+
+                if (CollectionUtils.isNotEmpty(thumbprintsArrList)) {
+                    spTrustedAppMetadata.setAndroidThumbprints(thumbprintsArrList.toArray(new String[0]));
+                }
             }
             if (APPLE_APP_ID.equals(elementName)) {
                 spTrustedAppMetadata.setAppleAppId(element.getText());
             }
             if (IS_FIDO_TRUSTED.equals(elementName)) {
                 spTrustedAppMetadata.setIsFidoTrusted(Boolean.parseBoolean(element.getText()));
+            }
+            if (IS_CONSENT_GRANTED.equals(elementName)) {
+                spTrustedAppMetadata.setIsConsentGranted(Boolean.parseBoolean(element.getText()));
             }
         }
         return spTrustedAppMetadata;
@@ -113,7 +137,7 @@ public class SpTrustedAppMetadata implements Serializable {
      *
      * @return The Android thumbprints.
      */
-    public String getAndroidThumbprints() {
+    public String[] getAndroidThumbprints() {
 
         return androidThumbprints;
     }
@@ -123,7 +147,7 @@ public class SpTrustedAppMetadata implements Serializable {
      *
      * @param androidThumbprints The Android thumbprints to set.
      */
-    public void setAndroidThumbprints(String androidThumbprints) {
+    public void setAndroidThumbprints(String[] androidThumbprints) {
 
         this.androidThumbprints = androidThumbprints;
     }
@@ -166,5 +190,25 @@ public class SpTrustedAppMetadata implements Serializable {
     public void setIsFidoTrusted(boolean isFidoTrusted) {
 
         this.isFidoTrusted = isFidoTrusted;
+    }
+
+    /**
+     * Get the consent granted status.
+     *
+     * @return The consent granted status.
+     */
+    public boolean getIsConsentGranted() {
+
+        return isConsentGranted;
+    }
+
+    /**
+     * Set the consent granted status.
+     *
+     * @param isConsentGranted The consent granted status to set.
+     */
+    public void setIsConsentGranted(boolean isConsentGranted) {
+
+        this.isConsentGranted = isConsentGranted;
     }
 }

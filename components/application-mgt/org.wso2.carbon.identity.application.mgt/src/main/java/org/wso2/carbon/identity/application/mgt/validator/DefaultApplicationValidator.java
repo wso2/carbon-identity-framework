@@ -46,7 +46,6 @@ import org.wso2.carbon.identity.application.common.model.script.AuthenticationSc
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
-import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
@@ -69,6 +68,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY;
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.user.mgt.UserMgtConstants.APPLICATION_DOMAIN;
@@ -104,14 +104,13 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String INCORRECT_TRUSTED_ANDROID_APP_DETAILS = "Both package name and thumbprints are " +
             "required when configuring an android application as a trusted mobile application.";
     public static final String IS_HANDLER = "IS_HANDLER";
-    public static final String ATTRIBUTE_SEPARATOR = ",";
     private static Pattern loopPattern;
     private static final int MODE_DEFAULT = 1;
     private static final int MODE_ESCAPE = 2;
     private static final int MODE_STRING = 3;
     private static final int MODE_SINGLE_LINE = 4;
     private static final int MODE_MULTI_LINE = 5;
-    private static final int MAX_ANDROID_THUMBPRINT_COUNT = 20;
+    private static final int DEFAULT_MAX_ANDROID_THUMBPRINT_COUNT = 20;
 
     public DefaultApplicationValidator() {
 
@@ -339,25 +338,23 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
 
         // Validate the android thumbprints count.
-        if (StringUtils.isNotBlank((trustedAppMetadata.getAndroidThumbprints()))) {
-            String[] thumbprints = trustedAppMetadata.getAndroidThumbprints().split(ATTRIBUTE_SEPARATOR);
-            if (thumbprints.length > MAX_ANDROID_THUMBPRINT_COUNT) {
+        if (ArrayUtils.isNotEmpty(trustedAppMetadata.getAndroidThumbprints()) &&
+                trustedAppMetadata.getAndroidThumbprints().length > getTrustedAppMaxThumbprintCount()) {
                 validationMsg.add(MAX_THUMBPRINT_COUNT_EXCEEDED);
-            }
         }
 
         // Validate consent for trusted apps.
         if (Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)) &&
                 trustedAppMetadata.getIsFidoTrusted() &&
-                !ApplicationMgtUtil.isTrustedAppConsentGranted(serviceProvider)) {
+                !serviceProvider.getTrustedAppMetadata().getIsConsentGranted()) {
             validationMsg.add(TRUSTED_APP_NOT_CONSENTED);
         }
 
         // Validate the android app details.
         if ((StringUtils.isNotBlank(trustedAppMetadata.getAndroidPackageName()) &&
-                StringUtils.isBlank(trustedAppMetadata.getAndroidThumbprints())) ||
+                ArrayUtils.isEmpty(trustedAppMetadata.getAndroidThumbprints())) ||
                 (StringUtils.isBlank(trustedAppMetadata.getAndroidPackageName()) &&
-                        StringUtils.isNotBlank(trustedAppMetadata.getAndroidThumbprints()))) {
+                        ArrayUtils.isNotEmpty(trustedAppMetadata.getAndroidThumbprints()))) {
             validationMsg.add(INCORRECT_TRUSTED_ANDROID_APP_DETAILS);
         }
     }
@@ -585,5 +582,14 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null;
+    }
+
+    private int getTrustedAppMaxThumbprintCount() {
+
+        String thumbprintCount = IdentityUtil.getProperty(TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY);
+        if (thumbprintCount != null) {
+            return Integer.parseInt(thumbprintCount);
+        }
+        return DEFAULT_MAX_ANDROID_THUMBPRINT_COUNT;
     }
 }
