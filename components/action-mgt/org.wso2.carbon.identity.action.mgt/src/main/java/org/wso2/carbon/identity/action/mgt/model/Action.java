@@ -24,54 +24,21 @@ package org.wso2.carbon.identity.action.mgt.model;
 public class Action  {
 
     private String id;
-
-    /**
-     * Action Type Enum.
-     */
-    public enum TypeEnum {
-
-        PRE_ISSUE_ACCESS_TOKEN("PRE_ISSUE_ACCESS_TOKEN"),
-        PRE_UPDATE_PASSWORD("PRE_UPDATE_PASSWORD"),
-        PRE_UPDATE_PROFILE("PRE_UPDATE_PROFILE"),
-        PRE_REGISTRATION("PRE_REGISTRATION"),
-        POST_LOGIN("POST_LOGIN"),
-        PRE_LOGIN("PRE_LOGIN");
-
-        private final String value;
-
-        TypeEnum(String v) {
-            this.value = v;
-        }
-
-        public String value() {
-            return value;
-        }
-
-        public static TypeEnum fromValue(String value) {
-            for (TypeEnum b : TypeEnum.values()) {
-                if (b.value.equals(value)) {
-                    return b;
-                }
-            }
-            throw new IllegalArgumentException("Unexpected value '" + value + "'");
-        }
-    }
-
-    private TypeEnum type;
+    private TypeEnums.ActionTypes type;
     private String name;
     private String description;
 
     /**
      * Action Status Enum.
      */
-    public enum StatusEnum {
+    public enum Status {
 
         ACTIVE("ACTIVE"),
         INACTIVE("INACTIVE");
 
         private final String value;
 
-        StatusEnum(String v) {
+        Status(String v) {
             this.value = v;
         }
 
@@ -79,8 +46,8 @@ public class Action  {
             return value;
         }
 
-        public static StatusEnum fromValue(String value) {
-            for (StatusEnum b : StatusEnum.values()) {
+        public static Status fromValue(String value) {
+            for (Status b : Status.values()) {
                 if (b.value.equals(value)) {
                     return b;
                 }
@@ -89,7 +56,7 @@ public class Action  {
         }
     }
 
-    private StatusEnum status;
+    private Status status;
     private EndpointConfig endpointConfig;
 
     public Action() {
@@ -122,12 +89,12 @@ public class Action  {
         this.id = id;
     }
 
-    public TypeEnum getType() {
+    public TypeEnums.ActionTypes getType() {
 
         return type;
     }
 
-    public void setType(TypeEnum type) {
+    public void setType(TypeEnums.ActionTypes type) {
 
         this.type = type;
     }
@@ -152,12 +119,12 @@ public class Action  {
         this.description = description;
     }
 
-    public StatusEnum getStatus() {
+    public Status getStatus() {
 
         return status;
     }
 
-    public void setStatus(StatusEnum status) {
+    public void setStatus(Status status) {
 
         this.status = status;
     }
@@ -178,10 +145,10 @@ public class Action  {
     public static class ActionResponseBuilder {
 
         private String id;
-        private TypeEnum type;
+        private TypeEnums.ActionTypes type;
         private String name;
         private String description;
-        private StatusEnum status;
+        private Status status;
         private EndpointConfig endpointConfig;
 
         public ActionResponseBuilder() {
@@ -193,7 +160,7 @@ public class Action  {
             return this;
         }
 
-        public ActionResponseBuilder type(TypeEnum type) {
+        public ActionResponseBuilder type(TypeEnums.ActionTypes type) {
 
             this.type = type;
             return this;
@@ -211,7 +178,7 @@ public class Action  {
             return this;
         }
 
-        public ActionResponseBuilder status(StatusEnum status) {
+        public ActionResponseBuilder status(Status status) {
 
             this.status = status;
             return this;

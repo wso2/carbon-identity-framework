@@ -23,47 +23,58 @@ package org.wso2.carbon.identity.action.mgt.constant;
  */
 public class ActionMgtSQLConstants {
 
-    // Column Names.
-    public static final String ACTION_UUID_COLUMN_NAME = "ACTION_UUID";
-    public static final String ACTION_TYPE_COLUMN_NAME = "ACTION_TYPE";
-    public static final String ACTION_NAME_COLUMN_NAME = "ACTION_NAME";
-    public static final String ACTION_DESCRIPTION_COLUMN_NAME = "ACTION_DESCRIPTION";
-    public static final String ACTION_STATUS_COLUMN_NAME = "ACTION_STATUS";
-    public static final String ACTION_COUNT_COLUMN_NAME = "ACTION_COUNT";
-    public static final String ACTION_ENDPOINT_PROPERTY_NAME_COLUMN_NAME = "ACTION_ENDPOINT_PROPERTY_NAME";
-    public static final String ACTION_ENDPOINT_PROPERTY_VALUE_COLUMN_NAME = "ACTION_ENDPOINT_PROPERTY_VALUE";
+    /**
+     * Column Names.
+     */
+    public static class Column {
 
-    // SQL queries.
-    public static final String ADD_ACTION_TO_ACTION_TYPE = "INSERT INTO IDN_ACTION (UUID, TYPE, NAME, DESCRIPTION, " +
-            "STATUS, TENANT_ID) VALUES (?, ?, ?, ?, ?, ?)";
-    public static final String ADD_ACTION_ENDPOINT_PROPERTIES = "INSERT INTO IDN_ACTION_ENDPOINT (ACTION_UUID, " +
-            "PROPERTY_NAME, PROPERTY_VALUE, TENANT_ID) VALUES (?, ?, ?, ?)";
-    public static final String GET_ACTION_BASIC_INFO_BY_ID = "SELECT" +
-            " TYPE AS ACTION_TYPE," +
-            " NAME AS ACTION_NAME," +
-            " DESCRIPTION AS ACTION_DESCRIPTION," +
-            " STATUS AS ACTION_STATUS" +
-            " FROM IDN_ACTION WHERE UUID = ? AND TENANT_ID = ?";
-    public static final String GET_ACTION_ENDPOINT_INFO_BY_ID = "SELECT" +
-            " PROPERTY_NAME AS ACTION_ENDPOINT_PROPERTY_NAME," +
-            " PROPERTY_VALUE AS ACTION_ENDPOINT_PROPERTY_VALUE" +
-            " FROM IDN_ACTION_ENDPOINT WHERE ACTION_UUID = ? AND TENANT_ID = ?";
-    public static final String GET_ACTIONS_BASIC_INFO_BY_ACTION_TYPE = "SELECT" +
-            " UUID AS ACTION_UUID," +
-            " TYPE AS ACTION_TYPE," +
-            " NAME AS ACTION_NAME," +
-            " DESCRIPTION AS ACTION_DESCRIPTION," +
-            " STATUS AS ACTION_STATUS" +
-            " FROM IDN_ACTION WHERE TYPE = ? AND TENANT_ID = ?";
-    public static final String UPDATE_ACTION_BASIC_INFO = "UPDATE IDN_ACTION SET NAME = ?, DESCRIPTION = ? " +
-            "WHERE UUID = ? AND TYPE = ? AND TENANT_ID = ?";
-    public static final String DELETE_ACTION_ENDPOINT_PROPERTIES = "DELETE FROM IDN_ACTION_ENDPOINT WHERE " +
-            "ACTION_UUID = ? AND TENANT_ID = ?";
-    public static final String DELETE_ACTION = "DELETE FROM IDN_ACTION WHERE UUID = ? AND TYPE = ? AND TENANT_ID = ?";
-    public static final String CHANGE_ACTION_STATUS = "UPDATE IDN_ACTION SET STATUS = ? WHERE UUID = ? AND " +
-            "TYPE = ? AND TENANT_ID = ?";
-    public static final String GET_ACTIONS_COUNT_PER_ACTION_TYPE = "SELECT" +
-            " TYPE AS ACTION_TYPE," +
-            " COUNT(*) AS ACTION_COUNT" +
-            " FROM IDN_ACTION WHERE TENANT_ID = ? GROUP BY TYPE";
+        public static final String ACTION_UUID = "ACTION_UUID";
+        public static final String ACTION_TYPE = "ACTION_TYPE";
+        public static final String ACTION_NAME = "ACTION_NAME";
+        public static final String ACTION_DESCRIPTION = "ACTION_DESCRIPTION";
+        public static final String ACTION_STATUS = "ACTION_STATUS";
+        public static final String ACTION_COUNT = "ACTION_COUNT";
+        public static final String ACTION_ENDPOINT_PROPERTY_NAME = "ACTION_ENDPOINT_PROPERTY_NAME";
+        public static final String ACTION_ENDPOINT_PROPERTY_VALUE = "ACTION_ENDPOINT_PROPERTY_VALUE";
+    }
+
+    /**
+     * Queries.
+     */
+    public static class Query {
+
+        public static final String ADD_ACTION_TO_ACTION_TYPE = "INSERT INTO IDN_ACTION (UUID, TYPE, NAME, " +
+                "DESCRIPTION, STATUS, TENANT_ID) VALUES (?, ?, ?, ?, ?, ?)";
+        public static final String ADD_ACTION_ENDPOINT_PROPERTIES = "INSERT INTO IDN_ACTION_ENDPOINT (ACTION_UUID, " +
+                "PROPERTY_NAME, PROPERTY_VALUE, TENANT_ID) VALUES (?, ?, ?, ?)";
+        public static final String GET_ACTION_BASIC_INFO_BY_ID = "SELECT" +
+                " TYPE AS ACTION_TYPE," +
+                " NAME AS ACTION_NAME," +
+                " DESCRIPTION AS ACTION_DESCRIPTION," +
+                " STATUS AS ACTION_STATUS" +
+                " FROM IDN_ACTION WHERE UUID = ? AND TENANT_ID = ?";
+        public static final String GET_ACTION_ENDPOINT_INFO_BY_ID = "SELECT" +
+                " PROPERTY_NAME AS ACTION_ENDPOINT_PROPERTY_NAME," +
+                " PROPERTY_VALUE AS ACTION_ENDPOINT_PROPERTY_VALUE" +
+                " FROM IDN_ACTION_ENDPOINT WHERE ACTION_UUID = ? AND TENANT_ID = ?";
+        public static final String GET_ACTIONS_BASIC_INFO_BY_ACTION_TYPE = "SELECT" +
+                " UUID AS ACTION_UUID," +
+                " TYPE AS ACTION_TYPE," +
+                " NAME AS ACTION_NAME," +
+                " DESCRIPTION AS ACTION_DESCRIPTION," +
+                " STATUS AS ACTION_STATUS" +
+                " FROM IDN_ACTION WHERE TYPE = ? AND TENANT_ID = ?";
+        public static final String UPDATE_ACTION_BASIC_INFO = "UPDATE IDN_ACTION SET NAME = ?, DESCRIPTION = ? " +
+                "WHERE UUID = ? AND TYPE = ? AND TENANT_ID = ?";
+        public static final String DELETE_ACTION_ENDPOINT_PROPERTIES = "DELETE FROM IDN_ACTION_ENDPOINT WHERE " +
+                "ACTION_UUID = ? AND TENANT_ID = ?";
+        public static final String DELETE_ACTION = "DELETE FROM IDN_ACTION WHERE UUID = ? AND TYPE = ? AND " +
+                "TENANT_ID = ?";
+        public static final String CHANGE_ACTION_STATUS = "UPDATE IDN_ACTION SET STATUS = ? WHERE UUID = ? AND " +
+                "TYPE = ? AND TENANT_ID = ?";
+        public static final String GET_ACTIONS_COUNT_PER_ACTION_TYPE = "SELECT" +
+                " TYPE AS ACTION_TYPE," +
+                " COUNT(*) AS ACTION_COUNT" +
+                " FROM IDN_ACTION WHERE TENANT_ID = ? GROUP BY TYPE";
+    }
 }

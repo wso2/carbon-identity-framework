@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * Action Manager Interface.
  */
-public interface ActionManager {
+public interface ActionManagementService {
 
     /**
      * Add Action to the given action type.
@@ -54,14 +54,14 @@ public interface ActionManager {
     /**
      * Update Action by given Action type and Action ID.
      *
-     * @param actionType        Action Type.
-     * @param actionId          Action ID.
-     * @param actionUpdateModel Action update model.
-     * @param tenantDomain      Tenant domain.
+     * @param actionType   Action Type.
+     * @param actionId     Action ID.
+     * @param action       Action update model.
+     * @param tenantDomain Tenant domain.
      * @return Action response after the update.
      * @throws ActionMgtException If an error occurs while updating the Action.
      */
-    Action updateAction(String actionType, String actionId, Action actionUpdateModel, String tenantDomain)
+    Action updateAction(String actionType, String actionId, Action action, String tenantDomain)
             throws ActionMgtException;
 
     /**

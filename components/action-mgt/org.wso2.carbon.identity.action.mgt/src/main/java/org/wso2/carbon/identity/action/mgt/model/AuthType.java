@@ -26,37 +26,7 @@ import java.util.Map;
  */
 public class AuthType {
 
-    /**
-     * Action Type Enum.
-     */
-    public enum TypeEnum {
-
-        NONE("NONE"),
-        BEARER("BEARER"),
-        API_KEY("API_KEY"),
-        BASIC("BASIC");
-
-        private final String value;
-
-        TypeEnum(String v) {
-            value = v;
-        }
-
-        public String value() {
-            return value;
-        }
-
-        public static TypeEnum fromValue(String value) {
-            for (TypeEnum b : TypeEnum.values()) {
-                if (b.value.equals(value)) {
-                    return b;
-                }
-            }
-            throw new IllegalArgumentException("Unexpected value '" + value + "'");
-        }
-    }
-
-    private TypeEnum type;
+    private TypeEnums.AuthenticationType type;
     private Map<String, Object> properties = null;
 
     public AuthType() {
@@ -68,12 +38,12 @@ public class AuthType {
         this.properties = authTypeBuilder.properties;
     }
 
-    public TypeEnum getType() {
+    public TypeEnums.AuthenticationType getType() {
 
         return type;
     }
 
-    public void setType(TypeEnum type) {
+    public void setType(TypeEnums.AuthenticationType type) {
 
         this.type = type;
     }
@@ -93,13 +63,13 @@ public class AuthType {
      */
     public static class AuthTypeBuilder {
 
-        private TypeEnum type;
+        private TypeEnums.AuthenticationType type;
         private Map<String, Object> properties = null;
 
         public AuthTypeBuilder() {
         }
 
-        public AuthTypeBuilder type(TypeEnum type) {
+        public AuthTypeBuilder type(TypeEnums.AuthenticationType type) {
 
             this.type = type;
             return this;

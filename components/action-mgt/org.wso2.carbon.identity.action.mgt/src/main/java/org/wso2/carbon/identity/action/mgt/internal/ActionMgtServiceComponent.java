@@ -25,8 +25,8 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.wso2.carbon.identity.action.mgt.ActionManager;
-import org.wso2.carbon.identity.action.mgt.ActionManagerImpl;
+import org.wso2.carbon.identity.action.mgt.ActionManagementService;
+import org.wso2.carbon.identity.action.mgt.ActionManagementServiceImpl;
 
 /**
  * Service component for the Action management.
@@ -44,7 +44,7 @@ public class ActionMgtServiceComponent {
 
         try {
             BundleContext bundleCtx = context.getBundleContext();
-            bundleCtx.registerService(ActionManager.class, ActionManagerImpl.getInstance(), null);
+            bundleCtx.registerService(ActionManagementService.class, ActionManagementServiceImpl.getInstance(), null);
             LOG.debug("Action management bundle is activated");
         } catch (Throwable e) {
             LOG.error("Error while initializing Action management component.", e);
@@ -56,7 +56,7 @@ public class ActionMgtServiceComponent {
 
         try {
             BundleContext bundleCtx = context.getBundleContext();
-            bundleCtx.ungetService(bundleCtx.getServiceReference(ActionManager.class));
+            bundleCtx.ungetService(bundleCtx.getServiceReference(ActionManagementService.class));
             LOG.debug("Action management bundle is deactivated");
         } catch (Throwable e) {
             LOG.error("Error while deactivating Action management component.", e);
