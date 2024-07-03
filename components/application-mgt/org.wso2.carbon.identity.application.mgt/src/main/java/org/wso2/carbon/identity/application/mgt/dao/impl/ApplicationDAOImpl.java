@@ -2546,7 +2546,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .orElse(StringUtils.EMPTY);
     }
 
-    private boolean getTrustedAppConsent(List<ServiceProviderProperty> propertyList) {
+    private Boolean getTrustedAppConsent(List<ServiceProviderProperty> propertyList) {
 
         String consent = propertyList.stream()
                 .filter(property -> TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME.equals(property.getName()))
@@ -2554,9 +2554,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
         if (StringUtils.EMPTY.equals(consent)) {
-            return false;
+            return null;
         }
-        return Boolean.parseBoolean(consent);
+        return Boolean.valueOf(consent);
     }
 
     /**

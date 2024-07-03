@@ -344,9 +344,9 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
 
         // Validate consent for trusted apps.
-        if (Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)) &&
-                trustedAppMetadata.getIsFidoTrusted() &&
-                !serviceProvider.getTrustedAppMetadata().getIsConsentGranted()) {
+        if ((Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)) &&
+                trustedAppMetadata.getIsFidoTrusted()) && (trustedAppMetadata.getIsConsentGranted() == null ||
+                !trustedAppMetadata.getIsConsentGranted())) {
             validationMsg.add(TRUSTED_APP_NOT_CONSENTED);
         }
 

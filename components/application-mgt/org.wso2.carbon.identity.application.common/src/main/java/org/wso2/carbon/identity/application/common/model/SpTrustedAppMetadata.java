@@ -64,7 +64,7 @@ public class SpTrustedAppMetadata implements Serializable {
 
     @IgnoreNullElement
     @XmlElement(name = IS_CONSENT_GRANTED)
-    private boolean isConsentGranted;
+    private Boolean isConsentGranted;
 
     /**
      * Creates an instance of the SpTrustedAppMetadata class by parsing an OMElement.
@@ -106,7 +106,7 @@ public class SpTrustedAppMetadata implements Serializable {
                 spTrustedAppMetadata.setIsFidoTrusted(Boolean.parseBoolean(element.getText()));
             }
             if (IS_CONSENT_GRANTED.equals(elementName)) {
-                spTrustedAppMetadata.setIsConsentGranted(Boolean.parseBoolean(element.getText()));
+                spTrustedAppMetadata.setIsConsentGranted(Boolean.valueOf(element.getText()));
             }
         }
         return spTrustedAppMetadata;
@@ -197,7 +197,7 @@ public class SpTrustedAppMetadata implements Serializable {
      *
      * @return The consent granted status.
      */
-    public boolean getIsConsentGranted() {
+    public Boolean getIsConsentGranted() {
 
         return isConsentGranted;
     }
@@ -207,7 +207,7 @@ public class SpTrustedAppMetadata implements Serializable {
      *
      * @param isConsentGranted The consent granted status to set.
      */
-    public void setIsConsentGranted(boolean isConsentGranted) {
+    public void setIsConsentGranted(Boolean isConsentGranted) {
 
         this.isConsentGranted = isConsentGranted;
     }
