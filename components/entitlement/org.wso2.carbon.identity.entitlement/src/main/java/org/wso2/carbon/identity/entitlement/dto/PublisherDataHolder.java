@@ -39,7 +39,7 @@ import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTable
 import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.IS_SECRET;
 import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.MODULE;
 import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.PROPERTY_ID;
-import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.VALUE;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.PROPERTY_VALUE;
 
 /**
  *
@@ -114,46 +114,32 @@ public class PublisherDataHolder {
 
         List<PublisherPropertyDTO> propertyDTOList = new ArrayList<>();
 
-        if (resultSet != null) {
+        do {
+            PublisherPropertyDTO dto = new PublisherPropertyDTO();
 
-            do {
+            dto.setId(resultSet.getString(PROPERTY_ID));
+            dto.setValue(resultSet.getString(PROPERTY_VALUE));
+            dto.setDisplayName(resultSet.getString(DISPLAY_NAME));
+            dto.setDisplayOrder(resultSet.getInt(DISPLAY_ORDER));
+            dto.setRequired(resultSet.getBoolean(IS_REQUIRED));
+            dto.setSecret(resultSet.getBoolean(IS_SECRET));
+            dto.setModule(resultSet.getString(MODULE));
 
-                String entitlementModuleName = resultSet.getString(ENTITLEMENT_MODULE_NAME);
-                String propertyId = resultSet.getString(PROPERTY_ID);
-                String displayName = resultSet.getString(DISPLAY_NAME);
-                String value = resultSet.getString(VALUE);
-                boolean isRequired = resultSet.getBoolean(IS_REQUIRED);
-                int displayOrder = resultSet.getInt(DISPLAY_ORDER);
-                boolean isSecret = resultSet.getBoolean(IS_SECRET);
-                String module = resultSet.getString(MODULE);
-
-                PublisherPropertyDTO dto = new PublisherPropertyDTO();
-
-                dto.setId(propertyId);
-                dto.setValue(value);
-                dto.setDisplayName(displayName);
-                dto.setDisplayOrder(displayOrder);
-                dto.setRequired(isRequired);
-                dto.setSecret(isSecret);
-                dto.setModule(module);
-
-                if (dto.isSecret() && (returnSecrets)) {
-                        String password = dto.getValue();
-                        try {
-                            password = new String(CryptoUtil.getDefaultCryptoUtil().
-                                    base64DecodeAndDecrypt(dto.getValue()));
-                        } catch (CryptoException e) {
-                            log.error(e);
-                            // ignore
-                        }
-                        dto.setValue(password);
-
+            if (dto.isSecret() && (returnSecrets)) {
+                String password = dto.getValue();
+                try {
+                    password = new String(CryptoUtil.getDefaultCryptoUtil().
+                            base64DecodeAndDecrypt(dto.getValue()));
+                } catch (CryptoException e) {
+                    log.error(e);
+                    // ignore
                 }
+                dto.setValue(password);
+            }
 
-                this.moduleName = entitlementModuleName;
-                propertyDTOList.add(dto);
-            } while (resultSet.next());
-        }
+            this.moduleName = resultSet.getString(ENTITLEMENT_MODULE_NAME);
+            propertyDTOList.add(dto);
+        } while (resultSet.next());
         this.propertyDTOs = propertyDTOList.toArray(new PublisherPropertyDTO[0]);
     }
 

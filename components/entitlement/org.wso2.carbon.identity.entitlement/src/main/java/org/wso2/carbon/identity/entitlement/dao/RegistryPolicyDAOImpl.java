@@ -50,8 +50,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -131,7 +129,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
 
         List<PolicyDTO> policyDTOs = new ArrayList<>();
         for (String policyId : policyIds) {
-           policyDTOs.add(getPAPPolicy(policyId));
+            policyDTOs.add(getPAPPolicy(policyId));
         }
         return policyDTOs;
     }
@@ -196,7 +194,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
                 }
             }
         } catch (RegistryException e) {
-            LOG.error("Error while creating new version of policy", e);
+            LOG.error(String.format("Error while retrieving policy versions for policy %s", policyId), e);
         }
         return versions.toArray(new String[0]);
 
@@ -222,15 +220,8 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
     @Override
     public String getPolicy(String policyId) {
 
-        PolicyDTO dto;
-        try {
-            dto = getPublishedPolicy(policyId);
-            return dto.getPolicy();
-        } catch (Exception e) {
-            LOG.error("Policy with identifier " + policyId + " can not be retrieved " +
-                    "from registry policy finder module", e);
-        }
-        return null;
+        PolicyDTO dto = getPublishedPolicy(policyId);
+        return dto.getPolicy();
     }
 
     /**
@@ -242,15 +233,8 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
     @Override
     public int getPolicyOrder(String policyId) {
 
-        PolicyDTO dto;
-        try {
-            dto = getPublishedPolicy(policyId);
-            return dto.getPolicyOrder();
-        } catch (Exception e) {
-            LOG.error("Policy with identifier " + policyId + " can not be retrieved " +
-                    "from registry policy finder module", e);
-        }
-        return -1;
+        PolicyDTO dto = getPublishedPolicy(policyId);
+        return dto.getPolicyOrder();
     }
 
     /**
@@ -359,44 +343,18 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
     @Override
     public Map<String, Set<AttributeDTO>> getSearchAttributes(String identifier, Set<AttributeDTO> givenAttribute) {
 
-        PolicyDTO[] policyDTOs = null;
-        Map<String, Set<AttributeDTO>> attributeMap = null;
+        PolicyDTO[] policyDTOs;
         try {
             policyDTOs = getAllPolicies(true, true);
-        } catch (Exception e) {
+
+            if (policyDTOs.length > 0) {
+                return EntitlementUtil.getAttributesFromPolicies(policyDTOs);
+            }
+        } catch (EntitlementException e) {
             LOG.error("Policies can not be retrieved from registry policy finder module", e);
         }
 
-        if (policyDTOs != null) {
-            attributeMap = new HashMap<>();
-            for (PolicyDTO policyDTO : policyDTOs) {
-                Set<AttributeDTO> attributeDTOs =
-                        new HashSet<>(Arrays.asList(policyDTO.getAttributeDTOs()));
-                String[] policyIdRef = policyDTO.getPolicyIdReferences();
-                String[] policySetIdRef = policyDTO.getPolicySetIdReferences();
-
-                if (policyIdRef != null && policyIdRef.length > 0 || policySetIdRef != null &&
-                        policySetIdRef.length > 0) {
-                    for (PolicyDTO dto : policyDTOs) {
-                        if (policyIdRef != null) {
-                            for (String policyId : policyIdRef) {
-                                if (dto.getPolicyId().equals(policyId)) {
-                                    attributeDTOs.addAll(Arrays.asList(dto.getAttributeDTOs()));
-                                }
-                            }
-                        }
-                        for (String policySetId : policySetIdRef) {
-                            if (dto.getPolicyId().equals(policySetId)) {
-                                attributeDTOs.addAll(Arrays.asList(dto.getAttributeDTOs()));
-                            }
-                        }
-                    }
-                }
-                attributeMap.put(policyDTO.getPolicyId(), attributeDTOs);
-            }
-        }
-
-        return attributeMap;
+        return Collections.emptyMap();
     }
 
     /**

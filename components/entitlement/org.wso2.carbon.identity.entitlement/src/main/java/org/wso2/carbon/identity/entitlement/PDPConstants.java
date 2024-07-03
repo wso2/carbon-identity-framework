@@ -302,8 +302,14 @@ public class PDPConstants {
     public static final String POLICY_COMBINING_PREFIX_1 = "urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:";
     public static final String POLICY_COMBINING_PREFIX_3 = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:";
     public static final String SUBSCRIBER_ID = "subscriberId";
+    public static final String LIMIT = "LIMIT";
+    public static final String KEY = "KEY";
 
     public static final class Algorithms {
+
+        private Algorithms() {
+
+        }
 
         public static final String DENY_OVERRIDES = "deny-overrides";
         public static final String PERMIT_OVERRIDES = "permit-overrides";
@@ -317,6 +323,10 @@ public class PDPConstants {
      * DB related constant values
      */
     public static class EntitlementTableColumns {
+
+        private EntitlementTableColumns() {
+
+        }
 
         //IDN_XACML_POLICY table
         public static final String POLICY_ID = "POLICY_ID";
@@ -343,43 +353,33 @@ public class PDPConstants {
 
         public static final String IS_IN_PDP = "IS_IN_PDP";
 
-
         //IDN_XACML_POLICY_EDITOR_DATA table
-        public static final String EDITOR_DATA_ID = "DATA_ID";
-
         public static final String EDITOR_DATA_NAME = "NAME";
 
         public static final String EDITOR_DATA = "DATA";
 
-
         //IDN_XACML_POLICY_ATTRIBUTE table
         public static final String ATTRIBUTE_ID = "ATTRIBUTE_ID";
 
-        public static final String ATTRIBUTE_NAME = "NAME";
-
-        public static final String ATTRIBUTE_VALUE = "VALUE";
-
+        public static final String ATTRIBUTE_VALUE = "ATTRIBUTE_VALUE";
+        public static final String DATA_TYPE = "DATA_TYPE";
+        public static final String CATEGORY = "CATEGORY";
 
         //IDN_XACML_POLICY_REFERENCE table
         public static final String REFERENCE = "REFERENCE";
 
-
         //IDN_XACML_POLICY_SET_REFERENCE table
         public static final String SET_REFERENCE = "SET_REFERENCE";
-
 
         //IND_XACML_SUBSCRIBER table
         public static final String SUBSCRIBER_ID = "SUBSCRIBER_ID";
 
         public static final String ENTITLEMENT_MODULE_NAME = "ENTITLEMENT_MODULE_NAME";
 
-
         //IND_XACML_SUBSCRIBER_PROPERTY table
         public static final String PROPERTY_ID = "PROPERTY_ID";
 
         public static final String DISPLAY_NAME = "DISPLAY_NAME";
-
-        public static final String SUBSCRIBER_PROPERTY_VALUE = "VALUE";
 
         public static final String IS_REQUIRED = "IS_REQUIRED";
 
@@ -388,15 +388,13 @@ public class PDPConstants {
         public static final String IS_SECRET = "IS_SECRET";
 
         public static final String MODULE = "MODULE";
-        public static final String VALUE = "VALUE";
 
+        public static final String PROPERTY_VALUE = "PROPERTY_VALUE";
 
         //IDN_XACML_STATUS table
-        public static final String STATUS_ID = "STATUS_ID";
-
         public static final String STATUS_TYPE = "TYPE";
 
-        public static final String SUCCESS = "SUCCESS";
+        public static final String IS_SUCCESS = "IS_SUCCESS";
 
         public static final String USER = "USERNAME";
 
@@ -408,20 +406,14 @@ public class PDPConstants {
 
         public static final String MESSAGE = "MESSAGE";
 
-        public static final String POLICY_TENANT_ID = "POLICY_TENANT_ID";
-
         public static final String POLICY_VERSION = "POLICY_VERSION";
 
-        public static final String SUBSCRIBER_TENANT_ID = "SUBSCRIBER_TENANT_ID";
-
         public static final String STATUS_COUNT = "COUNT";
-
 
         //IDN_XACML_CONFIG table
         public static final String CONFIG_KEY = "CONFIG_KEY";
 
         public static final String CONFIG_VALUE = "CONFIG_VALUE";
-
 
     }
 }

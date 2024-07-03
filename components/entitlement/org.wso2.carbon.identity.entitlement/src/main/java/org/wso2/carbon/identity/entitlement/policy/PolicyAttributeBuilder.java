@@ -96,6 +96,22 @@ public class PolicyAttributeBuilder {
     }
 
     /**
+     * This retrieves attributes from the policy.
+     *
+     * @return attributeDTO list.
+     * @throws EntitlementException if an error occurs while retrieving attributes.
+     */
+    public List<AttributeDTO> getAttributesFromPolicy() throws EntitlementException {
+
+        List<AttributeDTO> attributeDTOs = new ArrayList<>();
+        try {
+            return createPolicyMetaData(policy, attributeDTOs);
+        } catch (EntitlementException e) {
+            throw new EntitlementException("Can not create Policy MetaData for given policy");
+        }
+    }
+
+    /**
      * This creates the attributes from registry property values
      *
      * @param properties Properties object read from registry resource
@@ -125,29 +141,6 @@ public class PolicyAttributeBuilder {
         }
 
         return attributeDTOs.toArray(new AttributeDTO[attributeDTOs.size()]);
-    }
-
-    public AttributeDTO[] getPolicyMetaData(Properties properties) {
-
-        List<AttributeDTO> attributeDTOs = new ArrayList<>();
-        if (properties != null && !properties.isEmpty()) {
-            for (int attributeElementNo = 0; attributeElementNo < properties.size(); ) {
-
-                String[] attributeData = Collections.singletonList(properties.get(PDPConstants.POLICY_META_DATA +
-                        attributeElementNo)).toString().split(PDPConstants.ATTRIBUTE_SEPARATOR);
-                if (attributeData.length == PDPConstants.POLICY_META_DATA_ARRAY_LENGTH) {
-                    AttributeDTO attributeDTO = new AttributeDTO();
-                    attributeDTO.setCategory(attributeData[0]);
-                    attributeDTO.setAttributeValue(attributeData[1]);
-                    attributeDTO.setAttributeId(attributeData[2]);
-                    attributeDTO.setAttributeDataType(attributeData[3]);
-                    attributeDTOs.add(attributeDTO);
-                }
-                attributeElementNo++;
-            }
-        }
-
-        return attributeDTOs.toArray(new AttributeDTO[0]);
     }
 
     /**

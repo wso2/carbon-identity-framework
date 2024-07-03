@@ -75,6 +75,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -598,5 +600,34 @@ public class EntitlementUtil {
 
         // The default behavior is to store policy meta data.
         return StringUtils.isEmpty(propertyValue) || Boolean.parseBoolean(propertyValue);
+    }
+
+    public static Map<String, Set<AttributeDTO>> getAttributesFromPolicies(PolicyDTO[] policyDTOs) {
+
+        Map<String, Set<AttributeDTO>> attributeMap = new HashMap<>();
+        for (PolicyDTO policyDTO : policyDTOs) {
+            Set<AttributeDTO> attributeDTOs = new HashSet<>(Arrays.asList(policyDTO.getAttributeDTOs()));
+            String[] policyIdRef = policyDTO.getPolicyIdReferences();
+            String[] policySetIdRef = policyDTO.getPolicySetIdReferences();
+
+            if (policyIdRef != null && policyIdRef.length > 0 || policySetIdRef != null && policySetIdRef.length > 0) {
+                for (PolicyDTO dto : policyDTOs) {
+                    if (policyIdRef != null) {
+                        for (String policyId : policyIdRef) {
+                            if (dto.getPolicyId().equals(policyId)) {
+                                attributeDTOs.addAll(Arrays.asList(dto.getAttributeDTOs()));
+                            }
+                        }
+                    }
+                    for (String policySetId : policySetIdRef) {
+                        if (dto.getPolicyId().equals(policySetId)) {
+                            attributeDTOs.addAll(Arrays.asList(dto.getAttributeDTOs()));
+                        }
+                    }
+                }
+            }
+            attributeMap.put(policyDTO.getPolicyId(), attributeDTOs);
+        }
+        return attributeMap;
     }
 }
