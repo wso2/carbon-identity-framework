@@ -201,14 +201,14 @@ public class PolicyPublishExecutor {
                 try {
                     policyPublisherModule.publish(policyDTO, action, enabled, order);
                     subscriberHolders.add(new StatusHolder(EntitlementConstants.StatusTypes.PUBLISH_POLICY,
-                            subscriberId, version, policyId, action));
+                            subscriberId, policyDTO.getVersion(), policyId, action));
                     policyHolders.add(new StatusHolder(EntitlementConstants.StatusTypes.PUBLISH_POLICY,
-                            policyId, version, subscriberId, action));
+                            policyId, policyDTO.getVersion(), subscriberId, action));
                 } catch (Exception e) {
                     subscriberHolders.add(new StatusHolder(EntitlementConstants.StatusTypes.PUBLISH_POLICY,
-                            subscriberId, version, policyId, action, false, e.getMessage()));
+                            subscriberId, policyDTO.getVersion(), policyId, action, false, e.getMessage()));
                     policyHolders.add(new StatusHolder(EntitlementConstants.StatusTypes.PUBLISH_POLICY,
-                            policyId, version, subscriberId, action, false, e.getMessage()));
+                            policyId, policyDTO.getVersion(), subscriberId, action, false, e.getMessage()));
                 }
 
                 for (PAPStatusDataHandler module : papStatusDataHandler) {

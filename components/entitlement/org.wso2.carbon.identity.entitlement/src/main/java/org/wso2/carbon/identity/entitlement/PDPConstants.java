@@ -298,6 +298,10 @@ public class PDPConstants {
     public static final String MAX_NO_OF_POLICY_VERSIONS = "maxVersions";
 
     public static final int DEFAULT_MAX_NO_OF_POLICY_VERSIONS = 5;
+    public static final String GLOBAL_POLICY_COMBINING_ALGORITHM = "globalPolicyCombiningAlgorithm";
+    public static final String POLICY_COMBINING_PREFIX_1 = "urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:";
+    public static final String POLICY_COMBINING_PREFIX_3 = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:";
+    public static final String SUBSCRIBER_ID = "subscriberId";
 
     public static final class Algorithms {
 
@@ -307,5 +311,117 @@ public class PDPConstants {
         public static final String ORDERED_DENY_OVERRIDES = "ordered-deny-overrides";
         public static final String ONLY_ONE_APPLICABLE = "only-one-applicable";
         public static final String ORDERED_PERMIT_OVERRIDES = "ordered-permit-overrides";
+    }
+
+    /**
+     * DB related constant values
+     */
+    public static class EntitlementTableColumns {
+
+        //IDN_XACML_POLICY table
+        public static final String POLICY_ID = "POLICY_ID";
+
+        public static final String VERSION = "VERSION";
+
+        public static final String TENANT_ID = "TENANT_ID";
+
+        public static final String LAST_MODIFIED_TIME = "LAST_MODIFIED_TIME";
+
+        public static final String LAST_MODIFIED_USER = "LAST_MODIFIED_USER";
+
+        public static final String IS_ACTIVE = "IS_ACTIVE";
+
+        public static final String POLICY_ORDER = "POLICY_ORDER";
+
+        public static final String POLICY_TYPE = "POLICY_TYPE";
+
+        public static final String POLICY_EDITOR = "POLICY_EDITOR";
+
+        public static final String POLICY = "POLICY";
+
+        public static final String IS_IN_PAP = "IS_IN_PAP";
+
+        public static final String IS_IN_PDP = "IS_IN_PDP";
+
+
+        //IDN_XACML_POLICY_EDITOR_DATA table
+        public static final String EDITOR_DATA_ID = "DATA_ID";
+
+        public static final String EDITOR_DATA_NAME = "NAME";
+
+        public static final String EDITOR_DATA = "DATA";
+
+
+        //IDN_XACML_POLICY_ATTRIBUTE table
+        public static final String ATTRIBUTE_ID = "ATTRIBUTE_ID";
+
+        public static final String ATTRIBUTE_NAME = "NAME";
+
+        public static final String ATTRIBUTE_VALUE = "VALUE";
+
+
+        //IDN_XACML_POLICY_REFERENCE table
+        public static final String REFERENCE = "REFERENCE";
+
+
+        //IDN_XACML_POLICY_SET_REFERENCE table
+        public static final String SET_REFERENCE = "SET_REFERENCE";
+
+
+        //IND_XACML_SUBSCRIBER table
+        public static final String SUBSCRIBER_ID = "SUBSCRIBER_ID";
+
+        public static final String ENTITLEMENT_MODULE_NAME = "ENTITLEMENT_MODULE_NAME";
+
+
+        //IND_XACML_SUBSCRIBER_PROPERTY table
+        public static final String PROPERTY_ID = "PROPERTY_ID";
+
+        public static final String DISPLAY_NAME = "DISPLAY_NAME";
+
+        public static final String SUBSCRIBER_PROPERTY_VALUE = "VALUE";
+
+        public static final String IS_REQUIRED = "IS_REQUIRED";
+
+        public static final String DISPLAY_ORDER = "DISPLAY_ORDER";
+
+        public static final String IS_SECRET = "IS_SECRET";
+
+        public static final String MODULE = "MODULE";
+        public static final String VALUE = "VALUE";
+
+
+        //IDN_XACML_STATUS table
+        public static final String STATUS_ID = "STATUS_ID";
+
+        public static final String STATUS_TYPE = "TYPE";
+
+        public static final String SUCCESS = "SUCCESS";
+
+        public static final String USER = "USERNAME";
+
+        public static final String TARGET = "TARGET";
+
+        public static final String TARGET_ACTION = "TARGET_ACTION";
+
+        public static final String TIME_INSTANCE = "TIME_INSTANCE";
+
+        public static final String MESSAGE = "MESSAGE";
+
+        public static final String POLICY_TENANT_ID = "POLICY_TENANT_ID";
+
+        public static final String POLICY_VERSION = "POLICY_VERSION";
+
+        public static final String SUBSCRIBER_TENANT_ID = "SUBSCRIBER_TENANT_ID";
+
+        public static final String STATUS_COUNT = "COUNT";
+
+
+        //IDN_XACML_CONFIG table
+        public static final String CONFIG_KEY = "CONFIG_KEY";
+
+        public static final String CONFIG_VALUE = "CONFIG_VALUE";
+
+
     }
 }

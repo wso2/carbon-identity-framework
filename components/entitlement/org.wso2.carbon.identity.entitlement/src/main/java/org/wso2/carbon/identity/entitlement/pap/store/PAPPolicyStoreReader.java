@@ -32,7 +32,7 @@ import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PAPPolicyStoreReader {
@@ -74,15 +74,10 @@ public class PAPPolicyStoreReader {
      */
     public PolicyDTO[] readAllLightPolicyDTOs() throws EntitlementException {
 
-        String[] resources;
-        resources = store.listPolicyIds().toArray(new String[0]);
+        String[] policyIds;
+        policyIds = store.listPolicyIds().toArray(new String[0]);
 
-        List<PolicyDTO> policyDTOList = new ArrayList<>();
-
-        for (String resource : resources) {
-            PolicyDTO policyDTO = readLightPolicyDTO(resource);
-            policyDTOList.add(policyDTO);
-        }
+        List<PolicyDTO> policyDTOList = readLightPolicyDTOs(Arrays.asList(policyIds));
         return policyDTOList.toArray(new PolicyDTO[0]);
     }
 
@@ -141,6 +136,27 @@ public class PAPPolicyStoreReader {
         dto.setAttributeDTOs(new AttributeDTO[0]);
         dto.setPolicyEditorData( new String[0]);
         return dto;
+    }
+
+    /**
+     * Reads light weight PolicyDTOs for given policy id list
+     *
+     * @param policyIds policy id list
+     * @return PolicyDTO but does not contain XACML policy and attribute meta data
+     * @throws EntitlementException throws, if fails
+     */
+    public List<PolicyDTO> readLightPolicyDTOs(List<String> policyIds) throws EntitlementException {
+
+        List<PolicyDTO> policyDTOList = store.getPAPPolicies(policyIds);
+        for (PolicyDTO dto : policyDTOList) {
+            if (dto == null) {
+                continue;
+            }
+            dto.setPolicy(null);
+            dto.setAttributeDTOs(new AttributeDTO[0]);
+            dto.setPolicyEditorData( new String[0]);
+        }
+        return policyDTOList;
     }
 
 

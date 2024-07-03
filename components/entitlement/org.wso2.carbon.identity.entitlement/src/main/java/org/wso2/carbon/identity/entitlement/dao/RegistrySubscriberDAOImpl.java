@@ -41,14 +41,16 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.wso2.carbon.identity.entitlement.PDPConstants.SUBSCRIBER_ID;
+
 /**
  * This implementation handles the subscriber management in the Registry.
  */
 public class RegistrySubscriberDAOImpl implements SubscriberDAO {
 
-    public static final String SUBSCRIBER_ID = "subscriberId";
     // The logger that is used for all messages
     private static final Log LOG = LogFactory.getLog(RegistrySubscriberDAOImpl.class);
+    private static final String ERROR_SUBSCRIBER_ID_NULL = "Subscriber Id can not be null";
     private final Registry registry;
 
     public RegistrySubscriberDAOImpl() {
@@ -162,8 +164,8 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         String subscriberPath;
 
         if (subscriberId == null) {
-            LOG.error("SubscriberDAO Id can not be null");
-            throw new EntitlementException("SubscriberDAO Id can not be null");
+            LOG.error(ERROR_SUBSCRIBER_ID_NULL);
+            throw new EntitlementException(ERROR_SUBSCRIBER_ID_NULL);
         }
 
         if (EntitlementConstants.PDP_SUBSCRIBER_ID.equals(subscriberId.trim())) {
@@ -209,8 +211,8 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         }
 
         if (subscriberId == null) {
-            LOG.error("SubscriberDAO Id can not be null");
-            throw new EntitlementException("SubscriberDAO Id can not be null");
+            LOG.error(ERROR_SUBSCRIBER_ID_NULL);
+            throw new EntitlementException(ERROR_SUBSCRIBER_ID_NULL);
         }
 
         try {

@@ -120,6 +120,23 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
     }
 
     /**
+     * Gets the requested policy list.
+     *
+     * @param policyIds policy ID list
+     * @return policyDTO
+     * @throws EntitlementException If an error occurs
+     */
+    @Override
+    public List<PolicyDTO> getPAPPolicies(List<String> policyIds) throws EntitlementException {
+
+        List<PolicyDTO> policyDTOs = new ArrayList<>();
+        for (String policyId : policyIds) {
+           policyDTOs.add(getPAPPolicy(policyId));
+        }
+        return policyDTOs;
+    }
+
+    /**
      * Gets the requested policy version.
      *
      * @param policyId policy ID
@@ -404,7 +421,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
 
         String path = PDPConstants.ENTITLEMENT_POLICY_PAP;
         return listAllPolicyIds(path);
-
     }
 
     /**
@@ -420,13 +436,6 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Removing entitlement policy");
-        }
-
-        // Restricts removing policies, that have already been published
-        List<String> publishedPolicies = listPublishedPolicyIds();
-        if (publishedPolicies != null && publishedPolicies.contains(policyId)) {
-            LOG.error("Policies that have already been published, cannot be removed from PAP");
-            throw new EntitlementException("Policies that have already been published, cannot be removed from PAP");
         }
 
         try {
@@ -600,7 +609,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
             }
             return readPolicy(resource);
         } catch (EntitlementException e) {
-            LOG.error("Error while retrieving PDP policy : " + policyId);
+            LOG.error("Error while retrieving PDP policy : " + policyId, e);
             return new PolicyDTO();
         }
 

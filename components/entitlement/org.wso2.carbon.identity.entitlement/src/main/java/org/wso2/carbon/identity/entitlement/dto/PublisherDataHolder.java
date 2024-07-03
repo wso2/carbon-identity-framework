@@ -24,11 +24,22 @@ import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.registry.core.Resource;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.DISPLAY_NAME;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.DISPLAY_ORDER;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.ENTITLEMENT_MODULE_NAME;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.IS_REQUIRED;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.IS_SECRET;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.MODULE;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.PROPERTY_ID;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.EntitlementTableColumns.VALUE;
 
 /**
  *
@@ -97,6 +108,53 @@ public class PublisherDataHolder {
             }
         }
         this.propertyDTOs = propertyDTOs.toArray(new PublisherPropertyDTO[propertyDTOs.size()]);
+    }
+
+    public PublisherDataHolder(ResultSet resultSet, boolean returnSecrets) throws SQLException {
+
+        List<PublisherPropertyDTO> propertyDTOList = new ArrayList<>();
+
+        if (resultSet != null) {
+
+            do {
+
+                String entitlementModuleName = resultSet.getString(ENTITLEMENT_MODULE_NAME);
+                String propertyId = resultSet.getString(PROPERTY_ID);
+                String displayName = resultSet.getString(DISPLAY_NAME);
+                String value = resultSet.getString(VALUE);
+                boolean isRequired = resultSet.getBoolean(IS_REQUIRED);
+                int displayOrder = resultSet.getInt(DISPLAY_ORDER);
+                boolean isSecret = resultSet.getBoolean(IS_SECRET);
+                String module = resultSet.getString(MODULE);
+
+                PublisherPropertyDTO dto = new PublisherPropertyDTO();
+
+                dto.setId(propertyId);
+                dto.setValue(value);
+                dto.setDisplayName(displayName);
+                dto.setDisplayOrder(displayOrder);
+                dto.setRequired(isRequired);
+                dto.setSecret(isSecret);
+                dto.setModule(module);
+
+                if (dto.isSecret() && (returnSecrets)) {
+                        String password = dto.getValue();
+                        try {
+                            password = new String(CryptoUtil.getDefaultCryptoUtil().
+                                    base64DecodeAndDecrypt(dto.getValue()));
+                        } catch (CryptoException e) {
+                            log.error(e);
+                            // ignore
+                        }
+                        dto.setValue(password);
+
+                }
+
+                this.moduleName = entitlementModuleName;
+                propertyDTOList.add(dto);
+            } while (resultSet.next());
+        }
+        this.propertyDTOs = propertyDTOList.toArray(new PublisherPropertyDTO[0]);
     }
 
     public String getModuleName() {
