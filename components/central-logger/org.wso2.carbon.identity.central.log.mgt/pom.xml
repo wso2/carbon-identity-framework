@@ -56,6 +56,9 @@
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.slf4j; version="${org.slf4j.imp.pkg.version.range}",
                         </Import-Package>
+                        <Provide-Capability>
+                            osgi.service;objectClass=org.wso2.carbon.identity.event.services.IdentityEventService
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

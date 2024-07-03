@@ -143,7 +143,6 @@
                             javax.xml.stream; version="${equinox.osgi.stax-api.imp.pkg.version.range}",
 
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
-                            org.apache.axis2.transport.mail; version="${org.apache.axis2.transport.mail.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
                             org.apache.neethi; version="${neethi.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
@@ -170,6 +169,9 @@
                             org.wso2.carbon.identity.application.authentication.framework.*; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
+                        <Provide-Capability>
+                            osgi.service;objectClass=org.wso2.carbon.identity.notification.mgt.NotificationSender
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

@@ -115,7 +115,7 @@
             <artifactId>org.wso2.carbon.identity.user.profile</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
+            <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>
@@ -232,7 +232,6 @@
                         <Import-Package>
                             javax.xml.namespace,
                             javax.xml.stream,
-                            org.eclipse.equinox.http.helper,
 
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
@@ -284,6 +283,14 @@
                         <ListenerManager-RequiredServices>
                             org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService
                         </ListenerManager-RequiredServices>
+                        <Provide-Capability>
+                            osgi.service;objectClass=org.wso2.carbon.consent.mgt.core.ConsentManager,
+                            osgi.service;objectClass=org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator,
+                            osgi.service;objectClass=org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService,
+                            osgi.service;objectClass=org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService,
+                            osgi.service;objectClass=org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager,
+                            osgi.service;objectClass=org.wso2.carbon.idp.mgt.IdpManager
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>
