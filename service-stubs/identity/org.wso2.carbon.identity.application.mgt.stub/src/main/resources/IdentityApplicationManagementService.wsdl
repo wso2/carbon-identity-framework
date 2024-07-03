@@ -574,7 +574,6 @@
                     <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2161:ClaimConfig"/>
                     <xs:element minOccurs="0" name="clientAttestationMetaData" nillable="true" type="ax2161:ClientAttestationMetaData"/>
-                    <xs:element minOccurs="0" name="SpTrustedAppMetadata" nillable="true" type="ax2161:SpTrustedAppMetadata"/>
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="discoverable" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
@@ -591,6 +590,7 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="spProperties" nillable="true" type="ax2161:ServiceProviderProperty"/>
                     <xs:element minOccurs="0" name="templateId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="trustedAppMetadata" nillable="true" type="ax2161:SpTrustedAppMetadata"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="AssociatedRolesConfig">
@@ -618,8 +618,8 @@
                     <xs:element minOccurs="0" name="androidPackageName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="androidThumbprints" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="appleAppId" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="isFidoTrusted" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="isConsentGranted" nillable="true" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="isFidoTrusted" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="InboundAuthenticationConfig">
