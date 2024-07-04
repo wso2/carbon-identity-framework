@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.trusted.app.mgt.model;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -27,7 +26,7 @@ import java.util.Set;
 public class TrustedAndroidApp {
 
     private String packageName;
-    private List<String> thumbprints;
+    private String[] thumbprints;
     private Set<String> permissions;
 
     /**
@@ -55,7 +54,7 @@ public class TrustedAndroidApp {
      *
      * @return The thumbprints.
      */
-    public List<String> getThumbprints() {
+    public String[] getThumbprints() {
 
         return thumbprints;
     }
@@ -65,7 +64,7 @@ public class TrustedAndroidApp {
      *
      * @param thumbprints The thumbprints to set.
      */
-    public void setThumbprints(List<String> thumbprints) {
+    public void setThumbprints(String[] thumbprints) {
 
         this.thumbprints = thumbprints;
     }

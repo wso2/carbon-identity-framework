@@ -80,42 +80,35 @@ public class TrustedAppMgtServiceImplTest {
     @DataProvider(name = "getTrustedAndroidAppsDataProvider")
     public Object[][] getTrustedAndroidAppsDataProvider() {
 
-        List<String> thumbprints1 = new ArrayList<>();
-        thumbprints1.add("thumbprint1");
-
-        List<String> thumbprints2 = new ArrayList<>();
-        thumbprints2.add("thumbprint1");
-        thumbprints2.add("thumbprint2");
+        String[] thumbprints1 = {"thumbprint1"};
+        String[] thumbprints2 = {"thumbprint1", "thumbprint2"};
 
         Set<String> permissions1 = new HashSet<>();
         permissions1.add(ANDROID_CREDENTIAL_PERMISSION);
         permissions1.add(ANDROID_HANDLE_URLS_PERMISSION);
 
-        Set<String> permissions2 = new HashSet<>();
-        permissions2.add(ANDROID_HANDLE_URLS_PERMISSION);
-
         return new Object[][]{
-                {"thumbprint1", true, true, 1, thumbprints1, permissions1},
-                {"thumbprint1, thumbprint2", true, true, 1, thumbprints2, permissions1},
-                {"", true, true, 0, null, null},
-                {"thumbprint1", true, false, 1, thumbprints1, permissions1},
-                {"thumbprint1", false, true, 1, thumbprints1, permissions2},
-                {"thumbprint1", false, false, 0, null, null}
+                {thumbprints1, true, 1, thumbprints1, permissions1},
+                // Trusted app with multiple thumbprints.
+                {thumbprints2, true, 1, thumbprints2, permissions1},
+                // Trusted app without any thumbprints.
+                {new String[0], true, 0, null, null},
+                // When fido trusted app feature is disabled for the app.
+                {thumbprints1, false, 0, null, null}
         };
     }
 
     @Test(dataProvider = "getTrustedAndroidAppsDataProvider")
-    public void testGetTrustedAndroidApps(String thumbprints, boolean isFidoTrusted, boolean isTWAEnabled,
-                                          int trustedAppsCount, List<String> expectedThumbprints,
+    public void testGetTrustedAndroidApps(String[] providedThumbprints, boolean isFidoTrusted,
+                                          int trustedAppsCount, String[] expectedThumbprints,
                                           Set<String> expectedPermissions) throws Exception {
 
         List<TrustedApp> trustedApps = new ArrayList<>();
         TrustedApp trustedApp = new TrustedApp();
         trustedApp.setPlatformType(ANDROID);
         trustedApp.setAppIdentifier(ANDROID_PACKAGE_NAME);
-        trustedApp.setThumbprints(thumbprints);
+        trustedApp.setThumbprints(providedThumbprints);
         trustedApp.setIsFIDOTrusted(isFidoTrusted);
-        trustedApp.setIsTWAEnabled(isTWAEnabled);
         trustedApps.add(trustedApp);
 
         when(applicationManagementService.getTrustedApps(ANDROID)).thenReturn(trustedApps);
@@ -151,9 +144,8 @@ public class TrustedAppMgtServiceImplTest {
         TrustedApp trustedApp = new TrustedApp();
         trustedApp.setPlatformType(IOS);
         trustedApp.setAppIdentifier(APPLE_APP_ID);
-        trustedApp.setThumbprints(null);
+        trustedApp.setThumbprints(new String[0]);
         trustedApp.setIsFIDOTrusted(isFIDOTrusted);
-        trustedApp.setIsTWAEnabled(false);
         trustedApps.add(trustedApp);
 
         when(applicationManagementService.getTrustedApps(IOS)).thenReturn(trustedApps);

@@ -39,7 +39,6 @@ public class TrustedApp implements Serializable {
     private static final String APP_IDENTIFIER = "AppIdentifier";
     private static final String THUMBPRINTS = "Thumbprints";
     private static final String IS_FIDO_TRUSTED = "IsFidoTrusted";
-    private static final String IS_TWA_ENABLED = "IsTWAEnabled";
 
     @IgnoreNullElement
     @XmlElement(name = PLATFORM_TYPE)
@@ -51,15 +50,11 @@ public class TrustedApp implements Serializable {
 
     @IgnoreNullElement
     @XmlElement(name = THUMBPRINTS)
-    private String thumbprints;
+    private String[] thumbprints;
 
     @IgnoreNullElement
     @XmlElement(name = IS_FIDO_TRUSTED)
     private boolean isFIDOTrusted;
-
-    @IgnoreNullElement
-    @XmlElement(name = IS_TWA_ENABLED)
-    private boolean isTWAEnabled;
 
     /**
      * Get the platform type of the trusted app.
@@ -106,7 +101,7 @@ public class TrustedApp implements Serializable {
      *
      * @return Thumbprints.
      */
-    public String getThumbprints() {
+    public String[] getThumbprints() {
 
         return thumbprints;
     }
@@ -116,7 +111,7 @@ public class TrustedApp implements Serializable {
      *
      * @param thumbprints Thumbprints.
      */
-    public void setThumbprints(String thumbprints) {
+    public void setThumbprints(String thumbprints[]) {
 
         this.thumbprints = thumbprints;
     }
@@ -139,25 +134,5 @@ public class TrustedApp implements Serializable {
     public void setIsFIDOTrusted(boolean isFIDOTrusted) {
 
         this.isFIDOTrusted = isFIDOTrusted;
-    }
-
-    /**
-     * Check whether TWA is enabled for the trusted app.
-     *
-     * @return Is TWA enabled.
-     */
-    public boolean getIsTWAEnabled() {
-
-        return isTWAEnabled;
-    }
-
-    /**
-     * Set whether TWA is enabled for the trusted app.
-     *
-     * @param isTWAEnabled Is TWA enabled.
-     */
-    public void setIsTWAEnabled(boolean isTWAEnabled) {
-
-        this.isTWAEnabled = isTWAEnabled;
     }
 }

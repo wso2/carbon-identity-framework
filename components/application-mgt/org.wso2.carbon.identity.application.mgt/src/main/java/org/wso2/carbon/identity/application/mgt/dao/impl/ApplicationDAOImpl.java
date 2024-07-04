@@ -6477,6 +6477,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, action, data, result));
     }
 
+    @Override
     public List<TrustedApp> getTrustedApps(String platformType) throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
@@ -6496,7 +6497,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     TrustedApp app = new TrustedApp();
                     app.setPlatformType(platformType);
                     app.setAppIdentifier(resultSet.getString(1));
-                    app.setThumbprints(resultSet.getString(2));
+                    app.setThumbprints(resultSet.getString(2) != null ?
+                            resultSet.getString(2).split(ATTRIBUTE_SEPARATOR) : new String[0]);
                     app.setIsFIDOTrusted(resultSet.getBoolean(3));
                     trustedApps.add(app);
                 }

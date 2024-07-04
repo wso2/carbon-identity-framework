@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.trusted.app.mgt.services;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -29,7 +28,6 @@ import org.wso2.carbon.identity.trusted.app.mgt.model.TrustedAndroidApp;
 import org.wso2.carbon.identity.trusted.app.mgt.model.TrustedIosApp;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +36,6 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IOS;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.ANDROID_CREDENTIAL_PERMISSION;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.ANDROID_HANDLE_URLS_PERMISSION;
-import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.IOS_CREDENTIAL_PERMISSION;
 
 /**
@@ -109,16 +106,14 @@ public class TrustedAppMgtServiceImpl implements TrustedAppMgtService {
         return trustedIosApps;
     }
 
-    private List<String> resolveThumbprints(TrustedApp trustedApp) throws TrustedAppMgtException {
+    private String[] resolveThumbprints(TrustedApp trustedApp) throws TrustedAppMgtException {
 
-        if (trustedApp.getThumbprints() != null && StringUtils.isNotBlank(trustedApp.getThumbprints())) {
-            String[] thumbprints = trustedApp.getThumbprints().split(ATTRIBUTE_SEPARATOR);
-            if (thumbprints.length > 0) {
-                return new ArrayList<>(Arrays.asList(StringUtils.stripAll(thumbprints)));
-            }
+        String[] thumbprints = trustedApp.getThumbprints();
+        if (thumbprints == null || thumbprints.length == 0) {
+            throw new TrustedAppMgtException(String.format("No thumbprints found for the app: %s. ",
+                    trustedApp.getAppIdentifier()));
         }
-        throw new TrustedAppMgtException(String.format("No thumbprints found for the app: %s. ",
-                trustedApp.getAppIdentifier()));
+        return thumbprints;
     }
 
     private Set<String> resolveAppPermissions(TrustedApp trustedApp) throws TrustedAppMgtException {
@@ -129,13 +124,8 @@ public class TrustedAppMgtServiceImpl implements TrustedAppMgtService {
                 appPermissions.add(ANDROID_CREDENTIAL_PERMISSION);
                 appPermissions.add(ANDROID_HANDLE_URLS_PERMISSION);
             }
-            if (trustedApp.getIsTWAEnabled()) {
-                appPermissions.add(ANDROID_HANDLE_URLS_PERMISSION);
-            }
-        } else if (IOS.equals(trustedApp.getPlatformType())) {
-            if (trustedApp.getIsFIDOTrusted()) {
-                appPermissions.add(IOS_CREDENTIAL_PERMISSION);
-            }
+        } else if (IOS.equals(trustedApp.getPlatformType()) && trustedApp.getIsFIDOTrusted()) {
+            appPermissions.add(IOS_CREDENTIAL_PERMISSION);
         }
         if (appPermissions.isEmpty()) {
             throw new TrustedAppMgtException(String.format("No permissions found for the app: %s. ",

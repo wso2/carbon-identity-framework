@@ -106,9 +106,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IOS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -1086,13 +1086,15 @@ public class ApplicationManagementServiceImplTest {
         SpTrustedAppMetadata trustedAppMetadata1 = new SpTrustedAppMetadata();
         trustedAppMetadata1.setAndroidPackageName(ANDROID_PACKAGE_NAME_1);
         trustedAppMetadata1.setAppleAppId(APPLE_APP_ID);
-        trustedAppMetadata1.setAndroidThumbprints("sampleThumbprint1");
+        String[] thumbprints1 = {"sampleThumbprint1"};
+        trustedAppMetadata1.setAndroidThumbprints(thumbprints1);
         trustedAppMetadata1.setIsFidoTrusted(true);
 
         SpTrustedAppMetadata trustedAppMetadata2 = new SpTrustedAppMetadata();
         trustedAppMetadata2.setAndroidPackageName(ANDROID_PACKAGE_NAME_2);
         trustedAppMetadata2.setAppleAppId(null);
-        trustedAppMetadata2.setAndroidThumbprints("sampleThumbprint1, sampleThumbprint2");
+        String[] thumbprints2 = {"sampleThumbprint1", "sampleThumbprint2"};
+        trustedAppMetadata2.setAndroidThumbprints(thumbprints2);
         trustedAppMetadata2.setIsFidoTrusted(true);
 
         return new Object[][]{

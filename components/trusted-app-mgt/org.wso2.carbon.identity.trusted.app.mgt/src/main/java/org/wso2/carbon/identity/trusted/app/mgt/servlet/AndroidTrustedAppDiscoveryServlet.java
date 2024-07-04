@@ -92,7 +92,7 @@ public class AndroidTrustedAppDiscoveryServlet extends HttpServlet {
             target.addProperty(PACKAGE_NAME_ATTRIBUTE, app.getPackageName());
 
             JsonArray fingerprintArray = new JsonArray();
-            List<String> thumbprints = app.getThumbprints();
+            String[] thumbprints = app.getThumbprints();
             for (String fingerprint : thumbprints) {
                 fingerprintArray.add(fingerprint.trim());
             }
