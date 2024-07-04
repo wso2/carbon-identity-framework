@@ -1016,17 +1016,27 @@ public class ApplicationManagementServiceImplTest {
         String[] thumbprints2 = {"sampleThumbprint1", "sampleThumbprint2"};
 
         return new Object[][]{
-                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", false, false},
-                {"com.wso2.sample.mobile.application", thumbprints2, null, false, false},
-                {null, null, "APPLETEAMID.com.org.mobile.sample", false, false},
+                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", false, false,
+                        true},
+                {"com.wso2.sample.mobile.application", thumbprints2, null, false, false, true},
+                {null, null, "APPLETEAMID.com.org.mobile.sample", false, false, true},
                 // Check if consent property is handled correctly.
-                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, true}
+                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", false, true,
+                        true},
+                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", false, null,
+                        true},
+                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, true,
+                        true},
+                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, false,
+                        false},
+                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, null,
+                        null}
         };
     }
 
     @Test(dataProvider = "trustedAppMetadataDataProvider")
     public void testTrustedAppMetadata(String androidPackageName, String[] androidThumbprints, String appleAppId,
-                                       boolean isConsentRequired, boolean isConsentGranted)
+                                       boolean isConsentRequired, Boolean isConsentGranted, Boolean expectedConsent)
             throws Exception {
 
         ServiceProvider inputSP = new ServiceProvider();
@@ -1055,7 +1065,7 @@ public class ApplicationManagementServiceImplTest {
             Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAndroidThumbprints(), androidThumbprints);
             Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAppleAppId(), appleAppId);
             Assert.assertTrue(retrievedSP.getTrustedAppMetadata().getIsFidoTrusted());
-            Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getIsConsentGranted(), isConsentGranted);
+            Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getIsConsentGranted(), expectedConsent);
 
             // Deleting added application.
             applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,

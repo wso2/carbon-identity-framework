@@ -171,7 +171,6 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORACLE;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.UNION_SEPARATOR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getConsoleAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig;
@@ -3578,7 +3577,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     }
                     spTrustedAppMetadata.setIsFidoTrusted(appConfigResultSet.getBoolean(4));
                 }
-                spTrustedAppMetadata.setIsConsentGranted(getTrustedAppConsent(spPropertyList));
+                // If consent required property is disabled, consent is considered as granted.
+                Boolean isConsentGranted;
+                if (ApplicationMgtUtil.isTrustedAppConsentRequired()) {
+                    isConsentGranted = getTrustedAppConsent(spPropertyList);
+                } else {
+                    isConsentGranted = true;
+                }
+                spTrustedAppMetadata.setIsConsentGranted(isConsentGranted);
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while retrieving trusted app configurations.", e);
@@ -5330,8 +5336,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAndroidAttestationServiceCredentialAsSecret(sp);
         }
 
-        if (Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)) &&
-                sp.getTrustedAppMetadata() != null) {
+        // Store the trusted app consent granted status only if trusted app consent required property is enabled.
+        if (ApplicationMgtUtil.isTrustedAppConsentRequired() && sp.getTrustedAppMetadata() != null
+                && sp.getTrustedAppMetadata().getIsConsentGranted() != null) {
             ServiceProviderProperty trustedAppConsentProperty = buildTrustedAppConsentProperty(sp);
             spPropertyMap.put(trustedAppConsentProperty.getName(), trustedAppConsentProperty);
         }

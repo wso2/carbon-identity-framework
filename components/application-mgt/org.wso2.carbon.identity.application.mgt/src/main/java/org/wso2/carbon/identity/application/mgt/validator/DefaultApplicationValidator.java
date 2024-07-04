@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.common.model.script.AuthenticationSc
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
@@ -67,7 +68,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY;
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
@@ -344,9 +344,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
 
         // Validate consent for trusted apps.
-        if ((Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)) &&
-                trustedAppMetadata.getIsFidoTrusted()) && (trustedAppMetadata.getIsConsentGranted() == null ||
-                !trustedAppMetadata.getIsConsentGranted())) {
+        if ((ApplicationMgtUtil.isTrustedAppConsentRequired() && trustedAppMetadata.getIsFidoTrusted()) &&
+                (trustedAppMetadata.getIsConsentGranted() == null || !trustedAppMetadata.getIsConsentGranted())) {
             validationMsg.add(TRUSTED_APP_NOT_CONSENTED);
         }
 
