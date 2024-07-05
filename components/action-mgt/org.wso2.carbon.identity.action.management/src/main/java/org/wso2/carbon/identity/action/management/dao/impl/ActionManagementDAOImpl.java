@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtServerExcep
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthType;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
-import org.wso2.carbon.identity.action.management.model.TypeEnums;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -102,7 +101,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
                     actions.add(new Action.ActionResponseBuilder()
                             .id(actionUUID)
-                            .type(TypeEnums.ActionTypes.valueOf(
+                            .type(Action.ActionTypes.valueOf(
                                     rs.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
                             .name(rs.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
                             .description(rs.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
@@ -279,7 +278,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 if (rs.next()) {
                     action = new Action.ActionResponseBuilder()
                             .id(actionId)
-                            .type(TypeEnums.ActionTypes.valueOf(rs.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
+                            .type(Action.ActionTypes.valueOf(rs.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
                             .name(rs.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
                             .description(rs.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
                             .status(Action.Status.valueOf(rs.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)))
@@ -324,7 +323,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     if (propName.equals(ActionMgtConstants.URI_ATTRIBUTE)) {
                         endpointConfig.setUri(propValue);
                     } else if (propName.equals(ActionMgtConstants.AUTHN_TYPE_ATTRIBUTE)) {
-                        authentication.setType(TypeEnums.AuthenticationType.valueOf(propValue));
+                        authentication.setType(AuthType.AuthenticationType.valueOf(propValue));
                     } else {
                         // Authentication properties.
                         authnProperties.put(propName, propValue);

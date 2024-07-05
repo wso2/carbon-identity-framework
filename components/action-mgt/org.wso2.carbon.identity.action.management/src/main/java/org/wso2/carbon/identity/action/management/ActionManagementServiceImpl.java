@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.action.management.dao.impl.CacheBackedActionMgtD
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.TypeEnums;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -118,7 +117,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      */
     private static String getActionTypeFromPath(String actionType) throws ActionMgtClientException {
 
-        for (TypeEnums.ActionTypes type: TypeEnums.ActionTypes.values()) {
+        for (Action.ActionTypes type: Action.ActionTypes.values()) {
 
             if (type.getPathParam().equals(actionType)) {
                 return type.getActionType();

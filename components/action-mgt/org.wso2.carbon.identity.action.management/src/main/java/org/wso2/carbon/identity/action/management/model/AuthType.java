@@ -26,7 +26,37 @@ import java.util.Map;
  */
 public class AuthType {
 
-    private TypeEnums.AuthenticationType type;
+    /**
+     * Authentication Type.
+     */
+    public enum AuthenticationType {
+
+        NONE("NONE", new String[]{}),
+        BEARER("BEARER", new String[]{"accessToken"}),
+        BASIC("BASIC", new String[]{"username", "password"}),
+        API_KEY("API_KEY", new String[]{"header", "value"});
+
+        private final String type;
+        private final String[] properties;
+
+        AuthenticationType(String type, String[]  properties) {
+
+            this.type = type;
+            this.properties = properties;
+        }
+
+        public String getType() {
+
+            return type;
+        }
+
+        public String[] getProperties() {
+
+            return properties;
+        }
+    }
+
+    private AuthenticationType type;
     private Map<String, Object> properties = null;
 
     public AuthType() {
@@ -38,12 +68,12 @@ public class AuthType {
         this.properties = authTypeBuilder.properties;
     }
 
-    public TypeEnums.AuthenticationType getType() {
+    public AuthenticationType getType() {
 
         return type;
     }
 
-    public void setType(TypeEnums.AuthenticationType type) {
+    public void setType(AuthenticationType type) {
 
         this.type = type;
     }
@@ -63,13 +93,13 @@ public class AuthType {
      */
     public static class AuthTypeBuilder {
 
-        private TypeEnums.AuthenticationType type;
+        private AuthenticationType type;
         private Map<String, Object> properties = null;
 
         public AuthTypeBuilder() {
         }
 
-        public AuthTypeBuilder type(TypeEnums.AuthenticationType type) {
+        public AuthTypeBuilder type(AuthenticationType type) {
 
             this.type = type;
             return this;

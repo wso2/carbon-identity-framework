@@ -23,10 +23,66 @@ package org.wso2.carbon.identity.action.management.model;
  */
 public class Action  {
 
-    private String id;
-    private TypeEnums.ActionTypes type;
-    private String name;
-    private String description;
+    /**
+     * Action Type.
+     */
+    public enum ActionTypes {
+
+        PRE_ISSUE_ACCESS_TOKEN(
+                "preIssueAccessToken",
+                "PRE_ISSUE_ACCESS_TOKEN",
+                "Pre Issue Access Token.",
+                "Configure an extension point for modifying access token via a custom service."),
+        PRE_UPDATE_PASSWORD(
+                "preUpdatePassword",
+                "PRE_UPDATE_PASSWORD",
+                "Pre Update Password.",
+                "Configure an extension point for modifying user " +
+                        "password via a custom service."),
+        PRE_UPDATE_PROFILE(
+                "preUpdateProfile",
+                "PRE_UPDATE_PROFILE",
+                "Pre Update Profile.",
+                "Configure an extension point for modifying user profile via a custom service."),
+        PRE_REGISTRATION(
+                "preRegistration",
+                "PRE_REGISTRATION",
+                "Pre Registration.",
+                "Configure an extension point for modifying user registration via a custom service.");
+
+        private final String pathParam;
+        private final String actionType;
+        private final String displayName;
+        private final String description;
+
+        ActionTypes(String pathParam, String actionType, String displayName, String description) {
+
+            this.pathParam = pathParam;
+            this.actionType = actionType;
+            this.displayName = displayName;
+            this.description = description;
+        }
+
+        public String getPathParam() {
+
+            return pathParam;
+        }
+
+        public String getActionType() {
+
+            return actionType;
+        }
+
+        public String getDisplayName() {
+
+            return displayName;
+        }
+
+        public String getDescription() {
+
+            return description;
+        }
+    }
 
     /**
      * Action Status Enum.
@@ -56,6 +112,11 @@ public class Action  {
         }
     }
 
+
+    private String id;
+    private ActionTypes type;
+    private String name;
+    private String description;
     private Status status;
     private EndpointConfig endpointConfig;
 
@@ -89,12 +150,12 @@ public class Action  {
         this.id = id;
     }
 
-    public TypeEnums.ActionTypes getType() {
+    public ActionTypes getType() {
 
         return type;
     }
 
-    public void setType(TypeEnums.ActionTypes type) {
+    public void setType(ActionTypes type) {
 
         this.type = type;
     }
@@ -145,7 +206,7 @@ public class Action  {
     public static class ActionResponseBuilder {
 
         private String id;
-        private TypeEnums.ActionTypes type;
+        private ActionTypes type;
         private String name;
         private String description;
         private Status status;
@@ -160,7 +221,7 @@ public class Action  {
             return this;
         }
 
-        public ActionResponseBuilder type(TypeEnums.ActionTypes type) {
+        public ActionResponseBuilder type(ActionTypes type) {
 
             this.type = type;
             return this;
