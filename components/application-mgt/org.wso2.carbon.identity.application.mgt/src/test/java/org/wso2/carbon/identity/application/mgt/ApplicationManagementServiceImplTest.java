@@ -1023,20 +1023,16 @@ public class ApplicationManagementServiceImplTest {
                 // Check if consent property is handled correctly.
                 {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", false, true,
                         true},
-                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", false, null,
-                        true},
                 {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, true,
                         true},
                 {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, false,
-                        false},
-                {"com.wso2.sample.mobile.application", thumbprints1, "APPLETEAMID.com.org.mobile.sample", true, null,
-                        null}
+                        false}
         };
     }
 
     @Test(dataProvider = "trustedAppMetadataDataProvider")
     public void testTrustedAppMetadata(String androidPackageName, String[] androidThumbprints, String appleAppId,
-                                       boolean isConsentRequired, Boolean isConsentGranted, Boolean expectedConsent)
+                                       boolean isConsentRequired, boolean isConsentGranted, boolean expectedConsent)
             throws Exception {
 
         ServiceProvider inputSP = new ServiceProvider();

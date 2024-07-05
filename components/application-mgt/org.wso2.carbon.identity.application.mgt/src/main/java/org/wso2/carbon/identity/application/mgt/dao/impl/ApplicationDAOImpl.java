@@ -2545,7 +2545,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .orElse(StringUtils.EMPTY);
     }
 
-    private Boolean getTrustedAppConsent(List<ServiceProviderProperty> propertyList) {
+    private boolean getTrustedAppConsent(List<ServiceProviderProperty> propertyList) {
 
         String consent = propertyList.stream()
                 .filter(property -> TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME.equals(property.getName()))
@@ -2553,9 +2553,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
         if (StringUtils.EMPTY.equals(consent)) {
-            return null;
+            return false;
         }
-        return Boolean.valueOf(consent);
+        return Boolean.parseBoolean(consent);
     }
 
     /**
@@ -3553,7 +3553,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (log.isDebugEnabled()) {
             log.debug("Retrieving trusted app configurations for application: " + applicationId);
         }
-        SpTrustedAppMetadata spTrustedAppMetadata = new SpTrustedAppMetadata();
+        SpTrustedAppMetadata spTrustedAppMetadata = null;
 
         try (PreparedStatement loadAppConfigs = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_TRUSTED_APPS_BY_APP_ID)) {
@@ -3561,30 +3561,30 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             loadAppConfigs.setInt(2, tenantID);
 
             try (ResultSet appConfigResultSet = loadAppConfigs.executeQuery()) {
-                // There should be maximum two entries for each service provider. One for Android and one for iOS.
-                while (appConfigResultSet.next()) {
-                    String platformType = appConfigResultSet.getString(1);
-                    if (ANDROID.equals(platformType)) {
-                        spTrustedAppMetadata.setAndroidPackageName(appConfigResultSet.getString(2));
-                        if (appConfigResultSet.getString(3) != null) {
-                            spTrustedAppMetadata.setAndroidThumbprints(
-                                    appConfigResultSet.getString(3).split(ATTRIBUTE_SEPARATOR));
-                        } else {
-                            spTrustedAppMetadata.setAndroidThumbprints(new String[0]);
+                if (appConfigResultSet.isBeforeFirst()) {
+                    spTrustedAppMetadata = new SpTrustedAppMetadata();
+
+                    // There should be maximum two entries for each service provider. One for Android and one for iOS.
+                    while (appConfigResultSet.next()) {
+                        String platformType = appConfigResultSet.getString(1);
+                        if (ANDROID.equals(platformType)) {
+                            spTrustedAppMetadata.setAndroidPackageName(appConfigResultSet.getString(2));
+                            if (appConfigResultSet.getString(3) != null) {
+                                spTrustedAppMetadata.setAndroidThumbprints(
+                                        appConfigResultSet.getString(3).split(ATTRIBUTE_SEPARATOR));
+                            } else {
+                                spTrustedAppMetadata.setAndroidThumbprints(new String[0]);
+                            }
+                        } else if (IOS.equals(platformType)) {
+                            spTrustedAppMetadata.setAppleAppId(appConfigResultSet.getString(2));
                         }
-                    } else if (IOS.equals(platformType)) {
-                        spTrustedAppMetadata.setAppleAppId(appConfigResultSet.getString(2));
+                        spTrustedAppMetadata.setIsFidoTrusted(appConfigResultSet.getBoolean(4));
                     }
-                    spTrustedAppMetadata.setIsFidoTrusted(appConfigResultSet.getBoolean(4));
+
+                    // If consent required property is disabled, consent is always considered as granted.
+                    spTrustedAppMetadata.setIsConsentGranted(!ApplicationMgtUtil.isTrustedAppConsentRequired() ||
+                            getTrustedAppConsent(spPropertyList));
                 }
-                // If consent required property is disabled, consent is considered as granted.
-                Boolean isConsentGranted;
-                if (ApplicationMgtUtil.isTrustedAppConsentRequired()) {
-                    isConsentGranted = getTrustedAppConsent(spPropertyList);
-                } else {
-                    isConsentGranted = true;
-                }
-                spTrustedAppMetadata.setIsConsentGranted(isConsentGranted);
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while retrieving trusted app configurations.", e);
@@ -3609,9 +3609,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             log.debug("Adding trusted app configurations for application: " + applicationId);
         }
 
-        try (PreparedStatement storeAppConfigs = connection
+        if (trustedAppMetadata != null) {
+            try (PreparedStatement storeAppConfigs = connection
                     .prepareStatement(ApplicationMgtDBQueries.STORE_TRUSTED_APPS)) {
-            if (trustedAppMetadata != null) {
+
                 storeAppConfigs.setInt(1, applicationId);
                 storeAppConfigs.setBoolean(5, trustedAppMetadata.getIsFidoTrusted());
                 storeAppConfigs.setInt(6, tenantID);
@@ -3634,9 +3635,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     storeAppConfigs.addBatch();
                 }
                 storeAppConfigs.executeBatch();
+
+            } catch (SQLException e) {
+                throw new IdentityApplicationManagementException("Error while storing trusted app configurations.", e);
             }
-        } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while storing trusted app configurations.", e);
         }
     }
 
@@ -5337,8 +5339,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         // Store the trusted app consent granted status only if trusted app consent required property is enabled.
-        if (ApplicationMgtUtil.isTrustedAppConsentRequired() && sp.getTrustedAppMetadata() != null
-                && sp.getTrustedAppMetadata().getIsConsentGranted() != null) {
+        if (ApplicationMgtUtil.isTrustedAppConsentRequired() && sp.getTrustedAppMetadata() != null) {
             ServiceProviderProperty trustedAppConsentProperty = buildTrustedAppConsentProperty(sp);
             spPropertyMap.put(trustedAppConsentProperty.getName(), trustedAppConsentProperty);
         }
