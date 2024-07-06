@@ -33,13 +33,13 @@ public interface ActionManagementDAO {
      * Create a new {@link Action}.
      *
      * @param actionType Action Type.
+     * @param actionId   Action Id.
      * @param action     Action creation model.
      * @param tenantId   Tenant Id.
      * @return Created <code>Action</code>.
      * @throws ActionMgtException If an error occurs while adding the Action.
      */
-    Action addAction(String actionType, Action action, Integer tenantId)
-            throws ActionMgtException;
+    Action addAction(String actionType, String actionId, Action action, Integer tenantId) throws ActionMgtException;
 
     /**
      * Retrieve the Actions configured for the given type.
@@ -61,8 +61,7 @@ public interface ActionManagementDAO {
      * @return Updated <code>Action</code>.
      * @throws ActionMgtException If an error occurs while updating the Action.
      */
-    Action updateAction(String actionType, String actionId, Action action, Integer tenantId)
-            throws ActionMgtException;
+    Action updateAction(String actionType, String actionId, Action action, Integer tenantId) throws ActionMgtException;
 
     /**
      * Delete {@link Action} by given Action Type.

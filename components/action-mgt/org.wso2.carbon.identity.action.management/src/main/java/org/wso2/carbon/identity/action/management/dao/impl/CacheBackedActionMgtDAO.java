@@ -46,10 +46,11 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
     }
 
     @Override
-    public Action addAction(String actionType, Action action, Integer tenantId)
+    public Action addAction(String actionType, String actionId, Action action, Integer tenantId)
             throws ActionMgtException {
 
-        return actionManagementDAO.addAction(actionType, action, tenantId);
+        actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantId);
+        return actionManagementDAO.addAction(actionType, actionId, action, tenantId);
     }
 
     @Override
@@ -85,8 +86,8 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
     }
 
     @Override
-    public Action updateAction(String actionType, String actionId, Action action,
-                               Integer tenantId) throws ActionMgtException {
+    public Action updateAction(String actionType, String actionId, Action action, Integer tenantId)
+            throws ActionMgtException {
 
         actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantId);
         return actionManagementDAO.updateAction(actionType, actionId, action, tenantId);

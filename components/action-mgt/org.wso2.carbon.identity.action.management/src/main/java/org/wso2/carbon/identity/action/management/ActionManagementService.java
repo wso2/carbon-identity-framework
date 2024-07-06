@@ -38,8 +38,7 @@ public interface ActionManagementService {
      * @return Action creation response.
      * @throws ActionMgtException If an error occurs while adding the Action.
      */
-    Action addAction(String actionType, Action action, String tenantDomain)
-            throws ActionMgtException;
+    Action addAction(String actionType, Action action, String tenantDomain) throws ActionMgtException;
 
     /**
      * Get Actions of a given Action Type.

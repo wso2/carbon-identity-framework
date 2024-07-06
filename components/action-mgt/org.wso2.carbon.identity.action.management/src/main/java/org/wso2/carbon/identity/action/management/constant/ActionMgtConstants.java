@@ -36,6 +36,8 @@ public class ActionMgtConstants {
                 "Invalid action type used for path parameter."),
         ERROR_MAXIMUM_ACTIONS_PER_ACTION_TYPE_REACHED("60002", "Unable to create an Action.",
                 "Maximum number of actions per action type is reached."),
+        ERROR_NO_ACTION_CONFIGURED_ON_GIVEN_ID("60003", "Unable to perform the operation.",
+                "No Action is configured on the given action Id."),
 
         // Server errors.
         ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",
