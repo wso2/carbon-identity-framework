@@ -385,6 +385,8 @@ public class IdentityEventConstants {
         public static final String LIMIT = "LIMIT";
         public static final String AUTHENTICATION_RESULT = "AUTHENTICATION_RESULT";
         public static final String OFFSET = "OFFSET";
+        public static final String CURSOR = "CURSOR";
+        public static final String DIRECTION = "DIRECTION";
         public static final String SORT_BY = "SORT_BY";
         public static final String SORT_ORDER = "SORT_ORDER";
         public static final String USER = "USER";

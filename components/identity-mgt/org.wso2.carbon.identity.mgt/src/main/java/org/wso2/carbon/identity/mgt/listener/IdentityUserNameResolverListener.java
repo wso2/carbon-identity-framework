@@ -1061,6 +1061,26 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
     }
 
     @Override
+    public boolean doPreGetUserListWithID(Condition condition, String domain, String profileName, int limit,
+                                          String cursor, UserCoreConstants.PaginationDirection direction, String sortBy,
+                                          String sortOrder, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
+            if (isNotAResolverListener(listener)) {
+                if (!listener.doPreGetUserList(condition, domain, profileName, limit, cursor, direction, sortBy,
+                        sortOrder, userStoreManager)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
     public boolean doPostGetUserListWithID(Condition condition, String domain, String profileName, int limit,
                                            int offset, String sortBy, String sortOrder, List<User> users,
                                            UserStoreManager userStoreManager)
@@ -1081,6 +1101,27 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             }
         }
 
+        return true;
+    }
+
+    @Override
+    public boolean doPostGetUserListWithID(Condition condition, String domain, String profileName, int limit,
+                   String cursor, UserCoreConstants.PaginationDirection direction, String sortBy, String sortOrder,
+                   List<User> users, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+        List<String> userNamesList = users.stream().map(User::getUsername).collect(Collectors.toList());
+        String[] userNames = userNamesList.toArray(new String[0]);
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
+            if (isNotAResolverListener(listener)) {
+                return listener
+                        .doPostGetUserList(condition, domain, profileName, limit, cursor, direction, sortBy, sortOrder,
+                                userNames, userStoreManager);
+            }
+        }
         return true;
     }
 
