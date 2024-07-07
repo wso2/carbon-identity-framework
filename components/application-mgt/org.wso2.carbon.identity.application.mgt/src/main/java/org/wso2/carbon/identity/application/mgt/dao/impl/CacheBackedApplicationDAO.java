@@ -231,8 +231,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     public int createApplication(ServiceProvider application, String tenantDomain) throws
             IdentityApplicationManagementException {
 
-        // Clear the trusted app cache if trusted app metadata is available in the SP to be added.
-        if (isTrustedAppDataAvailable(application.getTrustedAppMetadata())) {
+        // Clear the trusted app cache only if trusted app metadata is available in the SP to be added.
+        if (application.getTrustedAppMetadata() != null) {
             clearTrustedAppCache();
         }
         return appDAO.createApplication(application, tenantDomain);
@@ -246,8 +246,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         // Clear the trusted app cache only if the trusted app metadata is changed.
         if ((storedApp.getTrustedAppMetadata() != null &&
                 !storedApp.getTrustedAppMetadata().equals(serviceProvider.getTrustedAppMetadata())) ||
-                (storedApp.getTrustedAppMetadata() == null &&
-                        isTrustedAppDataAvailable(serviceProvider.getTrustedAppMetadata()))) {
+                (storedApp.getTrustedAppMetadata() == null && serviceProvider.getTrustedAppMetadata() != null)) {
             clearTrustedAppCache();
         }
         appDAO.updateApplication(serviceProvider, tenantDomain);
@@ -265,7 +264,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         clearAllAppCache(serviceProvider, tenantDomain);
 
         // Clear the trusted app cache only if the trusted app metadata is available in the SP to be deleted.
-        if (isTrustedAppDataAvailable(serviceProvider.getTrustedAppMetadata())) {
+        if (serviceProvider.getTrustedAppMetadata() != null) {
             clearTrustedAppCache();
         }
         appDAO.deleteApplication(applicationName);
@@ -472,7 +471,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                                       String tenantDomain) throws IdentityApplicationManagementException {
 
         // Clear the trusted app cache only if trusted app metadata is available in the SP to be added.
-        if (isTrustedAppDataAvailable(application.getTrustedAppMetadata())) {
+        if (application.getTrustedAppMetadata() != null) {
             clearTrustedAppCache();
         }
         return appDAO.addApplication(application, tenantDomain);
@@ -490,8 +489,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         // Clear the trusted app cache only if the trusted app metadata is changed.
         if ((storedApp.getTrustedAppMetadata() != null &&
                 !storedApp.getTrustedAppMetadata().equals(updatedApp.getTrustedAppMetadata())) ||
-                (storedApp.getTrustedAppMetadata() == null &&
-                        isTrustedAppDataAvailable(updatedApp.getTrustedAppMetadata()))) {
+                (storedApp.getTrustedAppMetadata() == null && updatedApp.getTrustedAppMetadata() != null)) {
             clearTrustedAppCache();
         }
         appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
@@ -505,7 +503,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         clearAllAppCache(serviceProvider, tenantDomain);
 
         // Clear the trusted app cache only if the trusted app metadata is available in the SP to be deleted.
-        if (isTrustedAppDataAvailable(serviceProvider.getTrustedAppMetadata())) {
+        if (serviceProvider.getTrustedAppMetadata() != null) {
             clearTrustedAppCache();
         }
         appDAO.deleteApplicationByResourceId(resourceId, tenantDomain);
@@ -835,14 +833,5 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
         TrustedAppPlatformTypeCacheKey appleCacheKey = new TrustedAppPlatformTypeCacheKey(IOS);
         trustedAppByPlatformTypeCache.clearCacheEntry(appleCacheKey, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-    }
-
-    private boolean isTrustedAppDataAvailable(SpTrustedAppMetadata trustedAppMetadata) {
-
-            if (trustedAppMetadata != null) {
-                return StringUtils.isNotBlank(trustedAppMetadata.getAppleAppId()) ||
-                        StringUtils.isNotBlank(trustedAppMetadata.getAndroidPackageName());
-            }
-            return false;
     }
 }
