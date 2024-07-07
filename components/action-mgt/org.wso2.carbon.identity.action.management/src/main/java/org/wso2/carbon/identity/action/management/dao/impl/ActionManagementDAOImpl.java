@@ -373,7 +373,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
                 ActionMgtSQLConstants.Query.DELETE_ACTION_ENDPOINT_PROPERTIES)) {
 
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
+            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
             statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
             statement.executeUpdate();
 
