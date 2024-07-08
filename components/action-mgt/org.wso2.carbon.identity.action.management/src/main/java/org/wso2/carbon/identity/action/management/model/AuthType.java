@@ -73,19 +73,9 @@ public class AuthType {
         return type;
     }
 
-    public void setType(AuthenticationType type) {
-
-        this.type = type;
-    }
-
     public Map<String, Object> getProperties() {
 
         return properties;
-    }
-
-    public void setProperties(Map<String, Object> properties) {
-
-        this.properties = properties;
     }
 
     /**

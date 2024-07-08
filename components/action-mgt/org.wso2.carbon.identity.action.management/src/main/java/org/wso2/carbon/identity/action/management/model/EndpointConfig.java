@@ -39,19 +39,9 @@ public class EndpointConfig {
         return uri;
     }
 
-    public void setUri(String uri) {
-
-        this.uri = uri;
-    }
-
     public AuthType getAuthentication() {
 
         return authentication;
-    }
-
-    public void setAuthentication(AuthType authentication) {
-
-        this.authentication = authentication;
     }
 
     /**

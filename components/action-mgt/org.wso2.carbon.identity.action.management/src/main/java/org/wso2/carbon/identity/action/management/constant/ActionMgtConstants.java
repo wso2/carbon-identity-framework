@@ -41,31 +41,31 @@ public class ActionMgtConstants {
 
         // Server errors.
         ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",
-                "Error while persisting Action in the database."),
+                "Error while persisting Action in the system."),
         ERROR_WHILE_ADDING_ENDPOINT_PROPERTIES("65002", "Error while adding Endpoint properties",
-                "Error while persisting Action Endpoint properties in the database."),
+                "Error while persisting Action Endpoint properties in the system."),
         ERROR_WHILE_RETRIEVING_ACTION_ENDPOINT_PROPERTIES("65003", 
                 "Error while retrieving Action Endpoint properties", 
-                "Error while retrieving Action Endpoint properties from the database."),
+                "Error while retrieving Action Endpoint properties from the system."),
         ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE("65004", 
                 "Error while retrieving Actions by Action Type",
-                "Error while retrieving Actions by Action Type from the database."),
+                "Error while retrieving Actions by Action Type from the system."),
         ERROR_WHILE_UPDATING_ENDPOINT_PROPERTIES("65005", 
                 "Error while updating Action Endpoint properties",
-                "Error while updating Action Endpoint properties in the database."),
+                "Error while updating Action Endpoint properties in the system."),
         ERROR_WHILE_UPDATING_ACTION("65006", "Error while updating Action.",
-                "Error while updating Action in the database."),
+                "Error while updating Action in the system."),
         ERROR_WHILE_DELETING_ACTION("65007", "Error while deleting Action.",
-                "Error while deleting Action from the database."),
+                "Error while deleting Action from the system."),
         ERROR_WHILE_UPDATING_ACTION_STATUS("65008", "Error while updating Action status.",
-                "Error while updating Action status in the database."),
+                "Error while updating Action status in the system."),
         ERROR_WHILE_RETRIEVING_ACTION_BY_ID("65009", "Error while retrieving Action by ID.",
-                "Error while retrieving Action from the database."),
+                "Error while retrieving Action from the system."),
         ERROR_WHILE_RETRIEVING_ACTIONS_COUNT_PER_TYPE("65010",
                 "Error while retrieving count of Actions per Action Type.",
-                "Error while retrieving count of Actions per Action Type from the database."),
+                "Error while retrieving count of Actions per Action Type from the system."),
         ERROR_WHILE_RETRIEVING_ACTION_BASIC_INFO("65011", "Error while retrieving Action basic info.",
-                "Error while retrieving Action basic info from the database."),;
+                "Error while retrieving Action basic info from the system."),;
 
         private final String code;
         private final String message;

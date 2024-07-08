@@ -311,8 +311,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
             try (ResultSet rs = statement.executeQuery()) {
 
-                EndpointConfig endpointConfig = new EndpointConfig();
-                AuthType authentication = new AuthType();
+                String endpointUri = null;
+                AuthType.AuthenticationType authnType = null;
                 Map<String, Object> authnProperties = new HashMap<>();
 
                 while (rs.next()) {
@@ -320,18 +320,20 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     String propValue = rs.getString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_VALUE);
 
                     if (propName.equals(ActionMgtConstants.URI_ATTRIBUTE)) {
-                        endpointConfig.setUri(propValue);
+                        endpointUri = propValue;
                     } else if (propName.equals(ActionMgtConstants.AUTHN_TYPE_ATTRIBUTE)) {
-                        authentication.setType(AuthType.AuthenticationType.valueOf(propValue));
+                        authnType = AuthType.AuthenticationType.valueOf(propValue);
                     } else {
                         // Authentication properties.
                         authnProperties.put(propName, propValue);
                     }
                 }
-                authentication.setProperties(authnProperties);
-                endpointConfig.setAuthentication(authentication);
 
-                return endpointConfig;
+                return new EndpointConfig.EndpointConfigBuilder()
+                        .uri(endpointUri)
+                        .authentication(new AuthType.AuthTypeBuilder()
+                                .type(authnType)
+                                .properties(authnProperties).build()).build();
             }
         } catch (SQLException e) {
             throw ActionManagementUtil.handleServerException(

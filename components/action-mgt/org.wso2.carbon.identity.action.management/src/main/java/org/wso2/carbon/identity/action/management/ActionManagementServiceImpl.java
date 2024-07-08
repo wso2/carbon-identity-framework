@@ -60,9 +60,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug("Adding Action for Action Type: " + actionType);
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
-        String generatedActionId = UUID.randomUUID().toString();
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
+        String generatedActionId = UUID.randomUUID().toString();
         return CACHE_BACKED_DAO.addAction(resolvedActionType, generatedActionId, action,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
@@ -147,7 +147,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @return Action Type.
      * @throws ActionMgtClientException If an invalid Action Type is given.
      */
-    private static String getActionTypeFromPath(String actionType) throws ActionMgtClientException {
+    private String getActionTypeFromPath(String actionType) throws ActionMgtClientException {
 
         return Arrays.stream(Action.ActionTypes.values())
                 .filter(type -> type.getPathParam().equals(actionType))

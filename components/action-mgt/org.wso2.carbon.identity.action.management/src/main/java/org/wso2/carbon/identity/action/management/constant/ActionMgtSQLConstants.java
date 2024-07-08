@@ -72,7 +72,7 @@ public class ActionMgtSQLConstants {
                 " AND TENANT_ID = :TENANT_ID;";
         public static final String CHANGE_ACTION_STATUS = "UPDATE IDN_ACTION SET STATUS = :STATUS; WHERE UUID = " +
                 ":UUID; AND TYPE = :TYPE; AND TENANT_ID = :TENANT_ID;";
-        public static final String GET_ACTIONS_COUNT_PER_ACTION_TYPE = "SELECT TYPE, COUNT(TYPE) AS COUNT" +
+        public static final String GET_ACTIONS_COUNT_PER_ACTION_TYPE = "SELECT TYPE, COUNT(UUID) AS COUNT" +
                 " FROM IDN_ACTION WHERE TENANT_ID = :TENANT_ID; GROUP BY TYPE";
 
         private Query() {
