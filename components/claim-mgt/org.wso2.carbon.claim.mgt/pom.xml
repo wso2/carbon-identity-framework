@@ -93,6 +93,9 @@
                             !org.wso2.carbon.claim.mgt.internal,
                             org.wso2.carbon.claim.mgt.*;version="${carbon.identity.package.export.version}",
                         </Export-Package>
+                        <Provide-Capability>
+                            osgi.service;objectClass=org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

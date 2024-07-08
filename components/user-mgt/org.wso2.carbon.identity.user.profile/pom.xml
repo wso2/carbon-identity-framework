@@ -127,6 +127,9 @@
                             org.wso2.carbon.identity.user.profile.mgt.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
+                        <Provide-Capability>
+                            osgi.service;objectClass=org.wso2.carbon.user.core.UserRealm
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>
