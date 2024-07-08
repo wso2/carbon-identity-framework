@@ -1176,7 +1176,8 @@ INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('9ec61e9d-f0e6-4952-9a09-ab842aeb2db2', 'ATTRIBUTE_CONFIGURATION', 'A resource type to store attribute related configurations.'),
 ('132b0ee6-43e0-462d-8b4b-15b68109d71d', 'ORGANIZATION_CONFIGURATION', 'A resource type to keep the organization configurations.'),
 ('1fc809a0-dc0d-4cb2-82f3-58934d389236', 'CUSTOM_TEXT', 'A resource type to keep the tenant custom text preferences.'),
-('c385a42a-5697-4604-b49a-62456621e926', 'DCR_CONFIGURATION', 'A resource type to keep the DCR configurations.');
+('c385a42a-5697-4604-b49a-62456621e926', 'DCR_CONFIGURATION', 'A resource type to keep the DCR configurations.'),
+('3e5b1f91-72d8-4fbc-94d1-1b9a4f8c3b07', 'IMPERSONATION_CONFIGURATION', 'A resource type to keep the tenant impersonation preferences.');
 
 DROP TABLE IF EXISTS IDN_CONFIG_RESOURCE;
 CREATE TABLE IDN_CONFIG_RESOURCE (

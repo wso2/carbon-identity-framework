@@ -1195,6 +1195,13 @@
         {% if oauth.extensions.scope_metadata_service is defined %}
         <ScopeMetadataService>{{oauth.extensions.scope_metadata_service}}</ScopeMetadataService>
         {% endif %}
+
+        <!-- Configuration to pass a list of keys which are restricted to be sent as query parameters. -->
+        <RestrictedQueryParameters>
+            {%for parameter in oauth.restricted_query_parameters%}
+                <Parameter>{{parameter}}</Parameter>
+            {% endfor %}
+        </RestrictedQueryParameters>
     </OAuth>
 
     <RestApiAuthentication>

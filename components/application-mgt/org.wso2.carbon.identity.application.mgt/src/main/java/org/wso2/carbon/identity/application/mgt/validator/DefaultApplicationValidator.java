@@ -345,7 +345,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         // Validate consent for trusted apps.
         if ((ApplicationMgtUtil.isTrustedAppConsentRequired() && trustedAppMetadata.getIsFidoTrusted()) &&
-                (trustedAppMetadata.getIsConsentGranted() == null || !trustedAppMetadata.getIsConsentGranted())) {
+                !trustedAppMetadata.getIsConsentGranted()) {
             validationMsg.add(TRUSTED_APP_NOT_CONSENTED);
         }
 

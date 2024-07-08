@@ -616,7 +616,7 @@
             <xs:complexType name="SpTrustedAppMetadata">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="androidPackageName" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="androidThumbprints" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="androidThumbprints" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="appleAppId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="isConsentGranted" nillable="true" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="isFidoTrusted" type="xs:boolean"/>

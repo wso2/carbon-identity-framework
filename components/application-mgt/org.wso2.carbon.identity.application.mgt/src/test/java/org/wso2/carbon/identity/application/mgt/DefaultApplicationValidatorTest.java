@@ -202,8 +202,6 @@ public class DefaultApplicationValidatorTest {
                 {"com.wso2.sample", validThumbprints, "sample.app.id", true, true, false},
                 // Invalid scenario with consent required config enabled and consent not granted.
                 {"com.wso2.sample", validThumbprints, "sample.app.id", true, false, true},
-                // Invalid scenario with consent required config enabled and consent attribute is null.
-                {"com.wso2.sample", validThumbprints, "sample.app.id", true, null, true},
                 // Invalid scenario with empty android package name and non-empty thumbprints.
                 {"", validThumbprints, "sample.app.id", true, false, true},
                 // Invalid scenario with non-empty android package name and empty thumbprints.
@@ -213,7 +211,7 @@ public class DefaultApplicationValidatorTest {
 
     @Test(dataProvider = "validateTrustedAppMetadataDataProvider")
     public void testValidateTrustedAppMetadata(String androidPackageName, String[] thumbprints, String appleAppId,
-                                               boolean consentRequired, Boolean consentGranted,
+                                               boolean consentRequired, boolean consentGranted,
                                                boolean isValidationFailScenario)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 

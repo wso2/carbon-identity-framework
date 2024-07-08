@@ -1030,20 +1030,16 @@ public class ApplicationManagementServiceImplTest {
                 // Check if consent property is handled correctly.
                 {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, false, true,
                         true},
-                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, false, null,
-                        true},
                 {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, true, true,
                         true},
                 {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, true, false,
-                        false},
-                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, true, null,
-                        null}
+                        false}
         };
     }
 
     @Test(dataProvider = "trustedAppMetadataDataProvider")
     public void testTrustedAppMetadata(String androidPackageName, String[] androidThumbprints, String appleAppId,
-                                       boolean isConsentRequired, Boolean isConsentGranted, Boolean expectedConsent)
+                                       boolean isConsentRequired, boolean isConsentGranted, boolean expectedConsent)
             throws Exception {
 
         ServiceProvider inputSP = new ServiceProvider();
