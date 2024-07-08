@@ -46,7 +46,6 @@
                             org.wso2.carbon.identity.template.mgt.ui.*; version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <Import-Package>
-                            javax.servlet.http,
                             javax.activation; version="${javax.activation.import.pkg.version}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.ui.*; version="${carbon.kernel.package.import.version.range}",
