@@ -211,6 +211,7 @@
   "oauth.scope_validator.xacml.enable": true,
   "oauth.scope_validator.xacml.class": "org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator",
   "oauth.scope_validator.authz_implicit.enable": true,
+  "oauth.scope_validator.preserve_case_sensitivity": false,
   "oauth.grant_type.saml_bearer.user_type": "FEDERATED",
 
   "oauth.prompt_consent": "$ref{authentication.consent.prompt}",
@@ -510,6 +511,8 @@
   "authentication.jit_provisioning.enable_enhanced_feature": false,
 
   "application_mgt.enable_role_validation": false,
+  "application_mgt.trusted_app_consent_required": false,
+  "application_mgt.trusted_app_max_thumbprint_count": "20",
 
   "event.default_listener.validation.priority": "3",
   "event.default_listener.validation.enable": true,
