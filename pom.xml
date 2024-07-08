@@ -70,6 +70,7 @@
         <module>components/central-logger</module>
         <module>components/input-validation-mgt</module>
         <module>components/client-attestation-mgt</module>
+        <module>components/action-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -103,7 +104,6 @@
         <module>components/api-resource-mgt</module>
         <module>features/api-resource-mgt</module>
         <module>features/client-attestation-mgt</module>
-        <module>components/action-mgt</module>
         <module>features/action-mgt</module>
     </modules>
 
