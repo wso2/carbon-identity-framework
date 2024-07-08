@@ -1904,6 +1904,9 @@
         <enableApplicationBasedOutboundProvisioning>{{outbound_provisioning_management.enable_application_based_outbound_provisioning}}</enableApplicationBasedOutboundProvisioning>
     </OutboundProvisioning>
 
+    <Actions>
+        <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
+    </Actions>
 
     <EventListeners>
         <EventListener id="input_validation"
@@ -3300,6 +3303,24 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/actionmgt/create</Permissions>
+            <Scopes>internal_action_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/actionmgt/update</Permissions>
+            <Scopes>internal_action_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/actionmgt/delete</Permissions>
+            <Scopes>internal_action_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/actionmgt/view</Permissions>
+            <Scopes>internal_action_mgt_view</Scopes>
+        </Resource>
+
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
