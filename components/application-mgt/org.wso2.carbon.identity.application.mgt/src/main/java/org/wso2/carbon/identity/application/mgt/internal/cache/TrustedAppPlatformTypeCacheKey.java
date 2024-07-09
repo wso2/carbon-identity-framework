@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2024, WSO2 Inc. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.mgt.internal.cache;
 
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
@@ -26,14 +27,14 @@ import org.wso2.carbon.identity.core.cache.CacheKey;
 public class TrustedAppPlatformTypeCacheKey extends CacheKey {
 
     private static final long serialVersionUID = -1914597311010008853L;
-    private final String platformType;
+    private final PlatformType platformType;
 
-    public TrustedAppPlatformTypeCacheKey(String platformType) {
+    public TrustedAppPlatformTypeCacheKey(PlatformType platformType) {
 
         this.platformType = platformType;
     }
 
-    public String getPlatformType() {
+    public PlatformType getPlatformType() {
 
         return platformType;
     }
@@ -52,7 +53,7 @@ public class TrustedAppPlatformTypeCacheKey extends CacheKey {
         }
 
         TrustedAppPlatformTypeCacheKey that = (TrustedAppPlatformTypeCacheKey) o;
-        return platformType.equalsIgnoreCase(that.platformType);
+        return platformType == that.platformType;
     }
 
     @Override

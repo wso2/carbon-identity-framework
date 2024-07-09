@@ -625,6 +625,14 @@ public class IdentityApplicationConstants {
     }
 
     /**
+     * Platform types for trusted apps.
+     */
+    public enum PlatformType {
+
+        ANDROID, IOS
+    }
+
+    /**
      * Error message enums.
      * <p>
      * Error codes for server errors start with 65 and client errors start with 60.

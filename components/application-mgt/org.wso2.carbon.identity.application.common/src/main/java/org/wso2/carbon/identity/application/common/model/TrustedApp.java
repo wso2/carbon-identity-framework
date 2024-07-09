@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2024, WSO2 Inc. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,42 +18,25 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
-import org.apache.axis2.databinding.annotation.IgnoreNullElement;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 
 import java.io.Serializable;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Platform specific trusted app configuration of an application.
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlRootElement(name = "TrustedApp")
 public class TrustedApp implements Serializable {
 
     private static final long serialVersionUID = -753653473009612027L;
-    private static final String PLATFORM_TYPE = "PlatformType";
-    private static final String APP_IDENTIFIER = "AppIdentifier";
-    private static final String THUMBPRINTS = "Thumbprints";
-    private static final String IS_FIDO_TRUSTED = "IsFidoTrusted";
 
-    @IgnoreNullElement
-    @XmlElement(name = PLATFORM_TYPE)
-    private String platformType;
-
-    @IgnoreNullElement
-    @XmlElement(name = APP_IDENTIFIER)
+    private PlatformType platformType;
     private String appIdentifier;
-
-    @IgnoreNullElement
-    @XmlElement(name = THUMBPRINTS)
     private String[] thumbprints;
 
-    @IgnoreNullElement
-    @XmlElement(name = IS_FIDO_TRUSTED)
+    /**
+     * This attribute specifies whether this mobile application is trusted to share passkey credentials with, during
+     * app-native authentication.
+     */
     private boolean isFIDOTrusted;
 
     /**
@@ -61,7 +44,7 @@ public class TrustedApp implements Serializable {
      *
      * @return Platform type.
      */
-    public String getPlatformType() {
+    public PlatformType getPlatformType() {
 
         return platformType;
     }
@@ -71,7 +54,7 @@ public class TrustedApp implements Serializable {
      *
      * @param platformType Platform type.
      */
-    public void setPlatformType(String platformType) {
+    public void setPlatformType(PlatformType platformType) {
 
         this.platformType = platformType;
     }
@@ -111,7 +94,7 @@ public class TrustedApp implements Serializable {
      *
      * @param thumbprints Thumbprints.
      */
-    public void setThumbprints(String thumbprints[]) {
+    public void setThumbprints(String[] thumbprints) {
 
         this.thumbprints = thumbprints;
     }

@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
@@ -58,12 +59,12 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.TrustedAppPlatfor
 import org.wso2.carbon.identity.application.mgt.internal.cache.TrustedAppPlatformTypeCacheKey;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IOS;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 
 /**
  * Cached DAO layer for the application management. All the DAO access has to be happen through this layer to ensure
@@ -231,9 +232,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             IdentityApplicationManagementException {
 
         // Clear the trusted app cache only if trusted app metadata is available in the SP to be added.
-        if (application.getTrustedAppMetadata() != null) {
-            clearTrustedAppCache();
-        }
+        clearTrustedAppCache(application.getTrustedAppMetadata());
         return appDAO.createApplication(application, tenantDomain);
     }
 
@@ -243,11 +242,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         ServiceProvider storedApp = getApplication(serviceProvider.getApplicationID());
         clearAllAppCache(storedApp, tenantDomain);
         // Clear the trusted app cache only if the trusted app metadata is changed.
-        if ((storedApp.getTrustedAppMetadata() != null &&
-                !storedApp.getTrustedAppMetadata().equals(serviceProvider.getTrustedAppMetadata())) ||
-                (storedApp.getTrustedAppMetadata() == null && serviceProvider.getTrustedAppMetadata() != null)) {
-            clearTrustedAppCache();
-        }
+        clearTrustedAppCache(storedApp.getTrustedAppMetadata(), serviceProvider.getTrustedAppMetadata());
         appDAO.updateApplication(serviceProvider, tenantDomain);
     }
 
@@ -263,9 +258,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         clearAllAppCache(serviceProvider, tenantDomain);
 
         // Clear the trusted app cache only if the trusted app metadata is available in the SP to be deleted.
-        if (serviceProvider.getTrustedAppMetadata() != null) {
-            clearTrustedAppCache();
-        }
+        clearTrustedAppCache(serviceProvider.getTrustedAppMetadata());
         appDAO.deleteApplication(applicationName);
     }
 
@@ -470,9 +463,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                                       String tenantDomain) throws IdentityApplicationManagementException {
 
         // Clear the trusted app cache only if trusted app metadata is available in the SP to be added.
-        if (application.getTrustedAppMetadata() != null) {
-            clearTrustedAppCache();
-        }
+        clearTrustedAppCache(application.getTrustedAppMetadata());
         return appDAO.addApplication(application, tenantDomain);
     }
 
@@ -486,11 +477,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         clearAllAppCache(storedApp, tenantDomain);
 
         // Clear the trusted app cache only if the trusted app metadata is changed.
-        if ((storedApp.getTrustedAppMetadata() != null &&
-                !storedApp.getTrustedAppMetadata().equals(updatedApp.getTrustedAppMetadata())) ||
-                (storedApp.getTrustedAppMetadata() == null && updatedApp.getTrustedAppMetadata() != null)) {
-            clearTrustedAppCache();
-        }
+        clearTrustedAppCache(storedApp.getTrustedAppMetadata(), updatedApp.getTrustedAppMetadata());
         appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
     }
 
@@ -502,9 +489,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         clearAllAppCache(serviceProvider, tenantDomain);
 
         // Clear the trusted app cache only if the trusted app metadata is available in the SP to be deleted.
-        if (serviceProvider.getTrustedAppMetadata() != null) {
-            clearTrustedAppCache();
-        }
+        clearTrustedAppCache(serviceProvider.getTrustedAppMetadata());
         appDAO.deleteApplicationByResourceId(resourceId, tenantDomain);
     }
 
@@ -539,14 +524,14 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     }
 
     @Override
-    public List<TrustedApp> getTrustedApps(String platformType) throws IdentityApplicationManagementException {
+    public List<TrustedApp> getTrustedApps(PlatformType platformType) throws IdentityApplicationManagementException {
 
         List<TrustedApp> trustedApps = getTrustedAppsFromCacheByPlatformType(platformType);
         if (trustedApps == null) {
             // Cache miss, fetch from DB.
             trustedApps = appDAO.getTrustedApps(platformType);
             if (trustedApps != null) {
-                addTrustedAppsToCache(trustedApps, platformType);
+                addTrustedAppsToCache(platformType, trustedApps);
             }
         }
         return trustedApps;
@@ -603,13 +588,14 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         appBasicInfoCacheByName.addToCache(nameKey, entry, tenantDomain);
     }
 
-    private void addTrustedAppsToCache(List<TrustedApp> trustedApps, String platformType) {
+    private void addTrustedAppsToCache(PlatformType platformType, List<TrustedApp> trustedApps) {
 
         if (log.isDebugEnabled()) {
             log.debug("Add trusted app list to the cache for platform type: " + platformType);
         }
         TrustedAppPlatformTypeCacheKey cacheKey = new TrustedAppPlatformTypeCacheKey(platformType);
         TrustedAppPlatformTypeCacheEntry cacheEntry = new TrustedAppPlatformTypeCacheEntry(trustedApps);
+        // Trusted apps are retrieved regardless of the tenant domain. Therefore, it is added to the super tenant cache.
         trustedAppByPlatformTypeCache.addToCache(cacheKey, cacheEntry, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
@@ -739,7 +725,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         return serviceProvider;
     }
 
-    private List<TrustedApp> getTrustedAppsFromCacheByPlatformType(String platformType) {
+    private List<TrustedApp> getTrustedAppsFromCacheByPlatformType(PlatformType platformType) {
 
         List<TrustedApp> trustedApps = null;
 
@@ -822,15 +808,77 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
     }
 
-    private static void clearTrustedAppCache() {
+    /**
+     * Clear the trusted app cache for the available platform types of all tenants depending on the
+     * availability of platform specific data.
+     *
+     * @param spTrustedAppMetadata Trusted app metadata of the service provider.
+     */
+    private static void clearTrustedAppCache(SpTrustedAppMetadata spTrustedAppMetadata) {
+
+        if (spTrustedAppMetadata != null) {
+            if (StringUtils.isNotEmpty(spTrustedAppMetadata.getAppleAppId())) {
+                clearIOSTrustedAppCache();
+            }
+            if (StringUtils.isNotEmpty(spTrustedAppMetadata.getAndroidPackageName())) {
+                clearAndroidTrustedAppCache();
+            }
+        }
+    }
+
+    /**
+     * Clear the trusted app cache for the available platform types of all tenants depending on the update of platform
+     * specific data, by  comparing the trusted app metadata objects of stored application and updated application.
+     *
+     * @param storedTrustedAppMetadata Trusted app metadata of the stored service provider.
+     * @param updatedTrustedAppMetadata Updated trusted app metadata of the service provider.
+     */
+    private static void clearTrustedAppCache(SpTrustedAppMetadata storedTrustedAppMetadata,
+                                             SpTrustedAppMetadata updatedTrustedAppMetadata) {
+
+        if (storedTrustedAppMetadata == null) {
+            clearTrustedAppCache(updatedTrustedAppMetadata);
+        } else {
+            if (storedTrustedAppMetadata.getIsFidoTrusted() != updatedTrustedAppMetadata.getIsFidoTrusted()) {
+                clearIOSTrustedAppCache();
+                clearAndroidTrustedAppCache();
+            } else {
+                if (!StringUtils.equals(storedTrustedAppMetadata.getAppleAppId(),
+                        updatedTrustedAppMetadata.getAppleAppId())) {
+                    clearIOSTrustedAppCache();
+                }
+                if (!StringUtils.equals(storedTrustedAppMetadata.getAndroidPackageName(),
+                        updatedTrustedAppMetadata.getAndroidPackageName()) ||
+                        !Arrays.equals(storedTrustedAppMetadata.getAndroidThumbprints(),
+                                updatedTrustedAppMetadata.getAndroidThumbprints())) {
+                    clearAndroidTrustedAppCache();
+                }
+            }
+        }
+    }
+
+    /**
+     * Clear the trusted app cache for Android platform of all tenants.
+     */
+    private static void clearAndroidTrustedAppCache() {
 
         if (log.isDebugEnabled()) {
-            log.debug("Clearing trusted app cache of all tenants.");
+            log.debug("Clearing android trusted app cache of all tenants.");
         }
-        TrustedAppPlatformTypeCacheKey androidCacheKey = new TrustedAppPlatformTypeCacheKey(ANDROID);
+        TrustedAppPlatformTypeCacheKey androidCacheKey = new TrustedAppPlatformTypeCacheKey(PlatformType.ANDROID);
         trustedAppByPlatformTypeCache.clearCacheEntry(androidCacheKey, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
 
-        TrustedAppPlatformTypeCacheKey appleCacheKey = new TrustedAppPlatformTypeCacheKey(IOS);
+    /**
+     * Clear the trusted app cache for iOS platform of all tenants.
+     */
+    private static void clearIOSTrustedAppCache() {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Clearing iOS trusted app cache of all tenants.");
+        }
+
+        TrustedAppPlatformTypeCacheKey appleCacheKey = new TrustedAppPlatformTypeCacheKey(PlatformType.IOS);
         trustedAppByPlatformTypeCache.clearCacheEntry(appleCacheKey, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 }

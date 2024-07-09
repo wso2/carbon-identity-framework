@@ -106,8 +106,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IOS;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
@@ -1119,15 +1118,19 @@ public class ApplicationManagementServiceImplTest {
                 REGISTRY_SYSTEM_USERNAME);
 
         // Get trusted apps for android and apple platforms.
-        List<TrustedApp> androidTrustedApps = applicationManagementService.getTrustedApps(ANDROID);
-        List<TrustedApp> appleTrustedApps = applicationManagementService.getTrustedApps(IOS);
+        List<TrustedApp> androidTrustedApps = applicationManagementService.getTrustedApps(PlatformType.ANDROID);
+        List<TrustedApp> appleTrustedApps = applicationManagementService.getTrustedApps(PlatformType.IOS);
 
         Assert.assertEquals(androidTrustedApps.size(), 2);
         Assert.assertEquals(appleTrustedApps.size(), appleTrustedAppCount);
 
         Assert.assertEquals(androidTrustedApps.get(0).getAppIdentifier(), trustedAppMetadata1.getAndroidPackageName());
         Assert.assertEquals(androidTrustedApps.get(1).getAppIdentifier(), trustedAppMetadata2.getAndroidPackageName());
+        Assert.assertEquals(androidTrustedApps.get(0).getThumbprints(), trustedAppMetadata1.getAndroidThumbprints());
+        Assert.assertEquals(androidTrustedApps.get(1).getThumbprints(), trustedAppMetadata2.getAndroidThumbprints());
+
         Assert.assertEquals(appleTrustedApps.get(0).getAppIdentifier(), trustedAppMetadata1.getAppleAppId());
+        Assert.assertEquals(appleTrustedApps.get(0).getThumbprints(), new String[0]);
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);

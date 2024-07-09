@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2024, WSO2 Inc. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.trusted.app.mgt.internal.TrustedAppMgtDataHolder;
 import org.wso2.carbon.identity.trusted.app.mgt.model.TrustedAndroidApp;
@@ -40,8 +41,6 @@ import java.util.Set;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IOS;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.ANDROID_CREDENTIAL_PERMISSION;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.ANDROID_HANDLE_URLS_PERMISSION;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.IOS_CREDENTIAL_PERMISSION;
@@ -105,13 +104,13 @@ public class TrustedAppMgtServiceImplTest {
 
         List<TrustedApp> trustedApps = new ArrayList<>();
         TrustedApp trustedApp = new TrustedApp();
-        trustedApp.setPlatformType(ANDROID);
+        trustedApp.setPlatformType(PlatformType.ANDROID);
         trustedApp.setAppIdentifier(ANDROID_PACKAGE_NAME);
         trustedApp.setThumbprints(providedThumbprints);
         trustedApp.setIsFIDOTrusted(isFidoTrusted);
         trustedApps.add(trustedApp);
 
-        when(applicationManagementService.getTrustedApps(ANDROID)).thenReturn(trustedApps);
+        when(applicationManagementService.getTrustedApps(PlatformType.ANDROID)).thenReturn(trustedApps);
 
         List<TrustedAndroidApp> trustedAndroidApps = trustedAppMgtService.getTrustedAndroidApps();
 
@@ -142,13 +141,13 @@ public class TrustedAppMgtServiceImplTest {
 
         List<TrustedApp> trustedApps = new ArrayList<>();
         TrustedApp trustedApp = new TrustedApp();
-        trustedApp.setPlatformType(IOS);
+        trustedApp.setPlatformType(PlatformType.IOS);
         trustedApp.setAppIdentifier(APPLE_APP_ID);
         trustedApp.setThumbprints(new String[0]);
         trustedApp.setIsFIDOTrusted(isFIDOTrusted);
         trustedApps.add(trustedApp);
 
-        when(applicationManagementService.getTrustedApps(IOS)).thenReturn(trustedApps);
+        when(applicationManagementService.getTrustedApps(PlatformType.IOS)).thenReturn(trustedApps);
 
         List<TrustedIosApp> trustedIosApps = trustedAppMgtService.getTrustedIosApps();
 

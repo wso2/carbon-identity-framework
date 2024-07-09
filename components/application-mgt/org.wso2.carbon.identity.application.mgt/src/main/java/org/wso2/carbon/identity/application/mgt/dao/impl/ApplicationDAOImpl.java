@@ -150,7 +150,6 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IOS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ISSUER_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME;
@@ -166,6 +165,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_FLAG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.NAME_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME;
@@ -3567,8 +3567,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                     // There should be maximum two entries for each service provider. One for Android and one for iOS.
                     while (appConfigResultSet.next()) {
-                        String platformType = appConfigResultSet.getString(1);
-                        if (ANDROID.equals(platformType)) {
+                        PlatformType platformType = PlatformType.valueOf(appConfigResultSet.getString(1));
+                        if (PlatformType.ANDROID.equals(platformType)) {
                             spTrustedAppMetadata.setAndroidPackageName(appConfigResultSet.getString(2));
                             if (appConfigResultSet.getString(3) != null) {
                                 spTrustedAppMetadata.setAndroidThumbprints(
@@ -3576,7 +3576,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             } else {
                                 spTrustedAppMetadata.setAndroidThumbprints(new String[0]);
                             }
-                        } else if (IOS.equals(platformType)) {
+                        } else if (PlatformType.IOS.equals(platformType)) {
                             spTrustedAppMetadata.setAppleAppId(appConfigResultSet.getString(2));
                         }
                         spTrustedAppMetadata.setIsFidoTrusted(appConfigResultSet.getBoolean(4));
@@ -3619,7 +3619,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 storeAppConfigs.setInt(6, tenantID);
 
                 if (StringUtils.isNotBlank(trustedAppMetadata.getAndroidPackageName())) {
-                    storeAppConfigs.setString(2, ANDROID);
+                    storeAppConfigs.setString(2, PlatformType.ANDROID.toString());
                     storeAppConfigs.setString(3, trustedAppMetadata.getAndroidPackageName());
                     if (trustedAppMetadata.getAndroidThumbprints() != null) {
                         storeAppConfigs.setString(4, String.join(ATTRIBUTE_SEPARATOR,
@@ -3630,7 +3630,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     storeAppConfigs.addBatch();
                 }
                 if (StringUtils.isNotBlank(trustedAppMetadata.getAppleAppId())) {
-                    storeAppConfigs.setString(2, IOS);
+                    storeAppConfigs.setString(2, PlatformType.IOS.toString());
                     storeAppConfigs.setString(3, trustedAppMetadata.getAppleAppId());
                     storeAppConfigs.setString(4, null);
                     storeAppConfigs.addBatch();
@@ -6478,7 +6478,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    public List<TrustedApp> getTrustedApps(String platformType) throws IdentityApplicationManagementException {
+    public List<TrustedApp> getTrustedApps(PlatformType platformType) throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
             log.debug("Getting trusted app details for platform type: " + platformType);
@@ -6489,7 +6489,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement statement = connection.prepareStatement(
                      ApplicationMgtDBQueries.LOAD_TRUSTED_APPS_BY_PLATFORM_TYPE)) {
-            statement.setString(1, platformType);
+            statement.setString(1, platformType.toString());
             statement.execute();
 
             try (ResultSet resultSet = statement.executeQuery()) {

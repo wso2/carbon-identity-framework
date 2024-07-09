@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
@@ -460,7 +461,7 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @return List of trusted apps of all tenants.
      * @throws IdentityApplicationManagementException If an error occurs while retrieving the trusted apps.
      */
-    public List<TrustedApp> getTrustedApps(String platformType) throws IdentityApplicationManagementException {
+    public List<TrustedApp> getTrustedApps(PlatformType platformType) throws IdentityApplicationManagementException {
 
         return new ArrayList<>();
     }

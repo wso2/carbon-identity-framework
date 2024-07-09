@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2024, WSO2 Inc. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,8 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IOS;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.ANDROID_CREDENTIAL_PERMISSION;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.ANDROID_HANDLE_URLS_PERMISSION;
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.IOS_CREDENTIAL_PERMISSION;
@@ -54,7 +53,8 @@ public class TrustedAppMgtServiceImpl implements TrustedAppMgtService {
         List<TrustedAndroidApp> trustedAndroidApps = new ArrayList<>();
         try {
             List<TrustedApp> trustedAppSet =
-                    TrustedAppMgtDataHolder.getInstance().getApplicationManagementService().getTrustedApps(ANDROID);
+                    TrustedAppMgtDataHolder.getInstance().getApplicationManagementService()
+                            .getTrustedApps(PlatformType.ANDROID);
             for (TrustedApp trustedApp : trustedAppSet) {
                 TrustedAndroidApp trustedAndroidApp = new TrustedAndroidApp();
                 trustedAndroidApp.setPackageName(trustedApp.getAppIdentifier());
@@ -85,7 +85,8 @@ public class TrustedAppMgtServiceImpl implements TrustedAppMgtService {
         List<TrustedIosApp> trustedIosApps = new ArrayList<>();
         try {
             List<TrustedApp> trustedAppSet =
-                    TrustedAppMgtDataHolder.getInstance().getApplicationManagementService().getTrustedApps(IOS);
+                    TrustedAppMgtDataHolder.getInstance().getApplicationManagementService().
+                            getTrustedApps(PlatformType.IOS);
             for (TrustedApp trustedApp : trustedAppSet) {
                 TrustedIosApp trustedIosApp = new TrustedIosApp();
                 trustedIosApp.setAppId(trustedApp.getAppIdentifier());
@@ -119,12 +120,12 @@ public class TrustedAppMgtServiceImpl implements TrustedAppMgtService {
     private Set<String> resolveAppPermissions(TrustedApp trustedApp) throws TrustedAppMgtException {
 
         Set<String> appPermissions = new HashSet<>();
-        if (ANDROID.equals(trustedApp.getPlatformType())) {
+        if (PlatformType.ANDROID.equals(trustedApp.getPlatformType())) {
             if (trustedApp.getIsFIDOTrusted()) {
                 appPermissions.add(ANDROID_CREDENTIAL_PERMISSION);
                 appPermissions.add(ANDROID_HANDLE_URLS_PERMISSION);
             }
-        } else if (IOS.equals(trustedApp.getPlatformType()) && trustedApp.getIsFIDOTrusted()) {
+        } else if (PlatformType.IOS.equals(trustedApp.getPlatformType()) && trustedApp.getIsFIDOTrusted()) {
             appPermissions.add(IOS_CREDENTIAL_PERMISSION);
         }
         if (appPermissions.isEmpty()) {
