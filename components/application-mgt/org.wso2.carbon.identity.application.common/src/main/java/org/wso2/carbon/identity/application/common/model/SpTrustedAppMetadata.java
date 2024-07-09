@@ -24,10 +24,8 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -212,29 +210,5 @@ public class SpTrustedAppMetadata implements Serializable {
     public void setIsConsentGranted(boolean isConsentGranted) {
 
         this.isConsentGranted = isConsentGranted;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        SpTrustedAppMetadata that = (SpTrustedAppMetadata) o;
-        return isFidoTrusted == that.isFidoTrusted && Objects.equals(androidPackageName, that.androidPackageName) &&
-                Arrays.equals(androidThumbprints, that.androidThumbprints) &&
-                Objects.equals(appleAppId, that.appleAppId) &&
-                Objects.equals(isConsentGranted, that.isConsentGranted);
-    }
-
-    @Override
-    public int hashCode() {
-
-        int result = Objects.hash(androidPackageName, appleAppId, isFidoTrusted, isConsentGranted);
-        result = 31 * result + Arrays.hashCode(androidThumbprints);
-        return result;
     }
 }

@@ -3392,8 +3392,8 @@
         <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
-        <Resource context="(.*)/.well-known/assetlinks.json" secured="false" http-method="GET"/>
-        <Resource context="(.*)/.well-known/apple-app-site-association" secured="false" http-method="GET"/>
+        <Resource context="(.*)/.well-known/trusted-apps/android" secured="false" http-method="GET"/>
+        <Resource context="(.*)/.well-known/trusted-apps/ios" secured="false" http-method="GET"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>

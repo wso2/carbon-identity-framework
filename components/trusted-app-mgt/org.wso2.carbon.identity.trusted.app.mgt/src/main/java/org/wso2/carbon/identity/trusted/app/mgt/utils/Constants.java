@@ -23,10 +23,9 @@ package org.wso2.carbon.identity.trusted.app.mgt.utils;
  */
 public class Constants {
 
-    public static final String CP_ANDROID_TRUSTED_APPS = "/.well-known/assetlinks.json";
-    public static final String CP_IOS_TRUSTED_APPS = "/.well-known/apple-app-site-association";
+    public static final String CP_ANDROID_TRUSTED_APPS = "/.well-known/trusted-apps/android";
+    public static final String CP_IOS_TRUSTED_APPS = "/.well-known/trusted-apps/ios";
     public static final String CT_APPLICATION_JSON = "application/json";
-    public static final String ATTRIBUTE_SEPARATOR = ",";
     public static final String HTTP_RESP_HEADER_CACHE_CONTROL = "Cache-Control";
     public static final String HTTP_RESP_HEADER_PRAGMA = "Pragma";
     public static final String HTTP_RESP_HEADER_VAL_CACHE_CONTROL_NO_STORE = "no-store";
