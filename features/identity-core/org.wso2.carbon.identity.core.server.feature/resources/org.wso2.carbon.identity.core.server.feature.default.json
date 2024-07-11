@@ -132,6 +132,12 @@
   "oauth.response_type.none.enable": true,
   "oauth.response_type.none.class": "org.wso2.carbon.identity.oauth2.authz.handlers.NoneResponseTypeHandler",
   "oauth.response_type.none.validator": "org.wso2.carbon.identity.oauth.common.NoneResponseTypeValidator",
+  "oauth.response_type.subject_token.enable": true,
+  "oauth.response_type.subject_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.SubjectTokenResponseTypeHandler",
+  "oauth.response_type.subject_token.validator": "org.wso2.carbon.identity.oauth.common.SubjectTokenResponseValidator",
+  "oauth.response_type.id_token_subject_token.enable": true,
+  "oauth.response_type.id_token_subject_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.SubjectTokenResponseTypeHandler",
+  "oauth.response_type.id_token_subject_token.validator": "org.wso2.carbon.identity.oauth.common.SubjectTokenResponseValidator",
 
   "oauth.grant_type.jwt.enable_iat_validation": "true",
   "oauth.grant_type.jwt.iat_validity_period": "30",

@@ -468,6 +468,20 @@
                 <ResponseTypeValidatorImplClass>{{oauth.response_type.none.validator}}</ResponseTypeValidatorImplClass>
             </SupportedResponseType>
             {% endif %}
+            {% if oauth.response_type.subject_token.enable is sameas true %}
+                <SupportedResponseType>
+                <ResponseTypeName>subject_token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.subject_token.class}}</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>{{oauth.response_type.subject_token.validator}}</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
+            {% endif %}
+            {% if oauth.response_type.id_token_subject_token.enable is sameas true %}
+                <SupportedResponseType>
+                <ResponseTypeName>id_token subject_token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.id_token_subject_token.class}}</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>{{oauth.response_type.id_token_subject_token.validator}}</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
+            {% endif %}
             {% for response_type in oauth.custom_response_type %}
             <SupportedResponseType>
                 <ResponseTypeName>{{response_type.name}}</ResponseTypeName>
