@@ -1073,4 +1073,12 @@
                     description="Manage offline invitations from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Impersonation" identifier="system:impersonation"
+                requiresAuthorization="true"
+                description="Resource representation of the User Impersonation" type="TENANT">
+        <Scopes>
+            <Scope displayName="User Impersonation Scope" name="internal_user_impersonate"
+                    description = "Allows to impersonate another user"/>
+        </Scopes>
+    </APIResource>
 </APIResources>
