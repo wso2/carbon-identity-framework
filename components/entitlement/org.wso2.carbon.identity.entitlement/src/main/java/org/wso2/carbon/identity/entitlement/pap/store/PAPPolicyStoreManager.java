@@ -1,7 +1,7 @@
 /*
-*  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+*  Copyright (c) 2005-2024, WSO2 LLC (https://www.wso2.com) All Rights Reserved.
 *
-*  WSO2 Inc. licenses this file to you under the Apache License,
+*  WSO2 LLC licenses this file to you under the Apache License,
 *  Version 2.0 (the "License"); you may not use this file except
 *  in compliance with the License.
 *  You may obtain a copy of the License at
@@ -64,6 +64,13 @@ public class PAPPolicyStoreManager {
         return storeReader.readMetaDataPolicyDTO(policyId);
     }
 
+    /**
+     * @param resource resource
+     * @return policy
+     * @throws EntitlementException throws, if fails
+     * @deprecated use {@link #getPolicy(String)} instead
+     */
+    @Deprecated
     public PolicyDTO getPolicy(Resource resource) throws EntitlementException {
         return storeReader.readPolicyDTO(resource);
     }

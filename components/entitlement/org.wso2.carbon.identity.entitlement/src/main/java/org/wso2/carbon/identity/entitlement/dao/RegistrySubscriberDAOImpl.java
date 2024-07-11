@@ -38,15 +38,18 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.wso2.carbon.identity.entitlement.PDPConstants.SUBSCRIBER_ID;
 
 /**
  * This implementation handles the subscriber management in the Registry.
  */
 public class RegistrySubscriberDAOImpl implements SubscriberDAO {
 
-    public static final String SUBSCRIBER_ID = "subscriberId";
     // The logger that is used for all messages
     private static final Log LOG = LogFactory.getLog(RegistrySubscriberDAOImpl.class);
     private final Registry registry;
@@ -86,10 +89,9 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                 Resource resource = registry.get(PDPConstants.ENTITLEMENT_POLICY_PUBLISHER +
                         RegistryConstants.PATH_SEPARATOR + subscriberId);
 
-                return new PublisherDataHolder(resource, returnSecrets);
+                return getPublisherDataHolder(resource, returnSecrets);
             }
         } catch (RegistryException e) {
-            LOG.error("Error while retrieving subscriber detail of id : " + subscriberId, e);
             throw new EntitlementException("Error while retrieving subscriber detail of id : " + subscriberId, e);
         }
 
@@ -132,7 +134,6 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                 return list;
             }
         } catch (RegistryException e) {
-            LOG.error("Error while retrieving subscriber ids", e);
             throw new EntitlementException("Error while retrieving subscriber ids", e);
         }
         return Collections.emptyList();
@@ -162,12 +163,10 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         String subscriberPath;
 
         if (subscriberId == null) {
-            LOG.error("SubscriberDAO Id can not be null");
             throw new EntitlementException("SubscriberDAO Id can not be null");
         }
 
         if (EntitlementConstants.PDP_SUBSCRIBER_ID.equals(subscriberId.trim())) {
-            LOG.error("Can not delete PDP publisher");
             throw new EntitlementException("Can not delete PDP publisher");
         }
 
@@ -179,7 +178,6 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                 registry.delete(subscriberPath);
             }
         } catch (RegistryException e) {
-            LOG.error("Error while deleting subscriber details", e);
             throw new EntitlementException("Error while deleting subscriber details", e);
         }
     }
@@ -198,7 +196,6 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         String subscriberId = null;
 
         if (holder == null || holder.getPropertyDTOs() == null) {
-            LOG.error("Publisher data can not be null");
             throw new EntitlementException("Publisher data can not be null");
         }
 
@@ -209,7 +206,6 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         }
 
         if (subscriberId == null) {
-            LOG.error("SubscriberDAO Id can not be null");
             throw new EntitlementException("SubscriberDAO Id can not be null");
         }
 
@@ -228,7 +224,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
             if (registry.resourceExists(subscriberPath)) {
                 if (isUpdate) {
                     resource = registry.get(subscriberPath);
-                    oldHolder = new PublisherDataHolder(resource, false);
+                    oldHolder = getPublisherDataHolder(resource, false);
                 } else {
                     throw new EntitlementException("SubscriberDAO ID already exists");
                 }
@@ -240,7 +236,6 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
             registry.put(subscriberPath, resource);
 
         } catch (RegistryException e) {
-            LOG.error("Error while persisting subscriber details", e);
             throw new EntitlementException("Error while persisting subscriber details", e);
         }
     }
@@ -285,5 +280,57 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
             }
         }
         resource.setProperty(PublisherDataHolder.MODULE_NAME, holder.getModuleName());
+    }
+
+    private PublisherDataHolder getPublisherDataHolder(Resource resource, boolean returnSecrets) {
+
+        List<PublisherPropertyDTO> propertyDTOs = new ArrayList<>();
+        String moduleName = null;
+        if (resource != null && resource.getProperties() != null) {
+            Properties properties = resource.getProperties();
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                PublisherPropertyDTO dto = new PublisherPropertyDTO();
+                dto.setId((String) entry.getKey());
+                Object value = entry.getValue();
+                if (value instanceof ArrayList) {
+                    List list = (ArrayList) entry.getValue();
+                    if (!list.isEmpty() && list.get(0) != null) {
+                        dto.setValue((String) list.get(0));
+
+                        if (list.size() > 1 && list.get(1) != null) {
+                            dto.setDisplayName((String) list.get(1));
+                        }
+                        if (list.size() > 2 && list.get(2) != null) {
+                            dto.setDisplayOrder(Integer.parseInt((String) list.get(2)));
+                        }
+                        if (list.size() > 3 && list.get(3) != null) {
+                            dto.setRequired(Boolean.parseBoolean((String) list.get(3)));
+                        }
+                        if (list.size() > 4 && list.get(4) != null) {
+                            dto.setSecret(Boolean.parseBoolean((String) list.get(4)));
+                        }
+
+                        if (dto.isSecret() && returnSecrets) {
+                            String password = dto.getValue();
+                            try {
+                                password = new String(CryptoUtil.getDefaultCryptoUtil().
+                                        base64DecodeAndDecrypt(dto.getValue()));
+                            } catch (CryptoException e) {
+                                LOG.error(e);
+                                // ignore
+                            }
+                            dto.setValue(password);
+                        }
+                    }
+                }
+                if (PublisherDataHolder.MODULE_NAME.equals(dto.getId())) {
+                    moduleName = dto.getValue();
+                    continue;
+                }
+
+                propertyDTOs.add(dto);
+            }
+        }
+        return new PublisherDataHolder(propertyDTOs, moduleName);
     }
 }

@@ -32,16 +32,17 @@ import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
+import static org.wso2.carbon.identity.entitlement.PDPConstants.GLOBAL_POLICY_COMBINING_ALGORITHM;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.POLICY_COMBINING_PREFIX_1;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.POLICY_COMBINING_PREFIX_3;
+
 /**
  * This implementation handles the Global PolicyDAO Combining Algorithm management in the Registry.
  */
 public class RegistryConfigDAOImpl implements ConfigDAO {
 
-    public static final String POLICY_COMBINING_PREFIX_1 = "urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:";
-    public static final String POLICY_COMBINING_PREFIX_3 = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:";
     // The logger that is used for all messages
     private static final Log LOG = LogFactory.getLog(RegistryConfigDAOImpl.class);
-    private static final String GLOBAL_POLICY_COMBINING_ALGORITHM = "globalPolicyCombiningAlgorithm";
     private static final String POLICY_DATA_COLLECTION = PDPConstants.ENTITLEMENT_POLICY_DATA;
     private final Registry registry;
 
@@ -74,7 +75,7 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
                         "is used.");
                 try {
                     return EntitlementUtil.getPolicyCombiningAlgorithm(algorithm);
-                } catch (Exception e) {
+                } catch (EntitlementException e) {
                     LOG.warn(e);
                 }
             }
@@ -123,8 +124,7 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
             EntitlementEngine.getInstance().invalidatePolicyCache();
 
         } catch (RegistryException e) {
-            LOG.error("Error while updating global policy combining algorithm in policy store ", e);
-            throw new EntitlementException("Error while updating global policy combining algorithm in policy store");
+            throw new EntitlementException("Error while updating global policy combining algorithm in policy store", e);
         }
     }
 

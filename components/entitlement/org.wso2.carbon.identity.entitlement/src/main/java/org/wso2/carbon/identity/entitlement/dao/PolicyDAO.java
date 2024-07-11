@@ -48,6 +48,15 @@ public interface PolicyDAO extends PolicyFinderModule {
     PolicyDTO getPAPPolicy(String policyId) throws EntitlementException;
 
     /**
+     * Gets the requested policy list.
+     *
+     * @param policyIds policy ID list
+     * @return policyDTO
+     * @throws EntitlementException If an error occurs
+     */
+    List<PolicyDTO> getPAPPolicies(List<String> policyIds) throws EntitlementException;
+
+    /**
      * Gets the requested policy version.
      *
      * @param policyId policy ID
