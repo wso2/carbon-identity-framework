@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.util.List;
@@ -45,6 +46,7 @@ import javax.servlet.http.HttpServletResponse;
 public class PostAuthenticationMgtService {
 
     private static final Log log = LogFactory.getLog(PostAuthenticationMgtService.class);
+    private static final String PASTR_COOKIE_MAX_AGE_CONFIG_NAME  = "PASTRCookieMaxAge";
 
     /**
      * Handles post authentication upon an overall authentication event.
@@ -184,9 +186,13 @@ public class PostAuthenticationMgtService {
                                 + " " + "cookie");
             }
             String pastrCookieValue = UUIDGenerator.generateUUID();
+            int PASTRCookieMaxAge = -1;
+            if (StringUtils.isNotBlank(IdentityUtil.getProperty(PASTR_COOKIE_MAX_AGE_CONFIG_NAME))) {
+                PASTRCookieMaxAge = Integer.parseInt(IdentityUtil.getProperty(PASTR_COOKIE_MAX_AGE_CONFIG_NAME));
+            }
             FrameworkUtils
                     .setCookie(request, response, FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()),
-                            pastrCookieValue, -1);
+                            pastrCookieValue, PASTRCookieMaxAge);
             context.addParameter(FrameworkConstants.PASTR_COOKIE, pastrCookieValue);
         }
     }
