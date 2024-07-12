@@ -1,7 +1,7 @@
 /*
- *  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2005-2024, WSO2 LLC (https://www.wso2.com) All Rights Reserved.
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  WSO2 LLC licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License.
  *  You may obtain a copy of the License at
@@ -75,6 +75,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -598,5 +600,40 @@ public class EntitlementUtil {
 
         // The default behavior is to store policy meta data.
         return StringUtils.isEmpty(propertyValue) || Boolean.parseBoolean(propertyValue);
+    }
+
+    /**
+     * Get policy attributes for search.
+     *
+     * @param policyDTOs PolicyDTO array.
+     * @return Map of policy id to self and referenced policy attributes.
+     */
+    public static Map<String, Set<AttributeDTO>> getAttributesFromPolicies(PolicyDTO[] policyDTOs) {
+
+        Map<String, Set<AttributeDTO>> attributeMap = new HashMap<>();
+        for (PolicyDTO policyDTO : policyDTOs) {
+            Set<AttributeDTO> attributeDTOs = new HashSet<>(Arrays.asList(policyDTO.getAttributeDTOs()));
+            String[] policyIdRef = policyDTO.getPolicyIdReferences();
+            String[] policySetIdRef = policyDTO.getPolicySetIdReferences();
+
+            if (ArrayUtils.isNotEmpty(policyIdRef) || ArrayUtils.isNotEmpty(policySetIdRef)) {
+                for (PolicyDTO dto : policyDTOs) {
+                    if (policyIdRef != null) {
+                        for (String policyId : policyIdRef) {
+                            if (dto.getPolicyId().equals(policyId)) {
+                                attributeDTOs.addAll(Arrays.asList(dto.getAttributeDTOs()));
+                            }
+                        }
+                    }
+                    for (String policySetId : policySetIdRef) {
+                        if (dto.getPolicyId().equals(policySetId)) {
+                            attributeDTOs.addAll(Arrays.asList(dto.getAttributeDTOs()));
+                        }
+                    }
+                }
+            }
+            attributeMap.put(policyDTO.getPolicyId(), attributeDTOs);
+        }
+        return attributeMap;
     }
 }

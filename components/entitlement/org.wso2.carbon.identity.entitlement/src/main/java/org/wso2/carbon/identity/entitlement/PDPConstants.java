@@ -299,8 +299,19 @@ public class PDPConstants {
 
     public static final int DEFAULT_MAX_NO_OF_POLICY_VERSIONS = 5;
 
+    public static final String GLOBAL_POLICY_COMBINING_ALGORITHM = "globalPolicyCombiningAlgorithm";
+
+    public static final String POLICY_COMBINING_PREFIX_1 = "urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:";
+
+    public static final String POLICY_COMBINING_PREFIX_3 = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:";
+
+    public static final String SUBSCRIBER_ID = "subscriberId";
+
     public static final class Algorithms {
 
+        private Algorithms() {
+
+        }
         public static final String DENY_OVERRIDES = "deny-overrides";
         public static final String PERMIT_OVERRIDES = "permit-overrides";
         public static final String FIRST_APPLICABLE = "first-applicable";
