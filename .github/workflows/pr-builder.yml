@@ -40,3 +40,9 @@ jobs:
         run: mvn clean install -U -B
       - name: Delete SNAPSHOT artifacts
         run: find ~/.m2/repository/ -name "*-SNAPSHOT" -type d -print -prune -exec rm -r {} +
+      - name: Generate coverage report
+        run: mvn test jacoco:report
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
