@@ -1479,6 +1479,28 @@ public class IdentityUtil {
     }
 
     /**
+     * Get the Maximum Actions per Action Type to be configured.
+     *
+     * @return maximumItemsPerPage need to display.
+     */
+    public static int getMaximumActionsPerActionType() {
+
+        int maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ACTIONS_PER_TYPE;
+        String maximumActionsPerActionTypePropertyValue =
+                IdentityUtil.getProperty(IdentityCoreConstants.MAXIMUM_ACTIONS_PER_TYPE_PROPERTY);
+        if (StringUtils.isNotBlank(maximumActionsPerActionTypePropertyValue)) {
+            try {
+                maximumActionsPerActionType = Integer.parseInt(maximumActionsPerActionTypePropertyValue);
+            } catch (NumberFormatException e) {
+                maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+                log.warn("Error occurred while parsing the 'maximumActionsPerActionType' property value " +
+                        "in identity.xml.", e);
+            }
+        }
+        return maximumActionsPerActionType;
+    }
+
+    /**
      * Get the Default Items per Page needed to display.
      *
      * @return defaultItemsPerPage need to display.

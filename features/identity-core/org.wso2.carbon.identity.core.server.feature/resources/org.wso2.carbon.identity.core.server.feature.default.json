@@ -27,6 +27,7 @@
   "session_data.cleanup.clean_expired_session_data_in_chunks_of": "8192",
   "session_data.cleanup.clean_logged_out_sessions_at_immediate_cycle": true,
   "session_data.cleanup.enable_pre_session_data_cleanup": true,
+  "session_data.cleanup.enable_periodic_pre_session_data_cleanup": true,
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": true,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session.nonce.cookie.enabled": true,
@@ -131,6 +132,12 @@
   "oauth.response_type.none.enable": true,
   "oauth.response_type.none.class": "org.wso2.carbon.identity.oauth2.authz.handlers.NoneResponseTypeHandler",
   "oauth.response_type.none.validator": "org.wso2.carbon.identity.oauth.common.NoneResponseTypeValidator",
+  "oauth.response_type.subject_token.enable": true,
+  "oauth.response_type.subject_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.SubjectTokenResponseTypeHandler",
+  "oauth.response_type.subject_token.validator": "org.wso2.carbon.identity.oauth.common.SubjectTokenResponseValidator",
+  "oauth.response_type.id_token_subject_token.enable": true,
+  "oauth.response_type.id_token_subject_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.SubjectTokenResponseTypeHandler",
+  "oauth.response_type.id_token_subject_token.validator": "org.wso2.carbon.identity.oauth.common.SubjectTokenResponseValidator",
 
   "oauth.grant_type.jwt.enable_iat_validation": "true",
   "oauth.grant_type.jwt.iat_validity_period": "30",
@@ -211,6 +218,7 @@
   "oauth.scope_validator.xacml.enable": true,
   "oauth.scope_validator.xacml.class": "org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator",
   "oauth.scope_validator.authz_implicit.enable": true,
+  "oauth.scope_validator.preserve_case_sensitivity": false,
   "oauth.grant_type.saml_bearer.user_type": "FEDERATED",
 
   "oauth.prompt_consent": "$ref{authentication.consent.prompt}",
@@ -1051,6 +1059,11 @@
       "id": "T3JnYW5pemF0aW9uVXNlckludml0YXRpb24",
       "displayName": "Organization User Invitation",
       "description": "This email is sent when the organization admin invites a user to the organization"
+    },
+    {
+      "id": "SW1wZXJzb25hdGlvbkVtYWlsTm90aWZpY2F0aW9u",
+      "displayName": "Impersonation Email Notification",
+      "description": "This email is sent to the impersonated user when the impersonation session is started"
     }
   ],
   "console.ui.app_copyright": "WSO2 Identity Server",
@@ -1563,6 +1576,8 @@
   "connector.challenge_questions.enable": false,
   "tenant_mgt.enable_email_domain": false,
 
-  "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false
+  "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
+
+  "actions.maximum_actions_per_action_type": 1
 }
 

@@ -53,6 +53,7 @@
                 <!-- All temporary authentication context data older than CleanUpTimeout value are considered as expired
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>40</CleanUpTimeout>
+                <EnablePeriodicCleanup>true</EnablePeriodicCleanup>
             </TempDataCleanup>
             <UserSessionMapping>
                 <Enable>true</Enable>
@@ -476,6 +477,7 @@
         Supported versions: IS 5.8.1  onwards
         -->
         <ScopeValidationEnabledForAuthzCodeAndImplicitGrant>true</ScopeValidationEnabledForAuthzCodeAndImplicitGrant>
+        <ScopeValidationPreserveCaseSensitivity>false</ScopeValidationPreserveCaseSensitivity>
 
         <!-- Scope handlers list. The handlers registered here will be executed at the scope validation phase while
              issuing access tokens. -->
@@ -2232,6 +2234,23 @@
         <Resource context="(.*)/api/identity/typingdna/v1.0/(.*)" secured="true" http-method="GET, DELETE">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/actionmgt/create</Permissions>
+            <Scopes>internal_action_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/actionmgt/update</Permissions>
+            <Scopes>internal_action_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/actionmgt/delete</Permissions>
+            <Scopes>internal_action_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/actionmgt/view</Permissions>
+            <Scopes>internal_action_mgt_view</Scopes>
         </Resource>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
