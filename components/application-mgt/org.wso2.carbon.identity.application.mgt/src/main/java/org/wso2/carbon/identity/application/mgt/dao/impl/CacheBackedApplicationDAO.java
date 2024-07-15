@@ -232,7 +232,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             IdentityApplicationManagementException {
 
         // Clear the trusted app cache only if trusted app metadata is available in the SP to be added.
-        clearTrustedAppCache(application.getTrustedAppMetadata());
+        validateAndClearTrustedAppCache(application.getTrustedAppMetadata());
         return appDAO.createApplication(application, tenantDomain);
     }
 
@@ -242,7 +242,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         ServiceProvider storedApp = getApplication(serviceProvider.getApplicationID());
         clearAllAppCache(storedApp, tenantDomain);
         // Clear the trusted app cache only if the trusted app metadata is changed.
-        clearTrustedAppCache(storedApp.getTrustedAppMetadata(), serviceProvider.getTrustedAppMetadata());
+        validateAndClearTrustedAppCache(storedApp.getTrustedAppMetadata(), serviceProvider.getTrustedAppMetadata());
         appDAO.updateApplication(serviceProvider, tenantDomain);
     }
 
@@ -258,7 +258,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         clearAllAppCache(serviceProvider, tenantDomain);
 
         // Clear the trusted app cache only if the trusted app metadata is available in the SP to be deleted.
-        clearTrustedAppCache(serviceProvider.getTrustedAppMetadata());
+        validateAndClearTrustedAppCache(serviceProvider.getTrustedAppMetadata());
         appDAO.deleteApplication(applicationName);
     }
 
@@ -463,7 +463,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                                       String tenantDomain) throws IdentityApplicationManagementException {
 
         // Clear the trusted app cache only if trusted app metadata is available in the SP to be added.
-        clearTrustedAppCache(application.getTrustedAppMetadata());
+        validateAndClearTrustedAppCache(application.getTrustedAppMetadata());
         return appDAO.addApplication(application, tenantDomain);
     }
 
@@ -477,7 +477,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         clearAllAppCache(storedApp, tenantDomain);
 
         // Clear the trusted app cache only if the trusted app metadata is changed.
-        clearTrustedAppCache(storedApp.getTrustedAppMetadata(), updatedApp.getTrustedAppMetadata());
+        validateAndClearTrustedAppCache(storedApp.getTrustedAppMetadata(), updatedApp.getTrustedAppMetadata());
         appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
     }
 
@@ -489,7 +489,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         clearAllAppCache(serviceProvider, tenantDomain);
 
         // Clear the trusted app cache only if the trusted app metadata is available in the SP to be deleted.
-        clearTrustedAppCache(serviceProvider.getTrustedAppMetadata());
+        validateAndClearTrustedAppCache(serviceProvider.getTrustedAppMetadata());
         appDAO.deleteApplicationByResourceId(resourceId, tenantDomain);
     }
 
@@ -814,7 +814,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
      *
      * @param spTrustedAppMetadata Trusted app metadata of the service provider.
      */
-    private static void clearTrustedAppCache(SpTrustedAppMetadata spTrustedAppMetadata) {
+    private static void validateAndClearTrustedAppCache(SpTrustedAppMetadata spTrustedAppMetadata) {
 
         if (spTrustedAppMetadata != null) {
             if (StringUtils.isNotEmpty(spTrustedAppMetadata.getAppleAppId())) {
@@ -833,11 +833,11 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
      * @param storedTrustedAppMetadata Trusted app metadata of the stored service provider.
      * @param updatedTrustedAppMetadata Updated trusted app metadata of the service provider.
      */
-    private static void clearTrustedAppCache(SpTrustedAppMetadata storedTrustedAppMetadata,
-                                             SpTrustedAppMetadata updatedTrustedAppMetadata) {
+    private static void validateAndClearTrustedAppCache(SpTrustedAppMetadata storedTrustedAppMetadata,
+                                                        SpTrustedAppMetadata updatedTrustedAppMetadata) {
 
         if (storedTrustedAppMetadata == null) {
-            clearTrustedAppCache(updatedTrustedAppMetadata);
+            validateAndClearTrustedAppCache(updatedTrustedAppMetadata);
         } else {
             if (storedTrustedAppMetadata.getIsFidoTrusted() != updatedTrustedAppMetadata.getIsFidoTrusted()) {
                 clearIOSTrustedAppCache();

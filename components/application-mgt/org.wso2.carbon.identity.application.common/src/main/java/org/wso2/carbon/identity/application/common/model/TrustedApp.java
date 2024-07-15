@@ -34,8 +34,7 @@ public class TrustedApp implements Serializable {
     private String[] thumbprints;
 
     /**
-     * This attribute specifies whether this mobile application is trusted to share passkey credentials with, during
-     * app-native authentication.
+     * This attribute specifies whether this application is configured to share passkey credentials.
      */
     private boolean isFIDOTrusted;
 

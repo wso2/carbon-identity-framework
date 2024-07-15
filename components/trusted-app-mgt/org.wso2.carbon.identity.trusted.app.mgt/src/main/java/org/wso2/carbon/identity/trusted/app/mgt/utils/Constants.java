@@ -31,7 +31,7 @@ public class Constants {
     public static final String HTTP_RESP_HEADER_VAL_CACHE_CONTROL_NO_STORE = "no-store";
     public static final String HTTP_RESP_HEADER_VAL_PRAGMA_NO_CACHE = "no-cache";
 
-    //Response object
+    // Response object
     public static final String NAMESPACE_ATTRIBUTE = "namespace";
     public static final String ANDROID_APP_NAMESPACE_VALUE = "android_app";
     public static final String PACKAGE_NAME_ATTRIBUTE = "package_name";
@@ -40,8 +40,8 @@ public class Constants {
     public static final String TARGET_ATTRIBUTE = "target";
     public static final String APPS_ATTRIBUTE = "apps";
 
-    //Permissions
-    public static final String ANDROID_CREDENTIAL_PERMISSION = "delegate_permission/common.get_login_cred";
+    // Permissions
+    public static final String ANDROID_CREDENTIAL_PERMISSION = "delegate_permission/common.get_login_creds";
     public static final String ANDROID_HANDLE_URLS_PERMISSION = "delegate_permission/common.handle_all_urls";
     public static final String IOS_CREDENTIAL_PERMISSION = "webcredentials";
 

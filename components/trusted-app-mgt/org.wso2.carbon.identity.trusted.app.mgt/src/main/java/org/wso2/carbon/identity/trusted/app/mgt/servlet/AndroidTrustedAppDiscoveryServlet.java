@@ -48,7 +48,7 @@ import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.RELATION_
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.TARGET_ATTRIBUTE;
 
 /**
- * Servlet to discover android based trusted mobile apps.
+ * Servlet to discover android based trusted apps.
  */
 public class AndroidTrustedAppDiscoveryServlet extends HttpServlet {
 

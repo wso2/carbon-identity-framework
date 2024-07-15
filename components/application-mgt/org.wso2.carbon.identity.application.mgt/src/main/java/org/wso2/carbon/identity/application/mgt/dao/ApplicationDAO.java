@@ -423,7 +423,7 @@ public interface ApplicationDAO {
     }
 
     /**
-     * Returns the list of trusted mobile applications of all tenants based on the requested platform type.
+     * Returns the list of trusted applications of all tenants based on the requested platform type.
      *
      * @param platformType Platform type of the trusted apps.
      * @return List of trusted apps of all tenants.

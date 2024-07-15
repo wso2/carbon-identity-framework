@@ -2948,7 +2948,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     /**
-     * Get the list of trusted mobile applications based on the requested platform type.
+     * Get the list of trusted applications based on the requested platform type.
      *
      * @param platformType Platform type of the trusted apps.
      * @return List of trusted apps of all tenants.

@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.trusted.app.mgt.model.TrustedIosApp;
 import java.util.List;
 
 /**
- * This interface defines methods for managing trusted mobile applications, which involves retrieving trusted app
+ * This interface defines methods for managing trusted applications, which involves retrieving trusted app
  * details based on the platform.
  */
 public interface TrustedAppMgtService {

@@ -44,7 +44,7 @@ import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.HTTP_RESP
 import static org.wso2.carbon.identity.trusted.app.mgt.utils.Constants.IOS_CREDENTIAL_PERMISSION;
 
 /**
- * Servlet to discover iOS based trusted mpbile apps.
+ * Servlet to discover iOS based trusted apps.
  */
 public class IosTrustedAppDiscoveryServlet extends HttpServlet {
 

@@ -58,15 +58,17 @@ public class TrustedAppMgtServiceImpl implements TrustedAppMgtService {
             for (TrustedApp trustedApp : trustedAppSet) {
                 TrustedAndroidApp trustedAndroidApp = new TrustedAndroidApp();
                 trustedAndroidApp.setPackageName(trustedApp.getAppIdentifier());
-                try {
-                    trustedAndroidApp.setThumbprints(resolveThumbprints(trustedApp));
-                    trustedAndroidApp.setPermissions(resolveAppPermissions(trustedApp));
-                } catch (TrustedAppMgtException e) {
+                String[] thumbprints = resolveThumbprints(trustedApp);
+                Set<String> permissions = resolveAppPermissions(trustedApp);
+                if (thumbprints.length == 0 || permissions.isEmpty()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(e.getMessage() + "Hence removing the app from the trusted app list.");
+                        LOG.debug(String.format("No thumbprints or permissions found for the app: %s. Hence removing " +
+                                "the app from trusted app list.", trustedApp.getAppIdentifier()));
                     }
                     continue;
                 }
+                trustedAndroidApp.setThumbprints(thumbprints);
+                trustedAndroidApp.setPermissions(permissions);
                 trustedAndroidApps.add(trustedAndroidApp);
             }
         } catch (IdentityApplicationManagementException e) {
@@ -90,14 +92,15 @@ public class TrustedAppMgtServiceImpl implements TrustedAppMgtService {
             for (TrustedApp trustedApp : trustedAppSet) {
                 TrustedIosApp trustedIosApp = new TrustedIosApp();
                 trustedIosApp.setAppId(trustedApp.getAppIdentifier());
-                try {
-                    trustedIosApp.setPermissions(resolveAppPermissions(trustedApp));
-                } catch (TrustedAppMgtException e) {
+                Set<String> permissions = resolveAppPermissions(trustedApp);
+                if (permissions.isEmpty()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(e.getMessage() + "Hence removing the app from the trusted app list.");
+                        LOG.debug(String.format("No permissions found for the app: %s. Hence removing the app from " +
+                                "trusted app list.", trustedApp.getAppIdentifier()));
                     }
                     continue;
                 }
+                trustedIosApp.setPermissions(permissions);
                 trustedIosApps.add(trustedIosApp);
             }
         } catch (IdentityApplicationManagementException e) {
@@ -107,30 +110,25 @@ public class TrustedAppMgtServiceImpl implements TrustedAppMgtService {
         return trustedIosApps;
     }
 
-    private String[] resolveThumbprints(TrustedApp trustedApp) throws TrustedAppMgtException {
+    private String[] resolveThumbprints(TrustedApp trustedApp) {
 
         String[] thumbprints = trustedApp.getThumbprints();
-        if (thumbprints == null || thumbprints.length == 0) {
-            throw new TrustedAppMgtException(String.format("No thumbprints found for the app: %s. ",
-                    trustedApp.getAppIdentifier()));
+        if (thumbprints != null) {
+            return thumbprints;
         }
-        return thumbprints;
+        return new String[0];
     }
 
     private Set<String> resolveAppPermissions(TrustedApp trustedApp) throws TrustedAppMgtException {
 
         Set<String> appPermissions = new HashSet<>();
-        if (PlatformType.ANDROID.equals(trustedApp.getPlatformType())) {
-            if (trustedApp.getIsFIDOTrusted()) {
+        if (trustedApp.getIsFIDOTrusted()) {
+            if (PlatformType.ANDROID.equals(trustedApp.getPlatformType())) {
                 appPermissions.add(ANDROID_CREDENTIAL_PERMISSION);
                 appPermissions.add(ANDROID_HANDLE_URLS_PERMISSION);
+            } else if (PlatformType.IOS.equals(trustedApp.getPlatformType())) {
+                appPermissions.add(IOS_CREDENTIAL_PERMISSION);
             }
-        } else if (PlatformType.IOS.equals(trustedApp.getPlatformType()) && trustedApp.getIsFIDOTrusted()) {
-            appPermissions.add(IOS_CREDENTIAL_PERMISSION);
-        }
-        if (appPermissions.isEmpty()) {
-            throw new TrustedAppMgtException(String.format("No permissions found for the app: %s. ",
-                    trustedApp.getAppIdentifier()));
         }
         return appPermissions;
     }
