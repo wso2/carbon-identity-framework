@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.buildCustomKeyStoreName;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.buildTenantKeyStoreName;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace;
 
@@ -117,7 +118,7 @@ public class IdentityKeyStoreResolver {
                     log.debug("Custom keystore configuration avialble for " + inboundProtocol + " protocol.");
                 }
 
-                String keyStoreName = keyStoreMappings.get(inboundProtocol).getKeyStoreName();
+                String keyStoreName = buildCustomKeyStoreName(keyStoreMappings.get(inboundProtocol).getKeyStoreName());
 
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -188,7 +189,7 @@ public class IdentityKeyStoreResolver {
                     return privateKeys.get(inboundProtocol.toString());
                 }
 
-                String keyStoreName = keyStoreMappings.get(inboundProtocol).getKeyStoreName();
+                String keyStoreName = buildCustomKeyStoreName(keyStoreMappings.get(inboundProtocol).getKeyStoreName());
 
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -258,7 +259,7 @@ public class IdentityKeyStoreResolver {
                     return publicCerts.get(inboundProtocol.toString());
                 }
 
-                String keyStoreName = keyStoreMappings.get(inboundProtocol).getKeyStoreName();
+                String keyStoreName = buildCustomKeyStoreName(keyStoreMappings.get(inboundProtocol).getKeyStoreName());
 
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
