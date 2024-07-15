@@ -1095,6 +1095,10 @@
     <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="PUT">
         <Scopes>internal_action_mgt_update</Scopes>
     </Resource>
+    <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="PATCH">
+        <Permissions>/permission/admin/manage/identity/actionmgt/update</Permissions>
+        <Scopes>internal_action_mgt_update</Scopes>
+    </Resource>
     <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_action_mgt_delete</Scopes>
     </Resource>

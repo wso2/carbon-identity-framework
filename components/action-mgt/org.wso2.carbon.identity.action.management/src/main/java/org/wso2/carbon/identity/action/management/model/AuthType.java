@@ -18,8 +18,12 @@
 
 package org.wso2.carbon.identity.action.management.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.wso2.carbon.identity.action.management.ActionSecretProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * AuthType.
@@ -31,18 +35,56 @@ public class AuthType {
      */
     public enum AuthenticationType {
 
-        NONE("NONE", new String[]{}),
-        BEARER("BEARER", new String[]{"accessToken"}),
-        BASIC("BASIC", new String[]{"username", "password"}),
-        API_KEY("API_KEY", new String[]{"header", "value"});
+        NONE(
+                "none",
+                "NONE",
+                new ArrayList<>()
+        ),
+        BEARER(
+                "bearer",
+                "BEARER",
+                Arrays.asList(
+                        new AuthProperty.AuthPropertyBuilder()
+                                .name("accessToken")
+                                .isConfidential(true).build())
+        ),
+        BASIC(
+                "basic",
+                "BASIC",
+                Arrays.asList(
+                        new AuthProperty.AuthPropertyBuilder()
+                                .name("username")
+                                .isConfidential(true).build(),
+                        new AuthProperty.AuthPropertyBuilder()
+                                .name("password")
+                                .isConfidential(true).build())
+        ),
+        API_KEY(
+                "apiKey",
+                "API_KEY",
+                Arrays.asList(
+                        new AuthProperty.AuthPropertyBuilder()
+                                .name("header")
+                                .isConfidential(false).build(),
+                        new AuthProperty.AuthPropertyBuilder()
+                                .name("value")
+                                .isConfidential(true).build())
+        );
 
+        private final String pathParam;
         private final String type;
-        private final String[] properties;
+        private final List<AuthProperty> properties;
 
-        AuthenticationType(String type, String[]  properties) {
+        AuthenticationType(String pathParam, String type, List<AuthProperty>  properties) {
 
+            this.pathParam = pathParam;
             this.type = type;
             this.properties = properties;
+        }
+
+        public String getPathParam() {
+
+            return pathParam;
         }
 
         public String getType() {
@@ -50,14 +92,15 @@ public class AuthType {
             return type;
         }
 
-        public String[] getProperties() {
+        public List<AuthProperty> getProperties() {
 
             return properties;
         }
     }
 
     private AuthenticationType type;
-    private Map<String, Object> properties = null;
+    private List<AuthProperty> properties = null;
+    private final ActionSecretProcessor secretProcessor = new ActionSecretProcessor();
 
     public AuthType() {
     }
@@ -73,9 +116,32 @@ public class AuthType {
         return type;
     }
 
-    public Map<String, Object> getProperties() {
+    public void setProperties(List<AuthProperty> properties) {
+
+        this.properties = properties;
+    }
+
+    public List<AuthProperty> getProperties() {
 
         return properties;
+    }
+
+    public List<AuthProperty> getPropertiesWithDecryptedValues(String actionId) throws SecretManagementException {
+
+        if (properties != null) {
+
+            return secretProcessor.decryptAssociatedSecrets(properties, actionId, type.name());
+        }
+        return null;
+    }
+
+    public List<AuthProperty> getPropertiesWithSecretReferences(String actionId) throws SecretManagementException {
+
+        if (properties != null) {
+
+            return secretProcessor.getPropertiesWithSecretReferences(properties, actionId, type.name());
+        }
+        return null;
     }
 
     /**
@@ -84,7 +150,7 @@ public class AuthType {
     public static class AuthTypeBuilder {
 
         private AuthenticationType type;
-        private Map<String, Object> properties = null;
+        private List<AuthProperty> properties = null;
 
         public AuthTypeBuilder() {
         }
@@ -95,18 +161,18 @@ public class AuthType {
             return this;
         }
 
-        public AuthTypeBuilder properties(Map<String, Object> properties) {
+        public AuthTypeBuilder properties(List<AuthProperty> properties) {
 
             this.properties = properties;
             return this;
         }
 
-        public AuthTypeBuilder addProperty(String key, String value) {
+        public AuthTypeBuilder addProperty(AuthProperty authProperty) {
 
             if (this.properties == null) {
-                this.properties = new HashMap<>();
+                this.properties = new ArrayList<>();
             }
-            this.properties.put(key, value);
+            this.properties.add(authProperty);
             return this;
         }
 

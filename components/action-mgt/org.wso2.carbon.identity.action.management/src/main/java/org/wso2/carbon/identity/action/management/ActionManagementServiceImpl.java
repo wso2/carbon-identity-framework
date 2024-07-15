@@ -26,6 +26,8 @@ import org.wso2.carbon.identity.action.management.dao.impl.CacheBackedActionMgtD
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -44,6 +46,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private static final ActionManagementService INSTANCE = new ActionManagementServiceImpl();
     private static final CacheBackedActionMgtDAO CACHE_BACKED_DAO =
             new CacheBackedActionMgtDAO(new ActionManagementDAOImpl());
+    private static final ActionSecretProcessor ACTION_SECRET_PROCESSOR = new ActionSecretProcessor();
 
     private ActionManagementServiceImpl() {
     }
@@ -95,8 +98,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Deleting Action for Action Type: " + actionType + " and Action Id: " + actionId);
         }
-        checkIfActionExists(actionId, tenantDomain);
-        CACHE_BACKED_DAO.deleteAction(getActionTypeFromPath(actionType), actionId,
+        Action action = checkIfActionExists(actionId, tenantDomain);
+        CACHE_BACKED_DAO.deleteAction(getActionTypeFromPath(actionType), actionId, action,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -140,6 +143,28 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         return CACHE_BACKED_DAO.getActionByActionId(actionId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    @Override
+    public Action updateActionEndpointAuthentication(String actionType, String actionId, AuthType authentication,
+                                                     String tenantDomain) throws ActionMgtException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Updating Action endpoint authentication for Auth Type: " + authentication.getType().name() +
+                    " and Action Type: " + actionType + " and Action Id: " + actionId);
+        }
+        Action action = checkIfActionExists(actionId, tenantDomain);
+        if (action.getEndpoint().getAuthentication().getType().equals(authentication.getType())) {
+
+            return CACHE_BACKED_DAO.updateActionEndpointAuthProperties(actionId, authentication,
+                    IdentityTenantUtil.getTenantId(tenantDomain));
+        } else {
+            EndpointConfig endpoint = new EndpointConfig.EndpointConfigBuilder()
+                    .uri(action.getEndpoint().getUri())
+                    .authentication(authentication).build();
+            return CACHE_BACKED_DAO.updateActionEndpoint(getActionTypeFromPath(actionType), actionId, endpoint,
+                    action.getEndpoint().getAuthentication(), IdentityTenantUtil.getTenantId(tenantDomain));
+        }
+    }
+
     /**
      * Get Action Type from path.
      *
@@ -181,11 +206,13 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @param tenantDomain Tenant Domain.
      * @throws ActionMgtException If the action does not exist.
      */
-    private void checkIfActionExists(String actionId, String tenantDomain) throws ActionMgtException {
+    private Action checkIfActionExists(String actionId, String tenantDomain) throws ActionMgtException {
 
-        if (CACHE_BACKED_DAO.getActionByActionId(actionId, IdentityTenantUtil.getTenantId(tenantDomain)) == null) {
+        Action action = CACHE_BACKED_DAO.getActionByActionId(actionId, IdentityTenantUtil.getTenantId(tenantDomain));
+        if (action == null) {
             throw ActionManagementUtil.handleClientException(
                     ActionMgtConstants.ErrorMessages.ERROR_NO_ACTION_CONFIGURED_ON_GIVEN_ID);
         }
+        return action;
     }
 }
