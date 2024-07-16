@@ -28,14 +28,13 @@ public class AuthProperty {
     private boolean isConfidential;
 
     public AuthProperty() {
-
     }
 
-    public AuthProperty(String name, String value, boolean isConfidential) {
+    public AuthProperty(AuthPropertyBuilder authPropertyBuilder) {
 
-        this.name = name;
-        this.value = value;
-        this.isConfidential = isConfidential;
+        this.name = authPropertyBuilder.name;
+        this.value = authPropertyBuilder.value;
+        this.isConfidential = authPropertyBuilder.isConfidential;
     }
 
     public String getName() {
@@ -82,7 +81,7 @@ public class AuthProperty {
 
         public AuthProperty build() {
 
-            return new AuthProperty(name, value, isConfidential);
+            return new AuthProperty(this);
         }
     }
 }

@@ -141,7 +141,8 @@ public class ActionSecretProcessor {
 
         String secretName = buildSecretName(actionId, authType, authProperty.getName());
         if (!isSecretPropertyExists(secretName)) {
-            throw new SecretManagementException();
+            throw new SecretManagementException(String.format("Unable to find the Secret Property: %s of " +
+                    "Auth Type: %s and Action ID: %s from the system.", authProperty.getName(), authType, actionId));
         }
         ResolvedSecret resolvedSecret = ActionMgtServiceComponentHolder.getInstance().getSecretResolveManager()
                 .getResolvedSecret(IDN_SECRET_TYPE_ACTION_SECRETS, secretName);

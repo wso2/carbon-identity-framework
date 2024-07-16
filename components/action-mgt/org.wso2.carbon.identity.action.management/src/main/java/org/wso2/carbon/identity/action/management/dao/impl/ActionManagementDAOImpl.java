@@ -263,7 +263,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     .collect(Collectors.toMap(AuthProperty::getName, AuthProperty::getValue));
             // Update non-secret endpoint properties.
             updateActionEndpointProperties(dbConnection, actionId, nonSecretEndpointProperties, tenantId);
-            // Encrypt and update non-secret endpoint properties.
+            // Encrypt and update secret endpoint properties.
             actionSecretProcessor.encryptAssociatedSecrets(authentication, actionId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
 
