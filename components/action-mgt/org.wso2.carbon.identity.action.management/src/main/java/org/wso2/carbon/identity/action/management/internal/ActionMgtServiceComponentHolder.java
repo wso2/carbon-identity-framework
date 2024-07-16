@@ -29,7 +29,7 @@ public class ActionMgtServiceComponentHolder {
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
 
-    public static final ActionMgtServiceComponentHolder instance = new ActionMgtServiceComponentHolder();
+    public static final ActionMgtServiceComponentHolder INSTANCE = new ActionMgtServiceComponentHolder();
 
     private ActionMgtServiceComponentHolder() {
 
@@ -42,7 +42,7 @@ public class ActionMgtServiceComponentHolder {
      */
     public static ActionMgtServiceComponentHolder getInstance() {
 
-        return instance;
+        return INSTANCE;
     }
 
     /**
