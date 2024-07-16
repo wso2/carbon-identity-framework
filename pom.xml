@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.3.34-SNAPSHOT</version>
+    <version>7.3.37-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -70,6 +70,7 @@
         <module>components/central-logger</module>
         <module>components/input-validation-mgt</module>
         <module>components/client-attestation-mgt</module>
+        <module>components/trusted-app-mgt</module>
         <module>components/action-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
@@ -104,6 +105,7 @@
         <module>components/api-resource-mgt</module>
         <module>features/api-resource-mgt</module>
         <module>features/client-attestation-mgt</module>
+        <module>features/trusted-app-mgt</module>
         <module>features/action-mgt</module>
     </modules>
 
@@ -298,6 +300,18 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.client.attestation.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.trusted.app.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.trusted.app.mgt.server.feature</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
