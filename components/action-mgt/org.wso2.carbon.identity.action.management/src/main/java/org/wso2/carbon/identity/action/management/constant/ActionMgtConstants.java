@@ -25,7 +25,7 @@ public class ActionMgtConstants {
 
     public static final String URI_ATTRIBUTE = "uri";
     public static final String AUTHN_TYPE_ATTRIBUTE = "authnType";
-    public static final String IDN_SECRET_TYPE_ACTION_SECRETS = "ACTION_SECRET_PROPERTIES";
+    public static final String IDN_SECRET_TYPE_ACTION_SECRETS = "ACTION_API_ENDPOINT_AUTH_SECRETS";
 
     /**
      * Error messages.
@@ -66,7 +66,10 @@ public class ActionMgtConstants {
                 "Error while retrieving count of Actions per Action Type.",
                 "Error while retrieving count of Actions per Action Type from the system."),
         ERROR_WHILE_RETRIEVING_ACTION_BASIC_INFO("65011", "Error while retrieving Action basic info.",
-                "Error while retrieving Action basic info from the system."),;
+                "Error while retrieving Action basic info from the system."),
+        ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES("65012",
+                "Error while decrypting Action Endpoint Authentication properties",
+                "Error while decrypting Action Endpoint Authentication properties in the system.");
 
         private final String code;
         private final String message;

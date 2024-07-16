@@ -18,11 +18,16 @@
 
 package org.wso2.carbon.identity.action.management.model;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.identity.action.management.ActionSecretProcessor;
+import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,47 +40,18 @@ public class AuthType {
      */
     public enum AuthenticationType {
 
-        NONE(
-                "none",
-                "NONE",
-                new ArrayList<>()
-        ),
-        BEARER(
-                "bearer",
-                "BEARER",
-                Arrays.asList(
-                        new AuthProperty.AuthPropertyBuilder()
-                                .name("accessToken")
-                                .isConfidential(true).build())
-        ),
-        BASIC(
-                "basic",
-                "BASIC",
-                Arrays.asList(
-                        new AuthProperty.AuthPropertyBuilder()
-                                .name("username")
-                                .isConfidential(true).build(),
-                        new AuthProperty.AuthPropertyBuilder()
-                                .name("password")
-                                .isConfidential(true).build())
-        ),
-        API_KEY(
-                "apiKey",
-                "API_KEY",
-                Arrays.asList(
-                        new AuthProperty.AuthPropertyBuilder()
-                                .name("header")
-                                .isConfidential(false).build(),
-                        new AuthProperty.AuthPropertyBuilder()
-                                .name("value")
-                                .isConfidential(true).build())
-        );
+        NONE("none", "NONE", Collections.emptyList()),
+        BEARER("bearer", "BEARER", Arrays.asList(AuthenticationProperty.ACCESS_TOKEN)),
+        BASIC("basic", "BASIC",
+                Arrays.asList(AuthenticationProperty.USERNAME, AuthenticationProperty.PASSWORD)),
+        API_KEY("apiKey", "API_KEY",
+                Arrays.asList(AuthenticationProperty.HEADER, AuthenticationProperty.VALUE));
 
         private final String pathParam;
         private final String type;
-        private final List<AuthProperty> properties;
+        private final List<AuthenticationProperty> properties;
 
-        AuthenticationType(String pathParam, String type, List<AuthProperty>  properties) {
+        AuthenticationType(String pathParam, String type, List<AuthenticationProperty>  properties) {
 
             this.pathParam = pathParam;
             this.type = type;
@@ -92,9 +68,36 @@ public class AuthType {
             return type;
         }
 
-        public List<AuthProperty> getProperties() {
+        public List<AuthenticationProperty> getProperties() {
 
             return properties;
+        }
+
+        /**
+         * Authentication Property.
+         */
+        public enum AuthenticationProperty {
+            ACCESS_TOKEN("accessToken", true),
+            USERNAME("username", true),
+            PASSWORD("password", true),
+            HEADER("header", false),
+            VALUE("value", true);
+
+            private final String name;
+            private final boolean isConfidential;
+
+            AuthenticationProperty(String name, boolean isConfidential) {
+                this.name = name;
+                this.isConfidential = isConfidential;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public boolean getIsConfidential() {
+                return isConfidential;
+            }
         }
     }
 
@@ -116,32 +119,26 @@ public class AuthType {
         return type;
     }
 
-    public void setProperties(List<AuthProperty> properties) {
-
-        this.properties = properties;
-    }
-
     public List<AuthProperty> getProperties() {
 
         return properties;
     }
 
-    public List<AuthProperty> getPropertiesWithDecryptedValues(String actionId) throws SecretManagementException {
+    public List<AuthProperty> getPropertiesWithDecryptedValues(String actionId) throws ActionMgtException {
 
-        if (properties != null) {
-
-            return secretProcessor.decryptAssociatedSecrets(properties, actionId, type.name());
+        try {
+            return CollectionUtils.isEmpty(properties) ? properties :
+                    secretProcessor.decryptAssociatedSecrets(properties, type.getType(), actionId);
+        } catch (SecretManagementException e) {
+            throw ActionManagementUtil.handleServerException(
+                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES, e);
         }
-        return null;
     }
 
     public List<AuthProperty> getPropertiesWithSecretReferences(String actionId) throws SecretManagementException {
 
-        if (properties != null) {
-
-            return secretProcessor.getPropertiesWithSecretReferences(properties, actionId, type.name());
-        }
-        return null;
+        return CollectionUtils.isEmpty(properties) ? properties :
+                secretProcessor.getPropertiesWithSecretReferences(properties, actionId, type.name());
     }
 
     /**

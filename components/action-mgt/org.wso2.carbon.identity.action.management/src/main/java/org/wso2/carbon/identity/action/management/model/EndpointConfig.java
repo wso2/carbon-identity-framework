@@ -34,6 +34,7 @@ public class EndpointConfig {
         this.uri = endpointConfigBuilder.uri;
         this.authentication = endpointConfigBuilder.authentication;
     }
+
     public String getUri() {
 
         return uri;

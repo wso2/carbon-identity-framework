@@ -48,11 +48,6 @@ public class AuthProperty {
         return value;
     }
 
-    public void setValue(String value) {
-
-        this.value = value;
-    }
-
     public boolean getIsConfidential() {
 
         return isConfidential;

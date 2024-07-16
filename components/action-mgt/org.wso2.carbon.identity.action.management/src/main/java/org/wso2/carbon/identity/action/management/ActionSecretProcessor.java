@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.action.management;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
+import org.wso2.carbon.identity.action.management.model.AuthType;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
@@ -36,75 +36,49 @@ import static org.wso2.carbon.identity.action.management.constant.ActionMgtConst
  */
 public class ActionSecretProcessor {
 
-    private SecretType secretType;
-
     public ActionSecretProcessor() {
     }
 
-    public List<AuthProperty> encryptAssociatedSecrets(List<AuthProperty> authProperties, String actionId,
-                                                       String authType) throws SecretManagementException {
+    public List<AuthProperty> encryptAssociatedSecrets(AuthType authentication, String actionId)
+            throws SecretManagementException {
 
         List<AuthProperty> encryptedAuthProperties = new ArrayList<>();
-        for (AuthProperty prop : authProperties) {
-            if (!prop.getIsConfidential()) {
-                encryptedAuthProperties.add(prop);
-                continue;
-            }
-            String secretName = buildSecretName(actionId, authType, prop.getName());
-            if (ActionMgtServiceComponentHolder.getInstance().getSecretManager()
-                    .isSecretExist(IDN_SECRET_TYPE_ACTION_SECRETS, secretName)) {
-                // Update existing secret property.
-                updateExistingSecretProperty(secretName, prop);
+        for (AuthProperty authProperty : authentication.getProperties()) {
+            if (!authProperty.getIsConfidential()) {
+                encryptedAuthProperties.add(authProperty);
             } else {
-                // Add secret to the DB.
-                if (StringUtils.isEmpty(prop.getValue())) {
-                    continue;
-                }
-                addNewActionSecretProperty(secretName, prop);
+                encryptedAuthProperties.add(encryptProperty(authProperty, authentication.getType().name(), actionId));
             }
-            encryptedAuthProperties.add(new AuthProperty.AuthPropertyBuilder()
-                    .name(prop.getName())
-                    .isConfidential(prop.getIsConfidential())
-                    .value(buildSecretReference(secretName)).build());
         }
+
         return encryptedAuthProperties;
     }
 
-    public List<AuthProperty> decryptAssociatedSecrets(List<AuthProperty> authProperties, String actionId,
-                                                       String authType) throws SecretManagementException {
+    public List<AuthProperty> decryptAssociatedSecrets(List<AuthProperty> authProperties, String authType,
+                                                       String actionId) throws SecretManagementException {
 
         List<AuthProperty> decryptedAuthProperties = new ArrayList<>();
-        for (AuthProperty prop : authProperties) {
-            if (!prop.getIsConfidential()) {
-                decryptedAuthProperties.add(prop);
-                continue;
-            }
-            String secretName = buildSecretName(actionId, authType, prop.getName());
-            if (ActionMgtServiceComponentHolder.getInstance().getSecretManager()
-                    .isSecretExist(IDN_SECRET_TYPE_ACTION_SECRETS, secretName)) {
-                ResolvedSecret resolvedSecret = ActionMgtServiceComponentHolder.getInstance().getSecretResolveManager()
-                        .getResolvedSecret(IDN_SECRET_TYPE_ACTION_SECRETS, secretName);
-                decryptedAuthProperties.add(new AuthProperty.AuthPropertyBuilder()
-                        .name(prop.getName())
-                        .isConfidential(prop.getIsConfidential())
-                        .value(resolvedSecret.getResolvedSecretValue()).build());
+        for (AuthProperty authProperty : authProperties) {
+            if (!authProperty.getIsConfidential()) {
+                decryptedAuthProperties.add(authProperty);
+            } else {
+                decryptedAuthProperties.add(decryptProperty(authProperty, authType, actionId));
             }
         }
+
         return decryptedAuthProperties;
     }
 
-    public void deleteAssociatedSecrets(List<AuthProperty> authProperties, String actionId, String authType)
+    public void deleteAssociatedSecrets(AuthType authentication, String actionId)
             throws SecretManagementException {
 
-        for (AuthProperty prop : authProperties) {
-            if (!prop.getIsConfidential()) {
-                continue;
-            }
-            String secretName = buildSecretName(actionId, authType, prop.getName());
-            if (ActionMgtServiceComponentHolder.getInstance().getSecretManager()
-                    .isSecretExist(IDN_SECRET_TYPE_ACTION_SECRETS, secretName)) {
-                ActionMgtServiceComponentHolder.getInstance().getSecretManager()
-                        .deleteSecret(IDN_SECRET_TYPE_ACTION_SECRETS, secretName);
+        for (AuthProperty authProperty : authentication.getProperties()) {
+            if (authProperty.getIsConfidential()) {
+                String secretName = buildSecretName(actionId, authentication.getType().name(), authProperty.getName());
+                if (isSecretPropertyExists(secretName)) {
+                    ActionMgtServiceComponentHolder.getInstance().getSecretManager()
+                            .deleteSecret(IDN_SECRET_TYPE_ACTION_SECRETS, secretName);
+                }
             }
         }
     }
@@ -116,14 +90,80 @@ public class ActionSecretProcessor {
         for (AuthProperty prop : authProperties) {
             if (!prop.getIsConfidential()) {
                 referenceUpdatedProperties.add(prop);
-                continue;
+            } else {
+                referenceUpdatedProperties.add(new AuthProperty.AuthPropertyBuilder()
+                        .name(prop.getName())
+                        .isConfidential(prop.getIsConfidential())
+                        .value(buildSecretReference(buildSecretName(actionId, authType, prop.getName()))).build());
             }
-            referenceUpdatedProperties.add(new AuthProperty.AuthPropertyBuilder()
-                    .name(prop.getName())
-                    .isConfidential(prop.getIsConfidential())
-                    .value(buildSecretReference(buildSecretName(actionId, authType, prop.getName()))).build());
         }
+
         return referenceUpdatedProperties;
+    }
+
+    /**
+     * Encrypt secret property.
+     *
+     * @param authProperty Authentication property object.
+     * @param authType     Authentication Type
+     * @param actionId     Action Id.
+     * @return Encrypted Auth Property if it is a confidential property.
+     * @throws SecretManagementException If an error occurs while encrypting the secret.
+     */
+    private AuthProperty encryptProperty(AuthProperty authProperty, String authType, String actionId)
+            throws SecretManagementException {
+
+        String secretName = buildSecretName(actionId, authType, authProperty.getName());
+        if (isSecretPropertyExists(secretName)) {
+            updateExistingSecretProperty(secretName, authProperty);
+        } else {
+            addNewActionSecretProperty(secretName, authProperty);
+        }
+
+        return new AuthProperty.AuthPropertyBuilder()
+                .name(authProperty.getName())
+                .isConfidential(authProperty.getIsConfidential())
+                .value(buildSecretReference(secretName))
+                .build();
+    }
+
+    /**
+     * Decrypt secret property.
+     *
+     * @param authProperty Authentication property object.
+     * @param authType     Authentication Type.
+     * @param actionId     Action Id.
+     * @return Decrypted Auth Property if it is a confidential property.
+     * @throws SecretManagementException If an error occurs while decrypting the secret.
+     */
+    private AuthProperty decryptProperty(AuthProperty authProperty, String authType, String actionId)
+            throws SecretManagementException {
+
+        String secretName = buildSecretName(actionId, authType, authProperty.getName());
+        if (!isSecretPropertyExists(secretName)) {
+            throw new SecretManagementException();
+        }
+        ResolvedSecret resolvedSecret = ActionMgtServiceComponentHolder.getInstance().getSecretResolveManager()
+                .getResolvedSecret(IDN_SECRET_TYPE_ACTION_SECRETS, secretName);
+
+        return new AuthProperty.AuthPropertyBuilder()
+                .name(authProperty.getName())
+                .isConfidential(authProperty.getIsConfidential())
+                .value(resolvedSecret.getResolvedSecretValue())
+                .build();
+    }
+
+    /**
+     * Check whether the secret property exists.
+     *
+     * @param secretName Secret Name.
+     * @return True if the secret property exists.
+     * @throws SecretManagementException If an error occurs while checking the existence of the secret.
+     */
+    private boolean isSecretPropertyExists(String secretName) throws SecretManagementException {
+
+        return ActionMgtServiceComponentHolder.getInstance().getSecretManager()
+                .isSecretExist(IDN_SECRET_TYPE_ACTION_SECRETS, secretName);
     }
 
     /**
@@ -148,10 +188,8 @@ public class ActionSecretProcessor {
      */
     private String buildSecretReference(String secretName) throws SecretManagementException {
 
-        if (secretType == null) {
-            secretType = ActionMgtServiceComponentHolder.getInstance().getSecretManager()
-                    .getSecretType(IDN_SECRET_TYPE_ACTION_SECRETS);
-        }
+        SecretType secretType = ActionMgtServiceComponentHolder.getInstance().getSecretManager()
+                .getSecretType(IDN_SECRET_TYPE_ACTION_SECRETS);
         return secretType.getId() + ":" + secretName;
     }
 
@@ -182,8 +220,7 @@ public class ActionSecretProcessor {
             throws SecretManagementException {
 
         ResolvedSecret resolvedSecret = ActionMgtServiceComponentHolder.getInstance().getSecretResolveManager()
-                .getResolvedSecret(IDN_SECRET_TYPE_ACTION_SECRETS,
-                secretName);
+                .getResolvedSecret(IDN_SECRET_TYPE_ACTION_SECRETS, secretName);
         if (!resolvedSecret.getResolvedSecretValue().equals(property.getValue())) {
             ActionMgtServiceComponentHolder.getInstance().getSecretManager()
                     .updateSecretValue(IDN_SECRET_TYPE_ACTION_SECRETS, secretName, property.getValue());

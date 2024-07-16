@@ -64,11 +64,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
         try {
-            // Encrypt secrets and update action authentication properties with secret alias.
-            action.getEndpoint().getAuthentication().setProperties(
-                    actionSecretProcessor.encryptAssociatedSecrets(
-                            action.getEndpoint().getAuthentication().getProperties(), actionId,
-                            action.getEndpoint().getAuthentication().getType().name()));
             try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
                     ActionMgtSQLConstants.Query.ADD_ACTION_TO_ACTION_TYPE)) {
 
@@ -80,21 +75,22 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                 statement.executeUpdate();
 
+                // Encrypt secrets.
+                List<AuthProperty> encryptedAuthProperties = actionSecretProcessor
+                        .encryptAssociatedSecrets(action.getEndpoint().getAuthentication(), actionId);
                 // Add Endpoint configuration properties.
                 addEndpointProperties(dbConnection, actionId, getEndpointProperties(action.getEndpoint().getUri(),
-                        action.getEndpoint().getAuthentication().getType().name(),
-                        action.getEndpoint().getAuthentication().getProperties()), tenantId);
+                        action.getEndpoint().getAuthentication().getType().name(), encryptedAuthProperties), tenantId);
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
 
                 return getActionByActionId(actionId, tenantId);
             } catch (SQLException | ActionMgtException e) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Error while creating the action in action type: " + actionType +
-                            " in tenantDomain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
-                            ". Rolling back created action information and deleting added secrets.");
+                    LOG.debug(String.format("Error while creating the Action of Action Type: %s in Tenant Domain: %s." +
+                            " Rolling back created action information and deleting added secrets.", actionType,
+                            IdentityTenantUtil.getTenantDomain(tenantId)));
                 }
-                actionSecretProcessor.deleteAssociatedSecrets(action.getEndpoint().getAuthentication().getProperties(),
-                        actionId, action.getEndpoint().getAuthentication().getType().name());
+                actionSecretProcessor.deleteAssociatedSecrets(action.getEndpoint().getAuthentication(), actionId);
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
                 throw ActionManagementUtil.handleServerException(
                         ActionMgtConstants.ErrorMessages.ERROR_WHILE_ADDING_ACTION, e);
@@ -163,8 +159,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return getActionByActionId(actionId, tenantId);
         } catch (SQLException | ActionMgtException e) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Error while updating the action in action type: " + actionType + " in tenantDomain: " +
-                        IdentityTenantUtil.getTenantDomain(tenantId) + ". Rolling back updated action information.");
+                LOG.debug(String.format("Error while updating the Action of Action Type: %s and Action ID: %s in" +
+                                " Tenant Domain: %s. Rolling back updated action information.", actionType, actionId,
+                        IdentityTenantUtil.getTenantDomain(tenantId)));
             }
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
@@ -188,14 +185,13 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             statement.executeUpdate();
 
             // Delete action endpoint authentication related secrets.
-            actionSecretProcessor.deleteAssociatedSecrets(
-                    action.getEndpoint().getAuthentication().getProperties(), actionId,
-                    action.getEndpoint().getAuthentication().getType().name());
+            actionSecretProcessor.deleteAssociatedSecrets(action.getEndpoint().getAuthentication(), actionId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException | SecretManagementException e) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Error while deleting the action in action type: " + actionType + " in tenantDomain: " +
-                        IdentityTenantUtil.getTenantDomain(tenantId) + ". Rolling back deleted action information.");
+                LOG.debug(String.format("Error while deleting the Action of Action Type: %s and Action ID: %s in" +
+                                " Tenant Domain: %s. Rolling back deleted action information.", actionType, actionId,
+                        IdentityTenantUtil.getTenantDomain(tenantId)));
             }
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
@@ -268,17 +264,16 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             // Update non-secret endpoint properties.
             updateActionEndpointProperties(dbConnection, actionId, nonSecretEndpointProperties, tenantId);
             // Encrypt and update non-secret endpoint properties.
-            actionSecretProcessor.encryptAssociatedSecrets(authentication.getProperties(), actionId,
-                    authentication.getType().name());
+            actionSecretProcessor.encryptAssociatedSecrets(authentication, actionId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
 
             return getActionByActionId(actionId, tenantId);
         } catch (ActionMgtException | SecretManagementException e) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Error while updating the action secrets of Auth type: " + authentication.getType() +
-                        " of Action id: " + actionId + " in tenantDomain: " +
-                        IdentityTenantUtil.getTenantDomain(tenantId) +
-                        ". Rolling back updated action endpoint authentication properties.");
+                LOG.debug(String.format("Error while updating the Action Endpoint Authentication Properties of " +
+                                "Auth type: %s and Action ID: %s in Tenant Domain: %s. Rolling back updated action" +
+                                " endpoint authentication properties.", authentication.getType(), actionId,
+                        IdentityTenantUtil.getTenantDomain(tenantId)));
             }
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
@@ -306,22 +301,20 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     endpoint.getAuthentication().getType().name(),
                     endpoint.getAuthentication().getPropertiesWithSecretReferences(actionId)), tenantId);
             // Encrypt and add new endpoint properties secrets.
-            actionSecretProcessor.encryptAssociatedSecrets(endpoint.getAuthentication().getProperties(), actionId,
-                    endpoint.getAuthentication().getType().name());
+            actionSecretProcessor.encryptAssociatedSecrets(endpoint.getAuthentication(), actionId);
 
             // Delete old secrets.
-            actionSecretProcessor.deleteAssociatedSecrets(currentAuthentication.getProperties(), actionId,
-                    currentAuthentication.getType().name());
+            actionSecretProcessor.deleteAssociatedSecrets(currentAuthentication, actionId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
 
             return getActionByActionId(actionId, tenantId);
         } catch (SQLException | ActionMgtException | SecretManagementException e) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Error while updating the action endpoint authentication from Auth type: " +
-                        currentAuthentication.getType() + " to Auth type: " +  endpoint.getAuthentication().getType() +
-                        " of Action id: " + actionId + " in tenantDomain: " +
-                        IdentityTenantUtil.getTenantDomain(tenantId) +
-                        ". Rolling back updated action endpoint authentication properties.");
+                LOG.debug(String.format("Error while updating the Action Endpoint Authentication from Auth type: %s" +
+                                " to Auth type: %s of Action ID: %s in Tenant Domain: %s. Rolling back updated" +
+                                " action endpoint authentication.", currentAuthentication.getType(),
+                        endpoint.getAuthentication().getType(), actionId,
+                        IdentityTenantUtil.getTenantDomain(tenantId)));
             }
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
@@ -438,10 +431,13 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 }
 
                 if (authnType != null) {
-                    for (AuthProperty property : authnType.getProperties()) {
+                    for (AuthType.AuthenticationType.AuthenticationProperty property : authnType.getProperties()) {
                         if (authnPropertiesMap.containsKey(property.getName())) {
-                            property.setValue(authnPropertiesMap.get(property.getName()));
-                            authnProperties.add(property);
+                            authnProperties.add(new AuthProperty.AuthPropertyBuilder()
+                                    .name(property.getName())
+                                    .value(authnPropertiesMap.get(property.getName()))
+                                    .isConfidential(property.getIsConfidential())
+                                    .build());
                         }
                     }
                 }
@@ -540,9 +536,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return getActionBasicInfoById(dbConnection, actionId, tenantId);
         } catch (SQLException e) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Error while updating the action status in action type: " + actionType +
-                        " in tenantDomain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
-                        ". Rolling back updated action status.");
+                LOG.debug(String.format("Error while updating the Action Status to %s of Action type: %s in " +
+                                "Tenant Domain: %s. Rolling back updated action status.", status, actionType,
+                        IdentityTenantUtil.getTenantDomain(tenantId)));
             }
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
