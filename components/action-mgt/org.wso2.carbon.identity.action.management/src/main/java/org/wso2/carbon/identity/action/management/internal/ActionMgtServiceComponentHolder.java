@@ -26,30 +26,60 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
  */
 public class ActionMgtServiceComponentHolder {
 
-    public static ActionMgtServiceComponentHolder instance = new ActionMgtServiceComponentHolder();
-
-    public static ActionMgtServiceComponentHolder getInstance() {
-        return instance;
-    }
-
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
 
+    public static final ActionMgtServiceComponentHolder instance = new ActionMgtServiceComponentHolder();
+
+    private ActionMgtServiceComponentHolder() {
+
+    }
+
+    /**
+     * Get the instance of ActionMgtServiceComponentHolder.
+     *
+     * @return ActionMgtServiceComponentHolder instance.
+     */
+    public static ActionMgtServiceComponentHolder getInstance() {
+
+        return instance;
+    }
+
+    /**
+     * Get the SecretManager.
+     *
+     * @return SecretManager instance.
+     */
     public SecretManager getSecretManager() {
 
         return secretManager;
     }
 
+    /**
+     * Set the SecretManager.
+     *
+     * @param secretManager SecretManager instance.
+     */
     public void setSecretManager(SecretManager secretManager) {
 
         this.secretManager = secretManager;
     }
 
+    /**
+     * Get the SecretResolveManager.
+     *
+     * @return SecretResolveManager instance.
+     */
     public SecretResolveManager getSecretResolveManager() {
 
         return secretResolveManager;
     }
 
+    /**
+     * Set the SecretResolveManager.
+     *
+     * @param secretResolveManager SecretResolveManager instance.
+     */
     public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         this.secretResolveManager = secretResolveManager;
