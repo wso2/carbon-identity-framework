@@ -529,8 +529,38 @@ public class RoleDAOImpl implements RoleDAO {
         if (isOrganization(tenantDomain)) {
             return getPermissionsOfSharedRoles(roleIds, tenantDomain);
         } else {
-            return getPermissionListOfRolesByIds(roleIds, tenantDomain);
+            List<String> permissionList = getPermissionListOfRolesByIds(roleIds, tenantDomain);
+            List<String> sharedRoleIds = filterSharedRoles(roleIds);
+            if (CollectionUtils.isNotEmpty(sharedRoleIds)) {
+                List<String> sharedRolePermissionList = getPermissionsOfSharedRoles(sharedRoleIds, tenantDomain);
+                if (CollectionUtils.isNotEmpty(sharedRolePermissionList)) {
+                    permissionList.addAll(sharedRolePermissionList);
+                }
+            }
+            return permissionList;
         }
+    }
+
+    private List<String> filterSharedRoles(List<String> roleIds) {
+
+        List<String> sharedRoleIDs = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+            String sql = "SELECT UM_UUID FROM UM_HYBRID_ROLE INNER JOIN UM_SHARED_ROLE ON UM_HYBRID_ROLE.UM_ID = UM_SHARED_ROLE.UM_SHARED_ROLE_ID WHERE UM_UUID IN (abc)";
+            String roleIdsString = roleIds.stream().map(s -> "'" + s + "'").collect(Collectors.joining(", "));
+            sql = sql.replace("abc", roleIdsString);
+            NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String roleUUID = resultSet.getString(1);
+                    sharedRoleIDs.add(roleUUID);
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return sharedRoleIDs;
     }
 
     private List<String> getPermissionListOfRolesByIds(List<String> roleIds, String tenantDomain)
