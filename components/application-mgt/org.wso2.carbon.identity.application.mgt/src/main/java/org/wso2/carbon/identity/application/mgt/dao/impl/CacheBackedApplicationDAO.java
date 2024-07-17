@@ -838,6 +838,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
         if (storedTrustedAppMetadata == null) {
             validateAndClearTrustedAppCache(updatedTrustedAppMetadata);
+        } else if (updatedTrustedAppMetadata == null) {
+            validateAndClearTrustedAppCache(storedTrustedAppMetadata);
         } else {
             if (storedTrustedAppMetadata.getIsFidoTrusted() != updatedTrustedAppMetadata.getIsFidoTrusted()) {
                 clearIOSTrustedAppCache();
