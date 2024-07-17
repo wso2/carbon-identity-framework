@@ -93,7 +93,7 @@ public class IdentityKeyStoreResolver {
 
             // Get tenant keystore from keyStoreManager
             String tenantKeyStoreName = buildTenantKeyStoreName(tenantDomain);
-            return keyStoreManager.getTenantKeyStore(tenantKeyStoreName);
+            return keyStoreManager.getKeyStore(tenantKeyStoreName);
         } catch (Exception e) {
             throw new IdentityKeyStoreResolverException(
                     "Error occurred when retrieving keystore for tenant: " + tenantDomain, e);
@@ -123,7 +123,7 @@ public class IdentityKeyStoreResolver {
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                     KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-                    return keyStoreManager.getCustomKeyStore(keyStoreName);
+                    return keyStoreManager.getKeyStore(keyStoreName);
                 } catch (Exception e) {
                     throw new IdentityKeyStoreResolverException(
                             "Error occurred when retrieving keystore for protocol: " + inboundProtocol, e);
@@ -156,7 +156,7 @@ public class IdentityKeyStoreResolver {
                 privateKey = keyStoreManager.getDefaultPrivateKey();
             } else {
                 String tenantKeyStoreName = buildTenantKeyStoreName(tenantDomain);
-                privateKey = keyStoreManager.getTenantPrivateKey(tenantKeyStoreName, tenantDomain);
+                privateKey = keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
             }
         } catch (Exception e) {
             throw new IdentityKeyStoreResolverException(
@@ -194,7 +194,7 @@ public class IdentityKeyStoreResolver {
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                     KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-                    Key privateKey = keyStoreManager.getCustomKeyStorePrivateKey(keyStoreName);
+                    Key privateKey = keyStoreManager.getPrivateKey(keyStoreName, null);
                     privateKeys.put(inboundProtocol.toString(), privateKey);
                     return privateKey;
                 } catch (Exception e) {
@@ -227,7 +227,7 @@ public class IdentityKeyStoreResolver {
                 publicCert = keyStoreManager.getDefaultPrimaryCertificate();
             } else {
                 String tenantKeyStoreName = buildTenantKeyStoreName(tenantDomain);
-                publicCert = keyStoreManager.getTenantCertificate(tenantKeyStoreName, tenantDomain);
+                publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain);
             }
         } catch (Exception e) {
             throw new IdentityKeyStoreResolverException("Error occurred when retrieving public certificate", e);
@@ -264,7 +264,7 @@ public class IdentityKeyStoreResolver {
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
                     KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-                    Certificate publicCert = keyStoreManager.getCustomKeyStoreCertificate(keyStoreName);
+                    Certificate publicCert = keyStoreManager.getCertificate(keyStoreName, null);
                     publicCerts.put(inboundProtocol.toString(), publicCert);
                     return publicCert;
                 } catch (Exception e) {
