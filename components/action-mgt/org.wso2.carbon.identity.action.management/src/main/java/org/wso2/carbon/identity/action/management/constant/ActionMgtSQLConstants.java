@@ -74,6 +74,9 @@ public class ActionMgtSQLConstants {
                 ":UUID; AND TYPE = :TYPE; AND TENANT_ID = :TENANT_ID;";
         public static final String GET_ACTIONS_COUNT_PER_ACTION_TYPE = "SELECT TYPE, COUNT(UUID) AS COUNT" +
                 " FROM IDN_ACTION WHERE TENANT_ID = :TENANT_ID; GROUP BY TYPE";
+        public static final String UPDATE_ACTION_ENDPOINT_PROPERTIES = "UPDATE IDN_ACTION_ENDPOINT SET " +
+                "PROPERTY_VALUE = :PROPERTY_VALUE; WHERE ACTION_UUID = :ACTION_UUID; AND " +
+                "TENANT_ID = :TENANT_ID; AND PROPERTY_NAME = :PROPERTY_NAME;";
 
         private Query() {
 

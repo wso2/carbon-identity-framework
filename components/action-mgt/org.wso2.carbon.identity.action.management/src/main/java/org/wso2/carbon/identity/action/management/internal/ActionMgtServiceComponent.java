@@ -25,8 +25,13 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.ActionManagementServiceImpl;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
 /**
  * Service component for the Action management.
@@ -61,5 +66,39 @@ public class ActionMgtServiceComponent {
         } catch (Throwable e) {
             LOG.error("Error while deactivating Action management component.", e);
         }
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretManager",
+            service = SecretManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretManager"
+    )
+    private void setSecretManager(SecretManager secretManager) {
+
+        ActionMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+    }
+
+    private void unsetSecretManager(SecretManager secretManager) {
+
+        ActionMgtServiceComponentHolder.getInstance().setSecretManager(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager",
+            service = SecretResolveManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretResolveManager"
+    )
+    private void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        ActionMgtServiceComponentHolder.getInstance().setSecretResolveManager(secretResolveManager);
+    }
+
+    private void unsetSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        ActionMgtServiceComponentHolder.getInstance().setSecretResolveManager(null);
     }
 }

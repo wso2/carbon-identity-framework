@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.management;
 
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.AuthType;
 
 import java.util.List;
 import java.util.Map;
@@ -113,4 +114,17 @@ public interface ActionManagementService {
      * @throws ActionMgtException If an error occurs while retrieving the Action of a given Action ID.
      */
     Action getActionByActionId(String actionId, String tenantDomain) throws ActionMgtException;
+
+    /**
+     * Update the authentication of the action endpoint.
+     *
+     * @param actionType     Action Type.
+     * @param actionId       Action ID.
+     * @param authentication Authentication Information to be updated.
+     * @param tenantDomain   Tenant domain.
+     * @return Action response after update.
+     * @throws ActionMgtException If an error occurs while updating action endpoint authentication information.
+     */
+    Action updateActionEndpointAuthentication(String actionType, String actionId, AuthType authentication,
+                                              String tenantDomain) throws ActionMgtException;
 }

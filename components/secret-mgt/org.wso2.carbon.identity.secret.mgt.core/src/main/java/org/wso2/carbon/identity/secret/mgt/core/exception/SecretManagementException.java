@@ -30,6 +30,11 @@ public class SecretManagementException extends Exception {
         super();
     }
 
+    public SecretManagementException(String message) {
+
+        super(message);
+    }
+
     public SecretManagementException(String message, String errorCode) {
 
         super(message);

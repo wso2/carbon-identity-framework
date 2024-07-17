@@ -26,6 +26,8 @@ import org.wso2.carbon.identity.action.management.cache.ActionTypeCacheKey;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
 import java.util.List;
 import java.util.Map;
@@ -94,10 +96,11 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
     }
 
     @Override
-    public void deleteAction(String actionType, String actionId, Integer tenantId) throws ActionMgtException {
+    public void deleteAction(String actionType, String actionId, Action action, Integer tenantId)
+            throws ActionMgtException {
 
         actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantId);
-        actionManagementDAO.deleteAction(actionType, actionId, tenantId);
+        actionManagementDAO.deleteAction(actionType, actionId, action, tenantId);
     }
 
     @Override
@@ -124,5 +127,22 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
     public Action getActionByActionId(String actionId, Integer tenantId) throws ActionMgtException {
 
         return actionManagementDAO.getActionByActionId(actionId, tenantId);
+    }
+
+    @Override
+    public Action updateActionEndpointAuthProperties(String actionId, AuthType authentication, int tenantId)
+            throws ActionMgtException {
+
+        return actionManagementDAO.updateActionEndpointAuthProperties(actionId, authentication, tenantId);
+    }
+
+    @Override
+    public Action updateActionEndpoint(String actionType, String actionId, EndpointConfig endpoint,
+                                       AuthType currentAuthentication, int tenantId)
+            throws ActionMgtException {
+
+        actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantId);
+        return actionManagementDAO.updateActionEndpoint(actionType, actionId, endpoint, currentAuthentication,
+                tenantId);
     }
 }
