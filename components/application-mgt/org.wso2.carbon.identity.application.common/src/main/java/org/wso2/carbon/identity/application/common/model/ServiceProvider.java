@@ -50,6 +50,7 @@ public class ServiceProvider implements Serializable {
     private static final String ACCESS_URL = "AccessUrl";
     private static final String IMAGE_URL = "ImageUrl";
     private static final String TEMPLATE_ID = "TemplateId";
+    private static final String TEMPLATE_VERSION = "TemplateVersion";
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
@@ -132,6 +133,10 @@ public class ServiceProvider implements Serializable {
     private String templateId;
 
     @IgnoreNullElement
+    @XmlElement(name = TEMPLATE_VERSION)
+    private String templateVersion;
+
+    @IgnoreNullElement
     @XmlElement(name = IS_MANAGEMENT_APP)
     private boolean isManagementApp;
 
@@ -204,6 +209,8 @@ public class ServiceProvider implements Serializable {
                 serviceProvider.setAccessUrl(element.getText());
             } else if (TEMPLATE_ID.equals(elementName)) {
                 serviceProvider.setTemplateId(element.getText());
+            } else if (TEMPLATE_VERSION.equals(elementName)) {
+                serviceProvider.setTemplateVersion(element.getText());
             } else if ("Certificate".equals(elementName)) {
                 serviceProvider.setCertificateContent(element.getText());
             } else if ("JwksUri".equals(elementName)) {
@@ -581,6 +588,16 @@ public class ServiceProvider implements Serializable {
     public void setTemplateId(String templateId) {
 
         this.templateId = templateId;
+    }
+
+    public String getTemplateVersion() {
+
+        return templateVersion;
+    }
+
+    public void setTemplateVersion(String templateVersion) {
+
+        this.templateVersion = templateVersion;
     }
 
     public boolean isManagementApp() {

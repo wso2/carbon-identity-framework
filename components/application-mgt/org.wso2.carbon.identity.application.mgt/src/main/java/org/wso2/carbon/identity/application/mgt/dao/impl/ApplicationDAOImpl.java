@@ -168,6 +168,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
@@ -2193,6 +2195,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
             serviceProvider.setTemplateId(getTemplateId(propertyList));
+            serviceProvider.setTemplateVersion(getTemplateVersion(propertyList));
             serviceProvider.setApplicationEnabled(getIsApplicationEnabled(propertyList));
             serviceProvider.setManagementApp(getIsManagementApp(propertyList));
             serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
@@ -2399,6 +2402,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     if (TEMPLATE_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setTemplateId(getTemplateId(propertyList));
                     }
+                    if (TEMPLATE_VERSION_SP_PROPERTY_NAME.equals(requiredAttribute)) {
+                        serviceProvider.setTemplateVersion(getTemplateVersion(propertyList));
+                    }
                     if (CLIENT_ID_SP_PROPERTY_NAME.equals(requiredAttribute) ||
                             ISSUER_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
@@ -2532,6 +2538,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         return propertyList.stream()
                 .filter(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+    }
+
+    private String getTemplateVersion(List<ServiceProviderProperty> propertyList) {
+
+        return propertyList.stream()
+                .filter(property -> TEMPLATE_VERSION_SP_PROPERTY_NAME.equals(property.getName()))
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
@@ -5307,6 +5322,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty templateIdProperty = buildTemplateIdProperty(sp);
         spPropertyMap.put(templateIdProperty.getName(), templateIdProperty);
 
+        ServiceProviderProperty templateVersionProperty = buildTemplateVersionProperty(sp);
+        spPropertyMap.put(templateVersionProperty.getName(), templateVersionProperty);
+
         ServiceProviderProperty isManagementAppProperty = buildIsManagementAppProperty(sp);
         spPropertyMap.put(isManagementAppProperty.getName(), isManagementAppProperty);
 
@@ -5477,6 +5495,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         templateIdProperty
                 .setValue(StringUtils.isNotBlank(sp.getTemplateId()) ? sp.getTemplateId() : StringUtils.EMPTY);
         return templateIdProperty;
+    }
+
+    private ServiceProviderProperty buildTemplateVersionProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty templateVersionProperty = new ServiceProviderProperty();
+        templateVersionProperty.setName(TEMPLATE_VERSION_SP_PROPERTY_NAME);
+        templateVersionProperty.setDisplayName(TEMPLATE_VERSION_SP_PROPERTY_DISPLAY_NAME);
+        templateVersionProperty
+                .setValue(StringUtils.isNotBlank(sp.getTemplateVersion()) ? sp.getTemplateVersion() : StringUtils.EMPTY);
+        return templateVersionProperty;
     }
 
     private ServiceProviderProperty buildJwksProperty(ServiceProvider sp) {
