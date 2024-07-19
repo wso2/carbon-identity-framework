@@ -1845,7 +1845,7 @@
     <properties>
         <apache.tomcat-catalina.version>9.0.11</apache.tomcat-catalina.version>
         <apache.cxf-rt-frontend-jaxrs.version>2.7.16</apache.cxf-rt-frontend-jaxrs.version>
-        <apache.cxf-rt-rs-service-description.version>3.3.7</apache.cxf-rt-rs-service-description.version>
+        <apache.cxf-rt-rs-service-description.version>3.5.9</apache.cxf-rt-rs-service-description.version>
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
         <springframework.spring-web.version>5.1.1.RELEASE</springframework.spring-web.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
@@ -2080,7 +2080,7 @@
         <tomcat-util.version>3.3.2</tomcat-util.version>
         <json-smart.version>2.4.7</json-smart.version>
         <cxf-bundle.wso2.version>2.7.16.wso2v1</cxf-bundle.wso2.version>
-        <org.apache.cxf.version>3.4.5</org.apache.cxf.version>
+        <org.apache.cxf.version>3.5.9</org.apache.cxf.version>
         <opencsv.wso2.version>1.8.wso2v1</opencsv.wso2.version>
         <orbit.version.poi>5.2.3.wso2v1</orbit.version.poi>
         <orbit.version.poi.range>[5.0.0,6.0.0)</orbit.version.poi.range>
