@@ -43,8 +43,6 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserMa
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_USER_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_USER_CLAIM_VALUES_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_USER_CLAIM_VALUE_ACTION;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USER_CLAIM_VALUES_ACTION;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_USER_CLAIM_VALUE_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.PROFILE_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ROLE_NAME_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.SET_USER_CLAIM_VALUES_ACTION;
