@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.core.AbstractIdentityGroupOperationEventListener
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.Claim;
-import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.utils.AuditLog;
 
 import java.util.List;
@@ -35,8 +34,6 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserMa
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.ADD_GROUP_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETED_USERS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.DELETE_GROUP_ACTION;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GET_GROUPS_OF_USERS_ACTION;
-import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUPS_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.GROUP_NAME_FIELD;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_GROUP_NAME_ACTION;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LogConstants.UserManagement.UPDATE_USERS_OF_GROUP_ACTION;
@@ -124,24 +121,6 @@ public class GroupManagementV2AuditLogger extends AbstractIdentityGroupOperation
         AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
                 LoggerUtils.getInitiatorType(getInitiatorId()), groupId, Target.Group.name(),
                 UPDATE_USERS_OF_GROUP_ACTION).data(jsonObjectToMap(dataObject));
-        triggerAuditLogEvent(auditLogBuilder);
-        return true;
-    }
-
-    @Override
-    public boolean postGetGroupsListOfUserByUserId(String userId, List<Group> groupList,
-                                                   UserStoreManager userStoreManager) {
-
-        if (!isEnable()) {
-            return true;
-        }
-        JSONObject dataObject = new JSONObject();
-        if (CollectionUtils.isNotEmpty(groupList)) {
-            dataObject.put(GROUPS_FIELD, new JSONArray(groupList));
-        }
-        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
-                LoggerUtils.getInitiatorType(getInitiatorId()), userId, Target.User.name(), GET_GROUPS_OF_USERS_ACTION)
-                .data(jsonObjectToMap(dataObject));
         triggerAuditLogEvent(auditLogBuilder);
         return true;
     }
