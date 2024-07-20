@@ -223,8 +223,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         return new Action.ActionRequestBuilder()
                 .name(StringUtils.isEmpty(updatingAction.getName()) ? existingAction.getName() :
                         updatingAction.getName())
-                .description(StringUtils.isEmpty(updatingAction.getDescription()) ? existingAction.getDescription() :
-                        updatingAction.getDescription())
+                // Description is an optional field.
+                .description(updatingAction.getDescription())
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(StringUtils.isEmpty(updatingAction.getEndpoint().getUri()) ?
                                 existingAction.getEndpoint().getUri() : updatingAction.getEndpoint().getUri())
