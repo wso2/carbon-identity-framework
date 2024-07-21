@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.action.management;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
@@ -89,8 +88,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug(String.format("Updating Action for Action Type: %s and Action ID: %s.", actionType, actionId));
         }
         Action existingAction = checkIfActionExists(actionId, tenantDomain);
-        action = mergeActionWithExisting(action, existingAction);
-        return CACHE_BACKED_DAO.updateAction(getActionTypeFromPath(actionType), actionId, action,
+        return CACHE_BACKED_DAO.updateAction(getActionTypeFromPath(actionType), actionId, action, existingAction,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -209,27 +207,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                     ActionMgtConstants.ErrorMessages.ERROR_NO_ACTION_CONFIGURED_ON_GIVEN_ID);
         }
         return action;
-    }
-
-    /**
-     * Merge the updating action with the existing action.
-     *
-     * @param updatingAction Action object with updating information.
-     * @param existingAction Action object with existing information.
-     * @return Action object with merged information.
-     */
-    private Action mergeActionWithExisting(Action updatingAction, Action existingAction) {
-
-        return new Action.ActionRequestBuilder()
-                .name(StringUtils.isEmpty(updatingAction.getName()) ? existingAction.getName() :
-                        updatingAction.getName())
-                .description(StringUtils.isEmpty(updatingAction.getDescription()) ? existingAction.getDescription() :
-                        updatingAction.getDescription())
-                .endpoint(new EndpointConfig.EndpointConfigBuilder()
-                        .uri(StringUtils.isEmpty(updatingAction.getEndpoint().getUri()) ?
-                                existingAction.getEndpoint().getUri() : updatingAction.getEndpoint().getUri())
-                        .build())
-                .build();
     }
 
     /**
