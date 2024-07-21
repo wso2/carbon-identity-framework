@@ -53,7 +53,6 @@ public class FilterUtil {
             throws APIResourceCollectionMgtClientException {
 
         List<ExpressionNode> expressionNodes = new ArrayList<>();
-        filter = StringUtils.isBlank(filter) ? StringUtils.EMPTY : filter;
         try {
             if (StringUtils.isNotBlank(filter)) {
                 FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
@@ -76,10 +75,8 @@ public class FilterUtil {
     private static void setExpressionNodeList(Node node, List<ExpressionNode> expression)
             throws APIResourceCollectionMgtClientException {
 
-        if (node instanceof ExpressionNode) {
-            if (StringUtils.isNotBlank(((ExpressionNode) node).getAttributeValue())) {
-                expression.add((ExpressionNode) node);
-            }
+        if (node instanceof ExpressionNode && StringUtils.isNotBlank(((ExpressionNode) node).getAttributeValue())) {
+            expression.add((ExpressionNode) node);
         } else if (node instanceof OperationNode) {
             OperationNode operationNode = (OperationNode) node;
             // Throw error if the operation is OR.
@@ -143,33 +140,30 @@ public class FilterUtil {
             String value = node.getValue();
             String operation = node.getOperation();
             String apiResourceCollectionAttributeValue = getAttributeValue(apiResourceCollection, attribute);
+
             if (apiResourceCollectionAttributeValue == null) {
                 return false;
             }
+            boolean matches;
             switch (operation) {
                 case APIResourceCollectionManagementConstants.EQ:
-                    if (!apiResourceCollectionAttributeValue.equals(value)) {
-                        return false;
-                    }
+                    matches = apiResourceCollectionAttributeValue.equals(value);
                     break;
                 case APIResourceCollectionManagementConstants.CO:
-                    if (!apiResourceCollectionAttributeValue.contains(value)) {
-                        return false;
-                    }
+                    matches = apiResourceCollectionAttributeValue.contains(value);
                     break;
                 case APIResourceCollectionManagementConstants.SW:
-                    if (!apiResourceCollectionAttributeValue.startsWith(value)) {
-                        return false;
-                    }
+                    matches = apiResourceCollectionAttributeValue.startsWith(value);
                     break;
                 case APIResourceCollectionManagementConstants.EW:
-                    if (!apiResourceCollectionAttributeValue.endsWith(value)) {
-                        return false;
-                    }
+                    matches = apiResourceCollectionAttributeValue.endsWith(value);
                     break;
                 default:
                     throw handleClientException(
                             APIResourceCollectionManagementConstants.ErrorMessages.ERROR_CODE_INVALID_FILTER_OPERATION);
+            }
+            if (!matches) {
+                return false;
             }
         }
         return true;
