@@ -55,9 +55,13 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.cache.EntitlementBaseCache;
 import org.wso2.carbon.identity.entitlement.cache.IdentityCacheEntry;
 import org.wso2.carbon.identity.entitlement.cache.IdentityCacheKey;
+import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
 import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
+import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
+import org.wso2.carbon.identity.entitlement.dto.PublisherPropertyDTO;
+import org.wso2.carbon.identity.entitlement.dto.StatusHolder;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementExtensionBuilder;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pap.EntitlementAdminEngine;
@@ -75,6 +79,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,6 +87,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -97,6 +104,8 @@ import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.ONLY_
 import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.ORDERED_DENY_OVERRIDES;
 import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.ORDERED_PERMIT_OVERRIDES;
 import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.PERMIT_OVERRIDES;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.POLICY_COMBINING_PREFIX_1;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.POLICY_COMBINING_PREFIX_3;
 
 /**
  * Provides utility functionalities used across different classes.
@@ -635,5 +644,84 @@ public class EntitlementUtil {
             attributeMap.put(policyDTO.getPolicyId(), attributeDTOs);
         }
         return attributeMap;
+    }
+
+    /**
+     * Resolves the global policy combining algorithm.
+     *
+     * @param algorithm policy combining algorithm.
+     * @return PolicyCombiningAlgorithm object.
+     * @throws EntitlementException throws if unsupported algorithm.
+     */
+    public static PolicyCombiningAlgorithm resolveGlobalPolicyAlgorithm(String algorithm) throws EntitlementException {
+
+        if (StringUtils.isBlank(algorithm)) {
+            // read algorithm from entitlement.properties file
+            algorithm = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties().
+                    getProperty(PDPConstants.PDP_GLOBAL_COMBINING_ALGORITHM);
+            log.info("The global policy combining algorithm which is defined in the configuration file, is used.");
+        } else {
+            if (FIRST_APPLICABLE.equals(algorithm) || ONLY_ONE_APPLICABLE.equals(algorithm)) {
+                algorithm = POLICY_COMBINING_PREFIX_1 + algorithm;
+            } else {
+                algorithm = POLICY_COMBINING_PREFIX_3 + algorithm;
+            }
+        }
+        return getPolicyCombiningAlgorithm(algorithm);
+    }
+
+    /**
+     * Filter status holders based on search criteria.
+     *
+     * @param holders      List of status holders.
+     * @param searchString Search string.
+     * @param about        About.
+     * @param type         Type.
+     * @return Filtered status holders.
+     */
+    public static StatusHolder[] filterStatus(List<StatusHolder> holders, String searchString, String about,
+                                              String type) {
+
+        List<StatusHolder> filteredHolders = new ArrayList<>();
+        if (!holders.isEmpty()) {
+            searchString = searchString.replace("*", ".*");
+            Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
+            for (StatusHolder holder : holders) {
+                String id = EntitlementConstants.Status.ABOUT_POLICY.equals(about)
+                        ? holder.getUser()
+                        : holder.getTarget();
+                Matcher matcher = pattern.matcher(id);
+                if (!matcher.matches()) {
+                    continue;
+                }
+                if (!EntitlementConstants.Status.ABOUT_POLICY.equals(about) || type == null ||
+                        type.equals(holder.getType())) {
+                    filteredHolders.add(holder);
+                }
+            }
+        }
+        return filteredHolders.toArray(new StatusHolder[0]);
+    }
+
+    /**
+     * Resolve subscriber id from publisher data holder.
+     *
+     * @param holder Publisher data holder.
+     * @return Subscriber id.
+     * @throws EntitlementException throws if publisher data is null.
+     */
+    public static String resolveSubscriberId(PublisherDataHolder holder) throws EntitlementException {
+
+        String subscriberId = null;
+        if (holder == null || holder.getPropertyDTOs() == null) {
+            throw new EntitlementException("Publisher data can not be null");
+        }
+
+        for (PublisherPropertyDTO dto : holder.getPropertyDTOs()) {
+            if (PDPConstants.SUBSCRIBER_ID.equals(dto.getId())) {
+                subscriberId = dto.getValue();
+            }
+        }
+        return subscriberId;
     }
 }

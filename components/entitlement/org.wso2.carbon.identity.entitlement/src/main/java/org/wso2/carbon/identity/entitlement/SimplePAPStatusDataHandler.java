@@ -38,8 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * TODO
@@ -112,45 +110,13 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
     public StatusHolder[] getStatusData(String about, String key, String type, String searchString)
             throws EntitlementException {
 
-        if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
-            String path = ENTITLEMENT_POLICY_STATUS + key;
-            List<StatusHolder> holders = readStatus(path, EntitlementConstants.Status.ABOUT_POLICY);
-            List<StatusHolder> filteredHolders = new ArrayList<StatusHolder>();
-            if (holders != null) {
-                searchString = searchString.replace("*", ".*");
-                Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
-                for (StatusHolder holder : holders) {
-                    String id = holder.getUser();
-                    Matcher matcher = pattern.matcher(id);
-                    if (!matcher.matches()) {
-                        continue;
-                    }
-                    if (type != null && type.equals(holder.getType())) {
-                        filteredHolders.add(holder);
-                    } else if (type == null) {
-                        filteredHolders.add(holder);
-                    }
-                }
-            }
-            return filteredHolders.toArray(new StatusHolder[filteredHolders.size()]);
-        } else {
-            List<StatusHolder> filteredHolders = new ArrayList<StatusHolder>();
-            String path = ENTITLEMENT_PUBLISHER_STATUS + key;
-            List<StatusHolder> holders = readStatus(path, EntitlementConstants.Status.ABOUT_SUBSCRIBER);
-            if (holders != null) {
-                searchString = searchString.replace("*", ".*");
-                Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
-                for (StatusHolder holder : holders) {
-                    String id = holder.getTarget();
-                    Matcher matcher = pattern.matcher(id);
-                    if (!matcher.matches()) {
-                        continue;
-                    }
-                    filteredHolders.add(holder);
-                }
-            }
-            return filteredHolders.toArray(new StatusHolder[filteredHolders.size()]);
-        }
+        boolean isAboutPolicy = EntitlementConstants.Status.ABOUT_POLICY.equals(about);
+        String statusAboutType =
+                isAboutPolicy ? EntitlementConstants.Status.ABOUT_POLICY : EntitlementConstants.Status.ABOUT_SUBSCRIBER;
+        String path = isAboutPolicy ? ENTITLEMENT_POLICY_STATUS + key : ENTITLEMENT_PUBLISHER_STATUS + key;
+
+        List<StatusHolder> holders = readStatus(path, statusAboutType);
+        return EntitlementUtil.filterStatus(holders, searchString, about, type);
     }
 
     private synchronized void deletedPersistedData(String path) throws EntitlementException {

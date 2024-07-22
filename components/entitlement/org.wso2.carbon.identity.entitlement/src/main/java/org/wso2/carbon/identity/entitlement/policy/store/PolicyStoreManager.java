@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.entitlement.dao.RegistryPolicyDAOImpl;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
+import org.wso2.carbon.identity.entitlement.policy.finder.AbstractPolicyFinderModule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,7 @@ public class PolicyStoreManager {
             dto.setSetActive(true);
         }
         policyStore.publishPolicy(dto);
-        RegistryPolicyDAOImpl
+        AbstractPolicyFinderModule
                 .invalidateCache(dto.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_UPDATE);
     }
 
@@ -93,7 +94,7 @@ public class PolicyStoreManager {
         dto.setSetOrder(false);
 
         policyStore.publishPolicy(dto);
-        RegistryPolicyDAOImpl
+        AbstractPolicyFinderModule
                 .invalidateCache(dto.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_UPDATE);
     }
 
@@ -113,10 +114,10 @@ public class PolicyStoreManager {
 
         policyStore.publishPolicy(dto);
         if (policyDTO.isActive()) {
-            RegistryPolicyDAOImpl
+            AbstractPolicyFinderModule
                     .invalidateCache(dto.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_ENABLE);
         } else {
-            RegistryPolicyDAOImpl
+            AbstractPolicyFinderModule
                     .invalidateCache(dto.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_DISABLE);
         }
     }
@@ -136,7 +137,7 @@ public class PolicyStoreManager {
         dto.setSetOrder(true);
 
         policyStore.publishPolicy(dto);
-        RegistryPolicyDAOImpl
+        AbstractPolicyFinderModule
                 .invalidateCache(dto.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_ORDER);
     }
 
@@ -147,7 +148,7 @@ public class PolicyStoreManager {
                     policyDTO.getPolicyId());
         }
         policyStore.unPublishPolicy(policyDTO.getPolicyId());
-        RegistryPolicyDAOImpl
+        AbstractPolicyFinderModule
                 .invalidateCache(policyDTO.getPolicyId(), EntitlementConstants.PolicyPublish.ACTION_DELETE);
     }
 
@@ -179,7 +180,7 @@ public class PolicyStoreManager {
 
                 PolicyDTO dto = policyStore.getPublishedPolicy(policy);
 
-                if (dto != null) {
+                if (dto != null && dto.getPolicy() != null) {
                     policyDTO.setActive(dto.isActive());
                     policyDTO.setPolicyOrder(dto.getPolicyOrder());
                     policyDTOs.add(policyDTO);

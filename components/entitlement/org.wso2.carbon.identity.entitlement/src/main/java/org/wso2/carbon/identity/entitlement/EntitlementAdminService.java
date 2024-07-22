@@ -542,6 +542,6 @@ public class EntitlementAdminService {
 
         ConfigDAO configDAO = EntitlementAdminEngine.getInstance().getConfigDAO();
         configDAO.setGlobalPolicyAlgorithm(policyCombiningAlgorithm);
-
+        clearPolicyCache();
     }
 }
