@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.action.execution.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+/**
+ * This class is used to represent the error response of an action invocation.
+ */
 @JsonDeserialize(builder = ActionInvocationErrorResponse.Builder.class)
 public class ActionInvocationErrorResponse implements ActionInvocationResponse.APIResponse {
 
@@ -50,6 +53,9 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
         return errorUri;
     }
 
+    /**
+     * This class is used to build the {@link ActionInvocationErrorResponse}.
+     */
     public static class Builder {
 
         private String error;
@@ -63,6 +69,7 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
         }
 
         public ActionInvocationErrorResponse.Builder setErrorDescription(
+
                 @JsonProperty("errorDescription") String errorDescription) {
 
             this.errorDescription = errorDescription;

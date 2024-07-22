@@ -23,6 +23,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.List;
 
+/**
+ * This class is used to represent the success response of an action invocation.
+ * This response will contain the list of operations that need to be performed.
+ */
 @JsonDeserialize(builder = ActionInvocationSuccessResponse.Builder.class)
 public class ActionInvocationSuccessResponse implements ActionInvocationResponse.APIResponse {
 
@@ -38,6 +42,9 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
         return operations;
     }
 
+    /**
+     * This class is used to build the {@link ActionInvocationSuccessResponse}.
+     */
     public static class Builder {
 
         private List<PerformableOperation> operations;

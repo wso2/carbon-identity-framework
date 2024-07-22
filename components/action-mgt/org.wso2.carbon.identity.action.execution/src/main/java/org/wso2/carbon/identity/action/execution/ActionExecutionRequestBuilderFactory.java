@@ -41,7 +41,8 @@ public class ActionExecutionRequestBuilderFactory {
     }
 
     public static void registerActionExecutionRequestBuilder(ActionType actionType,
-                                                             ActionExecutionRequestBuilder actionExecutionRequestBuilder) {
+                                                             ActionExecutionRequestBuilder
+                                                                     actionExecutionRequestBuilder) {
 
         actionInvocationRequestBuilders.put(actionType, actionExecutionRequestBuilder);
     }

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.execution.exception;
 
 /**
  * Exception class for Action Execution.
+ * This exception is thrown when there is an issue in executing the action.
  */
 public class ActionExecutionException extends Exception {
 

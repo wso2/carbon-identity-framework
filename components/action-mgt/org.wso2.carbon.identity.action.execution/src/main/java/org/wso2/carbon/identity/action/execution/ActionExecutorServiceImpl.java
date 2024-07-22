@@ -52,9 +52,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
- * ActionInvocationService.
+ * This class is responsible for executing the action based on the action type and the event context.
+ * It is responsible for building the request payload, calling the API, processing the response and
+ * returning the status of the action execution.
  */
-
 public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private static final Log log = LogFactory.getLog(ActionExecutorServiceImpl.class);
@@ -183,7 +184,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                         ActionExecutionRequest actionRequest,
                                                         String actionId, String apiEndpoint,
                                                         AuthMethods.AuthMethod authenticationMethod,
-                                                        ActionExecutionResponseProcessor actionExecutionResponseProcessor)
+                                                        ActionExecutionResponseProcessor
+                                                                actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
         if (actionInvocationResponse.isSuccess()) {
@@ -209,7 +211,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                          ActionExecutionRequest actionRequest,
                                                          String actionId, String apiEndpoint,
                                                          AuthMethods.AuthMethod authenticationMethod,
-                                                         ActionExecutionResponseProcessor actionExecutionResponseProcessor)
+                                                         ActionExecutionResponseProcessor
+                                                                 actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
         if (log.isDebugEnabled()) {
@@ -232,7 +235,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                        ActionExecutionRequest actionRequest,
                                                        String actionId, String apiEndpoint,
                                                        AuthMethods.AuthMethod authenticationMethod,
-                                                       ActionExecutionResponseProcessor actionExecutionResponseProcessor)
+                                                       ActionExecutionResponseProcessor
+                                                               actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
         if (log.isDebugEnabled()) {
@@ -250,7 +254,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         try {
             String responseBody = serializeSuccessResponse(successResponse);
             log.debug(String.format(
-                    "Received success response from API: %s for action type: %s action id: %s with authentication: %s. Response: %s",
+                    "Received success response from API: %s for action type: %s action id: %s with authentication: %s. "
+                            + "Response: %s",
                     apiEndpoint,
                     actionType,
                     actionId,
@@ -269,7 +274,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         try {
             String responseBody = serializeErrorResponse(errorResponse);
             log.debug(String.format(
-                    "Received error response from API: %s for action type: %s action id: %s with authentication: %s. Response: %s",
+                    "Received error response from API: %s for action type: %s action id: %s with authentication: %s. " +
+                            "Response: %s",
                     apiEndpoint,
                     actionType,
                     actionId,

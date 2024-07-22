@@ -24,5 +24,4 @@ package org.wso2.carbon.identity.action.execution.model;
  */
 public enum ActionType {
     PRE_ISSUE_ACCESS_TOKEN,
-    POST_ISSUE_ACCESS_TOKEN,
 }

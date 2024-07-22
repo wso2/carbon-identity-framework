@@ -44,7 +44,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
- * This class is responsible for invoking the HTTP endpoint.
+ * This class is responsible for making API calls to the external services.
  */
 public class APIClient {
 
@@ -132,7 +132,6 @@ public class APIClient {
         HttpEntity responseEntity = response.getEntity();
 
         ActionInvocationResponse.Builder actionInvocationResponseBuilder = new ActionInvocationResponse.Builder();
-        actionInvocationResponseBuilder.setHttpStatusCode(statusCode);
 
         try {
             switch (statusCode) {

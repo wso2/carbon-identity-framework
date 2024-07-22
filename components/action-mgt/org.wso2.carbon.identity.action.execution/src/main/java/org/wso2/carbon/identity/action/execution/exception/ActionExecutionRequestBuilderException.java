@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.action.execution.exception;
 
+/**
+ * Exception class for Action Execution Request Builder.
+ * This exception is thrown when there is an issue in building the Action Execution Request.
+ */
 public class ActionExecutionRequestBuilderException extends Exception {
 
     public ActionExecutionRequestBuilderException(String message) {

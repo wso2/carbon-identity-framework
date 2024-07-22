@@ -25,12 +25,19 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
+/**
+ * This class contains the authentication methods.
+ * The authentication methods are used to authenticate the HTTP requests.
+ */
 public final class AuthMethods {
 
     private AuthMethods() {
 
     }
 
+    /**
+     * This interface defines how authentication methods are applied to http request.
+     */
     public interface AuthMethod {
 
         void applyAuth(HttpPost httpPost);
@@ -38,6 +45,9 @@ public final class AuthMethods {
         String getAuthType();
     }
 
+    /**
+     * This class applies bearer authentication to the http request.
+     */
     public static final class BearerAuth implements AuthMethod {
 
         private String token;
@@ -63,6 +73,9 @@ public final class AuthMethods {
         }
     }
 
+    /**
+     * This class applies basic authentication to the http request.
+     */
     public static final class BasicAuth implements AuthMethod {
 
         private String username;
@@ -100,6 +113,9 @@ public final class AuthMethods {
         }
     }
 
+    /**
+     * This class applies API Key based authentication to the http request.
+     */
     public static final class APIKeyAuth implements AuthMethod {
 
         private String apiHeader;

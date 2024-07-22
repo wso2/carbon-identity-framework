@@ -19,14 +19,12 @@
 package org.wso2.carbon.identity.action.execution.model;
 
 /**
- * This class models the Action Execution Response.
- * Action Execution Response is the response object that is returned by the Action Executor Service after executing an
- * action. It contains the action status and the operations that needs to be performed.
+ * This class is used to represent the response of an action invocation.
+ * The response can be either a success or an error.
  */
 public class ActionInvocationResponse {
 
-    private int httpStatusCode;
-    private String actionStatus;
+    private Status actionStatus;
     private APIResponse response;
 
     private boolean retry;
@@ -44,12 +42,12 @@ public class ActionInvocationResponse {
 
     public boolean isSuccess() {
 
-        return "SUCCESS".equalsIgnoreCase(actionStatus);
+        return Status.SUCCESS.equals(actionStatus);
     }
 
     public boolean isError() {
 
-        return "ERROR".equalsIgnoreCase(actionStatus);
+        return Status.ERROR.equals(actionStatus);
     }
 
     public boolean isRetry() {
@@ -62,31 +60,38 @@ public class ActionInvocationResponse {
         return errorLog;
     }
 
+    /**
+     * Defines action invocation status.
+     */
+    public enum Status {
+        SUCCESS,
+        ERROR
+    }
+
+    /**
+     * This interface defines the response of the API call.
+     */
     public interface APIResponse {
 
     }
 
+    /**
+     * This class is used to build the {@link ActionInvocationResponse}.
+     */
     public static class Builder {
 
-        private int httpStatusCode;
-        private String actionStatus;
+        private Status actionStatus;
         private APIResponse response;
         private boolean retry;
 
         private String errorLog;
 
-        public Builder setHttpStatusCode(int httpStatusCode) {
-
-            this.httpStatusCode = httpStatusCode;
-            return this;
-        }
-
         public Builder setResponse(APIResponse response) {
 
             if (response instanceof ActionInvocationSuccessResponse) {
-                this.actionStatus = "SUCCESS";
+                this.actionStatus = Status.SUCCESS;
             } else if (response instanceof ActionInvocationErrorResponse) {
-                this.actionStatus = "ERROR";
+                this.actionStatus = Status.ERROR;
             }
 
             this.response = response;
@@ -96,21 +101,20 @@ public class ActionInvocationResponse {
         public Builder setRetry(boolean retry) {
 
             this.retry = retry;
-            this.actionStatus = "ERROR";
+            this.actionStatus = Status.ERROR;
             return this;
         }
 
         public Builder setErrorLog(String errorLog) {
 
             this.errorLog = errorLog;
-            this.actionStatus = "ERROR";
+            this.actionStatus = Status.ERROR;
             return this;
         }
 
         public ActionInvocationResponse build() {
 
             ActionInvocationResponse response = new ActionInvocationResponse();
-            response.httpStatusCode = this.httpStatusCode;
             response.actionStatus = this.actionStatus;
             response.response = this.response;
             response.retry = this.retry;

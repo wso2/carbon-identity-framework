@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.action.execution.exception;
 
+/**
+ * Exception class for Action Invocation.
+ * This exception is thrown when there is an issue in invoking API associated with the action.
+ */
 public class ActionInvocationException extends Exception {
 
     public ActionInvocationException(String message) {

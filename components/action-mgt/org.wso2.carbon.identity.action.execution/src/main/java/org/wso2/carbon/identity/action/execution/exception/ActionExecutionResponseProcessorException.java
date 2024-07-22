@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.action.execution.exception;
 
+/**
+ * Exception class for Action Execution Response Processor.
+ * This exception is thrown when there is an issue in processing the Action Execution Response.
+ */
 public class ActionExecutionResponseProcessorException extends Exception {
 
     public ActionExecutionResponseProcessorException(String message) {
