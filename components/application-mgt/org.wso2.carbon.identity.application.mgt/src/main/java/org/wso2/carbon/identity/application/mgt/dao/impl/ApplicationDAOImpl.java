@@ -2544,6 +2544,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .orElse(StringUtils.EMPTY);
     }
 
+    /**
+     * Retrieve the template version from the provided service provider property list.
+     *
+     * @param propertyList Service provider property list.
+     * @return Template version or an empty string.
+     */
     private String getTemplateVersion(List<ServiceProviderProperty> propertyList) {
 
         return propertyList.stream()
@@ -5499,6 +5505,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return templateIdProperty;
     }
 
+    /**
+     * Build the template version service provider property from the service provider object.
+     *
+     * @param sp Service provider instance.
+     * @return Template version as a service provider property.
+     */
     private ServiceProviderProperty buildTemplateVersionProperty(ServiceProvider sp) {
 
         ServiceProviderProperty templateVersionProperty = new ServiceProviderProperty();

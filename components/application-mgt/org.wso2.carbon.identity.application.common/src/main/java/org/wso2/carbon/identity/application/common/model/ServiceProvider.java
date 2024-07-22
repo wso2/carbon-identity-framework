@@ -590,11 +590,21 @@ public class ServiceProvider implements Serializable {
         this.templateId = templateId;
     }
 
+    /**
+     * Retrieve the template version of the current service provider.
+     *
+     * @return Template version.
+     */
     public String getTemplateVersion() {
 
         return templateVersion;
     }
 
+    /**
+     * Set a new template version for the current service provider.
+     *
+     * @param templateVersion Template version to be set.
+     */
     public void setTemplateVersion(String templateVersion) {
 
         this.templateVersion = templateVersion;
