@@ -25,22 +25,15 @@ import org.wso2.balana.combine.xacml3.DenyOverridesPolicyAlg;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
-import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
-import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.DENY_OVERRIDES;
-import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.FIRST_APPLICABLE;
-import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.ONLY_ONE_APPLICABLE;
-import static org.wso2.carbon.identity.entitlement.PDPConstants.POLICY_COMBINING_PREFIX_1;
-import static org.wso2.carbon.identity.entitlement.PDPConstants.POLICY_COMBINING_PREFIX_3;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.CONFIG_KEY;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.CONFIG_VALUE;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TENANT_ID;
@@ -60,34 +53,31 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
     @Override
     public PolicyCombiningAlgorithm getGlobalPolicyAlgorithm() {
 
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-
         try {
-            String algorithm = getPolicyCombiningAlgorithm(connection, tenantId);
-
-            if (StringUtils.isBlank(algorithm)) {
-                // read algorithm from entitlement.properties file
-                algorithm = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties().
-                        getProperty(PDPConstants.PDP_GLOBAL_COMBINING_ALGORITHM);
-                LOG.info(String.format(
-                        "Using Global policy combining algorithm that is defined in configuration file in " +
-                                "tenant %s.", IdentityTenantUtil.getTenantDomain(tenantId)));
-            } else {
-                if (FIRST_APPLICABLE.equals(algorithm) || ONLY_ONE_APPLICABLE.equals(algorithm)) {
-                    algorithm = POLICY_COMBINING_PREFIX_1 + algorithm;
-                } else {
-                    algorithm = POLICY_COMBINING_PREFIX_3 + algorithm;
-                }
-            }
-            return EntitlementUtil.getPolicyCombiningAlgorithm(algorithm);
-
+            String algorithm = getPolicyCombiningAlgorithm();
+            return EntitlementUtil.resolveGlobalPolicyAlgorithm(algorithm);
         } catch (EntitlementException e) {
-            LOG.warn(e);
+            LOG.warn("Error while getting global policy combining algorithm.", e);
         }
 
         LOG.warn("Global policy combining algorithm is not defined. Therefore using default one");
         return new DenyOverridesPolicyAlg();
+    }
+
+    /**
+     * Gets the policy combining algorithm name of the PDP.
+     *
+     * @return policy combining algorithm name.
+     */
+    @Override
+    public String getGlobalPolicyAlgorithmName() {
+
+        String algorithm = getPolicyCombiningAlgorithm();
+        if (StringUtils.isBlank(algorithm)) {
+            algorithm = DENY_OVERRIDES;
+        }
+
+        return algorithm;
     }
 
     /**
@@ -100,72 +90,72 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
     public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
 
-        try {
-            // Check the existence of the algorithm
-            String algorithm = getPolicyCombiningAlgorithm(connection, tenantId);
-            String query = StringUtils.isNotBlank(algorithm)
-                    ? UPDATE_POLICY_COMBINING_ALGORITHM_SQL
-                    : CREATE_POLICY_COMBINING_ALGORITHM_SQL;
+        // Check the existence of the algorithm
+        String algorithm = getPolicyCombiningAlgorithm();
+        if (StringUtils.isBlank(algorithm)) {
+            setPolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
+        } else {
+            updatePolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
+        }
+    }
 
+    private String getPolicyCombiningAlgorithm() {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String algorithm = null;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement getPolicyCombiningAlgoPrepStmt = new NamedPreparedStatement(connection,
+                    GET_POLICY_COMBINING_ALGORITHM_SQL)) {
+                getPolicyCombiningAlgoPrepStmt.setString(CONFIG_KEY, PDPConstants.GLOBAL_POLICY_COMBINING_ALGORITHM);
+                getPolicyCombiningAlgoPrepStmt.setInt(TENANT_ID, tenantId);
+                try (ResultSet rs = getPolicyCombiningAlgoPrepStmt.executeQuery()) {
+                    if (rs.next()) {
+                        algorithm = rs.getString(CONFIG_VALUE);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            LOG.debug("Error while getting Global Policy Combining Algorithm from policy data store.", e);
+        }
+        return algorithm;
+    }
+
+    private void setPolicyCombiningAlgorithm(String policyCombiningAlgorithm, int tenantId)
+            throws EntitlementException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (NamedPreparedStatement setPolicyCombiningAlgoPrepStmt = new NamedPreparedStatement(connection,
-                    query)) {
+                    CREATE_POLICY_COMBINING_ALGORITHM_SQL)) {
+                setPolicyCombiningAlgoPrepStmt.setString(CONFIG_KEY, PDPConstants.GLOBAL_POLICY_COMBINING_ALGORITHM);
                 setPolicyCombiningAlgoPrepStmt.setString(CONFIG_VALUE, policyCombiningAlgorithm);
                 setPolicyCombiningAlgoPrepStmt.setInt(TENANT_ID, tenantId);
-                setPolicyCombiningAlgoPrepStmt.setString(CONFIG_KEY, PDPConstants.GLOBAL_POLICY_COMBINING_ALGORITHM);
                 setPolicyCombiningAlgoPrepStmt.executeUpdate();
             }
-
-            // performing cache invalidation
-            EntitlementEngine.getInstance().invalidatePolicyCache();
 
             IdentityDatabaseUtil.commitTransaction(connection);
 
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            throw new EntitlementException("Error while updating combing algorithm in policy store", e);
+            throw new EntitlementException("Error while adding global policy combining algorithm in policy store", e);
         }
     }
 
-    /**
-     * Gets the policy combining algorithm name of the PDP.
-     *
-     * @return policy combining algorithm name.
-     */
-    @Override
-    public String getGlobalPolicyAlgorithmName() {
+    private void updatePolicyCombiningAlgorithm(String policyCombiningAlgorithm, int tenantId)
+            throws EntitlementException {
 
-        String algorithm;
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-
-        algorithm = getPolicyCombiningAlgorithm(connection, tenantId);
-
-        // set default
-        return (StringUtils.isNotBlank(algorithm)) ? algorithm : DENY_OVERRIDES;
-    }
-
-    private String getPolicyCombiningAlgorithm(Connection connection, int tenantId) {
-
-        String algorithm = null;
-
-        try (NamedPreparedStatement getPolicyCombiningAlgoPrepStmt = new NamedPreparedStatement(connection,
-                GET_POLICY_COMBINING_ALGORITHM_SQL)) {
-            getPolicyCombiningAlgoPrepStmt.setInt(TENANT_ID, tenantId);
-            getPolicyCombiningAlgoPrepStmt.setString(CONFIG_KEY, PDPConstants.GLOBAL_POLICY_COMBINING_ALGORITHM);
-
-            try (ResultSet rs = getPolicyCombiningAlgoPrepStmt.executeQuery()) {
-                if (rs.next()) {
-                    algorithm = rs.getString(CONFIG_VALUE);
-                }
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement setPolicyCombiningAlgoPrepStmt = new NamedPreparedStatement(connection,
+                    UPDATE_POLICY_COMBINING_ALGORITHM_SQL)) {
+                setPolicyCombiningAlgoPrepStmt.setString(CONFIG_KEY, PDPConstants.GLOBAL_POLICY_COMBINING_ALGORITHM);
+                setPolicyCombiningAlgoPrepStmt.setString(CONFIG_VALUE, policyCombiningAlgorithm);
+                setPolicyCombiningAlgoPrepStmt.setInt(TENANT_ID, tenantId);
+                setPolicyCombiningAlgoPrepStmt.executeUpdate();
             }
 
+            IdentityDatabaseUtil.commitTransaction(connection);
+
         } catch (SQLException e) {
-            LOG.debug("Error while getting Global Policy Combining Algorithm from policy data store.", e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
+            throw new EntitlementException("Error while updating global policy combining algorithm in policy store", e);
         }
-        return algorithm;
     }
 }

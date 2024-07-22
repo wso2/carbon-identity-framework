@@ -15,10 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.entitlement.dao;
 
 /**
- * DB related constant values
+ * DB related constant values.
  */
 public class DAOConstants {
 
@@ -28,6 +29,7 @@ public class DAOConstants {
 
     public static final String LIMIT = "LIMIT";
     public static final String KEY = "KEY";
+    public static final String STATUS_COUNT = "COUNT";
 
     public static class EntitlementTableColumns {
 
@@ -65,37 +67,51 @@ public class DAOConstants {
         // IDN_XACML_POLICY_SET_REFERENCE table
         public static final String SET_REFERENCE = "SET_REFERENCE";
 
-        // IND_XACML_SUBSCRIBER table
+        // IDN_XACML_SUBSCRIBER table
         public static final String SUBSCRIBER_ID = "SUBSCRIBER_ID";
         public static final String ENTITLEMENT_MODULE_NAME = "ENTITLEMENT_MODULE_NAME";
 
-        // IND_XACML_SUBSCRIBER_PROPERTY table
+        // IDN_XACML_SUBSCRIBER_PROPERTY table
         public static final String PROPERTY_ID = "PROPERTY_ID";
         public static final String DISPLAY_NAME = "DISPLAY_NAME";
         public static final String IS_REQUIRED = "IS_REQUIRED";
         public static final String DISPLAY_ORDER = "DISPLAY_ORDER";
         public static final String IS_SECRET = "IS_SECRET";
-        public static final String MODULE = "MODULE";
+        public static final String MODULE = "PROPERTY_MODULE";
         public static final String PROPERTY_VALUE = "PROPERTY_VALUE";
 
-        // IDN_XACML_STATUS table
+        // IDN_XACML_POLICY_STATUS and IDN_XACML_SUBSCRIBER_STATUS tables
         public static final String STATUS_TYPE = "TYPE";
         public static final String IS_SUCCESS = "IS_SUCCESS";
         public static final String USER = "USERNAME";
         public static final String TARGET = "TARGET";
         public static final String TARGET_ACTION = "TARGET_ACTION";
-        public static final String TIME_INSTANCE = "TIME_INSTANCE";
+        public static final String LOGGED_AT = "LOGGED_AT";
         public static final String MESSAGE = "MESSAGE";
         public static final String POLICY_VERSION = "POLICY_VERSION";
-        public static final String STATUS_COUNT = "COUNT";
 
         // IDN_XACML_CONFIG table
         public static final String CONFIG_KEY = "CONFIG_KEY";
         public static final String CONFIG_VALUE = "CONFIG_VALUE";
     }
 
+    public static class DatabaseTypes {
+
+        private DatabaseTypes() {
+
+        }
+
+        public static final String MYSQL = "MySQL";
+        public static final String MSSQL = "Microsoft SQL Server";
+        public static final String ORACLE = "ORACLE";
+        public static final String MARIADB = "MariaDB";
+        public static final String DB2 = "DB2";
+        public static final String H2 = "H2";
+        public static final String POSTGRES = "PostgreSQL";
+    }
+
     /**
-     * SQL queries for XACML policy storage and management
+     * SQL queries for XACML policy storage and management.
      */
     public static class SQLQueries {
 
@@ -104,7 +120,7 @@ public class DAOConstants {
         }
 
         /**
-         * DB queries related to PAP policy store
+         * DB queries related to PAP policy store.
          */
         public static final String CREATE_PAP_POLICY_SQL = "INSERT INTO IDN_XACML_POLICY (POLICY_ID, VERSION, " +
                 "TENANT_ID, IS_IN_PDP, IS_IN_PAP, POLICY, IS_ACTIVE, POLICY_TYPE, POLICY_EDITOR, POLICY_ORDER, " +
@@ -115,7 +131,7 @@ public class DAOConstants {
                 "(REFERENCE, POLICY_ID, VERSION, TENANT_ID) VALUES (:REFERENCE;, :POLICY_ID;, :VERSION;, :TENANT_ID;)";
         public static final String CREATE_PAP_POLICY_SET_REFS_SQL = "INSERT INTO IDN_XACML_POLICY_SET_REFERENCE " +
                 "(SET_REFERENCE, POLICY_ID, VERSION, TENANT_ID) VALUES (:SET_REFERENCE;, :POLICY_ID;, :VERSION;, " +
-                ":TENANT_ID);";
+                ":TENANT_ID;)";
         public static final String CREATE_PAP_POLICY_ATTRIBUTES_SQL = "INSERT INTO IDN_XACML_POLICY_ATTRIBUTE " +
                 "(ATTRIBUTE_ID, ATTRIBUTE_VALUE, DATA_TYPE, CATEGORY, POLICY_ID, VERSION, TENANT_ID) VALUES " +
                 "(:ATTRIBUTE_ID;, :ATTRIBUTE_VALUE;, :DATA_TYPE;, :CATEGORY;, :POLICY_ID;, :VERSION;, :TENANT_ID;)";
@@ -138,8 +154,8 @@ public class DAOConstants {
                 "SELECT DATA_ORDER, DATA FROM IDN_XACML_POLICY_EDITOR_DATA WHERE POLICY_ID=:POLICY_ID; AND " +
                         "VERSION=:VERSION; AND TENANT_ID=:TENANT_ID;";
         public static final String GET_PAP_POLICY_META_DATA_SQL = "SELECT ATTRIBUTE_ID, ATTRIBUTE_VALUE, DATA_TYPE, " +
-                "CATEGORY FROM IDN_XACML_POLICY_ATTRIBUTE WHERE POLICY_ID=:POLICY_ID; AND VERSION=:VERSION; " +
-                "AND TENANT_ID=:TENANT_ID;";
+                "CATEGORY FROM IDN_XACML_POLICY_ATTRIBUTE WHERE POLICY_ID=:POLICY_ID; " +
+                "AND VERSION=:VERSION; AND TENANT_ID=:TENANT_ID;";
         public static final String GET_PAP_POLICY_BY_VERSION_SQL = "SELECT POLICY_ID, LAST_MODIFIED_TIME, " +
                 "LAST_MODIFIED_USER, IS_ACTIVE, POLICY_ORDER, POLICY_TYPE, POLICY_EDITOR, POLICY, TENANT_ID, VERSION " +
                 "FROM IDN_XACML_POLICY WHERE IS_IN_PAP = :IS_IN_PAP; AND TENANT_ID = :TENANT_ID; AND " +
@@ -163,7 +179,7 @@ public class DAOConstants {
                         "AND VERSION=:VERSION;";
 
         /**
-         * DB queries related to PDP policy store
+         * DB queries related to PDP policy store.
          */
         public static final String CREATE_POLICY_COMBINING_ALGORITHM_SQL = "INSERT INTO IDN_XACML_CONFIG " +
                 "(CONFIG_VALUE, TENANT_ID, CONFIG_KEY) VALUES (:CONFIG_VALUE;, :TENANT_ID;, :CONFIG_KEY;)";
@@ -181,7 +197,7 @@ public class DAOConstants {
         public static final String GET_ACTIVE_STATUS_AND_ORDER_SQL = "SELECT IS_ACTIVE, POLICY_ORDER FROM " +
                 "IDN_XACML_POLICY WHERE POLICY_ID=:POLICY_ID; AND TENANT_ID=:TENANT_ID; AND IS_IN_PDP=:IS_IN_PDP;";
         public static final String GET_POLICY_COMBINING_ALGORITHM_SQL =
-                "SELECT CONFIG_VALUE FROM IDN_XACML_CONFIG WHERE TENANT_ID=:TENANT_ID; AND CONFIG_KEY=:CONFIG_KEY;";
+                "SELECT CONFIG_VALUE FROM IDN_XACML_CONFIG WHERE CONFIG_KEY=:CONFIG_KEY; AND TENANT_ID=:TENANT_ID;";
         public static final String UPDATE_ACTIVE_STATUS_SQL =
                 "UPDATE IDN_XACML_POLICY SET IS_ACTIVE=:IS_ACTIVE; WHERE POLICY_ID=:POLICY_ID; " +
                         "AND TENANT_ID=:TENANT_ID; AND VERSION=:VERSION;";
@@ -197,95 +213,93 @@ public class DAOConstants {
                 "IS_ACTIVE=:IS_ACTIVE;, POLICY_ORDER=:POLICY_ORDER; WHERE POLICY_ID=:POLICY_ID; AND " +
                 "TENANT_ID=:TENANT_ID; AND VERSION=:VERSION;";
         public static final String UPDATE_POLICY_COMBINING_ALGORITHM_SQL = "UPDATE IDN_XACML_CONFIG SET " +
-                "CONFIG_VALUE=:CONFIG_VALUE; WHERE TENANT_ID=:TENANT_ID; AND CONFIG_KEY=:CONFIG_KEY;";
+                "CONFIG_VALUE=:CONFIG_VALUE; WHERE CONFIG_KEY=:CONFIG_KEY; AND TENANT_ID=:TENANT_ID;";
         public static final String DELETE_UNUSED_POLICY_SQL =
                 "DELETE FROM IDN_XACML_POLICY WHERE POLICY_ID=:POLICY_ID; " +
                         "AND TENANT_ID=:TENANT_ID; AND IS_IN_PAP=:IS_IN_PAP; AND IS_IN_PDP=:IS_IN_PDP;";
 
         /**
-         * DB queries related to subscribers
+         * DB queries related to subscribers.
          */
         public static final String CREATE_SUBSCRIBER_SQL =
                 "INSERT INTO IDN_XACML_SUBSCRIBER (SUBSCRIBER_ID, TENANT_ID, " +
                         "ENTITLEMENT_MODULE_NAME) VALUES (:SUBSCRIBER_ID;,:TENANT_ID;,:ENTITLEMENT_MODULE_NAME;)";
         public static final String CREATE_SUBSCRIBER_PROPERTIES_SQL = "INSERT INTO IDN_XACML_SUBSCRIBER_PROPERTY " +
-                "(PROPERTY_ID, DISPLAY_NAME, PROPERTY_VALUE, IS_REQUIRED, DISPLAY_ORDER, IS_SECRET, MODULE, SUBSCRIBER_ID, " +
-                "TENANT_ID) VALUES (:PROPERTY_ID;, :DISPLAY_NAME;, :PROPERTY_VALUE;, :IS_REQUIRED;, :DISPLAY_ORDER;, " +
-                ":IS_SECRET;, :MODULE;, :SUBSCRIBER_ID;, :TENANT_ID;)";
-        public static final String GET_SUBSCRIBER_EXISTENCE_SQL =
-                "SELECT SUBSCRIBER_ID FROM IDN_XACML_SUBSCRIBER WHERE SUBSCRIBER_ID=:SUBSCRIBER_ID; AND " +
-                        "TENANT_ID=:TENANT_ID;";
+                "(PROPERTY_ID, DISPLAY_NAME, PROPERTY_VALUE, IS_REQUIRED, DISPLAY_ORDER, IS_SECRET, " +
+                "PROPERTY_MODULE, SUBSCRIBER_ID, TENANT_ID) VALUES (:PROPERTY_ID;, :DISPLAY_NAME;, :PROPERTY_VALUE;, " +
+                ":IS_REQUIRED;, :DISPLAY_ORDER;, :IS_SECRET;, :PROPERTY_MODULE;, :SUBSCRIBER_ID;, :TENANT_ID;)";
+        public static final String GET_SUBSCRIBER_EXISTENCE_SQL = "SELECT SUBSCRIBER_ID FROM IDN_XACML_SUBSCRIBER " +
+                "WHERE SUBSCRIBER_ID=:SUBSCRIBER_ID; AND TENANT_ID=:TENANT_ID;";
         public static final String GET_SUBSCRIBER_SQL = "SELECT s.SUBSCRIBER_ID, s.TENANT_ID, s" +
                 ".ENTITLEMENT_MODULE_NAME, p.PROPERTY_ID, p.DISPLAY_NAME, p.PROPERTY_VALUE, p.IS_REQUIRED, " +
-                "p.DISPLAY_ORDER, p.IS_SECRET, p.MODULE FROM IDN_XACML_SUBSCRIBER s INNER JOIN " +
+                "p.DISPLAY_ORDER, p.IS_SECRET, p.PROPERTY_MODULE FROM IDN_XACML_SUBSCRIBER s INNER JOIN " +
                 "IDN_XACML_SUBSCRIBER_PROPERTY p ON s.SUBSCRIBER_ID = p.SUBSCRIBER_ID AND s.TENANT_ID = p.TENANT_ID " +
                 "WHERE s.SUBSCRIBER_ID = :SUBSCRIBER_ID; AND s.TENANT_ID = :TENANT_ID;";
-        public static final String GET_SUBSCRIBER_IDS_SQL = "SELECT SUBSCRIBER_ID FROM IDN_XACML_SUBSCRIBER WHERE " +
-                "TENANT_ID=:TENANT_ID;";
-        public static final String UPDATE_SUBSCRIBER_MODULE_SQL = "UPDATE IDN_XACML_SUBSCRIBER SET " +
-                "ENTITLEMENT_MODULE_NAME=:ENTITLEMENT_MODULE_NAME; WHERE SUBSCRIBER_ID=:SUBSCRIBER_ID; " +
-                "AND TENANT_ID=:TENANT_ID;";
+        public static final String GET_SUBSCRIBER_IDS_SQL = "SELECT SUBSCRIBER_ID FROM IDN_XACML_SUBSCRIBER " +
+                "WHERE TENANT_ID=:TENANT_ID;";
+        public static final String UPDATE_SUBSCRIBER_MODULE_SQL = "UPDATE IDN_XACML_SUBSCRIBER " +
+                "SET ENTITLEMENT_MODULE_NAME=:ENTITLEMENT_MODULE_NAME; WHERE " +
+                "SUBSCRIBER_ID=:SUBSCRIBER_ID; AND TENANT_ID=:TENANT_ID;";
         public static final String UPDATE_SUBSCRIBER_PROPERTIES_SQL = "UPDATE IDN_XACML_SUBSCRIBER_PROPERTY SET " +
-                "PROPERTY_VALUE=:PROPERTY_VALUE; WHERE SUBSCRIBER_ID=:SUBSCRIBER_ID; AND TENANT_ID=:TENANT_ID; AND " +
-                "PROPERTY_ID=:PROPERTY_ID;";
+                "PROPERTY_VALUE=:PROPERTY_VALUE; WHERE PROPERTY_ID=:PROPERTY_ID; AND SUBSCRIBER_ID=:SUBSCRIBER_ID; AND " +
+                "TENANT_ID=:TENANT_ID;";
         public static final String DELETE_SUBSCRIBER_SQL = "DELETE FROM IDN_XACML_SUBSCRIBER WHERE " +
                 "SUBSCRIBER_ID=:SUBSCRIBER_ID; AND TENANT_ID=:TENANT_ID;";
 
         /**
-         * DB queries related to status
+         * DB queries related to status.
          */
-        public static final String CREATE_POLICY_STATUS_SQL = "INSERT INTO IDN_XACML_STATUS (TYPE, IS_SUCCESS, " +
-                "USERNAME, TARGET, TARGET_ACTION, TIME_INSTANCE, MESSAGE, POLICY_ID, POLICY_TENANT_ID, POLICY_VERSION) " +
-                "VALUES (:TYPE;, :IS_SUCCESS;, :USERNAME;, :TARGET;, :TARGET_ACTION;, :TIME_INSTANCE;, :MESSAGE;, " +
+        public static final String CREATE_POLICY_STATUS_SQL = "INSERT INTO IDN_XACML_POLICY_STATUS (TYPE, IS_SUCCESS, " +
+                "USERNAME, TARGET, TARGET_ACTION, LOGGED_AT, MESSAGE, POLICY_ID, TENANT_ID, POLICY_VERSION) " +
+                "VALUES (:TYPE;, :IS_SUCCESS;, :USERNAME;, :TARGET;, :TARGET_ACTION;, :LOGGED_AT;, :MESSAGE;, " +
                 ":KEY;, :TENANT_ID;, :VERSION;)";
-        public static final String CREATE_SUBSCRIBER_STATUS_SQL = "INSERT INTO IDN_XACML_STATUS (TYPE, IS_SUCCESS, " +
-                "USERNAME, TARGET, TARGET_ACTION, TIME_INSTANCE, MESSAGE, SUBSCRIBER_ID, SUBSCRIBER_TENANT_ID) VALUES " +
-                "(:TYPE;, :IS_SUCCESS;, :USERNAME;, :TARGET;, :TARGET_ACTION;, :TIME_INSTANCE;, :MESSAGE;, :KEY;," +
-                " :TENANT_ID;)";
+        public static final String CREATE_SUBSCRIBER_STATUS_SQL = "INSERT INTO IDN_XACML_SUBSCRIBER_STATUS " +
+                "(TYPE, IS_SUCCESS, USERNAME, TARGET, TARGET_ACTION, LOGGED_AT, MESSAGE, SUBSCRIBER_ID, " +
+                "TENANT_ID) VALUES (:TYPE;, :IS_SUCCESS;, :USERNAME;, :TARGET;, :TARGET_ACTION;, :LOGGED_AT;, " +
+                ":MESSAGE;, :KEY;, :TENANT_ID;)";
         public static final String GET_POLICY_STATUS_SQL = "SELECT POLICY_ID, TYPE, IS_SUCCESS, USERNAME, TARGET, " +
-                "TARGET_ACTION, TIME_INSTANCE, MESSAGE, POLICY_VERSION FROM IDN_XACML_STATUS WHERE POLICY_ID=:KEY; " +
-                "AND POLICY_TENANT_ID=:TENANT_ID;";
+                "TARGET_ACTION, LOGGED_AT, MESSAGE, POLICY_VERSION FROM IDN_XACML_POLICY_STATUS WHERE POLICY_ID=:KEY; " +
+                "AND TENANT_ID=:TENANT_ID;";
         public static final String GET_SUBSCRIBER_STATUS_SQL =
                 "SELECT SUBSCRIBER_ID, TYPE, IS_SUCCESS, USERNAME, TARGET, " +
-                        "TARGET_ACTION, TIME_INSTANCE, MESSAGE, POLICY_VERSION FROM IDN_XACML_STATUS WHERE " +
-                        "SUBSCRIBER_ID=:KEY; AND SUBSCRIBER_TENANT_ID=:TENANT_ID;";
+                        "TARGET_ACTION, LOGGED_AT, MESSAGE, POLICY_VERSION FROM IDN_XACML_SUBSCRIBER_STATUS WHERE " +
+                        "SUBSCRIBER_ID=:KEY; AND TENANT_ID=:TENANT_ID;";
         public static final String GET_POLICY_STATUS_COUNT_SQL =
-                "SELECT COUNT(POLICY_ID) AS COUNT FROM IDN_XACML_STATUS WHERE POLICY_ID=:KEY; AND " +
-                        "POLICY_TENANT_ID=:TENANT_ID;";
+                "SELECT COUNT(POLICY_ID) AS COUNT FROM IDN_XACML_POLICY_STATUS WHERE POLICY_ID=:KEY; AND " +
+                        "TENANT_ID=:TENANT_ID;";
         public static final String GET_SUBSCRIBER_STATUS_COUNT_SQL = "SELECT COUNT(SUBSCRIBER_ID) AS COUNT FROM " +
-                "IDN_XACML_STATUS WHERE SUBSCRIBER_ID=:KEY; AND SUBSCRIBER_TENANT_ID=:TENANT_ID;";
-        public static final String DELETE_POLICY_STATUS_SQL = "DELETE FROM IDN_XACML_STATUS WHERE POLICY_ID=:KEY; " +
-                "AND POLICY_TENANT_ID=:TENANT_ID;";
-        public static final String DELETE_SUBSCRIBER_STATUS_SQL = "DELETE FROM IDN_XACML_STATUS WHERE " +
-                "SUBSCRIBER_ID=:KEY; AND SUBSCRIBER_TENANT_ID=:TENANT_ID;";
-        public static final String DELETE_OLD_POLICY_STATUSES_MYSQL = "DELETE FROM IDN_XACML_STATUS WHERE " +
-                "STATUS_ID IN (SELECT STATUS_ID FROM IDN_XACML_STATUS WHERE POLICY_ID= :KEY; AND " +
-                "POLICY_TENANT_ID= :TENANT_ID; ORDER BY STATUS_ID ASC LIMIT :LIMIT;)";
+                "IDN_XACML_SUBSCRIBER_STATUS WHERE SUBSCRIBER_ID=:KEY; AND TENANT_ID=:TENANT_ID;";
+        public static final String DELETE_POLICY_STATUS_SQL = "DELETE FROM IDN_XACML_POLICY_STATUS WHERE POLICY_ID=:KEY; " +
+                "AND TENANT_ID=:TENANT_ID;";
+        public static final String DELETE_SUBSCRIBER_STATUS_SQL = "DELETE FROM IDN_XACML_SUBSCRIBER_STATUS WHERE " +
+                "SUBSCRIBER_ID=:KEY; AND TENANT_ID=:TENANT_ID;";
+        public static final String DELETE_OLD_POLICY_STATUSES_MYSQL = "DELETE FROM IDN_XACML_POLICY_STATUS WHERE " +
+                "ID IN (SELECT ID FROM IDN_XACML_POLICY_STATUS WHERE POLICY_ID= :KEY; AND " +
+                "TENANT_ID= :TENANT_ID; ORDER BY ID ASC LIMIT :LIMIT;)";
         public static final String DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL =
-                "DELETE FROM IDN_XACML_STATUS WHERE STATUS_ID " +
-                        "IN (SELECT STATUS_ID FROM IDN_XACML_STATUS WHERE SUBSCRIBER_ID= :KEY; AND " +
-                        "SUBSCRIBER_TENANT_ID= :TENANT_ID; ORDER BY STATUS_ID ASC LIMIT :LIMIT;)";
+                "DELETE FROM IDN_XACML_SUBSCRIBER_STATUS WHERE ID " +
+                        "IN (SELECT ID FROM IDN_XACML_SUBSCRIBER_STATUS WHERE SUBSCRIBER_ID= :KEY; AND " +
+                        "TENANT_ID= :TENANT_ID; ORDER BY ID ASC LIMIT :LIMIT;)";
         public static final String DELETE_OLD_POLICY_STATUSES_MSSQL =
-                "DELETE FROM IDN_XACML_STATUS WHERE STATUS_ID IN (SELECT STATUS_ID FROM IDN_XACML_STATUS WHERE " +
-                        "POLICY_ID = :KEY; AND POLICY_TENANT_ID = :TENANT_ID; ORDER BY STATUS_ID ASC OFFSET 0 ROWS " +
+                "DELETE FROM IDN_XACML_POLICY_STATUS WHERE ID IN (SELECT ID FROM IDN_XACML_POLICY_STATUS WHERE " +
+                        "POLICY_ID = :KEY; AND TENANT_ID = :TENANT_ID; ORDER BY ID ASC OFFSET 0 ROWS " +
                         "FETCH NEXT :LIMIT; ROWS ONLY)";
         public static final String DELETE_OLD_SUBSCRIBER_STATUSES_MSSQL =
-                "DELETE FROM IDN_XACML_STATUS WHERE STATUS_ID IN (SELECT STATUS_ID FROM IDN_XACML_STATUS WHERE " +
-                        "SUBSCRIBER_ID= :KEY; AND SUBSCRIBER_TENANT_ID=:TENANT_ID; ORDER BY STATUS_ID ASC OFFSET 0 " +
+                "DELETE FROM IDN_XACML_SUBSCRIBER_STATUS WHERE ID IN (SELECT ID FROM IDN_XACML_SUBSCRIBER_STATUS WHERE " +
+                        "SUBSCRIBER_ID= :KEY; AND TENANT_ID=:TENANT_ID; ORDER BY ID ASC OFFSET 0 " +
                         "ROWS FETCH NEXT :LIMIT; ROWS ONLY)";
         public static final String DELETE_OLD_POLICY_STATUSES_ORACLE =
-                "DELETE FROM IDN_XACML_STATUS WHERE STATUS_ID IN" +
-                        " (SELECT STATUS_ID FROM (SELECT STATUS_ID FROM IDN_XACML_STATUS WHERE POLICY_ID= :KEY; AND" +
-                        " POLICY_TENANT_ID=:TENANT_ID; ORDER BY STATUS_ID ASC) WHERE ROWNUM <= :LIMIT;)";
+                "DELETE FROM IDN_XACML_POLICY_STATUS WHERE ID IN" +
+                        " (SELECT ID FROM (SELECT ID FROM IDN_XACML_POLICY_STATUS WHERE POLICY_ID= :KEY; AND" +
+                        " TENANT_ID=:TENANT_ID; ORDER BY ID ASC) WHERE ROWNUM <= :LIMIT;)";
         public static final String DELETE_OLD_SUBSCRIBER_STATUSES_ORACLE =
-                "DELETE FROM IDN_XACML_STATUS WHERE STATUS_ID " +
-                        "IN (SELECT STATUS_ID FROM (SELECT STATUS_ID FROM IDN_XACML_STATUS WHERE SUBSCRIBER_ID= :KEY; " +
-                        "AND SUBSCRIBER_TENANT_ID=:TENANT_ID; ORDER BY STATUS_ID ASC) WHERE ROWNUM <= :LIMIT;)";
+                "DELETE FROM IDN_XACML_SUBSCRIBER_STATUS WHERE ID " +
+                        "IN (SELECT ID FROM (SELECT ID FROM IDN_XACML_SUBSCRIBER_STATUS WHERE SUBSCRIBER_ID= :KEY; " +
+                        "AND TENANT_ID=:TENANT_ID; ORDER BY ID ASC) WHERE ROWNUM <= :LIMIT;)";
 
         /**
-         * DB queries related to policy version management
+         * DB queries related to policy version management.
          */
-
         public static final String GET_LATEST_POLICY_VERSION_SQL =
                 "SELECT MAX(VERSION) AS VERSION FROM IDN_XACML_POLICY " +
                         "WHERE POLICY_ID=:POLICY_ID; AND TENANT_ID=:TENANT_ID; AND IS_IN_PAP=:IS_IN_PAP;";

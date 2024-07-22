@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.entitlement.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -25,7 +26,7 @@ import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.PDPConstants;
+import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
 import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.PublisherPropertyDTO;
@@ -34,10 +35,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.DISPLAY_NAME;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.DISPLAY_ORDER;
@@ -60,20 +58,8 @@ import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.U
 
 public class JDBCSubscriberDAOImpl implements SubscriberDAO {
 
-    private static final Log log = LogFactory.getLog(JDBCSubscriberDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(JDBCSubscriberDAOImpl.class);
     private static final String ERROR_SUBSCRIBER_ID_NULL = "Subscriber Id can not be null";
-
-    /**
-     * Adds a subscriber.
-     *
-     * @param holder publisher data holder.
-     * @throws EntitlementException If an error occurs.
-     */
-    @Override
-    public void addSubscriber(PublisherDataHolder holder) throws EntitlementException {
-
-        persistSubscriber(holder, false);
-    }
 
     /**
      * Gets the requested subscriber.
@@ -86,26 +72,22 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
     @Override
     public PublisherDataHolder getSubscriber(String subscriberId, boolean returnSecrets) throws EntitlementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        try (NamedPreparedStatement getSubscriberPrepStmt = new NamedPreparedStatement(connection,
-                GET_SUBSCRIBER_SQL)) {
-            getSubscriberPrepStmt.setString(SUBSCRIBER_ID, subscriberId);
-            getSubscriberPrepStmt.setInt(TENANT_ID, tenantId);
-            try (ResultSet rs1 = getSubscriberPrepStmt.executeQuery()) {
-                if (rs1.next()) {
-                    return getPublisherDataHolder(rs1, returnSecrets);
-                } else {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement preparedStmt = new NamedPreparedStatement(connection, GET_SUBSCRIBER_SQL)) {
+                preparedStmt.setString(SUBSCRIBER_ID, subscriberId);
+                preparedStmt.setInt(TENANT_ID, tenantId);
+                try (ResultSet resultSet = preparedStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        return getPublisherDataHolder(resultSet, returnSecrets);
+                    }
                     return null;
                 }
             }
-
         } catch (SQLException e) {
             throw new EntitlementException(String.format("Error while retrieving subscriber details of id : %s",
                     subscriberId), e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
@@ -119,41 +101,46 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
     @Override
     public List<String> listSubscriberIds(String filter) throws EntitlementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        List<String> subscriberIdList = new ArrayList<>();
 
-        try (NamedPreparedStatement getSubscriberIdsPrepStmt = new NamedPreparedStatement(connection,
-                GET_SUBSCRIBER_IDS_SQL)) {
-            getSubscriberIdsPrepStmt.setInt(TENANT_ID, tenantId);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement preparedStmt = new NamedPreparedStatement(connection, GET_SUBSCRIBER_IDS_SQL)) {
+                preparedStmt.setInt(TENANT_ID, tenantId);
 
-            List<String> subscriberIDList = new ArrayList<>();
-            filter = filter.replace("*", ".*");
-            Pattern pattern = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
-
-            try (ResultSet subscriberIds = getSubscriberIdsPrepStmt.executeQuery()) {
-                if (subscriberIds.next()) {
-                    do {
-                        String id = subscriberIds.getString(SUBSCRIBER_ID);
-                        Matcher matcher = pattern.matcher(id);
-                        if (!matcher.matches()) {
-                            continue;
-                        }
-                        subscriberIDList.add(id);
-
-                    } while (subscriberIds.next());
-
-                    return subscriberIDList;
-
-                } else {
-                    return Collections.emptyList();
+                try (ResultSet subscriberIds = preparedStmt.executeQuery()) {
+                    while (subscriberIds.next()) {
+                        subscriberIdList.add(subscriberIds.getString(SUBSCRIBER_ID));
+                    }
                 }
             }
-
         } catch (SQLException e) {
             throw new EntitlementException("Error while retrieving subscriber ids", e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
+
+        return EntitlementUtil.filterSubscribers(subscriberIdList, filter);
+    }
+
+    /**
+     * Adds a subscriber.
+     *
+     * @param holder publisher data holder.
+     * @throws EntitlementException If an error occurs.
+     */
+    @Override
+    public void addSubscriber(PublisherDataHolder holder) throws EntitlementException {
+
+        String subscriberId = EntitlementUtil.resolveSubscriberId(holder);
+        if (subscriberId == null) {
+            throw new EntitlementException(ERROR_SUBSCRIBER_ID_NULL);
+        }
+
+        if (isSubscriberExists(subscriberId)) {
+            throw new EntitlementException("Subscriber ID already exists");
+        }
+
+        PublisherPropertyDTO[] propertyDTOs = holder.getPropertyDTOs();
+        insertSubscriber(subscriberId, holder, propertyDTOs);
     }
 
     /**
@@ -165,7 +152,22 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
     @Override
     public void updateSubscriber(PublisherDataHolder holder) throws EntitlementException {
 
-        persistSubscriber(holder, true);
+        String subscriberId = EntitlementUtil.resolveSubscriberId(holder);
+        if (subscriberId == null) {
+            throw new EntitlementException(ERROR_SUBSCRIBER_ID_NULL);
+        }
+
+        PublisherDataHolder oldHolder;
+        if (isSubscriberExists(subscriberId)) {
+            // TODO: revisit in hybrid impl
+            oldHolder = getSubscriber(subscriberId, false);
+            populateProperties(holder, oldHolder);
+        } else {
+            throw new EntitlementException("Subscriber ID does not exist; update cannot be done");
+        }
+
+        PublisherPropertyDTO[] propertyDTOs = holder.getPropertyDTOs();
+        updateSubscriber(subscriberId, holder, propertyDTOs, oldHolder);
     }
 
     /**
@@ -177,117 +179,69 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
     @Override
     public void removeSubscriber(String subscriberId) throws EntitlementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (subscriberId == null) {
+        if (StringUtils.isBlank(subscriberId)) {
             throw new EntitlementException(ERROR_SUBSCRIBER_ID_NULL);
         }
 
         if (EntitlementConstants.PDP_SUBSCRIBER_ID.equals(subscriberId.trim())) {
-            throw new EntitlementException("Can not delete PDP publisher");
+            throw new EntitlementException("Cannot delete PDP publisher");
         }
 
-        try (NamedPreparedStatement deleteSubscriberPrepStmt = new NamedPreparedStatement(connection,
-                DELETE_SUBSCRIBER_SQL)) {
-
-            deleteSubscriberPrepStmt.setString(SUBSCRIBER_ID, subscriberId);
-            deleteSubscriberPrepStmt.setInt(TENANT_ID, tenantId);
-            deleteSubscriberPrepStmt.executeUpdate();
-            IdentityDatabaseUtil.commitTransaction(connection);
-
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement preparedStmt = new NamedPreparedStatement(connection, DELETE_SUBSCRIBER_SQL)) {
+                preparedStmt.setString(SUBSCRIBER_ID, subscriberId);
+                preparedStmt.setInt(TENANT_ID, tenantId);
+                preparedStmt.executeUpdate();
+            }
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new EntitlementException("Error while deleting subscriber details", e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
     /**
-     * Adds or updates a subscriber.
+     * Checks whether a subscriber exists.
      *
-     * @param holder   publisher data holder
-     * @param isUpdate whether the operation is an update or an addition
-     * @throws EntitlementException If an error occurs
+     * @param subscriberId subscriber ID.
+     * @return whether the subscriber exists or not.
+     * @throws EntitlementException If an error occurs.
      */
-    private void persistSubscriber(PublisherDataHolder holder, boolean isUpdate) throws EntitlementException {
+    public boolean isSubscriberExists(String subscriberId) throws EntitlementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        String subscriberId = null;
-
-        if (holder == null || holder.getPropertyDTOs() == null) {
-            throw new EntitlementException("Publisher data can not be null");
-        }
-
-        for (PublisherPropertyDTO dto : holder.getPropertyDTOs()) {
-            if (PDPConstants.SUBSCRIBER_ID.equals(dto.getId())) {
-                subscriberId = dto.getValue();
-            }
-        }
-
-        if (subscriberId == null) {
-            throw new EntitlementException(ERROR_SUBSCRIBER_ID_NULL);
-        }
-
-        try {
-            PublisherDataHolder oldHolder = null;
-            // Find whether the subscriber already exists
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (NamedPreparedStatement findSubscriberExistencePrepStmt = new NamedPreparedStatement(connection,
                     GET_SUBSCRIBER_EXISTENCE_SQL)) {
                 findSubscriberExistencePrepStmt.setString(SUBSCRIBER_ID, subscriberId);
                 findSubscriberExistencePrepStmt.setInt(TENANT_ID, tenantId);
 
                 try (ResultSet rs1 = findSubscriberExistencePrepStmt.executeQuery()) {
-                    if (rs1.next()) {
-                        if (isUpdate) {
-                            // Get the existing subscriber
-                            oldHolder = getSubscriber(subscriberId, false);
-                        } else {
-                            throw new EntitlementException("Subscriber ID already exists");
-                        }
-                    }
+                    return rs1.next();
                 }
             }
-
-            populateProperties(holder, oldHolder);
-            PublisherPropertyDTO[] propertyDTOs = holder.getPropertyDTOs();
-
-            if (!isUpdate) {
-                // Create a new subscriber
-                insertSubscriber(connection, subscriberId, holder, propertyDTOs);
-            } else {
-                // Update the module of an existing subscriber
-                updateSubscriber(connection, subscriberId, holder, propertyDTOs, oldHolder);
-
-            }
-            IdentityDatabaseUtil.commitTransaction(connection);
-
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            throw new EntitlementException("Error while persisting subscriber details", e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
+            throw new EntitlementException("Error while checking subscriber existence", e);
         }
     }
 
-    private void insertSubscriber(Connection connection, String subscriberId,
-                                  PublisherDataHolder holder, PublisherPropertyDTO[] propertyDTOs) throws SQLException {
+    private void insertSubscriber(String subscriberId, PublisherDataHolder holder, PublisherPropertyDTO[] propertyDTOs)
+            throws EntitlementException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         try (NamedPreparedStatement createSubscriberPrepStmt = new NamedPreparedStatement(connection,
                 CREATE_SUBSCRIBER_SQL);
              NamedPreparedStatement createSubscriberPropertiesPrepStmt = new NamedPreparedStatement(connection,
                      CREATE_SUBSCRIBER_PROPERTIES_SQL)) {
+            createSubscriberPrepStmt.setString(ENTITLEMENT_MODULE_NAME, holder.getModuleName());
             createSubscriberPrepStmt.setString(SUBSCRIBER_ID, subscriberId);
             createSubscriberPrepStmt.setInt(TENANT_ID, tenantId);
-            createSubscriberPrepStmt.setString(ENTITLEMENT_MODULE_NAME, holder.getModuleName());
             createSubscriberPrepStmt.executeUpdate();
 
             for (PublisherPropertyDTO dto : propertyDTOs) {
-                if (dto.getId() != null && dto.getValue() != null && !dto.getValue().trim().isEmpty()) {
+                if (dto.getId() != null && StringUtils.isNotBlank(dto.getValue())) {
 
                     createSubscriberPropertiesPrepStmt.setString(PROPERTY_ID, dto.getId());
                     createSubscriberPropertiesPrepStmt.setString(DISPLAY_NAME, dto.getDisplayName());
@@ -303,17 +257,21 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
                 }
             }
             createSubscriberPropertiesPrepStmt.executeBatch();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new EntitlementException("Error while inserting subscriber details", e);
+        } finally {
+            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
-    private void updateSubscriber(Connection connection, String subscriberId, PublisherDataHolder holder,
-                                  PublisherPropertyDTO[] propertyDTOs, PublisherDataHolder oldHolder)
-            throws SQLException {
+    private void updateSubscriber(String subscriberId, PublisherDataHolder holder, PublisherPropertyDTO[] propertyDTOs,
+                                  PublisherDataHolder oldHolder) throws EntitlementException {
 
-        if (oldHolder == null) {
-            return;
-        }
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         try (NamedPreparedStatement updateSubscriberPrepStmt = new NamedPreparedStatement(connection,
                 UPDATE_SUBSCRIBER_MODULE_SQL);
              NamedPreparedStatement updateSubscriberPropertiesPrepStmt = new NamedPreparedStatement(connection,
@@ -329,28 +287,40 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
             // Update the property values of an existing subscriber
             for (PublisherPropertyDTO dto : propertyDTOs) {
 
-                if (dto.getId() != null && dto.getValue() != null && !dto.getValue().trim().isEmpty()) {
+                if (StringUtils.isNotBlank(dto.getId()) && StringUtils.isNotBlank(dto.getValue())) {
                     PublisherPropertyDTO propertyDTO;
                     propertyDTO = oldHolder.getPropertyDTO(dto.getId());
                     if (propertyDTO != null && !propertyDTO.getValue().equalsIgnoreCase(dto.getValue())) {
                         updateSubscriberPropertiesPrepStmt.setString(PROPERTY_VALUE, dto.getValue());
+                        updateSubscriberPropertiesPrepStmt.setString(PROPERTY_ID, dto.getId());
                         updateSubscriberPropertiesPrepStmt.setString(SUBSCRIBER_ID, subscriberId);
                         updateSubscriberPropertiesPrepStmt.setInt(TENANT_ID, tenantId);
-                        updateSubscriberPropertiesPrepStmt.setString(PROPERTY_ID, dto.getId());
                         updateSubscriberPropertiesPrepStmt.addBatch();
                     }
                 }
             }
             updateSubscriberPropertiesPrepStmt.executeBatch();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new EntitlementException("Error while updating subscriber details", e);
+        } finally {
+            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
+    /**
+     * Sets the base64 encoded secret value of the secret subscriber properties, if it has been updated.
+     *
+     * @param holder    publisher data holder
+     * @param oldHolder existing publisher data holder
+     */
     private void populateProperties(PublisherDataHolder holder, PublisherDataHolder oldHolder) {
 
         PublisherPropertyDTO[] propertyDTOs = holder.getPropertyDTOs();
 
         for (PublisherPropertyDTO dto : propertyDTOs) {
-            if (dto.getId() != null && dto.getValue() != null && !dto.getValue().trim().isEmpty() && (dto.isSecret())) {
+            if (StringUtils.isNotBlank(dto.getId()) && StringUtils.isNotBlank(dto.getValue()) && dto.isSecret()) {
                 PublisherPropertyDTO propertyDTO = null;
                 if (oldHolder != null) {
                     propertyDTO = oldHolder.getPropertyDTO(dto.getId());
@@ -361,7 +331,7 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
                                 CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(dto.getValue().getBytes());
                         dto.setValue(encryptedValue);
                     } catch (CryptoException e) {
-                        log.error("Error while encrypting secret value of subscriber. Secret would not be persisted.",
+                        LOG.error("Error while encrypting secret value of subscriber. Secret would not be persisted.",
                                 e);
                     }
                 }
@@ -384,14 +354,12 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
             dto.setSecret(resultSet.getBoolean(IS_SECRET));
             dto.setModule(resultSet.getString(MODULE));
 
-            if (dto.isSecret() && (returnSecrets)) {
+            if (dto.isSecret() && returnSecrets) {
                 String password = dto.getValue();
                 try {
-                    password = new String(CryptoUtil.getDefaultCryptoUtil().
-                            base64DecodeAndDecrypt(dto.getValue()));
+                    password = new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(dto.getValue()));
                 } catch (CryptoException e) {
-                    log.error(e);
-                    // ignore
+                    LOG.error("Error while decrypting secret value of subscriber.", e);
                 }
                 dto.setValue(password);
             }

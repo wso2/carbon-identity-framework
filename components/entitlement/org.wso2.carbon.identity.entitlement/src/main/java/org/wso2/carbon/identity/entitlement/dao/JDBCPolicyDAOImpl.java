@@ -42,8 +42,10 @@ import org.wso2.carbon.identity.entitlement.policy.finder.PolicyFinderModule;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
@@ -51,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TimeZone;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -107,6 +110,8 @@ import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.R
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.UPDATE_ACTIVE_STATUS_SQL;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.UPDATE_ORDER_SQL;
 
+import static java.time.ZoneOffset.UTC;
+
 public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements PolicyDAO {
 
     // The logger that is used for all messages
@@ -157,7 +162,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         String policyId = policy.getPolicyId();
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
 
-        if (policyId == null) {
+        if (StringUtils.isBlank(policyId)) {
             throw new EntitlementException("Invalid Entitlement Policy. Policy or policyId can not be Null");
         }
 
@@ -172,7 +177,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
 
             // Find policy type
             String policyType = null;
-            if (policy.getPolicyType() != null && !policy.getPolicyType().trim().isEmpty()) {
+            if (StringUtils.isNotBlank(policy.getPolicyType())) {
                 policyType = policy.getPolicyType();
             } else {
                 try {
@@ -223,29 +228,25 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving entitlement policy %s", policyId));
         }
-
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
 
-        try (NamedPreparedStatement getPolicyPrepStmt = new NamedPreparedStatement(connection, GET_PAP_POLICY_SQL)) {
-            getPolicyPrepStmt.setBoolean(IS_IN_PAP, IN_PAP);
-            getPolicyPrepStmt.setInt(TENANT_ID, tenantId);
-            getPolicyPrepStmt.setString(POLICY_ID, policyId);
-            getPolicyPrepStmt.setString(POLICY_ID_1, policyId);
-            getPolicyPrepStmt.setInt(TENANT_ID_1, tenantId);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement prepStmt = new NamedPreparedStatement(connection, GET_PAP_POLICY_SQL)) {
+                prepStmt.setBoolean(IS_IN_PAP, IN_PAP);
+                prepStmt.setInt(TENANT_ID, tenantId);
+                prepStmt.setString(POLICY_ID, policyId);
+                prepStmt.setString(POLICY_ID_1, policyId);
+                prepStmt.setInt(TENANT_ID_1, tenantId);
 
-            try (ResultSet policy = getPolicyPrepStmt.executeQuery()) {
-                if (policy.next()) {
-                    return getPolicyDTO(policy, connection);
-                } else {
+                try (ResultSet policy = prepStmt.executeQuery()) {
+                    if (policy.next()) {
+                        return getPolicyDTO(policy, connection);
+                    }
                     return null;
                 }
             }
-
         } catch (SQLException e) {
             throw new EntitlementException(String.format(ERROR_RETRIEVING_PAP_POLICY, policyId), e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
@@ -263,24 +264,20 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         LOG.debug("Retrieving all PAP entitlement policies");
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement prepStmt = new NamedPreparedStatement(connection, GET_ALL_PAP_POLICIES_SQL)) {
+                prepStmt.setBoolean(IS_IN_PAP, IN_PAP);
+                prepStmt.setInt(TENANT_ID, tenantId);
+                prepStmt.setInt(TENANT_ID_1, tenantId);
 
-        try (NamedPreparedStatement getAllPoliciesPrepStmt = new NamedPreparedStatement(connection,
-                GET_ALL_PAP_POLICIES_SQL)) {
-            getAllPoliciesPrepStmt.setBoolean(IS_IN_PAP, IN_PAP);
-            getAllPoliciesPrepStmt.setInt(TENANT_ID, tenantId);
-            getAllPoliciesPrepStmt.setInt(TENANT_ID_1, tenantId);
-
-            try (ResultSet policies = getAllPoliciesPrepStmt.executeQuery()) {
-                while (policies.next()) {
-                    policyDTOs.add(getPolicyDTO(policies, connection));
+                try (ResultSet policies = prepStmt.executeQuery()) {
+                    while (policies.next()) {
+                        policyDTOs.add(getPolicyDTO(policies, connection));
+                    }
                 }
             }
-
         } catch (SQLException e) {
             throw new EntitlementException("Error while retrieving entitlement policies from the PAP policy store", e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
         return policyDTOs;
     }
@@ -297,55 +294,19 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
     public PolicyDTO getPolicy(String policyId, String version) throws EntitlementException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
 
         // Zero means current version
         if (StringUtils.isBlank(version)) {
-
-            try (NamedPreparedStatement getLatestVersionPrepStmt = new NamedPreparedStatement(connection,
-                    GET_LATEST_POLICY_VERSION_SQL)) {
-                getLatestVersionPrepStmt.setString(POLICY_ID, policyId);
-                getLatestVersionPrepStmt.setInt(TENANT_ID, tenantId);
-                getLatestVersionPrepStmt.setBoolean(IS_IN_PAP, IN_PAP);
-
-                try (ResultSet latestVersion = getLatestVersionPrepStmt.executeQuery()) {
-                    if (latestVersion.next()) {
-                        version = String.valueOf(latestVersion.getInt(VERSION));
-                    } else {
-                        throw new EntitlementException("Invalid policy version");
-                    }
-                }
-            } catch (SQLException e) {
-                throw new EntitlementException(String.format("Error retrieving the latest version of the policy %s",
-                        policyId), e);
+            version = getLatestPolicyVersion(policyId, tenantId);
+            if (StringUtils.isBlank(version)) {
+                throw new EntitlementException("Invalid policy version");
             }
         }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving entitlement policy %s for the given version %s", policyId, version));
         }
-
-        try (NamedPreparedStatement getPolicyPrepStmt = new NamedPreparedStatement(connection,
-                GET_PAP_POLICY_BY_VERSION_SQL)) {
-            getPolicyPrepStmt.setBoolean(IS_IN_PAP, IN_PAP);
-            getPolicyPrepStmt.setInt(TENANT_ID, tenantId);
-            getPolicyPrepStmt.setString(POLICY_ID, policyId);
-            getPolicyPrepStmt.setInt(VERSION, Integer.parseInt(version));
-
-            try (ResultSet policy = getPolicyPrepStmt.executeQuery()) {
-                if (policy.next()) {
-                    return getPolicyDTO(policy, connection);
-                } else {
-                    throw new EntitlementException(
-                            String.format("No policy with the given policyID %s and version %s " +
-                                    "exists", policyId, version));
-                }
-            }
-        } catch (SQLException e) {
-            throw new EntitlementException(String.format(ERROR_RETRIEVING_PAP_POLICY, policyId), e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
-        }
+        return getPapPolicyByVersion(policyId, version, tenantId);
     }
 
     /**
@@ -358,24 +319,21 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
     public String[] getVersions(String policyId) {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         List<String> versions = new ArrayList<>();
 
-        try (NamedPreparedStatement getVersionsPrepStmt = new NamedPreparedStatement(connection,
-                GET_POLICY_VERSIONS_SQL)) {
-            getVersionsPrepStmt.setInt(TENANT_ID, tenantId);
-            getVersionsPrepStmt.setString(POLICY_ID, policyId);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement prepStmt = new NamedPreparedStatement(connection, GET_POLICY_VERSIONS_SQL)) {
+                prepStmt.setInt(TENANT_ID, tenantId);
+                prepStmt.setString(POLICY_ID, policyId);
 
-            try (ResultSet versionsSet = getVersionsPrepStmt.executeQuery()) {
-                while (versionsSet.next()) {
-                    versions.add(String.valueOf(versionsSet.getInt(VERSION)));
+                try (ResultSet versionsSet = prepStmt.executeQuery()) {
+                    while (versionsSet.next()) {
+                        versions.add(String.valueOf(versionsSet.getInt(VERSION)));
+                    }
                 }
             }
-
         } catch (SQLException e) {
             LOG.error(String.format("Error while retrieving policy versions for policy %s", policyId), e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
         return versions.toArray(new String[0]);
     }
@@ -435,7 +393,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         try {
             PolicyDTO[] policyDTOs = getAllPolicies(true, true);
             for (PolicyDTO dto : policyDTOs) {
-                if (dto.getPolicy() != null) {
+                if (StringUtils.isNotBlank(dto.getPolicy())) {
                     policies.add(dto.getPolicy());
                 }
             }
@@ -468,7 +426,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         try {
             PolicyDTO[] policyDTOs = getAllPolicies(false, true);
             for (PolicyDTO dto : policyDTOs) {
-                if (dto.getPolicy() != null) {
+                if (StringUtils.isNotBlank(dto.getPolicy())) {
                     policies.add(dto.getPolicyId());
                 }
             }
@@ -513,7 +471,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
 
         // Retrieve policies that are not active
         PolicyDTO dto = getPublishedPolicy(policyId);
-        if (dto != null && dto.getPolicy() != null && !dto.isActive()) {
+        if (dto != null && StringUtils.isNotBlank(dto.getPolicy()) && !dto.isActive()) {
             return dto.getPolicy();
         }
         return null;
@@ -565,32 +523,26 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         LOG.debug("Retrieving all entitlement policy IDs");
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         List<String> policies = new ArrayList<>();
 
-        try (NamedPreparedStatement getPolicyIdsPrepStmt = new NamedPreparedStatement(connection,
-                GET_PAP_POLICY_IDS_SQL)) {
-            getPolicyIdsPrepStmt.setInt(TENANT_ID, tenantId);
-            getPolicyIdsPrepStmt.setBoolean(IS_IN_PAP, IN_PAP);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement prepStmt = new NamedPreparedStatement(connection, GET_PAP_POLICY_IDS_SQL)) {
+                prepStmt.setInt(TENANT_ID, tenantId);
+                prepStmt.setBoolean(IS_IN_PAP, IN_PAP);
 
-            try (ResultSet policyIds = getPolicyIdsPrepStmt.executeQuery()) {
-                if (policyIds.next()) {
-                    do {
+                try (ResultSet policyIds = prepStmt.executeQuery()) {
+                    while (policyIds.next()) {
                         policies.add(policyIds.getString(POLICY_ID));
-                    } while (policyIds.next());
-                } else {
-                    LOG.debug("No PAP policies found");
-                    return Collections.emptyList();
+                    }
+                    if (policies.isEmpty()) {
+                        LOG.debug("No PAP policies found");
+                    }
+                    return policies;
                 }
             }
-
-            return policies;
-
         } catch (SQLException e) {
             throw new EntitlementException(
                     "Error while retrieving entitlement policy identifiers from PAP policy store", e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
@@ -671,7 +623,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
             int previousOrder = 0;
 
             // Get published version
-            if (policy.getVersion() == null) {
+            if (StringUtils.isBlank(policy.getVersion())) {
                 version = getPublishedVersion(connection, policy);
             } else {
                 version = Integer.parseInt(policy.getVersion());
@@ -761,28 +713,25 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
     @Override
     public boolean isPublished(String policyId) {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-
-        if (policyId == null || policyId.trim().isEmpty()) {
+        if (StringUtils.isBlank(policyId)) {
             return false;
         }
 
-        try (NamedPreparedStatement getPolicyPublishStatus = new NamedPreparedStatement(connection,
-                GET_POLICY_PDP_PRESENCE_SQL)) {
-            getPolicyPublishStatus.setString(POLICY_ID, policyId);
-            getPolicyPublishStatus.setBoolean(IS_IN_PDP, IN_PDP);
-            getPolicyPublishStatus.setInt(TENANT_ID, tenantId);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement prepStmt = new NamedPreparedStatement(connection,
+                    GET_POLICY_PDP_PRESENCE_SQL)) {
+                prepStmt.setString(POLICY_ID, policyId);
+                prepStmt.setBoolean(IS_IN_PDP, IN_PDP);
+                prepStmt.setInt(TENANT_ID, tenantId);
 
-            try (ResultSet rs = getPolicyPublishStatus.executeQuery()) {
-                return rs.next();
+                try (ResultSet rs = prepStmt.executeQuery()) {
+                    return rs.next();
+                }
             }
-
         } catch (SQLException e) {
             LOG.error(String.format("Error while checking the published status of the policy %s", policyId), e);
             return false;
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
@@ -795,46 +744,40 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
     @Override
     public PolicyDTO getPublishedPolicy(String policyId) {
 
-        PolicyDTO policy = new PolicyDTO();
-
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving entitlement policy %s", policyId));
         }
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PolicyDTO dto = new PolicyDTO();
 
-        try (NamedPreparedStatement getPDPPolicy = new NamedPreparedStatement(connection, GET_PDP_POLICY_SQL)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement prepStmt = new NamedPreparedStatement(connection, GET_PDP_POLICY_SQL)) {
+                prepStmt.setString(POLICY_ID, policyId);
+                prepStmt.setBoolean(IS_IN_PDP, IN_PDP);
+                prepStmt.setInt(TENANT_ID, tenantId);
 
-            getPDPPolicy.setString(POLICY_ID, policyId);
-            getPDPPolicy.setBoolean(IS_IN_PDP, IN_PDP);
-            getPDPPolicy.setInt(TENANT_ID, tenantId);
-
-            try (ResultSet resultSet = getPDPPolicy.executeQuery()) {
-                if (resultSet.next()) {
-                    String policyString = resultSet.getString(POLICY);
-                    AbstractPolicy absPolicy = PAPPolicyReader.getInstance(null).getPolicy(policyString);
-                    dto.setPolicyId(absPolicy.getId().toASCIIString());
-                    dto.setPolicy(policyString);
-                    int policyOrder = resultSet.getInt(POLICY_ORDER);
-                    dto.setPolicyOrder(policyOrder);
-                    dto.setActive(resultSet.getBoolean(IS_ACTIVE));
-                    dto.setPolicyType(resultSet.getString(POLICY_TYPE));
-                    // Get policy attributes
-                    int version = resultSet.getInt(VERSION);
-                    dto.setAttributeDTOs(
-                            getPolicyMetadata(connection, tenantId, absPolicy.getId().toASCIIString(), version));
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        PolicyDTO dto = new PolicyDTO();
+                        String policyString = resultSet.getString(POLICY);
+                        AbstractPolicy absPolicy = PAPPolicyReader.getInstance(null).getPolicy(policyString);
+                        dto.setPolicyId(absPolicy.getId().toASCIIString());
+                        dto.setPolicy(policyString);
+                        dto.setPolicyOrder(resultSet.getInt(POLICY_ORDER));
+                        dto.setActive(resultSet.getBoolean(IS_ACTIVE));
+                        dto.setPolicyType(resultSet.getString(POLICY_TYPE));
+                        // Get policy attributes
+                        int version = resultSet.getInt(VERSION);
+                        dto.setAttributeDTOs(
+                                getPolicyMetadata(connection, tenantId, absPolicy.getId().toASCIIString(), version));
+                        return dto;
+                    }
                 }
             }
-            policy = dto;
-
         } catch (SQLException e) {
             LOG.error(String.format("Error while retrieving PDP policy %s", policyId), e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
-        return policy;
+        return new PolicyDTO();
     }
 
     /**
@@ -866,7 +809,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (policyId == null || policyId.trim().isEmpty()) {
+        if (StringUtils.isBlank(policyId)) {
             return;
         }
 
@@ -945,18 +888,16 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
 
         List<PolicyDTO> policies = new ArrayList<>();
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
 
         LOG.debug("Retrieving all PDP entitlement policies");
-        try (NamedPreparedStatement getAllPDPPolicies = new NamedPreparedStatement(connection,
-                GET_ALL_PDP_POLICIES_SQL)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement prepStmt = new NamedPreparedStatement(connection, GET_ALL_PDP_POLICIES_SQL)) {
 
-            getAllPDPPolicies.setInt(TENANT_ID, tenantId);
-            getAllPDPPolicies.setBoolean(IS_IN_PDP, IN_PDP);
+                prepStmt.setInt(TENANT_ID, tenantId);
+                prepStmt.setBoolean(IS_IN_PDP, IN_PDP);
 
-            try (ResultSet policySet = getAllPDPPolicies.executeQuery()) {
-                if (policySet.next()) {
-                    do {
+                try (ResultSet policySet = prepStmt.executeQuery()) {
+                    while (policySet.next()) {
                         String policy = policySet.getString(POLICY);
                         AbstractPolicy absPolicy = PAPPolicyReader.getInstance(null).getPolicy(policy);
                         PolicyDTO dto = new PolicyDTO();
@@ -981,22 +922,16 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
                         // Get policy attributes
                         int version = policySet.getInt(VERSION);
                         dto.setAttributeDTOs(
-                                getPolicyMetadata(connection, tenantId, absPolicy.getId().toASCIIString(), version));
+                                getPolicyMetadata(connection, tenantId, absPolicy.getId().toASCIIString(),
+                                        version));
 
                         policies.add(dto);
-
-                    } while (policySet.next());
-                } else {
-                    return new PolicyDTO[0];
+                    }
+                    return policies.toArray(new PolicyDTO[0]);
                 }
             }
-
-            return policies.toArray(new PolicyDTO[0]);
-
         } catch (SQLException e) {
             throw new EntitlementException("Error while retrieving PDP policies", e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
@@ -1014,28 +949,14 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         int tenantId = policy.getInt(TENANT_ID);
 
         PolicyDTO dto = new PolicyDTO();
-
         dto.setPolicyId(policyId);
         dto.setVersion(version);
-
-        String lastModifiedTime = policy.getString(LAST_MODIFIED_TIME);
-        if (lastModifiedTime != null) {
-            dto.setLastModifiedTime(lastModifiedTime);
-        }
-
-        String lastModifiedUser = policy.getString(LAST_MODIFIED_USER);
-        if (lastModifiedUser != null) {
-            dto.setLastModifiedUser(lastModifiedUser);
-        }
-
+        dto.setLastModifiedTime(String.valueOf(policy.getTimestamp(LAST_MODIFIED_TIME)));
+        dto.setLastModifiedUser(policy.getString(LAST_MODIFIED_USER));
         dto.setActive(policy.getBoolean(IS_ACTIVE));
-
         dto.setPolicyOrder(policy.getInt(POLICY_ORDER));
-
         dto.setPolicyType(policy.getString(POLICY_TYPE));
-
         dto.setPolicyEditor(policy.getString(POLICY_EDITOR));
-
         dto.setPolicy(policy.getString(POLICY));
 
         // Get policy references
@@ -1240,7 +1161,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
 
         // Find policy editor type
         String policyEditorType = null;
-        if (policy.getPolicyEditor() != null && !policy.getPolicyEditor().trim().isEmpty()) {
+        if (StringUtils.isNotBlank(policy.getPolicyEditor())) {
             policyEditorType = policy.getPolicyEditor().trim();
         }
 
@@ -1257,7 +1178,8 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
             createPolicyPrepStmt.setString(POLICY_TYPE, policyType);
             createPolicyPrepStmt.setString(POLICY_EDITOR, policyEditorType);
             createPolicyPrepStmt.setInt(POLICY_ORDER, DEFAULT_POLICY_ORDER);
-            createPolicyPrepStmt.setString(LAST_MODIFIED_TIME, Long.toString(System.currentTimeMillis()));
+            createPolicyPrepStmt.setTimeStamp(LAST_MODIFIED_TIME, new Timestamp(System.currentTimeMillis()),
+                    Calendar.getInstance(TimeZone.getTimeZone(UTC)));
             createPolicyPrepStmt.setString(LAST_MODIFIED_USER,
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
 
@@ -1407,6 +1329,53 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
                 updateOrderPrepStmt.executeUpdate();
                 IdentityDatabaseUtil.closeStatement(updateOrderPrepStmt);
             }
+        }
+    }
+
+    private static String getLatestPolicyVersion(String policyId, int tenantId) throws EntitlementException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement prepStmt = new NamedPreparedStatement(connection,
+                    GET_LATEST_POLICY_VERSION_SQL)) {
+                prepStmt.setString(POLICY_ID, policyId);
+                prepStmt.setInt(TENANT_ID, tenantId);
+                prepStmt.setBoolean(IS_IN_PAP, IN_PAP);
+
+                try (ResultSet latestVersion = prepStmt.executeQuery()) {
+                    if (latestVersion.next()) {
+                        return String.valueOf(latestVersion.getInt(VERSION));
+                    }
+                    return null;
+                }
+            }
+        } catch (SQLException e) {
+            throw new EntitlementException(String.format("Error retrieving the latest version of the policy %s",
+                    policyId), e);
+        }
+    }
+
+    private PolicyDTO getPapPolicyByVersion(String policyId, String version, int tenantId) throws EntitlementException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement prepStmt = new NamedPreparedStatement(connection,
+                    GET_PAP_POLICY_BY_VERSION_SQL)) {
+                prepStmt.setBoolean(IS_IN_PAP, IN_PAP);
+                prepStmt.setInt(TENANT_ID, tenantId);
+                prepStmt.setString(POLICY_ID, policyId);
+                prepStmt.setInt(VERSION, Integer.parseInt(version));
+
+                try (ResultSet policy = prepStmt.executeQuery()) {
+                    if (policy.next()) {
+                        return getPolicyDTO(policy, connection);
+                    } else {
+                        throw new EntitlementException(
+                                String.format("No policy with the given policyID %s and version %s exists", policyId,
+                                        version));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new EntitlementException(String.format(ERROR_RETRIEVING_PAP_POLICY, policyId), e);
         }
     }
 }

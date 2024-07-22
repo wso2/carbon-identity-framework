@@ -33,25 +33,32 @@ import org.wso2.carbon.identity.entitlement.dto.StatusHolder;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.TimeZone;
 
+import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.DB2;
+import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.H2;
+import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.MARIADB;
+import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.MSSQL;
+import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.MYSQL;
+import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.ORACLE;
+import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.POSTGRES;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.IS_SUCCESS;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.MESSAGE;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY_ID;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY_VERSION;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.STATUS_COUNT;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.STATUS_TYPE;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.SUBSCRIBER_ID;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TARGET;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TARGET_ACTION;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TENANT_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TIME_INSTANCE;
+import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.LOGGED_AT;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.USER;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.VERSION;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.KEY;
@@ -70,6 +77,9 @@ import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.G
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_STATUS_SQL;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_SUBSCRIBER_STATUS_COUNT_SQL;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_SUBSCRIBER_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.STATUS_COUNT;
+
+import static java.time.ZoneOffset.UTC;
 
 public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
 
@@ -92,28 +102,28 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
     /**
      * Handles the status data.
      *
-     * @param about        indicates what is related with this admin status action.
-     * @param key          key value of the status.
-     * @param statusHolder <code>StatusHolder</code>.
+     * @param about         whether the status is about a policy or publisher.
+     * @param key           key value of the status.
+     * @param statusHolders <code>StatusHolder</code>.
      * @throws EntitlementException throws, if fails to handle.
      */
     @Override
-    public void handle(String about, String key, List<StatusHolder> statusHolder) throws EntitlementException {
+    public void handle(String about, String key, List<StatusHolder> statusHolders) throws EntitlementException {
 
         // If the action is DELETE_POLICY, delete the policy or the subscriber status
-        for (StatusHolder holder : statusHolder) {
+        for (StatusHolder holder : statusHolders) {
             if (EntitlementConstants.StatusTypes.DELETE_POLICY.equals(holder.getType())) {
                 deletePersistedData(about, key);
                 return;
             }
         }
-        persistStatus(about, key, statusHolder);
+        persistStatus(about, key, statusHolders);
     }
 
     /**
      * Handles the status data.
      *
-     * @param about        indicates what is related with this admin status action.
+     * @param about        whether the status is about a policy or publisher.
      * @param statusHolder <code>StatusHolder</code>.
      * @throws EntitlementException if fails to handle.
      */
@@ -143,71 +153,52 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
                 ? EntitlementConstants.Status.ABOUT_POLICY
                 : EntitlementConstants.Status.ABOUT_SUBSCRIBER;
 
-        List<StatusHolder> holders = readStatus(key, statusAboutType);
-        List<StatusHolder> filteredHolders = new ArrayList<>();
-        if (!holders.isEmpty()) {
-            searchString = searchString.replace("*", ".*");
-            Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
-            for (StatusHolder holder : holders) {
-                String id = EntitlementConstants.Status.ABOUT_POLICY.equals(about)
-                        ? holder.getUser()
-                        : holder.getTarget();
-                Matcher matcher = pattern.matcher(id);
-                if (!matcher.matches()) {
-                    continue;
-                }
-                if (!EntitlementConstants.Status.ABOUT_POLICY.equals(about) || type == null ||
-                        type.equals(holder.getType())) {
-                    filteredHolders.add(holder);
-                }
-            }
-        }
-        return filteredHolders.toArray(new StatusHolder[0]);
+        List<StatusHolder> holders = getStatus(key, statusAboutType);
+        return EntitlementUtil.filterStatus(holders, searchString, about, type);
     }
 
-    private synchronized void deletePersistedData(String about, String key) throws EntitlementException {
+    /**
+     * Deletes all status records.
+     *
+     * @param about whether the status is about a policy or publisher.
+     * @param key   key value of the status.
+     * @throws EntitlementException if fails to delete.
+     */
+    private void deletePersistedData(String about, String key) throws EntitlementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String query = EntitlementConstants.Status.ABOUT_POLICY.equals(about) ?
                 DELETE_POLICY_STATUS_SQL : DELETE_SUBSCRIBER_STATUS_SQL;
-        try (NamedPreparedStatement deleteStatusPrepStmt = new NamedPreparedStatement(connection, query)) {
-            deleteStatusPrepStmt.setString(KEY, key);
-            deleteStatusPrepStmt.setInt(TENANT_ID, tenantId);
-            deleteStatusPrepStmt.executeUpdate();
-
-            IdentityDatabaseUtil.commitTransaction(connection);
-
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement deleteStatusPrepStmt = new NamedPreparedStatement(connection, query)) {
+                deleteStatusPrepStmt.setString(KEY, key);
+                deleteStatusPrepStmt.setInt(TENANT_ID, tenantId);
+                deleteStatusPrepStmt.executeUpdate();
+            }
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new EntitlementException("Error while deleting policy status", e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
-    private synchronized void persistStatus(String about, String key, List<StatusHolder> statusHolders)
-            throws EntitlementException {
+    private void persistStatus(String about, String key, List<StatusHolder> statusHolders) throws EntitlementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        boolean useLastStatusOnly = Boolean.parseBoolean(
+                IdentityUtil.getProperty(EntitlementConstants.PROP_USE_LAST_STATUS_ONLY));
 
-        try {
-            boolean useLastStatusOnly = Boolean.parseBoolean(
-                    IdentityUtil.getProperty(EntitlementConstants.PROP_USE_LAST_STATUS_ONLY));
+        if (statusHolders != null && !statusHolders.isEmpty()) {
 
-            if (statusHolders != null && !statusHolders.isEmpty()) {
+            if (useLastStatusOnly) {
+                // Delete the previous status
+                deletePersistedData(about, key);
+                auditAction(statusHolders.toArray(new StatusHolder[0]));
+            }
 
-                if (useLastStatusOnly) {
+            // Add new status to the database
+            addStatus(about, key, statusHolders);
 
-                    // Delete the previous status
-                    deletePersistedData(about, key);
-                    auditAction(statusHolders.toArray(new StatusHolder[0]));
-                }
-
-                // Add new status to the database
-                addStatus(connection, about, key, statusHolders);
-
-                if (!useLastStatusOnly) {
+            if (!useLastStatusOnly) {
+                Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+                try {
                     // Get the existing status count
                     int statusCount = getStatusCount(connection, about, key);
 
@@ -215,118 +206,102 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
                     if (statusCount > maxRecords) {
                         deleteStatus(connection, about, key, statusCount);
                     }
+                    IdentityDatabaseUtil.commitTransaction(connection);
+                } catch (SQLException e) {
+                    IdentityDatabaseUtil.rollbackTransaction(connection);
+                    throw new EntitlementException("Error while deleting surplus policy status", e);
+                } finally {
+                    IdentityDatabaseUtil.closeConnection(connection);
                 }
             }
-
-            IdentityDatabaseUtil.commitTransaction(connection);
-
-        } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            throw new EntitlementException("Error while persisting policy status", e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
-
     }
 
-    private synchronized List<StatusHolder> readStatus(String key, String about) throws EntitlementException {
+    private List<StatusHolder> getStatus(String key, String about) throws EntitlementException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         List<StatusHolder> statusHolders = new ArrayList<>();
         String query = EntitlementConstants.Status.ABOUT_POLICY.equals(about)
                 ? GET_POLICY_STATUS_SQL
                 : GET_SUBSCRIBER_STATUS_SQL;
 
-        try (NamedPreparedStatement getStatusPrepStmt = new NamedPreparedStatement(connection, query)) {
-            getStatusPrepStmt.setString(KEY, key);
-            getStatusPrepStmt.setInt(TENANT_ID, tenantId);
-            try (ResultSet statusSet = getStatusPrepStmt.executeQuery()) {
-                while (statusSet.next()) {
-                    StatusHolder statusHolder = new StatusHolder(about);
-                    if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
-                        statusHolder.setKey(statusSet.getString(POLICY_ID));
-                    } else {
-                        statusHolder.setKey(
-                                statusSet.getString(SUBSCRIBER_ID));
-                    }
-                    statusHolder.setType(statusSet.getString(STATUS_TYPE));
-                    statusHolder.setSuccess(statusSet.getBoolean(IS_SUCCESS));
-                    statusHolder.setUser(statusSet.getString(USER));
-                    statusHolder.setTarget(statusSet.getString(TARGET));
-                    statusHolder.setTargetAction(statusSet.getString(TARGET_ACTION));
-                    statusHolder.setTimeInstance(statusSet.getString(TIME_INSTANCE));
-                    statusHolder.setMessage(statusSet.getString(MESSAGE));
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement getStatusPrepStmt = new NamedPreparedStatement(connection, query)) {
+                getStatusPrepStmt.setString(KEY, key);
+                getStatusPrepStmt.setInt(TENANT_ID, tenantId);
+                try (ResultSet statusSet = getStatusPrepStmt.executeQuery()) {
+                    while (statusSet.next()) {
+                        StatusHolder statusHolder = new StatusHolder(about);
+                        if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
+                            statusHolder.setKey(statusSet.getString(POLICY_ID));
+                        } else {
+                            statusHolder.setKey(
+                                    statusSet.getString(SUBSCRIBER_ID));
+                        }
+                        statusHolder.setType(statusSet.getString(STATUS_TYPE));
+                        statusHolder.setSuccess(statusSet.getBoolean(IS_SUCCESS));
+                        statusHolder.setUser(statusSet.getString(USER));
+                        statusHolder.setTarget(statusSet.getString(TARGET));
+                        statusHolder.setTargetAction(statusSet.getString(TARGET_ACTION));
+                        statusHolder.setTimeInstance(String.valueOf(statusSet.getTimestamp(LOGGED_AT)));
+                        statusHolder.setMessage(statusSet.getString(MESSAGE));
 
-                    String version;
-                    if (statusSet.getInt(POLICY_VERSION) == -1) {
-                        version = "";
-                    } else {
-                        version = Integer.toString(statusSet.getInt(POLICY_VERSION));
+                        String version = null;
+                        if (statusSet.getInt(POLICY_VERSION) != -1) {
+                            version = Integer.toString(statusSet.getInt(POLICY_VERSION));
+                        }
+                        statusHolder.setVersion(version);
+                        statusHolders.add(statusHolder);
                     }
-                    statusHolder.setVersion(version);
-                    statusHolders.add(statusHolder);
                 }
+                return statusHolders;
             }
-
-            return statusHolders;
-
         } catch (SQLException e) {
             throw new EntitlementException("Error while retrieving policy status", e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(connection);
         }
     }
 
-    private void addStatus(Connection connection, String about, String key,
-                           List<StatusHolder> statusHolders) throws SQLException {
+    private void addStatus(String about, String key, List<StatusHolder> statusHolders) throws EntitlementException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String query = EntitlementConstants.Status.ABOUT_POLICY.equals(about)
                 ? CREATE_POLICY_STATUS_SQL
                 : CREATE_SUBSCRIBER_STATUS_SQL;
 
-        try (NamedPreparedStatement addStatusPrepStmt = new NamedPreparedStatement(connection, query)) {
-            for (StatusHolder statusHolder : statusHolders) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement addStatusPrepStmt = new NamedPreparedStatement(connection, query)) {
+                for (StatusHolder statusHolder : statusHolders) {
 
-                String message = "";
-                if (statusHolder.getMessage() != null) {
-                    message = statusHolder.getMessage();
-                }
-                String target = "";
-                if (statusHolder.getTarget() != null) {
-                    target = statusHolder.getTarget();
-                }
-                String targetAction = "";
-                if (statusHolder.getTargetAction() != null) {
-                    targetAction = statusHolder.getTargetAction();
-                }
-                int version = -1;
-                if (statusHolder.getVersion() != null) {
-                    version = Integer.parseInt(statusHolder.getVersion());
-                }
+                    int version = -1;
+                    if (statusHolder.getVersion() != null) {
+                        version = Integer.parseInt(statusHolder.getVersion());
+                    }
 
-                addStatusPrepStmt.setString(STATUS_TYPE, statusHolder.getType());
-                addStatusPrepStmt.setBoolean(IS_SUCCESS, statusHolder.isSuccess());
-                addStatusPrepStmt.setString(USER, statusHolder.getUser());
-                addStatusPrepStmt.setString(TARGET, target);
-                addStatusPrepStmt.setString(TARGET_ACTION, targetAction);
-                addStatusPrepStmt.setString(TIME_INSTANCE, Long.toString(System.currentTimeMillis()));
-                addStatusPrepStmt.setString(MESSAGE, message);
-                addStatusPrepStmt.setString(KEY, key);
-                addStatusPrepStmt.setInt(TENANT_ID, tenantId);
+                    addStatusPrepStmt.setString(KEY, key);
+                    addStatusPrepStmt.setString(STATUS_TYPE, statusHolder.getType());
+                    addStatusPrepStmt.setBoolean(IS_SUCCESS, statusHolder.isSuccess());
+                    addStatusPrepStmt.setString(USER, statusHolder.getUser());
+                    addStatusPrepStmt.setString(TARGET, statusHolder.getTarget());
+                    addStatusPrepStmt.setString(TARGET_ACTION, statusHolder.getTargetAction());
+                    addStatusPrepStmt.setString(MESSAGE, statusHolder.getMessage());
+                    addStatusPrepStmt.setTimeStamp(LOGGED_AT, new Timestamp(System.currentTimeMillis()),
+                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                    addStatusPrepStmt.setInt(TENANT_ID, tenantId);
 
-                if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
-                    addStatusPrepStmt.setInt(VERSION, version);
+                    if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
+                        addStatusPrepStmt.setInt(VERSION, version);
+                    }
+
+                    addStatusPrepStmt.addBatch();
                 }
-
-                addStatusPrepStmt.addBatch();
+                addStatusPrepStmt.executeBatch();
             }
-            addStatusPrepStmt.executeBatch();
+        } catch (SQLException e) {
+            throw new EntitlementException("Error while persisting policy status", e);
         }
     }
 
-    private int getStatusCount(Connection connection, String about, String key) throws SQLException {
+    private int getStatusCount(Connection connection, String about, String key) throws EntitlementException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         int statusCount = 0;
@@ -343,6 +318,8 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
                     statusCount = count.getInt(STATUS_COUNT);
                 }
             }
+        } catch (SQLException e) {
+            throw new EntitlementException("Error while getting policy status count", e);
         }
         return statusCount;
     }
@@ -354,7 +331,6 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
         int oldRecordsCount = statusCount - maxRecords;
 
         String query = resolveDeleteStatusQuery(connection, about);
-
         try (NamedPreparedStatement deleteOldRecordsPrepStmt = new NamedPreparedStatement(connection, query)) {
             deleteOldRecordsPrepStmt.setString(KEY, key);
             deleteOldRecordsPrepStmt.setInt(TENANT_ID, tenantId);
@@ -369,22 +345,22 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
         String databaseProductName = connection.getMetaData().getDatabaseProductName();
 
         Map<String, String> policyQueries = new HashMap<>();
-        policyQueries.put("MySQL", DELETE_OLD_POLICY_STATUSES_MYSQL);
-        policyQueries.put("MariaDB", DELETE_OLD_POLICY_STATUSES_MYSQL);
-        policyQueries.put("H2", DELETE_OLD_POLICY_STATUSES_MYSQL);
-        policyQueries.put("Microsoft SQL Server", DELETE_OLD_POLICY_STATUSES_MSSQL);
-        policyQueries.put("Oracle", DELETE_OLD_POLICY_STATUSES_ORACLE);
-        policyQueries.put("PostgreSQL", DELETE_OLD_POLICY_STATUSES_MYSQL);
-        policyQueries.put("DB2", DELETE_OLD_POLICY_STATUSES_MYSQL);
+        policyQueries.put(MYSQL, DELETE_OLD_POLICY_STATUSES_MYSQL);
+        policyQueries.put(MARIADB, DELETE_OLD_POLICY_STATUSES_MYSQL);
+        policyQueries.put(H2, DELETE_OLD_POLICY_STATUSES_MYSQL);
+        policyQueries.put(MSSQL, DELETE_OLD_POLICY_STATUSES_MSSQL);
+        policyQueries.put(ORACLE, DELETE_OLD_POLICY_STATUSES_ORACLE);
+        policyQueries.put(POSTGRES, DELETE_OLD_POLICY_STATUSES_MYSQL);
+        policyQueries.put(DB2, DELETE_OLD_POLICY_STATUSES_MYSQL);
 
         Map<String, String> subscriberQueries = new HashMap<>();
-        subscriberQueries.put("MySQL", DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL);
-        subscriberQueries.put("MariaDB", DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL);
-        subscriberQueries.put("H2", DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL);
-        subscriberQueries.put("Microsoft SQL Server", DELETE_OLD_SUBSCRIBER_STATUSES_MSSQL);
-        subscriberQueries.put("Oracle", DELETE_OLD_SUBSCRIBER_STATUSES_ORACLE);
-        subscriberQueries.put("PostgreSQL", DELETE_OLD_POLICY_STATUSES_MYSQL);
-        subscriberQueries.put("DB2", DELETE_OLD_POLICY_STATUSES_MYSQL);
+        subscriberQueries.put(MYSQL, DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL);
+        subscriberQueries.put(MARIADB, DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL);
+        subscriberQueries.put(H2, DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL);
+        subscriberQueries.put(MSSQL, DELETE_OLD_SUBSCRIBER_STATUSES_MSSQL);
+        subscriberQueries.put(ORACLE, DELETE_OLD_SUBSCRIBER_STATUSES_ORACLE);
+        subscriberQueries.put(POSTGRES, DELETE_OLD_POLICY_STATUSES_MYSQL);
+        subscriberQueries.put(DB2, DELETE_OLD_POLICY_STATUSES_MYSQL);
 
         String query;
         if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
@@ -396,7 +372,6 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
         if (query == null) {
             throw new EntitlementException("Database driver could not be identified or not supported.");
         }
-
         return query;
     }
 
