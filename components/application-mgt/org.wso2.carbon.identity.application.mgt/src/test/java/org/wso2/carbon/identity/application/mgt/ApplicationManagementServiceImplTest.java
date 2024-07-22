@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -110,6 +112,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
 
 /*
   Unit tests for ApplicationManagementServiceImpl.
@@ -121,6 +125,10 @@ public class ApplicationManagementServiceImplTest {
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
     private static final String APPLICATION_NAME_1 = "Test application1";
     private static final String APPLICATION_NAME_2 = "Test application2";
+    private static final String APPLICATION_TEMPLATE_ID_1 = "Test_template_1";
+    private static final String APPLICATION_TEMPLATE_ID_2 = "Test_template_2";
+    private static final String APPLICATION_TEMPLATE_VERSION_1 = "v1.0.0";
+    private static final String APPLICATION_TEMPLATE_VERSION_2 = "v1.0.1";
     private static final String APPLICATION_INBOUND_AUTH_KEY_1 = "Test_auth_key1";
     private static final String APPLICATION_INBOUND_AUTH_KEY_2 = "Test_auth_key2";
     private static final String APPLICATION_NAME_FILTER_1 = "name ew application1";
@@ -1134,6 +1142,60 @@ public class ApplicationManagementServiceImplTest {
 
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @DataProvider(name = "testAddApplicationWithTemplateIdAndTemplateVersion")
+    public Object[][] testAddApplicationWithTemplateIdAndTemplateVersion() {
+
+        return new Object[][] {
+                {APPLICATION_TEMPLATE_ID_1, APPLICATION_TEMPLATE_VERSION_1}
+        };
+    }
+
+    @Test(dataProvider = "testAddApplicationWithTemplateIdAndTemplateVersion")
+    public void testAddApplicationWithTemplateIdAndTemplateVersion(String templateId, String templateVersion)
+            throws Exception {
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+
+        addApplicationConfigurations(inputSP);
+        inputSP.setTemplateId(templateId);
+        inputSP.setTemplateVersion(templateVersion);
+
+        // Adding new application.
+        String resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+
+        //  Retrieving added application.
+        ServiceProvider retrievedSP =
+                applicationManagementService.getApplicationByResourceId(resourceId, SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertEquals(retrievedSP.getTemplateId(), templateId);
+        Assert.assertEquals(retrievedSP.getTemplateVersion(), templateVersion);
+
+        // Retrieving application with required attributes as templateId and templateVersion.
+        List<String> requiredAttributes =
+                Arrays.asList(TEMPLATE_ID_SP_PROPERTY_NAME, TEMPLATE_VERSION_SP_PROPERTY_NAME);
+        ServiceProvider retrievedSPWithRequiredAttributes =
+                applicationManagementService.getApplicationWithRequiredAttributes(retrievedSP.getApplicationID(),
+                        requiredAttributes);
+        Assert.assertEquals(retrievedSPWithRequiredAttributes.getTemplateId(), templateId);
+        Assert.assertEquals(retrievedSPWithRequiredAttributes.getTemplateVersion(), templateVersion);
+
+        // Updating the application by changing the templateId and templateVersion. It should be changed.
+        inputSP.setTemplateId(APPLICATION_TEMPLATE_ID_2);
+        inputSP.setTemplateVersion(APPLICATION_TEMPLATE_VERSION_2);
+
+        applicationManagementService.updateApplicationByResourceId(resourceId, inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+
+        retrievedSP = applicationManagementService.getApplicationByResourceId(resourceId, SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertEquals(retrievedSP.getTemplateId(), APPLICATION_TEMPLATE_ID_2);
+        Assert.assertEquals(retrievedSP.getTemplateVersion(), APPLICATION_TEMPLATE_VERSION_2);
+
+        // Deleting added application.
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
     }
 
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {
