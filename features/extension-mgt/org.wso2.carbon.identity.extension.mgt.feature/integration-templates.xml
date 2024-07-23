@@ -17,28 +17,38 @@
 <configuration>
     <repo>
         <name>identity-integration-ui-templates</name>
-        <owner>DilshanSenarath</owner>
+        <owner>wso2-extensions</owner>
     </repo>
     <templates>
         <template>
             <type>applications</type>
-            <name>salesforce</name>
+            <name>custom-application</name>
+            <version>1.0.0</version>
+        </template>
+        <template>
+            <type>applications</type>
+            <name>custom-protocol-application</name>
+            <version>1.0.0</version>
+        </template>
+        <template>
+            <type>applications</type>
+            <name>m2m-application</name>
+            <version>1.0.0</version>
+        </template>
+        <template>
+            <type>applications</type>
+            <name>mobile-application</name>
             <version>1.0.0</version>
         </template>
         <template>
             <type>applications</type>
             <name>single-page-application</name>
-            <version>1.0.1</version>
+            <version>1.0.0</version>
         </template>
         <template>
-            <type>connections</type>
-            <name>google</name>
-            <version>2.0.0</version>
-        </template>
-        <template>
-            <type>connections</type>
-            <name>facebook</name>
-            <version>2.0.1</version>
+            <type>applications</type>
+            <name>traditional-web-application</name>
+            <version>1.0.0</version>
         </template>
     </templates>
 </configuration>
