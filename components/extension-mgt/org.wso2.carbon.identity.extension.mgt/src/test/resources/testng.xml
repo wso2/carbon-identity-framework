@@ -17,4 +17,9 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="ConfigurationManagementServerTestSuite">
+    <test name="org.wso2.carbon.identity.extension.mgt.test" preserve-order="true" parallel="false">
+        <classes>
+            <class name="org.wso2.carbon.identity.extension.mgt.function.JSONObjectToExtensionInfoTest"/>
+        </classes>
+    </test>
 </suite>

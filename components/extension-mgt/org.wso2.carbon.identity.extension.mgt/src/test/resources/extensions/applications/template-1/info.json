@@ -1,0 +1,13 @@
+{
+	"id": "template-1",
+	"name": "Template 1",
+	"description": "Sample description for the template 1.",
+	"image": "${CONSOLE_BASE_URL}/resources/applications/assets/images/illustrations/template-1.svg",
+	"displayOrder": 0,
+	"category": "DEFAULT",
+	"tags": [
+		"Default",
+		"OIDC"
+	],
+	"type": "applications"
+}
