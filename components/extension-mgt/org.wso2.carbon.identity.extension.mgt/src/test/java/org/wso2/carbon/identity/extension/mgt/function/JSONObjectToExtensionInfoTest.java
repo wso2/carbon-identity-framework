@@ -32,11 +32,14 @@ import org.wso2.carbon.identity.extension.mgt.model.ExtensionInfo;
 public class JSONObjectToExtensionInfoTest {
 
     private final static String EXTENSION_RESOURCE_VERSION = "v1.0.0";
+    private final static String APPLICATION_EXTENSIONS = "applications";
+    private final static String APPLICATION_TEMPLATE_ID_1 = "template-1";
+    private final static String APPLICATION_TEMPLATE_ID_2 = "template-2";
 
     @Test
     public void testGeneratedExtensionInfoObjectIncludesEmptyTemplateVersion() throws Exception {
 
-        String info = TestUtils.readExtensionResourceInfo("applications", "template-1");
+        String info = TestUtils.readExtensionResourceInfo(APPLICATION_EXTENSIONS, APPLICATION_TEMPLATE_ID_1);
         ExtensionInfo extensionInfo = new JSONObjectToExtensionInfo().apply(new JSONObject(info));
         Assert.assertEquals(extensionInfo.getVersion(), StringUtils.EMPTY);
     }
@@ -44,7 +47,7 @@ public class JSONObjectToExtensionInfoTest {
     @Test
     public void testGeneratedExtensionInfoObjectIncludesTemplateVersion() throws Exception {
 
-        String info = TestUtils.readExtensionResourceInfo("applications", "template-2");
+        String info = TestUtils.readExtensionResourceInfo(APPLICATION_EXTENSIONS, APPLICATION_TEMPLATE_ID_2);
         ExtensionInfo extensionInfo = new JSONObjectToExtensionInfo().apply(new JSONObject(info));
         Assert.assertEquals(extensionInfo.getVersion(), EXTENSION_RESOURCE_VERSION);
     }
