@@ -39,6 +39,7 @@ public class JSONObjectToExtensionInfo implements Function<JSONObject, Extension
 
         ExtensionInfo extensionInfo = new ExtensionInfo();
         extensionInfo.setId(jsonObject.getString(ExtensionMgtConstants.ID));
+        extensionInfo.setVersion(jsonObject.optString(ExtensionMgtConstants.VERSION, ""));
         extensionInfo.setName(jsonObject.getString(ExtensionMgtConstants.NAME));
         extensionInfo.setDescription(jsonObject.getString(ExtensionMgtConstants.DESCRIPTION));
         extensionInfo.setImage(jsonObject.getString(ExtensionMgtConstants.IMAGE));

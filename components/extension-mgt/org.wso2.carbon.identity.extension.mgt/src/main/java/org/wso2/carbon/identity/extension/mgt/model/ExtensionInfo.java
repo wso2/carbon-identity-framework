@@ -28,6 +28,7 @@ import java.util.Map;
 public class ExtensionInfo {
 
     private String id;
+    private String version;
     private String name;
     private String description;
     private String image;
@@ -48,6 +49,26 @@ public class ExtensionInfo {
     public String getId() {
 
         return id;
+    }
+
+    /**
+     * Set the current extension resource version.
+     *
+     * @param version Version of the extension.
+     */
+    public void setVersion(String version) {
+
+        this.version = version;
+    }
+
+    /**
+     * Retrieve the version of the current extension resource.
+     *
+     * @return Version of the extension.
+     */
+    public String getVersion() {
+
+        return version;
     }
 
     public void setId(String id) {
