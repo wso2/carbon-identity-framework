@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
@@ -87,7 +88,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             } catch (SQLException | ActionMgtException e) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format("Error while creating the Action of Action Type: %s in Tenant Domain: %s." +
-                            " Rolling back created action information and deleting added secrets.", actionType,
+                                    " Rolling back created action information and deleting added secrets.", actionType,
                             IdentityTenantUtil.getTenantDomain(tenantId)));
                 }
                 actionSecretProcessor.deleteAssociatedSecrets(action.getEndpoint().getAuthentication(), actionId);
@@ -137,23 +138,26 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     }
 
     @Override
-    public Action updateAction(String actionType, String actionId, Action action, Integer tenantId)
+    public Action updateAction(String actionType, String actionId, Action updatingAction, Action existingAction,
+                               Integer tenantId)
             throws ActionMgtException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
         try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
                 ActionMgtSQLConstants.Query.UPDATE_ACTION_BASIC_INFO)) {
 
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME, action.getName());
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION, action.getDescription());
+            statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME, StringUtils.isEmpty(updatingAction.getName())
+                    ? existingAction.getName() : updatingAction.getName());
+            statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION, updatingAction.getDescription() == null
+                    ? existingAction.getDescription() : updatingAction.getDescription());
             statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
             statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
             statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
             statement.executeUpdate();
 
-            // Update Endpoint Properties.
-            updateActionEndpointProperties(dbConnection, actionId, getEndpointProperties(action.getEndpoint().getUri(),
-                    null, null), tenantId);
+            // Update Endpoint URI and Authentication.
+            updateEndpointUriAndAuthentication(dbConnection, actionType, actionId, updatingAction, existingAction,
+                    tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
 
             return getActionByActionId(actionId, tenantId);
@@ -257,6 +261,34 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             throws ActionMgtException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
+        updateActionEndpointAuthProperties(dbConnection, actionId, authentication, tenantId);
+        IdentityDatabaseUtil.closeConnection(dbConnection);
+        return getActionByActionId(actionId, tenantId);
+    }
+
+    @Override
+    public Action updateActionEndpoint(String actionType, String actionId, EndpointConfig endpoint,
+                                       AuthType currentAuthentication, int tenantId)
+            throws ActionMgtException {
+
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
+        updateActionEndpoint(dbConnection, actionType, actionId, endpoint, currentAuthentication, tenantId);
+        IdentityDatabaseUtil.closeConnection(dbConnection);
+        return getActionByActionId(actionId, tenantId);
+    }
+
+    /**
+     * Update the endpoint authentication properties of an {@link Action} by given Action ID.
+     *
+     * @param dbConnection   DB Connection.
+     * @param actionId       Action ID.
+     * @param authentication Authentication information to be updated.
+     * @param tenantId       Tenant Id.
+     * @throws ActionMgtServerException If an error occurs while updating the Action endpoint authentication properties.
+     */
+    private void updateActionEndpointAuthProperties(Connection dbConnection, String actionId, AuthType authentication,
+                                                      int tenantId) throws ActionMgtServerException {
+
         try {
             Map<String, String> nonSecretEndpointProperties = authentication.getProperties().stream()
                     .filter(property -> !property.getIsConfidential())
@@ -266,8 +298,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             // Encrypt and update secret endpoint properties.
             actionSecretProcessor.encryptAssociatedSecrets(authentication, actionId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
-
-            return getActionByActionId(actionId, tenantId);
         } catch (ActionMgtException | SecretManagementException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while updating the Action Endpoint Authentication Properties of " +
@@ -278,17 +308,24 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ENDPOINT_PROPERTIES, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(dbConnection);
         }
     }
 
-    @Override
-    public Action updateActionEndpoint(String actionType, String actionId, EndpointConfig endpoint,
-                                       AuthType currentAuthentication, int tenantId)
-            throws ActionMgtException {
+    /**
+     * Update the endpoint information of an {@link Action} by given Action ID.
+     *
+     * @param dbConnection          DB Connection.
+     * @param actionType            Action Type.
+     * @param actionId              Action ID.
+     * @param endpoint              Endpoint information to be updated.
+     * @param currentAuthentication Current Action endpoint authentication information.
+     * @param tenantId              Tenant Id.
+     * @throws ActionMgtServerException If an error occurs while updating the Action endpoint.
+     */
+    private void updateActionEndpoint(Connection dbConnection, String actionType, String actionId,
+                                        EndpointConfig endpoint, AuthType currentAuthentication, int tenantId)
+            throws ActionMgtServerException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
         try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
                 ActionMgtSQLConstants.Query.DELETE_ACTION_ENDPOINT_PROPERTIES)) {
 
@@ -306,8 +343,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             // Delete old secrets.
             actionSecretProcessor.deleteAssociatedSecrets(currentAuthentication, actionId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
-
-            return getActionByActionId(actionId, tenantId);
         } catch (SQLException | ActionMgtException | SecretManagementException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while updating the Action Endpoint Authentication from Auth type: %s" +
@@ -319,8 +354,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ENDPOINT_PROPERTIES, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(dbConnection);
         }
     }
 
@@ -545,6 +578,56 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ACTION_STATUS, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
+        }
+    }
+
+    /**
+     * Update the endpoint URI and authentication properties of an {@link Action} by given Action ID.
+     *
+     * @param dbConnection   DB Connection.
+     * @param actionType     Action Type.
+     * @param actionId       Action ID.
+     * @param updatingAction Information to be updated.
+     * @param existingAction Existing Action information.
+     * @param tenantId       Tenant ID.
+     * @throws ActionMgtException If an error occurs while updating the Action endpoint.
+     */
+    private void updateEndpointUriAndAuthentication(Connection dbConnection, String actionType, String actionId,
+                                                    Action updatingAction, Action existingAction, Integer tenantId)
+            throws ActionMgtException {
+
+        EndpointConfig updatingEndpoint = updatingAction.getEndpoint();
+        if (updatingEndpoint == null) {
+            // No update needed if there's no endpoint configuration in the updating action.
+            return;
+        }
+
+        AuthType updatingAuthentication = updatingEndpoint.getAuthentication();
+        AuthType existingAuthentication = existingAction.getEndpoint().getAuthentication();
+        boolean isUriUpdating = !StringUtils.isEmpty(updatingEndpoint.getUri());
+        boolean isAuthUpdating = updatingAuthentication != null;
+        boolean isSameAuthType = isAuthUpdating && updatingAuthentication.getType()
+                .equals(existingAuthentication.getType());
+
+        // Update URI if it's changing.
+        if (isUriUpdating && (!isAuthUpdating || isSameAuthType)) {
+            updateActionEndpointProperties(dbConnection, actionId, getEndpointProperties(updatingEndpoint.getUri(),
+                    null, null), tenantId);
+        }
+
+        // If authentication is updating, and it's the same type, update auth properties only;
+        // otherwise, update the entire endpoint.
+        if (isAuthUpdating) {
+            if (isSameAuthType) {
+                updateActionEndpointAuthProperties(dbConnection, actionId, updatingAuthentication, tenantId);
+            } else {
+                updatingEndpoint = isUriUpdating ? updatingEndpoint : new EndpointConfig.EndpointConfigBuilder()
+                        .uri(existingAction.getEndpoint().getUri())
+                        .authentication(updatingAuthentication)
+                        .build();
+                updateActionEndpoint(dbConnection, actionType, actionId, updatingEndpoint, existingAuthentication,
+                        tenantId);
+            }
         }
     }
 }

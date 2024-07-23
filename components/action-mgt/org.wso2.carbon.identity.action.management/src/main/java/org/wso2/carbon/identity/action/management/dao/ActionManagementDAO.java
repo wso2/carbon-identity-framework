@@ -56,14 +56,16 @@ public interface ActionManagementDAO {
     /**
      * Update {@link Action} by given Action type and Action ID.
      *
-     * @param actionType Action Type.
-     * @param actionId   Action ID.
-     * @param action     Action update model.
-     * @param tenantId   Tenant Id.
+     * @param actionType     Action Type.
+     * @param actionId       Action ID.
+     * @param updatingAction Action update model.
+     * @param existingAction Existing Action.
+     * @param tenantId       Tenant Id.
      * @return Updated <code>Action</code>.
      * @throws ActionMgtException If an error occurs while updating the Action.
      */
-    Action updateAction(String actionType, String actionId, Action action, Integer tenantId) throws ActionMgtException;
+    Action updateAction(String actionType, String actionId, Action updatingAction, Action existingAction,
+                        Integer tenantId) throws ActionMgtException;
 
     /**
      * Delete {@link Action} by given Action Type.
