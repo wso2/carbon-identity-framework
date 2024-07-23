@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.extension.mgt.utils.ExtensionMgtConstants;
 public class TestUtils {
 
     private final static String EXTENSION_RESOURCE_PATH = "extensions/";
+    private final static String PATH_SEPARATOR = "/";
 
     /**
      * Stop initializing the utility class.
@@ -45,7 +46,8 @@ public class TestUtils {
      */
     public static String readExtensionResourceInfo(String type, String id) throws IOException {
 
-        return readResource(EXTENSION_RESOURCE_PATH + type + "/" + id + "/" + ExtensionMgtConstants.INFO_FILE_NAME);
+        return readResource(EXTENSION_RESOURCE_PATH + type + PATH_SEPARATOR + id + PATH_SEPARATOR +
+                ExtensionMgtConstants.INFO_FILE_NAME);
     }
 
     /**
