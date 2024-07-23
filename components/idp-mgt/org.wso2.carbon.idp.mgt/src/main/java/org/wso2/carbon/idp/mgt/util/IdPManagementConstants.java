@@ -186,7 +186,7 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_BY_TENANT_ORACLE_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' " +
                 "AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND " +
-                "NAME = 'isSystemReservedIdP' AND \"VALUE\" = 'true'0 AND ROWNUM <= ?) WHERE rnum > ?";
+                "NAME = 'isSystemReservedIdP' AND \"VALUE\" = 'true' AND ROWNUM <= ?) WHERE rnum > ?";
 
 
         public static final String GET_IDP_BY_TENANT_POSTGRESQL =
