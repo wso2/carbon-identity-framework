@@ -125,7 +125,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 () -> executeAction(actions.get(0), actionRequest, actionType, eventContext,
                         actionExecutionResponseProcessor));
         try {
-            return actionExecutor.get();
+            return Optional.ofNullable(actionExecutor.get()).isPresent() ? actionExecutor.get() :
+                    new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
         } catch (InterruptedException | ExecutionException e) {
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
         }

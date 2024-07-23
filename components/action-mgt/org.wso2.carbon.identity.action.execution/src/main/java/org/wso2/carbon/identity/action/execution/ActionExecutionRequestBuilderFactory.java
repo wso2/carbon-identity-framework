@@ -40,11 +40,17 @@ public class ActionExecutionRequestBuilderFactory {
         return actionInvocationRequestBuilders.get(actionType);
     }
 
-    public static void registerActionExecutionRequestBuilder(ActionType actionType,
-                                                             ActionExecutionRequestBuilder
+    public static void registerActionExecutionRequestBuilder(ActionExecutionRequestBuilder
                                                                      actionExecutionRequestBuilder) {
 
-        actionInvocationRequestBuilders.put(actionType, actionExecutionRequestBuilder);
+        actionInvocationRequestBuilders.put(actionExecutionRequestBuilder.getSupportedActionType(),
+                actionExecutionRequestBuilder);
+    }
+
+    public static void unregisterActionExecutionRequestBuilder(ActionExecutionRequestBuilder
+                                                                     actionExecutionRequestBuilder) {
+
+        actionInvocationRequestBuilders.remove(actionExecutionRequestBuilder.getSupportedActionType());
     }
 
 }

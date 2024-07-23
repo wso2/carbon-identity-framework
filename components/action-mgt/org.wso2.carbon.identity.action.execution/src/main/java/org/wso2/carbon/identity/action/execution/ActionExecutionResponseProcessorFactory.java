@@ -43,11 +43,17 @@ public class ActionExecutionResponseProcessorFactory {
         }
     }
 
-    public static void registerActionExecutionResponseProcessor(ActionType actionType,
-                                                                ActionExecutionResponseProcessor
+    public static void registerActionExecutionResponseProcessor(ActionExecutionResponseProcessor
                                                                         actionExecutionResponseProcessor) {
 
-        actionInvocationResponseProcessors.put(actionType, actionExecutionResponseProcessor);
+        actionInvocationResponseProcessors.put(actionExecutionResponseProcessor.getSupportedActionType(),
+                actionExecutionResponseProcessor);
+    }
+
+    public static void unregisterActionExecutionResponseProcessor(ActionExecutionResponseProcessor
+                                                                          actionExecutionResponseProcessor) {
+
+        actionInvocationResponseProcessors.remove(actionExecutionResponseProcessor.getSupportedActionType());
     }
 
 }

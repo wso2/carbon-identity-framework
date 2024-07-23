@@ -31,6 +31,8 @@ import java.util.Map;
  */
 public interface ActionExecutionRequestBuilder {
 
+    ActionType getSupportedActionType();
+
     ActionExecutionRequest buildActionExecutionRequest(ActionType actionType, Map<String, Object> eventContext) throws
             ActionExecutionRequestBuilderException;
 

@@ -34,6 +34,8 @@ import java.util.Map;
  */
 public interface ActionExecutionResponseProcessor {
 
+    ActionType getSupportedActionType();
+
     ActionExecutionStatus processSuccessResponse(ActionType actionType, Map<String, Object> eventContext,
                                                  Event actionEvent,
                                                  ActionInvocationSuccessResponse successResponse) throws
