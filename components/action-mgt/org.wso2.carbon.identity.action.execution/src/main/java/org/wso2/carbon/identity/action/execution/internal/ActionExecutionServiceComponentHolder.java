@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.action.management.ActionManagementService;
  */
 public class ActionExecutionServiceComponentHolder {
 
-    private static final ActionExecutionServiceComponentHolder instance = new ActionExecutionServiceComponentHolder();
+    private static final ActionExecutionServiceComponentHolder INSTANCE = new ActionExecutionServiceComponentHolder();
 
     private ActionManagementService actionManagementService;
 
@@ -35,7 +35,7 @@ public class ActionExecutionServiceComponentHolder {
 
     public static ActionExecutionServiceComponentHolder getInstance() {
 
-        return instance;
+        return INSTANCE;
     }
 
     public ActionManagementService getActionManagementService() {

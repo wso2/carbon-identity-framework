@@ -59,9 +59,9 @@ import java.util.stream.Collectors;
  */
 public class ActionExecutorServiceImpl implements ActionExecutorService {
 
-    private static final Log log = LogFactory.getLog(ActionExecutorServiceImpl.class);
+    private static final Log LOG = LogFactory.getLog(ActionExecutorServiceImpl.class);
 
-    private static final ActionExecutorServiceImpl instance = new ActionExecutorServiceImpl();
+    private static final ActionExecutorServiceImpl INSTANCE = new ActionExecutorServiceImpl();
     private final APIClient apiClient;
 
     private ActionExecutorServiceImpl() {
@@ -71,7 +71,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     public static ActionExecutorServiceImpl getInstance() {
 
-        return instance;
+        return INSTANCE;
     }
 
     public ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain)
@@ -86,7 +86,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                     actionExecutionResponseProcessor);
         } catch (ActionExecutionRuntimeException e) {
             // todo: add to diagnostics
-            log.error("Skip executing actions for action type: " + actionType.name() + ". Error: " + e.getMessage(), e);
+            LOG.error("Skip executing actions for action type: " + actionType.name() + ". Error: " + e.getMessage(), e);
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
 
         }
@@ -186,8 +186,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                   AuthMethods.AuthMethod authenticationMethod, String payload) {
 
         //todo: Add to diagnostics
-        if (log.isDebugEnabled()) {
-            log.debug(String.format(
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format(
                     "Calling API: %s for action type: %s action id: %s with authentication: %s payload: %s",
                     apiEndpoint,
                     actionType,
@@ -235,7 +235,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                                  actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             // todo: add to diagnostic logs
             logSuccessResponse(successResponse, actionType, actionId, apiEndpoint, authenticationMethod);
         }
@@ -259,7 +259,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                                actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             // todo: add to diagnostic logs
             logErrorResponse(errorResponse, actionType, actionId, apiEndpoint, authenticationMethod);
         }
@@ -273,7 +273,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         try {
             String responseBody = serializeSuccessResponse(successResponse);
-            log.debug(String.format(
+            LOG.debug(String.format(
                     "Received success response from API: %s for action type: %s action id: %s with authentication: %s. "
                             + "Response: %s",
                     apiEndpoint,
@@ -283,7 +283,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                             .orElse("NONE"),
                     responseBody));
         } catch (JsonProcessingException e) {
-            log.error("Error occurred while deserializing the success response for action: " +
+            LOG.error("Error occurred while deserializing the success response for action: " +
                     actionId + " for action type: " + actionType, e);
         }
     }
@@ -293,7 +293,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         try {
             String responseBody = serializeErrorResponse(errorResponse);
-            log.debug(String.format(
+            LOG.debug(String.format(
                     "Received error response from API: %s for action type: %s action id: %s with authentication: %s. " +
                             "Response: %s",
                     apiEndpoint,
@@ -303,7 +303,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                             .orElse("NONE"),
                     responseBody));
         } catch (JsonProcessingException e) {
-            log.error("Error occurred while deserializing the error response for action: " +
+            LOG.error("Error occurred while deserializing the error response for action: " +
                     actionId + " for action type: " + actionType, e);
         }
     }
@@ -311,8 +311,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private void logErrorResponse(ActionInvocationResponse actionInvocationResponse, ActionType actionType,
                                   String actionId, String apiEndpoint, AuthMethods.AuthMethod authenticationMethod) {
         // todo: add to diagnostic logs
-        if (log.isDebugEnabled()) {
-            log.debug(String.format(
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format(
                     "Failed to call API: %s for action type: %s action id: %s with authentication: %s. Error: %s",
                     apiEndpoint,
                     actionType,
@@ -355,7 +355,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                 performableOperation)))
                 .collect(Collectors.toList());
 
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             // todo: add to diagnostics
             List<String> allowedOps = new ArrayList<>();
             List<String> notAllowedOps = new ArrayList<>();
@@ -371,7 +371,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
             String logMessage = "Allowed Operations: " + String.join(", ", allowedOps) +
                     ". Not Allowed Operations: " + String.join(", ", notAllowedOps);
-            log.debug(logMessage);
+            LOG.debug(logMessage);
         }
 
         return allowedPerformableOperations;
