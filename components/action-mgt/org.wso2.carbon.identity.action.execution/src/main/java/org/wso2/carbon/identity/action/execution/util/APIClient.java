@@ -48,7 +48,7 @@ import java.util.Optional;
  */
 public class APIClient {
 
-    private static final Log log = LogFactory.getLog(APIClient.class);
+    private static final Log LOG = LogFactory.getLog(APIClient.class);
     private final CloseableHttpClient httpClient;
 
     public APIClient() {
@@ -106,15 +106,15 @@ public class APIClient {
                     return Optional.of(actionInvocationResponse);
                 }
                 //todo: add to diagnostic logs
-                log.warn("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
+                LOG.warn("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (ConnectTimeoutException | SocketTimeoutException e) {
                 //todo: add to diagnostic logs
-                log.warn("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
+                LOG.warn("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (Exception e) {
                 //todo: add to diagnostic logs
-                log.error("Request for API: " + request.getURI() + " failed due to an error.", e);
+                LOG.error("Request for API: " + request.getURI() + " failed due to an error.", e);
                 break;
             } finally {
                 request.releaseConnection();
@@ -122,7 +122,7 @@ public class APIClient {
             attempts++;
         }
 
-        log.warn("Maximum retry attempts reached for API: " + request.getURI());
+        LOG.warn("Maximum retry attempts reached for API: " + request.getURI());
         return Optional.empty();
     }
 

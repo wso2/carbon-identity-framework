@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionResponseProcessorException;
+import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRuntimeException;
 import org.wso2.carbon.identity.action.execution.internal.ActionExecutionServiceComponentHolder;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
@@ -76,59 +77,76 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     public ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
 
-        List<Action> actions;
         try {
-            actions = ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
+            List<Action> actions = getActionsByActionType(actionType, tenantDomain);
+            validateActions(actions, actionType);
+            ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
+            ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
+            return executeAction(actions.get(0), actionRequest, actionType, eventContext,
+                    actionExecutionResponseProcessor);
+        } catch (ActionExecutionRuntimeException e) {
+            // todo: add to diagnostics
+            log.error("Skip executing actions for action type: " + actionType.name() + ". Error: " + e.getMessage(), e);
+            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
+
+        }
+    }
+
+    private List<Action> getActionsByActionType(ActionType actionType, String tenantDomain) throws
+            ActionExecutionRuntimeException {
+
+        try {
+            return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
                     .getActionsByActionType(Action.ActionTypes.valueOf(actionType.name()).getPathParam(), tenantDomain);
         } catch (ActionMgtException e) {
-            //todo: throw and block ?
-            log.error("Skip executing actions for action type: " + actionType.name() +
-                    ". Error occurred while retrieving actions.", e);
-            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
+            throw new ActionExecutionRuntimeException("Error occurred while retrieving actions.", e);
         }
+    }
+
+    private void validateActions(List<Action> actions, ActionType actionType) throws ActionExecutionException {
 
         if (actions.isEmpty()) {
-            log.info("No actions found for action type: " + actionType.name());
-            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
+            throw new ActionExecutionRuntimeException("No actions found for action type: " + actionType);
         }
-
         if (actions.size() > 1) {
             // when multiple actions are supported for an action type the logic below needs to be improved such that,
             // a successful processing from one action becomes the input to the successor.
             throw new ActionExecutionException("Multiple actions found for action type: " + actionType.name() +
-                    "Current implementation doesn't support for multiple actions for a single action type.");
+                    ". Current implementation doesn't support multiple actions for a single action type.");
         }
+    }
 
-        ActionExecutionRequestBuilder actionExecutionRequestBuilder =
+    private ActionExecutionRequest buildActionExecutionRequest(ActionType actionType, Map<String, Object> eventContext)
+            throws ActionExecutionException {
+
+        ActionExecutionRequestBuilder requestBuilder =
                 ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(actionType);
-        if (actionExecutionRequestBuilder == null) {
+        if (requestBuilder == null) {
             throw new ActionExecutionException("No request builder found for action type: " + actionType);
         }
+        try {
+            return requestBuilder.buildActionExecutionRequest(actionType, eventContext);
+        } catch (ActionExecutionRequestBuilderException e) {
+            throw new ActionExecutionRuntimeException("Error occurred while building the request payload.", e);
+        }
+    }
 
-        ActionExecutionResponseProcessor actionExecutionResponseProcessor =
+    private ActionExecutionResponseProcessor getResponseProcessor(ActionType actionType)
+            throws ActionExecutionException {
+
+        ActionExecutionResponseProcessor responseProcessor =
                 ActionExecutionResponseProcessorFactory.getActionExecutionResponseProcessor(actionType);
-        if (actionExecutionResponseProcessor == null) {
+        if (responseProcessor == null) {
             throw new ActionExecutionException("No response processor found for action type: " + actionType);
         }
-
-        ActionExecutionRequest actionRequest;
-        try {
-            actionRequest = actionExecutionRequestBuilder.buildActionExecutionRequest(actionType, eventContext);
-        } catch (ActionExecutionRequestBuilderException e) {
-            //todo: Add to diagnostics ?
-            log.error("Skip executing actions for action type: " + actionType.name() +
-                    ". Error occurred while building the request payload.", e);
-            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
-        }
-
-        return executeAction(actions.get(0), actionRequest, actionType, eventContext,
-                actionExecutionResponseProcessor);
+        return responseProcessor;
     }
 
     private ActionExecutionStatus executeAction(Action action, ActionExecutionRequest actionRequest,
                                                 ActionType actionType,
                                                 Map<String, Object> eventContext,
-                                                ActionExecutionResponseProcessor actionExecutionResponseProcessor) {
+                                                ActionExecutionResponseProcessor actionExecutionResponseProcessor)
+            throws ActionExecutionRuntimeException {
 
         String apiEndpoint = action.getEndpoint().getUri();
         AuthType endpointAuthentication = action.getEndpoint().getAuthentication();
@@ -140,29 +158,28 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
             logActionRequest(apiEndpoint, actionType, action.getId(), authenticationMethod, payload);
 
-            CompletableFuture<ActionInvocationResponse> actionExecutor =
-                    CompletableFuture.supplyAsync(() -> apiClient.callAPI(apiEndpoint, authenticationMethod, payload));
-
-            ActionInvocationResponse actionInvocationResponse;
-            try {
-                actionInvocationResponse = actionExecutor.get();
-            } catch (InterruptedException | ExecutionException e) {
-                //todo: Add to diagnostics
-                log.error("Skip executing action: " + action.getId() + " for action type: " + actionType +
-                        ". Error occurred during action execution.", e);
-                return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
-            }
-
+            ActionInvocationResponse actionInvocationResponse =
+                    executeActionAsynchronously(action, authenticationMethod, payload);
             return processActionResponse(actionInvocationResponse, actionType, eventContext, actionRequest,
-                    action.getId(),
-                    apiEndpoint, authenticationMethod, actionExecutionResponseProcessor);
+                    action.getId(), apiEndpoint, authenticationMethod, actionExecutionResponseProcessor);
         } catch (ActionMgtException | JsonProcessingException | ActionExecutionResponseProcessorException e) {
-            //todo: Add to diagnostics
-            log.error("Skip executing action: " + action.getId() + " for action type: " + actionType +
-                    ". Error occurred during action execution.", e);
+            throw new ActionExecutionRuntimeException("Error occurred while executing action: " + action.getId(), e);
         }
+    }
 
-        return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
+    private ActionInvocationResponse executeActionAsynchronously(Action action,
+                                                                 AuthMethods.AuthMethod authenticationMethod,
+                                                                 String payload) {
+
+        String apiEndpoint = action.getEndpoint().getUri();
+        CompletableFuture<ActionInvocationResponse> actionExecutor = CompletableFuture.supplyAsync(
+                () -> apiClient.callAPI(apiEndpoint, authenticationMethod, payload));
+        try {
+            return actionExecutor.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new ActionExecutionRuntimeException("Error occurred while executing action: " + action.getId(),
+                    e);
+        }
     }
 
     private void logActionRequest(String apiEndpoint, ActionType actionType, String actionId,
