@@ -41,6 +41,8 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.action.management</artifactId>
+            <!--   todo: update once PR is merged         -->
+            <version>7.3.47</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
