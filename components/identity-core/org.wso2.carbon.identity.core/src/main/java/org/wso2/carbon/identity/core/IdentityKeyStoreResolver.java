@@ -21,14 +21,18 @@ package org.wso2.carbon.identity.core;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.core.util.KeyStoreUtil;
 import org.wso2.carbon.identity.core.model.IdentityKeyStoreMapping;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.InboundProtocol;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.utils.CarbonUtils;
 
 import java.security.Key;
 import java.security.KeyStore;
@@ -300,6 +304,88 @@ public class IdentityKeyStoreResolver {
 
         // Conditions are checked in getCertificate method
         return (RSAPublicKey) getCertificate(tenantDomain, inboundProtocol).getPublicKey();
+    }
+
+    /**
+     * Return key store configs of the Primary, tenant or custom keystore.
+     *
+     * @param tenantDomain      Tenant domain
+     * @param inboundProtocol   Inbound authentication protocol of the application
+     * @param configName        Name of the configuration needed
+     * @return Configuration value
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     */
+    public String getKeyStoreConfig(String tenantDomain, InboundProtocol inboundProtocol, String configName)
+            throws IdentityKeyStoreResolverException {
+
+        if (keyStoreMappings.containsKey(inboundProtocol)) {
+            if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
+                    keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
+
+                String keyStoreName = buildCustomKeyStoreName(keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+                return getCustomKeyStoreConfig(keyStoreName, configName);
+            }
+        }
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            return getPrimaryKeyStoreConfig(configName);
+        }
+
+        return getTenantKeyStoreConfig(tenantDomain, configName);
+
+    }
+
+    private String getPrimaryKeyStoreConfig(String configName) throws IdentityKeyStoreResolverException {
+
+        try {
+            KeyStoreUtil.validateKeyStoreConfigName(configName);
+
+            String fullConfigPath = "Security.KeyStore." + configName;
+            return CarbonUtils.getServerConfiguration().getFirstProperty(fullConfigPath);
+        } catch (CarbonException e) {
+            throw new IdentityKeyStoreResolverException("Error while retrieving primary key store configuration.", e);
+        }
+    }
+
+    private String getTenantKeyStoreConfig(String tenantDomain, String configName)
+            throws IdentityKeyStoreResolverException {
+
+        try {
+            KeyStoreUtil.validateKeyStoreConfigName(configName);
+
+            switch (configName) {
+                case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_LOCATION):
+                    // Returning only key store name because tenant key stores reside within the registry.
+                    return buildTenantKeyStoreName(tenantDomain);
+                case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_TYPE):
+                    return CarbonUtils.getServerConfiguration().getFirstProperty(
+                            RegistryResources.SecurityManagement.PROP_TYPE);
+                case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_PASSWORD):
+                case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_KEY_PASSWORD):
+                    return CarbonUtils.getServerConfiguration().getFirstProperty(
+                            RegistryResources.SecurityManagement.PROP_PASSWORD);
+                case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_KEY_ALIAS):
+                    return tenantDomain;
+                default:
+                    throw new IdentityKeyStoreResolverException("Unexpected error while retrieving configuration");
+            }
+        } catch (CarbonException e) {
+            throw new IdentityKeyStoreResolverException("Error while retrieving tenant key store configuration.", e);
+        }
+    }
+
+    private String getCustomKeyStoreConfig(String keyStoreName, String configName)
+            throws IdentityKeyStoreResolverException {
+
+        try {
+            KeyStoreUtil.validateKeyStoreConfigName(configName);
+
+            OMElement configElement = KeyStoreUtil
+                    .getCustomKeyStoreConfigElement(keyStoreName, CarbonUtils.getServerConfiguration());
+            return KeyStoreUtil.getCustomKeyStoreConfig(configElement, configName);
+        } catch (CarbonException e) {
+            throw new IdentityKeyStoreResolverException("Error while retrieving custom key store configuration.", e);
+        }
     }
 
     private void parseIdentityKeyStoreMappingConfigs() {
