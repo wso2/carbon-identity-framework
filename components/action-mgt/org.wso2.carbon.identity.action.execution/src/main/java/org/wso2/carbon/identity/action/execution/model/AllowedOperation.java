@@ -29,16 +29,16 @@ import java.util.List;
  */
 public class AllowedOperation {
 
-    String op;
+    Operation op;
 
     List<String> paths;
 
-    public String getOp() {
+    public Operation getOp() {
 
         return op;
     }
 
-    public void setOp(String op) {
+    public void setOp(Operation op) {
 
         this.op = op;
     }

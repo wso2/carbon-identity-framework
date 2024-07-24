@@ -28,16 +28,16 @@ package org.wso2.carbon.identity.action.execution.model;
  */
 public class PerformableOperation {
 
-    private String op;
+    private Operation op;
     private String path;
     private Object value;
 
-    public String getOp() {
+    public Operation getOp() {
 
         return op;
     }
 
-    public void setOp(String op) {
+    public void setOp(Operation op) {
 
         this.op = op;
     }

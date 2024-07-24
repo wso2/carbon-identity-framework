@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.execution.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.List;
 
@@ -30,11 +31,20 @@ import java.util.List;
 @JsonDeserialize(builder = ActionInvocationSuccessResponse.Builder.class)
 public class ActionInvocationSuccessResponse implements ActionInvocationResponse.APIResponse {
 
+    private final ActionInvocationResponse.Status actionStatus;
+
     private final List<PerformableOperation> operations;
 
     private ActionInvocationSuccessResponse(Builder builder) {
 
+        this.actionStatus = builder.actionStatus;
         this.operations = builder.operations;
+    }
+
+    @Override
+    public ActionInvocationResponse.Status getActionStatus() {
+
+        return actionStatus;
     }
 
     public List<PerformableOperation> getOperations() {
@@ -45,11 +55,24 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
     /**
      * This class is used to build the {@link ActionInvocationSuccessResponse}.
      */
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
 
+        private ActionInvocationResponse.Status actionStatus;
         private List<PerformableOperation> operations;
 
-        public Builder setOperations(@JsonProperty("operations") List<PerformableOperation> operations) {
+        @JsonProperty("actionStatus")
+        public Builder actionStatus(String actionStatus) {
+
+            if (!ActionInvocationResponse.Status.SUCCESS.name().equals(actionStatus)) {
+                throw new IllegalArgumentException("actionStatus must be SUCCESS");
+            }
+            this.actionStatus = ActionInvocationResponse.Status.SUCCESS;
+            return this;
+        }
+
+        @JsonProperty("operations")
+        public Builder operations(@JsonProperty("operations") List<PerformableOperation> operations) {
 
             this.operations = operations;
             return this;

@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcesso
 import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessorFactory;
 import org.wso2.carbon.identity.action.execution.ActionExecutorService;
 import org.wso2.carbon.identity.action.execution.ActionExecutorServiceImpl;
+import org.wso2.carbon.identity.action.management.ActionManagementService;
 
 /**
  * OSGI service component for the Action execution.
@@ -68,6 +69,33 @@ public class ActionExecutionServiceComponent {
             LOG.debug("Action execution bundle is deactivated");
         } catch (Throwable e) {
             LOG.error("Error while deactivating Action execution service component.", e);
+        }
+    }
+
+    @Reference(
+            name = "action.management.service",
+            service = ActionManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionManagementService"
+    )
+    protected void setActionManagementService(ActionManagementService actionManagementService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Registering a reference for ActionManagementService in the ActionExecutionServiceComponent.");
+        }
+        ActionExecutionServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+    }
+
+    protected void unsetActionManagementService(ActionManagementService actionManagementService) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(
+                    "Unregistering the reference for ActionManagementService in the ActionExecutionServiceComponent.");
+        }
+        if (ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
+                .equals(actionManagementService)) {
+            ActionExecutionServiceComponentHolder.getInstance().setActionManagementService(null);
         }
     }
 
@@ -118,13 +146,14 @@ public class ActionExecutionServiceComponent {
                 actionExecutionResponseProcessor);
     }
 
-    protected void unsetActionExecutionResponseProcessor(ActionExecutionResponseProcessor actionExecutionResponseProcessor) {
+    protected void unsetActionExecutionResponseProcessor(
+            ActionExecutionResponseProcessor actionExecutionResponseProcessor) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Unregistering ActionExecutionResponseProcessor: " +
                     actionExecutionResponseProcessor.getClass().getName() + " in the ActionExecutionServiceComponent.");
         }
-        ActionExecutionResponseProcessorFactory.unregisterActionExecutionResponseProcessor(actionExecutionResponseProcessor);
+        ActionExecutionResponseProcessorFactory.unregisterActionExecutionResponseProcessor(
+                actionExecutionResponseProcessor);
     }
-
 }

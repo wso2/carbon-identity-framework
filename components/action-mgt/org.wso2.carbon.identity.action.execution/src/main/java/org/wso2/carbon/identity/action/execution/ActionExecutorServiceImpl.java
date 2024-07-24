@@ -79,7 +79,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         List<Action> actions;
         try {
             actions = ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
-                    .getActionsByActionType(actionType.name(), tenantDomain);
+                    .getActionsByActionType(Action.ActionTypes.valueOf(actionType.name()).getPathParam(), tenantDomain);
         } catch (ActionMgtException e) {
             //todo: throw and block ?
             log.error("Skip executing actions for action type: " + actionType.name() +
@@ -121,15 +121,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
         }
 
-        CompletableFuture<ActionExecutionStatus> actionExecutor = CompletableFuture.supplyAsync(
-                () -> executeAction(actions.get(0), actionRequest, actionType, eventContext,
-                        actionExecutionResponseProcessor));
-        try {
-            return Optional.ofNullable(actionExecutor.get()).isPresent() ? actionExecutor.get() :
-                    new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
-        } catch (InterruptedException | ExecutionException e) {
-            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
-        }
+        return executeAction(actions.get(0), actionRequest, actionType, eventContext,
+                actionExecutionResponseProcessor);
     }
 
     private ActionExecutionStatus executeAction(Action action, ActionExecutionRequest actionRequest,
@@ -147,13 +140,22 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
             logActionRequest(apiEndpoint, actionType, action.getId(), authenticationMethod, payload);
 
-            ActionInvocationResponse actionInvocationResponse =
-                    apiClient.callAPI(apiEndpoint, authenticationMethod, payload);
+            CompletableFuture<ActionInvocationResponse> actionExecutor =
+                    CompletableFuture.supplyAsync(() -> apiClient.callAPI(apiEndpoint, authenticationMethod, payload));
+
+            ActionInvocationResponse actionInvocationResponse;
+            try {
+                actionInvocationResponse = actionExecutor.get();
+            } catch (InterruptedException | ExecutionException e) {
+                //todo: Add to diagnostics
+                log.error("Skip executing action: " + action.getId() + " for action type: " + actionType +
+                        ". Error occurred during action execution.", e);
+                return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
+            }
+
             return processActionResponse(actionInvocationResponse, actionType, eventContext, actionRequest,
                     action.getId(),
-                    apiEndpoint, authenticationMethod, actionExecutionResponseProcessor
-                                        );
-
+                    apiEndpoint, authenticationMethod, actionExecutionResponseProcessor);
         } catch (ActionMgtException | JsonProcessingException | ActionExecutionResponseProcessorException e) {
             //todo: Add to diagnostics
             log.error("Skip executing action: " + action.getId() + " for action type: " + actionType +
@@ -224,7 +226,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         List<PerformableOperation> allowedPerformableOperations =
                 validatePerformableOperations(actionRequest, successResponse);
         ActionInvocationSuccessResponse.Builder successResponseBuilder =
-                new ActionInvocationSuccessResponse.Builder().setOperations(allowedPerformableOperations);
+                new ActionInvocationSuccessResponse.Builder().operations(allowedPerformableOperations);
         return actionExecutionResponseProcessor.processSuccessResponse(actionType, eventContext,
                 actionRequest.getEvent(),
                 successResponseBuilder.build());

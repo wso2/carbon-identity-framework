@@ -32,7 +32,7 @@ public class ActionInvocationResponse {
     private String errorLog;
 
     private ActionInvocationResponse() {
-        // Private constructor to enforce the use of the Builder
+
     }
 
     public APIResponse getResponse() {
@@ -73,6 +73,8 @@ public class ActionInvocationResponse {
      */
     public interface APIResponse {
 
+        Status getActionStatus();
+
     }
 
     /**
@@ -88,12 +90,7 @@ public class ActionInvocationResponse {
 
         public Builder setResponse(APIResponse response) {
 
-            if (response instanceof ActionInvocationSuccessResponse) {
-                this.actionStatus = Status.SUCCESS;
-            } else if (response instanceof ActionInvocationErrorResponse) {
-                this.actionStatus = Status.ERROR;
-            }
-
+            this.actionStatus = response.getActionStatus();
             this.response = response;
             return this;
         }

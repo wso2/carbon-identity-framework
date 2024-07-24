@@ -165,9 +165,6 @@ public class APIClient {
     private ActionInvocationSuccessResponse handleSuccessResponse(HttpEntity responseEntity)
             throws ActionInvocationException {
 
-        if (!isAcceptablePayload(responseEntity)) {
-            throw new ActionInvocationException("The response content type is not application/json.");
-        }
         return deserialize(responseEntity, ActionInvocationSuccessResponse.class);
     }
 

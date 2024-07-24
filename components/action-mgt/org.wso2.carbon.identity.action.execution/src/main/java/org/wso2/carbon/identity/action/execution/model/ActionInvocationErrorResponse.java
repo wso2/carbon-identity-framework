@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.execution.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * This class is used to represent the error response of an action invocation.
@@ -27,15 +28,20 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonDeserialize(builder = ActionInvocationErrorResponse.Builder.class)
 public class ActionInvocationErrorResponse implements ActionInvocationResponse.APIResponse {
 
+    private final ActionInvocationResponse.Status actionStatus;
     private final String error;
     private final String errorDescription;
-    private final String errorUri;
 
     private ActionInvocationErrorResponse(Builder builder) {
 
+        this.actionStatus = builder.actionStatus;
         this.error = builder.error;
         this.errorDescription = builder.errorDescription;
-        this.errorUri = builder.errorUri;
+    }
+
+    public ActionInvocationResponse.Status getActionStatus() {
+
+        return actionStatus;
     }
 
     public String getError() {
@@ -48,37 +54,37 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
         return errorDescription;
     }
 
-    public String getErrorUri() {
-
-        return errorUri;
-    }
-
     /**
      * This class is used to build the {@link ActionInvocationErrorResponse}.
      */
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
 
+        private ActionInvocationResponse.Status actionStatus;
         private String error;
         private String errorDescription;
-        private String errorUri;
 
-        public ActionInvocationErrorResponse.Builder setError(@JsonProperty("error") String error) {
+        @JsonProperty("actionStatus")
+        public Builder actionStatus(ActionInvocationResponse.Status actionStatus) {
+
+            if (!ActionInvocationResponse.Status.ERROR.equals(actionStatus)) {
+                throw new IllegalArgumentException("actionStatus must be ERROR");
+            }
+            this.actionStatus = actionStatus;
+            return this;
+        }
+
+        @JsonProperty("error")
+        public Builder error(String error) {
 
             this.error = error;
             return this;
         }
 
-        public ActionInvocationErrorResponse.Builder setErrorDescription(
-
-                @JsonProperty("errorDescription") String errorDescription) {
+        @JsonProperty("errorDescription")
+        public Builder errorDescription(String errorDescription) {
 
             this.errorDescription = errorDescription;
-            return this;
-        }
-
-        public ActionInvocationErrorResponse.Builder setErrorUri(@JsonProperty("errorUri") String errorUri) {
-
-            this.errorUri = errorUri;
             return this;
         }
 
