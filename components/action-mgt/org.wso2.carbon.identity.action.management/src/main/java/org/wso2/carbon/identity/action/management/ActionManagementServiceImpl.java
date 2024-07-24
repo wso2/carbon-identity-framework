@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.action.management;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
@@ -88,9 +87,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Updating Action for Action Type: %s and Action ID: %s.", actionType, actionId));
         }
-        Action existingAction = checkIfActionExists(actionId, tenantDomain);
-        action = mergeActionWithExisting(action, existingAction);
-        return CACHE_BACKED_DAO.updateAction(getActionTypeFromPath(actionType), actionId, action,
+        String resolvedActionType = getActionTypeFromPath(actionType);
+        Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
+        return CACHE_BACKED_DAO.updateAction(resolvedActionType, actionId, action, existingAction,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -100,8 +99,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Deleting Action for Action Type: %s and Action ID: %s", actionType, actionId));
         }
-        Action action = checkIfActionExists(actionId, tenantDomain);
-        CACHE_BACKED_DAO.deleteAction(getActionTypeFromPath(actionType), actionId, action,
+        String resolvedActionType = getActionTypeFromPath(actionType);
+        Action action = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
+        CACHE_BACKED_DAO.deleteAction(resolvedActionType, actionId, action,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -111,8 +111,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Activating Action for Action Type: %s and Action ID: %s.", actionType, actionId));
         }
-        checkIfActionExists(actionId, tenantDomain);
-        return CACHE_BACKED_DAO.activateAction(getActionTypeFromPath(actionType), actionId,
+        String resolvedActionType = getActionTypeFromPath(actionType);
+        checkIfActionExists(resolvedActionType, actionId, tenantDomain);
+        return CACHE_BACKED_DAO.activateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -123,8 +124,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug(String.format("Deactivating Action for Action Type: %s and Action ID: %s.", actionType,
                     actionId));
         }
-        checkIfActionExists(actionId, tenantDomain);
-        return CACHE_BACKED_DAO.deactivateAction(getActionTypeFromPath(actionType), actionId,
+        String resolvedActionType = getActionTypeFromPath(actionType);
+        checkIfActionExists(resolvedActionType, actionId, tenantDomain);
+        return CACHE_BACKED_DAO.deactivateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -150,13 +152,14 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     public Action updateActionEndpointAuthentication(String actionType, String actionId, AuthType authentication,
                                                      String tenantDomain) throws ActionMgtException {
 
-        Action existingAction = checkIfActionExists(actionId, tenantDomain);
+        String resolvedActionType = getActionTypeFromPath(actionType);
+        Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         if (existingAction.getEndpoint().getAuthentication().getType().equals(authentication.getType())) {
             // Only need to update the properties since the authType is same.
-            return updateEndpointAuthenticationProperties(actionType, actionId, authentication, tenantDomain);
+            return updateEndpointAuthenticationProperties(resolvedActionType, actionId, authentication, tenantDomain);
         } else {
             // Need to update the authentication type and properties.
-            return updateEndpoint(actionType, actionId, existingAction, authentication, tenantDomain);
+            return updateEndpoint(resolvedActionType, actionId, existingAction, authentication, tenantDomain);
         }
     }
 
@@ -197,39 +200,20 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     /**
      * Check if the action exists.
      *
+     * @param actionType   Action Type.
      * @param actionId     Action ID.
      * @param tenantDomain Tenant Domain.
      * @throws ActionMgtException If the action does not exist.
      */
-    private Action checkIfActionExists(String actionId, String tenantDomain) throws ActionMgtException {
+    private Action checkIfActionExists(String actionType, String actionId, String tenantDomain)
+            throws ActionMgtException {
 
         Action action = CACHE_BACKED_DAO.getActionByActionId(actionId, IdentityTenantUtil.getTenantId(tenantDomain));
-        if (action == null) {
+        if (action == null || !actionType.equals(action.getType().name())) {
             throw ActionManagementUtil.handleClientException(
-                    ActionMgtConstants.ErrorMessages.ERROR_NO_ACTION_CONFIGURED_ON_GIVEN_ID);
+                    ActionMgtConstants.ErrorMessages.ERROR_NO_ACTION_CONFIGURED_ON_GIVEN_ACTION_TYPE_AND_ID);
         }
         return action;
-    }
-
-    /**
-     * Merge the updating action with the existing action.
-     *
-     * @param updatingAction Action object with updating information.
-     * @param existingAction Action object with existing information.
-     * @return Action object with merged information.
-     */
-    private Action mergeActionWithExisting(Action updatingAction, Action existingAction) {
-
-        return new Action.ActionRequestBuilder()
-                .name(StringUtils.isEmpty(updatingAction.getName()) ? existingAction.getName() :
-                        updatingAction.getName())
-                .description(StringUtils.isEmpty(updatingAction.getDescription()) ? existingAction.getDescription() :
-                        updatingAction.getDescription())
-                .endpoint(new EndpointConfig.EndpointConfigBuilder()
-                        .uri(StringUtils.isEmpty(updatingAction.getEndpoint().getUri()) ?
-                                existingAction.getEndpoint().getUri() : updatingAction.getEndpoint().getUri())
-                        .build())
-                .build();
     }
 
     /**
@@ -254,7 +238,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         EndpointConfig endpoint = new EndpointConfig.EndpointConfigBuilder()
                 .uri(existingAction.getEndpoint().getUri())
                 .authentication(authentication).build();
-        return CACHE_BACKED_DAO.updateActionEndpoint(getActionTypeFromPath(actionType), actionId, endpoint,
+        return CACHE_BACKED_DAO.updateActionEndpoint(actionType, actionId, endpoint,
                 existingAction.getEndpoint().getAuthentication(), IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -277,6 +261,5 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         return CACHE_BACKED_DAO.updateActionEndpointAuthProperties(actionId, authentication,
                 IdentityTenantUtil.getTenantId(tenantDomain));
-
     }
 }
