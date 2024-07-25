@@ -175,11 +175,6 @@ public class Action  {
         this.endpointConfig = endpointConfig;
     }
 
-    public boolean isActive() {
-
-        return Status.ACTIVE.equals(status);
-    }
-
     /**
      * ActionResponseBuilder.
      */
