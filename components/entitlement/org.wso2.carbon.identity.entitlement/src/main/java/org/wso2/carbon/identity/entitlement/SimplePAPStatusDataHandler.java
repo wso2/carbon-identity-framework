@@ -110,10 +110,16 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
     public StatusHolder[] getStatusData(String about, String key, String type, String searchString)
             throws EntitlementException {
 
-        boolean isAboutPolicy = EntitlementConstants.Status.ABOUT_POLICY.equals(about);
-        String statusAboutType =
-                isAboutPolicy ? EntitlementConstants.Status.ABOUT_POLICY : EntitlementConstants.Status.ABOUT_SUBSCRIBER;
-        String path = isAboutPolicy ? ENTITLEMENT_POLICY_STATUS + key : ENTITLEMENT_PUBLISHER_STATUS + key;
+        String path;
+        String statusAboutType;
+        
+        if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
+            path = ENTITLEMENT_POLICY_STATUS + key;
+            statusAboutType = EntitlementConstants.Status.ABOUT_POLICY;
+        } else {
+            path = ENTITLEMENT_PUBLISHER_STATUS + key;
+            statusAboutType = EntitlementConstants.Status.ABOUT_SUBSCRIBER;
+        }
 
         List<StatusHolder> holders = readStatus(path, statusAboutType);
         return EntitlementUtil.filterStatus(holders, searchString, about, type);
