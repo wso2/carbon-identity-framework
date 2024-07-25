@@ -18,12 +18,14 @@
 
 package org.wso2.carbon.identity.entitlement.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
+import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
 import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
@@ -163,7 +165,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
         String subscriberPath;
 
         if (subscriberId == null) {
-            throw new EntitlementException("SubscriberDAO Id can not be null");
+            throw new EntitlementException("Subscriber Id can not be null");
         }
 
         if (EntitlementConstants.PDP_SUBSCRIBER_ID.equals(subscriberId.trim())) {
@@ -193,20 +195,9 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
 
         Collection policyCollection;
         String subscriberPath;
-        String subscriberId = null;
-
-        if (holder == null || holder.getPropertyDTOs() == null) {
-            throw new EntitlementException("Publisher data can not be null");
-        }
-
-        for (PublisherPropertyDTO dto : holder.getPropertyDTOs()) {
-            if (SUBSCRIBER_ID.equals(dto.getId())) {
-                subscriberId = dto.getValue();
-            }
-        }
-
+        String subscriberId = EntitlementUtil.resolveSubscriberId(holder);
         if (subscriberId == null) {
-            throw new EntitlementException("SubscriberDAO Id can not be null");
+            throw new EntitlementException("Subscriber Id can not be null");
         }
 
         try {
@@ -247,12 +238,11 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
      * @param oldHolder old publisher data holder
      * @param resource  registry resource
      */
-    private void populateProperties(PublisherDataHolder holder,
-                                    PublisherDataHolder oldHolder, Resource resource) {
+    private void populateProperties(PublisherDataHolder holder, PublisherDataHolder oldHolder, Resource resource) {
 
         PublisherPropertyDTO[] propertyDTOs = holder.getPropertyDTOs();
         for (PublisherPropertyDTO dto : propertyDTOs) {
-            if (dto.getId() != null && dto.getValue() != null && !dto.getValue().trim().isEmpty()) {
+            if (StringUtils.isNotBlank(dto.getId()) && StringUtils.isNotBlank(dto.getValue())) {
                 ArrayList<String> list = new ArrayList<>();
                 if (dto.isSecret()) {
                     PublisherPropertyDTO propertyDTO = null;
