@@ -125,6 +125,7 @@ public class ApplicationConstants {
     public static final String CONSOLE_PORTAL_PATH = "Console.AppBaseName";
     public static final String MYACCOUNT_PORTAL_PATH = "MyAccount.AppBaseName";
     public static final String AUTHORIZE_ALL_SCOPES = "OAuth.AuthorizeAllScopes";
+    public static final String RBAC = "RBAC";
 
     /**
      * Group the constants related to logs.

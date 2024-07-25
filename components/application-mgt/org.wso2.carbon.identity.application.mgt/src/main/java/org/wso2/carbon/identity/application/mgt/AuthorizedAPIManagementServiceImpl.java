@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.AUTHORIZE_ALL_SCOPES;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.RBAC;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 
 /**
@@ -211,7 +212,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                 List<Scope> scopes = ApplicationManagementServiceComponentHolder.getInstance().getAPIResourceManager()
                         .getScopesByTenantDomain(tenantDomain, null);
                 authorizedScopes = Collections.singletonList(
-                        new AuthorizedScopes("RBAC", scopes.stream()
+                        new AuthorizedScopes(RBAC, scopes.stream()
                                 .map(Scope::getName)
                                 .collect(Collectors.toCollection(ArrayList::new))));
             } else {
