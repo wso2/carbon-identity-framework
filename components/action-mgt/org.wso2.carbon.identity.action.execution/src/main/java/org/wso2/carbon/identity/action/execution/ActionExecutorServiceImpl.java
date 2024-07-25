@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.execution;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
@@ -82,8 +83,13 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             validateActions(actions, actionType);
             ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
             ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
-            return executeAction(actions.get(0), actionRequest, actionType, eventContext,
-                    actionExecutionResponseProcessor);
+
+            Action action = actions.get(0); // As of now only one action is allowed.
+            return Optional.ofNullable(action)
+                    .filter(activeAction -> activeAction.getStatus() == Action.Status.ACTIVE)
+                    .map(activeAction -> executeAction(activeAction, actionRequest, actionType, eventContext,
+                            actionExecutionResponseProcessor))
+                    .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext));
         } catch (ActionExecutionRuntimeException e) {
             // todo: add to diagnostics
             LOG.error("Skip executing actions for action type: " + actionType.name() + ". Error: " + e.getMessage(), e);
@@ -105,7 +111,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void validateActions(List<Action> actions, ActionType actionType) throws ActionExecutionException {
 
-        if (actions.isEmpty()) {
+        if (CollectionUtils.isEmpty(actions)) {
             throw new ActionExecutionRuntimeException("No actions found for action type: " + actionType);
         }
         if (actions.size() > 1) {
