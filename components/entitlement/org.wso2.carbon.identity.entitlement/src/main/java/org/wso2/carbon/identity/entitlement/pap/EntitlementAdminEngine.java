@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.entitlement.pap;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
 import org.wso2.carbon.identity.entitlement.dao.ConfigDAO;
 import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
@@ -31,6 +33,9 @@ import org.wso2.carbon.identity.entitlement.dao.SubscriberDAO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreManager;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PolicyPublisher;
+import org.wso2.carbon.identity.entitlement.policy.store.DefaultPolicyDataStore;
+import org.wso2.carbon.identity.entitlement.policy.store.PolicyDataStore;
+import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManageModule;
 import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManager;
 
 import java.util.Map;
@@ -49,6 +54,7 @@ public class EntitlementAdminEngine {
     private static Log log = LogFactory.getLog(EntitlementAdminEngine.class);
     private PolicyPublisher policyPublisher;
     private EntitlementDataFinder entitlementDataFinder;
+    private PolicyDataStore policyDataStore;
     private PolicyStoreManager policyStoreManager;
     private PAPPolicyStoreManager papPolicyStoreManager;
     private Set<PAPStatusDataHandler> papStatusDataHandlers;
@@ -62,11 +68,30 @@ public class EntitlementAdminEngine {
         this.policyPublisher = new PolicyPublisher();
         this.papPolicyStoreManager = new PAPPolicyStoreManager();
 
+        Map<PolicyStoreManageModule, Properties> policyCollections = EntitlementServiceComponent.
+                getEntitlementConfig().getPolicyStore();
+        Properties policyStoreProperties = new Properties();
+        if (MapUtils.isNotEmpty(policyCollections)) {
+            policyStoreProperties = policyCollections.entrySet().iterator().next().getValue();
+        }
+        Map<PolicyDataStore, Properties> dataStoreModules = EntitlementServiceComponent.
+                getEntitlementConfig().getPolicyDataStore();
+        if (MapUtils.isNotEmpty(dataStoreModules)) {
+            this.policyDataStore = dataStoreModules.entrySet().iterator().next().getKey();
+        } else {
+            this.policyDataStore = new DefaultPolicyDataStore();
+        }
+        try {
+            this.policyDataStore.init(policyStoreProperties);
+        } catch (EntitlementException e) {
+            log.warn("Error occurred while initializing the policy data store", e);
+        }
+
         Map<PAPStatusDataHandler, Properties> statusDataHandlers = EntitlementServiceComponent.
                 getEntitlementConfig().getPapStatusDataHandlers();
         papStatusDataHandlers = statusDataHandlers.keySet();
         this.policyPublisher.setPapStatusDataHandlers(papStatusDataHandlers);
-        this.policyStoreManager = new PolicyStoreManager();
+        this.policyStoreManager = new PolicyStoreManager(policyDataStore);
         this.configDAO = new RegistryConfigDAOImpl();
         this.policyDAO = new RegistryPolicyDAOImpl();
         this.subscriberDAO = new RegistrySubscriberDAOImpl();
@@ -108,6 +133,14 @@ public class EntitlementAdminEngine {
      */
     public EntitlementDataFinder getEntitlementDataFinder() {
         return entitlementDataFinder;
+    }
+
+    /**
+     * @return PolicyDataStore.
+     */
+    public PolicyDataStore getPolicyDataStore() {
+
+        return policyDataStore;
     }
 
     /**

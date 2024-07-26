@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.entitlement.dao;
 
 import org.wso2.balana.combine.PolicyCombiningAlgorithm;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
+import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 
 /**
  * This interface supports the management of policy configuration data.
@@ -31,15 +32,11 @@ public interface ConfigDAO {
      *
      * @return global policy combining algorithm
      */
-    PolicyCombiningAlgorithm getGlobalPolicyAlgorithm();
+    default PolicyCombiningAlgorithm getGlobalPolicyAlgorithm() {
 
-    /**
-     * Sets the global policy combining algorithm.
-     *
-     * @param policyCombiningAlgorithm policy combining algorithm name
-     * @throws EntitlementException If an error occurs
-     */
-    void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException;
+        String algorithm = getGlobalPolicyAlgorithmName();
+        return EntitlementUtil.resolveGlobalPolicyAlgorithm(algorithm);
+    }
 
     /**
      * Gets the policy combining algorithm name.
@@ -48,4 +45,11 @@ public interface ConfigDAO {
      */
     String getGlobalPolicyAlgorithmName();
 
+    /**
+     * Sets the global policy combining algorithm.
+     *
+     * @param policyCombiningAlgorithm policy combining algorithm name
+     * @throws EntitlementException If an error occurs
+     */
+    void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException;
 }

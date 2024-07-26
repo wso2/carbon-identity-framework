@@ -651,9 +651,8 @@ public class EntitlementUtil {
      *
      * @param algorithm policy combining algorithm.
      * @return PolicyCombiningAlgorithm object.
-     * @throws EntitlementException throws if unsupported algorithm.
      */
-    public static PolicyCombiningAlgorithm resolveGlobalPolicyAlgorithm(String algorithm) throws EntitlementException {
+    public static PolicyCombiningAlgorithm resolveGlobalPolicyAlgorithm(String algorithm) {
 
         if (StringUtils.isBlank(algorithm)) {
             // read algorithm from entitlement.properties file
@@ -667,7 +666,13 @@ public class EntitlementUtil {
                 algorithm = POLICY_COMBINING_PREFIX_3 + algorithm;
             }
         }
-        return getPolicyCombiningAlgorithm(algorithm);
+        try {
+            return getPolicyCombiningAlgorithm(algorithm);
+        } catch (EntitlementException e) {
+            log.error("Exception while getting global policy combining algorithm.", e);
+        }
+        log.warn("Global policy combining algorithm is not defined. Therefore the default algorithm is used.");
+        return new DenyOverridesPolicyAlg();
     }
 
     /**
@@ -723,5 +728,26 @@ public class EntitlementUtil {
             }
         }
         return subscriberId;
+    }
+
+    /**
+     * Filter subscriber ids based on search criteria.
+     *
+     * @param subscriberIdList List of subscriber ids.
+     * @param filter           Search filter.
+     * @return Filtered subscriber ids.
+     */
+    public static List<String> filterSubscribers(List<String> subscriberIdList, String filter) {
+
+        filter = filter.replace("*", ".*");
+        Pattern pattern = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
+        List<String> filteredSubscriberIdList = new ArrayList<>();
+        for (String subscriberId : subscriberIdList) {
+            Matcher matcher = pattern.matcher(subscriberId);
+            if (matcher.matches()) {
+                filteredSubscriberIdList.add(subscriberId);
+            }
+        }
+        return filteredSubscriberIdList;
     }
 }

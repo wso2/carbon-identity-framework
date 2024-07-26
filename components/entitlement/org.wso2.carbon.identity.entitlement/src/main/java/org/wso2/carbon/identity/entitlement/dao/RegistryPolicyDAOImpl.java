@@ -445,7 +445,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
      * @throws EntitlementException If an error occurs
      */
     @Override
-    public void publishPolicy(PolicyStoreDTO policy) throws EntitlementException {
+    public void addPolicy(PolicyStoreDTO policy) throws EntitlementException {
 
         String policyPath;
         Collection policyCollection;
@@ -544,6 +544,15 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
         }
     }
 
+    @Override
+    public void updatePolicy(PolicyStoreDTO policy) throws EntitlementException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Updating policy %s", policy.getPolicyId()));
+        }
+        addPolicy(policy);
+    }
+
     /**
      * Checks whether the given policy is published or not.
      *
@@ -551,7 +560,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
      * @return whether the given policy is published or not
      */
     @Override
-    public boolean isPublished(String policyId) {
+    public boolean isPolicyExist(String policyId) {
 
         String policyPath;
         if (policyId == null || policyId.trim().isEmpty()) {
@@ -608,12 +617,12 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
      * @param policyId policy ID
      */
     @Override
-    public void unPublishPolicy(String policyId) {
+    public boolean deletePolicy(String policyId) {
 
         String policyPath;
 
         if (policyId == null || policyId.trim().isEmpty()) {
-            return;
+            return false;
         }
 
         try {
@@ -621,11 +630,11 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
             // Removes from PDP
             policyPath = policyStorePath + policyId;
             registry.delete(policyPath);
-
+            return true;
         } catch (RegistryException e) {
             LOG.error(e);
+            return false;
         }
-
     }
 
     /**

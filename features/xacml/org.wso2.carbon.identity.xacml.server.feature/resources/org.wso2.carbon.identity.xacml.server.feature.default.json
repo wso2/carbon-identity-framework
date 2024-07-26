@@ -18,7 +18,7 @@
     "org.wso2.carbon.identity.entitlement.dao.RegistryPolicyDAOImpl"
   ],
   "identity.entitlement.policy_point.pdp.policy_store_module": "org.wso2.carbon.identity.entitlement.dao.RegistryPolicyDAOImpl",
-  "identity.entitlement.policy_point.pdp.policy_data_store_module": "org.wso2.carbon.identity.entitlement.dao.RegistryPolicyDAOImpl",
+  "identity.entitlement.policy_point.pdp.policy_data_store_module": "org.wso2.carbon.identity.entitlement.policy.store.DefaultPolicyDataStore",
   "identity.entitlement.policy_point.pap.enabled": true,
   "identity.entitlement.policy_point.pap.policy_add_start_enable": true,
   "identity.entitlement.policy_point.pap.items_per_page": "10",
