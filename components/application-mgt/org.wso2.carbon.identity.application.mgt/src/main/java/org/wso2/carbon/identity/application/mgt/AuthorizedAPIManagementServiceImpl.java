@@ -45,8 +45,9 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
@@ -211,10 +212,15 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             if (Boolean.parseBoolean(IdentityUtil.getProperty(AUTHORIZE_ALL_SCOPES))) {
                 List<Scope> scopes = ApplicationManagementServiceComponentHolder.getInstance().getAPIResourceManager()
                         .getScopesByTenantDomain(tenantDomain, null);
-                authorizedScopes = Collections.singletonList(
-                        new AuthorizedScopes(RBAC, scopes.stream()
-                                .map(Scope::getName)
-                                .collect(Collectors.toCollection(ArrayList::new))));
+                Map<String, AuthorizedScopes> authorizedScopesMap = new HashMap<>();
+                AuthorizedScopes.AuthorizedScopesBuilder authorizedScopesBuilder =
+                        new AuthorizedScopes.AuthorizedScopesBuilder()
+                                .policyId(RBAC)
+                                .scopes(scopes.stream()
+                                        .map(Scope::getName)
+                                        .collect(Collectors.toCollection(ArrayList::new)));
+                authorizedScopesMap.put(RBAC, authorizedScopesBuilder.build());
+                authorizedScopes = new ArrayList<>(authorizedScopesMap.values());
             } else {
                 authorizedScopes = authorizedAPIDAO.getAuthorizedScopes(appId,
                         IdentityTenantUtil.getTenantId(tenantDomain));
