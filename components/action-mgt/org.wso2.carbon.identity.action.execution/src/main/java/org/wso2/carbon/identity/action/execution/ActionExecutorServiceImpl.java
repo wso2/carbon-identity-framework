@@ -154,7 +154,6 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                 ActionExecutionResponseProcessor actionExecutionResponseProcessor)
             throws ActionExecutionRuntimeException {
 
-        String apiEndpoint = action.getEndpoint().getUri();
         AuthType endpointAuthentication = action.getEndpoint().getAuthentication();
         AuthMethods.AuthMethod authenticationMethod;
 
