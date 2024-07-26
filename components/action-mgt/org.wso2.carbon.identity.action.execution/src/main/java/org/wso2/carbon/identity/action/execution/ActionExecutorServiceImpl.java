@@ -131,7 +131,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             throw new ActionExecutionException("No request builder found for action type: " + actionType);
         }
         try {
-            return requestBuilder.buildActionExecutionRequest(actionType, eventContext);
+            return requestBuilder.buildActionExecutionRequest(eventContext);
         } catch (ActionExecutionRequestBuilderException e) {
             throw new ActionExecutionRuntimeException("Error occurred while building the request payload.", e);
         }
@@ -241,7 +241,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 validatePerformableOperations(actionRequest, successResponse);
         ActionInvocationSuccessResponse.Builder successResponseBuilder =
                 new ActionInvocationSuccessResponse.Builder().operations(allowedPerformableOperations);
-        return actionExecutionResponseProcessor.processSuccessResponse(actionType, eventContext,
+        return actionExecutionResponseProcessor.processSuccessResponse(eventContext,
                 actionRequest.getEvent(), successResponseBuilder.build());
     }
 
@@ -254,7 +254,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             throws ActionExecutionResponseProcessorException {
 
         logErrorResponse(action, errorResponse);
-        return actionExecutionResponseProcessor.processErrorResponse(actionType, eventContext, actionRequest.getEvent(),
+        return actionExecutionResponseProcessor.processErrorResponse(eventContext, actionRequest.getEvent(),
                 errorResponse);
     }
 

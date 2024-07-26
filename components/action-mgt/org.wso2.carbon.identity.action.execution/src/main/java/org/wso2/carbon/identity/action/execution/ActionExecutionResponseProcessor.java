@@ -36,12 +36,12 @@ public interface ActionExecutionResponseProcessor {
 
     ActionType getSupportedActionType();
 
-    ActionExecutionStatus processSuccessResponse(ActionType actionType, Map<String, Object> eventContext,
+    ActionExecutionStatus processSuccessResponse(Map<String, Object> eventContext,
                                                  Event actionEvent,
                                                  ActionInvocationSuccessResponse successResponse) throws
             ActionExecutionResponseProcessorException;
 
-    ActionExecutionStatus processErrorResponse(ActionType actionType, Map<String, Object> eventContext,
+    ActionExecutionStatus processErrorResponse(Map<String, Object> eventContext,
                                                Event actionEvent,
                                                ActionInvocationErrorResponse errorResponse) throws
             ActionExecutionResponseProcessorException;

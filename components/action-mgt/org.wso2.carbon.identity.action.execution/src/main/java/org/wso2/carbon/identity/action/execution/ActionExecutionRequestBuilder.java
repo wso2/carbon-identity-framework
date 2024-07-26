@@ -33,7 +33,7 @@ public interface ActionExecutionRequestBuilder {
 
     ActionType getSupportedActionType();
 
-    ActionExecutionRequest buildActionExecutionRequest(ActionType actionType, Map<String, Object> eventContext) throws
+    ActionExecutionRequest buildActionExecutionRequest(Map<String, Object> eventContext) throws
             ActionExecutionRequestBuilderException;
 
 }
