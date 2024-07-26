@@ -54,7 +54,7 @@ public class ActionExecutionServiceComponent {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.registerService(ActionExecutorService.class.getName(), ActionExecutorServiceImpl.getInstance(),
                     null);
-            LOG.debug("Action execution bundle is activated");
+            LOG.debug("Action execution bundle is activated.");
         } catch (Throwable e) {
             LOG.error("Error while initializing Action execution service component.", e);
         }
@@ -66,7 +66,7 @@ public class ActionExecutionServiceComponent {
         try {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.ungetService(bundleCtx.getServiceReference(ActionExecutorService.class));
-            LOG.debug("Action execution bundle is deactivated");
+            LOG.debug("Action execution bundle is deactivated.");
         } catch (Throwable e) {
             LOG.error("Error while deactivating Action execution service component.", e);
         }
@@ -109,8 +109,7 @@ public class ActionExecutionServiceComponent {
     protected void setActionExecutionRequestBuilder(ActionExecutionRequestBuilder actionExecutionRequestBuilder) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                    "Registering ActionExecutionRequestBuilder: " +
+            LOG.debug("Registering ActionExecutionRequestBuilder: " +
                             actionExecutionRequestBuilder.getClass().getName() +
                             " in the ActionExecutionServiceComponent.");
         }
@@ -137,8 +136,7 @@ public class ActionExecutionServiceComponent {
             ActionExecutionResponseProcessor actionExecutionResponseProcessor) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                    "Registering ActionExecutionResponseProcessor: " +
+            LOG.debug("Registering ActionExecutionResponseProcessor: " +
                             actionExecutionResponseProcessor.getClass().getName() +
                             " in the ActionExecutionServiceComponent.");
         }

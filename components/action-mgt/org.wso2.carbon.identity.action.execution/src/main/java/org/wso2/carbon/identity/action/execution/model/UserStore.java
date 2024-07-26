@@ -28,8 +28,8 @@ import java.util.Base64;
  */
 public class UserStore {
 
-    String id;
-    String name;
+    private String id;
+    private String name;
 
     public UserStore(String name) {
 

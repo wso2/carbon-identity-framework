@@ -88,21 +88,21 @@ public class ActionInvocationResponse {
 
         private String errorLog;
 
-        public Builder setResponse(APIResponse response) {
+        public Builder response(APIResponse response) {
 
             this.actionStatus = response.getActionStatus();
             this.response = response;
             return this;
         }
 
-        public Builder setRetry(boolean retry) {
+        public Builder retry(boolean retry) {
 
             this.retry = retry;
             this.actionStatus = Status.ERROR;
             return this;
         }
 
-        public Builder setErrorLog(String errorLog) {
+        public Builder errorLog(String errorLog) {
 
             this.errorLog = errorLog;
             this.actionStatus = Status.ERROR;

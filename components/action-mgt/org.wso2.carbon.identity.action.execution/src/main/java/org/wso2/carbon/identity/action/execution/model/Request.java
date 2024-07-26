@@ -33,16 +33,13 @@ public abstract class Request {
     protected Map<String, String[]> additionalHeaders = new HashMap<>();
     protected Map<String, String[]> additionalParams = new HashMap<>();
 
-    // implement a method to get additional headers
     public Map<String, String[]> getAdditionalHeaders() {
 
         return additionalHeaders != null ? additionalHeaders : Collections.emptyMap();
     }
 
-    // implement a method to get additional params
     public Map<String, String[]> getAdditionalParams() {
 
         return additionalParams != null ? additionalParams : Collections.emptyMap();
     }
-
 }
