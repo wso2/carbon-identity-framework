@@ -24,8 +24,8 @@ package org.wso2.carbon.identity.action.execution.model;
  */
 public class Application {
 
-    String id;
-    String name;
+    private final String id;
+    private final String name;
 
     public Application(String id, String name) {
 

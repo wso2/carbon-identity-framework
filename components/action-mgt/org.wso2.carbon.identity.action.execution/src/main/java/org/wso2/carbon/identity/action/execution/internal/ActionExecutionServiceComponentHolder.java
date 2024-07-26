@@ -43,8 +43,7 @@ public class ActionExecutionServiceComponentHolder {
         return actionManagementService;
     }
 
-    public void setActionManagementService(
-            ActionManagementService actionManagementService) {
+    public void setActionManagementService(ActionManagementService actionManagementService) {
 
         this.actionManagementService = actionManagementService;
     }

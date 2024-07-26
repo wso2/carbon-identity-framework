@@ -87,7 +87,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             Action action = actions.get(0); // As of now only one action is allowed.
             return Optional.ofNullable(action)
                     .filter(activeAction -> activeAction.getStatus() == Action.Status.ACTIVE)
-                    .map(activeAction -> executeAction(activeAction, actionRequest, actionType, eventContext,
+                    .map(activeAction -> executeAction(actionType, activeAction, actionRequest, eventContext,
                             actionExecutionResponseProcessor))
                     .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext));
         } catch (ActionExecutionRuntimeException e) {
@@ -148,8 +148,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return responseProcessor;
     }
 
-    private ActionExecutionStatus executeAction(Action action, ActionExecutionRequest actionRequest,
-                                                ActionType actionType,
+    private ActionExecutionStatus executeAction(ActionType actionType, Action action,
+                                                ActionExecutionRequest actionRequest,
                                                 Map<String, Object> eventContext,
                                                 ActionExecutionResponseProcessor actionExecutionResponseProcessor)
             throws ActionExecutionRuntimeException {
@@ -162,12 +162,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             authenticationMethod = getAuthenticationMethod(action.getId(), endpointAuthentication);
             String payload = serializeRequest(actionRequest);
 
-            logActionRequest(apiEndpoint, actionType, action.getId(), authenticationMethod, payload);
+            logActionRequest(action, payload);
 
             ActionInvocationResponse actionInvocationResponse =
                     executeActionAsynchronously(action, authenticationMethod, payload);
-            return processActionResponse(actionInvocationResponse, actionType, eventContext, actionRequest,
-                    action.getId(), apiEndpoint, authenticationMethod, actionExecutionResponseProcessor);
+            return processActionResponse(actionType, action, actionInvocationResponse, eventContext, actionRequest,
+                    actionExecutionResponseProcessor);
         } catch (ActionMgtException | JsonProcessingException | ActionExecutionResponseProcessorException e) {
             throw new ActionExecutionRuntimeException("Error occurred while executing action: " + action.getId(), e);
         }
@@ -188,62 +188,54 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
-    private void logActionRequest(String apiEndpoint, ActionType actionType, String actionId,
-                                  AuthMethods.AuthMethod authenticationMethod, String payload) {
+    private void logActionRequest(Action action, String payload) {
 
         //todo: Add to diagnostics
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Calling API: %s for action type: %s action id: %s with authentication: %s payload: %s",
-                    apiEndpoint,
-                    actionType,
-                    actionId,
-                    Optional.ofNullable(authenticationMethod).map(AuthMethods.AuthMethod::getAuthType)
-                            .orElse("NONE"),
+                    action.getEndpoint().getUri(),
+                    action.getType().getActionType(),
+                    action.getId(),
+                    action.getEndpoint().getAuthentication(),
                     payload));
         }
     }
 
-    private ActionExecutionStatus processActionResponse(ActionInvocationResponse actionInvocationResponse,
-                                                        ActionType actionType,
+    private ActionExecutionStatus processActionResponse(ActionType actionType, Action action,
+                                                        ActionInvocationResponse actionInvocationResponse,
                                                         Map<String, Object> eventContext,
                                                         ActionExecutionRequest actionRequest,
-                                                        String actionId, String apiEndpoint,
-                                                        AuthMethods.AuthMethod authenticationMethod,
                                                         ActionExecutionResponseProcessor
                                                                 actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
         if (actionInvocationResponse.isSuccess()) {
-            return processSuccessResponse((ActionInvocationSuccessResponse) actionInvocationResponse.getResponse(),
-                    actionType,
-                    eventContext, actionRequest, actionId, apiEndpoint, authenticationMethod,
-                    actionExecutionResponseProcessor);
+            return processSuccessResponse(actionType, action,
+                    (ActionInvocationSuccessResponse) actionInvocationResponse.getResponse(),
+                    eventContext, actionRequest, actionExecutionResponseProcessor);
         } else if (actionInvocationResponse.isError() && actionInvocationResponse.getResponse() != null) {
-            return processErrorResponse((ActionInvocationErrorResponse) actionInvocationResponse.getResponse(),
-                    actionType,
-                    eventContext, actionRequest, actionId, apiEndpoint, authenticationMethod,
-                    actionExecutionResponseProcessor);
+            return processErrorResponse(actionType, action,
+                    (ActionInvocationErrorResponse) actionInvocationResponse.getResponse(),
+                    eventContext, actionRequest, actionExecutionResponseProcessor);
         } else {
-            logErrorResponse(actionInvocationResponse, actionType, actionId, apiEndpoint, authenticationMethod);
+            logErrorResponse(action, actionInvocationResponse);
         }
 
         return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
     }
 
-    private ActionExecutionStatus processSuccessResponse(ActionInvocationSuccessResponse successResponse,
-                                                         ActionType actionType,
+    private ActionExecutionStatus processSuccessResponse(ActionType actionType, Action action,
+                                                         ActionInvocationSuccessResponse successResponse,
                                                          Map<String, Object> eventContext,
                                                          ActionExecutionRequest actionRequest,
-                                                         String actionId, String apiEndpoint,
-                                                         AuthMethods.AuthMethod authenticationMethod,
                                                          ActionExecutionResponseProcessor
                                                                  actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
         if (LOG.isDebugEnabled()) {
             // todo: add to diagnostic logs
-            logSuccessResponse(successResponse, actionType, actionId, apiEndpoint, authenticationMethod);
+            logSuccessResponse(action, successResponse);
         }
 
         List<PerformableOperation> allowedPerformableOperations =
@@ -251,80 +243,70 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         ActionInvocationSuccessResponse.Builder successResponseBuilder =
                 new ActionInvocationSuccessResponse.Builder().operations(allowedPerformableOperations);
         return actionExecutionResponseProcessor.processSuccessResponse(actionType, eventContext,
-                actionRequest.getEvent(),
-                successResponseBuilder.build());
+                actionRequest.getEvent(), successResponseBuilder.build());
     }
 
-    private ActionExecutionStatus processErrorResponse(ActionInvocationErrorResponse errorResponse,
-                                                       ActionType actionType,
+    private ActionExecutionStatus processErrorResponse(ActionType actionType, Action action,
+                                                       ActionInvocationErrorResponse errorResponse,
                                                        Map<String, Object> eventContext,
                                                        ActionExecutionRequest actionRequest,
-                                                       String actionId, String apiEndpoint,
-                                                       AuthMethods.AuthMethod authenticationMethod,
                                                        ActionExecutionResponseProcessor
                                                                actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
-        if (LOG.isDebugEnabled()) {
-            // todo: add to diagnostic logs
-            logErrorResponse(errorResponse, actionType, actionId, apiEndpoint, authenticationMethod);
-        }
-
+        logErrorResponse(action, errorResponse);
         return actionExecutionResponseProcessor.processErrorResponse(actionType, eventContext, actionRequest.getEvent(),
                 errorResponse);
     }
 
-    private void logSuccessResponse(ActionInvocationSuccessResponse successResponse, ActionType actionType,
-                                    String actionId, String apiEndpoint, AuthMethods.AuthMethod authenticationMethod) {
+    private void logSuccessResponse(Action action, ActionInvocationSuccessResponse successResponse) {
 
         try {
             String responseBody = serializeSuccessResponse(successResponse);
             LOG.debug(String.format(
                     "Received success response from API: %s for action type: %s action id: %s with authentication: %s. "
                             + "Response: %s",
-                    apiEndpoint,
-                    actionType,
-                    actionId,
-                    Optional.ofNullable(authenticationMethod).map(AuthMethods.AuthMethod::getAuthType)
-                            .orElse("NONE"),
+                    action.getEndpoint().getUri(),
+                    action.getType().getActionType(),
+                    action.getId(),
+                    action.getEndpoint().getAuthentication().getType(),
                     responseBody));
         } catch (JsonProcessingException e) {
             LOG.error("Error occurred while deserializing the success response for action: " +
-                    actionId + " for action type: " + actionType, e);
+                    action.getId() + " for action type: " + action.getType().getActionType(), e);
         }
     }
 
-    private void logErrorResponse(ActionInvocationErrorResponse errorResponse, ActionType actionType,
-                                  String actionId, String apiEndpoint, AuthMethods.AuthMethod authenticationMethod) {
+    private void logErrorResponse(Action action, ActionInvocationErrorResponse errorResponse) {
 
-        try {
-            String responseBody = serializeErrorResponse(errorResponse);
-            LOG.debug(String.format(
-                    "Received error response from API: %s for action type: %s action id: %s with authentication: %s. " +
-                            "Response: %s",
-                    apiEndpoint,
-                    actionType,
-                    actionId,
-                    Optional.ofNullable(authenticationMethod).map(AuthMethods.AuthMethod::getAuthType)
-                            .orElse("NONE"),
-                    responseBody));
-        } catch (JsonProcessingException e) {
-            LOG.error("Error occurred while deserializing the error response for action: " +
-                    actionId + " for action type: " + actionType, e);
+        if (LOG.isDebugEnabled()) {
+            // todo: add to diagnostic logs
+            try {
+                String responseBody = serializeErrorResponse(errorResponse);
+                LOG.debug(String.format(
+                        "Received error response from API: %s for action type: %s action id: %s with " +
+                                "authentication: %s. Response: %s",
+                        action.getEndpoint().getUri(),
+                        action.getType().getActionType(),
+                        action.getId(),
+                        action.getEndpoint().getAuthentication().getType(),
+                        responseBody));
+            } catch (JsonProcessingException e) {
+                LOG.debug("Error occurred while deserializing the error response for action: " +
+                        action.getId() + " for action type: " + action.getType().getActionType(), e);
+            }
         }
     }
 
-    private void logErrorResponse(ActionInvocationResponse actionInvocationResponse, ActionType actionType,
-                                  String actionId, String apiEndpoint, AuthMethods.AuthMethod authenticationMethod) {
+    private void logErrorResponse(Action action, ActionInvocationResponse actionInvocationResponse) {
         // todo: add to diagnostic logs
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Failed to call API: %s for action type: %s action id: %s with authentication: %s. Error: %s",
-                    apiEndpoint,
-                    actionType,
-                    actionId,
-                    Optional.ofNullable(authenticationMethod).map(AuthMethods.AuthMethod::getAuthType)
-                            .orElse("NONE"),
+                    action.getEndpoint().getUri(),
+                    action.getType().getActionType(),
+                    action.getId(),
+                    action.getEndpoint().getAuthentication(),
                     actionInvocationResponse.getErrorLog() != null ? actionInvocationResponse.getErrorLog() :
                             "Unknown"));
         }
@@ -374,10 +356,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                     notAllowedOps.add(operationDetails);
                 }
             });
-
-            String logMessage = "Allowed Operations: " + String.join(", ", allowedOps) +
-                    ". Not Allowed Operations: " + String.join(", ", notAllowedOps);
-            LOG.debug(logMessage);
+            LOG.debug("Allowed Operations: " + String.join(", ", allowedOps) +
+                    ". Not Allowed Operations: " + String.join(", ", notAllowedOps));
         }
 
         return allowedPerformableOperations;

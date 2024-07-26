@@ -79,7 +79,7 @@ public class APIClient {
         setRequestEntity(httpPost, payload, authMethod);
 
         return executeRequest(httpPost).orElse(new ActionInvocationResponse.Builder()
-                .setErrorLog("Failed to execute the action request or maximum retry attempts reached.")
+                .errorLog("Failed to execute the action request or maximum retry attempts reached.")
                 .build());
     }
 
@@ -137,26 +137,26 @@ public class APIClient {
             switch (statusCode) {
                 case HttpStatus.SC_OK:
                     ActionInvocationSuccessResponse successResponse = handleSuccessResponse(responseEntity);
-                    actionInvocationResponseBuilder.setResponse(successResponse);
+                    actionInvocationResponseBuilder.response(successResponse);
                     break;
                 case HttpStatus.SC_BAD_REQUEST:
                 case HttpStatus.SC_INTERNAL_SERVER_ERROR:
                     ActionInvocationErrorResponse errorResponse = handleErrorResponse(responseEntity);
-                    actionInvocationResponseBuilder.setResponse(errorResponse);
+                    actionInvocationResponseBuilder.response(errorResponse);
                     break;
                 case HttpStatus.SC_UNAUTHORIZED:
                     break;
                 case HttpStatus.SC_BAD_GATEWAY:
                 case HttpStatus.SC_SERVICE_UNAVAILABLE:
                 case HttpStatus.SC_GATEWAY_TIMEOUT:
-                    actionInvocationResponseBuilder.setRetry(true);
+                    actionInvocationResponseBuilder.retry(true);
                     break;
                 default:
                     throw new ActionInvocationException("Unexpected response status code: " + statusCode);
             }
         } catch (ActionInvocationException e) {
             // Set error in response to be logged at diagnostic logs for troubleshooting.
-            actionInvocationResponseBuilder.setErrorLog("Unexpected response. Error: " + e.getMessage());
+            actionInvocationResponseBuilder.errorLog("Unexpected response. Error: " + e.getMessage());
         }
 
         return actionInvocationResponseBuilder.build();

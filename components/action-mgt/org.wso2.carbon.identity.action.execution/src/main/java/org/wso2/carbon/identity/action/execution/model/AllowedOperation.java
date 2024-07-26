@@ -29,9 +29,9 @@ import java.util.List;
  */
 public class AllowedOperation {
 
-    Operation op;
+    private Operation op;
 
-    List<String> paths;
+    private List<String> paths;
 
     public Operation getOp() {
 
