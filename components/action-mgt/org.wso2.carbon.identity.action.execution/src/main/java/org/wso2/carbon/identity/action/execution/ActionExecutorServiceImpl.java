@@ -87,7 +87,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             Action action = actions.get(0); // As of now only one action is allowed.
             return Optional.ofNullable(action)
                     .filter(activeAction -> activeAction.getStatus() == Action.Status.ACTIVE)
-                    .map(activeAction -> executeAction(actionType, activeAction, actionRequest, eventContext,
+                    .map(activeAction -> executeAction(activeAction, actionRequest, eventContext,
                             actionExecutionResponseProcessor))
                     .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext));
         } catch (ActionExecutionRuntimeException e) {
@@ -112,8 +112,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private void validateActions(List<Action> actions, ActionType actionType) throws ActionExecutionException {
 
         if (CollectionUtils.isEmpty(actions)) {
-            throw new ActionExecutionRuntimeException("No actions found for action type: " + actionType);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No actions found for action type: " + actionType);
+            }
+            return;
         }
+
         if (actions.size() > 1) {
             // when multiple actions are supported for an action type the logic below needs to be improved such that,
             // a successful processing from one action becomes the input to the successor.
@@ -148,7 +152,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return responseProcessor;
     }
 
-    private ActionExecutionStatus executeAction(ActionType actionType, Action action,
+    private ActionExecutionStatus executeAction(Action action,
                                                 ActionExecutionRequest actionRequest,
                                                 Map<String, Object> eventContext,
                                                 ActionExecutionResponseProcessor actionExecutionResponseProcessor)
@@ -165,7 +169,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
             ActionInvocationResponse actionInvocationResponse =
                     executeActionAsynchronously(action, authenticationMethod, payload);
-            return processActionResponse(actionType, action, actionInvocationResponse, eventContext, actionRequest,
+            return processActionResponse(action, actionInvocationResponse, eventContext, actionRequest,
                     actionExecutionResponseProcessor);
         } catch (ActionMgtException | JsonProcessingException | ActionExecutionResponseProcessorException e) {
             throw new ActionExecutionRuntimeException("Error occurred while executing action: " + action.getId(), e);
@@ -201,7 +205,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
-    private ActionExecutionStatus processActionResponse(ActionType actionType, Action action,
+    private ActionExecutionStatus processActionResponse(Action action,
                                                         ActionInvocationResponse actionInvocationResponse,
                                                         Map<String, Object> eventContext,
                                                         ActionExecutionRequest actionRequest,
@@ -210,12 +214,11 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             throws ActionExecutionResponseProcessorException {
 
         if (actionInvocationResponse.isSuccess()) {
-            return processSuccessResponse(actionType, action,
+            return processSuccessResponse(action,
                     (ActionInvocationSuccessResponse) actionInvocationResponse.getResponse(),
                     eventContext, actionRequest, actionExecutionResponseProcessor);
         } else if (actionInvocationResponse.isError() && actionInvocationResponse.getResponse() != null) {
-            return processErrorResponse(actionType, action,
-                    (ActionInvocationErrorResponse) actionInvocationResponse.getResponse(),
+            return processErrorResponse(action, (ActionInvocationErrorResponse) actionInvocationResponse.getResponse(),
                     eventContext, actionRequest, actionExecutionResponseProcessor);
         } else {
             logErrorResponse(action, actionInvocationResponse);
@@ -224,7 +227,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
     }
 
-    private ActionExecutionStatus processSuccessResponse(ActionType actionType, Action action,
+    private ActionExecutionStatus processSuccessResponse(Action action,
                                                          ActionInvocationSuccessResponse successResponse,
                                                          Map<String, Object> eventContext,
                                                          ActionExecutionRequest actionRequest,
@@ -245,7 +248,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 actionRequest.getEvent(), successResponseBuilder.build());
     }
 
-    private ActionExecutionStatus processErrorResponse(ActionType actionType, Action action,
+    private ActionExecutionStatus processErrorResponse(Action action,
                                                        ActionInvocationErrorResponse errorResponse,
                                                        Map<String, Object> eventContext,
                                                        ActionExecutionRequest actionRequest,
