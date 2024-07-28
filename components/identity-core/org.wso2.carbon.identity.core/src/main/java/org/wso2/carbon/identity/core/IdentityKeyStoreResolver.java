@@ -85,7 +85,7 @@ public class IdentityKeyStoreResolver {
      * @return Primary or tenant keystore
      * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
      */
-    public KeyStore getKeyStore(String tenantDomain) throws IdentityKeyStoreResolverException {
+    private KeyStore getKeyStore(String tenantDomain) throws IdentityKeyStoreResolverException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
@@ -145,7 +145,7 @@ public class IdentityKeyStoreResolver {
      * @return Primary key of Primary or tenant keystore
      * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
      */
-    public Key getPrivateKey(String tenantDomain) throws IdentityKeyStoreResolverException {
+    private Key getPrivateKey(String tenantDomain) throws IdentityKeyStoreResolverException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (privateKeys.containsKey(String.valueOf(tenantId))) {
@@ -217,7 +217,7 @@ public class IdentityKeyStoreResolver {
      * @return Public Certificate of Primary or tenant keystore
      * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
      */
-    public Certificate getCertificate(String tenantDomain) throws IdentityKeyStoreResolverException {
+    private Certificate getCertificate(String tenantDomain) throws IdentityKeyStoreResolverException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (publicCerts.containsKey(String.valueOf(tenantId))) {
@@ -286,7 +286,7 @@ public class IdentityKeyStoreResolver {
      * @return Public Key of Primary or tenant keystore
      * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
      */
-    public RSAPublicKey getPublicKey(String tenantDomain) throws IdentityKeyStoreResolverException {
+    private RSAPublicKey getPublicKey(String tenantDomain) throws IdentityKeyStoreResolverException {
 
         return (RSAPublicKey) getCertificate(tenantDomain).getPublicKey();
     }
