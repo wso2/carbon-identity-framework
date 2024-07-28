@@ -27,14 +27,20 @@ import javax.xml.namespace.QName;
  */
 public class IdentityKeyStoreResolverUtil {
 
-    public static String buildTenantKeyStoreName(String tenantDomain) {
+    public static String buildTenantKeyStoreName(String tenantDomain) throws IdentityKeyStoreResolverException {
 
+        if (tenantDomain == null || tenantDomain.isEmpty()) {
+            throw new IdentityKeyStoreResolverException("Tenant domain cannot be null or empty.");
+        }
         String ksName = tenantDomain.trim().replace(".", "-");
         return ksName + IdentityKeyStoreResolverConstants.KEY_STORE_EXTENSION;
     }
 
-    public static String buildCustomKeyStoreName(String keyStoreName) {
+    public static String buildCustomKeyStoreName(String keyStoreName) throws IdentityKeyStoreResolverException {
 
+        if (keyStoreName == null || keyStoreName.isEmpty()) {
+            throw new IdentityKeyStoreResolverException("KeyStore name cannot be null or empty.");
+        }
         return RegistryResources.SecurityManagement.CustomKeyStore.KEYSTORE_PREFIX + keyStoreName;
     }
 
