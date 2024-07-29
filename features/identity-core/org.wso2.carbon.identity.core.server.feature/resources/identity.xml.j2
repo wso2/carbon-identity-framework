@@ -111,7 +111,7 @@
             {% for mapping in identity.keystore.mapping %}
             <KeyStoreMapping>
                 <Protocol>{{mapping.inbound_protocol}}</Protocol>
-                <KeyStoreName>{{mapping.keystore_name}}</KeyStoreName>
+                <KeyStoreName>{{mapping.keystore_file_name}}</KeyStoreName>
                 <UseInAllTenants>{{mapping.use_in_all_tenants}}</UseInAllTenants>
             </KeyStoreMapping>
             {% endfor %}
