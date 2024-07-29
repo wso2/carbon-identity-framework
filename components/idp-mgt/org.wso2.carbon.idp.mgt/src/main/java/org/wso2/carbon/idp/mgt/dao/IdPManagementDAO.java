@@ -507,8 +507,9 @@ public class IdPManagementDAO {
                 prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
             }
             prepStmt.setInt(filterAttributeValueSize + 1, tenantId);
-            prepStmt.setInt(filterAttributeValueSize + 2, offset + limit);
-            prepStmt.setInt(filterAttributeValueSize + 3, offset);
+            prepStmt.setInt(filterAttributeValueSize + 2, tenantId);
+            prepStmt.setInt(filterAttributeValueSize + 3, offset + limit);
+            prepStmt.setInt(filterAttributeValueSize + 4, offset);
         } else if (databaseProductName.contains("Microsoft")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL;
             sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
