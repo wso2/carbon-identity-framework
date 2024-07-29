@@ -26,7 +26,7 @@ public class IdentityKeyStoreResolverConstants {
     // CustomKeyStoreMapping config path.
     public static final String CONFIG_ELEM_SECURITY = "Security";
     public static final String CONFIG_ELEM_KEYSTORE_MAPPINGS = "CustomKeyStoreMappings";
-    public static final String CONFIG_ELEM_KEYSTORE_MAPPING = "CustomKeyStoreMapping";
+    public static final String CONFIG_ELEM_KEYSTORE_MAPPING = "KeyStoreMapping";
 
     // CustomKeyStoreMapping config attributes.
     public static final String ATTR_NAME_PROTOCOL = "Protocol";
@@ -37,8 +37,8 @@ public class IdentityKeyStoreResolverConstants {
     public static final String KEY_STORE_EXTENSION = ".jks";
 
     // Inbound Protocols.
-    private static final String INBOUND_PROTOCOL_OAUTH = "oauth2.0";
-    public static final String INBOUND_PROTOCOL_SAML = "saml2.0";
+    private static final String INBOUND_PROTOCOL_OAUTH = "oauth";
+    public static final String INBOUND_PROTOCOL_SAML = "saml";
     public static final String INBOUND_PROTOCOL_WS_TRUST = "ws-trust";
     public static final String INBOUND_PROTOCOL_WS_FEDERATION = "ws-federation";
 

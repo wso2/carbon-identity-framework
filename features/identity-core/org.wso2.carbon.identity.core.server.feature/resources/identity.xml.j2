@@ -109,11 +109,11 @@
 
         <CustomKeyStoreMappings>
             {% for mapping in identity.keystore.mapping %}
-            <CustomKeyStoreMapping>
+            <KeyStoreMapping>
                 <Protocol>{{mapping.inbound_protocol}}</Protocol>
                 <KeyStoreName>{{mapping.keystore_name}}</KeyStoreName>
                 <UseInAllTenants>{{mapping.use_in_all_tenants}}</UseInAllTenants>
-            </CustomKeyStoreMapping>
+            </KeyStoreMapping>
             {% endfor %}
         </CustomKeyStoreMappings>
         {% endif %}
