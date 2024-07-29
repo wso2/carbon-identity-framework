@@ -115,6 +115,13 @@ public class IdentityKeyStoreResolver {
     public KeyStore getKeyStore(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
 
+        if (tenantDomain == null || tenantDomain.isEmpty()) {
+            throw new IllegalArgumentException("Tenant domain must not be null or empty");
+        }
+        if (inboundProtocol == null) {
+            throw new IllegalArgumentException("Inbound protocol must not be null");
+        }
+
         if (keyStoreMappings.containsKey(inboundProtocol)) {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
                     keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
@@ -181,6 +188,13 @@ public class IdentityKeyStoreResolver {
      */
     public Key getPrivateKey(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
+
+        if (tenantDomain == null || tenantDomain.isEmpty()) {
+            throw new IllegalArgumentException("Tenant domain must not be null or empty");
+        }
+        if (inboundProtocol == null) {
+            throw new IllegalArgumentException("Inbound protocol must not be null");
+        }
 
         if (keyStoreMappings.containsKey(inboundProtocol)) {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
@@ -252,6 +266,13 @@ public class IdentityKeyStoreResolver {
     public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
 
+        if (tenantDomain == null || tenantDomain.isEmpty()) {
+            throw new IllegalArgumentException("Tenant domain must not be null or empty");
+        }
+        if (inboundProtocol == null) {
+            throw new IllegalArgumentException("Inbound protocol must not be null");
+        }
+
         if (keyStoreMappings.containsKey(inboundProtocol)) {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
                     keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
@@ -317,6 +338,16 @@ public class IdentityKeyStoreResolver {
      */
     public String getKeyStoreConfig(String tenantDomain, InboundProtocol inboundProtocol, String configName)
             throws IdentityKeyStoreResolverException {
+
+        if (tenantDomain == null || tenantDomain.isEmpty()) {
+            throw new IllegalArgumentException("Tenant domain must not be null or empty");
+        }
+        if (inboundProtocol == null) {
+            throw new IllegalArgumentException("Inbound protocol must not be null");
+        }
+        if (configName == null || configName.isEmpty()) {
+            throw new IllegalArgumentException("Configuration name must not be null or empty");
+        }
 
         if (keyStoreMappings.containsKey(inboundProtocol)) {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
