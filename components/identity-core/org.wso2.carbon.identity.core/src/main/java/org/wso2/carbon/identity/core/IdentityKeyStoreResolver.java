@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 
+import java.io.File;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -325,6 +326,45 @@ public class IdentityKeyStoreResolver {
 
         // Conditions are checked in getCertificate method
         return (RSAPublicKey) getCertificate(tenantDomain, inboundProtocol).getPublicKey();
+    }
+
+    /**
+     * Return keystore name of the Primary, tenant or custom keystore.
+     *
+     * @param tenantDomain      Tenant domain
+     * @param inboundProtocol   Inbound authentication protocol of the application
+     * @return Keystore name of the Primary, tenant or custom keystore
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     */
+    public String getKeyStoreName(String tenantDomain, InboundProtocol inboundProtocol)
+            throws IdentityKeyStoreResolverException {
+
+        if (tenantDomain == null || tenantDomain.isEmpty()) {
+            throw new IllegalArgumentException("Tenant domain must not be null or empty");
+        }
+        if (inboundProtocol == null) {
+            throw new IllegalArgumentException("Inbound protocol must not be null");
+        }
+
+        if (keyStoreMappings.containsKey(inboundProtocol)) {
+            if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
+                    keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
+
+                return IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
+                        keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+            }
+        }
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            File keyStoreFile = new File(getPrimaryKeyStoreConfig(
+                    RegistryResources.SecurityManagement.CustomKeyStore.PROP_LOCATION));
+            if (keyStoreFile.exists()) {
+                return keyStoreFile.getName();
+            }
+            throw new IdentityKeyStoreResolverException("Primary keystore file not found.");
+        }
+
+        return IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
     }
 
     /**
