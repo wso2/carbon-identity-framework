@@ -355,6 +355,10 @@ public class IdentityKeyStoreResolver {
 
                 String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
                         keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Retreiving " + configName + " configuration for keystore " + keyStoreName);
+                }
+
                 return getCustomKeyStoreConfig(keyStoreName, configName);
             }
         }
