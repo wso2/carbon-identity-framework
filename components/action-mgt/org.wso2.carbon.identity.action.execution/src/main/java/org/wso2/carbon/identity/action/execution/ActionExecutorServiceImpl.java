@@ -89,11 +89,11 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                     .filter(activeAction -> activeAction.getStatus() == Action.Status.ACTIVE)
                     .map(activeAction -> executeAction(activeAction, actionRequest, eventContext,
                             actionExecutionResponseProcessor))
-                    .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext));
+                    .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext));
         } catch (ActionExecutionRuntimeException e) {
             // todo: add to diagnostics
             LOG.error("Skip executing actions for action type: " + actionType.name() + ". Error: " + e.getMessage(), e);
-            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
+            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
 
         }
     }
@@ -224,7 +224,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             logErrorResponse(action, actionInvocationResponse);
         }
 
-        return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILURE, eventContext);
+        return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
     }
 
     private ActionExecutionStatus processSuccessResponse(Action action,

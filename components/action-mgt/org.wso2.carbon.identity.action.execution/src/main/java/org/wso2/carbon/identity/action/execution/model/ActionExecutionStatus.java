@@ -51,7 +51,7 @@ public class ActionExecutionStatus {
      */
     public enum Status {
         SUCCESS,
-        FAILURE,
+        FAILED,
         INCOMPLETE,
         ERROR
     }
