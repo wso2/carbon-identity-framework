@@ -27,7 +27,7 @@ public class IdentityKeyStoreMapping {
 
     private final String keyStoreName;
     private final InboundProtocol inboundProtocol;
-    private final Boolean useInAllTenants;
+    private final boolean useInAllTenants;
 
     public IdentityKeyStoreMapping(String keyStoreName, InboundProtocol
             inboundProtocol, Boolean useInAllTenants) {
@@ -47,7 +47,7 @@ public class IdentityKeyStoreMapping {
         return inboundProtocol;
     }
 
-    public Boolean getUseInAllTenants() {
+    public boolean getUseInAllTenants() {
 
         return useInAllTenants;
     }
