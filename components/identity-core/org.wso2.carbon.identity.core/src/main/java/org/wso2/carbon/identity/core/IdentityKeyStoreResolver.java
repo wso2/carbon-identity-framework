@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.InboundProtocol;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverException;
+import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 
@@ -41,10 +42,6 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.buildCustomKeyStoreName;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.buildTenantKeyStoreName;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace;
 
 
 /**
@@ -96,7 +93,7 @@ public class IdentityKeyStoreResolver {
             }
 
             // Get tenant keystore from keyStoreManager
-            String tenantKeyStoreName = buildTenantKeyStoreName(tenantDomain);
+            String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
             return keyStoreManager.getKeyStore(tenantKeyStoreName);
         } catch (Exception e) {
             throw new IdentityKeyStoreResolverException(
@@ -129,7 +126,8 @@ public class IdentityKeyStoreResolver {
                     LOG.debug("Custom keystore configuration avialble for " + inboundProtocol + " protocol.");
                 }
 
-                String keyStoreName = buildCustomKeyStoreName(keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+                String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
+                        keyStoreMappings.get(inboundProtocol).getKeyStoreName());
 
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -166,7 +164,7 @@ public class IdentityKeyStoreResolver {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 privateKey = keyStoreManager.getDefaultPrivateKey();
             } else {
-                String tenantKeyStoreName = buildTenantKeyStoreName(tenantDomain);
+                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
                 privateKey = keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
             }
         } catch (Exception e) {
@@ -207,7 +205,8 @@ public class IdentityKeyStoreResolver {
                     return privateKeys.get(inboundProtocol.toString());
                 }
 
-                String keyStoreName = buildCustomKeyStoreName(keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+                String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
+                        keyStoreMappings.get(inboundProtocol).getKeyStoreName());
 
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -244,7 +243,7 @@ public class IdentityKeyStoreResolver {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 publicCert = keyStoreManager.getDefaultPrimaryCertificate();
             } else {
-                String tenantKeyStoreName = buildTenantKeyStoreName(tenantDomain);
+                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
                 publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain);
             }
         } catch (Exception e) {
@@ -284,7 +283,8 @@ public class IdentityKeyStoreResolver {
                     return publicCerts.get(inboundProtocol.toString());
                 }
 
-                String keyStoreName = buildCustomKeyStoreName(keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+                String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
+                        keyStoreMappings.get(inboundProtocol).getKeyStoreName());
 
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -353,7 +353,8 @@ public class IdentityKeyStoreResolver {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
                     keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
 
-                String keyStoreName = buildCustomKeyStoreName(keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+                String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
+                        keyStoreMappings.get(inboundProtocol).getKeyStoreName());
                 return getCustomKeyStoreConfig(keyStoreName, configName);
             }
         }
@@ -387,7 +388,7 @@ public class IdentityKeyStoreResolver {
             switch (configName) {
                 case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_LOCATION):
                     // Returning only key store name because tenant key stores reside within the registry.
-                    return buildTenantKeyStoreName(tenantDomain);
+                    return IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
                 case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_TYPE):
                     return CarbonUtils.getServerConfiguration().getFirstProperty(
                             RegistryResources.SecurityManagement.PROP_TYPE);
@@ -424,7 +425,8 @@ public class IdentityKeyStoreResolver {
         OMElement securityElem = IdentityConfigParser.getInstance().getConfigElement(
                 IdentityKeyStoreResolverConstants.CONFIG_ELEM_SECURITY);
         OMElement keyStoreMappingsElem = securityElem.getFirstChildWithName(
-                getQNameWithIdentityNameSpace(IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPINGS));
+                IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
+                        IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPINGS));
 
         if (keyStoreMappingsElem == null) {
             if (LOG.isDebugEnabled()) {
@@ -434,13 +436,15 @@ public class IdentityKeyStoreResolver {
         }
 
         Iterator<OMElement> iterator = keyStoreMappingsElem.getChildrenWithName(
-                getQNameWithIdentityNameSpace(IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING));
+                IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
+                        IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING));
         while (iterator.hasNext()) {
             OMElement keyStoreMapping = iterator.next();
 
             // Parse inbound protocol
             OMElement protocolElement = keyStoreMapping.getFirstChildWithName(
-                    getQNameWithIdentityNameSpace(IdentityKeyStoreResolverConstants.ATTR_NAME_PROTOCOL));
+                    IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
+                            IdentityKeyStoreResolverConstants.ATTR_NAME_PROTOCOL));
             if (protocolElement == null) {
                 LOG.error("Error occurred when reading configuration. CustomKeyStoreMapping Protocol value null.");
                 continue;
@@ -465,7 +469,8 @@ public class IdentityKeyStoreResolver {
 
             // Parse keystore name
             OMElement keyStoreNameElement = keyStoreMapping.getFirstChildWithName(
-                    getQNameWithIdentityNameSpace(IdentityKeyStoreResolverConstants.ATTR_NAME_KEYSTORE_NAME));
+                    IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
+                            IdentityKeyStoreResolverConstants.ATTR_NAME_KEYSTORE_NAME));
             if (keyStoreNameElement == null) {
                 LOG.error("Error occurred when reading configuration. CustomKeyStoreMapping KeyStoreName value null.");
                 continue;
@@ -474,7 +479,8 @@ public class IdentityKeyStoreResolver {
 
             // Parse UseInAllTenants config
             OMElement useInAllTenantsElement = keyStoreMapping.getFirstChildWithName(
-                    getQNameWithIdentityNameSpace(IdentityKeyStoreResolverConstants.ATTR_NAME_USE_IN_ALL_TENANTS));
+                    IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
+                            IdentityKeyStoreResolverConstants.ATTR_NAME_USE_IN_ALL_TENANTS));
             if (useInAllTenantsElement == null) {
                 LOG.error("Error occurred when reading configuration. " +
                         "CustomKeyStoreMapping useInAllTenants value null.");
