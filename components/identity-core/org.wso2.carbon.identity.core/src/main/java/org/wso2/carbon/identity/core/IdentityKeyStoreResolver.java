@@ -63,7 +63,7 @@ public class IdentityKeyStoreResolver {
     private static Map<String, Key> privateKeys = new ConcurrentHashMap<>();
     private static Map<String, Certificate> publicCerts = new ConcurrentHashMap<>();
 
-    private static Log log = LogFactory.getLog(IdentityKeyStoreResolver.class);
+    private static final Log LOG = LogFactory.getLog(IdentityKeyStoreResolver.class);
 
     private IdentityKeyStoreResolver() {
 
@@ -125,8 +125,8 @@ public class IdentityKeyStoreResolver {
         if (keyStoreMappings.containsKey(inboundProtocol)) {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
                     keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Custom keystore configuration avialble for " + inboundProtocol + " protocol.");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Custom keystore configuration avialble for " + inboundProtocol + " protocol.");
                 }
 
                 String keyStoreName = buildCustomKeyStoreName(keyStoreMappings.get(inboundProtocol).getKeyStoreName());
@@ -199,8 +199,8 @@ public class IdentityKeyStoreResolver {
         if (keyStoreMappings.containsKey(inboundProtocol)) {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
                     keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Custom keystore configuration availble for " + inboundProtocol + " protocol.");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Custom keystore configuration availble for " + inboundProtocol + " protocol.");
                 }
 
                 if (privateKeys.containsKey(inboundProtocol.toString())) {
@@ -276,8 +276,8 @@ public class IdentityKeyStoreResolver {
         if (keyStoreMappings.containsKey(inboundProtocol)) {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
                     keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Custom keystore configuration for " + inboundProtocol + " protocol.");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Custom keystore configuration for " + inboundProtocol + " protocol.");
                 }
 
                 if (publicCerts.containsKey(inboundProtocol.toString())) {
@@ -427,8 +427,8 @@ public class IdentityKeyStoreResolver {
                 getQNameWithIdentityNameSpace(IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPINGS));
 
         if (keyStoreMappingsElem == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("No CustomKeyStoreMapping configurations found.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No CustomKeyStoreMapping configurations found.");
             }
             return;
         }
@@ -442,24 +442,24 @@ public class IdentityKeyStoreResolver {
             OMElement protocolElement = keyStoreMapping.getFirstChildWithName(
                     getQNameWithIdentityNameSpace(IdentityKeyStoreResolverConstants.ATTR_NAME_PROTOCOL));
             if (protocolElement == null) {
-                log.error("Error occurred when reading configuration. CustomKeyStoreMapping Protocol value null.");
+                LOG.error("Error occurred when reading configuration. CustomKeyStoreMapping Protocol value null.");
                 continue;
             }
 
             // Parse inbound protocol name
             InboundProtocol protocol = InboundProtocol.fromString(protocolElement.getText());
             if (protocol == null) {
-                log.warn("Invalid authentication protocol configuration in CustomKeyStoreMappings. Config ignored.");
+                LOG.warn("Invalid authentication protocol configuration in CustomKeyStoreMappings. Config ignored.");
                 continue;
             }
             if (keyStoreMappings.containsKey(protocol)) {
-                log.warn("Multiple CustomKeyStoreMappings configured for " + protocol.toString() +
+                LOG.warn("Multiple CustomKeyStoreMappings configured for " + protocol.toString() +
                         " protocol. Second config ignored.");
                 continue;
             }
             // TODO: Remove after SAML implementation
             if (protocol == InboundProtocol.SAML) {
-                log.warn("CustomKeyStoreMapping for SAML configured. This is not supported yet." +
+                LOG.warn("CustomKeyStoreMapping for SAML configured. This is not supported yet." +
                         " Please use [keystore.saml] configuration.");
             }
 
@@ -467,7 +467,7 @@ public class IdentityKeyStoreResolver {
             OMElement keyStoreNameElement = keyStoreMapping.getFirstChildWithName(
                     getQNameWithIdentityNameSpace(IdentityKeyStoreResolverConstants.ATTR_NAME_KEYSTORE_NAME));
             if (keyStoreNameElement == null) {
-                log.error("Error occurred when reading configuration. CustomKeyStoreMapping KeyStoreName value null.");
+                LOG.error("Error occurred when reading configuration. CustomKeyStoreMapping KeyStoreName value null.");
                 continue;
             }
             String keyStoreName = keyStoreNameElement.getText();
@@ -476,7 +476,7 @@ public class IdentityKeyStoreResolver {
             OMElement useInAllTenantsElement = keyStoreMapping.getFirstChildWithName(
                     getQNameWithIdentityNameSpace(IdentityKeyStoreResolverConstants.ATTR_NAME_USE_IN_ALL_TENANTS));
             if (useInAllTenantsElement == null) {
-                log.error("Error occurred when reading configuration. " +
+                LOG.error("Error occurred when reading configuration. " +
                         "CustomKeyStoreMapping useInAllTenants value null.");
                 continue;
             }

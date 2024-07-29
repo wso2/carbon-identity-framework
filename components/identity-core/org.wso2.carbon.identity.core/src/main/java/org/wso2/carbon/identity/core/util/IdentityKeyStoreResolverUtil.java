@@ -45,6 +45,7 @@ public class IdentityKeyStoreResolverUtil {
     }
 
     public static QName getQNameWithIdentityNameSpace(String localPart) {
+        
         return new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, localPart);
     }
 }
