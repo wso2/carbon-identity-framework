@@ -33,15 +33,7 @@ public class IdentityKeyStoreResolverConstants {
     public static final String ATTR_NAME_KEYSTORE_NAME = "KeyStoreName";
     public static final String ATTR_NAME_USE_IN_ALL_TENANTS = "UseInAllTenants";
 
-    // KeyStore Properties
-    public static final String KS_PROPERTY_LOCATION = "Location";
-    public static final String KS_PROPERTY_TYPE = "Type";
-    public static final String KS_PROPERTY_PASSWORD = "Password";
-    public static final String KS_PROPERTY_KEY_ALIAS = "KeyAlias";
-    public static final String KS_PROPERTY_KEY_PASSWORD = "KeyPassword";
-
     // KeyStore Constants
-    public static final String CUSTOM_KEY_STORE_SUFFIX = "KeyStore";
     public static final String KEY_STORE_EXTENSION = ".jks";
 
     // Inbound Protocols
