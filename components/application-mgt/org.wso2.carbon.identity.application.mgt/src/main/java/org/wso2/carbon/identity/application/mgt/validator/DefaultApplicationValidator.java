@@ -110,7 +110,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final int MODE_STRING = 3;
     private static final int MODE_SINGLE_LINE = 4;
     private static final int MODE_MULTI_LINE = 5;
-    private static final int DEFAULT_MAX_ANDROID_THUMBPRINT_COUNT = 20;
+    private static final int DEFAULT_MAX_ANDROID_THUMBPRINT_COUNT = 5;
 
     public DefaultApplicationValidator() {
 
