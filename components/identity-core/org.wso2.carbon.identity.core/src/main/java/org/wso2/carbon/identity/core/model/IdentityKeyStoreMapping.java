@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.core.model;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.InboundProtocol;
 
 /**
- * DAO class to store IdentityKeyStoreMapping configurations.
+ * Class to store IdentityKeyStoreMapping configurations.
  */
 public class IdentityKeyStoreMapping {
 
