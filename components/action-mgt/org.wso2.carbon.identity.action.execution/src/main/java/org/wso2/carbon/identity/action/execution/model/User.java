@@ -24,7 +24,7 @@ package org.wso2.carbon.identity.action.execution.model;
  */
 public class User {
 
-    String id;
+    private String id;
 
     public User(String id) {
 
