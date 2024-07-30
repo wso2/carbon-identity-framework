@@ -750,4 +750,19 @@ public class EntitlementUtil {
         }
         return filteredSubscriberIdList;
     }
+
+    /**
+     * Merges two lists and removes duplicates.
+     *
+     * @param list1 first list.
+     * @param list2 second list.
+     * @return Merged list without duplicates.
+     */
+    public static <T> List<T> mergeAndRemoveDuplicates(List<T> list1, List<T> list2) {
+
+        Set<T> uniqueElements = new HashSet<>();
+        uniqueElements.addAll(list1);
+        uniqueElements.addAll(list2);
+        return new ArrayList<>(uniqueElements);
+    }
 }

@@ -306,6 +306,7 @@ public class PDPConstants {
     public static final String POLICY_COMBINING_PREFIX_3 = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:";
 
     public static final String SUBSCRIBER_ID = "subscriberId";
+    public static final String POLICY_STORAGE_CONFIG = "DataStorageType.EntitlementPolicies";
 
     public static final class Algorithms {
 

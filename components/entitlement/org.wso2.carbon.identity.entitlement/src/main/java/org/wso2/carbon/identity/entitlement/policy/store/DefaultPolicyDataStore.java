@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.entitlement.policy.store;
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.balana.combine.PolicyCombiningAlgorithm;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
+import org.wso2.carbon.identity.entitlement.dao.DAOFactory;
 import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
-import org.wso2.carbon.identity.entitlement.dao.RegistryPolicyDAOImpl;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 
@@ -34,7 +34,7 @@ import java.util.Properties;
  */
 public class DefaultPolicyDataStore implements PolicyDataStore {
 
-    private final PolicyDAO policyDAO = new RegistryPolicyDAOImpl();
+    private final PolicyDAO policyDAO = DAOFactory.getPolicyDAO();
 
     @Override
     public void init(Properties properties) throws EntitlementException {

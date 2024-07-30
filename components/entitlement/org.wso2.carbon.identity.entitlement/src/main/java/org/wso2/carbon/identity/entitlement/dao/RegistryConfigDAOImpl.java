@@ -98,4 +98,20 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
 
         return algorithm;
     }
+
+    /**
+     * Deletes the global policy combining algorithm.
+     *
+     * @throws EntitlementException If an error occurs
+     */
+    public void deleteGlobalPolicyAlgorithm() throws EntitlementException {
+
+        try {
+            if (registry.resourceExists(POLICY_DATA_COLLECTION)) {
+                registry.delete(POLICY_DATA_COLLECTION);
+            }
+        } catch (RegistryException e) {
+            throw new EntitlementException("Error while deleting global policy combining algorithm in policy store", e);
+        }
+    }
 }
