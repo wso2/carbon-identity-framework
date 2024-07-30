@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.core.util;
 
 import org.wso2.carbon.core.RegistryResources;
+import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages;
 
 import javax.xml.namespace.QName;
 
@@ -30,7 +31,9 @@ public class IdentityKeyStoreResolverUtil {
     public static String buildTenantKeyStoreName(String tenantDomain) throws IdentityKeyStoreResolverException {
 
         if (tenantDomain == null || tenantDomain.isEmpty()) {
-            throw new IdentityKeyStoreResolverException("Tenant domain cannot be null or empty.");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
         }
         String ksName = tenantDomain.trim().replace(".", "-");
         return ksName + IdentityKeyStoreResolverConstants.KEY_STORE_EXTENSION;
@@ -39,7 +42,9 @@ public class IdentityKeyStoreResolverUtil {
     public static String buildCustomKeyStoreName(String keyStoreName) throws IdentityKeyStoreResolverException {
 
         if (keyStoreName == null || keyStoreName.isEmpty()) {
-            throw new IdentityKeyStoreResolverException("KeyStore name cannot be null or empty.");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "KeyStore name"));
         }
         return RegistryResources.SecurityManagement.CustomKeyStore.KEYSTORE_PREFIX + keyStoreName;
     }

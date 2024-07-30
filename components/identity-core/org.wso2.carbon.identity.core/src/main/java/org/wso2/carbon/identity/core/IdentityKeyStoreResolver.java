@@ -28,7 +28,6 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
 import org.wso2.carbon.identity.core.model.IdentityKeyStoreMapping;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
-import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.InboundProtocol;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverException;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil;
@@ -43,6 +42,14 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ATTR_NAME_KEYSTORE_NAME;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ATTR_NAME_PROTOCOL;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ATTR_NAME_USE_IN_ALL_TENANTS;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPINGS;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.CONFIG_ELEM_SECURITY;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages;
 
 
 /**
@@ -98,7 +105,9 @@ public class IdentityKeyStoreResolver {
             return keyStoreManager.getKeyStore(tenantKeyStoreName);
         } catch (Exception e) {
             throw new IdentityKeyStoreResolverException(
-                    "Error occurred when retrieving keystore for tenant: " + tenantDomain, e);
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE.getDescription(),
+                            tenantDomain), e);
         }
     }
 
@@ -114,10 +123,14 @@ public class IdentityKeyStoreResolver {
             throws IdentityKeyStoreResolverException {
 
         if (tenantDomain == null || tenantDomain.isEmpty()) {
-            throw new IllegalArgumentException("Tenant domain must not be null or empty");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
         }
         if (inboundProtocol == null) {
-            throw new IllegalArgumentException("Inbound protocol must not be null");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Inbound protocol"));
         }
 
         if (keyStoreMappings.containsKey(inboundProtocol)) {
@@ -136,7 +149,9 @@ public class IdentityKeyStoreResolver {
                     return keyStoreManager.getKeyStore(keyStoreName);
                 } catch (Exception e) {
                     throw new IdentityKeyStoreResolverException(
-                            "Error occurred when retrieving keystore for protocol: " + inboundProtocol, e);
+                            ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE.getCode(),
+                            String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE.getDescription(),
+                                    keyStoreName), e);
                 }
             }
         }
@@ -170,7 +185,9 @@ public class IdentityKeyStoreResolver {
             }
         } catch (Exception e) {
             throw new IdentityKeyStoreResolverException(
-                    "Error occurred when retrieving private key tenant: " + tenantDomain, e);
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(),
+                            tenantDomain), e);
         }
 
         privateKeys.put(String.valueOf(tenantId), privateKey);
@@ -189,10 +206,14 @@ public class IdentityKeyStoreResolver {
             throws IdentityKeyStoreResolverException {
 
         if (tenantDomain == null || tenantDomain.isEmpty()) {
-            throw new IllegalArgumentException("Tenant domain must not be null or empty");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
         }
         if (inboundProtocol == null) {
-            throw new IllegalArgumentException("Inbound protocol must not be null");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Inbound protocol"));
         }
 
         if (keyStoreMappings.containsKey(inboundProtocol)) {
@@ -217,7 +238,9 @@ public class IdentityKeyStoreResolver {
                     return privateKey;
                 } catch (Exception e) {
                     throw new IdentityKeyStoreResolverException(
-                            "Error occurred when retrieving private key from keystore: " + keyStoreName, e);
+                            ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PRIVATE_KEY.getCode(),
+                            String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PRIVATE_KEY.getDescription(),
+                                    inboundProtocol), e);
                 }
             }
         }
@@ -248,7 +271,10 @@ public class IdentityKeyStoreResolver {
                 publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain);
             }
         } catch (Exception e) {
-            throw new IdentityKeyStoreResolverException("Error occurred when retrieving public certificate", e);
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getDescription(),
+                            tenantDomain), e);
         }
 
         publicCerts.put(String.valueOf(tenantId), publicCert);
@@ -267,10 +293,14 @@ public class IdentityKeyStoreResolver {
             throws IdentityKeyStoreResolverException {
 
         if (tenantDomain == null || tenantDomain.isEmpty()) {
-            throw new IllegalArgumentException("Tenant domain must not be null or empty");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
         }
         if (inboundProtocol == null) {
-            throw new IllegalArgumentException("Inbound protocol must not be null");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Inbound protocol"));
         }
 
         if (keyStoreMappings.containsKey(inboundProtocol)) {
@@ -294,7 +324,10 @@ public class IdentityKeyStoreResolver {
                     publicCerts.put(inboundProtocol.toString(), publicCert);
                     return publicCert;
                 } catch (Exception e) {
-                    throw new IdentityKeyStoreResolverException("Error occurred when retrieving public certificate", e);
+                    throw new IdentityKeyStoreResolverException(
+                            ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PUBLIC_CERTIFICATE.getCode(),
+                            String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PUBLIC_CERTIFICATE
+                                            .getDescription(), tenantDomain), e);
                 }
             }
         }
@@ -340,10 +373,14 @@ public class IdentityKeyStoreResolver {
             throws IdentityKeyStoreResolverException {
 
         if (tenantDomain == null || tenantDomain.isEmpty()) {
-            throw new IllegalArgumentException("Tenant domain must not be null or empty");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
         }
         if (inboundProtocol == null) {
-            throw new IllegalArgumentException("Inbound protocol must not be null");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Inbound protocol"));
         }
 
         if (keyStoreMappings.containsKey(inboundProtocol)) {
@@ -356,12 +393,15 @@ public class IdentityKeyStoreResolver {
         }
 
         if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
-            File keyStoreFile = new File(getPrimaryKeyStoreConfig(
-                    RegistryResources.SecurityManagement.CustomKeyStore.PROP_LOCATION));
-            if (keyStoreFile.exists()) {
+            try {
+                File keyStoreFile = new File(getPrimaryKeyStoreConfig(
+                        RegistryResources.SecurityManagement.CustomKeyStore.PROP_LOCATION));
                 return keyStoreFile.getName();
+            } catch (Exception e) {
+                throw new IdentityKeyStoreResolverException(
+                        ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_PRIMARY_KEYSTORE_CONFIGURATION.getCode(),
+                        ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_PRIMARY_KEYSTORE_CONFIGURATION.getDescription(), e);
             }
-            throw new IdentityKeyStoreResolverException("Primary keystore file not found.");
         }
 
         return IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
@@ -380,13 +420,19 @@ public class IdentityKeyStoreResolver {
             throws IdentityKeyStoreResolverException {
 
         if (tenantDomain == null || tenantDomain.isEmpty()) {
-            throw new IllegalArgumentException("Tenant domain must not be null or empty");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
         }
         if (inboundProtocol == null) {
-            throw new IllegalArgumentException("Inbound protocol must not be null");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Inbound protocol"));
         }
         if (configName == null || configName.isEmpty()) {
-            throw new IllegalArgumentException("Configuration name must not be null or empty");
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Config name"));
         }
 
         if (keyStoreMappings.containsKey(inboundProtocol)) {
@@ -419,7 +465,9 @@ public class IdentityKeyStoreResolver {
             String fullConfigPath = "Security.KeyStore." + configName;
             return CarbonUtils.getServerConfiguration().getFirstProperty(fullConfigPath);
         } catch (CarbonException e) {
-            throw new IdentityKeyStoreResolverException("Error while retrieving primary key store configuration.", e);
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_PRIMARY_KEYSTORE_CONFIGURATION.getCode(),
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_PRIMARY_KEYSTORE_CONFIGURATION.getDescription(), e);
         }
     }
 
@@ -443,10 +491,17 @@ public class IdentityKeyStoreResolver {
                 case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_KEY_ALIAS):
                     return tenantDomain;
                 default:
-                    throw new IdentityKeyStoreResolverException("Unexpected error while retrieving configuration");
+                    // This state is not possible since config name is validated above.
+                    throw new IdentityKeyStoreResolverException(
+                            ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE_CONFIGURATION.getCode(),
+                            String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE_CONFIGURATION
+                                    .getDescription(), tenantDomain));
             }
         } catch (CarbonException e) {
-            throw new IdentityKeyStoreResolverException("Error while retrieving tenant key store configuration.", e);
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE_CONFIGURATION.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE_CONFIGURATION
+                            .getDescription(), tenantDomain), e);
         }
     }
 
@@ -460,17 +515,20 @@ public class IdentityKeyStoreResolver {
                     .getCustomKeyStoreConfigElement(keyStoreName, CarbonUtils.getServerConfiguration());
             return KeyStoreUtil.getCustomKeyStoreConfig(configElement, configName);
         } catch (CarbonException e) {
-            throw new IdentityKeyStoreResolverException("Error while retrieving custom key store configuration.", e);
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE_CONFIGURATION.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE_CONFIGURATION
+                            .getDescription(), keyStoreName), e);
         }
     }
 
     private void parseIdentityKeyStoreMappingConfigs() {
 
         OMElement securityElem = IdentityConfigParser.getInstance().getConfigElement(
-                IdentityKeyStoreResolverConstants.CONFIG_ELEM_SECURITY);
+                CONFIG_ELEM_SECURITY);
         OMElement keyStoreMappingsElem = securityElem.getFirstChildWithName(
                 IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                        IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPINGS));
+                        CONFIG_ELEM_KEYSTORE_MAPPINGS));
 
         if (keyStoreMappingsElem == null) {
             if (LOG.isDebugEnabled()) {
@@ -481,14 +539,14 @@ public class IdentityKeyStoreResolver {
 
         Iterator<OMElement> iterator = keyStoreMappingsElem.getChildrenWithName(
                 IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                        IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING));
+                        CONFIG_ELEM_KEYSTORE_MAPPING));
         while (iterator.hasNext()) {
             OMElement keyStoreMapping = iterator.next();
 
             // Parse inbound protocol
             OMElement protocolElement = keyStoreMapping.getFirstChildWithName(
                     IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                            IdentityKeyStoreResolverConstants.ATTR_NAME_PROTOCOL));
+                            ATTR_NAME_PROTOCOL));
             if (protocolElement == null) {
                 LOG.error("Error occurred when reading configuration. CustomKeyStoreMapping Protocol value null.");
                 continue;
@@ -514,7 +572,7 @@ public class IdentityKeyStoreResolver {
             // Parse keystore name
             OMElement keyStoreNameElement = keyStoreMapping.getFirstChildWithName(
                     IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                            IdentityKeyStoreResolverConstants.ATTR_NAME_KEYSTORE_NAME));
+                            ATTR_NAME_KEYSTORE_NAME));
             if (keyStoreNameElement == null) {
                 LOG.error("Error occurred when reading configuration. CustomKeyStoreMapping KeyStoreName value null.");
                 continue;
@@ -524,7 +582,7 @@ public class IdentityKeyStoreResolver {
             // Parse UseInAllTenants config
             OMElement useInAllTenantsElement = keyStoreMapping.getFirstChildWithName(
                     IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                            IdentityKeyStoreResolverConstants.ATTR_NAME_USE_IN_ALL_TENANTS));
+                            ATTR_NAME_USE_IN_ALL_TENANTS));
             if (useInAllTenantsElement == null) {
                 LOG.error("Error occurred when reading configuration. " +
                         "CustomKeyStoreMapping useInAllTenants value null.");
