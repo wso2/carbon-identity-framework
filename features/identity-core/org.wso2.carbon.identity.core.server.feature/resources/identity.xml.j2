@@ -1347,6 +1347,29 @@
         <PrimaryLoginIdentifier>{{identity_mgt.login_identifiers.primary_claim}}</PrimaryLoginIdentifier>
     </LoginIdentifiers>
 
+     <AdminServices>
+        {% if user_registration_admin_service.enable is sameas true %}
+        <UserRegistrationAdminService>
+            <Enable>{{user_registration_admin_service.enable}}</Enable>
+            <AllowedSignUpRoles>{{ user_registration_admin_service.allowed_sign_up_roles | join(',') }}</AllowedSignUpRoles>
+        </UserRegistrationAdminService>
+        {% endif %}
+        {% if user_info_recovery_admin_service.allowed_usernames is defined %}
+        <UserInformationRecoveryService>
+            <AllowedUsers>
+                <Usernames>{{ user_info_recovery_admin_service.allowed_usernames | join(',') }}</Usernames>
+            </AllowedUsers>
+        </UserInformationRecoveryService>
+        {% endif %}
+        {% if policy_editor_service.get_policy_doc.allowed_urls is defined %}
+        <PolicyEditorService>
+            <GetPolicyDoc>
+                <AllowedURLs>{{ policy_editor_service.get_policy_doc.allowed_urls | join(',') }}</AllowedURLs>
+            </GetPolicyDoc>
+        </PolicyEditorService>
+        {% endif %}
+    </AdminServices>
+
     <UserClaimUpdate>
         <Claim uri = "http://wso2.org/claims/emailaddress">
             <VerificationOnUpdate>

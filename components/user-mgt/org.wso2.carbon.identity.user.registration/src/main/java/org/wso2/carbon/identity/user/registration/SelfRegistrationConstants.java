@@ -34,6 +34,9 @@ public class SelfRegistrationConstants {
     public static final String ROLE_NAME_ELEMENT = "RoleName";
     public static final String SIGN_UP_ROLE_ELEMENT = "SignUpRole";
     public static final String SIGN_UP_ROLE_CLAIM_URI = "http://wso2.org/claims/signuprole";
+    public static final String SELF_SIGN_UP_ADMIN_SERVICE_ENABLED = "AdminServices.UserRegistrationAdminService.Enable";
+    public static final String SELF_SIGN_UP_ALLOWED_SIGNUP_ROLE =
+            "AdminServices.UserRegistrationAdminService.AllowedSignUpRoles";
 
     private SelfRegistrationConstants(){
 
