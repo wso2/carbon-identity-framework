@@ -20,15 +20,14 @@ package org.wso2.carbon.identity.entitlement.dao;
 
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
-import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
-import org.wso2.carbon.identity.entitlement.policy.finder.PolicyFinderModule;
+import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManageModule;
 
 import java.util.List;
 
 /**
  * This interface supports the management of XACML policies.
  */
-public interface PolicyDAO extends PolicyFinderModule {
+public interface PolicyDAO extends PolicyStoreManageModule {
 
     /**
      * Adds or updates the given policy.
@@ -91,22 +90,6 @@ public interface PolicyDAO extends PolicyFinderModule {
     void removePolicy(String policyId) throws EntitlementException;
 
     /**
-     * Publishes the given policy.
-     *
-     * @param policy policy to be published
-     * @throws EntitlementException If an error occurs
-     */
-    void publishPolicy(PolicyStoreDTO policy) throws EntitlementException;
-
-    /**
-     * Checks whether the given policy is published or not.
-     *
-     * @param policyId policy ID
-     * @return whether the given policy is published or not
-     */
-    boolean isPublished(String policyId);
-
-    /**
      * Gets the requested published policy.
      *
      * @param policyId policy ID
@@ -121,11 +104,4 @@ public interface PolicyDAO extends PolicyFinderModule {
      * @throws EntitlementException If an error occurs
      */
     List<String> listPublishedPolicyIds() throws EntitlementException;
-
-    /**
-     * Un-publishes the policy.
-     *
-     * @param policyId policy ID
-     */
-    void unPublishPolicy(String policyId);
 }

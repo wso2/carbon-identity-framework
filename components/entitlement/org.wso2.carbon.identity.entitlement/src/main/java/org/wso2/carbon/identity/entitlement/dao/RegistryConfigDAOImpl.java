@@ -20,11 +20,8 @@ package org.wso2.carbon.identity.entitlement.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.balana.combine.PolicyCombiningAlgorithm;
-import org.wso2.balana.combine.xacml3.DenyOverridesPolicyAlg;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.registry.core.Collection;
@@ -47,33 +44,6 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         registry = EntitlementServiceComponent.getGovernanceRegistry(tenantId);
-    }
-
-    /**
-     * Gets the global policy combining algorithm.
-     *
-     * @return global policy combining algorithm
-     */
-    @Override
-    public PolicyCombiningAlgorithm getGlobalPolicyAlgorithm() {
-
-        String algorithm = null;
-        try {
-            if (registry.resourceExists(POLICY_DATA_COLLECTION)) {
-                Collection collection = (Collection) registry.get(POLICY_DATA_COLLECTION);
-                algorithm = collection.getProperty(GLOBAL_POLICY_COMBINING_ALGORITHM);
-            }
-
-            return EntitlementUtil.resolveGlobalPolicyAlgorithm(algorithm);
-
-        } catch (RegistryException | EntitlementException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Exception while getting global policy combining algorithm from policy data store.", e);
-            }
-        }
-
-        LOG.warn("Global policy combining algorithm is not defined. Therefore the default algorithm is used.");
-        return new DenyOverridesPolicyAlg();
     }
 
     /**

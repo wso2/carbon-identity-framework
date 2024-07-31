@@ -42,8 +42,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.entitlement.PDPConstants.SUBSCRIBER_ID;
 
@@ -119,21 +117,14 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                 Collection collection = (Collection) resource;
                 List<String> list = new ArrayList<>();
                 if (collection.getChildCount() > 0) {
-                    filter = filter.replace("*", ".*");
-                    Pattern pattern = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
                     for (String path : collection.getChildren()) {
-                        String id = path.substring(path.lastIndexOf(RegistryConstants.PATH_SEPARATOR) + 1);
-                        Matcher matcher = pattern.matcher(id);
-                        if (!matcher.matches()) {
-                            continue;
-                        }
                         Resource childResource = registry.get(path);
                         if (childResource != null && childResource.getProperty(SUBSCRIBER_ID) != null) {
                             list.add(childResource.getProperty(SUBSCRIBER_ID));
                         }
                     }
                 }
-                return list;
+                return EntitlementUtil.filterSubscribers(list, filter);
             }
         } catch (RegistryException e) {
             throw new EntitlementException("Error while retrieving subscriber ids", e);

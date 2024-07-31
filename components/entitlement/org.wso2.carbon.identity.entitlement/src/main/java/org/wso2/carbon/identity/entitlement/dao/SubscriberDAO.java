@@ -70,5 +70,4 @@ public interface SubscriberDAO {
      * @throws EntitlementException If an error occurs
      */
     void removeSubscriber(String subscriberId) throws EntitlementException;
-
 }
