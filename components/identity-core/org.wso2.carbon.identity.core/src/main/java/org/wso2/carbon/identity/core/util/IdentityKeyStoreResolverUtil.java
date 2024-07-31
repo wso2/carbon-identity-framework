@@ -46,7 +46,7 @@ public class IdentityKeyStoreResolverUtil {
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "KeyStore name"));
         }
-        return RegistryResources.SecurityManagement.CustomKeyStore.KEYSTORE_PREFIX + keyStoreName;
+        return RegistryResources.SecurityManagement.CustomKeyStore.CUSTOM_KEYSTORE_PREFIX + keyStoreName;
     }
 
     public static QName getQNameWithIdentityNameSpace(String localPart) {

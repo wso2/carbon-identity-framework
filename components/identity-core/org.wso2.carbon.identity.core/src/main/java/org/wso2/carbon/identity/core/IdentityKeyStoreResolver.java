@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.core;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
@@ -122,7 +123,7 @@ public class IdentityKeyStoreResolver {
     public KeyStore getKeyStore(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
 
-        if (tenantDomain == null || tenantDomain.isEmpty()) {
+        if (StringUtils.isEmpty(tenantDomain)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
@@ -205,7 +206,7 @@ public class IdentityKeyStoreResolver {
     public Key getPrivateKey(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
 
-        if (tenantDomain == null || tenantDomain.isEmpty()) {
+        if (StringUtils.isEmpty(tenantDomain)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
@@ -292,7 +293,7 @@ public class IdentityKeyStoreResolver {
     public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
 
-        if (tenantDomain == null || tenantDomain.isEmpty()) {
+        if (StringUtils.isEmpty(tenantDomain)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
@@ -372,7 +373,7 @@ public class IdentityKeyStoreResolver {
     public String getKeyStoreName(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
 
-        if (tenantDomain == null || tenantDomain.isEmpty()) {
+        if (StringUtils.isEmpty(tenantDomain)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
@@ -419,7 +420,7 @@ public class IdentityKeyStoreResolver {
     public String getKeyStoreConfig(String tenantDomain, InboundProtocol inboundProtocol, String configName)
             throws IdentityKeyStoreResolverException {
 
-        if (tenantDomain == null || tenantDomain.isEmpty()) {
+        if (StringUtils.isEmpty(tenantDomain)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
@@ -429,7 +430,7 @@ public class IdentityKeyStoreResolver {
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Inbound protocol"));
         }
-        if (configName == null || configName.isEmpty()) {
+        if (StringUtils.isEmpty(configName)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Config name"));
