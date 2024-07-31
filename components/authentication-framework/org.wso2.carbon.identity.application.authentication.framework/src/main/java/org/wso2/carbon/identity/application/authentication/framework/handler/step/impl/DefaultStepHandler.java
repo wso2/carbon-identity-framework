@@ -329,7 +329,6 @@ public class DefaultStepHandler implements StepHandler {
                     AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(idp);
                     populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
                             authenticatedStepIdps.get(idp));
-                    context.getCurrentAuthenticatedIdPs().put(idp, authenticatedIdPData);
                     stepConfig.setCompleted(true);
                     request.setAttribute(
                             FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.SUCCESS_COMPLETED);

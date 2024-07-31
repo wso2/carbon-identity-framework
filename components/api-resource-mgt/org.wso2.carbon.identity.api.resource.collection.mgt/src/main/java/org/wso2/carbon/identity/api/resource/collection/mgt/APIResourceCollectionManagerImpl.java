@@ -138,10 +138,8 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
             clonedCollection.setApiResources(apiResourcesMap);
             return clonedCollection;
         } catch (APIResourceMgtException e) {
-            throw handleServerException(
-                    APIResourceCollectionManagementConstants.ErrorMessages
-                            .ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPE_METADATA,
-                    e);
+            throw handleServerException(APIResourceCollectionManagementConstants.ErrorMessages
+                    .ERROR_CODE_ERROR_WHILE_RETRIEVING_SCOPE_METADATA, e);
         }
     }
 
@@ -152,9 +150,8 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
         }
         Set<String> scopeSet = new HashSet<>(scopes);
         return apiResources.stream()
-                .filter(apiResource ->
-                        apiResource.getScopes().stream().anyMatch(scope -> scopeSet.contains(scope.getName()))
-                       )
+                .filter(apiResource -> apiResource.getScopes().stream()
+                        .anyMatch(scope -> scopeSet.contains(scope.getName())))
                 .map(apiResource -> filterAPIResourceScopes(apiResource, scopeSet))
                 .collect(Collectors.toList());
     }
