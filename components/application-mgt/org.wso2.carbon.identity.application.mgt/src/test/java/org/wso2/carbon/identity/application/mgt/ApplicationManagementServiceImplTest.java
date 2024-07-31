@@ -1143,16 +1143,16 @@ public class ApplicationManagementServiceImplTest {
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
-    @DataProvider(name = "testAddApplicationWithTemplateIdAndTemplateVersion")
-    public Object[][] testAddApplicationWithTemplateIdAndTemplateVersion() {
+    @DataProvider(name = "addApplicationWithTemplateIdAndTemplateVersionData")
+    public Object[][] addApplicationWithTemplateIdAndTemplateVersionData() {
 
         return new Object[][] {
                 {APPLICATION_TEMPLATE_ID_1, APPLICATION_TEMPLATE_VERSION_1}
         };
     }
 
-    @Test(dataProvider = "testAddApplicationWithTemplateIdAndTemplateVersion")
-    public void testAddApplicationWithTemplateIdAndTemplateVersion(String templateId, String templateVersion)
+    @Test(dataProvider = "addApplicationWithTemplateIdAndTemplateVersionData")
+    public void addApplicationWithTemplateIdAndTemplateVersionData(String templateId, String templateVersion)
             throws Exception {
         ServiceProvider inputSP = new ServiceProvider();
         inputSP.setApplicationName(APPLICATION_NAME_1);
