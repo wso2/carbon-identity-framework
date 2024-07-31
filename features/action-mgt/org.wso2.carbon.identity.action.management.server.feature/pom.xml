@@ -68,6 +68,9 @@
                                 <bundleDef>
                                     org.wso2.carbon.identity.framework:org.wso2.carbon.identity.action.management
                                 </bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.action.execution
+                                </bundleDef>
                             </bundles>
                         </configuration>
                     </execution>
