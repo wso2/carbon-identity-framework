@@ -1154,6 +1154,7 @@ public class ApplicationManagementServiceImplTest {
     @Test(dataProvider = "addApplicationWithTemplateIdAndTemplateVersionData")
     public void addApplicationWithTemplateIdAndTemplateVersionData(String templateId, String templateVersion)
             throws Exception {
+
         ServiceProvider inputSP = new ServiceProvider();
         inputSP.setApplicationName(APPLICATION_NAME_1);
 
