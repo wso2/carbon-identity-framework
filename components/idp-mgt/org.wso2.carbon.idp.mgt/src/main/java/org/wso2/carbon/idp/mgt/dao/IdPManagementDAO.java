@@ -2237,7 +2237,8 @@ public class IdPManagementDAO {
         return idp;
     }
 
-    private String resolveAbsoluteURL(String defaultUrlContext, String urlFromConfig, String tenantDomain)
+    private String resolveAbsoluteURL(String defaultUrlContext, String urlFromConfig, String urlFromConfigV2,
+                                      String tenantDomain)
             throws IdentityProviderManagementServerException {
 
         if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(urlFromConfig)) {
@@ -2248,6 +2249,9 @@ public class IdPManagementDAO {
             return urlFromConfig;
         }
 
+        if (StringUtils.isNotBlank(urlFromConfigV2)) {
+            return urlFromConfigV2;
+        }
         try {
             ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().setTenant(tenantDomain);
             return serviceURLBuilder.addPath(defaultUrlContext).build().getAbsolutePublicURL();
@@ -2433,7 +2437,7 @@ public class IdPManagementDAO {
             }
         }
 
-        return resolveAbsoluteURL(defaultContext, url, tenantDomain);
+        return resolveAbsoluteURL(defaultContext, url, null, tenantDomain);
     }
 
     private void addSSOUrlAsDestinationUrl(FederatedAuthenticatorConfig federatedAuthenticatorConfig,
@@ -2511,6 +2515,21 @@ public class IdPManagementDAO {
         String scimGroupsEndpoint;
         String scim2UsersEndpoint;
         String scim2GroupsEndpoint;
+        String oauth1RequestTokenUrlV2;
+        String oauth1AuthorizeUrlV2;
+        String oauth1AccessTokenUrlV2;
+        String oauth2AuthzEPUrlV2;
+        String oauth2ParEPUrlV2;
+        String oauth2TokenEPUrlV2;
+        String oauth2RevokeEPUrlV2;
+        String oauth2IntrospectEpUrlV2;
+        String oauth2UserInfoEPUrlV2;
+        String oidcCheckSessionEPUrlV2;
+        String oidcLogoutEPUrlV2;
+        String oIDCWebFingerEPUrlV2;
+        String oAuth2DCREPUrlV2;
+        String oAuth2JWKSPageV2;
+        String oIDCDiscoveryEPUrlV2;
 
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
         oauth1RequestTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL);
@@ -2534,6 +2553,21 @@ public class IdPManagementDAO {
         oAuth2DCREPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_DCR_EP_URL);
         oAuth2JWKSPage = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_JWKS_EP_URL);
         oIDCDiscoveryEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_DISCOVERY_EP_URL);
+        oauth1RequestTokenUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL_V2);
+        oauth1AuthorizeUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL_V2);
+        oauth1AccessTokenUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL_V2);
+        oauth2AuthzEPUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_AUTHZ_EP_URL_V2);
+        oauth2ParEPUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_PAR_EP_URL_V2);
+        oauth2TokenEPUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_TOKEN_EP_URL_V2);
+        oauth2UserInfoEPUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_USERINFO_EP_URL_V2);
+        oidcCheckSessionEPUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL_V2);
+        oidcLogoutEPUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_LOGOUT_EP_URL_V2);
+        oauth2RevokeEPUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_REVOKE_EP_URL_V2);
+        oauth2IntrospectEpUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_INTROSPECT_EP_URL_V2);
+        oIDCWebFingerEPUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_WEB_FINGER_EP_URL_V2);
+        oAuth2DCREPUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_DCR_EP_URL_V2);
+        oAuth2JWKSPageV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_JWKS_EP_URL_V2);
+        oIDCDiscoveryEPUrlV2 = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_DISCOVERY_EP_URL_V2);
 
         if (StringUtils.isBlank(openIdUrl)) {
             openIdUrl = IdentityUtil.getServerURL(IdentityConstants.OpenId.OPENID, true, true);
@@ -2551,24 +2585,37 @@ public class IdPManagementDAO {
             oauth1AccessTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.ACCESS_TOKEN, true, true);
         }
 
-        oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl, tenantDomain);
-        oauth2ParEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.PAR, oauth2ParEPUrl, tenantDomain);
-        oauth2TokenEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl, tenantDomain);
-        oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl, tenantDomain);
-        oauth2IntrospectEpUrl = resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl,
+        oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl, oauth2AuthzEPUrlV2,
+                tenantDomain);
+        oauth2ParEPUrl =
+                resolveAbsoluteURL(IdentityConstants.OAuth.PAR, oauth2ParEPUrl, oauth2ParEPUrlV2, tenantDomain);
+        oauth2TokenEPUrl =
+                resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl, oauth2TokenEPUrlV2, tenantDomain);
+        oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl, oauth2RevokeEPUrlV2,
+                tenantDomain);
+        oauth2IntrospectEpUrl =
+                resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl, oauth2IntrospectEpUrlV2,
                 tenantDomain);
         oauth2IntrospectEpUrl = addTenantPathParamInLegacyMode(oauth2IntrospectEpUrl, tenantDomain);
-        oauth2UserInfoEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl, tenantDomain);
+        oauth2UserInfoEPUrl =
+                resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl, oauth2UserInfoEPUrlV2,
+                        tenantDomain);
         oidcCheckSessionEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.CHECK_SESSION, oidcCheckSessionEPUrl,
+                oidcCheckSessionEPUrlV2,
                 tenantDomain);
-        oidcLogoutEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl,tenantDomain);
-        oAuth2DCREPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl, tenantDomain);
+        oidcLogoutEPUrl =
+                resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl, oidcLogoutEPUrlV2, tenantDomain);
+        oAuth2DCREPUrl =
+                resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl, oAuth2DCREPUrlV2, tenantDomain);
         oAuth2DCREPUrl = addTenantPathParamInLegacyMode(oAuth2DCREPUrl, tenantDomain);
-        oAuth2JWKSPage = resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage, tenantDomain);
+        oAuth2JWKSPage =
+                resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage, oAuth2JWKSPageV2, tenantDomain);
         oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
-        oIDCDiscoveryEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl, tenantDomain);
+        oIDCDiscoveryEPUrl =
+                resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl, oIDCDiscoveryEPUrlV2,
+                        tenantDomain);
         oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
-        passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl, tenantDomain);
+        passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl, null, tenantDomain);
 
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {
@@ -2691,21 +2738,24 @@ public class IdPManagementDAO {
                 IdentityApplicationConstants.OAuth10A.OAUTH1_REQUEST_TOKEN_URL) == null) {
             Property oauth1ReqTokUrlProp = new Property();
             oauth1ReqTokUrlProp.setName(IdentityApplicationConstants.OAuth10A.OAUTH1_REQUEST_TOKEN_URL);
-            oauth1ReqTokUrlProp.setValue(oauth1RequestTokenUrl);
+            oauth1ReqTokUrlProp.setValue(
+                    StringUtils.isNotBlank(oauth1RequestTokenUrlV2) ? oauth1RequestTokenUrlV2 : oauth1RequestTokenUrl);
             propertiesList.add(oauth1ReqTokUrlProp);
         }
         if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
                 IdentityApplicationConstants.OAuth10A.OAUTH1_AUTHORIZE_URL) == null) {
             Property oauth1AuthzUrlProp = new Property();
             oauth1AuthzUrlProp.setName(IdentityApplicationConstants.OAuth10A.OAUTH1_AUTHORIZE_URL);
-            oauth1AuthzUrlProp.setValue(oauth1AuthorizeUrl);
+            oauth1AuthzUrlProp.setValue(
+                    StringUtils.isNotBlank(oauth1AuthorizeUrlV2) ? oauth1AuthorizeUrlV2 : oauth1AuthorizeUrl);
             propertiesList.add(oauth1AuthzUrlProp);
         }
         if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
                 IdentityApplicationConstants.OAuth10A.OAUTH1_ACCESS_TOKEN_URL) == null) {
             Property oauth1AccessTokUrlProp = new Property();
             oauth1AccessTokUrlProp.setName(IdentityApplicationConstants.OAuth10A.OAUTH1_ACCESS_TOKEN_URL);
-            oauth1AccessTokUrlProp.setValue(oauth1AccessTokenUrl);
+            oauth1AccessTokUrlProp.setValue(
+                    StringUtils.isNotBlank(oauth1AccessTokenUrlV2) ? oauth1AccessTokenUrlV2 : oauth1AccessTokenUrl);
             propertiesList.add(oauth1AccessTokUrlProp);
         }
         oauth1FedAuthn.setProperties(propertiesList.toArray(new Property[0]));
@@ -2766,7 +2816,8 @@ public class IdPManagementDAO {
                 IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_DCR_EP_URL);
         propertiesList.add(dcrUrlProp);
 
-        Property webFingerUrlProp = resolveFedAuthnProperty(oIDCWebFingerEPUrl, oidcFedAuthn,
+        Property webFingerUrlProp = resolveFedAuthnProperty(
+                StringUtils.isNotBlank(oIDCWebFingerEPUrlV2) ? oIDCWebFingerEPUrlV2 : oIDCWebFingerEPUrl, oidcFedAuthn,
                 IdentityApplicationConstants.Authenticator.OIDC.OIDC_WEB_FINGER_EP_URL);
         propertiesList.add(webFingerUrlProp);
 

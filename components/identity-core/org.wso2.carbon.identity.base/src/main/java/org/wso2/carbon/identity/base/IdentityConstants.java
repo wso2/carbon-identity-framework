@@ -376,6 +376,21 @@ public class IdentityConstants {
         public static final String OAUTH2_DCR_EP_URL = "OAuth.OAuth2DCREPUrl";
         public static final String OAUTH2_JWKS_EP_URL = "OAuth.OAuth2JWKSPage";
         public static final String OIDC_DISCOVERY_EP_URL = "OAuth.OIDCDiscoveryEPUrl";
+        public static final String OAUTH1_REQUEST_TOKEN_URL_V2 = "OAuth.V2.OAuth1RequestTokenUrl";
+        public static final String OAUTH1_AUTHORIZE_URL_V2 = "OAuth.V2.OAuth1AuthorizeUrl";
+        public static final String OAUTH1_ACCESSTOKEN_URL_V2 = "OAuth.V2.OAuth1AccessTokenUrl";
+        public static final String OAUTH2_AUTHZ_EP_URL_V2 = "OAuth.V2.OAuth2AuthzEPUrl";
+        public static final String OAUTH2_PAR_EP_URL_V2 = "OAuth.V2.OAuth2ParEPUrl";
+        public static final String OAUTH2_TOKEN_EP_URL_V2 = "OAuth.V2.OAuth2TokenEPUrl";
+        public static final String OAUTH2_USERINFO_EP_URL_V2 = "OAuth.V2.OAuth2UserInfoEPUrl";
+        public static final String OAUTH2_REVOKE_EP_URL_V2 = "OAuth.V2.OAuth2RevokeEPUrl";
+        public static final String OAUTH2_INTROSPECT_EP_URL_V2 = "OAuth.V2.OAuth2IntrospectEPUrl";
+        public static final String OIDC_CHECK_SESSION_EP_URL_V2 = "OAuth.V2.OIDCCheckSessionEPUrl";
+        public static final String OIDC_LOGOUT_EP_URL_V2 = "OAuth.V2.OIDCLogoutEPUrl";
+        public static final String OIDC_WEB_FINGER_EP_URL_V2 = "OAuth.V2.OIDCWebFingerEPUrl";
+        public static final String OAUTH2_DCR_EP_URL_V2 = "OAuth.V2.OAuth2DCREPUrl";
+        public static final String OAUTH2_JWKS_EP_URL_V2 = "OAuth.V2.OAuth2JWKSPage";
+        public static final String OIDC_DISCOVERY_EP_URL_V2 = "OAuth.V2.OIDCDiscoveryEPUrl";
 
         public static final String REQUEST_TOKEN = "oauth/request-token";
         public static final String AUTHORIZE_URL = "oauth/authorize-url";
