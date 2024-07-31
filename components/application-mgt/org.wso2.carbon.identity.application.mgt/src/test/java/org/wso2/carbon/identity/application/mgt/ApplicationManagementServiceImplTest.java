@@ -1147,13 +1147,17 @@ public class ApplicationManagementServiceImplTest {
     public Object[][] addApplicationWithTemplateIdAndTemplateVersionData() {
 
         return new Object[][] {
-                {APPLICATION_TEMPLATE_ID_1, APPLICATION_TEMPLATE_VERSION_1}
+                {APPLICATION_TEMPLATE_ID_1, APPLICATION_TEMPLATE_VERSION_1},
+                {null, null}
         };
     }
 
     @Test(dataProvider = "addApplicationWithTemplateIdAndTemplateVersionData")
     public void addApplicationWithTemplateIdAndTemplateVersionData(String templateId, String templateVersion)
             throws Exception {
+
+        String expectedTemplateId = templateId != null ? templateId : "";
+        String expectedTemplateVersion = templateVersion != null ? templateVersion : "";
 
         ServiceProvider inputSP = new ServiceProvider();
         inputSP.setApplicationName(APPLICATION_NAME_1);
@@ -1169,8 +1173,8 @@ public class ApplicationManagementServiceImplTest {
         //  Retrieving added application.
         ServiceProvider retrievedSP =
                 applicationManagementService.getApplicationByResourceId(resourceId, SUPER_TENANT_DOMAIN_NAME);
-        Assert.assertEquals(retrievedSP.getTemplateId(), templateId);
-        Assert.assertEquals(retrievedSP.getTemplateVersion(), templateVersion);
+        Assert.assertEquals(retrievedSP.getTemplateId(), expectedTemplateId);
+        Assert.assertEquals(retrievedSP.getTemplateVersion(), expectedTemplateVersion);
 
         // Retrieving application with required attributes as templateId and templateVersion.
         List<String> requiredAttributes =
@@ -1178,8 +1182,8 @@ public class ApplicationManagementServiceImplTest {
         ServiceProvider retrievedSPWithRequiredAttributes =
                 applicationManagementService.getApplicationWithRequiredAttributes(retrievedSP.getApplicationID(),
                         requiredAttributes);
-        Assert.assertEquals(retrievedSPWithRequiredAttributes.getTemplateId(), templateId);
-        Assert.assertEquals(retrievedSPWithRequiredAttributes.getTemplateVersion(), templateVersion);
+        Assert.assertEquals(retrievedSPWithRequiredAttributes.getTemplateId(), expectedTemplateId);
+        Assert.assertEquals(retrievedSPWithRequiredAttributes.getTemplateVersion(), expectedTemplateVersion);
 
         // Updating the application by changing the templateId and templateVersion. It should be changed.
         inputSP.setTemplateId(APPLICATION_TEMPLATE_ID_2);
