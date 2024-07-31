@@ -68,6 +68,7 @@
     }
 
     String functionForGetAllItems = request.getParameter("function-get-all-items");
+    functionForGetAllItems = Encode.forJavaScript(functionForGetAllItems);
 
     boolean error = false;
     boolean newFilter = false;
@@ -310,7 +311,7 @@
             registerNavigateEvent = registerNavigateParam ;
         }
 
-        var registerGetSelectedItem = '<%=Encode.forJavaScript(functionForGetAllItems)%>';
+        var registerGetSelectedItem = <%= functionForGetAllItems %> ;
 
         function doSearch(status, data){
             if(registerSearchResult!=null){
