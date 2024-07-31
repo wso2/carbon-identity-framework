@@ -112,10 +112,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private void validateActions(List<Action> actions, ActionType actionType) throws ActionExecutionException {
 
         if (CollectionUtils.isEmpty(actions)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No actions found for action type: " + actionType);
-            }
-            return;
+            throw new ActionExecutionRuntimeException("No actions found for action type: " + actionType);
         }
 
         if (actions.size() > 1) {
