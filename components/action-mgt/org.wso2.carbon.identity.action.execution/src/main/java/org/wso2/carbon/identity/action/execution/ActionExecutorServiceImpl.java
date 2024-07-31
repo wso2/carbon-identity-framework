@@ -92,7 +92,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                     .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext));
         } catch (ActionExecutionRuntimeException e) {
             // todo: add to diagnostics
-            LOG.error("Skip executing actions for action type: " + actionType.name() + ". Error: " + e.getMessage(), e);
+            LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
 
         }
@@ -112,10 +112,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private void validateActions(List<Action> actions, ActionType actionType) throws ActionExecutionException {
 
         if (CollectionUtils.isEmpty(actions)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No actions found for action type: " + actionType);
-            }
-            return;
+            throw new ActionExecutionRuntimeException("No actions found for action type: " + actionType);
         }
 
         if (actions.size() > 1) {
