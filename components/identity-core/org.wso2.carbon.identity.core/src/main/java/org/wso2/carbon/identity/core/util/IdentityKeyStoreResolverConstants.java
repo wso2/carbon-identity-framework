@@ -22,6 +22,9 @@ package org.wso2.carbon.identity.core.util;
  * This class holds the constants used by IdentityKeyStoreManager.
  */
 public class IdentityKeyStoreResolverConstants {
+
+    // Primary KeyStore configs.
+    public static final String PRIMARY_KEYSTORE_CONFIG_PATH = "Security.KeyStore.";
     
     // CustomKeyStoreMapping config path.
     public static final String CONFIG_ELEM_SECURITY = "Security";

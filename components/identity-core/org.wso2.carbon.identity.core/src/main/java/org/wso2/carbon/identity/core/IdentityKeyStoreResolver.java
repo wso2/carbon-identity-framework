@@ -51,6 +51,7 @@ import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstan
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPINGS;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.CONFIG_ELEM_SECURITY;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.PRIMARY_KEYSTORE_CONFIG_PATH;
 
 
 /**
@@ -137,12 +138,14 @@ public class IdentityKeyStoreResolver {
         if (keyStoreMappings.containsKey(inboundProtocol)) {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
                     keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Custom keystore configuration avialble for " + inboundProtocol + " protocol.");
-                }
 
                 String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
                         keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Custom key store configuration available for " + inboundProtocol + " protocol. " +
+                            "Retrieving keystore " + keyStoreName);
+                }
 
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -220,16 +223,18 @@ public class IdentityKeyStoreResolver {
         if (keyStoreMappings.containsKey(inboundProtocol)) {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
                     keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
+
+                String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
+                        keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Custom keystore configuration availble for " + inboundProtocol + " protocol.");
+                    LOG.debug("Custom key store configuration available for " + inboundProtocol + " protocol. " +
+                            "Retrieving primary key from " + keyStoreName + " key store.");
                 }
 
                 if (privateKeys.containsKey(inboundProtocol.toString())) {
                     return privateKeys.get(inboundProtocol.toString());
                 }
-
-                String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
-                        keyStoreMappings.get(inboundProtocol).getKeyStoreName());
 
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -241,7 +246,7 @@ public class IdentityKeyStoreResolver {
                     throw new IdentityKeyStoreResolverException(
                             ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PRIVATE_KEY.getCode(),
                             String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PRIVATE_KEY.getDescription(),
-                                    inboundProtocol), e);
+                                    keyStoreName), e);
                 }
             }
         }
@@ -307,16 +312,18 @@ public class IdentityKeyStoreResolver {
         if (keyStoreMappings.containsKey(inboundProtocol)) {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) ||
                     keyStoreMappings.get(inboundProtocol).getUseInAllTenants()) {
+
+                String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
+                        keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Custom keystore configuration for " + inboundProtocol + " protocol.");
+                    LOG.debug("Custom key store configuration available for " + inboundProtocol + " protocol. " +
+                            "Retrieving public certificate from " + keyStoreName + " key store.");
                 }
 
                 if (publicCerts.containsKey(inboundProtocol.toString())) {
                     return publicCerts.get(inboundProtocol.toString());
                 }
-
-                String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
-                        keyStoreMappings.get(inboundProtocol).getKeyStoreName());
 
                 try {
                     int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -328,7 +335,7 @@ public class IdentityKeyStoreResolver {
                     throw new IdentityKeyStoreResolverException(
                             ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PUBLIC_CERTIFICATE.getCode(),
                             String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PUBLIC_CERTIFICATE
-                                            .getDescription(), tenantDomain), e);
+                                            .getDescription(), keyStoreName), e);
                 }
             }
         }
@@ -442,8 +449,10 @@ public class IdentityKeyStoreResolver {
 
                 String keyStoreName = IdentityKeyStoreResolverUtil.buildCustomKeyStoreName(
                         keyStoreMappings.get(inboundProtocol).getKeyStoreName());
+
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Retreiving " + configName + " configuration for keystore " + keyStoreName);
+                    LOG.debug("Custom key store configuration available for " + inboundProtocol + " protocol. " +
+                            "Retreiving " + configName + " config for " + keyStoreName + " key store.");
                 }
 
                 return getCustomKeyStoreConfig(keyStoreName, configName);
@@ -463,7 +472,7 @@ public class IdentityKeyStoreResolver {
         try {
             KeyStoreUtil.validateKeyStoreConfigName(configName);
 
-            String fullConfigPath = "Security.KeyStore." + configName;
+            String fullConfigPath = PRIMARY_KEYSTORE_CONFIG_PATH + configName;
             return CarbonUtils.getServerConfiguration().getFirstProperty(fullConfigPath);
         } catch (CarbonException e) {
             throw new IdentityKeyStoreResolverException(
@@ -478,17 +487,20 @@ public class IdentityKeyStoreResolver {
         try {
             KeyStoreUtil.validateKeyStoreConfigName(configName);
 
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+            String keyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
             switch (configName) {
                 case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_LOCATION):
                     // Returning only key store name because tenant key stores reside within the registry.
-                    return IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+                    return keyStoreName;
                 case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_TYPE):
-                    return CarbonUtils.getServerConfiguration().getFirstProperty(
-                            RegistryResources.SecurityManagement.PROP_TYPE);
+                    KeyStore keyStore = keyStoreManager.getKeyStore(keyStoreName);
+                    return keyStore.getType();
                 case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_PASSWORD):
+                    return keyStoreManager.getKeyStorePassword(keyStoreName);
                 case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_KEY_PASSWORD):
-                    return CarbonUtils.getServerConfiguration().getFirstProperty(
-                            RegistryResources.SecurityManagement.PROP_PASSWORD);
+                    return keyStoreManager.getKeyStorePassword(keyStoreName);
                 case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_KEY_ALIAS):
                     return tenantDomain;
                 default:
@@ -498,7 +510,7 @@ public class IdentityKeyStoreResolver {
                             String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE_CONFIGURATION
                                     .getDescription(), tenantDomain));
             }
-        } catch (CarbonException e) {
+        } catch (Exception e) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE_CONFIGURATION.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE_CONFIGURATION
