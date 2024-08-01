@@ -159,6 +159,9 @@ public class IdentityConstants {
     // Configuration constants of authentication authenticator in identity.xml file.
     public static final String TAGS = "Tags";
 
+    public static final String IDENTITY_UTIL_ENABLE_SHA256 = "IdentityUtil.EnableSHA256";
+    public static final String CERT_THUMBPRINT_ENABLE_SHA256 = "CertThumbprint.EnableSHA256";
+
     private IdentityConstants() {
     }
 
@@ -259,6 +262,8 @@ public class IdentityConstants {
         public static final String SAML_METADATA_VALIDITY_PERIOD = "SSOService.SAMLMetadataValidityPeriod";
         public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD = "SSOService.SAMLSessionNotOnOrAfterPeriod";
         public static final String SAML_METADATA_SIGNING_ENABLED = "SSOService.SAMLMetadataSigningEnabled";
+        public static final String SAML_METADATA_IDP_ENABLE_SHA256_ALGO = "SSOService.SAMLIDPMetadataEnableSHA256Alg";
+        public static final String SAML_METADATA_SP_ENABLE_SHA256_ALGO = "SSOService.SAMLSPMetadataParsingEnableSHA256Alg";
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
         public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED = "SSOService" +
                 ".SAML2AuthnRequestsSigningEnabled";
@@ -380,6 +385,8 @@ public class IdentityConstants {
         public static final String DCR = "api/identity/oauth2/dcr/v1.1/register";
         public static final String JWKS = "oauth2/jwks";
         public static final String DISCOVERY = "oauth2/oidcdiscovery";
+        public static final String ENABLE_SHA256_JWK_THUMBPRINT = "OAuth.EnableSHA256OAuth2JWKThumbprint";
+        public static final String ENABLE_SHA256_PARAMS = "OAuth.EnableSHA256Params";
     }
 
     /**

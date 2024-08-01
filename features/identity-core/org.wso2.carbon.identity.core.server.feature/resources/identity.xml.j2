@@ -224,6 +224,9 @@
         <UseSPTenantDomain>{{oauth.access_token.generate_with_sp_tenant_domain}}</UseSPTenantDomain>
         {% endif %}
 
+        <!-- This configuration is used to enable or disable generation of random numbers using HMAC-SHA256 algorithm.-->
+        <EnableSHA256Params>{{oauth.enable_sha256}}</EnableSHA256Params>
+
         <!--
             Default values for OAuth1RequestTokenUrl, OAuth1AccessTokenUrl, OAuth1AuthorizeUrl
             OAuth2AuthzEPUrl, OAuth2TokenEPUrl and OAuth2UserInfoEPUrl are built in following format
@@ -253,6 +256,9 @@
         <OAuth2JWKSPage>{{oauth.endpoints.oauth2_jwks_url}}</OAuth2JWKSPage>
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
         <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
+
+        <EnableSHA256OAuth2JWKThumbprint>{{oauth.jwk_thumbprint_enable_sha256}}</EnableSHA256OAuth2JWKThumbprint>
+
         <!-- If enabled, resident Idp entity id will be honoured as the issuer location in OpenId Connect Discovery -->
         <UseEntityIdAsIssuerInOidcDiscovery>{{oauth.use_entityid_as_issuer_in_oidc_discovery}}</UseEntityIdAsIssuerInOidcDiscovery>
 
@@ -1008,6 +1014,8 @@
         <SAMLECPEndpoint>{{saml.endpoints.ecp}}</SAMLECPEndpoint>
         <SAMLMetadataValidityPeriod>{{saml.metadata.validity_period}}</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>{{saml.metadata.enable_signing}}</SAMLMetadataSigningEnabled>
+        <SAMLIDPMetadataEnableSHA256Alg>{{saml.metadata.idp_enable_sha256}}</SAMLIDPMetadataEnableSHA256Alg>
+        <SAMLSPMetadataParsingEnableSHA256Alg>{{saml.metadata.sp_enable_sha256}}</SAMLSPMetadataParsingEnableSHA256Alg>
         <SAML2AuthenticationRequestValidityPeriodEnabled>{{saml.enable_request_validity_period}}</SAML2AuthenticationRequestValidityPeriodEnabled>
         <!-- Request validity period in minutes-->
         <SAML2AuthenticationRequestValidityPeriod>{{saml.request_validity_period}}</SAML2AuthenticationRequestValidityPeriod>
@@ -3310,4 +3318,12 @@
         {% endfor %}
     </OrganizationLevelEmailBrandingFallbacks>
 
+    <!-- Configuration to enable SHA256 in IdentityUtil-->
+    <IdentityUtil>
+        <EnableSHA256>{{identity_util.enable_sha256}}</EnableSHA256>
+    </IdentityUtil>
+
+    <CertThumbprint>
+        <EnableSHA256>{{cert_thumbprint.enable_sha256}}</EnableSHA256>
+    </CertThumbprint>
 </Server>

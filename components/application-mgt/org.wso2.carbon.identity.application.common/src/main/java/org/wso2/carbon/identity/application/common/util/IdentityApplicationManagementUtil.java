@@ -415,7 +415,13 @@ public class IdentityApplicationManagementUtil {
 
         if (encodedCert != null) {
             MessageDigest digestValue = null;
-            digestValue = MessageDigest.getInstance("SHA-1");
+            String algorithm;
+            if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.CERT_THUMBPRINT_ENABLE_SHA256))) {
+                algorithm = "SHA-256";
+            } else {
+                algorithm = "SHA-1";
+            }
+            digestValue = MessageDigest.getInstance(algorithm);
             byte[] der = Base64.decode(encodedCert);
             digestValue.update(der);
             byte[] digestInBytes = digestValue.digest();
@@ -873,7 +879,7 @@ public class IdentityApplicationManagementUtil {
                 .SSO_DEFAULT_SIGNING_ALGORITHM))) {
             return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_SIGNING_ALGORITHM).trim();
         } else {
-            return IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA1;
+            return IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA256;
         }
     }
 
@@ -885,7 +891,7 @@ public class IdentityApplicationManagementUtil {
                 .SSO_DEFAULT_DIGEST_ALGORITHM))) {
             return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_DIGEST_ALGORITHM).trim();
         } else {
-            return IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA1;
+            return IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA256;
         }
     }
 

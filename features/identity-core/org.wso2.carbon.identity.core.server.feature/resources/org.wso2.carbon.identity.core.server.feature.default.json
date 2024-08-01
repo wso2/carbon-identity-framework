@@ -77,6 +77,7 @@
   "oauth.token_persistence.enable": true,
   "oauth.revoked_token_headers_in_response.enable": false,
   "oauth.access_token.generate_with_sp_tenant_domain": true,
+  "oauth.enable_sha256": false,
 
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
@@ -98,6 +99,7 @@
   "oauth.endpoints.oidc_web_finger_url": "$ref{server.base_path}/.well-known/webfinger",
   "oauth.endpoints.oidc_discovery_url": "$ref{server.base_path}/oauth2/oidcdiscovery",
   "oauth.endpoints.oauth2_device_authz_url": "$ref{server.base_path}/oauth2/device_authorize",
+  "oauth.jwk_thumbprint_enable_sha256": false,
 
   "oauth.response_type.token.enable": true,
   "oauth.response_type.token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.AccessTokenResponseTypeHandler",
@@ -230,8 +232,8 @@
   "saml.artifact.validity": "4m",
   "saml.use_tenant_key_of": "user",
   "saml.tenant_partitioning.enable": false,
-  "saml.signing_alg": "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
-  "saml.digest_alg": "http://www.w3.org/2000/09/xmldsig#sha1",
+  "saml.signing_alg": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+  "saml.digest_alg": "http://www.w3.org/2001/04/xmlenc#sha256",
   "saml.assertion_encryption_alg": "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
   "saml.key_encryption_alg": "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p",
   "saml.enable_user_domain_crpto": false,
@@ -255,6 +257,8 @@
   "saml.metadata.validity_period": "1h",
   "saml.metadata.enable_signing": false,
   "saml.metadata.enable_authentication_requests_signing": false,
+  "saml.metadata.idp_enable_sha256": false,
+  "saml.metadata.sp_enable_sha256": false,
 
   "sts.endpoint.idp": "$ref{server.base_path}/services/wso2carbon-sts",
 
@@ -915,5 +919,7 @@
   "axis2.transport_sender.https.parameters.SO_TIMEOUT": "60000",
   "axis2.transport_sender.https.parameters.CONNECTION_TIMEOUT": "60000",
 
-  "show_pending_user_information.enable": true
+  "show_pending_user_information.enable": true,
+  "identity_util.enable_sha256": false,
+  "cert_thumbprint.enable_sha256": false
 }
