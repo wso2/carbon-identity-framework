@@ -81,6 +81,9 @@ import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.STATUS_COUNT
 
 import static java.time.ZoneOffset.UTC;
 
+/**
+ * This class handles the status data of the policies in the JDBC data store.
+ */
 public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
 
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
@@ -110,14 +113,15 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
     @Override
     public void handle(String about, String key, List<StatusHolder> statusHolders) throws EntitlementException {
 
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         // If the action is DELETE_POLICY, delete the policy or the subscriber status
         for (StatusHolder holder : statusHolders) {
             if (EntitlementConstants.StatusTypes.DELETE_POLICY.equals(holder.getType())) {
-                deletePersistedData(about, key);
+                deleteStatusTrail(about, key, tenantId);
                 return;
             }
         }
-        persistStatus(about, key, statusHolders);
+        amendStatusTrail(about, key, statusHolders, tenantId);
     }
 
     /**
@@ -138,20 +142,44 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
                 ? EntitlementConstants.Status.ABOUT_POLICY
                 : EntitlementConstants.Status.ABOUT_SUBSCRIBER;
 
-        List<StatusHolder> holders = getStatus(key, statusAboutType);
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        List<StatusHolder> holders =
+                getStatus(key, statusAboutType, tenantId);
         return EntitlementUtil.filterStatus(holders, searchString, about, type);
     }
 
+    private void amendStatusTrail(String about, String key, List<StatusHolder> statusHolders, int tenantId)
+            throws EntitlementException {
+
+        boolean useLastStatusOnly = Boolean.parseBoolean(
+                IdentityUtil.getProperty(EntitlementConstants.PROP_USE_LAST_STATUS_ONLY));
+
+        if (statusHolders != null && !statusHolders.isEmpty()) {
+
+            if (useLastStatusOnly) {
+                // Delete all the previous statuses
+                deleteStatusTrail(about, key, tenantId);
+                auditAction(statusHolders.toArray(new StatusHolder[0]));
+            }
+
+            // Add new status to the database
+            insertStatus(about, key, statusHolders, tenantId);
+
+            if (!useLastStatusOnly) {
+                deleteExcessStatusData(about, key, tenantId);
+            }
+        }
+    }
+
     /**
-     * Deletes all status records.
+     * DAO method to delete all status records.
      *
      * @param about whether the status is about a policy or publisher.
      * @param key   key value of the status.
      * @throws EntitlementException if fails to delete.
      */
-    public void deletePersistedData(String about, String key) throws EntitlementException {
+    private void deleteStatusTrail(String about, String key, int tenantId) throws EntitlementException {
 
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String query = EntitlementConstants.Status.ABOUT_POLICY.equals(about) ?
                 DELETE_POLICY_STATUS_SQL : DELETE_SUBSCRIBER_STATUS_SQL;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -165,46 +193,17 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
         }
     }
 
-    public void persistStatus(String about, String key, List<StatusHolder> statusHolders) throws EntitlementException {
+    /**
+     * DAO method to get the status records.
+     *
+     * @param key      key value of the status.
+     * @param about    whether the status is about a policy or publisher.
+     * @param tenantId tenant id.
+     * @return list of status holders.
+     * @throws EntitlementException if fails to get status.
+     */
+    private List<StatusHolder> getStatus(String key, String about, int tenantId) throws EntitlementException {
 
-        boolean useLastStatusOnly = Boolean.parseBoolean(
-                IdentityUtil.getProperty(EntitlementConstants.PROP_USE_LAST_STATUS_ONLY));
-
-        if (statusHolders != null && !statusHolders.isEmpty()) {
-
-            if (useLastStatusOnly) {
-                // Delete the previous status
-                deletePersistedData(about, key);
-                auditAction(statusHolders.toArray(new StatusHolder[0]));
-            }
-
-            // Add new status to the database
-            addStatus(about, key, statusHolders);
-
-            if (!useLastStatusOnly) {
-                Connection connection = IdentityDatabaseUtil.getDBConnection(true);
-                try {
-                    // Get the existing status count
-                    int statusCount = getStatusCount(connection, about, key);
-
-                    // Delete old status data if the count exceeds the maximum records
-                    if (statusCount > maxRecords) {
-                        deleteStatus(connection, about, key, statusCount);
-                    }
-                    IdentityDatabaseUtil.commitTransaction(connection);
-                } catch (SQLException e) {
-                    IdentityDatabaseUtil.rollbackTransaction(connection);
-                    throw new EntitlementException("Error while deleting surplus policy status", e);
-                } finally {
-                    IdentityDatabaseUtil.closeConnection(connection);
-                }
-            }
-        }
-    }
-
-    private List<StatusHolder> getStatus(String key, String about) throws EntitlementException {
-
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         List<StatusHolder> statusHolders = new ArrayList<>();
         String query = EntitlementConstants.Status.ABOUT_POLICY.equals(about)
                 ? GET_POLICY_STATUS_SQL
@@ -217,12 +216,6 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
                 try (ResultSet statusSet = getStatusPrepStmt.executeQuery()) {
                     while (statusSet.next()) {
                         StatusHolder statusHolder = new StatusHolder(about);
-                        if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
-                            statusHolder.setKey(statusSet.getString(POLICY_ID));
-                        } else {
-                            statusHolder.setKey(
-                                    statusSet.getString(SUBSCRIBER_ID));
-                        }
                         statusHolder.setType(statusSet.getString(STATUS_TYPE));
                         statusHolder.setSuccess(statusSet.getBoolean(IS_SUCCESS));
                         statusHolder.setUser(statusSet.getString(USER));
@@ -231,12 +224,15 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
                         statusHolder.setTimeInstance(String.valueOf(statusSet.getTimestamp(LOGGED_AT).getTime()));
                         statusHolder.setMessage(statusSet.getString(MESSAGE));
 
-                        String version = null;
-                        if (EntitlementConstants.Status.ABOUT_POLICY.equals(about) &&
-                                statusSet.getInt(POLICY_VERSION) != -1) {
-                            version = Integer.toString(statusSet.getInt(POLICY_VERSION));
+                        if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
+                            statusHolder.setKey(statusSet.getString(POLICY_ID));
+                            int version = statusSet.getInt(POLICY_VERSION);
+                            if (version != -1) {
+                                statusHolder.setVersion(Integer.toString(version));
+                            }
+                        } else {
+                            statusHolder.setKey(statusSet.getString(SUBSCRIBER_ID));
                         }
-                        statusHolder.setVersion(version);
                         statusHolders.add(statusHolder);
                     }
                 }
@@ -247,9 +243,18 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
         }
     }
 
-    private void addStatus(String about, String key, List<StatusHolder> statusHolders) throws EntitlementException {
+    /**
+     * DAO method to insert status records.
+     *
+     * @param about          whether the status is about a policy or publisher.
+     * @param key            key value of the status.
+     * @param statusHolders  list of status holders.
+     * @param tenantId       tenant id.
+     * @throws EntitlementException if fails to insert status.
+     */
+    private void insertStatus(String about, String key, List<StatusHolder> statusHolders, int tenantId)
+            throws EntitlementException {
 
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String query = EntitlementConstants.Status.ABOUT_POLICY.equals(about)
                 ? CREATE_POLICY_STATUS_SQL
                 : CREATE_SUBSCRIBER_STATUS_SQL;
@@ -272,11 +277,10 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
                     addStatusPrepStmt.setString(MESSAGE, statusHolder.getMessage());
                     addStatusPrepStmt.setTimeStamp(LOGGED_AT, new Timestamp(System.currentTimeMillis()),
                             Calendar.getInstance(TimeZone.getTimeZone(UTC)));
-                    addStatusPrepStmt.setInt(TENANT_ID, tenantId);
-
                     if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
                         addStatusPrepStmt.setInt(VERSION, version);
                     }
+                    addStatusPrepStmt.setInt(TENANT_ID, tenantId);
 
                     addStatusPrepStmt.addBatch();
                 }
@@ -287,9 +291,51 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
         }
     }
 
-    private int getStatusCount(Connection connection, String about, String key) throws EntitlementException {
+    /**
+     * Delete excess status records (if surpassing maximum, excess number of old records are deleted).
+     *
+     * @param about    whether the status is about a policy or publisher.
+     * @param key      key value of the status.
+     * @param tenantId tenant id.
+     * @throws EntitlementException if fails to delete.
+     */
+    private void deleteExcessStatusData(String about, String key, int tenantId) throws EntitlementException {
 
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        try {
+            // Get the existing status count
+            int statusCount = getStatusCount(connection, about, key, tenantId);
+
+            // Delete old status data if the count exceeds the maximum records
+            if (statusCount > maxRecords) {
+                deleteStatus(connection, about, key, statusCount, tenantId);
+            }
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new EntitlementException("Error while deleting surplus policy status", e);
+        } finally {
+            IdentityDatabaseUtil.closeConnection(connection);
+        }
+    }
+
+    private void deleteStatus(Connection connection, String about, String key, int statusCount, int tenantId)
+            throws SQLException, EntitlementException {
+
+        int oldRecordsCount = statusCount - maxRecords;
+
+        String query = resolveDeleteStatusQuery(connection, about);
+        try (NamedPreparedStatement deleteOldRecordsPrepStmt = new NamedPreparedStatement(connection, query)) {
+            deleteOldRecordsPrepStmt.setString(KEY, key);
+            deleteOldRecordsPrepStmt.setInt(TENANT_ID, tenantId);
+            deleteOldRecordsPrepStmt.setInt(LIMIT, oldRecordsCount);
+            deleteOldRecordsPrepStmt.executeUpdate();
+        }
+    }
+
+    private int getStatusCount(Connection connection, String about, String key, int tenantId)
+            throws EntitlementException {
+
         int statusCount = 0;
 
         String query = EntitlementConstants.Status.ABOUT_POLICY.equals(about)
@@ -308,21 +354,6 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
             throw new EntitlementException("Error while getting policy status count", e);
         }
         return statusCount;
-    }
-
-    private void deleteStatus(Connection connection, String about, String key, int statusCount)
-            throws SQLException, EntitlementException {
-
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        int oldRecordsCount = statusCount - maxRecords;
-
-        String query = resolveDeleteStatusQuery(connection, about);
-        try (NamedPreparedStatement deleteOldRecordsPrepStmt = new NamedPreparedStatement(connection, query)) {
-            deleteOldRecordsPrepStmt.setString(KEY, key);
-            deleteOldRecordsPrepStmt.setInt(TENANT_ID, tenantId);
-            deleteOldRecordsPrepStmt.setInt(LIMIT, oldRecordsCount);
-            deleteOldRecordsPrepStmt.executeUpdate();
-        }
     }
 
     private String resolveDeleteStatusQuery(Connection connection, String about)

@@ -47,6 +47,7 @@ public class HybridPAPStatusDataHandler implements PAPStatusDataHandler {
     @Override
     public void handle(String about, String key, List<StatusHolder> statusHolders) throws EntitlementException {
 
+        // TODO: migrate the retrieved registry status trail to DB
         List<StatusHolder> regStatusHoldersList =
                 Arrays.asList(registrySimplePAPStatusDataHandler.getStatusData(about, key, null, "*"));
         if (regStatusHoldersList.isEmpty()) {

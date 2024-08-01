@@ -40,11 +40,11 @@ public interface SubscriberDAO {
      * Gets the requested subscriber.
      *
      * @param subscriberId  subscriber ID
-     * @param returnSecrets whether the subscriber should get returned with secret(decrypted) values or not
+     * @param shouldDecryptSecrets whether the subscriber should get returned with secret(decrypted) values or not
      * @return publisher data holder
      * @throws EntitlementException If an error occurs
      */
-    PublisherDataHolder getSubscriber(String subscriberId, boolean returnSecrets) throws EntitlementException;
+    PublisherDataHolder getSubscriber(String subscriberId, boolean shouldDecryptSecrets) throws EntitlementException;
 
     /**
      * Lists all subscriber IDs.

@@ -1043,20 +1043,4 @@ public class PolicyAttributeBuilder {
 
         return attributeDTOs;
     }
-
-    /**
-     * This retrieves metadata attributes from the policy.
-     *
-     * @return attributeDTO list.
-     * @throws EntitlementException if an error occurs while retrieving attributes.
-     */
-    public List<AttributeDTO> getAttributesFromPolicy() throws EntitlementException {
-
-        List<AttributeDTO> attributeDTOs = new ArrayList<>();
-        try {
-            return createPolicyMetaData(policy, attributeDTOs);
-        } catch (EntitlementException e) {
-            throw new EntitlementException("Can not create Policy MetaData for given policy");
-        }
-    }
 }

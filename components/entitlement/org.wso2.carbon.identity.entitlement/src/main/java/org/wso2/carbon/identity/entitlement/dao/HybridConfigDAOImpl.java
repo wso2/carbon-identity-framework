@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.entitlement.dao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 
 /**
@@ -37,7 +38,14 @@ public class HybridConfigDAOImpl implements ConfigDAO {
     public String getGlobalPolicyAlgorithmName() {
 
         // TODO: revisit in caching, make sure it's not skipped
-        String algorithm = jdbcConfigDAO.getPolicyCombiningAlgorithm();
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String algorithm = null;
+        try {
+            algorithm = jdbcConfigDAO.getPolicyCombiningAlgorithm(tenantId);
+        } catch (EntitlementException e) {
+            LOG.debug(String.format("Error while getting Global Policy Combining Algorithm name from JDBC in tenant " +
+                            "%s.", tenantId), e);
+        }
         if (StringUtils.isBlank(algorithm)) {
             algorithm = registryConfigDAO.getGlobalPolicyAlgorithmName();
         }
@@ -45,13 +53,16 @@ public class HybridConfigDAOImpl implements ConfigDAO {
     }
 
     @Override
-    public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
+    public boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
-        jdbcConfigDAO.setGlobalPolicyAlgorithm(policyCombiningAlgorithm);
-        try {
-            registryConfigDAO.deleteGlobalPolicyAlgorithm();
-        } catch (EntitlementException e) {
-            LOG.debug("Error while deleting global policy combining algorithm from registry", e);
+        boolean isUpdate = jdbcConfigDAO.addOrUpdateGlobalPolicyAlgorithm(policyCombiningAlgorithm);
+        if (isUpdate) {
+            try {
+                registryConfigDAO.deleteGlobalPolicyAlgorithm();
+            } catch (EntitlementException e) {
+                LOG.debug("Error while deleting global policy combining algorithm from registry", e);
+            }
         }
+        return isUpdate;
     }
 }

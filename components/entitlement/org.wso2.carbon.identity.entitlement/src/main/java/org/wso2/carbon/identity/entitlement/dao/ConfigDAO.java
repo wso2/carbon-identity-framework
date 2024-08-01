@@ -30,7 +30,7 @@ public interface ConfigDAO {
     /**
      * Gets the global policy combining algorithm.
      *
-     * @return global policy combining algorithm
+     * @return global policy combining algorithm.
      */
     default PolicyCombiningAlgorithm getGlobalPolicyAlgorithm() {
 
@@ -41,15 +41,16 @@ public interface ConfigDAO {
     /**
      * Gets the policy combining algorithm name.
      *
-     * @return global policy combining algorithm name
+     * @return global policy combining algorithm name.
      */
     String getGlobalPolicyAlgorithmName();
 
     /**
      * Sets the global policy combining algorithm.
      *
-     * @param policyCombiningAlgorithm policy combining algorithm name
-     * @throws EntitlementException If an error occurs
+     * @param policyCombiningAlgorithm policy combining algorithm name.
+     * @return true if the policy combining algorithm is updated, false if the policy combining algorithm is added.
+     * @throws EntitlementException If an error occurs.
      */
-    void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException;
+    boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException;
 }

@@ -37,15 +37,23 @@ public class HybridSubscriberDAOImpl implements SubscriberDAO {
     @Override
     public void addSubscriber(PublisherDataHolder holder) throws EntitlementException {
 
+        String subscriberId = EntitlementUtil.resolveSubscriberId(holder);
+        if (subscriberId == null) {
+            throw new EntitlementException("Subscriber Id can not be null");
+        }
+        if (registrySubscriberDAO.isSubscriberExists(subscriberId)) {
+            throw new EntitlementException("Subscriber ID already exists");
+        }
         jdbcSubscriberDAO.addSubscriber(holder);
     }
 
     @Override
-    public PublisherDataHolder getSubscriber(String subscriberId, boolean returnSecrets) throws EntitlementException {
+    public PublisherDataHolder getSubscriber(String subscriberId, boolean shouldDecryptSecrets)
+            throws EntitlementException {
 
-        PublisherDataHolder holder = jdbcSubscriberDAO.getSubscriber(subscriberId, returnSecrets);
+        PublisherDataHolder holder = jdbcSubscriberDAO.getSubscriber(subscriberId, shouldDecryptSecrets);
         if (holder == null) {
-            holder = registrySubscriberDAO.getSubscriber(subscriberId, returnSecrets);
+            holder = registrySubscriberDAO.getSubscriber(subscriberId, shouldDecryptSecrets);
         }
         return holder;
     }

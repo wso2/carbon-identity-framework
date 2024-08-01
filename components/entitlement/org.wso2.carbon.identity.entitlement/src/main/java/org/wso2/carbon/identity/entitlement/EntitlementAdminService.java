@@ -541,7 +541,7 @@ public class EntitlementAdminService {
     public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
         ConfigDAO configDAO = EntitlementAdminEngine.getInstance().getConfigDAO();
-        configDAO.setGlobalPolicyAlgorithm(policyCombiningAlgorithm);
+        configDAO.addOrUpdateGlobalPolicyAlgorithm(policyCombiningAlgorithm);
         clearPolicyCache();
     }
 }

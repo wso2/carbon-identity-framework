@@ -54,7 +54,7 @@ public class DefaultPolicyDataStore implements PolicyDataStore {
 
     /**
      * This method is not implemented since the data is already being
-     * set with {@link org.wso2.carbon.identity.entitlement.dao.ConfigDAO#setGlobalPolicyAlgorithm(String)}
+     * set with {@link org.wso2.carbon.identity.entitlement.dao.ConfigDAO#addOrUpdateGlobalPolicyAlgorithm(String)}
      */
     @Override
     public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {

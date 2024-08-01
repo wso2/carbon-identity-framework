@@ -75,13 +75,14 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
     /**
      * Gets the requested subscriber.
      *
-     * @param subscriberId  subscriber ID
-     * @param returnSecrets whether the subscriber should get returned with secret(decrypted) values or not
+     * @param subscriberId         subscriber ID
+     * @param shouldDecryptSecrets whether the subscriber should get returned with secret(decrypted) values or not
      * @return publisher data holder
      * @throws EntitlementException If an error occurs
      */
     @Override
-    public PublisherDataHolder getSubscriber(String subscriberId, boolean returnSecrets) throws EntitlementException {
+    public PublisherDataHolder getSubscriber(String subscriberId, boolean shouldDecryptSecrets)
+            throws EntitlementException {
 
         try {
             if (registry.resourceExists(PDPConstants.ENTITLEMENT_POLICY_PUBLISHER +
@@ -89,7 +90,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                 Resource resource = registry.get(PDPConstants.ENTITLEMENT_POLICY_PUBLISHER +
                         RegistryConstants.PATH_SEPARATOR + subscriberId);
 
-                return getPublisherDataHolder(resource, returnSecrets);
+                return getPublisherDataHolder(resource, shouldDecryptSecrets);
             }
         } catch (RegistryException e) {
             throw new EntitlementException("Error while retrieving subscriber detail of id : " + subscriberId, e);
@@ -176,6 +177,23 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
     }
 
     /**
+     * Checks whether a subscriber exists.
+     *
+     * @param subscriberId subscriber ID.
+     * @return whether the subscriber exists or not.
+     * @throws EntitlementException If an error occurs.
+     */
+    public boolean isSubscriberExists(String subscriberId) throws EntitlementException {
+
+        try {
+            return registry.resourceExists(PDPConstants.ENTITLEMENT_POLICY_PUBLISHER +
+                    RegistryConstants.PATH_SEPARATOR + subscriberId);
+        } catch (RegistryException e) {
+            throw new EntitlementException("Error while checking subscriber existence", e);
+        }
+    }
+
+    /**
      * Adds or updates a subscriber.
      *
      * @param holder   publisher data holder
@@ -229,7 +247,8 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
      * @param oldHolder old publisher data holder
      * @param resource  registry resource
      */
-    private void populateProperties(PublisherDataHolder holder, PublisherDataHolder oldHolder, Resource resource) {
+    private void populateProperties(PublisherDataHolder holder, PublisherDataHolder oldHolder, Resource resource)
+            throws EntitlementException {
 
         PublisherPropertyDTO[] propertyDTOs = holder.getPropertyDTOs();
         for (PublisherPropertyDTO dto : propertyDTOs) {
@@ -246,9 +265,8 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                                     encryptAndBase64Encode(dto.getValue().getBytes());
                             dto.setValue(encryptedValue);
                         } catch (CryptoException e) {
-                            LOG.error("Error while encrypting secret value of subscriber. " +
-                                    "Secret would not be persist.", e);
-                            continue;
+                            throw new EntitlementException("Error while encrypting secret value of subscriber. Update" +
+                                    " cannot proceed.", e);
                         }
                     }
                 }

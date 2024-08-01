@@ -676,7 +676,7 @@ public class EntitlementUtil {
     }
 
     /**
-     * Filter status holders based on search criteria.
+     * Filter status holders based on search criteria. Allows full regex matching for search string.
      *
      * @param holders      List of status holders.
      * @param searchString Search string.
@@ -731,7 +731,7 @@ public class EntitlementUtil {
     }
 
     /**
-     * Filter subscriber ids based on search criteria.
+     * Filter subscriber ids based on search criteria. Allows full regex matching for search string.
      *
      * @param subscriberIdList List of subscriber ids.
      * @param filter           Search filter.
@@ -763,6 +763,23 @@ public class EntitlementUtil {
         Set<T> uniqueElements = new HashSet<>();
         uniqueElements.addAll(list1);
         uniqueElements.addAll(list2);
-        return new ArrayList<>(uniqueElements);
+        return removeNullElements(new ArrayList<>((uniqueElements)));
+    }
+
+    /**
+     * Removes null elements from a list.
+     *
+     * @param list list to remove null elements.
+     * @return list without null elements.
+     */
+    public static <T> List<T> removeNullElements(List<T> list) {
+
+        List<T> nonNullElements = new ArrayList<>();
+        for (T element : list) {
+            if (element != null) {
+                nonNullElements.add(element);
+            }
+        }
+        return nonNullElements;
     }
 }

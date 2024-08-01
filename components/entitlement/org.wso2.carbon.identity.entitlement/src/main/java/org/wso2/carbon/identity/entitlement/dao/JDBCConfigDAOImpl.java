@@ -38,6 +38,9 @@ import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.C
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_COMBINING_ALGORITHM_SQL;
 import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.UPDATE_POLICY_COMBINING_ALGORITHM_SQL;
 
+/**
+ * This class handles the JDBC operations related to the global policy combining algorithm.
+ */
 public class JDBCConfigDAOImpl implements ConfigDAO {
 
     private static final Log LOG = LogFactory.getLog(JDBCConfigDAOImpl.class);
@@ -50,7 +53,14 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
     @Override
     public String getGlobalPolicyAlgorithmName() {
 
-        String algorithm = getPolicyCombiningAlgorithm();
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String algorithm = null;
+        try {
+            algorithm = getPolicyCombiningAlgorithm(tenantId);
+        } catch (EntitlementException e) {
+            LOG.debug(String.format("Error while getting Global Policy Combining Algorithm name from JDBC in tenant " +
+                    "%s. Default algorithm name will be returned.", tenantId), e);
+        }
         if (StringUtils.isBlank(algorithm)) {
             algorithm = DENY_OVERRIDES;
         }
@@ -62,25 +72,38 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
      * Persists the policy combining algorithm into the data store.
      *
      * @param policyCombiningAlgorithm policy combining algorithm name to persist.
+     * @return true if the policy combining algorithm is updated, false if the policy combining algorithm is added.
      * @throws EntitlementException throws if fails.
      */
     @Override
-    public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
+    public boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         // Check the existence of the algorithm
-        String algorithm = getPolicyCombiningAlgorithm();
+        String algorithm = null;
+        try {
+            algorithm = getPolicyCombiningAlgorithm(tenantId);
+        } catch (EntitlementException e) {
+            LOG.debug(String.format("Error while getting Global Policy Combining Algorithm name from JDBC in tenant " +
+                    "%s.", tenantId), e);
+        }
         if (StringUtils.isBlank(algorithm)) {
-            setPolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
+            insertPolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
+            return false;
         } else {
             updatePolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
+            return true;
         }
     }
 
-    public String getPolicyCombiningAlgorithm() {
+    /**
+     * DAO method to get the policy combining algorithm from the data store.
+     *
+     * @return policy combining algorithm.
+     */
+    public String getPolicyCombiningAlgorithm(int tenantId) throws EntitlementException {
 
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String algorithm = null;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (NamedPreparedStatement getPolicyCombiningAlgoPrepStmt = new NamedPreparedStatement(connection,
@@ -94,12 +117,20 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
                 }
             }
         } catch (SQLException e) {
-            LOG.debug("Error while getting Global Policy Combining Algorithm from policy data store.", e);
+            throw new EntitlementException(
+                    "Error while getting Global Policy Combining Algorithm from policy data store.", e);
         }
         return algorithm;
     }
 
-    private void setPolicyCombiningAlgorithm(String policyCombiningAlgorithm, int tenantId)
+    /**
+     * DAO method to set the policy combining algorithm in the data store.
+     *
+     * @param policyCombiningAlgorithm policy combining algorithm to set.
+     * @param tenantId                 tenant id.
+     * @throws EntitlementException throws if fails.
+     */
+    private void insertPolicyCombiningAlgorithm(String policyCombiningAlgorithm, int tenantId)
             throws EntitlementException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -110,14 +141,18 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
                 setPolicyCombiningAlgoPrepStmt.setInt(TENANT_ID, tenantId);
                 setPolicyCombiningAlgoPrepStmt.executeUpdate();
             }
-
-            IdentityDatabaseUtil.commitTransaction(connection);
-
         } catch (SQLException e) {
             throw new EntitlementException("Error while adding global policy combining algorithm in policy store", e);
         }
     }
 
+    /**
+     * DAO method to update the policy combining algorithm in the data store.
+     *
+     * @param policyCombiningAlgorithm policy combining algorithm to update.
+     * @param tenantId                 tenant id.
+     * @throws EntitlementException throws if fails.
+     */
     private void updatePolicyCombiningAlgorithm(String policyCombiningAlgorithm, int tenantId)
             throws EntitlementException {
 
@@ -129,9 +164,6 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
                 setPolicyCombiningAlgoPrepStmt.setInt(TENANT_ID, tenantId);
                 setPolicyCombiningAlgoPrepStmt.executeUpdate();
             }
-
-            IdentityDatabaseUtil.commitTransaction(connection);
-
         } catch (SQLException e) {
             throw new EntitlementException("Error while updating global policy combining algorithm in policy store", e);
         }
