@@ -138,7 +138,7 @@
   "oauth.response_type.id_token_subject_token.enable": true,
   "oauth.response_type.id_token_subject_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.SubjectTokenResponseTypeHandler",
   "oauth.response_type.id_token_subject_token.validator": "org.wso2.carbon.identity.oauth.common.SubjectTokenResponseValidator",
-
+  "impersonation.api_resource.enable": true,
   "oauth.grant_type.jwt.enable_iat_validation": "true",
   "oauth.grant_type.jwt.iat_validity_period": "30",
   "oauth.grant_type.jwt.enable_jwt_cache": "false",

@@ -1087,6 +1087,7 @@
                     description="Manage offline invitations from the Console"/>
         </Scopes>
     </APIResource>
+    {% if impersonation.api_resource.enable is sameas true %}
     <APIResource name="User Impersonation" identifier="system:impersonation"
                 requiresAuthorization="true"
                 description="Resource representation of the User Impersonation" type="TENANT">
@@ -1095,4 +1096,5 @@
                     description = "Allows to impersonate another user"/>
         </Scopes>
     </APIResource>
+    {% endif %}
 </APIResources>
