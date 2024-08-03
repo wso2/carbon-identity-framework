@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.extension.mgt.TestUtils;
 import org.wso2.carbon.identity.extension.mgt.model.ExtensionInfo;
 
 /**
- * Unit tests for ExtensionManagerImpl.
+ * Unit tests for JSONObjectToExtensionInfo.
  */
 @Test
 public class JSONObjectToExtensionInfoTest {
