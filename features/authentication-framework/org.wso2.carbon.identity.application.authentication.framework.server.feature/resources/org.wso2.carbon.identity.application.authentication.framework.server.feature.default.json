@@ -86,6 +86,9 @@
   "authentication.authenticator.saml.enable": true,
   "authentication.authenticator.saml.parameters.Tags": "SAML",
 
+  "authentication.authenticator.iproov.name": "IproovAuthenticator",
+  "authentication.authenticator.iproov.parameters.Tags": "Passwordless,MFA",
+
   "authentication.authenticator.oidc.name": "OpenIDConnectAuthenticator",
   "authentication.authenticator.oidc.enable": true,
   "authentication.authenticator.oidc.parameters.enableIatValidation": true,
