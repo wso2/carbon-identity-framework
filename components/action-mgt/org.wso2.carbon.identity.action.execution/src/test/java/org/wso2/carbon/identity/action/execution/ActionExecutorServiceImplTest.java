@@ -67,12 +67,14 @@ public class ActionExecutorServiceImplTest {
     private ActionExecutorServiceImpl actionExecutorService;
 
     @BeforeMethod
-    public void setUp() {
+    public void setUp() throws Exception {
 
         MockitoAnnotations.openMocks(this);
         ActionExecutionServiceComponentHolder actionExecutionServiceComponentHolder =
                 ActionExecutionServiceComponentHolder.getInstance();
         actionExecutionServiceComponentHolder.setActionManagementService(actionManagementService);
+        // Set apiClient field using reflection
+        setField(actionExecutorService, "apiClient", apiClient);
     }
 
     @Test
@@ -203,9 +205,6 @@ public class ActionExecutorServiceImplTest {
                 when(actionExecutionResponseProcessor.processSuccessResponse(any(), any(), any())).thenReturn(
                         expectedStatus);
 
-                // Set apiClient field using reflection
-                setField(actionExecutorService, "apiClient", apiClient);
-
                 // Execute and assert
                 ActionExecutionStatus actualStatus =
                         actionExecutorService.execute(actionType, eventContext, "tenantDomain");
@@ -277,9 +276,6 @@ public class ActionExecutorServiceImplTest {
                 when(actionExecutionResponseProcessor.processErrorResponse(any(), any(), any())).thenReturn(
                         expectedStatus);
 
-                // Set apiClient field using reflection
-                setField(actionExecutorService, "apiClient", apiClient);
-
                 // Execute and assert
                 ActionExecutionStatus actualStatus =
                         actionExecutorService.execute(actionType, eventContext, "tenantDomain");
@@ -308,93 +304,10 @@ public class ActionExecutorServiceImplTest {
         return authPropertyList;
     }
 
-//    @Test(expectedExceptions = ActionExecutionException.class)
-//    public void testExecuteFailure() throws Exception {
-//
-//        ActionType actionType = ActionType.SOME_ACTION_TYPE;
-//        Map<String, Object> eventContext = Collections.emptyMap();
-//        String tenantDomain = "example.com";
-//
-//        when(actionExecutorService.getActionsByActionType(actionType, tenantDomain)).thenThrow(
-//                new ActionExecutionException("Error"));
-//
-//        actionExecutorService.execute(actionType, eventContext, tenantDomain);
-//    }
-
     private void setField(Object target, String fieldName, Object value) throws Exception {
 
         Field field = target.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(target, value);
     }
-
-    /*        Event event = new ConcreteEvent();
-
-        Request request = new ConcreteRequest();
-        Map<String, String> additionalHeaders = new HashMap<String, String>() {{
-            put("X-Header-1", "header-value1");
-            put("X-Header-2", "header-value2");
-            put("X-Header-3", "header-value3");
-        }};
-        Map<String, String> additionalParams = new HashMap<String, String>() {{
-            put("x-param-1", "param-value1");
-            put("x-param-2", "param-value2");
-        }};
-
-        setField(request, "additionalHeaders", additionalHeaders);
-        setField(request, "additionalParams", additionalParams);
-        Request spyRequest = Mockito.spy(request);
-
-        setField(event, "request", spyRequest);
-        setField(event, "tenant", new Tenant("1", "example.com"));
-        setField(event, "organization", new Organization("1", "example.com"));
-        setField(event, "user", new User("user-id"));
-        setField(event, "userStore", new UserStore("PRIMARY"));
-
-        // Spy on the object
-        Event spyEvent = Mockito.spy(event);
-
-        ActionExecutionRequest.Builder builder = new ActionExecutionRequest.Builder()
-                .actionType(actionType)
-                .flowId("flowId")
-                .event(spyEvent)
-                .allowedOperations(Collections.singletonList(mock(AllowedOperation.class)));
-
-        ActionExecutionRequest actionExecutionRequest = spy(builder.build());
-        when(actionExecutionRequest.getRequestId()).thenReturn("requestId");
-
-        Action action = mock(Action.class);
-        when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
-        when(action.getId()).thenReturn("actionId");
-        when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
-
-        EndpointConfig endpointConfig = mock(EndpointConfig.class);
-        when(action.getEndpoint()).thenReturn(endpointConfig);
-
-        when(endpointConfig.getUri()).thenReturn("http://example.com");
-
-        List<AuthProperty> authPropertyList = new ArrayList<>();
-        for (AuthType.AuthenticationType.AuthenticationProperty property : AuthType.AuthenticationType.BASIC
-                .getProperties()) {
-            if (property.getName().equals("username")) {
-                AuthProperty authProperty =
-                        new AuthProperty.AuthPropertyBuilder().name(property.getName()).value("testuser")
-                                .isConfidential(true).build();
-                authPropertyList.add(authProperty);
-            } else if (property.getName().equals("password")) {
-                AuthProperty authProperty =
-                        new AuthProperty.AuthPropertyBuilder().name(property.getName()).value("testpassword")
-                                .isConfidential(true).build();
-                authPropertyList.add(authProperty);
-            } else {
-                AuthProperty authProperty =
-                        new AuthProperty.AuthPropertyBuilder().name(property.getName()).value("unknown").build();
-                authPropertyList.add(authProperty);
-            }
-        }
-
-        AuthType authType = new AuthType.AuthTypeBuilder().type(AuthType.AuthenticationType.BASIC)
-                .properties(authPropertyList).build();
-        when(endpointConfig.getAuthentication()).thenReturn(authType);*/
-
 }
