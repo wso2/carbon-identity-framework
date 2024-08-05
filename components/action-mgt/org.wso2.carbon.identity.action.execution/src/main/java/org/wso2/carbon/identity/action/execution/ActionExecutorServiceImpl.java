@@ -240,7 +240,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         List<PerformableOperation> allowedPerformableOperations =
                 validatePerformableOperations(actionRequest, successResponse);
         ActionInvocationSuccessResponse.Builder successResponseBuilder =
-                new ActionInvocationSuccessResponse.Builder().operations(allowedPerformableOperations);
+                new ActionInvocationSuccessResponse.Builder().actionStatus(ActionInvocationResponse.Status.SUCCESS)
+                        .operations(allowedPerformableOperations);
         return actionExecutionResponseProcessor.processSuccessResponse(eventContext,
                 actionRequest.getEvent(), successResponseBuilder.build());
     }

@@ -41,7 +41,6 @@ import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessRe
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 /**
  * This class is responsible for making API calls to the external services.
@@ -78,9 +77,7 @@ public class APIClient {
         HttpPost httpPost = new HttpPost(url);
         setRequestEntity(httpPost, payload, authMethod);
 
-        return executeRequest(httpPost).orElse(new ActionInvocationResponse.Builder()
-                .errorLog("Failed to execute the action request or maximum retry attempts reached.")
-                .build());
+        return executeRequest(httpPost);
     }
 
     private void setRequestEntity(HttpPost httpPost, String jsonRequest, AuthMethods.AuthMethod authMethod) {
@@ -94,16 +91,17 @@ public class APIClient {
         httpPost.setHeader("Content-type", "application/json");
     }
 
-    private Optional<ActionInvocationResponse> executeRequest(HttpPost request) {
+    private ActionInvocationResponse executeRequest(HttpPost request) {
 
         int attempts = 0;
         int retryCount = 2; // todo: read from server configurations
+        ActionInvocationResponse actionInvocationResponse = null;
 
         while (attempts < retryCount) {
             try (CloseableHttpResponse response = httpClient.execute(request)) {
-                ActionInvocationResponse actionInvocationResponse = handleResponse(response);
+                actionInvocationResponse = handleResponse(response);
                 if (!actionInvocationResponse.isError() || !actionInvocationResponse.isRetry()) {
-                    return Optional.of(actionInvocationResponse);
+                    return actionInvocationResponse;
                 }
                 //todo: add to diagnostic logs
                 LOG.warn("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
@@ -123,7 +121,8 @@ public class APIClient {
         }
 
         LOG.warn("Maximum retry attempts reached for API: " + request.getURI());
-        return Optional.empty();
+        return actionInvocationResponse != null ? actionInvocationResponse : new ActionInvocationResponse.Builder()
+                .errorLog("Failed to execute the action request or maximum retry attempts reached.").build();
     }
 
     private ActionInvocationResponse handleResponse(HttpResponse response) {
@@ -133,33 +132,75 @@ public class APIClient {
 
         ActionInvocationResponse.Builder actionInvocationResponseBuilder = new ActionInvocationResponse.Builder();
 
-        try {
-            switch (statusCode) {
-                case HttpStatus.SC_OK:
-                    ActionInvocationSuccessResponse successResponse = handleSuccessResponse(responseEntity);
-                    actionInvocationResponseBuilder.response(successResponse);
-                    break;
-                case HttpStatus.SC_BAD_REQUEST:
-                case HttpStatus.SC_INTERNAL_SERVER_ERROR:
-                    ActionInvocationErrorResponse errorResponse = handleErrorResponse(responseEntity);
-                    actionInvocationResponseBuilder.response(errorResponse);
-                    break;
-                case HttpStatus.SC_UNAUTHORIZED:
-                    break;
-                case HttpStatus.SC_BAD_GATEWAY:
-                case HttpStatus.SC_SERVICE_UNAVAILABLE:
-                case HttpStatus.SC_GATEWAY_TIMEOUT:
-                    actionInvocationResponseBuilder.retry(true);
-                    break;
-                default:
-                    throw new ActionInvocationException("Unexpected response status code: " + statusCode);
-            }
-        } catch (ActionInvocationException e) {
-            // Set error in response to be logged at diagnostic logs for troubleshooting.
-            actionInvocationResponseBuilder.errorLog("Unexpected response. Error: " + e.getMessage());
+        switch (statusCode) {
+            case HttpStatus.SC_OK:
+                handleSuccess(actionInvocationResponseBuilder, responseEntity, statusCode);
+                break;
+            case HttpStatus.SC_BAD_REQUEST:
+            case HttpStatus.SC_UNAUTHORIZED:
+                handleClientError(actionInvocationResponseBuilder, responseEntity, statusCode);
+                break;
+            case HttpStatus.SC_INTERNAL_SERVER_ERROR:
+                handleServerError(actionInvocationResponseBuilder, responseEntity, statusCode);
+                break;
+            case HttpStatus.SC_BAD_GATEWAY:
+            case HttpStatus.SC_SERVICE_UNAVAILABLE:
+            case HttpStatus.SC_GATEWAY_TIMEOUT:
+                actionInvocationResponseBuilder.errorLog(
+                        "Failed to execute the action request. Received: " + statusCode);
+                actionInvocationResponseBuilder.retry(true);
+                break;
+            default:
+                actionInvocationResponseBuilder.errorLog("Unexpected response status code: " + statusCode);
+                break;
         }
 
         return actionInvocationResponseBuilder.build();
+    }
+
+    private void handleSuccess(ActionInvocationResponse.Builder builder, HttpEntity entity, int statusCode) {
+
+        try {
+            builder.response(handleSuccessResponse(entity));
+        } catch (ActionInvocationException e) {
+            builder.errorLog("Unexpected response for status code: " + statusCode + ". " + e.getMessage());
+        }
+    }
+
+    private void handleClientError(ActionInvocationResponse.Builder builder, HttpEntity entity, int statusCode) {
+
+        try {
+            ActionInvocationErrorResponse errorResponse = handleErrorResponse(entity);
+            if (errorResponse != null) {
+                builder.response(errorResponse);
+            } else {
+                builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+            }
+        } catch (ActionInvocationException e) {
+            //todo: add to diagnostic logs
+            LOG.debug("JSON payload received for status code: " + statusCode +
+                    " is not of the expected error response format. ", e);
+            builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+        }
+    }
+
+    private void handleServerError(ActionInvocationResponse.Builder builder, HttpEntity entity, int statusCode) {
+
+        try {
+            ActionInvocationErrorResponse errorResponse = handleErrorResponse(entity);
+            if (errorResponse != null) {
+                builder.response(errorResponse);
+            } else {
+                builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+                builder.retry(true);
+            }
+        } catch (ActionInvocationException e) {
+            //todo: add to diagnostic logs
+            LOG.debug("JSON payload received for status code: " + statusCode +
+                    " is not of the expected error response format. ", e);
+            builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+            builder.retry(true);
+        }
     }
 
     private ActionInvocationSuccessResponse handleSuccessResponse(HttpEntity responseEntity)
@@ -189,7 +230,10 @@ public class APIClient {
             String jsonResponse = EntityUtils.toString(responseEntity);
             return objectMapper.readValue(jsonResponse, returnType);
         } catch (IOException e) {
-            throw new ActionInvocationException("Error parsing the JSON response.", e);
+            //todo: It is good to log the parsing error for detailed troubleshooting for the extension developer.
+            // It's not a good idea to expose the error as that disclose internal details,
+            // so better log against a trace id.
+            throw new ActionInvocationException("Parsing JSON response failed.", e);
         }
     }
 
