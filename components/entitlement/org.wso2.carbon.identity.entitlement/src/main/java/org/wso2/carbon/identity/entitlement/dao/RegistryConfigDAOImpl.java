@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.entitlement.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -49,12 +50,14 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
     /**
      * Sets the global policy combining algorithm.
      *
-     * @param policyCombiningAlgorithm policy combining algorithm name
-     * @throws EntitlementException If an error occurs
+     * @param policyCombiningAlgorithm policy combining algorithm name.
+     * @return true if the policy combining algorithm is updated, false if the policy combining algorithm is added.
+     * @throws EntitlementException If an error occurs.
      */
     @Override
-    public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
+    public boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
+        boolean isUpdate = false;
         try {
             Collection policyCollection;
             if (registry.resourceExists(POLICY_DATA_COLLECTION)) {
@@ -62,13 +65,16 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
             } else {
                 policyCollection = registry.newCollection();
             }
-
+            if (StringUtils.isNotBlank(policyCollection.getProperty(GLOBAL_POLICY_COMBINING_ALGORITHM))) {
+                isUpdate = true;
+            }
             policyCollection.setProperty(GLOBAL_POLICY_COMBINING_ALGORITHM, policyCombiningAlgorithm);
             registry.put(POLICY_DATA_COLLECTION, policyCollection);
 
         } catch (RegistryException e) {
             throw new EntitlementException("Error while updating global policy combining algorithm in policy store", e);
         }
+        return isUpdate;
     }
 
     /**
@@ -97,5 +103,21 @@ public class RegistryConfigDAOImpl implements ConfigDAO {
         }
 
         return algorithm;
+    }
+
+    /**
+     * Deletes the global policy combining algorithm.
+     *
+     * @throws EntitlementException If an error occurs
+     */
+    public void deleteGlobalPolicyAlgorithm() throws EntitlementException {
+
+        try {
+            if (registry.resourceExists(POLICY_DATA_COLLECTION)) {
+                registry.delete(POLICY_DATA_COLLECTION);
+            }
+        } catch (RegistryException e) {
+            throw new EntitlementException("Error while deleting global policy combining algorithm in policy store", e);
+        }
     }
 }

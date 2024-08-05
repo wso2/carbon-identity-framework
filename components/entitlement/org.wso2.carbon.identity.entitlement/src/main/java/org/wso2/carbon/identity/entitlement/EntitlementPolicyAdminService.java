@@ -24,6 +24,7 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
+import org.wso2.carbon.identity.entitlement.dao.DAOFactory;
 import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.dao.SubscriberDAO;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
@@ -578,7 +579,7 @@ public class EntitlementPolicyAdminService {
         Set<PAPStatusDataHandler> handlers = EntitlementAdminEngine.getInstance().
                 getPapStatusDataHandlers();
         for (PAPStatusDataHandler handler : handlers) {
-            if (handler instanceof SimplePAPStatusDataHandler) {
+            if (DAOFactory.getPAPStatusDataHandler().getClass().isInstance(handler))  {
                 dataRetrievingHandler = handler;
                 break;
             }
