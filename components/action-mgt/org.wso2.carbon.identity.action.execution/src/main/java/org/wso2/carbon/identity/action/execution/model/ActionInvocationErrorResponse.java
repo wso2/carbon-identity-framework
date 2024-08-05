@@ -67,9 +67,6 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
         @JsonProperty("actionStatus")
         public Builder actionStatus(ActionInvocationResponse.Status actionStatus) {
 
-            if (!ActionInvocationResponse.Status.ERROR.equals(actionStatus)) {
-                throw new IllegalArgumentException("actionStatus must be ERROR");
-            }
             this.actionStatus = actionStatus;
             return this;
         }
@@ -89,6 +86,18 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
         }
 
         public ActionInvocationErrorResponse build() {
+
+            if (actionStatus == null) {
+                throw new IllegalArgumentException("actionStatus must not be null.");
+            }
+
+            if (!ActionInvocationResponse.Status.ERROR.equals(actionStatus)) {
+                throw new IllegalArgumentException("actionStatus must be ERROR.");
+            }
+
+            if (error == null || error.isEmpty()) {
+                throw new IllegalArgumentException("error cannot be null or empty.");
+            }
 
             return new ActionInvocationErrorResponse(this);
         }
