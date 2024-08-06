@@ -100,7 +100,7 @@ public class APIClientTest {
     @DataProvider(name = "unacceptableSuccessResponsePayloads")
     public String[] unacceptableSuccessResponsePayloads() {
 
-        return new String[]{"{}", "", "success", "{\"actionStatus\":\"SUCCESS\"}"};
+        return new String[]{"{}", "", "success", "{\"actionStatus\":\"SUCCESS\"}", "{\"actionStatus\":\"ERROR\"}"};
     }
 
     @Test(dataProvider = "unacceptableSuccessResponsePayloads")
@@ -173,6 +173,8 @@ public class APIClientTest {
                         "{}", "Failed to execute the action request. Received: 401"},
                 {HttpStatus.SC_BAD_REQUEST, ContentType.APPLICATION_JSON.getMimeType(),
                         "{\"actionStatus\":\"ERROR\"}", "Failed to execute the action request. Received: 400"},
+                {HttpStatus.SC_UNAUTHORIZED, ContentType.APPLICATION_JSON.getMimeType(),
+                        "{\"actionStatus\":\"SUCCESS\"}", "Failed to execute the action request. Received: 401"},
                 {HttpStatus.SC_INTERNAL_SERVER_ERROR, ContentType.APPLICATION_JSON.getMimeType(),
                         "server_error", "Failed to execute the action request. Received: 500"},
                 {HttpStatus.SC_BAD_GATEWAY, ContentType.DEFAULT_TEXT.getMimeType(),

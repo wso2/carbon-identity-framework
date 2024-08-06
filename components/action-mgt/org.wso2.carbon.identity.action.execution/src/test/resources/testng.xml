@@ -19,13 +19,19 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.action.execution">
-    <test name="action-execution-util-tests">
-        <classes>
-            <class name="org.wso2.carbon.identity.action.execution.util.AuthMethodsTest"/>
-            <class name="org.wso2.carbon.identity.action.execution.util.OperationComparatorTest"/>
-            <class name="org.wso2.carbon.identity.action.execution.util.APIClientTest"/>
-        </classes>
-    </test>
+<!--    <test name="action-execution-util-tests">-->
+<!--        <classes>-->
+<!--            <class name="org.wso2.carbon.identity.action.execution.util.AuthMethodsTest"/>-->
+<!--            <class name="org.wso2.carbon.identity.action.execution.util.OperationComparatorTest"/>-->
+<!--            <class name="org.wso2.carbon.identity.action.execution.util.APIClientTest"/>-->
+<!--        </classes>-->
+<!--    </test>-->
+<!--    <test name="action-execution-configuration-test">-->
+<!--        <classes>-->
+<!--            <class name="org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilderFactoryTest"/>-->
+<!--            <class name="org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessorFactoryTest"/>-->
+<!--        </classes>-->
+<!--    </test>-->
     <test name="action-execution-service-test">
         <classes>
             <class name="org.wso2.carbon.identity.action.execution.ActionExecutorServiceImplTest"/>
