@@ -1507,7 +1507,8 @@ public class IdentityUtil {
      */
     public static boolean isPreIssueAccessTokenActionTypeEnabled() {
 
-        return isActionTypeEnabled(IdentityCoreConstants.PRE_ISSUE_ACCESS_TOKEN_ACTION_TYPE_ENABLE_PROPERTY, IdentityCoreConstants.DEFAULT_PRE_ISSUE_ACCESS_TOKEN_ACTION_TYPE_ENABLE_VALUE);
+        return isActionTypeEnabled(IdentityCoreConstants.PRE_ISSUE_ACCESS_TOKEN_ACTION_TYPE_ENABLE_PROPERTY,        
+            IdentityCoreConstants.DEFAULT_PRE_ISSUE_ACCESS_TOKEN_ACTION_TYPE_ENABLE_VALUE);
     }
 
     /**
@@ -1528,7 +1529,8 @@ public class IdentityUtil {
                 isActionTypeEnabled = false;
             } else {
                 isActionTypeEnabled = defaultValue;
-                log.warn("Invalid value for property: " + actionTypePropertyName + ". Value should be either 'true' or 'false'.");
+                log.warn("Invalid value for property: " + actionTypePropertyName + 
+                    ". Value should be either 'true' or 'false'.");
             }
         }
         return isActionTypeEnabled;
