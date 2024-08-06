@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.execution;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -37,9 +38,17 @@ import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
+import org.wso2.carbon.identity.action.execution.model.Application;
+import org.wso2.carbon.identity.action.execution.model.Event;
 import org.wso2.carbon.identity.action.execution.model.Operation;
+import org.wso2.carbon.identity.action.execution.model.Organization;
+import org.wso2.carbon.identity.action.execution.model.Request;
+import org.wso2.carbon.identity.action.execution.model.Tenant;
+import org.wso2.carbon.identity.action.execution.model.User;
+import org.wso2.carbon.identity.action.execution.model.UserStore;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.AuthType;
@@ -49,6 +58,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +66,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -166,29 +177,11 @@ public class ActionExecutorServiceImplTest {
         Map<String, Object> eventContext = Collections.emptyMap();
 
         // Mock Action and its dependencies
-        Action action = mock(Action.class);
-        when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
-        when(action.getId()).thenReturn("actionId");
-        when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
-
-        EndpointConfig endpointConfig = mock(EndpointConfig.class);
-        when(action.getEndpoint()).thenReturn(endpointConfig);
-        when(endpointConfig.getUri()).thenReturn("http://example.com");
-
-        // Mock AuthType and its properties
-        List<AuthProperty> authPropertyList = createAuthProperties();
-        AuthType authType = mock(AuthType.class);
-        when(authType.getPropertiesWithDecryptedValues(any())).thenReturn(authPropertyList);
-        when(authType.getType()).thenReturn(AuthType.AuthenticationType.BASIC);
-        when(endpointConfig.getAuthentication()).thenReturn(authType);
+        Action action = createAction();
 
         // Mock ActionManagementService
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
                 Collections.singletonList(action));
-
-        ActionExecutionRequest actionExecutionRequest =
-                new ActionExecutionRequest.Builder().actionType(actionType).allowedOperations(getAllowedOperations())
-                        .event(null).flowId("flowId").build();
 
         // Mock ActionRequestBuilder and ActionResponseProcessor
         actionExecutionRequestBuilderFactory.when(
@@ -198,30 +191,19 @@ public class ActionExecutorServiceImplTest {
                         .getActionExecutionResponseProcessor(any()))
                 .thenReturn(actionExecutionResponseProcessor);
 
+        ActionExecutionRequest actionExecutionRequest = createActionExecutionRequest(actionType);
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
                 actionExecutionRequest);
 
         // Mock APIClient response
-        ActionInvocationSuccessResponse successResponse = mock(ActionInvocationSuccessResponse.class);
-        when(successResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.SUCCESS);
-        when(successResponse.getOperations()).thenReturn(Collections.emptyList());
-
-        ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
-        setField(actionInvocationResponse, "actionStatus", ActionInvocationResponse.Status.SUCCESS);
-        when(actionInvocationResponse.isSuccess()).thenReturn(true);
-        when(actionInvocationResponse.getResponse()).thenReturn(successResponse);
-
+        ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Execute
         actionExecutorService.execute(actionType, eventContext, "tenantDomain");
 
-        ObjectMapper requestObjectmapper = new ObjectMapper();
-        requestObjectmapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        requestObjectmapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        String payload = requestObjectmapper.writeValueAsString(actionExecutionRequest);
-
+        String payload = getJSONRequestPayload(actionExecutionRequest);
         // Verify that the HTTP client was called with the expected request
         verify(apiClient).callAPI(any(), any(), eq(payload));
     }
@@ -233,21 +215,7 @@ public class ActionExecutorServiceImplTest {
         Map<String, Object> eventContext = Collections.emptyMap();
 
         // Mock Action and its dependencies
-        Action action = mock(Action.class);
-        when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
-        when(action.getId()).thenReturn("actionId");
-        when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
-
-        EndpointConfig endpointConfig = mock(EndpointConfig.class);
-        when(action.getEndpoint()).thenReturn(endpointConfig);
-        when(endpointConfig.getUri()).thenReturn("http://example.com");
-
-        // Mock AuthType and its properties
-        List<AuthProperty> authPropertyList = createAuthProperties();
-        AuthType authType = mock(AuthType.class);
-        when(authType.getPropertiesWithDecryptedValues(any())).thenReturn(authPropertyList);
-        when(authType.getType()).thenReturn(AuthType.AuthenticationType.BASIC);
-        when(endpointConfig.getAuthentication()).thenReturn(authType);
+        Action action = createAction();
 
         // Mock ActionManagementService
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
@@ -267,15 +235,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         // Mock APIClient response
-        ActionInvocationSuccessResponse successResponse = mock(ActionInvocationSuccessResponse.class);
-        when(successResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.SUCCESS);
-        when(successResponse.getOperations()).thenReturn(Collections.emptyList());
-
-        ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
-        setField(actionInvocationResponse, "actionStatus", ActionInvocationResponse.Status.SUCCESS);
-        when(actionInvocationResponse.isSuccess()).thenReturn(true);
-        when(actionInvocationResponse.getResponse()).thenReturn(successResponse);
-
+        ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Configure response processor
@@ -298,21 +258,7 @@ public class ActionExecutorServiceImplTest {
         Map<String, Object> eventContext = Collections.emptyMap();
 
         // Mock Action and its dependencies
-        Action action = mock(Action.class);
-        when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
-        when(action.getId()).thenReturn("actionId");
-        when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
-
-        EndpointConfig endpointConfig = mock(EndpointConfig.class);
-        when(action.getEndpoint()).thenReturn(endpointConfig);
-        when(endpointConfig.getUri()).thenReturn("http://example.com");
-
-        // Mock AuthType and its properties
-        List<AuthProperty> authPropertyList = createAuthProperties();
-        AuthType authType = mock(AuthType.class);
-        when(authType.getPropertiesWithDecryptedValues(any())).thenReturn(authPropertyList);
-        when(authType.getType()).thenReturn(AuthType.AuthenticationType.BASIC);
-        when(endpointConfig.getAuthentication()).thenReturn(authType);
+        Action action = createAction();
 
         // Mock ActionManagementService
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
@@ -333,15 +279,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         // Mock APIClient response
-        ActionInvocationErrorResponse errorResponse = mock(ActionInvocationErrorResponse.class);
-        when(errorResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.ERROR);
-        when(errorResponse.getError()).thenReturn("Unauthorized");
-        when(errorResponse.getErrorDescription()).thenReturn("Request validation failed.");
-
-        ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
-        when(actionInvocationResponse.isError()).thenReturn(true);
-        when(actionInvocationResponse.getResponse()).thenReturn(errorResponse);
-
+        ActionInvocationResponse actionInvocationResponse = createErrorActionInvocationResponse();
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Configure response processor
@@ -377,9 +315,97 @@ public class ActionExecutorServiceImplTest {
         return authPropertyList;
     }
 
+    private String getJSONRequestPayload(ActionExecutionRequest actionExecutionRequest) throws JsonProcessingException {
+
+        ObjectMapper requestObjectmapper = new ObjectMapper();
+        requestObjectmapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        requestObjectmapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        return requestObjectmapper.writeValueAsString(actionExecutionRequest);
+    }
+
+    private ActionInvocationResponse createSuccessActionInvocationResponse() throws Exception {
+
+        ActionInvocationSuccessResponse successResponse = mock(ActionInvocationSuccessResponse.class);
+        when(successResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.SUCCESS);
+        when(successResponse.getOperations()).thenReturn(Collections.emptyList());
+
+        ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
+        setField(actionInvocationResponse, "actionStatus", ActionInvocationResponse.Status.SUCCESS);
+        when(actionInvocationResponse.isSuccess()).thenReturn(true);
+        when(actionInvocationResponse.getResponse()).thenReturn(successResponse);
+        return actionInvocationResponse;
+    }
+
+    private ActionInvocationResponse createErrorActionInvocationResponse() {
+
+        ActionInvocationErrorResponse errorResponse = mock(ActionInvocationErrorResponse.class);
+        when(errorResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.ERROR);
+        when(errorResponse.getError()).thenReturn("Unauthorized");
+        when(errorResponse.getErrorDescription()).thenReturn("Request validation failed.");
+
+        ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
+        when(actionInvocationResponse.isError()).thenReturn(true);
+        when(actionInvocationResponse.getResponse()).thenReturn(errorResponse);
+        return actionInvocationResponse;
+    }
+
+    private ActionExecutionRequest createActionExecutionRequest(ActionType actionType) throws Exception {
+
+        Map<String, String[]> headers = new HashMap<>();
+        headers.put("Content-Type", new String[]{"application/json"});
+        headers.put("X-Header-1", new String[]{"X-header-1-value"});
+        headers.put("X-Header-2", new String[]{"X-header-2-value"});
+
+        Map<String, String[]> params = new HashMap<>();
+        headers.put("Content-Type", new String[]{"application/json"});
+        headers.put("x-param-1", new String[]{"X-param-1-value"});
+        headers.put("x-param-2", new String[]{"X-param-2-value"});
+
+        Request request = spy(ConcreteRequest.class);
+        setField(request, "additionalHeaders", headers);
+        setField(request, "additionalParams", params);
+
+        Event event = spy(ConcreteEvent.class);
+        setField(event, "request", request);
+        setField(event, "tenant", new Tenant("45", "tenant-45"));
+        setField(event, "organization", new Organization("9600e5d0-969d-46b4-a463-9fd5de97196a", "test-org-1"));
+        setField(event, "user", new User("8ebe008f-33c1-4d2d-97ee-eaacb17d8114"));
+        setField(event, "userStore", new UserStore("PRIMARY"));
+        setField(event, "application", new Application("af82f304-ac9b-4d2b-b4da-17e01bd13d09", "test-app-1"));
+
+        return new ActionExecutionRequest.Builder().actionType(actionType).allowedOperations(getAllowedOperations())
+                .event(event).flowId("flowId").build();
+    }
+
+    private Action createAction() throws ActionMgtException {
+
+        Action action = mock(Action.class);
+        when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
+        when(action.getId()).thenReturn("actionId");
+        when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+
+        EndpointConfig endpointConfig = mock(EndpointConfig.class);
+        when(action.getEndpoint()).thenReturn(endpointConfig);
+        when(endpointConfig.getUri()).thenReturn("http://example.com");
+
+        // Mock AuthType and its properties
+        List<AuthProperty> authPropertyList = createAuthProperties();
+        AuthType authType = mock(AuthType.class);
+        when(authType.getPropertiesWithDecryptedValues(any())).thenReturn(authPropertyList);
+        when(authType.getType()).thenReturn(AuthType.AuthenticationType.BASIC);
+        when(endpointConfig.getAuthentication()).thenReturn(authType);
+        return action;
+    }
+
     private void setField(Object target, String fieldName, Object value) throws Exception {
 
-        Field field = target.getClass().getDeclaredField(fieldName);
+        Field field;
+        try {
+            field = target.getClass().getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            field = target.getClass().getSuperclass().getDeclaredField(fieldName);
+        }
+
         field.setAccessible(true);
         field.set(target, value);
     }
@@ -400,5 +426,13 @@ public class ActionExecutorServiceImplTest {
         operation.setOp(op);
         operation.setPaths(new ArrayList<>(paths));
         return operation;
+    }
+
+    private static class ConcreteEvent extends Event {
+
+    }
+
+    private static class ConcreteRequest extends Request {
+
     }
 }
