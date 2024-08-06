@@ -1565,6 +1565,7 @@
   "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
 
   "actions.maximum_actions_per_action_type": 1,
+  "actions.types.pre_issue_access_token.enable": false,
 
   "oauth.authorize_all_scopes": false
 }
