@@ -75,6 +75,13 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return INSTANCE;
     }
 
+    @Override
+    public boolean isExecutionEnabled(ActionType actionType) {
+
+        //todo: Add the implementation to read from a server level config.
+        return false;
+    }
+
     public ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
 

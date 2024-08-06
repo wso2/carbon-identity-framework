@@ -31,7 +31,24 @@ import java.util.Map;
  */
 public interface ActionExecutorService {
 
-     ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain) throws
+    /**
+     * Check whether the execution is enabled for the given action type at the server level.
+     *
+     * @param actionType Action Type
+     * @return True if the execution is enabled, False otherwise.
+     */
+    boolean isExecutionEnabled(ActionType actionType);
+
+    /**
+     * Execute the action based on the action type and the event context.
+     *
+     * @param actionType   Action Type
+     * @param eventContext Context information required for the action execution.
+     * @param tenantDomain Tenant Domain
+     * @return {@link ActionExecutionStatus} The status of the action execution and the response context.
+     * @throws ActionExecutionException If an error occurs while executing the action.
+     */
+    ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain) throws
             ActionExecutionException;
 
 }
