@@ -63,7 +63,7 @@ public class HybridSubscriberDAOImpl implements SubscriberDAO {
 
         List<String> subscriberIds = jdbcSubscriberDAO.listSubscriberIds(filter);
         List<String> registrySubscriberIds = registrySubscriberDAO.listSubscriberIds(filter);
-        return EntitlementUtil.mergeAndRemoveDuplicates(subscriberIds, registrySubscriberIds);
+        return EntitlementUtil.mergeLists(subscriberIds, registrySubscriberIds);
     }
 
     @Override

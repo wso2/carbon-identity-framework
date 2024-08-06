@@ -96,13 +96,14 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
     /**
      * Adds or updates the given PAP policy.
      *
-     * @param policy policy
+     * @param policy      policy.
+     * @param isFromPapAction true if the operation originated from a PAP action, false if it is from a PDP action.
      * @throws EntitlementException If an error occurs
      */
     @Override
-    public void addOrUpdatePolicy(PolicyDTO policy, boolean enableVersioning) throws EntitlementException {
+    public void addOrUpdatePolicy(PolicyDTO policy, boolean isFromPapAction) throws EntitlementException {
 
-        if (enableVersioning) {
+        if (isFromPapAction) {
             String version = createVersion(policy);
             policy.setVersion(version);
             addOrUpdatePAPPolicy(policy, policy.getVersion(), PDPConstants.ENTITLEMENT_POLICY_VERSION +
@@ -633,6 +634,24 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
             return true;
         } catch (RegistryException e) {
             LOG.error(e);
+            return false;
+        }
+    }
+
+    /**
+     * Checks the existence of the policy in PAP
+     *
+     * @param policyId policy ID.
+     * @return whether the policy exists in PAP or not.
+     */
+    public boolean isPolicyExistsInPap(String policyId) {
+
+        String path = PDPConstants.ENTITLEMENT_POLICY_PAP + policyId;
+        try {
+            Registry registry = getRegistry();
+            return registry.resourceExists(path);
+        } catch (RegistryException e) {
+            LOG.error("Error while checking the existence of the policy in PAP", e);
             return false;
         }
     }

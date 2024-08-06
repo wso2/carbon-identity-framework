@@ -758,7 +758,7 @@ public class EntitlementUtil {
      * @param list2 second list.
      * @return Merged list without duplicates.
      */
-    public static <T> List<T> mergeAndRemoveDuplicates(List<T> list1, List<T> list2) {
+    public static <T> List<T> mergeLists(List<T> list1, List<T> list2) {
 
         Set<T> uniqueElements = new HashSet<>();
         uniqueElements.addAll(list1);
