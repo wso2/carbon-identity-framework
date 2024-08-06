@@ -419,10 +419,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
         if (Boolean.valueOf(IdentityUtil.getProperty(ENABLE_VALIDATING_LOGOUT_RETURN_URL_CONFIG))) {
             if (isLoggedOut && !isValidCallerPath(context)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("The commonAuthCallerPath param specified in the request does not satisfy the logout" +
-                            " return url specified. Therefore directing to the default logout return url.");
-                }
+                log.debug("The commonAuthCallerPath param specified in the request does not satisfy the logout" +
+                        " return url specified. Therefore directing to the default logout return url.");
                 context.setCallerPath(getDefaultLogoutReturnUrl());
             }
         } else {

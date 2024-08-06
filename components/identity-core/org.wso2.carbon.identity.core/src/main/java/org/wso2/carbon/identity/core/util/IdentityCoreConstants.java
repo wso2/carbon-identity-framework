@@ -107,6 +107,13 @@ public class IdentityCoreConstants {
     // SCIM2 constants.
     public static final String SCIM2_USER_MAX_ITEMS_PER_PAGE_ENABLED = "SCIM2.UserEndpointMaxItemsPerPageEnabled";
 
+    // Actions constants.
+    public static final String MAXIMUM_ACTIONS_PER_TYPE_PROPERTY = "Actions.MaximumActionsPerType";
+    public static final String PRE_ISSUE_ACCESS_TOKEN_ACTION_TYPE_ENABLE_PROPERTY = "Actions.Types.PreIssueAccessToken.Enable";
+    
+    public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
+    public static final boolean DEFAULT_PRE_ISSUE_ACCESS_TOKEN_ACTION_TYPE_ENABLE_VALUE = false;
+
     public static class Filter {
 
         public static final String AND = "and";

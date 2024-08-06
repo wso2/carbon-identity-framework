@@ -105,6 +105,9 @@ public class ApplicationConstants {
 
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
+    public static final String TRUSTED_APP_CONSENT_REQUIRED_PROPERTY = "ApplicationMgt.TrustedAppConsentRequired";
+    public static final String TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY =
+            "ApplicationMgt.TrustedAppMaxThumbprintCount";
 
     public static final String NON_EXISTING_USER_CODE = "30007 - ";
 
@@ -121,6 +124,8 @@ public class ApplicationConstants {
     public static final String MYACCOUNT_ACCESS_ORIGIN = "MyAccount.Origin";
     public static final String CONSOLE_PORTAL_PATH = "Console.AppBaseName";
     public static final String MYACCOUNT_PORTAL_PATH = "MyAccount.AppBaseName";
+    public static final String AUTHORIZE_ALL_SCOPES = "OAuth.AuthorizeAllScopes";
+    public static final String RBAC = "RBAC";
 
     /**
      * Group the constants related to logs.

@@ -58,6 +58,7 @@
                 <!-- All temporary authentication context data older than CleanUpTimeout value are considered as expired
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>{{session_data.cleanup.expire_pre_session_data_after}}</CleanUpTimeout>
+                <EnablePeriodicCleanup>{{session_data.cleanup.enable_periodic_pre_session_data_cleanup}}</EnablePeriodicCleanup>
             </TempDataCleanup>
             <SessionAndTempDataSeparation>
                 <Enable>{{session_data.session_data_persist.session_and_temp_data_separation_enabled.enable}}</Enable>
@@ -467,6 +468,20 @@
                 <ResponseTypeValidatorImplClass>{{oauth.response_type.none.validator}}</ResponseTypeValidatorImplClass>
             </SupportedResponseType>
             {% endif %}
+            {% if oauth.response_type.subject_token.enable is sameas true %}
+                <SupportedResponseType>
+                <ResponseTypeName>subject_token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.subject_token.class}}</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>{{oauth.response_type.subject_token.validator}}</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
+            {% endif %}
+            {% if oauth.response_type.id_token_subject_token.enable is sameas true %}
+                <SupportedResponseType>
+                <ResponseTypeName>id_token subject_token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.id_token_subject_token.class}}</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>{{oauth.response_type.id_token_subject_token.validator}}</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
+            {% endif %}
             {% for response_type in oauth.custom_response_type %}
             <SupportedResponseType>
                 <ResponseTypeName>{{response_type.name}}</ResponseTypeName>
@@ -684,6 +699,7 @@
         Supported versions: IS 5.8.1  onwards
         -->
         <ScopeValidationEnabledForAuthzCodeAndImplicitGrant>{{oauth.scope_validator.authz_implicit.enable}}</ScopeValidationEnabledForAuthzCodeAndImplicitGrant>
+        <ScopeValidationPreserveCaseSensitivity>{{oauth.scope_validator.preserve_case_sensitivity}}</ScopeValidationPreserveCaseSensitivity>
 
 
         <!-- Scope handlers list. The handlers registered here will be executed at the scope validation phase while
@@ -958,6 +974,7 @@
             <DefaultSubjectType>{{oauth.oidc.subject_type.default_subject_type}}</DefaultSubjectType>
             <EnablePairwiseSubForAccessToken>{{oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection}}</EnablePairwiseSubForAccessToken>
             <EnableTLSCertificateBoundAccessTokensViaBindingType>{{oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type}}</EnableTLSCertificateBoundAccessTokensViaBindingType>
+            <EnableHybridFlowAppLevelValidation>{{oauth.oidc.enable_hybrid_flow_app_level_validation}}</EnableHybridFlowAppLevelValidation>
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
@@ -1202,6 +1219,8 @@
                 <Parameter>{{parameter}}</Parameter>
             {% endfor %}
         </RestrictedQueryParameters>
+
+        <AuthorizeAllScopes>{{oauth.authorize_all_scopes}}</AuthorizeAllScopes>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1460,7 +1479,7 @@
              It determines the totalResults based on the total user count corresponding to the given group-based filter.
              Additionally, when invoking the user endpoint with a groups filter by passing a role (hybrid or system roles),
              it returns an empty list when role group separation is enabled, instead of returning users linked to the passed role.
-             Default value : false
+             Default value : true
         -->
         <EnableGroupBasedUserFilteringImprovements>{{scim2.enable_group_based_user_filter_improvements}}</EnableGroupBasedUserFilteringImprovements>
 
@@ -1879,6 +1898,8 @@
         The default value of the configuration is false.
         -->
         <EnableRoleValidation>{{application_mgt.enable_role_validation}}</EnableRoleValidation>
+        <TrustedAppConsentRequired>{{application_mgt.trusted_app_consent_required}}</TrustedAppConsentRequired>
+        <TrustedAppMaxThumbprintCount>{{application_mgt.trusted_app_max_thumbprint_count}}</TrustedAppMaxThumbprintCount>
     </ApplicationMgt>
 
     <OutboundProvisioning>
@@ -1901,6 +1922,14 @@
         <enableApplicationBasedOutboundProvisioning>{{outbound_provisioning_management.enable_application_based_outbound_provisioning}}</enableApplicationBasedOutboundProvisioning>
     </OutboundProvisioning>
 
+    <Actions>
+        <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
+        <Types>
+            <PreIssueAccessToken>
+                <Enable>{{actions.types.pre_issue_access_token.enable}}</Enable>
+            </PreIssueAccessToken>
+        </Types>
+    </Actions>
 
     <EventListeners>
         <EventListener id="input_validation"
@@ -3298,6 +3327,28 @@
             <Scopes>internal_login</Scopes>
         </Resource>
 
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/actionmgt/create</Permissions>
+            <Scopes>internal_action_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/actionmgt/update</Permissions>
+            <Scopes>internal_action_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/actionmgt/update</Permissions>
+            <Scopes>internal_action_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/actionmgt/delete</Permissions>
+            <Scopes>internal_action_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/actionmgt/view</Permissions>
+            <Scopes>internal_action_mgt_view</Scopes>
+        </Resource>
+
+
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
@@ -3390,6 +3441,8 @@
         <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
+        <Resource context="(.*)/.well-known/trusted-apps/android" secured="false" http-method="GET"/>
+        <Resource context="(.*)/.well-known/trusted-apps/ios" secured="false" http-method="GET"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>

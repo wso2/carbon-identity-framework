@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.3.25</version>
+    <version>7.3.63-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -34,7 +34,7 @@
         <url>https://github.com/wso2/carbon-identity-framework.git</url>
         <developerConnection>scm:git:https://github.com/wso2/carbon-identity-framework.git</developerConnection>
         <connection>scm:git:https://github.com/wso2/carbon-identity-framework.git</connection>
-        <tag>v7.3.25</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <modules>
@@ -70,6 +70,8 @@
         <module>components/central-logger</module>
         <module>components/input-validation-mgt</module>
         <module>components/client-attestation-mgt</module>
+        <module>components/trusted-app-mgt</module>
+        <module>components/action-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -103,6 +105,8 @@
         <module>components/api-resource-mgt</module>
         <module>features/api-resource-mgt</module>
         <module>features/client-attestation-mgt</module>
+        <module>features/trusted-app-mgt</module>
+        <module>features/action-mgt</module>
     </modules>
 
 
@@ -296,6 +300,29 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.client.attestation.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.trusted.app.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.trusted.app.mgt.server.feature</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.action.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

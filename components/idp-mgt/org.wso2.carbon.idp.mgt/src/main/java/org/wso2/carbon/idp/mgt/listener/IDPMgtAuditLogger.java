@@ -33,8 +33,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
-
 public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
 
 
@@ -51,10 +49,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     @Override
     public boolean isEnable() {
 
-        if (super.isEnable()) {
-            return !isLegacyAuditLogsDisabled();
-        }
-        return false;
+        return super.isEnable();
     }
 
     @Override

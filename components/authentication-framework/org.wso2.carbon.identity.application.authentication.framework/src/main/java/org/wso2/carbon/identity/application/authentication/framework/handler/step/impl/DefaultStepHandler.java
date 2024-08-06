@@ -89,7 +89,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Default implementation of the authentication step handler.
@@ -330,7 +329,6 @@ public class DefaultStepHandler implements StepHandler {
                     AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(idp);
                     populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
                             authenticatedStepIdps.get(idp));
-                    context.getCurrentAuthenticatedIdPs().put(idp, authenticatedIdPData);
                     stepConfig.setCompleted(true);
                     request.setAttribute(
                             FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
@@ -883,10 +881,9 @@ public class DefaultStepHandler implements StepHandler {
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
                     ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
-            if (!isLegacyAuditLogsDisabled()) {
-                audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
-                        data, SUCCESS));
-            }
+
+            audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
+                    data, SUCCESS));
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
@@ -935,10 +932,9 @@ public class DefaultStepHandler implements StepHandler {
             if (LoggerUtils.isLogMaskingEnable) {
                 initiator = LoggerUtils.getMaskedContent(initiator);
             }
-            if (!isLegacyAuditLogsDisabled()) {
-                audit.warn(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
-                        data, FAILURE));
-            }
+            audit.warn(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
+                    data, FAILURE));
+
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (AuthenticationFailedException e) {
             IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
@@ -976,10 +972,9 @@ public class DefaultStepHandler implements StepHandler {
             if (LoggerUtils.isLogMaskingEnable) {
                 initiator = LoggerUtils.getMaskedContent(initiator);
             }
-            if (!isLegacyAuditLogsDisabled()) {
-                audit.warn(String.format(AUDIT_MESSAGE, initiator,
-                        "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
-            }
+            audit.warn(String.format(AUDIT_MESSAGE, initiator,
+                    "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
+
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,

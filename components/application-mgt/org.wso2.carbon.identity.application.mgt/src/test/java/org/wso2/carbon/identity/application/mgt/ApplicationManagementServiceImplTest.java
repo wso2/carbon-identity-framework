@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -52,6 +54,8 @@ import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorCo
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
+import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
@@ -64,6 +68,7 @@ import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
@@ -90,7 +95,9 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -100,6 +107,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -113,6 +124,10 @@ public class ApplicationManagementServiceImplTest {
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
     private static final String APPLICATION_NAME_1 = "Test application1";
     private static final String APPLICATION_NAME_2 = "Test application2";
+    private static final String APPLICATION_TEMPLATE_ID_1 = "Test_template_1";
+    private static final String APPLICATION_TEMPLATE_ID_2 = "Test_template_2";
+    private static final String APPLICATION_TEMPLATE_VERSION_1 = "v1.0.0";
+    private static final String APPLICATION_TEMPLATE_VERSION_2 = "v1.0.1";
     private static final String APPLICATION_INBOUND_AUTH_KEY_1 = "Test_auth_key1";
     private static final String APPLICATION_INBOUND_AUTH_KEY_2 = "Test_auth_key2";
     private static final String APPLICATION_NAME_FILTER_1 = "name ew application1";
@@ -131,6 +146,9 @@ public class ApplicationManagementServiceImplTest {
     private static final String USERNAME_1 = "user 1";
     private static final String USERNAME_2 = "user 2";
     private static final String RANDOM_STRING = "random string";
+    private static final String ANDROID_PACKAGE_NAME_1 = "com.wso2.sample.mobile.application";
+    private static final String ANDROID_PACKAGE_NAME_2 = "com.wso2.sample.mobile.application2";
+    private static final String APPLE_APP_ID = "APPLETEAMID.com.wso2.mobile.sample";
 
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
@@ -936,7 +954,7 @@ public class ApplicationManagementServiceImplTest {
 
 
         return new Object[][]{
-                {true, "com.wso2.sample.mobile.application", "sampleCredentials", "APPLETEAMID.com.wso2.mobile.sample"}
+                {true, ANDROID_PACKAGE_NAME_1, "sampleCredentials", APPLE_APP_ID}
         };
     }
 
@@ -999,6 +1017,186 @@ public class ApplicationManagementServiceImplTest {
 
         Assert.assertEquals(retrievedSP.getClientAttestationMetaData().isAttestationEnabled(), !isAttestationEnabled);
         Assert.assertNull(retrievedSP.getClientAttestationMetaData().getAndroidAttestationServiceCredentials());
+        // Deleting added application.
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+    }
+
+    @DataProvider(name = "trustedAppMetadataDataProvider")
+    public Object[][] trustedAppMetadataDataProvider() {
+
+        String[] thumbprints1 = {"sampleThumbprint1"};
+        String[] thumbprints2 = {"sampleThumbprint1", "sampleThumbprint2"};
+
+        return new Object[][]{
+                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, false, false,
+                        true},
+                {ANDROID_PACKAGE_NAME_1, thumbprints2, null, false, false, true},
+                {null, null, APPLE_APP_ID, false, false, true},
+                // Check if consent property is handled correctly.
+                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, false, true,
+                        true},
+                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, true, true,
+                        true},
+                {ANDROID_PACKAGE_NAME_1, thumbprints1, APPLE_APP_ID, true, false,
+                        false}
+        };
+    }
+
+    @Test(dataProvider = "trustedAppMetadataDataProvider")
+    public void testTrustedAppMetadata(String androidPackageName, String[] androidThumbprints, String appleAppId,
+                                       boolean isConsentRequired, boolean isConsentGranted, boolean expectedConsent)
+            throws Exception {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(inputSP);
+
+        SpTrustedAppMetadata trustedAppMetadata = new SpTrustedAppMetadata();
+        trustedAppMetadata.setAndroidPackageName(androidPackageName);
+        trustedAppMetadata.setAppleAppId(appleAppId);
+        trustedAppMetadata.setAndroidThumbprints(androidThumbprints);
+        trustedAppMetadata.setIsFidoTrusted(true);
+        trustedAppMetadata.setIsConsentGranted(isConsentGranted);
+        inputSP.setTrustedAppMetadata(trustedAppMetadata);
+
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class,
+                Mockito.CALLS_REAL_METHODS)) {
+            identityUtil.when(() -> IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY)).
+                    thenReturn(String.valueOf(isConsentRequired));
+            // Adding new application.
+            String addedSpId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+            ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(addedSpId,
+                    SUPER_TENANT_DOMAIN_NAME);
+
+            Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAndroidPackageName(), androidPackageName);
+            Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAndroidThumbprints(), androidThumbprints);
+            Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getAppleAppId(), appleAppId);
+            Assert.assertTrue(retrievedSP.getTrustedAppMetadata().getIsFidoTrusted());
+            Assert.assertEquals(retrievedSP.getTrustedAppMetadata().getIsConsentGranted(), expectedConsent);
+
+            // Deleting added application.
+            applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+        }
+    }
+
+    @DataProvider(name = "testGetTrustedAppsDataProvider")
+    public Object[][] testGetTrustedAppsDataProvider() {
+
+        SpTrustedAppMetadata trustedAppMetadata1 = new SpTrustedAppMetadata();
+        trustedAppMetadata1.setAndroidPackageName(ANDROID_PACKAGE_NAME_1);
+        trustedAppMetadata1.setAppleAppId(APPLE_APP_ID);
+        String[] thumbprints1 = {"sampleThumbprint1"};
+        trustedAppMetadata1.setAndroidThumbprints(thumbprints1);
+        trustedAppMetadata1.setIsFidoTrusted(true);
+
+        SpTrustedAppMetadata trustedAppMetadata2 = new SpTrustedAppMetadata();
+        trustedAppMetadata2.setAndroidPackageName(ANDROID_PACKAGE_NAME_2);
+        trustedAppMetadata2.setAppleAppId(null);
+        String[] thumbprints2 = {"sampleThumbprint1", "sampleThumbprint2"};
+        trustedAppMetadata2.setAndroidThumbprints(thumbprints2);
+        trustedAppMetadata2.setIsFidoTrusted(true);
+
+        return new Object[][]{
+                {trustedAppMetadata1, trustedAppMetadata2, 1},
+                {trustedAppMetadata1, trustedAppMetadata1, 2}
+        };
+    }
+
+    @Test(dataProvider = "testGetTrustedAppsDataProvider")
+    public void testGetTrustedApps(SpTrustedAppMetadata trustedAppMetadata1, SpTrustedAppMetadata trustedAppMetadata2,
+                                   int appleTrustedAppCount) throws Exception {
+
+        // Adding 2 applications with different trusted app metadata.
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+        serviceProvider1.setApplicationName(APPLICATION_NAME_1);
+        addApplicationConfigurations(serviceProvider1);
+        serviceProvider1.setTrustedAppMetadata(trustedAppMetadata1);
+        applicationManagementService.createApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+
+        ServiceProvider serviceProvider2 = new ServiceProvider();
+        serviceProvider2.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(serviceProvider2);
+        serviceProvider2.setTrustedAppMetadata(trustedAppMetadata2);
+        applicationManagementService.createApplication(serviceProvider2, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+
+        // Get trusted apps for android and apple platforms.
+        List<TrustedApp> androidTrustedApps = applicationManagementService.getTrustedApps(PlatformType.ANDROID);
+        List<TrustedApp> appleTrustedApps = applicationManagementService.getTrustedApps(PlatformType.IOS);
+
+        Assert.assertEquals(androidTrustedApps.size(), 2);
+        Assert.assertEquals(appleTrustedApps.size(), appleTrustedAppCount);
+
+        Assert.assertEquals(androidTrustedApps.get(0).getAppIdentifier(), trustedAppMetadata1.getAndroidPackageName());
+        Assert.assertEquals(androidTrustedApps.get(1).getAppIdentifier(), trustedAppMetadata2.getAndroidPackageName());
+        Assert.assertEquals(androidTrustedApps.get(0).getThumbprints(), trustedAppMetadata1.getAndroidThumbprints());
+        Assert.assertEquals(androidTrustedApps.get(1).getThumbprints(), trustedAppMetadata2.getAndroidThumbprints());
+
+        Assert.assertEquals(appleTrustedApps.get(0).getAppIdentifier(), trustedAppMetadata1.getAppleAppId());
+        Assert.assertEquals(appleTrustedApps.get(0).getThumbprints(), new String[0]);
+
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @DataProvider(name = "addApplicationWithTemplateIdAndTemplateVersionData")
+    public Object[][] addApplicationWithTemplateIdAndTemplateVersionData() {
+
+        return new Object[][] {
+                {APPLICATION_TEMPLATE_ID_1, APPLICATION_TEMPLATE_VERSION_1},
+                {null, null}
+        };
+    }
+
+    @Test(dataProvider = "addApplicationWithTemplateIdAndTemplateVersionData")
+    public void addApplicationWithTemplateIdAndTemplateVersionData(String templateId, String templateVersion)
+            throws Exception {
+
+        String expectedTemplateId = templateId != null ? templateId : "";
+        String expectedTemplateVersion = templateVersion != null ? templateVersion : "";
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+
+        addApplicationConfigurations(inputSP);
+        inputSP.setTemplateId(templateId);
+        inputSP.setTemplateVersion(templateVersion);
+
+        // Adding new application.
+        String resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+
+        //  Retrieving added application.
+        ServiceProvider retrievedSP =
+                applicationManagementService.getApplicationByResourceId(resourceId, SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertEquals(retrievedSP.getTemplateId(), expectedTemplateId);
+        Assert.assertEquals(retrievedSP.getTemplateVersion(), expectedTemplateVersion);
+
+        // Retrieving application with required attributes as templateId and templateVersion.
+        List<String> requiredAttributes =
+                Arrays.asList(TEMPLATE_ID_SP_PROPERTY_NAME, TEMPLATE_VERSION_SP_PROPERTY_NAME);
+        ServiceProvider retrievedSPWithRequiredAttributes =
+                applicationManagementService.getApplicationWithRequiredAttributes(retrievedSP.getApplicationID(),
+                        requiredAttributes);
+        Assert.assertEquals(retrievedSPWithRequiredAttributes.getTemplateId(), expectedTemplateId);
+        Assert.assertEquals(retrievedSPWithRequiredAttributes.getTemplateVersion(), expectedTemplateVersion);
+
+        // Updating the application by changing the templateId and templateVersion. It should be changed.
+        inputSP.setTemplateId(APPLICATION_TEMPLATE_ID_2);
+        inputSP.setTemplateVersion(APPLICATION_TEMPLATE_VERSION_2);
+
+        applicationManagementService.updateApplicationByResourceId(resourceId, inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+
+        retrievedSP = applicationManagementService.getApplicationByResourceId(resourceId, SUPER_TENANT_DOMAIN_NAME);
+
+        Assert.assertEquals(retrievedSP.getTemplateId(), APPLICATION_TEMPLATE_ID_2);
+        Assert.assertEquals(retrievedSP.getTemplateVersion(), APPLICATION_TEMPLATE_VERSION_2);
+
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
                 REGISTRY_SYSTEM_USERNAME);

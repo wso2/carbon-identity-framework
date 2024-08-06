@@ -1479,6 +1479,64 @@ public class IdentityUtil {
     }
 
     /**
+     * Get the Maximum Actions per Action Type to be configured.
+     *
+     * @return maximumItemsPerPage need to display.
+     */
+    public static int getMaximumActionsPerActionType() {
+
+        int maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ACTIONS_PER_TYPE;
+        String maximumActionsPerActionTypePropertyValue =
+                IdentityUtil.getProperty(IdentityCoreConstants.MAXIMUM_ACTIONS_PER_TYPE_PROPERTY);
+        if (StringUtils.isNotBlank(maximumActionsPerActionTypePropertyValue)) {
+            try {
+                maximumActionsPerActionType = Integer.parseInt(maximumActionsPerActionTypePropertyValue);
+            } catch (NumberFormatException e) {
+                maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+                log.warn("Error occurred while parsing the 'maximumActionsPerActionType' property value " +
+                        "in identity.xml.", e);
+            }
+        }
+        return maximumActionsPerActionType;
+    }
+
+    /**
+     * Get Pre Issue Access Token Action Type enabled status.
+     *
+     * @return Whether the Pre Issue Access Token Action type is enabled or not.
+     */
+    public static boolean isPreIssueAccessTokenActionTypeEnabled() {
+
+        return isActionTypeEnabled(IdentityCoreConstants.PRE_ISSUE_ACCESS_TOKEN_ACTION_TYPE_ENABLE_PROPERTY,        
+            IdentityCoreConstants.DEFAULT_PRE_ISSUE_ACCESS_TOKEN_ACTION_TYPE_ENABLE_VALUE);
+    }
+
+    /**
+     * Check whether a given action type is enabled or not.
+     *
+     * @param actionTypePropertyName Name of the action type enabled property.
+     * @param defaultValue           Default value of the action type enabled property.
+     * @return Whether the action type is enabled or not.
+     */
+    private static boolean isActionTypeEnabled(String actionTypePropertyName, boolean defaultValue) {
+        
+        boolean isActionTypeEnabled = defaultValue;
+        String actionTypeEnabledPropertyValue = IdentityUtil.getProperty(actionTypePropertyName);
+        if (StringUtils.isNotBlank(actionTypeEnabledPropertyValue)) {
+            if ("true".equalsIgnoreCase(actionTypeEnabledPropertyValue)) {
+                isActionTypeEnabled = true;
+            } else if ("false".equalsIgnoreCase(actionTypeEnabledPropertyValue)) {
+                isActionTypeEnabled = false;
+            } else {
+                isActionTypeEnabled = defaultValue;
+                log.warn("Invalid value for property: " + actionTypePropertyName + 
+                    ". Value should be either 'true' or 'false'.");
+            }
+        }
+        return isActionTypeEnabled;
+    }
+
+    /**
      * Get the Default Items per Page needed to display.
      *
      * @return defaultItemsPerPage need to display.
