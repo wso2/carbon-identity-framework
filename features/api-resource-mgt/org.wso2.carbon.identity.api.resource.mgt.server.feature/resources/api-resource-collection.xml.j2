@@ -538,6 +538,25 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="actions" displayName="Actions" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:actions"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_action_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_action_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_action_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_action_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
 <!--    Organization API Resource Collections-->
     <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization">
         <Scopes>

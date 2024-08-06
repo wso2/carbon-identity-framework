@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,8 +79,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     @Override
     public boolean isExecutionEnabled(ActionType actionType) {
 
-        //todo: Add the implementation to read from a server level config.
-        return false;
+        switch (actionType) {
+            case PRE_ISSUE_ACCESS_TOKEN:
+                return IdentityUtil.isPreIssueAccessTokenActionTypeEnabled();
+            default:
+                return false;
+        }
     }
 
     public ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain)
