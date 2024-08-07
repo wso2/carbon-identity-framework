@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -26,7 +26,7 @@ import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
-import org.wso2.carbon.identity.entitlement.dao.puredao.SubscriberPureDAO;
+import org.wso2.carbon.identity.entitlement.persistence.dao.SubscriberDAO;
 import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.PublisherPropertyDTO;
 
@@ -36,11 +36,11 @@ import java.util.List;
 /**
  * This class handles the JDBC operations of the subscribers in the data store.
  */
-public class JDBCSubscriberDAOImpl implements SubscriberDAO {
+public class JDBCSubscriberPersistenceManager implements SubscriberPersistenceManager {
 
-    private static final Log LOG = LogFactory.getLog(JDBCSubscriberDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(JDBCSubscriberPersistenceManager.class);
     private static final String ERROR_SUBSCRIBER_ID_NULL = "Subscriber Id can not be null";
-    private static final SubscriberPureDAO subscriberPureDAO = new SubscriberPureDAO();
+    private static final SubscriberDAO subscriberDAO = new SubscriberDAO();
 
     /**
      * Gets the requested subscriber.
@@ -56,7 +56,7 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        PublisherDataHolder publisherDataHolder = subscriberPureDAO.getSubscriber(subscriberId, tenantId);
+        PublisherDataHolder publisherDataHolder = subscriberDAO.getSubscriber(subscriberId, tenantId);
         if (publisherDataHolder == null) {
             return null;
         }
@@ -77,7 +77,7 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
     public List<String> listSubscriberIds(String filter) throws EntitlementException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        List<String> subscriberIdList = subscriberPureDAO.getSubscriberIds(tenantId);
+        List<String> subscriberIdList = subscriberDAO.getSubscriberIds(tenantId);
         return EntitlementUtil.filterSubscribers(subscriberIdList, filter);
     }
 
@@ -99,7 +99,7 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
             throw new EntitlementException("Subscriber ID already exists");
         }
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        subscriberPureDAO.insertSubscriber(subscriberId, holder, tenantId);
+        subscriberDAO.insertSubscriber(subscriberId, holder, tenantId);
     }
 
     /**
@@ -123,7 +123,7 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
             String updatedModuleName = getUpdatedModuleName(holder, oldHolder);
             PublisherPropertyDTO[] updatedPropertyDTOs = getUpdatedPropertyDTOs(holder, oldHolder);
             updatedPropertyDTOs = encryptUpdatedSecretProperties(updatedPropertyDTOs);
-            subscriberPureDAO.updateSubscriber(subscriberId, updatedModuleName, updatedPropertyDTOs, tenantId);
+            subscriberDAO.updateSubscriber(subscriberId, updatedModuleName, updatedPropertyDTOs, tenantId);
         } else {
             throw new EntitlementException("Subscriber ID does not exist; update cannot be done");
         }
@@ -148,7 +148,7 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
             throw new EntitlementException("Cannot delete PDP publisher");
         }
 
-        subscriberPureDAO.deleteSubscriber(subscriberId, tenantId);
+        subscriberDAO.deleteSubscriber(subscriberId, tenantId);
     }
 
     /**
@@ -161,7 +161,7 @@ public class JDBCSubscriberDAOImpl implements SubscriberDAO {
     public boolean isSubscriberExists(String subscriberId) throws EntitlementException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return subscriberPureDAO.isSubscriberExists(subscriberId, tenantId);
+        return subscriberDAO.isSubscriberExists(subscriberId, tenantId);
     }
 
     private String getUpdatedModuleName(PublisherDataHolder holder, PublisherDataHolder oldHolder) {

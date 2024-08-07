@@ -20,19 +20,19 @@ package org.wso2.carbon.identity.entitlement.pap.store;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.dao.DAOFactory;
-import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
+import org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerFactory;
+import org.wso2.carbon.identity.entitlement.persistence.PolicyPersistenceManager;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.registry.core.Resource;
 
 public class PAPPolicyStoreManager {
 
     private static final Log log = LogFactory.getLog(PAPPolicyStoreManager.class);
-    private PolicyDAO store;
+    private PolicyPersistenceManager store;
     private PAPPolicyStoreReader storeReader;
 
     public PAPPolicyStoreManager() {
-        store = DAOFactory.getPolicyDAO();
+        store = PersistenceManagerFactory.getPolicyPersistenceManager();
         storeReader = new PAPPolicyStoreReader(store);
     }
 

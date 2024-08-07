@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao.puredao;
+package org.wso2.carbon.identity.entitlement.persistence.dao;
 
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -35,52 +35,52 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.DB2;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.H2;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.MARIADB;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.MSSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.MYSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.ORACLE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.POSTGRES;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.IS_SUCCESS;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.LOGGED_AT;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.MESSAGE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY_VERSION;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.STATUS_TYPE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.SUBSCRIBER_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TARGET;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TARGET_ACTION;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TENANT_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.USER;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.VERSION;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.KEY;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.LIMIT;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_POLICY_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_SUBSCRIBER_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_MSSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_MYSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_ORACLE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_MSSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_ORACLE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_POLICY_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_SUBSCRIBER_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_STATUS_COUNT_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_SUBSCRIBER_STATUS_COUNT_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_SUBSCRIBER_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.STATUS_COUNT;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.DB2;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.H2;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.MARIADB;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.MSSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.MYSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.ORACLE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.POSTGRES;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.IS_SUCCESS;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.LOGGED_AT;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.MESSAGE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.POLICY_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.POLICY_VERSION;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.STATUS_TYPE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.SUBSCRIBER_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.TARGET;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.TARGET_ACTION;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.TENANT_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.USER;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.VERSION;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.KEY;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.LIMIT;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_POLICY_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_SUBSCRIBER_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_MSSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_MYSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_ORACLE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_MSSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_ORACLE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_POLICY_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_SUBSCRIBER_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_POLICY_STATUS_COUNT_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_POLICY_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_SUBSCRIBER_STATUS_COUNT_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_SUBSCRIBER_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.STATUS_COUNT;
 
 import static java.time.ZoneOffset.UTC;
 
 /**
  * This class handles the JDBC operations related to the status data.
  */
-public class StatusPureDAO {
+public class StatusDAO {
 
     /**
-     * DAO method to delete all status records.
+     * Delete all status records.
      *
      * @param about whether the status is about a policy or publisher.
      * @param key   key value of the status.
@@ -102,7 +102,7 @@ public class StatusPureDAO {
     }
 
     /**
-     * DAO method to get the status records.
+     * Get the status records.
      *
      * @param key      key value of the status.
      * @param about    whether the status is about a policy or publisher.
@@ -152,7 +152,7 @@ public class StatusPureDAO {
     }
 
     /**
-     * DAO method to insert status records.
+     * Insert status records.
      *
      * @param about         whether the status is about a policy or publisher.
      * @param key           key value of the status.
@@ -200,7 +200,7 @@ public class StatusPureDAO {
     }
 
     /**
-     * DAO method to delete excess status records (if surpassing maximum, excess number of old records are deleted).
+     * Delete excess status records (if surpassing maximum, excess number of old records are deleted).
      *
      * @param about    whether the status is about a policy or publisher.
      * @param key      key value of the status.

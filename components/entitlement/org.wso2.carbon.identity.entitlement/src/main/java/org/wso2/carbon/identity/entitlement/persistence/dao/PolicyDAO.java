@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao.puredao;
+package org.wso2.carbon.identity.entitlement.persistence.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,68 +40,68 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.ATTRIBUTE_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.ATTRIBUTE_VALUE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.CATEGORY;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.DATA_TYPE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.EDITOR_DATA;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.EDITOR_DATA_ORDER;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.IS_ACTIVE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.IS_IN_PAP;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.IS_IN_PDP;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.LAST_MODIFIED_TIME;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.LAST_MODIFIED_USER;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY_EDITOR;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY_ORDER;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY_TYPE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.REFERENCE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.SET_REFERENCE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TENANT_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.VERSION;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_PAP_POLICY_ATTRIBUTES_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_PAP_POLICY_EDITOR_DATA_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_PAP_POLICY_REFS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_PAP_POLICY_SET_REFS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_PAP_POLICY_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_PAP_POLICY_BY_VERSION_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_PAP_POLICY_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_POLICY_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_POLICY_VERSION_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_PUBLISHED_VERSIONS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_UNPUBLISHED_POLICY_VERSIONS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_UNUSED_POLICY_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_ACTIVE_STATUS_AND_ORDER_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_ALL_PAP_POLICIES_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_ALL_PDP_POLICIES_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_LATEST_POLICY_VERSION_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_PAP_POLICY_BY_VERSION_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_PAP_POLICY_EDITOR_DATA_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_PAP_POLICY_IDS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_PAP_POLICY_META_DATA_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_PAP_POLICY_REFS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_PAP_POLICY_SET_REFS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_PAP_POLICY_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_PDP_POLICY_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_PAP_PRESENCE_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_PDP_PRESENCE_BY_VERSION_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_PDP_PRESENCE_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_VERSIONS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_PUBLISHED_POLICY_VERSION_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.PUBLISH_POLICY_VERSION_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.RESTORE_ACTIVE_STATUS_AND_ORDER_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.UPDATE_ACTIVE_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.UPDATE_ORDER_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.ATTRIBUTE_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.ATTRIBUTE_VALUE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.CATEGORY;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.DATA_TYPE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.EDITOR_DATA;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.EDITOR_DATA_ORDER;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.IS_ACTIVE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.IS_IN_PAP;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.IS_IN_PDP;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.LAST_MODIFIED_TIME;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.LAST_MODIFIED_USER;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.POLICY;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.POLICY_EDITOR;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.POLICY_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.POLICY_ORDER;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.POLICY_TYPE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.REFERENCE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.SET_REFERENCE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.TENANT_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.VERSION;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_PAP_POLICY_ATTRIBUTES_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_PAP_POLICY_EDITOR_DATA_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_PAP_POLICY_REFS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_PAP_POLICY_SET_REFS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_PAP_POLICY_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_PAP_POLICY_BY_VERSION_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_PAP_POLICY_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_POLICY_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_POLICY_VERSION_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_PUBLISHED_VERSIONS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_UNPUBLISHED_POLICY_VERSIONS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_UNUSED_POLICY_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_ACTIVE_STATUS_AND_ORDER_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_ALL_PAP_POLICIES_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_ALL_PDP_POLICIES_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_LATEST_POLICY_VERSION_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_PAP_POLICY_BY_VERSION_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_PAP_POLICY_EDITOR_DATA_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_PAP_POLICY_IDS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_PAP_POLICY_META_DATA_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_PAP_POLICY_REFS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_PAP_POLICY_SET_REFS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_PAP_POLICY_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_PDP_POLICY_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_POLICY_PAP_PRESENCE_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_POLICY_PDP_PRESENCE_BY_VERSION_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_POLICY_PDP_PRESENCE_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_POLICY_VERSIONS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_PUBLISHED_POLICY_VERSION_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.PUBLISH_POLICY_VERSION_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.RESTORE_ACTIVE_STATUS_AND_ORDER_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.UPDATE_ACTIVE_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.UPDATE_ORDER_SQL;
 
 import static java.time.ZoneOffset.UTC;
 
 /**
  * This class handles the JDBC operations related to the policies.
  */
-public class PolicyPureDAO {
+public class PolicyDAO {
 
-    private static final Log LOG = LogFactory.getLog(PolicyPureDAO.class);
+    private static final Log LOG = LogFactory.getLog(PolicyDAO.class);
     private static final String IS_IN_PDP_1 = "IS_IN_PDP_1";
     private static final boolean IN_PAP = true;
     private static final boolean IN_PDP = true;
@@ -111,7 +111,7 @@ public class PolicyPureDAO {
             "Error while retrieving entitlement policy %s from the PAP policy store";
 
     /**
-     * DAO method to insert a policy to PAP.
+     * Insert a policy to PAP.
      *
      * @param policy policy.
      */
@@ -137,13 +137,13 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to delete the given policy version from the PAP.
+     * Delete the given policy version from the PAP.
      *
      * @param policyId policyId.
      * @param version  version.
      * @throws EntitlementException throws, if fails.
      */
-    public void deletePolicy(String policyId, int version, int tenantId) throws EntitlementException {
+    public void deletePAPPolicyVersion(String policyId, int version, int tenantId) throws EntitlementException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
 
@@ -191,7 +191,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to get a policy from PAP.
+     * Get a policy from PAP.
      *
      * @param policyId policyId.
      * @throws EntitlementException throws, if fails.
@@ -217,7 +217,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to get all PAP policies.
+     * Get all PAP policies.
      *
      * @param tenantId tenant ID.
      * @return list of policy DTOs.
@@ -243,7 +243,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to get the latest policy version.
+     * Get the latest policy version.
      *
      * @param policyId policy ID.
      * @param tenantId tenant ID.
@@ -272,7 +272,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to get the policy by version.
+     * Get the policy by version.
      *
      * @param policyId policy ID.
      * @param version  version.
@@ -305,7 +305,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to get all the versions of the policy.
+     * Get all the versions of the policy.
      *
      * @param policyId policy ID.
      * @param tenantId tenant ID.
@@ -333,7 +333,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to get PAP policy ids.
+     * Get PAP policy ids.
      *
      * @param tenantId tenant ID.
      * @return list of policy IDs.
@@ -365,7 +365,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to delete a policy from PAP.
+     * Delete a policy from PAP.
      *
      * @param policyId policy ID.
      * @param tenantId tenant ID.
@@ -416,7 +416,33 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to get the published policy from PDP.
+     * Check the existence of the policy in PAP.
+     *
+     * @param policyId policy ID.
+     * @param tenantId tenant ID.
+     * @return whether the policy exists in PAP or not.
+     */
+    public boolean isPAPPolicyExists(String policyId, int tenantId) {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement getPolicyPublishStatus = new NamedPreparedStatement(connection,
+                    GET_POLICY_PAP_PRESENCE_SQL)) {
+                getPolicyPublishStatus.setBoolean(IS_IN_PAP, IN_PAP);
+                getPolicyPublishStatus.setString(POLICY_ID, policyId);
+                getPolicyPublishStatus.setInt(TENANT_ID, tenantId);
+
+                try (ResultSet rs = getPolicyPublishStatus.executeQuery()) {
+                    return rs.next();
+                }
+            }
+        } catch (SQLException e) {
+            LOG.error(String.format("Error while checking the existence of the policy %s.", policyId), e);
+            return false;
+        }
+    }
+
+    /**
+     * Get the published policy from PDP.
      *
      * @param policyId policy ID.
      * @param tenantId tenant ID.
@@ -453,7 +479,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to returns all the published policies as PolicyDTOs.
+     * Returns all the published policies as PolicyDTOs.
      *
      * @return policies as PolicyDTO[].
      * @throws EntitlementException throws if fails.
@@ -495,7 +521,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to publish a new policy version.
+     * Publish a new policy version.
      *
      * @param policy   policy.
      * @param tenantId tenant ID.
@@ -580,7 +606,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to update the active status or order of a published policy.
+     * Update the active status or order of a published policy.
      *
      * @param policy   policy.
      * @param tenantId tenant ID.
@@ -602,7 +628,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to get the version of a published policy.
+     * Get the version of a published policy.
      *
      * @param policy   policy.
      * @param tenantId tenant ID.
@@ -630,7 +656,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to unpublish the given policy from PDP.
+     * Unpublish the given policy from PDP.
      *
      * @param policyId policy ID.
      * @param tenantId tenant ID.
@@ -671,7 +697,7 @@ public class PolicyPureDAO {
     }
 
     /**
-     * DAO method to check if the policy is published.
+     * Check if the policy is published.
      *
      * @param policyId policy ID.
      * @param tenantId tenant ID.
@@ -692,32 +718,6 @@ public class PolicyPureDAO {
             }
         } catch (SQLException e) {
             LOG.error(String.format("Error while checking the published status of the policy %s", policyId), e);
-            return false;
-        }
-    }
-
-    /**
-     * DAO method to check the existence of the policy in PAP.
-     *
-     * @param policyId policy ID.
-     * @param tenantId tenant ID.
-     * @return whether the policy exists in PAP or not.
-     */
-    public boolean isPAPPolicyExists(String policyId, int tenantId) {
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (NamedPreparedStatement getPolicyPublishStatus = new NamedPreparedStatement(connection,
-                    GET_POLICY_PAP_PRESENCE_SQL)) {
-                getPolicyPublishStatus.setBoolean(IS_IN_PAP, IN_PAP);
-                getPolicyPublishStatus.setString(POLICY_ID, policyId);
-                getPolicyPublishStatus.setInt(TENANT_ID, tenantId);
-
-                try (ResultSet rs = getPolicyPublishStatus.executeQuery()) {
-                    return rs.next();
-                }
-            }
-        } catch (SQLException e) {
-            LOG.error(String.format("Error while checking the existence of the policy %s.", policyId), e);
             return false;
         }
     }

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.apache.commons.logging.Log;
 import org.wso2.carbon.CarbonConstants;
@@ -26,8 +26,8 @@ import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
-import org.wso2.carbon.identity.entitlement.dao.puredao.StatusPureDAO;
 import org.wso2.carbon.identity.entitlement.dto.StatusHolder;
+import org.wso2.carbon.identity.entitlement.persistence.dao.StatusDAO;
 
 import java.util.List;
 import java.util.Properties;
@@ -41,7 +41,7 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
     private static final String AUDIT_MESSAGE
             = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
     private int maxRecords;
-    private static final StatusPureDAO statusPureDAO = new StatusPureDAO();
+    private static final StatusDAO statusPureDAO = new StatusDAO();
 
     /**
      * init entitlement status data handler module.

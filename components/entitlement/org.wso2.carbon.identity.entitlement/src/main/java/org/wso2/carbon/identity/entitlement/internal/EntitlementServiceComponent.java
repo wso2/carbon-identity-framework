@@ -41,7 +41,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
-import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
+import org.wso2.carbon.identity.entitlement.persistence.PolicyPersistenceManager;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.listener.CacheClearingUserOperationListener;
 import org.wso2.carbon.identity.entitlement.pap.EntitlementAdminEngine;
@@ -66,7 +66,6 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -212,7 +211,7 @@ public class EntitlementServiceComponent {
             new Thread(new SchemaBuilder(EntitlementConfigHolder.getInstance())).start();
 
             // Read XACML policy files from a pre-defined location in the filesystem
-            PolicyDAO papPolicyStore = EntitlementAdminEngine.getInstance().getPolicyDAO();
+            PolicyPersistenceManager papPolicyStore = EntitlementAdminEngine.getInstance().getPolicyPersistenceManager();
 
             String startUpPolicyAdding = EntitlementConfigHolder.getInstance().getEngineProperties().getProperty(
                     PDPConstants.START_UP_POLICY_ADDING);

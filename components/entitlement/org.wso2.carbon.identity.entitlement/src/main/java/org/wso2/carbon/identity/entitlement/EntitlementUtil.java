@@ -56,7 +56,6 @@ import org.wso2.carbon.identity.entitlement.cache.EntitlementBaseCache;
 import org.wso2.carbon.identity.entitlement.cache.IdentityCacheEntry;
 import org.wso2.carbon.identity.entitlement.cache.IdentityCacheKey;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
-import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
@@ -67,6 +66,7 @@ import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent
 import org.wso2.carbon.identity.entitlement.pap.EntitlementAdminEngine;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreManager;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreReader;
+import org.wso2.carbon.identity.entitlement.persistence.PolicyPersistenceManager;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.xml.sax.SAXException;
@@ -473,7 +473,7 @@ public class EntitlementUtil {
      */
     public static boolean isPolicyExists(String policyId) throws EntitlementException {
         PAPPolicyStoreReader policyReader;
-        PolicyDAO store = EntitlementAdminEngine.getInstance().getPolicyDAO();
+        PolicyPersistenceManager store = EntitlementAdminEngine.getInstance().getPolicyPersistenceManager();
         policyReader = new PAPPolicyStoreReader(store);
         return policyReader.isExistPolicy(policyId);
     }
@@ -566,7 +566,7 @@ public class EntitlementUtil {
      */
     public static PolicyDTO getPolicy(String policyId, Registry registry) throws EntitlementException {
         PAPPolicyStoreReader policyReader;
-        PolicyDAO store = EntitlementAdminEngine.getInstance().getPolicyDAO();
+        PolicyPersistenceManager store = EntitlementAdminEngine.getInstance().getPolicyPersistenceManager();
         policyReader = new PAPPolicyStoreReader(store);
         return policyReader.readPolicyDTO(policyId);
     }

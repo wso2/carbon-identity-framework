@@ -24,9 +24,9 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
-import org.wso2.carbon.identity.entitlement.dao.DAOFactory;
-import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
-import org.wso2.carbon.identity.entitlement.dao.SubscriberDAO;
+import org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerFactory;
+import org.wso2.carbon.identity.entitlement.persistence.PolicyPersistenceManager;
+import org.wso2.carbon.identity.entitlement.persistence.SubscriberPersistenceManager;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import org.wso2.carbon.identity.entitlement.dto.EntitlementFinderDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.EntitlementTreeNodeDTO;
@@ -290,7 +290,7 @@ public class EntitlementPolicyAdminService {
         PolicyDTO policyDTO = null;
 
         try {
-            PolicyDAO policyStore = EntitlementAdminEngine.getInstance().getPolicyDAO();
+            PolicyPersistenceManager policyStore = EntitlementAdminEngine.getInstance().getPolicyPersistenceManager();
             policyDTO = policyStore.getPolicy(policyId, version);
         } catch (EntitlementException e) {
             policyDTO = new PolicyDTO();
@@ -424,7 +424,7 @@ public class EntitlementPolicyAdminService {
      */
     public PublisherDataHolder getSubscriber(String subscribeId) throws EntitlementException {
 
-        SubscriberDAO subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberDAO();
+        SubscriberPersistenceManager subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberPersistenceManager();
         return subscriberManager.getSubscriber(subscribeId, false);
     }
 
@@ -436,7 +436,7 @@ public class EntitlementPolicyAdminService {
      * @throws EntitlementException throws, if fails
      */
     public String[] getSubscriberIds(String searchString) throws EntitlementException {
-        SubscriberDAO subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberDAO();
+        SubscriberPersistenceManager subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberPersistenceManager();
         String[] ids = subscriberManager.listSubscriberIds(searchString).toArray(new String[0]);
         if (ids.length != 0) {
             return ids;
@@ -453,7 +453,7 @@ public class EntitlementPolicyAdminService {
      */
     public void addSubscriber(PublisherDataHolder holder) throws EntitlementException {
 
-        SubscriberDAO subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberDAO();
+        SubscriberPersistenceManager subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberPersistenceManager();
         subscriberManager.addSubscriber(holder);
 
     }
@@ -466,7 +466,7 @@ public class EntitlementPolicyAdminService {
      */
     public void updateSubscriber(PublisherDataHolder holder) throws EntitlementException {
 
-        SubscriberDAO subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberDAO();
+        SubscriberPersistenceManager subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberPersistenceManager();
         subscriberManager.updateSubscriber(holder);
 
     }
@@ -479,7 +479,7 @@ public class EntitlementPolicyAdminService {
      */
     public void deleteSubscriber(String subscriberId) throws EntitlementException {
 
-        SubscriberDAO subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberDAO();
+        SubscriberPersistenceManager subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberPersistenceManager();
         subscriberManager.removeSubscriber(subscriberId);
 
     }
@@ -503,7 +503,7 @@ public class EntitlementPolicyAdminService {
             policyIds = EntitlementAdminEngine.getInstance().getPapPolicyStoreManager().getPolicyIds();
         }
         if (subscriberIds == null || subscriberIds.length < 1) {
-            SubscriberDAO subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberDAO();
+            SubscriberPersistenceManager subscriberManager = EntitlementAdminEngine.getInstance().getSubscriberPersistenceManager();
             subscriberIds = subscriberManager.listSubscriberIds("*").toArray(new String[0]);
         }
 
@@ -561,7 +561,7 @@ public class EntitlementPolicyAdminService {
      */
     public void rollBackPolicy(String policyId, String version) throws EntitlementException {
 
-        PolicyDAO policyStore = EntitlementAdminEngine.getInstance().getPolicyDAO();
+        PolicyPersistenceManager policyStore = EntitlementAdminEngine.getInstance().getPolicyPersistenceManager();
         PolicyDTO policyDTO = policyStore.getPolicy(policyId, version);
         addOrUpdatePolicy(policyDTO, false);
 
@@ -579,7 +579,7 @@ public class EntitlementPolicyAdminService {
         Set<PAPStatusDataHandler> handlers = EntitlementAdminEngine.getInstance().
                 getPapStatusDataHandlers();
         for (PAPStatusDataHandler handler : handlers) {
-            if (DAOFactory.getPAPStatusDataHandler().getClass().isInstance(handler))  {
+            if (PersistenceManagerFactory.getPAPStatusDataHandler().getClass().isInstance(handler))  {
                 dataRetrievingHandler = handler;
                 break;
             }
@@ -641,7 +641,7 @@ public class EntitlementPolicyAdminService {
      */
     public String[] getPolicyVersions(String policyId) throws EntitlementException {
 
-        PolicyDAO policyStore = EntitlementAdminEngine.getInstance().getPolicyDAO();
+        PolicyPersistenceManager policyStore = EntitlementAdminEngine.getInstance().getPolicyPersistenceManager();
         String[] versions = policyStore.getVersions(policyId);
         if(versions == null){
             throw new EntitlementException("Error obtaining policy versions");

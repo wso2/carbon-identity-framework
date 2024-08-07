@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
@@ -25,14 +25,16 @@ import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
 import java.util.List;
 
 /**
- * HybridSubscriberDAOImpl is a hybrid implementation of SubscriberDAO. It uses both JDBC and Registry
- * implementations. All new subscribers will be added to the database, while existing subscribers will be maintained
- * in the registry.
+ * HybridSubscriberPersistenceManager is a hybrid implementation of SubscriberPersistenceManager. It uses both JDBC and
+ * Registry implementations. All new subscribers will be added to the database, while existing subscribers will be
+ * maintained in the registry.
  */
-public class HybridSubscriberDAOImpl implements SubscriberDAO {
+public class HybridSubscriberPersistenceManager implements SubscriberPersistenceManager {
 
-    private final JDBCSubscriberDAOImpl jdbcSubscriberDAO = new JDBCSubscriberDAOImpl();
-    private final RegistrySubscriberDAOImpl registrySubscriberDAO = new RegistrySubscriberDAOImpl();
+    private final JDBCSubscriberPersistenceManager jdbcSubscriberPersistenceManager =
+            new JDBCSubscriberPersistenceManager();
+    private final RegistrySubscriberPersistenceManager registrySubscriberPersistenceManager =
+            new RegistrySubscriberPersistenceManager();
 
     @Override
     public void addSubscriber(PublisherDataHolder holder) throws EntitlementException {
@@ -41,19 +43,19 @@ public class HybridSubscriberDAOImpl implements SubscriberDAO {
         if (subscriberId == null) {
             throw new EntitlementException("Subscriber Id can not be null");
         }
-        if (registrySubscriberDAO.isSubscriberExists(subscriberId)) {
+        if (registrySubscriberPersistenceManager.isSubscriberExists(subscriberId)) {
             throw new EntitlementException("Subscriber ID already exists");
         }
-        jdbcSubscriberDAO.addSubscriber(holder);
+        jdbcSubscriberPersistenceManager.addSubscriber(holder);
     }
 
     @Override
     public PublisherDataHolder getSubscriber(String subscriberId, boolean shouldDecryptSecrets)
             throws EntitlementException {
 
-        PublisherDataHolder holder = jdbcSubscriberDAO.getSubscriber(subscriberId, shouldDecryptSecrets);
+        PublisherDataHolder holder = jdbcSubscriberPersistenceManager.getSubscriber(subscriberId, shouldDecryptSecrets);
         if (holder == null) {
-            holder = registrySubscriberDAO.getSubscriber(subscriberId, shouldDecryptSecrets);
+            holder = registrySubscriberPersistenceManager.getSubscriber(subscriberId, shouldDecryptSecrets);
         }
         return holder;
     }
@@ -61,8 +63,8 @@ public class HybridSubscriberDAOImpl implements SubscriberDAO {
     @Override
     public List<String> listSubscriberIds(String filter) throws EntitlementException {
 
-        List<String> subscriberIds = jdbcSubscriberDAO.listSubscriberIds(filter);
-        List<String> registrySubscriberIds = registrySubscriberDAO.listSubscriberIds(filter);
+        List<String> subscriberIds = jdbcSubscriberPersistenceManager.listSubscriberIds(filter);
+        List<String> registrySubscriberIds = registrySubscriberPersistenceManager.listSubscriberIds(filter);
         return EntitlementUtil.mergeLists(subscriberIds, registrySubscriberIds);
     }
 
@@ -70,20 +72,20 @@ public class HybridSubscriberDAOImpl implements SubscriberDAO {
     public void updateSubscriber(PublisherDataHolder holder) throws EntitlementException {
 
         String subscriberId = EntitlementUtil.resolveSubscriberId(holder);
-        if (jdbcSubscriberDAO.isSubscriberExists(subscriberId)) {
-            jdbcSubscriberDAO.updateSubscriber(holder);
+        if (jdbcSubscriberPersistenceManager.isSubscriberExists(subscriberId)) {
+            jdbcSubscriberPersistenceManager.updateSubscriber(holder);
         } else {
-            registrySubscriberDAO.updateSubscriber(holder);
+            registrySubscriberPersistenceManager.updateSubscriber(holder);
         }
     }
 
     @Override
     public void removeSubscriber(String subscriberId) throws EntitlementException {
 
-        if (jdbcSubscriberDAO.isSubscriberExists(subscriberId)) {
-            jdbcSubscriberDAO.removeSubscriber(subscriberId);
+        if (jdbcSubscriberPersistenceManager.isSubscriberExists(subscriberId)) {
+            jdbcSubscriberPersistenceManager.removeSubscriber(subscriberId);
         } else {
-            registrySubscriberDAO.removeSubscriber(subscriberId);
+            registrySubscriberPersistenceManager.removeSubscriber(subscriberId);
         }
     }
 }

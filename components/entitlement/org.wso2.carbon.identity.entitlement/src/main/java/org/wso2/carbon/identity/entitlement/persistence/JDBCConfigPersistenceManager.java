@@ -15,24 +15,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.dao.puredao.ConfigPureDAO;
+import org.wso2.carbon.identity.entitlement.persistence.dao.ConfigDAO;
 
 import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.DENY_OVERRIDES;
 
 /**
  * This class handles the JDBC operations related to the global policy combining algorithm.
  */
-public class JDBCConfigDAOImpl implements ConfigDAO {
+public class JDBCConfigPersistenceManager implements ConfigPersistenceManager {
 
-    private static final Log LOG = LogFactory.getLog(JDBCConfigDAOImpl.class);
-    private static final ConfigPureDAO configPureDAO = ConfigPureDAO.getInstance();
+    private static final Log LOG = LogFactory.getLog(JDBCConfigPersistenceManager.class);
+    private static final ConfigDAO configDAO = ConfigDAO.getInstance();
 
     /**
      * Gets the policy combining algorithm name of the PDP.
@@ -45,7 +45,7 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String algorithm = null;
         try {
-            algorithm = configPureDAO.getPolicyCombiningAlgorithm(tenantId);
+            algorithm = configDAO.getPolicyCombiningAlgorithm(tenantId);
         } catch (EntitlementException e) {
             LOG.debug(String.format("Error while getting Global Policy Combining Algorithm name from JDBC in tenant " +
                     "%s. Default algorithm name will be returned.", tenantId), e);
@@ -72,16 +72,16 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
         // Check the existence of the algorithm
         String algorithm = null;
         try {
-            algorithm = configPureDAO.getPolicyCombiningAlgorithm(tenantId);
+            algorithm = configDAO.getPolicyCombiningAlgorithm(tenantId);
         } catch (EntitlementException e) {
             LOG.debug(String.format("Error while getting Global Policy Combining Algorithm name from JDBC in tenant " +
                     "%s.", tenantId), e);
         }
         if (StringUtils.isBlank(algorithm)) {
-            configPureDAO.insertPolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
+            configDAO.insertPolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
             return false;
         } else {
-            configPureDAO.updatePolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
+            configDAO.updatePolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
             return true;
         }
     }

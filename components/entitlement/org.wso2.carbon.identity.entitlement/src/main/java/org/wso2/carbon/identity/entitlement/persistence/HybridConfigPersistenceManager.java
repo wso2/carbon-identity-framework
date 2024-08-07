@@ -16,25 +16,27 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.dao.puredao.ConfigPureDAO;
+import org.wso2.carbon.identity.entitlement.persistence.dao.ConfigDAO;
 
 /**
- * HybridConfigDAOImpl is a hybrid implementation of ConfigDAO. It uses both JDBC and Registry implementations to
- * handle configuration data. Adding or updating a configuration will migrate the configuration to the database.
+ * HybridConfigPersistenceManager is a hybrid implementation of ConfigPersistenceManager. It uses both JDBC and Registry
+ * implementations to handle configuration data. Adding or updating a configuration will migrate the
+ * configuration to the database.
  */
-public class HybridConfigDAOImpl implements ConfigDAO {
+public class HybridConfigPersistenceManager implements ConfigPersistenceManager {
 
-    private final JDBCConfigDAOImpl jdbcConfigDAO = new JDBCConfigDAOImpl();
-    private final RegistryConfigDAOImpl registryConfigDAO = new RegistryConfigDAOImpl();
-    private static final ConfigPureDAO configPureDAO = ConfigPureDAO.getInstance();
-    private static final Log LOG = LogFactory.getLog(HybridConfigDAOImpl.class);
+    private final JDBCConfigPersistenceManager jdbcConfigPersistenceManager = new JDBCConfigPersistenceManager();
+    private final RegistryConfigPersistenceManager registryConfigPersistenceManager =
+            new RegistryConfigPersistenceManager();
+    private static final ConfigDAO configDAO = ConfigDAO.getInstance();
+    private static final Log LOG = LogFactory.getLog(HybridConfigPersistenceManager.class);
 
     @Override
     public String getGlobalPolicyAlgorithmName() {
@@ -43,13 +45,13 @@ public class HybridConfigDAOImpl implements ConfigDAO {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String algorithm = null;
         try {
-            algorithm = configPureDAO.getPolicyCombiningAlgorithm(tenantId);
+            algorithm = configDAO.getPolicyCombiningAlgorithm(tenantId);
         } catch (EntitlementException e) {
             LOG.debug(String.format("Error while getting Global Policy Combining Algorithm name from JDBC in tenant " +
-                            "%s.", tenantId), e);
+                    "%s.", tenantId), e);
         }
         if (StringUtils.isBlank(algorithm)) {
-            algorithm = registryConfigDAO.getGlobalPolicyAlgorithmName();
+            algorithm = registryConfigPersistenceManager.getGlobalPolicyAlgorithmName();
         }
         return algorithm;
     }
@@ -57,10 +59,10 @@ public class HybridConfigDAOImpl implements ConfigDAO {
     @Override
     public boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
-        boolean isUpdate = jdbcConfigDAO.addOrUpdateGlobalPolicyAlgorithm(policyCombiningAlgorithm);
+        boolean isUpdate = jdbcConfigPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyCombiningAlgorithm);
         if (isUpdate) {
             try {
-                registryConfigDAO.deleteGlobalPolicyAlgorithm();
+                registryConfigPersistenceManager.deleteGlobalPolicyAlgorithm();
             } catch (EntitlementException e) {
                 LOG.debug("Error while deleting global policy combining algorithm from registry", e);
             }

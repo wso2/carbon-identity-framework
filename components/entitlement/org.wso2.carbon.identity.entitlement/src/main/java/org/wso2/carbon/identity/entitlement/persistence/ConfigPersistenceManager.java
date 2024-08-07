@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.wso2.balana.combine.PolicyCombiningAlgorithm;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 /**
  * This interface supports the management of policy configuration data.
  */
-public interface ConfigDAO {
+public interface ConfigPersistenceManager {
 
     /**
      * Gets the global policy combining algorithm.

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -32,16 +32,16 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import static org.wso2.carbon.identity.entitlement.PDPConstants.GLOBAL_POLICY_COMBINING_ALGORITHM;
 
 /**
- * This implementation handles the Global PolicyDAO Combining Algorithm management in the Registry.
+ * This implementation handles the Global Policy Combining Algorithm management in the Registry.
  */
-public class RegistryConfigDAOImpl implements ConfigDAO {
+public class RegistryConfigPersistenceManager implements ConfigPersistenceManager {
 
     // The logger that is used for all messages
-    private static final Log LOG = LogFactory.getLog(RegistryConfigDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(RegistryConfigPersistenceManager.class);
     private static final String POLICY_DATA_COLLECTION = PDPConstants.ENTITLEMENT_POLICY_DATA;
     private final Registry registry;
 
-    public RegistryConfigDAOImpl() {
+    public RegistryConfigPersistenceManager() {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         registry = EntitlementServiceComponent.getGovernanceRegistry(tenantId);

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
@@ -33,38 +33,39 @@ import java.util.Properties;
 import java.util.Set;
 
 /**
- * HybridPolicyDAOImpl is a hybrid implementation of PolicyDAO. It uses both JDBC and Registry implementations to handle
- * policy data. If the policy is already in the registry, it will be maintained there, including new versions.
- * New policies will be persisted in the database.
+ * HybridPolicyPersistenceManager is a hybrid implementation of PolicyPersistenceManager. It uses both JDBC and Registry
+ * implementations to handle policy data. If the policy is already in the registry, it will be maintained there,
+ * including new versions. New policies will be persisted in the database.
  */
-public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements PolicyDAO {
+public class HybridPolicyPersistenceManager extends AbstractPolicyFinderModule implements PolicyPersistenceManager {
 
-    private final JDBCPolicyDAOImpl jdbcPolicyDAO = new JDBCPolicyDAOImpl();
-    private final RegistryPolicyDAOImpl registryPolicyDAO = new RegistryPolicyDAOImpl();
+    private final JDBCPolicyPersistenceManager jdbcPolicyPersistenceManager = new JDBCPolicyPersistenceManager();
+    private final RegistryPolicyPersistenceManager registryPolicyPersistenceManager =
+            new RegistryPolicyPersistenceManager();
     private static final String MODULE_NAME = "Hybrid Policy Finder Module";
 
     @Override
     public void init(Properties properties) {
 
-        jdbcPolicyDAO.init(properties);
-        registryPolicyDAO.init(properties);
+        jdbcPolicyPersistenceManager.init(properties);
+        registryPolicyPersistenceManager.init(properties);
     }
 
     /**
      * Checks the data source of the policy and proceeds with add or update. If registry already contains older
      * versions of the policy, new versions are created there.
      *
-     * @param policy      policy.
+     * @param policy          policy.
      * @param isFromPapAction true if the operation originated from a PAP action, false if it is from a PDP action.
      * @throws EntitlementException If an error occurs.
      */
     @Override
     public void addOrUpdatePolicy(PolicyDTO policy, boolean isFromPapAction) throws EntitlementException {
 
-        if (registryPolicyDAO.isPolicyExistsInPap(policy.getPolicyId())) {
-            registryPolicyDAO.addOrUpdatePolicy(policy, isFromPapAction);
+        if (registryPolicyPersistenceManager.isPolicyExistsInPap(policy.getPolicyId())) {
+            registryPolicyPersistenceManager.addOrUpdatePolicy(policy, isFromPapAction);
         } else {
-            jdbcPolicyDAO.addOrUpdatePolicy(policy, isFromPapAction);
+            jdbcPolicyPersistenceManager.addOrUpdatePolicy(policy, isFromPapAction);
         }
     }
 
@@ -78,9 +79,9 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public PolicyDTO getPAPPolicy(String policyId) throws EntitlementException {
 
-        PolicyDTO policyDTO = jdbcPolicyDAO.getPAPPolicy(policyId);
+        PolicyDTO policyDTO = jdbcPolicyPersistenceManager.getPAPPolicy(policyId);
         if (policyDTO == null) {
-            policyDTO = registryPolicyDAO.getPAPPolicy(policyId);
+            policyDTO = registryPolicyPersistenceManager.getPAPPolicy(policyId);
         }
         return policyDTO;
     }
@@ -95,8 +96,8 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public List<PolicyDTO> getPAPPolicies(List<String> policyIds) throws EntitlementException {
 
-        List<PolicyDTO> policyDTOs = jdbcPolicyDAO.getPAPPolicies(policyIds);
-        List<PolicyDTO> regPolicyDTOs = registryPolicyDAO.getPAPPolicies(policyIds);
+        List<PolicyDTO> policyDTOs = jdbcPolicyPersistenceManager.getPAPPolicies(policyIds);
+        List<PolicyDTO> regPolicyDTOs = registryPolicyPersistenceManager.getPAPPolicies(policyIds);
         return EntitlementUtil.mergeLists(policyDTOs, regPolicyDTOs);
     }
 
@@ -111,10 +112,10 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public PolicyDTO getPolicy(String policyId, String version) throws EntitlementException {
 
-        if (jdbcPolicyDAO.isPolicyExistsInPap(policyId)) {
-            return jdbcPolicyDAO.getPolicy(policyId, version);
+        if (jdbcPolicyPersistenceManager.isPolicyExistsInPap(policyId)) {
+            return jdbcPolicyPersistenceManager.getPolicy(policyId, version);
         } else {
-            return registryPolicyDAO.getPolicy(policyId, version);
+            return registryPolicyPersistenceManager.getPolicy(policyId, version);
         }
     }
 
@@ -128,9 +129,9 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public String[] getVersions(String policyId) {
 
-        String[] versions = jdbcPolicyDAO.getVersions(policyId);
+        String[] versions = jdbcPolicyPersistenceManager.getVersions(policyId);
         if (versions.length == 0) {
-            versions = registryPolicyDAO.getVersions(policyId);
+            versions = registryPolicyPersistenceManager.getVersions(policyId);
         }
         return versions;
     }
@@ -155,9 +156,9 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public String getPolicy(String policyId) {
 
-        String policy = jdbcPolicyDAO.getPolicy(policyId);
+        String policy = jdbcPolicyPersistenceManager.getPolicy(policyId);
         if (policy == null) {
-            policy = registryPolicyDAO.getPolicy(policyId);
+            policy = registryPolicyPersistenceManager.getPolicy(policyId);
         }
         return policy;
     }
@@ -171,9 +172,9 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public int getPolicyOrder(String policyId) {
 
-        int policyOrder = jdbcPolicyDAO.getPolicyOrder(policyId);
+        int policyOrder = jdbcPolicyPersistenceManager.getPolicyOrder(policyId);
         if (policyOrder == -1) {
-            policyOrder = registryPolicyDAO.getPolicyOrder(policyId);
+            policyOrder = registryPolicyPersistenceManager.getPolicyOrder(policyId);
         }
         return policyOrder;
     }
@@ -187,8 +188,8 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public String[] getActivePolicies() {
 
-        String[] dbActivePolicies = jdbcPolicyDAO.getActivePolicies();
-        String[] regActivePolicies = registryPolicyDAO.getActivePolicies();
+        String[] dbActivePolicies = jdbcPolicyPersistenceManager.getActivePolicies();
+        String[] regActivePolicies = registryPolicyPersistenceManager.getActivePolicies();
         return EntitlementUtil.mergeLists(Arrays.asList(dbActivePolicies),
                 Arrays.asList(regActivePolicies)).toArray(new String[0]);
     }
@@ -202,8 +203,8 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public String[] getOrderedPolicyIdentifiers() {
 
-        String[] dbPolicyIds = jdbcPolicyDAO.getOrderedPolicyIdentifiers();
-        String[] regPolicyIds = registryPolicyDAO.getOrderedPolicyIdentifiers();
+        String[] dbPolicyIds = jdbcPolicyPersistenceManager.getOrderedPolicyIdentifiers();
+        String[] regPolicyIds = registryPolicyPersistenceManager.getOrderedPolicyIdentifiers();
         return EntitlementUtil.mergeLists(Arrays.asList(dbPolicyIds), Arrays.asList(regPolicyIds))
                 .toArray(new String[0]);
     }
@@ -216,8 +217,8 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public String[] getPolicyIdentifiers() {
 
-        String[] dbPolicyIds = jdbcPolicyDAO.getPolicyIdentifiers();
-        String[] regPolicyIds = registryPolicyDAO.getPolicyIdentifiers();
+        String[] dbPolicyIds = jdbcPolicyPersistenceManager.getPolicyIdentifiers();
+        String[] regPolicyIds = registryPolicyPersistenceManager.getPolicyIdentifiers();
         return EntitlementUtil.mergeLists(Arrays.asList(dbPolicyIds), Arrays.asList(regPolicyIds))
                 .toArray(new String[0]);
     }
@@ -231,9 +232,9 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public String getReferencedPolicy(String policyId) {
 
-        String policy = jdbcPolicyDAO.getReferencedPolicy(policyId);
+        String policy = jdbcPolicyPersistenceManager.getReferencedPolicy(policyId);
         if (policy == null) {
-            policy = registryPolicyDAO.getReferencedPolicy(policyId);
+            policy = registryPolicyPersistenceManager.getReferencedPolicy(policyId);
         }
         return policy;
     }
@@ -248,9 +249,10 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public Map<String, Set<AttributeDTO>> getSearchAttributes(String identifier, Set<AttributeDTO> givenAttribute) {
 
-        Map<String, Set<AttributeDTO>> searchAttributes = jdbcPolicyDAO.getSearchAttributes(identifier, givenAttribute);
+        Map<String, Set<AttributeDTO>> searchAttributes =
+                jdbcPolicyPersistenceManager.getSearchAttributes(identifier, givenAttribute);
         Map<String, Set<AttributeDTO>> regSearchAttributes =
-                registryPolicyDAO.getSearchAttributes(identifier, givenAttribute);
+                registryPolicyPersistenceManager.getSearchAttributes(identifier, givenAttribute);
         for (Map.Entry<String, Set<AttributeDTO>> entry : regSearchAttributes.entrySet()) {
             searchAttributes.putIfAbsent(entry.getKey(), entry.getValue());
         }
@@ -277,8 +279,8 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public List<String> listPolicyIds() throws EntitlementException {
 
-        List<String> policyIds = jdbcPolicyDAO.listPolicyIds();
-        List<String> regPolicyIds = registryPolicyDAO.listPolicyIds();
+        List<String> policyIds = jdbcPolicyPersistenceManager.listPolicyIds();
+        List<String> regPolicyIds = registryPolicyPersistenceManager.listPolicyIds();
         return EntitlementUtil.mergeLists(policyIds, regPolicyIds);
     }
 
@@ -291,10 +293,10 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public void removePolicy(String policyId) throws EntitlementException {
 
-        if (jdbcPolicyDAO.isPolicyExistsInPap(policyId)) {
-            jdbcPolicyDAO.removePolicy(policyId);
+        if (jdbcPolicyPersistenceManager.isPolicyExistsInPap(policyId)) {
+            jdbcPolicyPersistenceManager.removePolicy(policyId);
         } else {
-            registryPolicyDAO.removePolicy(policyId);
+            registryPolicyPersistenceManager.removePolicy(policyId);
         }
     }
 
@@ -307,10 +309,10 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public void addPolicy(PolicyStoreDTO policy) throws EntitlementException {
 
-        if (jdbcPolicyDAO.isPolicyExistsInPap(policy.getPolicyId())) {
-            jdbcPolicyDAO.addPolicy(policy);
+        if (jdbcPolicyPersistenceManager.isPolicyExistsInPap(policy.getPolicyId())) {
+            jdbcPolicyPersistenceManager.addPolicy(policy);
         } else {
-            registryPolicyDAO.addPolicy(policy);
+            registryPolicyPersistenceManager.addPolicy(policy);
         }
     }
 
@@ -323,10 +325,10 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public void updatePolicy(PolicyStoreDTO policy) throws EntitlementException {
 
-        if (jdbcPolicyDAO.isPolicyExistsInPap(policy.getPolicyId())) {
-            jdbcPolicyDAO.updatePolicy(policy);
+        if (jdbcPolicyPersistenceManager.isPolicyExistsInPap(policy.getPolicyId())) {
+            jdbcPolicyPersistenceManager.updatePolicy(policy);
         } else {
-            registryPolicyDAO.updatePolicy(policy);
+            registryPolicyPersistenceManager.updatePolicy(policy);
         }
     }
 
@@ -339,7 +341,8 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public boolean isPolicyExist(String policyId) {
 
-        return jdbcPolicyDAO.isPolicyExist(policyId) || registryPolicyDAO.isPolicyExist(policyId);
+        return jdbcPolicyPersistenceManager.isPolicyExist(policyId) ||
+                registryPolicyPersistenceManager.isPolicyExist(policyId);
     }
 
     /**
@@ -351,9 +354,9 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public PolicyDTO getPublishedPolicy(String policyId) {
 
-        PolicyDTO policyDTO = jdbcPolicyDAO.getPublishedPolicy(policyId);
+        PolicyDTO policyDTO = jdbcPolicyPersistenceManager.getPublishedPolicy(policyId);
         if (policyDTO == null || policyDTO.getPolicy() == null) {
-            policyDTO = registryPolicyDAO.getPublishedPolicy(policyId);
+            policyDTO = registryPolicyPersistenceManager.getPublishedPolicy(policyId);
         }
         return policyDTO;
     }
@@ -367,8 +370,8 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public List<String> listPublishedPolicyIds() throws EntitlementException {
 
-        List<String> dbPolicyIds = jdbcPolicyDAO.listPublishedPolicyIds();
-        List<String> regPolicyIds = registryPolicyDAO.listPublishedPolicyIds();
+        List<String> dbPolicyIds = jdbcPolicyPersistenceManager.listPublishedPolicyIds();
+        List<String> regPolicyIds = registryPolicyPersistenceManager.listPublishedPolicyIds();
         return EntitlementUtil.mergeLists(dbPolicyIds, regPolicyIds);
     }
 
@@ -380,10 +383,10 @@ public class HybridPolicyDAOImpl extends AbstractPolicyFinderModule implements P
     @Override
     public boolean deletePolicy(String policyId) {
 
-        if (jdbcPolicyDAO.isPolicyExistsInPap(policyId)) {
-            return jdbcPolicyDAO.deletePolicy(policyId);
+        if (jdbcPolicyPersistenceManager.isPolicyExistsInPap(policyId)) {
+            return jdbcPolicyPersistenceManager.deletePolicy(policyId);
         } else {
-            return registryPolicyDAO.deletePolicy(policyId);
+            return registryPolicyPersistenceManager.deletePolicy(policyId);
         }
     }
 }

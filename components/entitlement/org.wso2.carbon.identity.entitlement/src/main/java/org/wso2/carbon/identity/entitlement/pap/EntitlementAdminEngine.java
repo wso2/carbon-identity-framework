@@ -24,10 +24,10 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
-import org.wso2.carbon.identity.entitlement.dao.ConfigDAO;
-import org.wso2.carbon.identity.entitlement.dao.DAOFactory;
-import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
-import org.wso2.carbon.identity.entitlement.dao.SubscriberDAO;
+import org.wso2.carbon.identity.entitlement.persistence.ConfigPersistenceManager;
+import org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerFactory;
+import org.wso2.carbon.identity.entitlement.persistence.PolicyPersistenceManager;
+import org.wso2.carbon.identity.entitlement.persistence.SubscriberPersistenceManager;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreManager;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PolicyPublisher;
@@ -56,9 +56,9 @@ public class EntitlementAdminEngine {
     private PolicyStoreManager policyStoreManager;
     private PAPPolicyStoreManager papPolicyStoreManager;
     private Set<PAPStatusDataHandler> papStatusDataHandlers;
-    private ConfigDAO configDAO;
-    private PolicyDAO policyDAO;
-    private SubscriberDAO subscriberDAO;
+    private ConfigPersistenceManager configPersistenceManager;
+    private PolicyPersistenceManager policyPersistenceManager;
+    private SubscriberPersistenceManager subscriberPersistenceManager;
 
     public EntitlementAdminEngine() {
 
@@ -90,9 +90,9 @@ public class EntitlementAdminEngine {
         papStatusDataHandlers = statusDataHandlers.keySet();
         this.policyPublisher.setPapStatusDataHandlers(papStatusDataHandlers);
         this.policyStoreManager = new PolicyStoreManager(policyDataStore);
-        this.configDAO = DAOFactory.getConfigDAO();
-        this.policyDAO = DAOFactory.getPolicyDAO();
-        this.subscriberDAO = DAOFactory.getSubscriberDAO();
+        this.configPersistenceManager = PersistenceManagerFactory.getConfigPersistenceManager();
+        this.policyPersistenceManager = PersistenceManagerFactory.getPolicyPersistenceManager();
+        this.subscriberPersistenceManager = PersistenceManagerFactory.getSubscriberPersistenceManager();
 
     }
 
@@ -161,9 +161,9 @@ public class EntitlementAdminEngine {
         return papStatusDataHandlers;
     }
 
-    public ConfigDAO getConfigDAO() { return configDAO; }
+    public ConfigPersistenceManager getConfigPersistenceManager() { return configPersistenceManager; }
 
-    public PolicyDAO getPolicyDAO() { return policyDAO; }
+    public PolicyPersistenceManager getPolicyPersistenceManager() { return policyPersistenceManager; }
 
-    public SubscriberDAO getSubscriberDAO() { return subscriberDAO; }
+    public SubscriberPersistenceManager getSubscriberPersistenceManager() { return subscriberPersistenceManager; }
 }

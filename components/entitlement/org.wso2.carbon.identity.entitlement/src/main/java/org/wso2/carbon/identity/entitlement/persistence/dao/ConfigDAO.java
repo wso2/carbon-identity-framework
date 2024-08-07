@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao.puredao;
+package org.wso2.carbon.identity.entitlement.persistence.dao;
 
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -27,27 +27,27 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.CONFIG_KEY;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.CONFIG_VALUE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TENANT_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_POLICY_COMBINING_ALGORITHM_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_COMBINING_ALGORITHM_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.UPDATE_POLICY_COMBINING_ALGORITHM_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.CONFIG_KEY;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.CONFIG_VALUE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.TENANT_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_POLICY_COMBINING_ALGORITHM_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_POLICY_COMBINING_ALGORITHM_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.UPDATE_POLICY_COMBINING_ALGORITHM_SQL;
 
 /**
  * This class handles the JDBC operations related to the global policy combining algorithm.
  */
-public class ConfigPureDAO {
+public class ConfigDAO {
 
-    private static final ConfigPureDAO instance = new ConfigPureDAO();
+    private static final ConfigDAO instance = new ConfigDAO();
 
-    public static ConfigPureDAO getInstance() {
+    public static ConfigDAO getInstance() {
 
         return instance;
     }
 
     /**
-     * DAO method to get the policy combining algorithm from the data store.
+     * Get the policy combining algorithm from the data store.
      *
      * @return policy combining algorithm.
      */
@@ -73,7 +73,7 @@ public class ConfigPureDAO {
     }
 
     /**
-     * DAO method to set the policy combining algorithm in the data store.
+     * Set the policy combining algorithm in the data store.
      *
      * @param policyCombiningAlgorithm policy combining algorithm to set.
      * @param tenantId                 tenant id.
@@ -96,7 +96,7 @@ public class ConfigPureDAO {
     }
 
     /**
-     * DAO method to update the policy combining algorithm in the data store.
+     * Update the policy combining algorithm in the data store.
      *
      * @param policyCombiningAlgorithm policy combining algorithm to update.
      * @param tenantId                 tenant id.

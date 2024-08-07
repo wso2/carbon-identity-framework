@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.AXIOMUtil;
@@ -62,10 +62,10 @@ import javax.xml.stream.XMLStreamException;
 /**
  * This implementation handles the XACML policy management in the Registry.
  */
-public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements PolicyDAO {
+public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule implements PolicyPersistenceManager {
 
     // The logger that is used for all messages
-    private static final Log LOG = LogFactory.getLog(RegistryPolicyDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(RegistryPolicyPersistenceManager.class);
     private static final String KEY_VALUE_POLICY_META_DATA = "policyMetaData";
     private static final String MODULE_NAME = "Registry Policy Finder Module";
     private static final String POLICY_STORE_PATH = "policyStorePath";
@@ -79,7 +79,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
     private String policyStorePath;
     private final int maxVersions;
 
-    public RegistryPolicyDAOImpl() {
+    public RegistryPolicyPersistenceManager() {
 
         maxVersions = EntitlementUtil.getMaxNoOfPolicyVersions();
     }
@@ -677,7 +677,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
         }
 
         if (policyId == null) {
-            throw new EntitlementException("Invalid Entitlement PolicyDAO. PolicyDAO or policyId can not be Null");
+            throw new EntitlementException("Invalid Entitlement Policy. Policy or policyId can not be Null");
         }
 
         try {
@@ -756,7 +756,7 @@ public class RegistryPolicyDAOImpl extends AbstractPolicyFinderModule implements
                     }
                 } catch (XMLStreamException e) {
                     policy.setPolicyType(PDPConstants.POLICY_ELEMENT);
-                    LOG.warn("PolicyDAO Type can not be found. Default type is set");
+                    LOG.warn("Policy Type can not be found. Default type is set");
                 }
             }
 

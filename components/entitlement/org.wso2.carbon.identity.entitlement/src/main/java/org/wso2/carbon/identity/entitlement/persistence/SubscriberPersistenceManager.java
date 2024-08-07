@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * This interface supports the management of subscribers.
  */
-public interface SubscriberDAO {
+public interface SubscriberPersistenceManager {
 
     /**
      * Adds a subscriber.

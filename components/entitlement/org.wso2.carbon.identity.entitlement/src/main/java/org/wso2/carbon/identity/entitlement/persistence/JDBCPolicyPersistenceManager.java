@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.AXIOMUtil;
@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.PolicyOrderComparator;
-import org.wso2.carbon.identity.entitlement.dao.puredao.PolicyPureDAO;
+import org.wso2.carbon.identity.entitlement.persistence.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
@@ -51,17 +51,17 @@ import javax.xml.stream.XMLStreamException;
 /**
  * This class handles the policy operations in the JDBC data store.
  */
-public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements PolicyDAO {
+public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule implements PolicyPersistenceManager {
 
-    private static final Log LOG = LogFactory.getLog(JDBCPolicyDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(JDBCPolicyPersistenceManager.class);
     // TODO: revisit the module name
     private static final String MODULE_NAME = "JDBC Policy Finder Module";
     private static final String ERROR_RETRIEVING_POLICIES_FROM_POLICY_FINDER = "Policies can not be retrieved from " +
             "the policy finder module";
     private final int maxVersions;
-    private static final PolicyPureDAO policyPureDAO = new PolicyPureDAO();
+    private static final PolicyDAO policyDAO = new PolicyDAO();
 
-    public JDBCPolicyDAOImpl() {
+    public JDBCPolicyPersistenceManager() {
 
         maxVersions = EntitlementUtil.getMaxNoOfPolicyVersions();
     }
@@ -158,7 +158,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         }
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        policyPureDAO.insertPolicy(policy, tenantId);
+        policyDAO.insertPolicy(policy, tenantId);
     }
 
     /**
@@ -176,7 +176,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         }
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        return policyPureDAO.getPAPPolicy(policyId, tenantId);
+        return policyDAO.getPAPPolicy(policyId, tenantId);
     }
 
     /**
@@ -192,7 +192,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         LOG.debug("Retrieving all PAP entitlement policies");
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return policyPureDAO.getAllPAPPolicies(tenantId);
+        return policyDAO.getAllPAPPolicies(tenantId);
     }
 
     /**
@@ -210,7 +210,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
 
         // Zero means current version
         if (StringUtils.isBlank(version)) {
-            version = policyPureDAO.getLatestPolicyVersion(policyId, tenantId);
+            version = policyDAO.getLatestPolicyVersion(policyId, tenantId);
             if (StringUtils.isBlank(version)) {
                 throw new EntitlementException("Invalid policy version");
             }
@@ -219,7 +219,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving entitlement policy %s for the given version %s", policyId, version));
         }
-        return policyPureDAO.getPapPolicyByVersion(policyId, version, tenantId);
+        return policyDAO.getPapPolicyByVersion(policyId, version, tenantId);
     }
 
     /**
@@ -232,7 +232,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
     public String[] getVersions(String policyId) {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        List<String> versions = policyPureDAO.getPolicyVersions(policyId, tenantId);
+        List<String> versions = policyDAO.getPolicyVersions(policyId, tenantId);
         return versions.toArray(new String[0]);
     }
 
@@ -248,7 +248,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         LOG.debug("Retrieving all entitlement policy IDs");
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return policyPureDAO.getPAPPolicyIds(tenantId);
+        return policyDAO.getPAPPolicyIds(tenantId);
     }
 
     /**
@@ -268,7 +268,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         if (StringUtils.isBlank(policyId)) {
             throw new EntitlementException("Invalid policy id. Policy id can not be null");
         }
-        policyPureDAO.deletePAPPolicy(policyId, tenantId);
+        policyDAO.deletePAPPolicy(policyId, tenantId);
     }
 
     /**
@@ -462,7 +462,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
             throw new EntitlementException(String.format("Cannot publish policy %s. Invalid policy version.",
                     policy.getPolicyId()));
         }
-        policyPureDAO.insertOrUpdatePolicy(policy, tenantId);
+        policyDAO.insertOrUpdatePolicy(policy, tenantId);
     }
 
     /**
@@ -485,14 +485,14 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         if (policy.isSetActive() != policy.isSetOrder()) {
             if (StringUtils.isBlank(policy.getVersion())) {
                 // Get published version
-                int version = policyPureDAO.getPublishedVersion(policy, tenantId);
+                int version = policyDAO.getPublishedVersion(policy, tenantId);
                 if (version == -1) {
                     throw new EntitlementException(String.format("Cannot update policy %s. Invalid policy version.",
                             policy.getPolicyId()));
                 }
                 policy.setVersion(String.valueOf(version));
             }
-            policyPureDAO.updateActiveStatusAndOrder(policy, tenantId);
+            policyDAO.updateActiveStatusAndOrder(policy, tenantId);
         } else {
             addPolicy(policy);
         }
@@ -511,7 +511,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         if (StringUtils.isBlank(policyId)) {
             return false;
         }
-        return policyPureDAO.isPolicyPublished(policyId, tenantId);
+        return policyDAO.isPolicyPublished(policyId, tenantId);
     }
 
     /**
@@ -528,7 +528,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         }
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        PolicyDTO dto = policyPureDAO.getPDPPolicy(policyId, tenantId);
+        PolicyDTO dto = policyDAO.getPDPPolicy(policyId, tenantId);
         if (dto != null) {
             return dto;
         }
@@ -548,7 +548,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         LOG.debug("Retrieving all PDP entitlement policies");
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         // TODO: revisit if retrieving the whole policy is necessary
-        PolicyDTO[] policyDTOs = policyPureDAO.getAllPDPPolicies(tenantId);
+        PolicyDTO[] policyDTOs = policyDAO.getAllPDPPolicies(tenantId);
         for (PolicyDTO dto : policyDTOs) {
             policyIDs.add(dto.getPolicyId());
         }
@@ -568,7 +568,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         if (StringUtils.isBlank(policyId)) {
             return false;
         }
-        return policyPureDAO.unpublishPolicy(policyId, tenantId);
+        return policyDAO.unpublishPolicy(policyId, tenantId);
     }
 
     /**
@@ -584,7 +584,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         if (policyId == null || policyId.trim().isEmpty()) {
             return false;
         }
-        return policyPureDAO.isPAPPolicyExists(policyId, tenantId);
+        return policyDAO.isPAPPolicyExists(policyId, tenantId);
     }
 
     /**
@@ -611,7 +611,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
         if (versionInt > maxVersions) {
             // delete the older version
             int olderVersion = versionInt - maxVersions;
-            policyPureDAO.deletePolicy(policyDTO.getPolicyId(), olderVersion, tenantId);
+            policyDAO.deletePAPPolicyVersion(policyDTO.getPolicyId(), olderVersion, tenantId);
         }
 
         // New version
@@ -631,7 +631,7 @@ public class JDBCPolicyDAOImpl extends AbstractPolicyFinderModule implements Pol
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         PolicyDTO[] policies;
-        policies = policyPureDAO.getAllPDPPolicies(tenantId);
+        policies = policyDAO.getAllPDPPolicies(tenantId);
 
         if (policies.length == 0) {
             return new PolicyDTO[0];
