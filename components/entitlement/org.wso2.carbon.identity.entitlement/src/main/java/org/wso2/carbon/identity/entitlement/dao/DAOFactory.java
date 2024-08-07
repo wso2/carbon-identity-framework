@@ -37,7 +37,18 @@ public class DAOFactory {
 
     public static PolicyDAO getPolicyDAO() {
 
-        return new RegistryPolicyDAOImpl();
+        PolicyDAO defaultPolicyDAO = new JDBCPolicyDAOImpl();
+        if (StringUtils.isNotBlank(POLICY_STORAGE_TYPE)) {
+            switch (POLICY_STORAGE_TYPE) {
+                case HYBRID:
+                    return new HybridPolicyDAOImpl();
+                case REGISTRY:
+                    return new RegistryPolicyDAOImpl();
+                default:
+                    return defaultPolicyDAO;
+            }
+        }
+        return defaultPolicyDAO;
     }
 
     public static ConfigDAO getConfigDAO() {

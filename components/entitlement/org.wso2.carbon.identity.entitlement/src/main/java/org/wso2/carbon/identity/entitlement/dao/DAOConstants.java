@@ -119,6 +119,7 @@ public class DAOConstants {
 
         }
 
+        // TODO:  revisit all queries using constants like, IN_PAP, IN_PDP, INACTIVE and check if they can be embedded
         /**
          * DB queries related to PAP policy store.
          */
@@ -144,8 +145,8 @@ public class DAOConstants {
                 "SELECT POLICY_ID, VERSION, LAST_MODIFIED_TIME, LAST_MODIFIED_USER, IS_ACTIVE, POLICY_ORDER, " +
                         "POLICY_TYPE, POLICY_EDITOR, POLICY, TENANT_ID FROM IDN_XACML_POLICY WHERE " +
                         "IS_IN_PAP = :IS_IN_PAP; AND POLICY_ID = :POLICY_ID; AND VERSION = (SELECT MAX(VERSION) " +
-                        "FROM IDN_XACML_POLICY WHERE POLICY_ID = :POLICY_ID_1; AND TENANT_ID= :TENANT_ID;) " +
-                        "AND TENANT_ID = :TENANT_ID_1;";
+                        "FROM IDN_XACML_POLICY WHERE POLICY_ID = :POLICY_ID; AND TENANT_ID= :TENANT_ID;) " +
+                        "AND TENANT_ID = :TENANT_ID;";
         public static final String GET_PAP_POLICY_REFS_SQL = "SELECT REFERENCE FROM IDN_XACML_POLICY_REFERENCE " +
                 "WHERE POLICY_ID=:POLICY_ID; AND VERSION=:VERSION; AND TENANT_ID=:TENANT_ID;";
         public static final String GET_PAP_POLICY_SET_REFS_SQL =
@@ -165,7 +166,7 @@ public class DAOConstants {
                 ".LAST_MODIFIED_TIME, t1.LAST_MODIFIED_USER, t1.IS_ACTIVE, t1.POLICY_ORDER, t1.POLICY_TYPE, " +
                 "t1.POLICY_EDITOR, t1.POLICY, t1.TENANT_ID FROM IDN_XACML_POLICY t1 WHERE t1.IS_IN_PAP = :IS_IN_PAP; " +
                 "AND t1.VERSION =(SELECT MAX(VERSION) FROM IDN_XACML_POLICY t2 WHERE " +
-                "t2.POLICY_ID = t1.POLICY_ID AND t2.TENANT_ID = :TENANT_ID;) AND t1.TENANT_ID = :TENANT_ID_1;";
+                "t2.POLICY_ID = t1.POLICY_ID AND t2.TENANT_ID = :TENANT_ID;) AND t1.TENANT_ID = :TENANT_ID;";
         public static final String DELETE_PAP_POLICY_SQL = "UPDATE IDN_XACML_POLICY SET IS_IN_PAP=:IS_IN_PAP; " +
                 "WHERE IS_IN_PDP=:IS_IN_PDP; AND POLICY_ID=:POLICY_ID; AND TENANT_ID=:TENANT_ID;";
         public static final String DELETE_PAP_POLICY_BY_VERSION_SQL =

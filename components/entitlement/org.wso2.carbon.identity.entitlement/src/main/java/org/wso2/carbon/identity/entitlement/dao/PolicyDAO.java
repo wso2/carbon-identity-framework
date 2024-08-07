@@ -32,10 +32,11 @@ public interface PolicyDAO extends PolicyStoreManageModule {
     /**
      * Adds or updates the given policy.
      *
-     * @param policy policy
+     * @param policy      policy
+     * @param isFromPapAction true if the operation originated from a PAP action, false if it is from a PDP action.
      * @throws EntitlementException If an error occurs
      */
-    void addOrUpdatePolicy(PolicyDTO policy, boolean enableVersioning) throws EntitlementException;
+    void addOrUpdatePolicy(PolicyDTO policy, boolean isFromPapAction) throws EntitlementException;
 
     /**
      * Gets the requested policy.
