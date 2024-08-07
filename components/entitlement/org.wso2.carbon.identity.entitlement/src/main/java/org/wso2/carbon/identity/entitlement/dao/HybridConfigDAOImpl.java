@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
+import org.wso2.carbon.identity.entitlement.dao.puredao.ConfigPureDAO;
 
 /**
  * HybridConfigDAOImpl is a hybrid implementation of ConfigDAO. It uses both JDBC and Registry implementations to
@@ -32,6 +33,7 @@ public class HybridConfigDAOImpl implements ConfigDAO {
 
     private final JDBCConfigDAOImpl jdbcConfigDAO = new JDBCConfigDAOImpl();
     private final RegistryConfigDAOImpl registryConfigDAO = new RegistryConfigDAOImpl();
+    private static final ConfigPureDAO configPureDAO = ConfigPureDAO.getInstance();
     private static final Log LOG = LogFactory.getLog(HybridConfigDAOImpl.class);
 
     @Override
@@ -41,7 +43,7 @@ public class HybridConfigDAOImpl implements ConfigDAO {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String algorithm = null;
         try {
-            algorithm = jdbcConfigDAO.getPolicyCombiningAlgorithm(tenantId);
+            algorithm = configPureDAO.getPolicyCombiningAlgorithm(tenantId);
         } catch (EntitlementException e) {
             LOG.debug(String.format("Error while getting Global Policy Combining Algorithm name from JDBC in tenant " +
                             "%s.", tenantId), e);
