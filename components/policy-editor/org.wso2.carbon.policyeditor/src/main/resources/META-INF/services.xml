@@ -37,6 +37,8 @@
                              class="org.apache.axis2.rpc.receivers.RPCMessageReceiver"/>
         </messageReceivers>
         <parameter locked="false" name="ServiceClass">org.wso2.carbon.policyeditor.PolicyEditorService</parameter>
+        <parameter name="adminService" locked="true">true</parameter>
     </service>
 
+    <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/entitlement</parameter>
 </serviceGroup>
