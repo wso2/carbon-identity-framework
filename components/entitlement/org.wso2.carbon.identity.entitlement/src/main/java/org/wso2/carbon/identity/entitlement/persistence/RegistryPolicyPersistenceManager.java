@@ -231,7 +231,7 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
     @Override
     public String getPolicy(String policyId) {
 
-        PolicyDTO dto = getPublishedPolicy(policyId);
+        PolicyStoreDTO dto = getPublishedPolicy(policyId);
         return dto.getPolicy();
     }
 
@@ -244,7 +244,7 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
     @Override
     public int getPolicyOrder(String policyId) {
 
-        PolicyDTO dto = getPublishedPolicy(policyId);
+        PolicyStoreDTO dto = getPublishedPolicy(policyId);
         return dto.getPolicyOrder();
     }
 
@@ -264,8 +264,8 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
         List<String> policies = new ArrayList<>();
 
         try {
-            PolicyDTO[] policyDTOs = getAllPolicies(true, true);
-            for (PolicyDTO dto : policyDTOs) {
+            PolicyStoreDTO[] policyDTOs = getAllPolicies(true, true);
+            for (PolicyStoreDTO dto : policyDTOs) {
                 if (dto.getPolicy() != null) {
                     policies.add(dto.getPolicy());
                 }
@@ -297,8 +297,8 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
         List<String> policies = new ArrayList<>();
 
         try {
-            PolicyDTO[] policyDTOs = getAllPolicies(false, true);
-            for (PolicyDTO dto : policyDTOs) {
+            PolicyStoreDTO[] policyDTOs = getAllPolicies(false, true);
+            for (PolicyStoreDTO dto : policyDTOs) {
                 if (dto.getPolicy() != null) {
                     policies.add(dto.getPolicyId());
                 }
@@ -344,7 +344,7 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
     public String getReferencedPolicy(String policyId) {
 
         // Retrieves for policies that are not active
-        PolicyDTO dto = getPublishedPolicy(policyId);
+        PolicyStoreDTO dto = getPublishedPolicy(policyId);
         if (dto != null && dto.getPolicy() != null && !dto.isActive()) {
             return dto.getPolicy();
         }
@@ -362,12 +362,15 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
     @Override
     public Map<String, Set<AttributeDTO>> getSearchAttributes(String identifier, Set<AttributeDTO> givenAttribute) {
 
-        PolicyDTO[] policyDTOs;
         try {
-            policyDTOs = getAllPolicies(true, true);
-
+            PolicyStoreDTO[] policyDTOs = getAllPolicies(true, true);
+            List<String> policyIds = new ArrayList<>();
+            for (PolicyStoreDTO policyStoreDTO: policyDTOs) {
+                policyIds.add(policyStoreDTO.getPolicyId());
+            }
+            List<PolicyDTO> policyDTOList = getPAPPolicies(policyIds);
             if (policyDTOs.length > 0) {
-                return EntitlementUtil.getAttributesFromPolicies(policyDTOs);
+                return EntitlementUtil.getAttributesFromPolicies(policyDTOList.toArray(new PolicyDTO[0]));
             }
         } catch (EntitlementException e) {
             LOG.error(ERROR_RETRIEVING_POLICIES_FROM_POLICY_FINDER, e);
@@ -584,18 +587,18 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
      * @return requested policy
      */
     @Override
-    public PolicyDTO getPublishedPolicy(String policyId) {
+    public PolicyStoreDTO getPublishedPolicy(String policyId) {
 
         try {
             Resource resource;
             resource = getPolicyResource(policyId);
             if (resource == null) {
-                return new PolicyDTO();
+                return new PolicyStoreDTO();
             }
             return readPolicy(resource);
         } catch (EntitlementException e) {
             LOG.error(String.format("Error while retrieving PDP policy : %s", policyId), e);
-            return new PolicyDTO();
+            return new PolicyStoreDTO();
         }
 
     }
@@ -1044,17 +1047,17 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
      * @return Array of PolicyDTO
      * @throws EntitlementException If an error occurs
      */
-    private PolicyDTO[] getAllPolicies(boolean active, boolean order) throws EntitlementException {
+    private PolicyStoreDTO[] getAllPolicies(boolean active, boolean order) throws EntitlementException {
 
         Resource[] resources;
         resources = getAllPolicyResource();
 
         if (resources.length == 0) {
-            return new PolicyDTO[0];
+            return new PolicyStoreDTO[0];
         }
-        List<PolicyDTO> policyDTOList = new ArrayList<>();
+        List<PolicyStoreDTO> policyDTOList = new ArrayList<>();
         for (Resource resource : resources) {
-            PolicyDTO policyDTO = readPolicy(resource);
+            PolicyStoreDTO policyDTO = readPolicy(resource);
             if (active) {
                 if (policyDTO.isActive()) {
                     policyDTOList.add(policyDTO);
@@ -1064,7 +1067,7 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
             }
         }
 
-        PolicyDTO[] policyDTOs = policyDTOList.toArray(new PolicyDTO[0]);
+        PolicyStoreDTO[] policyDTOs = policyDTOList.toArray(new PolicyStoreDTO[0]);
 
         if (order) {
             Arrays.sort(policyDTOs, new PolicyOrderComparator());
@@ -1152,11 +1155,11 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
      * @return PolicyDTO
      * @throws EntitlementException If an error occurs
      */
-    private PolicyDTO readPolicy(Resource resource) throws EntitlementException {
+    private PolicyStoreDTO readPolicy(Resource resource) throws EntitlementException {
 
         String policy;
         AbstractPolicy absPolicy;
-        PolicyDTO dto;
+        PolicyStoreDTO dto;
 
         try {
             if (resource.getContent() == null) {
@@ -1164,7 +1167,7 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
             }
             policy = new String((byte[]) resource.getContent(), StandardCharsets.UTF_8);
             absPolicy = PAPPolicyReader.getInstance(null).getPolicy(policy);
-            dto = new PolicyDTO();
+            dto = new PolicyStoreDTO();
             dto.setPolicyId(absPolicy.getId().toASCIIString());
             dto.setPolicy(policy);
             String policyOrder = resource.getProperty("order");

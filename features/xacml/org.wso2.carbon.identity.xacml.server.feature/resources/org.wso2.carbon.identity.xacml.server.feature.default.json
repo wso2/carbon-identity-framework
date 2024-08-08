@@ -15,9 +15,9 @@
   "identity.entitlement.policy_point.pdp.registry_level_policy_cache_clear": false,
   "identity.entitlement.policy_point.pdp.reference_max_policy_entries": "3000",
   "identity.entitlement.policy_point.pdp.policy_finders": [
-    "org.wso2.carbon.identity.entitlement.dao.JDBCPolicyPersistenceManager"
+    "org.wso2.carbon.identity.entitlement.persistence.JDBCPolicyPersistenceManager"
   ],
-  "identity.entitlement.policy_point.pdp.policy_store_module": "org.wso2.carbon.identity.entitlement.dao.JDBCPolicyPersistenceManager",
+  "identity.entitlement.policy_point.pdp.policy_store_module": "org.wso2.carbon.identity.entitlement.persistence.JDBCPolicyPersistenceManager",
   "identity.entitlement.policy_point.pdp.policy_data_store_module": "org.wso2.carbon.identity.entitlement.policy.store.DefaultPolicyDataStore",
   "identity.entitlement.policy_point.pap.enabled": true,
   "identity.entitlement.policy_point.pap.policy_add_start_enable": true,
@@ -30,7 +30,7 @@
     "org.wso2.carbon.identity.entitlement.policy.publisher.CarbonBasicPolicyPublisherModule"
   ],
   "identity.entitlement.policy_point.pap.status_data_handlers": [
-    "org.wso2.carbon.identity.entitlement.dao.JDBCSimplePAPStatusDataHandler"
+    "org.wso2.carbon.identity.entitlement.persistence.JDBCSimplePAPStatusDataHandler"
   ],
   "identity.entitlement.policy_point.pip.attribute_designators": [
     "org.wso2.carbon.identity.entitlement.pip.DefaultAttributeFinder",

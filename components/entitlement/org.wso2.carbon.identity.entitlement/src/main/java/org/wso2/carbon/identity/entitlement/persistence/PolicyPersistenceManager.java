@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
+import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManageModule;
 
 import java.util.List;
@@ -96,7 +97,7 @@ public interface PolicyPersistenceManager extends PolicyStoreManageModule {
      * @param policyId policy ID
      * @return requested policy
      */
-    PolicyDTO getPublishedPolicy(String policyId);
+    PolicyStoreDTO getPublishedPolicy(String policyId);
 
     /**
      * Lists all published policy IDs.

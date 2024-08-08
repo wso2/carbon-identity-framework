@@ -352,9 +352,9 @@ public class HybridPolicyPersistenceManager extends AbstractPolicyFinderModule i
      * @return requested policy.
      */
     @Override
-    public PolicyDTO getPublishedPolicy(String policyId) {
+    public PolicyStoreDTO getPublishedPolicy(String policyId) {
 
-        PolicyDTO policyDTO = jdbcPolicyPersistenceManager.getPublishedPolicy(policyId);
+        PolicyStoreDTO policyDTO = jdbcPolicyPersistenceManager.getPublishedPolicy(policyId);
         if (policyDTO == null || policyDTO.getPolicy() == null) {
             policyDTO = registryPolicyPersistenceManager.getPublishedPolicy(policyId);
         }
