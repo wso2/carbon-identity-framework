@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.PolicyOrderComparator;
 import org.wso2.carbon.identity.entitlement.cache.PolicyStatus;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
-import org.wso2.carbon.identity.entitlement.dao.ConfigDAO;
+import org.wso2.carbon.identity.entitlement.persistence.ConfigPersistenceManager;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pap.EntitlementAdminEngine;
@@ -143,8 +143,8 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
         if (this.finderModules != null && this.finderModules.size() > 0) {
             // find policy combining algorithm.
 
-            ConfigDAO configDAO = EntitlementAdminEngine.getInstance().getConfigDAO();
-            policyCombiningAlgorithm = configDAO.getGlobalPolicyAlgorithm();
+            ConfigPersistenceManager configPersistenceManager = EntitlementAdminEngine.getInstance().getConfigPersistenceManager();
+            policyCombiningAlgorithm = configPersistenceManager.getGlobalPolicyAlgorithm();
 
             tempPolicyCollection.setPolicyCombiningAlgorithm(policyCombiningAlgorithm);
 

@@ -16,14 +16,14 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 /**
  * DB related constant values.
  */
-public class DAOConstants {
+public class PersistenceManagerConstants {
 
-    private DAOConstants() {
+    private PersistenceManagerConstants() {
 
     }
 

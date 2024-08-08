@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;

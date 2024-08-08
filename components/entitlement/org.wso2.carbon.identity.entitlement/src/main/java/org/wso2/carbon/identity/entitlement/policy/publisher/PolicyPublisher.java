@@ -22,8 +22,8 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
-import org.wso2.carbon.identity.entitlement.dao.DAOFactory;
-import org.wso2.carbon.identity.entitlement.dao.SubscriberDAO;
+import org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerFactory;
+import org.wso2.carbon.identity.entitlement.persistence.SubscriberPersistenceManager;
 import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.PublisherPropertyDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
@@ -88,7 +88,7 @@ public class PolicyPublisher {
         holder.setPropertyDTOs(new PublisherPropertyDTO[] {dto});
         try {
             PublisherDataHolder pdpDataHolder = null;
-            SubscriberDAO subscriberManager = DAOFactory.getSubscriberDAO();
+            SubscriberPersistenceManager subscriberManager = PersistenceManagerFactory.getSubscriberPersistenceManager();
             try {
                 pdpDataHolder = subscriberManager.getSubscriber(EntitlementConstants.PDP_SUBSCRIBER_ID, false);
             } catch (Exception e) {

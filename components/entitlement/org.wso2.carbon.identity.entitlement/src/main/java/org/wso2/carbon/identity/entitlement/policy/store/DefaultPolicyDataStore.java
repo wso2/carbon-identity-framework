@@ -20,8 +20,9 @@ package org.wso2.carbon.identity.entitlement.policy.store;
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.balana.combine.PolicyCombiningAlgorithm;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.dao.DAOFactory;
-import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
+import org.wso2.carbon.identity.entitlement.persistence.ConfigPersistenceManager;
+import org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerFactory;
+import org.wso2.carbon.identity.entitlement.persistence.PolicyPersistenceManager;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 
@@ -34,17 +35,18 @@ import java.util.Properties;
  */
 public class DefaultPolicyDataStore implements PolicyDataStore {
 
-    private final PolicyDAO policyDAO = DAOFactory.getPolicyDAO();
+    private final PolicyPersistenceManager policyPersistenceManager =
+            PersistenceManagerFactory.getPolicyPersistenceManager();
 
     @Override
     public void init(Properties properties) throws EntitlementException {
 
-        policyDAO.init(properties);
+        policyPersistenceManager.init(properties);
     }
 
     /**
      * This method is not implemented since the data is already being
-     * retrieved with {@link org.wso2.carbon.identity.entitlement.dao.ConfigDAO#getGlobalPolicyAlgorithm()}
+     * retrieved with {@link ConfigPersistenceManager#getGlobalPolicyAlgorithm()}
      */
     @Override
     public PolicyCombiningAlgorithm getGlobalPolicyAlgorithm() {
@@ -54,7 +56,7 @@ public class DefaultPolicyDataStore implements PolicyDataStore {
 
     /**
      * This method is not implemented since the data is already being
-     * set with {@link org.wso2.carbon.identity.entitlement.dao.ConfigDAO#addOrUpdateGlobalPolicyAlgorithm(String)}
+     * set with {@link ConfigPersistenceManager#addOrUpdateGlobalPolicyAlgorithm(String)}
      */
     @Override
     public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
@@ -64,7 +66,7 @@ public class DefaultPolicyDataStore implements PolicyDataStore {
 
     /**
      * This method is not implemented since the data is already being
-     * retrieved with {@link org.wso2.carbon.identity.entitlement.dao.ConfigDAO#getGlobalPolicyAlgorithmName()}
+     * retrieved with {@link ConfigPersistenceManager#getGlobalPolicyAlgorithmName()}
      */
     @Override
     public String getGlobalPolicyAlgorithmName() {
@@ -91,7 +93,7 @@ public class DefaultPolicyDataStore implements PolicyDataStore {
     @Override
     public PolicyStoreDTO getPolicyData(String policyId) {
 
-        PolicyDTO policyDTO = policyDAO.getPublishedPolicy(policyId);
+        PolicyDTO policyDTO = policyPersistenceManager.getPublishedPolicy(policyId);
         PolicyStoreDTO dataDTO = new PolicyStoreDTO();
         dataDTO.setPolicyOrder(policyDTO.getPolicyOrder());
         dataDTO.setActive(policyDTO.isActive());
@@ -107,7 +109,7 @@ public class DefaultPolicyDataStore implements PolicyDataStore {
     @Override
     public PolicyStoreDTO[] getPolicyData() {
 
-        String[] publishedPolicyIds = policyDAO.getOrderedPolicyIdentifiers();
+        String[] publishedPolicyIds = policyPersistenceManager.getOrderedPolicyIdentifiers();
         List<PolicyStoreDTO> policyStoreDTOs = new ArrayList<>();
         if (publishedPolicyIds != null) {
             for (String policyId : publishedPolicyIds) {

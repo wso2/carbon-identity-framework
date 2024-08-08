@@ -15,12 +15,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.entitlement.dao;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.CarbonContext;
+package org.wso2.carbon.identity.entitlement.persistence.dao;
+
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
@@ -30,75 +27,27 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.DENY_OVERRIDES;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.CONFIG_KEY;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.CONFIG_VALUE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TENANT_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_POLICY_COMBINING_ALGORITHM_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_COMBINING_ALGORITHM_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.UPDATE_POLICY_COMBINING_ALGORITHM_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.CONFIG_KEY;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.CONFIG_VALUE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.TENANT_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_POLICY_COMBINING_ALGORITHM_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_POLICY_COMBINING_ALGORITHM_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.UPDATE_POLICY_COMBINING_ALGORITHM_SQL;
 
 /**
  * This class handles the JDBC operations related to the global policy combining algorithm.
  */
-public class JDBCConfigDAOImpl implements ConfigDAO {
+public class ConfigDAO {
 
-    private static final Log LOG = LogFactory.getLog(JDBCConfigDAOImpl.class);
+    private static final ConfigDAO instance = new ConfigDAO();
 
-    /**
-     * Gets the policy combining algorithm name of the PDP.
-     *
-     * @return policy combining algorithm name.
-     */
-    @Override
-    public String getGlobalPolicyAlgorithmName() {
+    public static ConfigDAO getInstance() {
 
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        String algorithm = null;
-        try {
-            algorithm = getPolicyCombiningAlgorithm(tenantId);
-        } catch (EntitlementException e) {
-            LOG.debug(String.format("Error while getting Global Policy Combining Algorithm name from JDBC in tenant " +
-                    "%s. Default algorithm name will be returned.", tenantId), e);
-        }
-        if (StringUtils.isBlank(algorithm)) {
-            algorithm = DENY_OVERRIDES;
-        }
-
-        return algorithm;
+        return instance;
     }
 
     /**
-     * Persists the policy combining algorithm into the data store.
-     *
-     * @param policyCombiningAlgorithm policy combining algorithm name to persist.
-     * @return true if the policy combining algorithm is updated, false if the policy combining algorithm is added.
-     * @throws EntitlementException throws if fails.
-     */
-    @Override
-    public boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
-
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-
-        // Check the existence of the algorithm
-        String algorithm = null;
-        try {
-            algorithm = getPolicyCombiningAlgorithm(tenantId);
-        } catch (EntitlementException e) {
-            LOG.debug(String.format("Error while getting Global Policy Combining Algorithm name from JDBC in tenant " +
-                    "%s.", tenantId), e);
-        }
-        if (StringUtils.isBlank(algorithm)) {
-            insertPolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
-            return false;
-        } else {
-            updatePolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
-            return true;
-        }
-    }
-
-    /**
-     * DAO method to get the policy combining algorithm from the data store.
+     * Get the policy combining algorithm from the data store.
      *
      * @return policy combining algorithm.
      */
@@ -124,13 +73,13 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
     }
 
     /**
-     * DAO method to set the policy combining algorithm in the data store.
+     * Set the policy combining algorithm in the data store.
      *
      * @param policyCombiningAlgorithm policy combining algorithm to set.
      * @param tenantId                 tenant id.
      * @throws EntitlementException throws if fails.
      */
-    private void insertPolicyCombiningAlgorithm(String policyCombiningAlgorithm, int tenantId)
+    public void insertPolicyCombiningAlgorithm(String policyCombiningAlgorithm, int tenantId)
             throws EntitlementException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -147,13 +96,13 @@ public class JDBCConfigDAOImpl implements ConfigDAO {
     }
 
     /**
-     * DAO method to update the policy combining algorithm in the data store.
+     * Update the policy combining algorithm in the data store.
      *
      * @param policyCombiningAlgorithm policy combining algorithm to update.
      * @param tenantId                 tenant id.
      * @throws EntitlementException throws if fails.
      */
-    private void updatePolicyCombiningAlgorithm(String policyCombiningAlgorithm, int tenantId)
+    public void updatePolicyCombiningAlgorithm(String policyCombiningAlgorithm, int tenantId)
             throws EntitlementException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {

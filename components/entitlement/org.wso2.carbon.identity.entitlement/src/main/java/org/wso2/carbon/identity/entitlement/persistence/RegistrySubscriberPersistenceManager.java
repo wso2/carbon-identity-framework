@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -48,13 +48,13 @@ import static org.wso2.carbon.identity.entitlement.PDPConstants.SUBSCRIBER_ID;
 /**
  * This implementation handles the subscriber management in the Registry.
  */
-public class RegistrySubscriberDAOImpl implements SubscriberDAO {
+public class RegistrySubscriberPersistenceManager implements SubscriberPersistenceManager {
 
     // The logger that is used for all messages
-    private static final Log LOG = LogFactory.getLog(RegistrySubscriberDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(RegistrySubscriberPersistenceManager.class);
     private final Registry registry;
 
-    public RegistrySubscriberDAOImpl() {
+    public RegistrySubscriberPersistenceManager() {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         this.registry = EntitlementServiceComponent.getGovernanceRegistry(tenantId);
@@ -96,7 +96,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
             throw new EntitlementException("Error while retrieving subscriber detail of id : " + subscriberId, e);
         }
 
-        throw new EntitlementException("No SubscriberDAO is defined for the given Id");
+        throw new EntitlementException("No Subscriber is defined for the given Id");
 
     }
 
@@ -226,7 +226,7 @@ public class RegistrySubscriberDAOImpl implements SubscriberDAO {
                     resource = registry.get(subscriberPath);
                     oldHolder = getPublisherDataHolder(resource, false);
                 } else {
-                    throw new EntitlementException("SubscriberDAO ID already exists");
+                    throw new EntitlementException("Subscriber ID already exists");
                 }
             } else {
                 resource = registry.newResource();

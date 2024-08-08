@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -25,62 +25,62 @@ import org.wso2.carbon.identity.entitlement.SimplePAPStatusDataHandler;
 
 import static org.wso2.carbon.identity.entitlement.PDPConstants.POLICY_STORAGE_CONFIG;
 
-public class DAOFactory {
+public class PersistenceManagerFactory {
 
     private static final String POLICY_STORAGE_TYPE = IdentityUtil.getProperty(POLICY_STORAGE_CONFIG);
     private static final String HYBRID = "hybrid";
     private static final String REGISTRY = "registry";
 
-    private DAOFactory() {
+    private PersistenceManagerFactory() {
 
     }
 
-    public static PolicyDAO getPolicyDAO() {
+    public static PolicyPersistenceManager getPolicyPersistenceManager() {
 
-        PolicyDAO defaultPolicyDAO = new JDBCPolicyDAOImpl();
+        PolicyPersistenceManager defaultPolicyPersistenceManager = new JDBCPolicyPersistenceManager();
         if (StringUtils.isNotBlank(POLICY_STORAGE_TYPE)) {
             switch (POLICY_STORAGE_TYPE) {
                 case HYBRID:
-                    return new HybridPolicyDAOImpl();
+                    return new HybridPolicyPersistenceManager();
                 case REGISTRY:
-                    return new RegistryPolicyDAOImpl();
+                    return new RegistryPolicyPersistenceManager();
                 default:
-                    return defaultPolicyDAO;
+                    return defaultPolicyPersistenceManager;
             }
         }
-        return defaultPolicyDAO;
+        return defaultPolicyPersistenceManager;
     }
 
-    public static ConfigDAO getConfigDAO() {
+    public static ConfigPersistenceManager getConfigPersistenceManager() {
 
-        ConfigDAO defaultConfigDAO = new JDBCConfigDAOImpl();
+        ConfigPersistenceManager defaultConfigPersistenceManager = new JDBCConfigPersistenceManager();
         if (StringUtils.isNotBlank(POLICY_STORAGE_TYPE)) {
             switch (POLICY_STORAGE_TYPE) {
                 case HYBRID:
-                    return new HybridConfigDAOImpl();
+                    return new HybridConfigPersistenceManager();
                 case REGISTRY:
-                    return new RegistryConfigDAOImpl();
+                    return new RegistryConfigPersistenceManager();
                 default:
-                    return defaultConfigDAO;
+                    return defaultConfigPersistenceManager;
             }
         }
-        return defaultConfigDAO;
+        return defaultConfigPersistenceManager;
     }
 
-    public static SubscriberDAO getSubscriberDAO() {
+    public static SubscriberPersistenceManager getSubscriberPersistenceManager() {
 
-        SubscriberDAO defaultSubscriberDAO = new JDBCSubscriberDAOImpl();
+        SubscriberPersistenceManager defaultSubscriberPersistenceManager = new JDBCSubscriberPersistenceManager();
         if (StringUtils.isNotBlank(POLICY_STORAGE_TYPE)) {
             switch (POLICY_STORAGE_TYPE) {
                 case HYBRID:
-                    return new HybridSubscriberDAOImpl();
+                    return new HybridSubscriberPersistenceManager();
                 case REGISTRY:
-                    return new RegistrySubscriberDAOImpl();
+                    return new RegistrySubscriberPersistenceManager();
                 default:
-                    return defaultSubscriberDAO;
+                    return defaultSubscriberPersistenceManager;
             }
         }
-        return defaultSubscriberDAO;
+        return defaultSubscriberPersistenceManager;
     }
 
     public static PAPStatusDataHandler getPAPStatusDataHandler() {

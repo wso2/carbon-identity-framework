@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.dao;
+package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * This interface supports the management of XACML policies.
  */
-public interface PolicyDAO extends PolicyStoreManageModule {
+public interface PolicyPersistenceManager extends PolicyStoreManageModule {
 
     /**
      * Adds or updates the given policy.

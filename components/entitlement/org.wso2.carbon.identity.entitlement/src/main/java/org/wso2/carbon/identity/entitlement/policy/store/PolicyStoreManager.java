@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.entitlement.policy.store;
 import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
-import org.wso2.carbon.identity.entitlement.dao.DAOFactory;
+import org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerFactory;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
@@ -50,7 +50,7 @@ public class PolicyStoreManager {
         if (MapUtils.isNotEmpty(policyCollections)) {
             policyStore = policyCollections.entrySet().iterator().next().getKey();
         } else {
-            policyStore = DAOFactory.getPolicyDAO();
+            policyStore = PersistenceManagerFactory.getPolicyPersistenceManager();
         }
         this.policyDataStore = policyDataStore;
     }

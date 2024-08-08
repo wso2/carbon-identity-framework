@@ -15,18 +15,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.entitlement.dao;
 
-import org.apache.commons.logging.Log;
-import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.context.CarbonContext;
+package org.wso2.carbon.identity.entitlement.persistence.dao;
+
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
-import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.EntitlementUtil;
-import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
 import org.wso2.carbon.identity.entitlement.dto.StatusHolder;
 
@@ -39,146 +33,60 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.TimeZone;
 
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.DB2;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.H2;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.MARIADB;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.MSSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.MYSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.ORACLE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.DatabaseTypes.POSTGRES;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.IS_SUCCESS;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.LOGGED_AT;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.MESSAGE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.POLICY_VERSION;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.STATUS_TYPE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.SUBSCRIBER_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TARGET;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TARGET_ACTION;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.TENANT_ID;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.USER;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.EntitlementTableColumns.VERSION;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.KEY;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.LIMIT;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_POLICY_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.CREATE_SUBSCRIBER_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_MSSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_MYSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_ORACLE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_MSSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_ORACLE;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_POLICY_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.DELETE_SUBSCRIBER_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_STATUS_COUNT_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_POLICY_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_SUBSCRIBER_STATUS_COUNT_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.SQLQueries.GET_SUBSCRIBER_STATUS_SQL;
-import static org.wso2.carbon.identity.entitlement.dao.DAOConstants.STATUS_COUNT;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.DB2;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.H2;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.MARIADB;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.MSSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.MYSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.ORACLE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.DatabaseTypes.POSTGRES;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.IS_SUCCESS;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.LOGGED_AT;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.MESSAGE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.POLICY_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.POLICY_VERSION;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.STATUS_TYPE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.SUBSCRIBER_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.TARGET;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.TARGET_ACTION;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.TENANT_ID;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.USER;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.EntitlementTableColumns.VERSION;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.KEY;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.LIMIT;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_POLICY_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.CREATE_SUBSCRIBER_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_MSSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_MYSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_POLICY_STATUSES_ORACLE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_MSSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_MYSQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_OLD_SUBSCRIBER_STATUSES_ORACLE;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_POLICY_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.DELETE_SUBSCRIBER_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_POLICY_STATUS_COUNT_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_POLICY_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_SUBSCRIBER_STATUS_COUNT_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.SQLQueries.GET_SUBSCRIBER_STATUS_SQL;
+import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerConstants.STATUS_COUNT;
 
 import static java.time.ZoneOffset.UTC;
 
 /**
- * This class handles the status data of the policies in the JDBC data store.
+ * This class handles the JDBC operations related to the status data.
  */
-public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
-
-    private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
-    private static final String AUDIT_MESSAGE
-            = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
-    private int maxRecords;
+public class StatusDAO {
 
     /**
-     * init entitlement status data handler module.
-     *
-     * @param properties properties.
-     */
-    @Override
-    public void init(Properties properties) {
-
-        maxRecords = EntitlementUtil.getMaxNoOfStatusRecords();
-    }
-
-    /**
-     * Handles the status data.
-     *
-     * @param about         whether the status is about a policy or publisher.
-     * @param key           key value of the status.
-     * @param statusHolders <code>StatusHolder</code>.
-     * @throws EntitlementException throws, if fails to handle.
-     */
-    @Override
-    public void handle(String about, String key, List<StatusHolder> statusHolders) throws EntitlementException {
-
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        // If the action is DELETE_POLICY, delete the policy or the subscriber status
-        for (StatusHolder holder : statusHolders) {
-            if (EntitlementConstants.StatusTypes.DELETE_POLICY.equals(holder.getType())) {
-                deleteStatusTrail(about, key, tenantId);
-                return;
-            }
-        }
-        amendStatusTrail(about, key, statusHolders, tenantId);
-    }
-
-    /**
-     * Returns status data.
-     *
-     * @param about        indicates what is related with this admin status action.
-     * @param key          key value of the status.
-     * @param type         admin action type.
-     * @param searchString search string for <code>StatusHolder</code>.
-     * @return An array of <code>StatusHolder</code>.
-     * @throws EntitlementException if fails.
-     */
-    @Override
-    public StatusHolder[] getStatusData(String about, String key, String type, String searchString)
-            throws EntitlementException {
-
-        String statusAboutType = EntitlementConstants.Status.ABOUT_POLICY.equals(about)
-                ? EntitlementConstants.Status.ABOUT_POLICY
-                : EntitlementConstants.Status.ABOUT_SUBSCRIBER;
-
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        List<StatusHolder> holders =
-                getStatus(key, statusAboutType, tenantId);
-        return EntitlementUtil.filterStatus(holders, searchString, about, type);
-    }
-
-    private void amendStatusTrail(String about, String key, List<StatusHolder> statusHolders, int tenantId)
-            throws EntitlementException {
-
-        boolean useLastStatusOnly = Boolean.parseBoolean(
-                IdentityUtil.getProperty(EntitlementConstants.PROP_USE_LAST_STATUS_ONLY));
-
-        if (statusHolders != null && !statusHolders.isEmpty()) {
-
-            if (useLastStatusOnly) {
-                // Delete all the previous statuses
-                deleteStatusTrail(about, key, tenantId);
-                auditAction(statusHolders.toArray(new StatusHolder[0]));
-            }
-
-            // Add new status to the database
-            insertStatus(about, key, statusHolders, tenantId);
-
-            if (!useLastStatusOnly) {
-                deleteExcessStatusData(about, key, tenantId);
-            }
-        }
-    }
-
-    /**
-     * DAO method to delete all status records.
+     * Delete all status records.
      *
      * @param about whether the status is about a policy or publisher.
      * @param key   key value of the status.
      * @throws EntitlementException if fails to delete.
      */
-    private void deleteStatusTrail(String about, String key, int tenantId) throws EntitlementException {
+    public void deleteStatusTrail(String about, String key, int tenantId) throws EntitlementException {
 
         String query = EntitlementConstants.Status.ABOUT_POLICY.equals(about) ?
                 DELETE_POLICY_STATUS_SQL : DELETE_SUBSCRIBER_STATUS_SQL;
@@ -194,7 +102,7 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
     }
 
     /**
-     * DAO method to get the status records.
+     * Get the status records.
      *
      * @param key      key value of the status.
      * @param about    whether the status is about a policy or publisher.
@@ -202,7 +110,7 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
      * @return list of status holders.
      * @throws EntitlementException if fails to get status.
      */
-    private List<StatusHolder> getStatus(String key, String about, int tenantId) throws EntitlementException {
+    public List<StatusHolder> getStatus(String key, String about, int tenantId) throws EntitlementException {
 
         List<StatusHolder> statusHolders = new ArrayList<>();
         String query = EntitlementConstants.Status.ABOUT_POLICY.equals(about)
@@ -244,15 +152,15 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
     }
 
     /**
-     * DAO method to insert status records.
+     * Insert status records.
      *
-     * @param about          whether the status is about a policy or publisher.
-     * @param key            key value of the status.
-     * @param statusHolders  list of status holders.
-     * @param tenantId       tenant id.
+     * @param about         whether the status is about a policy or publisher.
+     * @param key           key value of the status.
+     * @param statusHolders list of status holders.
+     * @param tenantId      tenant id.
      * @throws EntitlementException if fails to insert status.
      */
-    private void insertStatus(String about, String key, List<StatusHolder> statusHolders, int tenantId)
+    public void insertStatus(String about, String key, List<StatusHolder> statusHolders, int tenantId)
             throws EntitlementException {
 
         String query = EntitlementConstants.Status.ABOUT_POLICY.equals(about)
@@ -299,7 +207,8 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
      * @param tenantId tenant id.
      * @throws EntitlementException if fails to delete.
      */
-    private void deleteExcessStatusData(String about, String key, int tenantId) throws EntitlementException {
+    public void deleteExcessStatusData(String about, String key, int tenantId, int maxRecords)
+            throws EntitlementException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         try {
@@ -308,7 +217,8 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
 
             // Delete old status data if the count exceeds the maximum records
             if (statusCount > maxRecords) {
-                deleteStatus(connection, about, key, statusCount, tenantId);
+                int statusCountToDelete = statusCount - maxRecords;
+                deleteStatus(connection, about, key, statusCountToDelete, tenantId);
             }
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
@@ -319,16 +229,14 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
         }
     }
 
-    private void deleteStatus(Connection connection, String about, String key, int statusCount, int tenantId)
+    private void deleteStatus(Connection connection, String about, String key, int statusCountToDelete, int tenantId)
             throws SQLException, EntitlementException {
-
-        int oldRecordsCount = statusCount - maxRecords;
 
         String query = resolveDeleteStatusQuery(connection, about);
         try (NamedPreparedStatement deleteOldRecordsPrepStmt = new NamedPreparedStatement(connection, query)) {
             deleteOldRecordsPrepStmt.setString(KEY, key);
             deleteOldRecordsPrepStmt.setInt(TENANT_ID, tenantId);
-            deleteOldRecordsPrepStmt.setInt(LIMIT, oldRecordsCount);
+            deleteOldRecordsPrepStmt.setInt(LIMIT, statusCountToDelete);
             deleteOldRecordsPrepStmt.executeUpdate();
         }
     }
@@ -390,31 +298,5 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
             throw new EntitlementException("Database driver could not be identified or not supported.");
         }
         return query;
-    }
-
-    private void auditAction(StatusHolder[] statusHolders) {
-
-        if (statusHolders != null) {
-            for (StatusHolder statusHolder : statusHolders) {
-                if (statusHolder != null) {
-                    String initiator = statusHolder.getUser();
-                    if (LoggerUtils.isLogMaskingEnable) {
-                        initiator = LoggerUtils.getMaskedContent(initiator);
-                    }
-                    String action = statusHolder.getType();
-                    String key = statusHolder.getKey();
-                    String target = statusHolder.getTarget();
-                    String targetAction = statusHolder.getTargetAction();
-                    String result = "FAILURE";
-                    if (statusHolder.isSuccess()) {
-                        result = "SUCCESS";
-                    }
-                    String auditData = String.format("\"Key\" : \"%s\" , \"Target Action\" : \"%s\"",
-                            key, targetAction);
-
-                    AUDIT_LOG.info(String.format(AUDIT_MESSAGE, initiator, action, target, auditData, result));
-                }
-            }
-        }
     }
 }

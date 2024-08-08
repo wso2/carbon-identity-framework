@@ -23,7 +23,7 @@ import org.wso2.balana.AbstractPolicy;
 import org.wso2.balana.finder.PolicyFinder;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
-import org.wso2.carbon.identity.entitlement.dao.PolicyDAO;
+import org.wso2.carbon.identity.entitlement.persistence.PolicyPersistenceManager;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.pap.PAPPolicyReader;
@@ -39,12 +39,12 @@ public class PAPPolicyStoreReader {
     // the optional logger used for error reporting
     private static Log log = LogFactory.getLog(PAPPolicyStoreReader.class);
 
-    private final PolicyDAO store;
+    private final PolicyPersistenceManager store;
 
     /**
      * @param store
      */
-    public PAPPolicyStoreReader(PolicyDAO store) {
+    public PAPPolicyStoreReader(PolicyPersistenceManager store) {
         this.store = store;
     }
 
