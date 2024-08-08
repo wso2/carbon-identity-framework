@@ -41,7 +41,7 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
     private static final String AUDIT_MESSAGE
             = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
     private int maxRecords;
-    private static final StatusDAO statusPureDAO = new StatusDAO();
+    private static final StatusDAO statusDAO = new StatusDAO();
 
     /**
      * init entitlement status data handler module.
@@ -69,7 +69,7 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
         // If the action is DELETE_POLICY, delete the policy or the subscriber status
         for (StatusHolder holder : statusHolders) {
             if (EntitlementConstants.StatusTypes.DELETE_POLICY.equals(holder.getType())) {
-                statusPureDAO.deleteStatusTrail(about, key, tenantId);
+                statusDAO.deleteStatusTrail(about, key, tenantId);
                 return;
             }
         }
@@ -95,7 +95,7 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
                 : EntitlementConstants.Status.ABOUT_SUBSCRIBER;
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        List<StatusHolder> holders = statusPureDAO.getStatus(key, statusAboutType, tenantId);
+        List<StatusHolder> holders = statusDAO.getStatus(key, statusAboutType, tenantId);
         return EntitlementUtil.filterStatus(holders, searchString, about, type);
     }
 
@@ -109,15 +109,15 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
 
             if (useLastStatusOnly) {
                 // Delete all the previous statuses
-                statusPureDAO.deleteStatusTrail(about, key, tenantId);
+                statusDAO.deleteStatusTrail(about, key, tenantId);
                 auditAction(statusHolders.toArray(new StatusHolder[0]));
             }
 
             // Add new status to the database
-            statusPureDAO.insertStatus(about, key, statusHolders, tenantId);
+            statusDAO.insertStatus(about, key, statusHolders, tenantId);
 
             if (!useLastStatusOnly) {
-                statusPureDAO.deleteExcessStatusData(about, key, tenantId, maxRecords);
+                statusDAO.deleteExcessStatusData(about, key, tenantId, maxRecords);
             }
         }
     }

@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.persistence.dao.ConfigDAO;
+import org.wso2.carbon.identity.entitlement.persistence.cache.CacheBackedConfigDAO;
 
 /**
  * HybridConfigPersistenceManager is a hybrid implementation of ConfigPersistenceManager. It uses both JDBC and Registry
@@ -35,13 +35,12 @@ public class HybridConfigPersistenceManager implements ConfigPersistenceManager 
     private final JDBCConfigPersistenceManager jdbcConfigPersistenceManager = new JDBCConfigPersistenceManager();
     private final RegistryConfigPersistenceManager registryConfigPersistenceManager =
             new RegistryConfigPersistenceManager();
-    private static final ConfigDAO configDAO = ConfigDAO.getInstance();
+    private static final CacheBackedConfigDAO configDAO = CacheBackedConfigDAO.getInstance();
     private static final Log LOG = LogFactory.getLog(HybridConfigPersistenceManager.class);
 
     @Override
     public String getGlobalPolicyAlgorithmName() {
 
-        // TODO: revisit in caching, make sure it's not skipped
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String algorithm = null;
         try {

@@ -17,12 +17,13 @@
 */
 package org.wso2.carbon.identity.entitlement.dto;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * This class encapsulate the XACML policy related the data
  */
-public class PolicyDTO {
+public class PolicyDTO implements Serializable {
 
 
     private String policy;

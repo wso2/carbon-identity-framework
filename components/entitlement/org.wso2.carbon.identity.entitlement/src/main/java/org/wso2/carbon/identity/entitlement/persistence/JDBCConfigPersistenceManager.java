@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.persistence.dao.ConfigDAO;
+import org.wso2.carbon.identity.entitlement.persistence.cache.CacheBackedConfigDAO;
 
 import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.DENY_OVERRIDES;
 
@@ -32,7 +32,7 @@ import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.DENY_
 public class JDBCConfigPersistenceManager implements ConfigPersistenceManager {
 
     private static final Log LOG = LogFactory.getLog(JDBCConfigPersistenceManager.class);
-    private static final ConfigDAO configDAO = ConfigDAO.getInstance();
+    private static final CacheBackedConfigDAO configDAO = CacheBackedConfigDAO.getInstance();
 
     /**
      * Gets the policy combining algorithm name of the PDP.
