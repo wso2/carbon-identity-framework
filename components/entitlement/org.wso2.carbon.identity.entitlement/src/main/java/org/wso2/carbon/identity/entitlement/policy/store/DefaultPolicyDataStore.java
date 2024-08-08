@@ -93,12 +93,7 @@ public class DefaultPolicyDataStore implements PolicyDataStore {
     @Override
     public PolicyStoreDTO getPolicyData(String policyId) {
 
-        PolicyDTO policyDTO = policyPersistenceManager.getPublishedPolicy(policyId);
-        PolicyStoreDTO dataDTO = new PolicyStoreDTO();
-        dataDTO.setPolicyOrder(policyDTO.getPolicyOrder());
-        dataDTO.setActive(policyDTO.isActive());
-        dataDTO.setPolicyId(policyDTO.getPolicyId());
-        return dataDTO;
+        return policyPersistenceManager.getPublishedPolicy(policyId);
     }
 
     /**

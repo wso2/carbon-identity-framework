@@ -181,8 +181,12 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
 
     /**
      * Gets the requested policy list.
+     * <p>
+     * Note: The `policyIds` parameter is ignored. This method retrieves the full list of PAP policies from the database
+     * regardless of the provided policy IDs.
+     * </p>
      *
-     * @param policyIds policy ID list.
+     * @param policyIds A list of policy IDs. This parameter is ignored.
      * @return policyDTO.
      * @throws EntitlementException If an error occurs.
      */
@@ -291,7 +295,7 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
     @Override
     public String getPolicy(String policyId) {
 
-        PolicyDTO dto = getPublishedPolicy(policyId);
+        PolicyStoreDTO dto = getPublishedPolicy(policyId);
         return dto.getPolicy();
     }
 
@@ -304,7 +308,7 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
     @Override
     public int getPolicyOrder(String policyId) {
 
-        PolicyDTO dto = getPublishedPolicy(policyId);
+        PolicyStoreDTO dto = getPublishedPolicy(policyId);
         return dto.getPolicyOrder();
     }
 
@@ -324,8 +328,8 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
         List<String> policies = new ArrayList<>();
 
         try {
-            PolicyDTO[] policyDTOs = getAllPolicies(true, true);
-            for (PolicyDTO dto : policyDTOs) {
+            PolicyStoreDTO[] policyDTOs = getAllPolicies(true, true);
+            for (PolicyStoreDTO dto : policyDTOs) {
                 if (StringUtils.isNotBlank(dto.getPolicy())) {
                     policies.add(dto.getPolicy());
                 }
@@ -357,8 +361,8 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
         List<String> policies = new ArrayList<>();
 
         try {
-            PolicyDTO[] policyDTOs = getAllPolicies(false, true);
-            for (PolicyDTO dto : policyDTOs) {
+            PolicyStoreDTO[] policyDTOs = getAllPolicies(false, true);
+            for (PolicyStoreDTO dto : policyDTOs) {
                 if (StringUtils.isNotBlank(dto.getPolicy())) {
                     policies.add(dto.getPolicyId());
                 }
@@ -403,7 +407,7 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
     public String getReferencedPolicy(String policyId) {
 
         // Retrieve policies that are not active
-        PolicyDTO dto = getPublishedPolicy(policyId);
+        PolicyStoreDTO dto = getPublishedPolicy(policyId);
         if (dto != null && StringUtils.isNotBlank(dto.getPolicy()) && !dto.isActive()) {
             return dto.getPolicy();
         }
@@ -420,12 +424,15 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
     @Override
     public Map<String, Set<AttributeDTO>> getSearchAttributes(String identifier, Set<AttributeDTO> givenAttribute) {
 
-        PolicyDTO[] policyDTOs;
         try {
-            policyDTOs = getAllPolicies(true, true);
-
+            PolicyStoreDTO[] policyDTOs = getAllPolicies(true, true);
+            List<PolicyDTO> policyDTOList = new ArrayList<>();
+            for (PolicyStoreDTO policyStoreDTO : policyDTOs) {
+                PolicyDTO policyDTO = getPAPPolicy(policyStoreDTO.getPolicyId());
+                policyDTOList.add(policyDTO);
+            }
             if (policyDTOs.length > 0) {
-                return EntitlementUtil.getAttributesFromPolicies(policyDTOs);
+                return EntitlementUtil.getAttributesFromPolicies(policyDTOList.toArray(new PolicyDTO[0]));
             }
         } catch (EntitlementException e) {
             LOG.error(ERROR_RETRIEVING_POLICIES_FROM_POLICY_FINDER, e);
@@ -521,18 +528,18 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
      * @return requested policy.
      */
     @Override
-    public PolicyDTO getPublishedPolicy(String policyId) {
+    public PolicyStoreDTO getPublishedPolicy(String policyId) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving entitlement policy %s", policyId));
         }
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        PolicyDTO dto = policyDAO.getPDPPolicy(policyId, tenantId);
+        PolicyStoreDTO dto = policyDAO.getPDPPolicy(policyId, tenantId);
         if (dto != null) {
             return dto;
         }
-        return new PolicyDTO();
+        return new PolicyStoreDTO();
     }
 
     /**
@@ -544,15 +551,9 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
     @Override
     public List<String> listPublishedPolicyIds() throws EntitlementException {
 
-        List<String> policyIDs = new ArrayList<>();
-        LOG.debug("Retrieving all PDP entitlement policies");
+        LOG.debug("Retrieving all PDP entitlement policy ids");
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        // TODO: revisit if retrieving the whole policy is necessary
-        PolicyDTO[] policyDTOs = policyDAO.getAllPDPPolicies(tenantId);
-        for (PolicyDTO dto : policyDTOs) {
-            policyIDs.add(dto.getPolicyId());
-        }
-        return policyIDs;
+        return policyDAO.getPublishedPolicyIds(tenantId);
     }
 
     /**
@@ -627,17 +628,17 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
      * @return Array of PolicyDTO.
      * @throws EntitlementException If an error occurs.
      */
-    private PolicyDTO[] getAllPolicies(boolean active, boolean order) throws EntitlementException {
+    private PolicyStoreDTO[] getAllPolicies(boolean active, boolean order) throws EntitlementException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        PolicyDTO[] policies;
+        PolicyStoreDTO[] policies;
         policies = policyDAO.getAllPDPPolicies(tenantId);
 
         if (policies.length == 0) {
-            return new PolicyDTO[0];
+            return new PolicyStoreDTO[0];
         }
-        List<PolicyDTO> policyDTOList = new ArrayList<>();
-        for (PolicyDTO policy : policies) {
+        List<PolicyStoreDTO> policyDTOList = new ArrayList<>();
+        for (PolicyStoreDTO policy : policies) {
             if (active) {
                 if (policy.isActive()) {
                     policyDTOList.add(policy);
@@ -647,7 +648,7 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
             }
         }
 
-        PolicyDTO[] policyDTOs = policyDTOList.toArray(new PolicyDTO[0]);
+        PolicyStoreDTO[] policyDTOs = policyDTOList.toArray(new PolicyStoreDTO[0]);
 
         if (order) {
             Arrays.sort(policyDTOs, new PolicyOrderComparator());
