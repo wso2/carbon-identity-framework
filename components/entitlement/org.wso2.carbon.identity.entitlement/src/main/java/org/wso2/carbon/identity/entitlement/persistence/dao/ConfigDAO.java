@@ -39,13 +39,6 @@ import static org.wso2.carbon.identity.entitlement.persistence.PersistenceManage
  */
 public class ConfigDAO {
 
-    private static final ConfigDAO instance = new ConfigDAO();
-
-    public static ConfigDAO getInstance() {
-
-        return instance;
-    }
-
     /**
      * Get the policy combining algorithm from the data store.
      *

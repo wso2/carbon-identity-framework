@@ -18,12 +18,13 @@
 
 package org.wso2.carbon.identity.entitlement.dto;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * encapsulates the policy data that is stored in the policy store
  */
-public class PolicyStoreDTO {
+public class PolicyStoreDTO implements Serializable {
 
     private String policyId;
 

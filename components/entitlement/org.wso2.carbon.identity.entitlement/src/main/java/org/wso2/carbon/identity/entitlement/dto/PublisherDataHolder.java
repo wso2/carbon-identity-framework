@@ -24,6 +24,7 @@ import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.registry.core.Resource;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +34,7 @@ import java.util.Properties;
 /**
  *
  */
-public class PublisherDataHolder {
+public class PublisherDataHolder implements Serializable {
 
     public static final String MODULE_NAME = "EntitlementModuleName";
     private static Log log = LogFactory.getLog(PublisherDataHolder.class);
