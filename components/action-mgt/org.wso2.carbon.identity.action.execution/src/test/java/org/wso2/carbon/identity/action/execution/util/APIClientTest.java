@@ -92,6 +92,7 @@ public class APIClientTest {
         assertNotNull(apiResponse);
         assertNull(apiResponse.getResponse());
         assertFalse(apiResponse.isRetry());
+        assertTrue(apiResponse.isError());
         assertNotNull(apiResponse.getErrorLog());
         assertEquals(apiResponse.getErrorLog(),
                 "Unexpected response for status code: 200. The response content type is not application/json.");
