@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2021-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -55,6 +55,8 @@ public class BrandingPreferenceRetrievalClient {
     private static final String RESOURCE_NAME_URL_SEARCH_PARAM = "name";
     private static final String RESOURCE_LOCALE_URL_SEARCH_PARAM = "locale";
     private static final String RESOURCE_SCREEN_URL_SEARCH_PARAM = "screen";
+    private static final String RESTRICT_TO_PUBLISHED_URL_SEARCH_PARAM = "restrictToPublished";
+    private static final String TRUE = "true";
 
     /**
      * Check for branding preference in the given tenant.
@@ -87,6 +89,8 @@ public class BrandingPreferenceRetrievalClient {
                 if (StringUtils.isNotBlank(locale)) {
                     uriBuilder.addParameter(RESOURCE_LOCALE_URL_SEARCH_PARAM, locale);
                 }
+
+                uriBuilder.addParameter(RESTRICT_TO_PUBLISHED_URL_SEARCH_PARAM, TRUE);
                 uri = uriBuilder.build().toString();
 
                 if (log.isDebugEnabled()) {
