@@ -59,7 +59,7 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
     private static final String ERROR_RETRIEVING_POLICIES_FROM_POLICY_FINDER = "Policies can not be retrieved from " +
             "the policy finder module";
     private final int maxVersions;
-    private static final CacheBackedPolicyDAO policyDAO = new CacheBackedPolicyDAO();
+    private static final CacheBackedPolicyDAO policyDAO = CacheBackedPolicyDAO.getInstance();
 
     public JDBCPolicyPersistenceManager() {
 

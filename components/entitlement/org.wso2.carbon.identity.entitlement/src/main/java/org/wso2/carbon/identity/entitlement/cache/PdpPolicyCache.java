@@ -39,4 +39,24 @@ public class PdpPolicyCache extends BaseCache<String, PolicyStoreDTO> {
 
         return instance;
     }
+
+    @Override
+    public void addToCache(String key, PolicyStoreDTO policyStoreDTO, int tenantId) {
+
+        if (policyStoreDTO != null){
+            PolicyStoreDTO policyStoreDTOCopy = new PolicyStoreDTO(policyStoreDTO);
+            super.addToCache(key, policyStoreDTOCopy, tenantId);
+        }
+    }
+
+    @Override
+    public PolicyStoreDTO getValueFromCache(String key, int tenantId) {
+
+        PolicyStoreDTO policyStoreDTO = super.getValueFromCache(key, tenantId);
+        PolicyStoreDTO policyStoreDTOCopy = null;
+        if (policyStoreDTO != null) {
+            policyStoreDTOCopy = new PolicyStoreDTO(policyStoreDTO);
+        }
+        return policyStoreDTOCopy;
+    }
 }

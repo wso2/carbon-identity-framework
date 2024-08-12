@@ -40,7 +40,7 @@ public class JDBCSubscriberPersistenceManager implements SubscriberPersistenceMa
 
     private static final Log LOG = LogFactory.getLog(JDBCSubscriberPersistenceManager.class);
     private static final String ERROR_SUBSCRIBER_ID_NULL = "Subscriber Id can not be null";
-    private static final CacheBackedSubscriberDAO subscriberDAO = new CacheBackedSubscriberDAO();
+    private static final CacheBackedSubscriberDAO subscriberDAO = CacheBackedSubscriberDAO.getInstance();
 
     /**
      * Gets the requested subscriber.

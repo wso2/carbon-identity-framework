@@ -43,6 +43,17 @@ public class CacheBackedPolicyDAO extends PolicyDAO {
     private static final String PAP_POLICY_LIST_CACHE_KEY = "PAP_POLICY_LIST_CACHE_KEY";
     private static final String PDP_POLICY_LIST_CACHE_KEY = "PDP_POLICY_LIST_CACHE_KEY";
 
+    private static final CacheBackedPolicyDAO instance = new CacheBackedPolicyDAO();
+
+    private CacheBackedPolicyDAO() {
+
+    }
+
+    public static CacheBackedPolicyDAO getInstance() {
+
+        return instance;
+    }
+
     @Override
     public void insertPolicy(PolicyDTO policy, int tenantId) throws EntitlementException {
 
@@ -139,6 +150,8 @@ public class CacheBackedPolicyDAO extends PolicyDAO {
         super.insertOrUpdatePolicy(policy, tenantId);
         pdpPolicyCache.addToCache(policy.getPolicyId(), policy, tenantId);
         pdpPolicyListCache.clearCacheEntry(PDP_POLICY_LIST_CACHE_KEY, tenantId);
+        papPolicyCache.clearCacheEntry(policy.getPolicyId(), tenantId);
+        papPolicyListCache.clearCacheEntry(PAP_POLICY_LIST_CACHE_KEY, tenantId);
     }
 
     @Override
@@ -156,7 +169,7 @@ public class CacheBackedPolicyDAO extends PolicyDAO {
 
         String policyId = policy.getPolicyId();
         PolicyStoreDTO cachedPolicy = pdpPolicyCache.getValueFromCache(policyId, tenantId);
-        if (cachedPolicy != null && StringUtils.isNotBlank(cachedPolicy.getVersion())) {
+        if (cachedPolicy != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Cache hit in PdpPolicyCache for policy: %s for tenant: %s",
                         policyId, tenantId));
@@ -175,6 +188,8 @@ public class CacheBackedPolicyDAO extends PolicyDAO {
         boolean isSuccess = super.unpublishPolicy(policyId, tenantId);
         pdpPolicyCache.clearCacheEntry(policyId, tenantId);
         pdpPolicyListCache.clearCacheEntry(PDP_POLICY_LIST_CACHE_KEY, tenantId);
+        papPolicyCache.clearCacheEntry(policyId, tenantId);
+        papPolicyListCache.clearCacheEntry(PAP_POLICY_LIST_CACHE_KEY, tenantId);
         return isSuccess;
     }
 }

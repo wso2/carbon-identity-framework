@@ -58,6 +58,24 @@ public class PolicyDTO implements Serializable {
 
     }
 
+    public PolicyDTO(PolicyDTO policyDTO) {
+
+        this.policy = policyDTO.policy;
+        this.policyId = policyDTO.policyId;
+        this.active = policyDTO.active;
+        this.promote = policyDTO.promote;
+        this.policyType = policyDTO.policyType;
+        this.policyEditor = policyDTO.policyEditor;
+        this.policyEditorData = Arrays.copyOf(policyDTO.policyEditorData, policyDTO.policyEditorData.length);
+        this.policyOrder = policyDTO.policyOrder;
+        this.version = policyDTO.version;
+        this.lastModifiedTime = policyDTO.lastModifiedTime;
+        this.lastModifiedUser = policyDTO.lastModifiedUser;
+        this.attributeDTOs = Arrays.copyOf(policyDTO.attributeDTOs, policyDTO.attributeDTOs.length);
+        this.policySetIdReferences = Arrays.copyOf(policyDTO.policySetIdReferences, policyDTO.policySetIdReferences.length);
+        this.policyIdReferences = Arrays.copyOf(policyDTO.policyIdReferences, policyDTO.policyIdReferences.length);
+    }
+
     public PolicyDTO(String policyId) {
         this.policyId = policyId;
     }

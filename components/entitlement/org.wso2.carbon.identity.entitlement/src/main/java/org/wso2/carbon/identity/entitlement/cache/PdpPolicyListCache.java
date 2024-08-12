@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.entitlement.cache;
 import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 
+import java.util.ArrayList;
+
 /**
  * Cache implementation for PDP policy list.
  * Cache entry: <constant key, policy store DTO list>
@@ -38,5 +40,33 @@ public class PdpPolicyListCache extends BaseCache<String, PolicyStoreDTO[]> {
     public static PdpPolicyListCache getInstance() {
 
         return instance;
+    }
+
+    @Override
+    public void addToCache(String key, PolicyStoreDTO[] policyDTOs, int tenantId) {
+
+        PolicyStoreDTO[] policyDTOList = createCopy(policyDTOs);
+        super.addToCache(key, policyDTOList, tenantId);
+    }
+
+    @Override
+    public PolicyStoreDTO[] getValueFromCache(String key, int tenantId) {
+
+        PolicyStoreDTO[] policyDTOs = super.getValueFromCache(key, tenantId);
+        return createCopy(policyDTOs);
+    }
+
+    private PolicyStoreDTO[] createCopy(PolicyStoreDTO[] policyDTOs) {
+
+        if (policyDTOs == null) {
+            return null;
+        }
+        ArrayList<PolicyStoreDTO> policyDTOList = new ArrayList<>();
+        for (PolicyStoreDTO policyDTO : policyDTOs) {
+            if (policyDTO != null) {
+                policyDTOList.add(new PolicyStoreDTO(policyDTO));
+            }
+        }
+        return policyDTOList.toArray(new PolicyStoreDTO[0]);
     }
 }

@@ -41,4 +41,33 @@ public class PapPolicyListCache extends BaseCache<String, ArrayList<PolicyDTO>> 
 
         return instance;
     }
+
+    @Override
+    public void addToCache(String key, ArrayList<PolicyDTO> policyDTOs, int tenantId) {
+
+        ArrayList<PolicyDTO> policyDTOList = createCopy(policyDTOs);
+        super.addToCache(key, policyDTOList, tenantId);
+    }
+
+    @Override
+    public ArrayList<PolicyDTO> getValueFromCache(String key, int tenantId) {
+
+        ArrayList<PolicyDTO> policyDTOs = super.getValueFromCache(key, tenantId);
+        return createCopy(policyDTOs);
+    }
+
+    private ArrayList<PolicyDTO> createCopy(ArrayList<PolicyDTO> policyDTOs) {
+
+        if (policyDTOs == null) {
+            return null;
+        }
+
+        ArrayList<PolicyDTO> policyDTOList = new ArrayList<>();
+        for (PolicyDTO policyDTO : policyDTOs) {
+            if (policyDTO != null) {
+                policyDTOList.add(new PolicyDTO(policyDTO));
+            }
+        }
+        return policyDTOList;
+    }
 }

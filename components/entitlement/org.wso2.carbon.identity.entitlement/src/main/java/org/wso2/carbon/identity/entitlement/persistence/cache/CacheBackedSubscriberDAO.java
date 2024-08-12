@@ -36,6 +36,16 @@ public class CacheBackedSubscriberDAO extends SubscriberDAO {
     private final SubscriberCache subscriberCache = SubscriberCache.getInstance();
     private final SubscriberIdListCache subscriberIdListCache = SubscriberIdListCache.getInstance();
     private static final String SUBSCRIBER_ID_LIST_CACHE_KEY = "SUBSCRIBER_ID_LIST_CACHE_KEY";
+    private static final CacheBackedSubscriberDAO instance = new CacheBackedSubscriberDAO();
+
+    private CacheBackedSubscriberDAO() {
+
+    }
+
+    public static CacheBackedSubscriberDAO getInstance() {
+
+        return instance;
+    }
 
     @Override
     public PublisherDataHolder getSubscriber(String subscriberId, int tenantId) throws EntitlementException {

@@ -39,4 +39,24 @@ public class PapPolicyCache extends BaseCache<String, PolicyDTO> {
 
         return instance;
     }
+
+    @Override
+    public void addToCache(String key, PolicyDTO policyDTO, int tenantId) {
+
+        if (policyDTO != null) {
+            PolicyDTO policyDTOCopy = new PolicyDTO(policyDTO);
+            super.addToCache(key, policyDTOCopy, tenantId);
+        }
+    }
+
+    @Override
+    public PolicyDTO getValueFromCache(String key, int tenantId) {
+
+        PolicyDTO policyDTO = super.getValueFromCache(key, tenantId);
+        PolicyDTO policyDTOCopy = null;
+        if (policyDTO != null) {
+            policyDTOCopy = new PolicyDTO(policyDTO);
+        }
+        return policyDTOCopy;
+    }
 }

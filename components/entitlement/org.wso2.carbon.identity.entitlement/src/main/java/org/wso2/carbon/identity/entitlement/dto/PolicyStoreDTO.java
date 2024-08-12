@@ -42,6 +42,22 @@ public class PolicyStoreDTO implements Serializable {
 
     private AttributeDTO[] attributeDTOs = new AttributeDTO[0];
 
+    public PolicyStoreDTO() {
+
+    }
+
+    public PolicyStoreDTO(PolicyStoreDTO policyStoreDTO) {
+
+        this.policyId = policyStoreDTO.getPolicyId();
+        this.policy = policyStoreDTO.getPolicy();
+        this.policyOrder = policyStoreDTO.getPolicyOrder();
+        this.active = policyStoreDTO.isActive();
+        this.setOrder = policyStoreDTO.isSetOrder();
+        this.setActive = policyStoreDTO.isSetActive();
+        this.version = policyStoreDTO.getVersion();
+        this.attributeDTOs = policyStoreDTO.getAttributeDTOs();
+    }
+
     public String getPolicyId() {
         return policyId;
     }
