@@ -60,7 +60,9 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AuthenticatorType.CUSTOM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY;
+
 
 /**
  * Default implementation of step based sequence handler.
@@ -289,7 +291,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
             stepCount++;
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
+            FrameworkConstants.AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
+            if ((authenticator instanceof FederatedApplicationAuthenticator && !CUSTOM.equals(authenticatorType)) ||
+                    (CUSTOM.equals(authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
 
                 ExternalIdPConfig externalIdPConfig = null;
                 try {

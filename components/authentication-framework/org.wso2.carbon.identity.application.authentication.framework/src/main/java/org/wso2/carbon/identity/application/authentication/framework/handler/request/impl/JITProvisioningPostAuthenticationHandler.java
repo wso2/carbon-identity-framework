@@ -93,6 +93,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ALLOW_LOGIN_TO_IDP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AuthenticatorType.CUSTOM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY;
@@ -187,7 +188,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
+            FrameworkConstants.AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
+            if ((authenticator instanceof FederatedApplicationAuthenticator && !CUSTOM.equals(authenticatorType)) ||
+                    (CUSTOM.equals(authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 ExternalIdPConfig externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);
@@ -295,7 +298,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
+            FrameworkConstants.AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
+            if ((authenticator instanceof FederatedApplicationAuthenticator && !CUSTOM.equals(authenticatorType)) ||
+                    (CUSTOM.equals(authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 ExternalIdPConfig externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);

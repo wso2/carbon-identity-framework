@@ -201,6 +201,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AuthenticatorType.CUSTOM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS;
@@ -3395,7 +3396,9 @@ public class FrameworkUtils {
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
+            FrameworkConstants.AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
+            if ((authenticator instanceof FederatedApplicationAuthenticator && !CUSTOM.equals(authenticatorType)) ||
+                    (CUSTOM.equals(authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
                 ExternalIdPConfig externalIdPConfig;
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);

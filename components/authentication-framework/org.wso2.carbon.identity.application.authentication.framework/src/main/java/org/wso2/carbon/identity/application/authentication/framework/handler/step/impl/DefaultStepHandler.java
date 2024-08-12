@@ -87,6 +87,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AuthenticatorType.CUSTOM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
@@ -713,7 +714,8 @@ public class DefaultStepHandler implements StepHandler {
         }
 
         String idpName = FrameworkConstants.LOCAL_IDP_NAME;
-        if (context.getExternalIdP() != null && authenticator instanceof FederatedApplicationAuthenticator) {
+        if (context.getExternalIdP() != null && (authenticator instanceof FederatedApplicationAuthenticator
+                || CUSTOM.equals(authenticator.getAuthenticatorType()))) {
             idpName = context.getExternalIdP().getIdPName();
         }
         // Add Diagnostic Logs for the selected authenticator by the user.
@@ -771,7 +773,9 @@ public class DefaultStepHandler implements StepHandler {
                 context.getSubject().setAccessingOrganization(userResidentOrganization);
             }
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
+            FrameworkConstants.AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
+            if ((authenticator instanceof FederatedApplicationAuthenticator && !CUSTOM.equals(authenticatorType)) ||
+                    (CUSTOM.equals(authenticatorType) && context.getSubject().isFederatedUser())) {
 
                 if (context.getSubject().getUserName() == null) {
                     // Set subject identifier as the default username for federated users
