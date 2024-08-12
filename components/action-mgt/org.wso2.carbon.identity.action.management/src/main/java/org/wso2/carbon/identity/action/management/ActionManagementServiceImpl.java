@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
@@ -189,6 +190,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      */
     private void validateMaxActionsPerType(String actionType, String tenantDomain) throws ActionMgtException {
 
+        if (StringUtils.equals(Action.ActionTypes.AUTHENTICATION.getActionType(), actionType)) {
+            return;
+        }
         Map<String, Integer> actionsCountPerType = getActionsCountPerType(tenantDomain);
         if (actionsCountPerType.containsKey(actionType) &&
                 actionsCountPerType.get(actionType) >= IdentityUtil.getMaximumActionsPerActionType()) {

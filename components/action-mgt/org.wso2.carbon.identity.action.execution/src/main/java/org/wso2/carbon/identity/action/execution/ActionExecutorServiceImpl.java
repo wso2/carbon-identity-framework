@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
@@ -82,6 +83,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         switch (actionType) {
             case PRE_ISSUE_ACCESS_TOKEN:
                 return IdentityUtil.isPreIssueAccessTokenActionTypeEnabled();
+            case AUTHENTICATION:
+                return IdentityUtil.isAuthenticationActionTypeEnabled();
             default:
                 return false;
         }
@@ -90,13 +93,26 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     public ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
 
+        return execute(actionType, null, eventContext, tenantDomain);
+    }
+
+    public ActionExecutionStatus execute(ActionType actionType, String actionId, Map<String, Object> eventContext,
+                                         String tenantDomain) throws ActionExecutionException {
+
         try {
-            List<Action> actions = getActionsByActionType(actionType, tenantDomain);
-            validateActions(actions, actionType);
+            Action action;
+            if (StringUtils.isNotBlank(actionId)) {
+                List<Action> actions = getActionsByActionType(actionType, tenantDomain);
+                validateActions(actions, actionType);
+                // As of now only one action is allowed.
+                action = actions.get(0);
+            } else {
+                action = getActionsByActionId(actionId, tenantDomain);
+            }
+
             ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
             ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
 
-            Action action = actions.get(0); // As of now only one action is allowed.
             return Optional.ofNullable(action)
                     .filter(activeAction -> activeAction.getStatus() == Action.Status.ACTIVE)
                     .map(activeAction -> executeAction(activeAction, actionRequest, eventContext,
@@ -116,6 +132,16 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         try {
             return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
                     .getActionsByActionType(Action.ActionTypes.valueOf(actionType.name()).getPathParam(), tenantDomain);
+        } catch (ActionMgtException e) {
+            throw new ActionExecutionRuntimeException("Error occurred while retrieving actions.", e);
+        }
+    }
+
+    private Action getActionsByActionId(String actionId, String tenantDomain) throws ActionExecutionRuntimeException {
+
+        try {
+            return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
+                    .getActionByActionId(actionId, tenantDomain);
         } catch (ActionMgtException e) {
             throw new ActionExecutionRuntimeException("Error occurred while retrieving actions.", e);
         }

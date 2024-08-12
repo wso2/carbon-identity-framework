@@ -1512,6 +1512,16 @@ public class IdentityUtil {
     }
 
     /**
+     * Get Pre Issue Access Token Action Type enabled status.
+     *
+     * @return Whether the Pre Issue Access Token Action type is enabled or not.
+     */
+    public static boolean isAuthenticationActionTypeEnabled() {
+
+        return isActionTypeEnabled(IdentityCoreConstants.AUTHENTICATION_ACTION_TYPE_ENABLE_PROPERTY, false);
+    }
+
+    /**
      * Check whether a given action type is enabled or not.
      *
      * @param actionTypePropertyName Name of the action type enabled property.
