@@ -222,6 +222,14 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     }
 
     @Override
+    public void updateScopeMetadata(Scope scope, APIResource apiResource, Integer tenantId)
+            throws APIResourceMgtException {
+
+        clearAPIResourceCache(apiResource.getIdentifier(), apiResource.getId(), tenantId);
+        apiResourceManagementDAO.updateScopeMetadata(scope, apiResource, tenantId);
+    }
+
+    @Override
     public void deleteAPIResourceById(String apiId, Integer tenantId) throws APIResourceMgtException {
 
         clearAPIResourceCache(null, apiId, tenantId);
