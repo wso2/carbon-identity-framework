@@ -284,9 +284,9 @@ public class ActionManagementDAOImplTest {
     public void testGetActionsCountPerType() throws ActionMgtException {
 
         Map<String, Integer> actionMap = daoImpl.getActionsCountPerType(TENANT_ID);
-        for (Map.Entry<String, Integer> map: actionMap.entrySet()) {
-            Assert.assertEquals(PRE_ISSUE_ACCESS_TOKEN, map.getKey());
-            Assert.assertEquals(1, map.getValue().intValue());
+        for (Map.Entry<String, Integer> entry: actionMap.entrySet()) {
+            Assert.assertEquals(PRE_ISSUE_ACCESS_TOKEN, entry.getKey());
+            Assert.assertEquals(1, entry.getValue().intValue());
         }
     }
 
