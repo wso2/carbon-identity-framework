@@ -263,6 +263,16 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(AuthType.AuthenticationType.BEARER, result.getEndpoint().getAuthentication().getType());
     }
 
+    @Test(priority = 11)
+    public void testGetActionsCountPerType() throws ActionMgtException {
+
+        Map<String, Integer> actionMap = daoImpl.getActionsCountPerType(TENANT_ID);
+        for(Map.Entry<String, Integer> map: actionMap.entrySet()){
+            Assert.assertEquals(PRE_ISSUE_ACCESS_TOKEN, map.getKey());
+            Assert.assertEquals(1, map.getValue().intValue());
+        }
+    }
+
     private Action buildMockAction(boolean isOptional) {
 
         String id = String.valueOf(UUID.randomUUID());
