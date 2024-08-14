@@ -18,12 +18,13 @@
 
 package org.wso2.carbon.identity.entitlement.dto;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * encapsulates the policy data that is stored in the policy store
  */
-public class PolicyStoreDTO {
+public class PolicyStoreDTO implements Serializable {
 
     private String policyId;
 
@@ -40,6 +41,22 @@ public class PolicyStoreDTO {
     private String version;
 
     private AttributeDTO[] attributeDTOs = new AttributeDTO[0];
+
+    public PolicyStoreDTO() {
+
+    }
+
+    public PolicyStoreDTO(PolicyStoreDTO policyStoreDTO) {
+
+        this.policyId = policyStoreDTO.getPolicyId();
+        this.policy = policyStoreDTO.getPolicy();
+        this.policyOrder = policyStoreDTO.getPolicyOrder();
+        this.active = policyStoreDTO.isActive();
+        this.setOrder = policyStoreDTO.isSetOrder();
+        this.setActive = policyStoreDTO.isSetActive();
+        this.version = policyStoreDTO.getVersion();
+        this.attributeDTOs = policyStoreDTO.getAttributeDTOs();
+    }
 
     public String getPolicyId() {
         return policyId;

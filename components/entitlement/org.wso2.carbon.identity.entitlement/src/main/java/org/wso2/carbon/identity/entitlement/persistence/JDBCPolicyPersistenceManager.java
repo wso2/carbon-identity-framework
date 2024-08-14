@@ -27,11 +27,11 @@ import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.PolicyOrderComparator;
-import org.wso2.carbon.identity.entitlement.persistence.dao.PolicyDAO;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreManager;
+import org.wso2.carbon.identity.entitlement.persistence.cache.CacheBackedPolicyDAO;
 import org.wso2.carbon.identity.entitlement.policy.PolicyAttributeBuilder;
 import org.wso2.carbon.identity.entitlement.policy.finder.AbstractPolicyFinderModule;
 import org.wso2.carbon.identity.entitlement.policy.finder.PolicyFinderModule;
@@ -59,7 +59,7 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
     private static final String ERROR_RETRIEVING_POLICIES_FROM_POLICY_FINDER = "Policies can not be retrieved from " +
             "the policy finder module";
     private final int maxVersions;
-    private static final PolicyDAO policyDAO = new PolicyDAO();
+    private static final CacheBackedPolicyDAO policyDAO = CacheBackedPolicyDAO.getInstance();
 
     public JDBCPolicyPersistenceManager() {
 

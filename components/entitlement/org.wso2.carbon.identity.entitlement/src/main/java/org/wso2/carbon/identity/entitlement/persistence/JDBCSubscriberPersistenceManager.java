@@ -26,9 +26,9 @@ import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
-import org.wso2.carbon.identity.entitlement.persistence.dao.SubscriberDAO;
 import org.wso2.carbon.identity.entitlement.dto.PublisherDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.PublisherPropertyDTO;
+import org.wso2.carbon.identity.entitlement.persistence.cache.CacheBackedSubscriberDAO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ public class JDBCSubscriberPersistenceManager implements SubscriberPersistenceMa
 
     private static final Log LOG = LogFactory.getLog(JDBCSubscriberPersistenceManager.class);
     private static final String ERROR_SUBSCRIBER_ID_NULL = "Subscriber Id can not be null";
-    private static final SubscriberDAO subscriberDAO = new SubscriberDAO();
+    private static final CacheBackedSubscriberDAO subscriberDAO = CacheBackedSubscriberDAO.getInstance();
 
     /**
      * Gets the requested subscriber.
