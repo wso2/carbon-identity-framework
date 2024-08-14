@@ -88,9 +88,9 @@ public class IdentityKeyStoreResolver {
     /**
      * Return Primary or tenant keystore according to given tenant domain.
      *
-     * @param tenantDomain  Tenant domain
-     * @return Primary or tenant keystore
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     * @param tenantDomain  Tenant domain.
+     * @return Primary or tenant keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
     private KeyStore getKeyStore(String tenantDomain) throws IdentityKeyStoreResolverException {
 
@@ -116,10 +116,10 @@ public class IdentityKeyStoreResolver {
     /**
      * Return Primary, tenant or custom keystore.
      *
-     * @param tenantDomain      Tenant domain
-     * @param inboundProtocol   Inbound authentication protocol of the application
-     * @return Primary, tenant or custom keystore
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     * @param tenantDomain      Tenant domain.
+     * @param inboundProtocol   Inbound authentication protocol of the application.
+     * @return Primary, tenant or custom keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
     public KeyStore getKeyStore(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
@@ -166,9 +166,9 @@ public class IdentityKeyStoreResolver {
     /**
      * Return Primary key of the Primary or tenant keystore according to given tenant domain.
      *
-     * @param tenantDomain  Tenant domain
-     * @return Primary key of Primary or tenant keystore
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     * @param tenantDomain  Tenant domain.
+     * @return Primary key of Primary or tenant keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
     private Key getPrivateKey(String tenantDomain) throws IdentityKeyStoreResolverException {
 
@@ -201,10 +201,10 @@ public class IdentityKeyStoreResolver {
     /**
      * Return Private Key of the Primary, tenant or custom keystore.
      *
-     * @param tenantDomain      Tenant domain
-     * @param inboundProtocol   Inbound authentication protocol of the application
-     * @return Private Key of the Primary, tenant or custom keystore
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     * @param tenantDomain      Tenant domain.
+     * @param inboundProtocol   Inbound authentication protocol of the application.
+     * @return Private Key of the Primary, tenant or custom keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
     public Key getPrivateKey(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
@@ -256,9 +256,9 @@ public class IdentityKeyStoreResolver {
     /**
      * Return Public Certificate of the Primary or tenant keystore according to given tenant domain.
      *
-     * @param tenantDomain  Tenant domain
-     * @return Public Certificate of Primary or tenant keystore
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     * @param tenantDomain  Tenant domain.
+     * @return Public Certificate of Primary or tenant keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
     private Certificate getCertificate(String tenantDomain) throws IdentityKeyStoreResolverException {
 
@@ -290,10 +290,10 @@ public class IdentityKeyStoreResolver {
     /**
      * Return Public Certificate of the Primary, tenant or custom keystore.
      *
-     * @param tenantDomain      Tenant domain
-     * @param inboundProtocol   Inbound authentication protocol of the application
-     * @return Public Certificate of the Primary, tenant or custom keystore
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     * @param tenantDomain      Tenant domain.
+     * @param inboundProtocol   Inbound authentication protocol of the application.
+     * @return Public Certificate of the Primary, tenant or custom keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
     public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
@@ -345,9 +345,9 @@ public class IdentityKeyStoreResolver {
     /**
      * Return Public Key of the Primary or tenant keystore according to given tenant domain.
      *
-     * @param tenantDomain  Tenant domain
-     * @return Public Key of Primary or tenant keystore
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     * @param tenantDomain  Tenant domain.
+     * @return Public Key of Primary or tenant keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
     private RSAPublicKey getPublicKey(String tenantDomain) throws IdentityKeyStoreResolverException {
 
@@ -357,10 +357,10 @@ public class IdentityKeyStoreResolver {
     /**
      * Return Public Key of the Primary, tenant or custom keystore.
      *
-     * @param tenantDomain      Tenant domain
-     * @param inboundProtocol   Inbound authentication protocol of the application
-     * @return Public Key of the Primary, tenant or custom keystore
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     * @param tenantDomain      Tenant domain.
+     * @param inboundProtocol   Inbound authentication protocol of the application.
+     * @return Public Key of the Primary, tenant or custom keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
     public RSAPublicKey getPublicKey(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
@@ -372,10 +372,10 @@ public class IdentityKeyStoreResolver {
     /**
      * Return keystore name of the Primary, tenant or custom keystore.
      *
-     * @param tenantDomain      Tenant domain
-     * @param inboundProtocol   Inbound authentication protocol of the application
-     * @return Keystore name of the Primary, tenant or custom keystore
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     * @param tenantDomain      Tenant domain.
+     * @param inboundProtocol   Inbound authentication protocol of the application.
+     * @return Keystore name of the Primary, tenant or custom keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
     public String getKeyStoreName(String tenantDomain, InboundProtocol inboundProtocol)
             throws IdentityKeyStoreResolverException {
@@ -418,11 +418,11 @@ public class IdentityKeyStoreResolver {
     /**
      * Return key store configs of the Primary, tenant or custom keystore.
      *
-     * @param tenantDomain      Tenant domain
-     * @param inboundProtocol   Inbound authentication protocol of the application
-     * @param configName        Name of the configuration needed
-     * @return Configuration value
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class
+     * @param tenantDomain      Tenant domain.
+     * @param inboundProtocol   Inbound authentication protocol of the application.
+     * @param configName        Name of the configuration needed.
+     * @return Configuration value.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
     public String getKeyStoreConfig(String tenantDomain, InboundProtocol inboundProtocol, String configName)
             throws IdentityKeyStoreResolverException {
