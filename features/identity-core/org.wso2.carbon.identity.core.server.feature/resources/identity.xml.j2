@@ -1841,6 +1841,9 @@
         {% if authentication_policy.disable_account_lock_handler is defined %}
         <DisableAccountLockHandler>{{authentication_policy.disable_account_lock_handler}}</DisableAccountLockHandler>
         {% endif %}
+        {% if authentication_policy.pre_authentication_account_lock_check is defined %}
+        <PreAuthenticationAccountLockCheck>{{authentication_policy.pre_authentication_account_lock_check}}</PreAuthenticationAccountLockCheck>
+        {% endif %}
     </AuthenticationPolicy>
 
     <!-- Show authenticated user name in audit logs. -->
