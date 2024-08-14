@@ -18,24 +18,12 @@
 
 package org.wso2.carbon.identity.core.util;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages;
 
 /**
  * Exception type for IdentityKeyStoreManager class.
  */
 public class IdentityKeyStoreResolverException extends IdentityException {
-
-    public IdentityKeyStoreResolverException(String message) {
-
-        super(message);
-    }
-
-    public IdentityKeyStoreResolverException(String message, Throwable e) {
-
-        super(message, e);
-    }
 
     public IdentityKeyStoreResolverException(String errorCode, String message) {
 
@@ -45,15 +33,5 @@ public class IdentityKeyStoreResolverException extends IdentityException {
     public IdentityKeyStoreResolverException(String errorCode, String message, Throwable e) {
 
         super(errorCode, message, e);
-    }
-
-    public IdentityKeyStoreResolverException(ErrorMessages errorMessage) {
-
-        super(errorMessage.getCode(), errorMessage.getMessage());
-    }
-
-    public IdentityKeyStoreResolverException(ErrorMessages errorMessage, Throwable e) {
-
-        super(errorMessage.getCode(), errorMessage.getMessage(), e);
     }
 }

@@ -49,6 +49,7 @@ public class IdentityKeyStoreResolverConstants {
      * Enums for inbound protocols.
      */
     public enum InboundProtocol {
+
         // List of supported inbound protocols
         OAUTH(INBOUND_PROTOCOL_OAUTH),
         SAML(INBOUND_PROTOCOL_SAML),

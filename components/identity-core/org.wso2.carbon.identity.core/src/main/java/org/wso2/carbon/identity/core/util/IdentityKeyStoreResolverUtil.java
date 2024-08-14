@@ -28,6 +28,13 @@ import javax.xml.namespace.QName;
  */
 public class IdentityKeyStoreResolverUtil {
 
+    /**
+     * Builds the key store name for a tenant using tenant domain name.
+     *
+     * @param tenantDomain Tenant domain name.
+     * @return tenant key store name as String.
+     * @throws IdentityKeyStoreResolverException if tenant domain is null or empty.
+     */
     public static String buildTenantKeyStoreName(String tenantDomain) throws IdentityKeyStoreResolverException {
 
         if (tenantDomain == null || tenantDomain.isEmpty()) {
@@ -39,6 +46,13 @@ public class IdentityKeyStoreResolverUtil {
         return ksName + IdentityKeyStoreResolverConstants.KEY_STORE_EXTENSION;
     }
 
+    /**
+     * Builds the custom key store name by adding the CUSTOM_KEYSTORE_PREFIX to the key store name.
+     *
+     * @param keyStoreName Key store file name.
+     * @return Custom key store name as String.
+     * @throws IdentityKeyStoreResolverException if key store name is null or empty.
+     */
     public static String buildCustomKeyStoreName(String keyStoreName) throws IdentityKeyStoreResolverException {
 
         if (keyStoreName == null || keyStoreName.isEmpty()) {
@@ -49,6 +63,12 @@ public class IdentityKeyStoreResolverUtil {
         return RegistryResources.SecurityManagement.CustomKeyStore.CUSTOM_KEYSTORE_PREFIX + keyStoreName;
     }
 
+    /**
+     * Builds a QName object with the IDENTITY_DEFAULT_NAMESPACE.
+     *
+     * @param localPart Local part of the QName.
+     * @return QName object.
+     */
     public static QName getQNameWithIdentityNameSpace(String localPart) {
         
         return new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, localPart);

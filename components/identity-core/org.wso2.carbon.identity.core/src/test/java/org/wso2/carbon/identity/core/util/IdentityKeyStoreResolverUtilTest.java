@@ -29,6 +29,9 @@ import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.ge
 
 import javax.xml.namespace.QName;
 
+/**
+ * Test cases for IdentityKeyStoreResolverUtil.
+ */
 public class IdentityKeyStoreResolverUtilTest {
 
     @Test

@@ -51,6 +51,9 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.*;
 
+/**
+ * Test cases for IdentityKeyStoreResolver.
+ */
 public class IdentityKeyStoreResolverTest extends TestCase {
 
     private static final String PRIMARY_KEY_STORE = "wso2carbon.jks";
@@ -78,7 +81,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
 
     private IdentityKeyStoreResolver identityKeyStoreResolver;
 
-    // Test key store mappings
+    // Test key store mappings.
     Map<InboundProtocol, IdentityKeyStoreMapping> keyStoreMappings = new ConcurrentHashMap<>();
 
     private MockedStatic<IdentityConfigParser> identityConfigParser;
@@ -87,7 +90,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @BeforeMethod
     public void setUp() throws Exception {
 
-        // Mock key store mapping configurations
+        // Mock key store mapping configurations.
         identityConfigParser = mockStatic(IdentityConfigParser.class);
         mockIdentityConfigParser = mock(IdentityConfigParser.class);
         identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
@@ -121,7 +124,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @Test
     public void testGetInstance() {
 
-        // Test for singleton instance
+        // Test for singleton instance.
         IdentityKeyStoreResolver identityKeyStoreResolver1 = IdentityKeyStoreResolver.getInstance();
         IdentityKeyStoreResolver identityKeyStoreResolver2 = IdentityKeyStoreResolver.getInstance();
         assertEquals(identityKeyStoreResolver1, identityKeyStoreResolver2);
@@ -236,6 +239,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     }
 
     private KeyStore getKeyStoreFromFile(String keystoreName, String password, String home) throws Exception {
+
         Path tenantKeystorePath = Paths.get(home, "repository", "resources", "security", keystoreName);
         FileInputStream file = new FileInputStream(tenantKeystorePath.toString());
         KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
