@@ -141,6 +141,8 @@ public class SQLConstants {
             "OR TENANT_ID IS NULL)";
     public static final String UPDATE_API_RESOURCE = "UPDATE API_RESOURCE SET NAME = ?, DESCRIPTION = ?, TYPE = ?" +
             " WHERE ID = ?";
+    public static final String UPDATE_SCOPE_METADATA = "UPDATE SCOPE SET DISPLAY_NAME  = ?, DESCRIPTION  = ? " +
+            "WHERE NAME = ? AND TENANT_ID = ?";
     public static final String IS_SCOPE_EXIST_BY_ID = "SELECT ID FROM SCOPE WHERE ID = ? AND TENANT_ID = ?";
     public static final String GET_SCOPE_BY_NAME = "SELECT ID, NAME, DISPLAY_NAME, DESCRIPTION, API_ID, TENANT_ID "
             + "FROM SCOPE WHERE NAME = ? AND (TENANT_ID = ? OR TENANT_ID IS NULL)";
