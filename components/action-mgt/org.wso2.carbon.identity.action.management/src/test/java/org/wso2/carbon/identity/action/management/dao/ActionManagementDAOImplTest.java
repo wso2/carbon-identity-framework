@@ -150,28 +150,6 @@ public class ActionManagementDAOImplTest {
     }
 
     @Test(priority = 3)
-    public void testDeleteAction() throws ActionMgtException, SQLException {
-
-        daoImpl.deleteAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), action, TENANT_ID);
-        mockDBConnection();
-        Assert.assertEquals(0, daoImpl.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN, TENANT_ID).size());
-    }
-
-    @Test(priority = 4)
-    public void testAddActionWithoutOptionalAttributes() throws ActionMgtException {
-
-        Action creatingAction = buildMockAction(true);
-        action = daoImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, creatingAction.getId(), creatingAction, TENANT_ID);
-        Assert.assertEquals(creatingAction.getId(), action.getId());
-        Assert.assertEquals(creatingAction.getName(), action.getName());
-        Assert.assertNull(null,action.getDescription());
-        Assert.assertEquals(creatingAction.getType(), action.getType());
-        Assert.assertEquals(creatingAction.getStatus(), action.getStatus());
-        Assert.assertEquals(creatingAction.getEndpoint().getUri(), action.getEndpoint().getUri());
-        Assert.assertEquals(creatingAction.getEndpoint().getAuthentication().getType(), action.getEndpoint().getAuthentication().getType());
-    }
-
-    @Test(priority = 5)
     public void testGetActionByActionId() throws ActionMgtException {
 
         Action result = daoImpl.getActionByActionId(action.getId(), TENANT_ID);
@@ -182,6 +160,28 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(action.getStatus(), result.getStatus());
         Assert.assertEquals(action.getEndpoint().getUri(), result.getEndpoint().getUri());
         Assert.assertEquals(action.getEndpoint().getAuthentication().getType(), result.getEndpoint().getAuthentication().getType());
+    }
+
+    @Test(priority = 4)
+    public void testDeleteAction() throws ActionMgtException, SQLException {
+
+        daoImpl.deleteAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), action, TENANT_ID);
+        mockDBConnection();
+        Assert.assertNull(daoImpl.getActionByActionId(action.getId(), TENANT_ID));
+    }
+
+    @Test(priority = 5)
+    public void testAddActionWithoutOptionalAttributes() throws ActionMgtException {
+
+        Action creatingAction = buildMockAction(true);
+        action = daoImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, creatingAction.getId(), creatingAction, TENANT_ID);
+        Assert.assertEquals(creatingAction.getId(), action.getId());
+        Assert.assertEquals(creatingAction.getName(), action.getName());
+        Assert.assertNull(null, action.getDescription());
+        Assert.assertEquals(creatingAction.getType(), action.getType());
+        Assert.assertEquals(creatingAction.getStatus(), action.getStatus());
+        Assert.assertEquals(creatingAction.getEndpoint().getUri(), action.getEndpoint().getUri());
+        Assert.assertEquals(creatingAction.getEndpoint().getAuthentication().getType(), action.getEndpoint().getAuthentication().getType());
     }
 
     @Test(priority = 6)
@@ -229,7 +229,7 @@ public class ActionManagementDAOImplTest {
     }
 
     @Test(priority = 9)
-    public void testUpdateActionEndpointAuthProperties() throws ActionMgtException {
+    public void testUpdateActionEndpointAuthProperties() {
 
         try {
             Action result = daoImpl.updateActionEndpointAuthProperties(action.getId(), authType, TENANT_ID);
