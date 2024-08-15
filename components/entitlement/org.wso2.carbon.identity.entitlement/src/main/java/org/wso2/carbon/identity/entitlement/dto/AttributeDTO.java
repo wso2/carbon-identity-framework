@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.entitlement.dto;
 
+import java.io.Serializable;
+
 /**
  * This encapsulates the attribute element data of the XACML policy
  */
-public class AttributeDTO {
+public class AttributeDTO implements Serializable {
 
     private String attributeValue;
 

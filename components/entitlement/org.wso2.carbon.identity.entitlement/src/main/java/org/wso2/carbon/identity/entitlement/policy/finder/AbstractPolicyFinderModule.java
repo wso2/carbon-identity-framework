@@ -82,6 +82,7 @@ public abstract class AbstractPolicyFinderModule implements PolicyFinderModule {
 
     @Override
     public String[] getActivePolicies() {
+
         log.debug("Start retrieving active policies at : " + new Date());
         List<String> policies = new ArrayList<String>();
         String[] policyIdentifiers = getOrderedPolicyIdentifiers();
@@ -108,7 +109,6 @@ public abstract class AbstractPolicyFinderModule implements PolicyFinderModule {
         return policies.toArray(new String[policies.size()]);
 
     }
-
 
     @Override
     public boolean isDefaultCategoriesSupported() {
