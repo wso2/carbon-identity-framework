@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import static org.wso2.carbon.identity.entitlement.PDPConstants.MODULE_NAME;
+
 /**
  * HybridPolicyPersistenceManager is a hybrid implementation of PolicyPersistenceManager. It uses both JDBC and Registry
  * implementations to handle policy data. If the policy is already in the registry, it will be maintained there,
@@ -42,7 +44,6 @@ public class HybridPolicyPersistenceManager extends AbstractPolicyFinderModule i
     private final JDBCPolicyPersistenceManager jdbcPolicyPersistenceManager = new JDBCPolicyPersistenceManager();
     private final RegistryPolicyPersistenceManager registryPolicyPersistenceManager =
             new RegistryPolicyPersistenceManager();
-    private static final String MODULE_NAME = "Hybrid Policy Finder Module";
 
     @Override
     public void init(Properties properties) {

@@ -307,6 +307,7 @@ public class PDPConstants {
 
     public static final String SUBSCRIBER_ID = "subscriberId";
     public static final String POLICY_STORAGE_CONFIG = "DataStorageType.XACML";
+    public static final String MODULE_NAME = "Registry Policy Finder Module";
 
     public static final class Algorithms {
 
