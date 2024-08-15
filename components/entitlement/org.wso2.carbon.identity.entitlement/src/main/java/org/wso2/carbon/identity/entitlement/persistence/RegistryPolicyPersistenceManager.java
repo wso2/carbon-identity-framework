@@ -59,6 +59,8 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import static org.wso2.carbon.identity.entitlement.PDPConstants.MODULE_NAME;
+
 /**
  * This implementation handles the XACML policy management in the Registry.
  */
@@ -67,7 +69,6 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
     // The logger that is used for all messages
     private static final Log LOG = LogFactory.getLog(RegistryPolicyPersistenceManager.class);
     private static final String KEY_VALUE_POLICY_META_DATA = "policyMetaData";
-    private static final String MODULE_NAME = "Registry Policy Finder Module";
     private static final String POLICY_STORE_PATH = "policyStorePath";
     private static final String DEFAULT_POLICY_STORE_PATH = "/repository/identity/entitlement/policy/pdp/";
     private static final String INVALID_POLICY_VERSION = "Invalid policy version";
@@ -96,7 +97,7 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
     /**
      * Adds or updates the given PAP policy.
      *
-     * @param policy      policy.
+     * @param policy          policy.
      * @param isFromPapAction true if the operation originated from a PAP action, false if it is from a PDP action.
      * @throws EntitlementException If an error occurs
      */
@@ -365,7 +366,7 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
         try {
             PolicyStoreDTO[] policyDTOs = getAllPolicies(true, true);
             List<String> policyIds = new ArrayList<>();
-            for (PolicyStoreDTO policyStoreDTO: policyDTOs) {
+            for (PolicyStoreDTO policyStoreDTO : policyDTOs) {
                 policyIds.add(policyStoreDTO.getPolicyId());
             }
             List<PolicyDTO> policyDTOList = getPAPPolicies(policyIds);

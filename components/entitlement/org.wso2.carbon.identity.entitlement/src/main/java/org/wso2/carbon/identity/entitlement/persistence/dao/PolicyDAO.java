@@ -545,7 +545,8 @@ public class PolicyDAO {
     }
 
     /**
-     * Publish a new policy version.
+     * Publish a new policy version. For inserts, `isSetActive()` and `isSetOrder()` will be true. For updates, both
+     * will be false.
      *
      * @param policy   policy.
      * @param tenantId tenant ID.
@@ -607,7 +608,7 @@ public class PolicyDAO {
             // Publish the given version of the policy
             publishPolicyVersion(policy, tenantId, connection, version);
 
-            // If this is not an update, keep the previous active status and order
+            // If this is an update, keep the previous active status and order
             if (!policy.isSetActive() && !policy.isSetOrder()) {
                 try (NamedPreparedStatement updatePolicyStatusAndOrderPrepStmt = new NamedPreparedStatement(connection,
                         RESTORE_ACTIVE_STATUS_AND_ORDER_SQL)) {
@@ -842,7 +843,7 @@ public class PolicyDAO {
 
             createPolicyPrepStmt.setString(POLICY_ID, policy.getPolicyId());
             createPolicyPrepStmt.setInt(VERSION, Integer.parseInt(policy.getVersion()));
-            createPolicyPrepStmt.setBoolean(IS_IN_PDP, policy.isPromote());
+            createPolicyPrepStmt.setBoolean(IS_IN_PDP, !IN_PDP);
             createPolicyPrepStmt.setBoolean(IS_IN_PAP, IN_PAP);
             createPolicyPrepStmt.setString(POLICY, policy.getPolicy());
             createPolicyPrepStmt.setBoolean(IS_ACTIVE, policy.isActive());
