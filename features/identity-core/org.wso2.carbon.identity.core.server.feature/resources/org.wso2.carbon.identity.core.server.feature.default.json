@@ -257,6 +257,7 @@
   "oauth.oidc.id_token.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
+  "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
@@ -356,7 +357,7 @@
   "scim2.endpoints.groups_endpoint": "$ref{server.base_path}/scim2/Groups",
   "scim2.enable_complex_multivalued_attribute_support": false,
   "scim2.enable_filtering_enhancements": false,
-  "scim2.enable_group_based_user_filter_improvements": false,
+  "scim2.enable_group_based_user_filter_improvements": true,
   "scim2.notify_userstore_status": false,
   "scim2.filter_users_and_groups_from_primary_domain": false,
   "scim2.mandate_domain_for_uesrnames_and_group_names_in_response": false,
@@ -1087,6 +1088,7 @@
     "OAuthRequestPathAuthenticator"
   ],
   "console.ui.hiddenConnectionTemplates": [ "swe-idp" ],
+  "console.ui.hiddenApplicationTemplates": [],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
@@ -1564,6 +1566,7 @@
   "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
 
   "actions.maximum_actions_per_action_type": 1,
+  "actions.types.pre_issue_access_token.enable": false,
 
   "oauth.authorize_all_scopes": false
 }

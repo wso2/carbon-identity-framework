@@ -295,6 +295,30 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     }
 
     @Override
+    public void updateScopeMetadata(Scope scope, APIResource apiResource, Integer tenantId)
+            throws APIResourceMgtException {
+
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
+             PreparedStatement preparedStatement = dbConnection.prepareStatement(SQLConstants.UPDATE_SCOPE_METADATA)) {
+            try {
+                preparedStatement.setString(1, scope.getDisplayName());
+                preparedStatement.setString(2, scope.getDescription());
+                preparedStatement.setString(3, scope.getName());
+                preparedStatement.setInt(4, tenantId);
+                preparedStatement.executeUpdate();
+
+                IdentityDatabaseUtil.commitTransaction(dbConnection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_UPDATING_SCOPE_METADATA, e);
+        }
+    }
+
+    @Override
     public void deleteAPIResourceById(String apiId, Integer tenantId) throws APIResourceMgtException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
