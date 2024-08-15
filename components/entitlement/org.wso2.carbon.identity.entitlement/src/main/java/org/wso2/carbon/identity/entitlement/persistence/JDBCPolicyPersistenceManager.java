@@ -48,14 +48,14 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import static org.wso2.carbon.identity.entitlement.PDPConstants.MODULE_NAME;
+
 /**
  * This class handles the policy operations in the JDBC data store.
  */
 public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule implements PolicyPersistenceManager {
 
     private static final Log LOG = LogFactory.getLog(JDBCPolicyPersistenceManager.class);
-    // TODO: revisit the module name
-    private static final String MODULE_NAME = "JDBC Policy Finder Module";
     private static final String ERROR_RETRIEVING_POLICIES_FROM_POLICY_FINDER = "Policies can not be retrieved from " +
             "the policy finder module";
     private final int maxVersions;
