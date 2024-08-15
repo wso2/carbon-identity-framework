@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertThrows;
 
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.buildCustomKeyStoreName;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.buildTenantKeyStoreName;
@@ -34,21 +34,64 @@ import javax.xml.namespace.QName;
  */
 public class IdentityKeyStoreResolverUtilTest {
 
-    @Test
-    public void testBuildTenantKeyStoreName() throws IdentityKeyStoreResolverException {
+    @DataProvider(name = "CorrectTenantKeyStoreNameDataProvider")
+    public Object[][] correctTenantKeyStoreNameDataProvider() {
 
-        assertEquals("example-com.jks", buildTenantKeyStoreName("example.com"));
-        assertThrows(IdentityKeyStoreResolverException.class, () -> buildTenantKeyStoreName(""));
-        assertThrows(IdentityKeyStoreResolverException.class, () -> buildTenantKeyStoreName(null));
+        return new Object[][] {
+                {"example", "example.jks"},
+                {"example.com", "example-com.jks"}
+        };
     }
 
-    @Test
-    public void testBuildCustomKeyStoreName() throws IdentityKeyStoreResolverException {
+    @Test(dataProvider = "CorrectTenantKeyStoreNameDataProvider")
+    public void testCorrectBuildTenantKeyStoreName(String tenantDomain, String expectedResult) throws IdentityKeyStoreResolverException {
 
-        assertEquals("CUSTOM/myKeyStore", buildCustomKeyStoreName("myKeyStore"));
-        assertEquals("CUSTOM/@#$_keyStore", buildCustomKeyStoreName("@#$_keyStore"));
-        assertThrows(IdentityKeyStoreResolverException.class, () -> buildTenantKeyStoreName(""));
-        assertThrows(IdentityKeyStoreResolverException.class, () -> buildTenantKeyStoreName(null));
+        assertEquals(expectedResult, buildTenantKeyStoreName(tenantDomain));
+    }
+
+    @DataProvider(name = "IncorrectTenantKeyStoreNameDataProvider")
+    public Object[] incorrectTenantKeyStoreNameDataProvider() {
+
+        return new Object[] {
+                "",
+                null
+        };
+    }
+
+    @Test(dataProvider = "IncorrectTenantKeyStoreNameDataProvider", expectedExceptions = IdentityKeyStoreResolverException.class)
+    public void testIncorrectBuildTenantKeyStoreName(String tenantDomain) throws IdentityKeyStoreResolverException {
+
+        buildTenantKeyStoreName(tenantDomain);
+    }
+
+    @DataProvider(name = "CorrectCustomKeyStoreNameDataProvider")
+    public Object[][] correctCustomKeyStoreNameDataProvider() {
+
+        return new Object[][] {
+                {"example.jks", "CUSTOM/example.jks"},
+                {"k$ySt&re.jks", "CUSTOM/k$ySt&re.jks"}
+        };
+    }
+
+    @Test(dataProvider = "CorrectCustomKeyStoreNameDataProvider")
+    public void testCorrectBuildCustomKeyStoreName(String keyStoreName, String expectedResult) throws IdentityKeyStoreResolverException {
+
+        assertEquals(expectedResult, buildCustomKeyStoreName(keyStoreName));
+    }
+
+    @DataProvider(name = "IncorrectCustomKeyStoreNameDataProvider")
+    public Object[] incorrectCustomKeyStoreNameDataProvider() {
+
+        return new Object[] {
+                "",
+                null
+        };
+    }
+
+    @Test(dataProvider = "IncorrectCustomKeyStoreNameDataProvider", expectedExceptions = IdentityKeyStoreResolverException.class)
+    public void testIncorrectBuildCustomKeyStoreName(String keyStoreName) throws IdentityKeyStoreResolverException {
+
+        buildCustomKeyStoreName(keyStoreName);
     }
 
     @Test
