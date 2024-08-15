@@ -101,6 +101,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY;
@@ -506,8 +507,9 @@ public class IdPManagementDAO {
                 prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
             }
             prepStmt.setInt(filterAttributeValueSize + 1, tenantId);
-            prepStmt.setInt(filterAttributeValueSize + 2, offset + limit);
-            prepStmt.setInt(filterAttributeValueSize + 3, offset);
+            prepStmt.setInt(filterAttributeValueSize + 2, tenantId);
+            prepStmt.setInt(filterAttributeValueSize + 3, offset + limit);
+            prepStmt.setInt(filterAttributeValueSize + 4, offset);
         } else if (databaseProductName.contains("Microsoft")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL;
             sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
@@ -1048,12 +1050,13 @@ public class IdPManagementDAO {
 
         PreparedStatement prepStmt = null;
         try {
+            boolean isOracleDB = isOracleDB();
             String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
                     IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
 
             for (IdentityProviderProperty property : properties) {
-                if (property.getValue() != null) {
+                if (isOracleDB ? StringUtils.isNotEmpty(property.getValue()) : property.getValue() != null) {
                     prepStmt.setInt(1, idpId);
                     prepStmt.setString(2, property.getName());
                     prepStmt.setString(3, property.getValue());

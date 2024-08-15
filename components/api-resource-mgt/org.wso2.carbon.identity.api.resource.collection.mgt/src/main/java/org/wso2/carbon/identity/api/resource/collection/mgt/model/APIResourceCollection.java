@@ -27,6 +27,7 @@ import java.util.Map;
  * API Resource Collection.
  */
 public class APIResourceCollection {
+
     private String id;
     private String name;
     private String displayName;

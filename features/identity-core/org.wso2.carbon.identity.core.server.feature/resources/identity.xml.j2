@@ -974,6 +974,7 @@
             <DefaultSubjectType>{{oauth.oidc.subject_type.default_subject_type}}</DefaultSubjectType>
             <EnablePairwiseSubForAccessToken>{{oauth.oidc.subject_type.enable_pairwise_subject_for_access_tokens_if_pairwise_subject_type_selection}}</EnablePairwiseSubForAccessToken>
             <EnableTLSCertificateBoundAccessTokensViaBindingType>{{oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type}}</EnableTLSCertificateBoundAccessTokensViaBindingType>
+            <EnableHybridFlowAppLevelValidation>{{oauth.oidc.enable_hybrid_flow_app_level_validation}}</EnableHybridFlowAppLevelValidation>
         </OpenIDConnect>
 
         <!-- OIDCSessionStateManager configuration -->
@@ -1478,7 +1479,7 @@
              It determines the totalResults based on the total user count corresponding to the given group-based filter.
              Additionally, when invoking the user endpoint with a groups filter by passing a role (hybrid or system roles),
              it returns an empty list when role group separation is enabled, instead of returning users linked to the passed role.
-             Default value : false
+             Default value : true
         -->
         <EnableGroupBasedUserFilteringImprovements>{{scim2.enable_group_based_user_filter_improvements}}</EnableGroupBasedUserFilteringImprovements>
 
@@ -1840,6 +1841,9 @@
         {% if authentication_policy.disable_account_lock_handler is defined %}
         <DisableAccountLockHandler>{{authentication_policy.disable_account_lock_handler}}</DisableAccountLockHandler>
         {% endif %}
+        {% if authentication_policy.pre_authentication_account_lock_check is defined %}
+        <PreAuthenticationAccountLockCheck>{{authentication_policy.pre_authentication_account_lock_check}}</PreAuthenticationAccountLockCheck>
+        {% endif %}
     </AuthenticationPolicy>
 
     <!-- Show authenticated user name in audit logs. -->
@@ -1923,6 +1927,11 @@
 
     <Actions>
         <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
+        <Types>
+            <PreIssueAccessToken>
+                <Enable>{{actions.types.pre_issue_access_token.enable}}</Enable>
+            </PreIssueAccessToken>
+        </Types>
     </Actions>
 
     <EventListeners>

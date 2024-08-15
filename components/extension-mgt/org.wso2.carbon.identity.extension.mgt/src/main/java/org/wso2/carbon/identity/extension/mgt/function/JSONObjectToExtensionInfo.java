@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -39,6 +39,7 @@ public class JSONObjectToExtensionInfo implements Function<JSONObject, Extension
 
         ExtensionInfo extensionInfo = new ExtensionInfo();
         extensionInfo.setId(jsonObject.getString(ExtensionMgtConstants.ID));
+        extensionInfo.setVersion(jsonObject.optString(ExtensionMgtConstants.VERSION, ""));
         extensionInfo.setName(jsonObject.getString(ExtensionMgtConstants.NAME));
         extensionInfo.setDescription(jsonObject.getString(ExtensionMgtConstants.DESCRIPTION));
         extensionInfo.setImage(jsonObject.getString(ExtensionMgtConstants.IMAGE));

@@ -6,6 +6,7 @@ import java.util.List;
  * API Resource Collection Search Result.
  */
 public class APIResourceCollectionSearchResult {
+
    private int totalCount;
    List<APIResourceCollection> apiResourceCollections;
 

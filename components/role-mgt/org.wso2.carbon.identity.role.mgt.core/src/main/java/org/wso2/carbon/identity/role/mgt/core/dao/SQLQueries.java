@@ -112,7 +112,7 @@ public class SQLQueries {
             "ORDER BY UM_ID DESC) WHERE rownum <= :END_INDEX;) WHERE rnum > :ZERO_BASED_START_INDEX;";
 
     public static final String GET_ROLES_BY_TENANT_WITH_UUID_ORACLE = "SELECT UM_ROLE_NAME, UM_UUID FROM (SELECT " +
-            "UM_ROLE_NAME, rownum AS rnum FROM (SELECT UM_ROLE_NAME, UM_UUID FROM UM_HYBRID_ROLE WHERE " +
+            "UM_ROLE_NAME, UM_UUID, rownum AS rnum FROM (SELECT UM_ROLE_NAME, UM_UUID FROM UM_HYBRID_ROLE WHERE " +
             "UM_TENANT_ID=:UM_TENANT_ID; ORDER BY UM_ID DESC) WHERE rownum <= :END_INDEX;) " +
             "WHERE rnum > :ZERO_BASED_START_INDEX;";
 
