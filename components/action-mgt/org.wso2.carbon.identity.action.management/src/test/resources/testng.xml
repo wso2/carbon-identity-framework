@@ -18,8 +18,8 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="org.wso2.carbon.identity.api.resource.mgt.dao">
-        <test name="api-resource-mgt-tests" preserve-order="true" parallel="false">
+<suite name="org.wso2.carbon.identity.action.management">
+        <test name="action-mgt-tests" preserve-order="true" parallel="false">
                 <classes>
                         <class name="org.wso2.carbon.identity.action.management.dao.ActionManagementDAOImplTest"></class>
                 </classes>
