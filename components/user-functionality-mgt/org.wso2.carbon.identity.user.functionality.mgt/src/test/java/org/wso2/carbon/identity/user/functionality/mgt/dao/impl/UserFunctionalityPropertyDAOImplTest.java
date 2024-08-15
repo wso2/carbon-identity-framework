@@ -19,13 +19,12 @@
 package org.wso2.carbon.identity.user.functionality.mgt.dao.impl;
 
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.testng.IObjectFactory;
+import org.mockito.MockedStatic;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.ObjectFactory;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -55,21 +54,20 @@ import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.user.functionality.mgt.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.identity.user.functionality.mgt.util.TestUtils.getConnection;
 import static org.wso2.carbon.identity.user.functionality.mgt.util.TestUtils.initiateH2Base;
-import static org.wso2.carbon.identity.user.functionality.mgt.util.TestUtils.mockDataSource;
 import static org.wso2.carbon.identity.user.functionality.mgt.util.TestUtils.spyConnection;
 
-@PrepareForTest({IdentityDatabaseUtil.class, IdentityUtil.class, UserFunctionalityManagerComponentDataHolder.class,
-        IdentityTenantUtil.class})
-public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
+@Listeners(MockitoTestNGListener.class)
+public class UserFunctionalityPropertyDAOImplTest {
 
     @Mock
     private RealmService realmService;
@@ -78,17 +76,23 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
     @Mock
     private UniqueIDUserStoreManager userStoreManager;
     @Mock
-    private UserFunctionalityManagerComponentDataHolder userFunctionalityManagerComponentDataHolder;
+    private UserFunctionalityManagerComponentDataHolder mockUserFunctionalityManagerComponentDataHolder;
     private UserFunctionalityPropertyDAO userFunctionalityPropertyDAO = new UserFunctionalityPropertyDAOImpl();
     private UserFunctionalityManager userFunctionalityManager = new UserFunctionalityManagerImpl();
+
+    private MockedStatic<IdentityUtil> identityUtil;
+    private MockedStatic<UserFunctionalityManagerComponentDataHolder> userFunctionalityManagerComponentDataHolder;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
         initiateH2Base();
-        mockStatic(IdentityDatabaseUtil.class);
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty(UserFunctionalityMgtConstants.ENABLE_PER_USER_FUNCTIONALITY_LOCKING))
+        identityUtil = mockStatic(IdentityUtil.class);
+        userFunctionalityManagerComponentDataHolder = mockStatic(UserFunctionalityManagerComponentDataHolder.class);
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        identityUtil.when(() -> IdentityUtil
+                        .getProperty(UserFunctionalityMgtConstants.ENABLE_PER_USER_FUNCTIONALITY_LOCKING))
                 .thenReturn("true");
     }
 
@@ -96,6 +100,9 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
     public void tearDown() throws Exception {
 
         closeH2Base();
+        identityUtil.close();
+        userFunctionalityManagerComponentDataHolder.close();
+        identityTenantUtil.close();
     }
 
     @DataProvider(name = "TestFunctionalityLockPropertiesData")
@@ -125,17 +132,19 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
                                                    Map<String, String> lockProperties) {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, lockProperties);
-            Map<String, String> properties =
-                    userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
-            assertEquals(properties, lockProperties);
-        } catch (SQLException | UserFunctionalityManagementServerException e) {
-            //Mock behaviour. Hence ignored.
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, lockProperties);
+                Map<String, String> properties =
+                        userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
+                assertEquals(properties, lockProperties);
+            } catch (SQLException | UserFunctionalityManagementServerException e) {
+                //Mock behaviour. Hence ignored.
+            }
         }
     }
 
@@ -144,17 +153,19 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
                                                       Map<String, String> properties) {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, properties);
-            Map<String, String> propertiesMap = userFunctionalityPropertyDAO
-                    .getAllProperties(userId, tenantId, functionalityIdentifier);
-            assertEquals(properties, propertiesMap);
-        } catch (SQLException | UserFunctionalityManagementServerException e) {
-            //Mock behaviour. Hence ignored.
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, properties);
+                Map<String, String> propertiesMap = userFunctionalityPropertyDAO
+                        .getAllProperties(userId, tenantId, functionalityIdentifier);
+                assertEquals(properties, propertiesMap);
+            } catch (SQLException | UserFunctionalityManagementServerException e) {
+                //Mock behaviour. Hence ignored.
+            }
         }
     }
 
@@ -192,19 +203,21 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
                                                     Map<String, String> propertiesToUpdate) {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, properties);
-            userFunctionalityPropertyDAO
-                    .updateProperties(userId, tenantId, functionalityIdentifier, propertiesToUpdate);
-            Map<String, String> updatedProperties =
-                    userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
-            assertEquals(updatedProperties, propertiesToUpdate);
-        } catch (SQLException | UserFunctionalityManagementServerException e) {
-            //Mock behaviour. Hence ignored.
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, properties);
+                userFunctionalityPropertyDAO
+                        .updateProperties(userId, tenantId, functionalityIdentifier, propertiesToUpdate);
+                Map<String, String> updatedProperties =
+                        userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
+                assertEquals(updatedProperties, propertiesToUpdate);
+            } catch (SQLException | UserFunctionalityManagementServerException e) {
+                //Mock behaviour. Hence ignored.
+            }
         }
     }
 
@@ -213,19 +226,21 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
                                                          Map<String, String> properties) {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            mockUser(userId);
-            userFunctionalityManager.setProperties(userId, tenantId, functionalityIdentifier, properties);
-            userFunctionalityPropertyDAO.deleteAllPropertiesForUser(userId, tenantId, functionalityIdentifier);
-            Map<String, String> functionalityLockProperties =
-                    userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
-            assertTrue(functionalityLockProperties.isEmpty());
-        } catch (SQLException | UserFunctionalityManagementException | UserStoreException e) {
-            //Mock behaviour. Hence ignored.
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                mockUser(userId);
+                userFunctionalityManager.setProperties(userId, tenantId, functionalityIdentifier, properties);
+                userFunctionalityPropertyDAO.deleteAllPropertiesForUser(userId, tenantId, functionalityIdentifier);
+                Map<String, String> functionalityLockProperties =
+                        userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
+                assertTrue(functionalityLockProperties.isEmpty());
+            } catch (SQLException | UserFunctionalityManagementException | UserStoreException e) {
+                //Mock behaviour. Hence ignored.
+            }
         }
     }
 
@@ -266,20 +281,22 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
                                                       Set<String> expected) {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, properties);
-            userFunctionalityPropertyDAO
-                    .deletePropertiesForUser(userId, tenantId, functionalityIdentifier, propertiesToDelete);
-            Map<String, String> functionalityLockProperties =
-                    userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                userFunctionalityPropertyDAO.addProperties(userId, tenantId, functionalityIdentifier, properties);
+                userFunctionalityPropertyDAO
+                        .deletePropertiesForUser(userId, tenantId, functionalityIdentifier, propertiesToDelete);
+                Map<String, String> functionalityLockProperties =
+                        userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
 
-            assertEquals(functionalityLockProperties.keySet(), expected);
-        } catch (SQLException | UserFunctionalityManagementServerException e) {
-            //Mock behaviour. Hence ignored.
+                assertEquals(functionalityLockProperties.keySet(), expected);
+            } catch (SQLException | UserFunctionalityManagementServerException e) {
+                //Mock behaviour. Hence ignored.
+            }
         }
     }
 
@@ -293,38 +310,36 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
         }};
         String[] functionalityIdentifiers = {"functionality1", "functionality2", "functionality3"};
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            for (String functionalityIdentifier : functionalityIdentifiers) {
-                userFunctionalityPropertyDAO.addProperties("user", 1, functionalityIdentifier, properties);
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                for (String functionalityIdentifier : functionalityIdentifiers) {
+                    userFunctionalityPropertyDAO.addProperties("user", 1, functionalityIdentifier, properties);
+                }
+
+                userFunctionalityPropertyDAO.deleteAllPropertiesForTenant(1);
+
+                for (String functionalityIdentifier : functionalityIdentifiers) {
+                    Map<String, String> functionalityLockProperties =
+                            userFunctionalityPropertyDAO.getAllProperties("user", 1, functionalityIdentifier);
+                    assertEquals(functionalityLockProperties.keySet(), Collections.emptySet());
+                }
+            } catch (SQLException | UserFunctionalityManagementServerException e) {
+                //Mock behaviour. Hence ignored.
             }
-
-            userFunctionalityPropertyDAO.deleteAllPropertiesForTenant(1);
-
-            for (String functionalityIdentifier : functionalityIdentifiers) {
-                Map<String, String> functionalityLockProperties =
-                        userFunctionalityPropertyDAO.getAllProperties("user", 1, functionalityIdentifier);
-                assertEquals(functionalityLockProperties.keySet(), Collections.emptySet());
-            }
-        } catch (SQLException | UserFunctionalityManagementServerException e) {
-            //Mock behaviour. Hence ignored.
         }
-    }
-
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
     private void mockUser(String userId) throws UserStoreException {
 
-        TestUtils.mockUserFunctionalityManagerComponentDataHolder(userFunctionalityManagerComponentDataHolder);
-        TestUtils.mockIdentityTenantUtil();
-        TestUtils.mockUserStoreManager(userFunctionalityManagerComponentDataHolder, realmService, userRealm, userStoreManager);
+
+        userFunctionalityManagerComponentDataHolder.when(
+                UserFunctionalityManagerComponentDataHolder::getInstance).thenReturn(mockUserFunctionalityManagerComponentDataHolder);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("carbon.super");
+        TestUtils.mockUserStoreManager(mockUserFunctionalityManagerComponentDataHolder, realmService, userRealm, userStoreManager);
         when(userStoreManager.isExistingUserWithID(anyString())).thenReturn(true);
     }
 }

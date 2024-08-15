@@ -16,7 +16,7 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="AuthenticationEndpointUtilTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+<suite name="AuthenticationEndpointUtilTestSuite">
 
     <test name="AuthenticationEndpointUtilTests-with-info-logs" preserve-order="true" parallel="false">
         <parameter name="log-level" value="info"/>

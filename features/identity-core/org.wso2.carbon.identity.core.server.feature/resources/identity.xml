@@ -53,6 +53,7 @@
                 <!-- All temporary authentication context data older than CleanUpTimeout value are considered as expired
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>40</CleanUpTimeout>
+                <EnablePeriodicCleanup>true</EnablePeriodicCleanup>
             </TempDataCleanup>
             <UserSessionMapping>
                 <Enable>true</Enable>
@@ -476,6 +477,7 @@
         Supported versions: IS 5.8.1  onwards
         -->
         <ScopeValidationEnabledForAuthzCodeAndImplicitGrant>true</ScopeValidationEnabledForAuthzCodeAndImplicitGrant>
+        <ScopeValidationPreserveCaseSensitivity>false</ScopeValidationPreserveCaseSensitivity>
 
         <!-- Scope handlers list. The handlers registered here will be executed at the scope validation phase while
              issuing access tokens. -->
@@ -637,6 +639,7 @@
                 <EnableCibaProfile>false</EnableCibaProfile>
                 <EnableSecurityProfile>false</EnableSecurityProfile>
             </FAPI>
+            <EnableClaimsSeparationForAccessToken>false</EnableClaimsSeparationForAccessToken>
         </OpenIDConnect>
 
         <!--
@@ -713,6 +716,10 @@
         -->
         <DCRM>
             <ApplicationRolePermissionRequiredToView>true</ApplicationRolePermissionRequiredToView>
+            <ClientAuthenticationRequired>true</ClientAuthenticationRequired>
+            <MandatorySoftwareStatement>false</MandatorySoftwareStatement>
+            <EnableFAPIEnforcement>false</EnableFAPIEnforcement>
+            <EnableSectorIdentifierURIValidation>false</EnableSectorIdentifierURIValidation>
         </DCRM>
 
         <!--
@@ -761,6 +768,13 @@
         Default value : true
         -->
         <RemoveUsernameFromIntrospectionResponseForAppTokens>true</RemoveUsernameFromIntrospectionResponseForAppTokens>
+
+        <!-- Configuration to pass a list of keys which are restricted to be sent as query parameters. -->
+        <RestrictedQueryParameters>
+            <Parameter>username</Parameter>
+            <Parameter>password</Parameter>
+            <Parameter>client_secret</Parameter>
+        </RestrictedQueryParameters>
     </OAuth>
 
     <RestApiAuthentication>
@@ -998,9 +1012,9 @@
             It determines the totalResults based on the total user count corresponding to the given group-based filter.
             Additionally, when invoking the user endpoint with a groups filter by passing a role (hybrid or system roles),
             it returns an empty list when role group separation is enabled, instead of returning users linked to the passed role.
-            Default value : false
+            Default value : true
         -->
-        <!--<EnableGroupBasedUserFilteringImprovements>false</EnableGroupBasedUserFilteringImprovements>-->
+        <!--<EnableGroupBasedUserFilteringImprovements>true</EnableGroupBasedUserFilteringImprovements>-->
 
     </SCIM2>
 
@@ -1849,7 +1863,7 @@
         </Resource>
         <Resource context="(.*)/api/users/v1/offline-invite-link(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
-            <Scopes>internal_offline_invite</Scopes>
+            <Scopes>internal_user_mgt_create</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
@@ -2221,6 +2235,27 @@
         <Resource context="(.*)/api/identity/typingdna/v1.0/(.*)" secured="true" http-method="GET, DELETE">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/actionmgt/create</Permissions>
+            <Scopes>internal_action_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/actionmgt/update</Permissions>
+            <Scopes>internal_action_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/actionmgt/update</Permissions>
+            <Scopes>internal_action_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/actionmgt/delete</Permissions>
+            <Scopes>internal_action_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/actionmgt/view</Permissions>
+            <Scopes>internal_action_mgt_view</Scopes>
         </Resource>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
@@ -2615,4 +2650,22 @@
          when an account is locked. -->
         <SetAccountLockAuthFailureReason>false</SetAccountLockAuthFailureReason>
     </APIResponse>
+
+    <CacheInvalidator>
+        <MB>
+            <Enabled>false</Enabled>
+            <Type>jms</Type>
+            <InitialNamingFactory>org.apache.activemq.jndi.ActiveMQInitialContextFactory</InitialNamingFactory>
+            <ProviderURL>failover:tcp://localhost:61616</ProviderURL>
+            <TopicName>ISCacheInvalidation</TopicName>
+            <ProducerName>producer1</ProducerName>
+            <HybridMode>false</HybridMode>
+        </MB>
+    </CacheInvalidator>
+
+    <OnDemandConfig>
+        <OnInitialUse>
+            <EnableSMSOTPPasswordRecoveryIfConnectorEnabled>false</EnableSMSOTPPasswordRecoveryIfConnectorEnabled>
+        </OnInitialUse>
+    </OnDemandConfig>
 </Server>

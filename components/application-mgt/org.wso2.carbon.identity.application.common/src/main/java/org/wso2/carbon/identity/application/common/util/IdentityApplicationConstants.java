@@ -97,11 +97,16 @@ public class IdentityApplicationConstants {
     public static final String ISSUER_SP_PROPERTY_NAME = "issuer";
     public static final String TEMPLATE_ID_SP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME = "Template Id";
+    public static final String TEMPLATE_VERSION_SP_PROPERTY_NAME = "templateVersion";
+    public static final String TEMPLATE_VERSION_SP_PROPERTY_DISPLAY_NAME = "Template Version";
     public static final String IS_B2B_SS_APP_SP_PROPERTY_NAME = "isB2BSelfServiceApp";
     public static final String IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME = "Is B2B Self Service Application";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_NAME = "isManagementApp";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME = "Is Management Application";
     public static final String ADVANCED_CONFIG = "advancedConfigurations";
+    public static final String TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME = "trustedAppConsentGranted";
+    public static final String TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME =
+            "Is consent granted for trusted app";
 
     public static final String IDP_ISSUER_NAME = "idpIssuerName";
 
@@ -117,11 +122,14 @@ public class IdentityApplicationConstants {
 
     public static final String ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME = "allowedAudienceForAssociatedRoles";
     public static final String ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME = "associatedRoles.allowedAudience";
+    public static final String ALLOWED_APPLICATION_ENABLED_REQUEST_ATTRIBUTE_NAME = "applicationEnabled";
 
     public static final String IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME = "isAPIBasedAuthenticationEnabled";
     public static final String IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME = "Is API Based Authentication Enabled";
     public static final String IS_ATTESTATION_ENABLED_PROPERTY_NAME = "IsAttestationEnabled";
     public static final String IS_ATTESTATION_ENABLED_DISPLAY_NAME = "Is Client Attestation Enabled";
+    public static final String IS_APPLICATION_ENABLED_PROPERTY_NAME = "IsApplicationEnabled";
+    public static final String IS_APPLICATION_ENABLED_DISPLAY_NAME = "Is Application Enabled";
     public static final String ANDROID_PACKAGE_NAME_PROPERTY_NAME = "androidPackageName";
     public static final String ANDROID_PACKAGE_NAME_DISPLAY_NAME = "Android mobile application package name";
     public static final String APPLE_APP_ID_PROPERTY_NAME = "appleAppId";
@@ -130,6 +138,8 @@ public class IdentityApplicationConstants {
                 = "ANDROID_ATTESTATION_CREDENTIALS";
     public static final String CLIENT_ATTESTATION = "CLIENT_ATTESTATION";
     public static final String ANDROID = "ANDROID";
+    public static final String IOS = "IOS";
+    public static final String ATTRIBUTE_SEPARATOR = ",";
 
     /**
      * Config elements.
@@ -614,6 +624,14 @@ public class IdentityApplicationConstants {
 
             throw new AssertionError("Must not initiate an object of SCIM2 class");
         }
+    }
+
+    /**
+     * Platform types for trusted apps.
+     */
+    public enum PlatformType {
+
+        ANDROID, IOS
     }
 
     /**

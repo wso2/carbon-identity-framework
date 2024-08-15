@@ -37,9 +37,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
@@ -123,8 +124,8 @@ public class APIResourceCollectionMgtConfigBuilder {
             OMElement scopesElement = apiResourceCollection.getFirstChildWithName(
                     new QName(APIResourceCollectionConfigBuilderConstants.SCOPES_ELEMENT));
             if (scopesElement != null) {
-                List<String> readScopeList = new ArrayList<>();
-                List<String> writeScopeList = new ArrayList<>();
+                Set<String> readScopeSet = new HashSet<>();
+                Set<String> writeScopeSet = new HashSet<>();
                 Iterator<?> actionElements = scopesElement.getChildElements();
                 while (actionElements.hasNext()) {
                     OMElement actionElement = (OMElement) actionElements.next();
@@ -141,18 +142,14 @@ public class APIResourceCollectionMgtConfigBuilder {
                         if (APIResourceCollectionConfigBuilderConstants.READ.equals(actionElement.getLocalName()) ||
                                 APIResourceCollectionConfigBuilderConstants.FEATURE.equals(
                                         actionElement.getLocalName())) {
-                            if (!readScopeList.contains(scopeName)) {
-                                readScopeList.add(scopeName);
-                            }
+                            readScopeSet.add(scopeName);
                         } else {
-                            if (!writeScopeList.contains(scopeName)) {
-                                writeScopeList.add(scopeName);
-                            }
+                            writeScopeSet.add(scopeName);
                         }
                     }
                 }
-                apiResourceCollectionObj.setReadScopes(readScopeList);
-                apiResourceCollectionObj.setWriteScopes(writeScopeList);
+                apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
+                apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
             }
             apiResourceCollectionMgtConfigurations.put(apiResourceCollectionObj.getId(), apiResourceCollectionObj);
         }

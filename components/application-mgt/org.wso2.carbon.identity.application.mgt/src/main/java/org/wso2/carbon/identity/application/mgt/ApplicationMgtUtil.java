@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -87,6 +87,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogC
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MYACCOUNT_ACCESS_ORIGIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TENANT_DOMAIN_PLACEHOLDER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
@@ -1082,7 +1083,9 @@ public class ApplicationMgtUtil {
      * @param absoluteUrl     The URL which need to resolve from placeholders.
      * @return The resolved URL from placeholders.
      * @throws URLBuilderException If any error occurs when building absolute public url without path.
+     * @deprecated use {@link #resolveOriginUrlFromPlaceholders(String, String)}
      */
+    @Deprecated
     public static String resolveOriginUrlFromPlaceholders(String absoluteUrl) throws URLBuilderException {
 
         String basePath = ServiceURLBuilder.create().build().getAbsolutePublicUrlWithoutPath();
@@ -1211,5 +1214,15 @@ public class ApplicationMgtUtil {
             }
             gen.writeEndObject();
         }
+    }
+
+    /**
+     * Check whether consent is required to configure trusted app configurations.
+     *
+     * @return True if trusted app consent is required.
+     */
+    public static boolean isTrustedAppConsentRequired() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY));
     }
 }

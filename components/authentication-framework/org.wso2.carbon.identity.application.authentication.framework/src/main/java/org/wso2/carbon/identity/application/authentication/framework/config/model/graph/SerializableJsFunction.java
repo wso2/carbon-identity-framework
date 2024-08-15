@@ -31,8 +31,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 /**
- *  Javascript function wrapper. This allows serialization of a javascript defined function.
- *
+ * Javascript function wrapper. This allows serialization of a javascript defined function.
  */
 public class SerializableJsFunction implements BaseSerializableJsFunction {
 

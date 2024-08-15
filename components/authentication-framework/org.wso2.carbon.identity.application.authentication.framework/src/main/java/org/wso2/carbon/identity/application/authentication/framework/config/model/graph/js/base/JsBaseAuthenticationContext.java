@@ -18,11 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
 
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 /**
  * Interface for JavaScript Authentication Context Wrapper.
  */
+@HostAccess.Implementable
 public interface JsBaseAuthenticationContext {
 
     AuthenticationContext getWrapped();

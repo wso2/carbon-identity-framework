@@ -50,11 +50,14 @@ public class ServiceProvider implements Serializable {
     private static final String ACCESS_URL = "AccessUrl";
     private static final String IMAGE_URL = "ImageUrl";
     private static final String TEMPLATE_ID = "TemplateId";
+    private static final String TEMPLATE_VERSION = "TemplateVersion";
     private static final String IS_MANAGEMENT_APP = "IsManagementApp";
 
     private static final String IS_B2B_SELF_SERVICE_APP = "IsB2BSelfServiceApp";
+    private static final String IS_APPLICATION_ENABLED = "IsApplicationEnabled";
     private static final String ASSOCIATED_ROLES_CONFIG = "AssociatedRolesConfig";
     private static final String IS_API_BASED_AUTHENTICATION_ENABLED = "IsAPIBasedAuthenticationEnabled";
+    private static final String TRUSTED_APP_METADATA = "TrustedAppMetadata";
 
     @XmlTransient
     @JsonIgnore
@@ -130,6 +133,10 @@ public class ServiceProvider implements Serializable {
     private String templateId;
 
     @IgnoreNullElement
+    @XmlElement(name = TEMPLATE_VERSION)
+    private String templateVersion;
+
+    @IgnoreNullElement
     @XmlElement(name = IS_MANAGEMENT_APP)
     private boolean isManagementApp;
 
@@ -140,6 +147,9 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = ASSOCIATED_ROLES_CONFIG)
     private AssociatedRolesConfig associatedRolesConfig;
 
+    @IgnoreNullElement
+    @XmlElement(name = IS_APPLICATION_ENABLED)
+    private boolean isApplicationEnabled = true;
 
     @IgnoreNullElement
     @XmlElement(name = IS_API_BASED_AUTHENTICATION_ENABLED)
@@ -148,6 +158,10 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     @XmlElement(name = "ClientAttestationMetaData")
     private ClientAttestationMetaData clientAttestationMetaData;
+
+    @IgnoreNullElement
+    @XmlElement(name = TRUSTED_APP_METADATA)
+    private SpTrustedAppMetadata trustedAppMetadata;
 
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
@@ -166,6 +180,7 @@ public class ServiceProvider implements Serializable {
 
         // by default set to true.
         serviceProvider.setSaasApp(true);
+        serviceProvider.setApplicationEnabled(true);
 
         Iterator<?> iter = serviceProviderOM.getChildElements();
 
@@ -194,6 +209,8 @@ public class ServiceProvider implements Serializable {
                 serviceProvider.setAccessUrl(element.getText());
             } else if (TEMPLATE_ID.equals(elementName)) {
                 serviceProvider.setTemplateId(element.getText());
+            } else if (TEMPLATE_VERSION.equals(elementName)) {
+                serviceProvider.setTemplateVersion(element.getText());
             } else if ("Certificate".equals(elementName)) {
                 serviceProvider.setCertificateContent(element.getText());
             } else if ("JwksUri".equals(elementName)) {
@@ -270,9 +287,18 @@ public class ServiceProvider implements Serializable {
             } else if ("PermissionAndRoleConfig".equals(elementName)) {
                 // build permission and role configuration.
                 serviceProvider.setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
+            } else if (TRUSTED_APP_METADATA.equals(elementName)) {
+                // build trusted app metadata.
+                serviceProvider.setTrustedAppMetadata(SpTrustedAppMetadata.build(element));
             } else if (ASSOCIATED_ROLES_CONFIG.equals(elementName)) {
                 // build role association.
                 serviceProvider.setAssociatedRolesConfig(AssociatedRolesConfig.build(element));
+            } else if (IS_APPLICATION_ENABLED.equals(elementName)) {
+                if (element.getText() != null && "true".equals(element.getText())) {
+                    serviceProvider.setApplicationEnabled(true);
+                } else  {
+                    serviceProvider.setApplicationEnabled(!"false".equals(element.getText()));
+                }
             }
         }
 
@@ -564,6 +590,26 @@ public class ServiceProvider implements Serializable {
         this.templateId = templateId;
     }
 
+    /**
+     * Retrieve the template version of the current service provider.
+     *
+     * @return Template version.
+     */
+    public String getTemplateVersion() {
+
+        return templateVersion;
+    }
+
+    /**
+     * Set a new template version for the current service provider.
+     *
+     * @param templateVersion Template version to be set.
+     */
+    public void setTemplateVersion(String templateVersion) {
+
+        this.templateVersion = templateVersion;
+    }
+
     public boolean isManagementApp() {
 
         return isManagementApp;
@@ -601,6 +647,26 @@ public class ServiceProvider implements Serializable {
     public void setClientAttestationMetaData(ClientAttestationMetaData clientAttestationMetaData) {
 
         this.clientAttestationMetaData = clientAttestationMetaData;
+    }
+
+    public SpTrustedAppMetadata getTrustedAppMetadata() {
+
+        return trustedAppMetadata;
+    }
+
+    public void setTrustedAppMetadata(SpTrustedAppMetadata trustedAppMetadata) {
+
+        this.trustedAppMetadata = trustedAppMetadata;
+    }
+
+    public boolean isApplicationEnabled() {
+
+        return isApplicationEnabled;
+    }
+
+    public void setApplicationEnabled(boolean applicationEnabled) {
+
+        this.isApplicationEnabled = applicationEnabled;
     }
 }
 

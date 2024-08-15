@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -62,6 +62,8 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
+import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
@@ -130,6 +132,7 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ADVANCED_CONFIG;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_APPLICATION_ENABLED_REQUEST_ATTRIBUTE_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ANDROID;
@@ -138,6 +141,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLE_APP_ID_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLE_APP_ID_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ATTESTATION;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.CLIENT_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
@@ -149,6 +153,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.ISSUER_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_APPLICATION_ENABLED_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_APPLICATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_ATTESTATION_ENABLED_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME;
@@ -159,8 +165,13 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.IS_SYSTEM_RESERVED_APP_FLAG;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.NAME_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORACLE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.UNION_SEPARATOR;
@@ -410,7 +421,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             String dbProductName = connection.getMetaData().getDatabaseProductName();
             storeAppPrepStmt = connection.prepareStatement(
                     ApplicationMgtDBQueries.STORE_BASIC_APPINFO,
-                    new String[]{DBUtils.getConvertedAutoGeneratedColumnName(dbProductName, "ID")});
+                    new String[] {DBUtils.getConvertedAutoGeneratedColumnName(dbProductName, "ID")});
 
             // TENANT_ID, APP_NAME, USER_STORE, USERNAME, DESCRIPTION, AUTH_TYPE
             storeAppPrepStmt.setInt(1, tenantID);
@@ -476,7 +487,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProviderProperties.add(allowedRoleAudienceProperty);
             application.setSpProperties(serviceProviderProperties.toArray(new ServiceProviderProperty[0]));
             addServiceProviderProperties(connection, applicationId, serviceProviderProperties, tenantID);
-
 
             if (log.isDebugEnabled()) {
                 log.debug("Application Stored successfully with applicationId: " + applicationId +
@@ -550,7 +560,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         int applicationId = serviceProvider.getApplicationID();
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         try {
-            deleteApplicationConfigurations(connection, serviceProvider, applicationId);
+            deleteApplicationConfigurations(connection, serviceProvider, applicationId, tenantDomain);
             addApplicationConfigurations(connection, serviceProvider, tenantDomain);
 
             IdentityDatabaseUtil.commitTransaction(connection);
@@ -600,6 +610,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         updateOutboundProvisioningConfiguration(applicationId,
                 serviceProvider.getOutboundProvisioningConfig(), connection);
+        updateSpTrustedAppMetadata(applicationId, serviceProvider.getTrustedAppMetadata(), connection, tenantID);
 
         if (serviceProvider.getPermissionAndRoleConfig() != null) {
             updatePermissionAndRoleConfiguration(serviceProvider.getApplicationID(),
@@ -633,7 +644,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     private void deleteApplicationConfigurations(Connection connection, ServiceProvider serviceProvider,
-                                                 int applicationId) throws SQLException {
+                                                 int applicationId, String tenantDomain) throws SQLException {
+
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
 
         // delete all in-bound authentication requests.
         deleteInboundAuthRequestConfiguration(serviceProvider.getApplicationID(), connection);
@@ -645,6 +658,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         deletePermissionAndRoleConfiguration(applicationId, connection);
         // deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
         deleteAssociatedRolesConfigurations(connection, serviceProvider.getApplicationResourceId());
+        deleteSpTrustedAppMetadata(applicationId, connection, tenantID);
     }
 
     private void deleteAssociatedRolesConfigurations(Connection connection, String applicationId) throws SQLException {
@@ -856,7 +870,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             String dbProductName = connection.getMetaData().getDatabaseProductName();
             statementToAddCertificate = connection.prepareStatement(ApplicationMgtDBQueries.ADD_CERTIFICATE,
-                    new String[]{DBUtils.getConvertedAutoGeneratedColumnName(dbProductName, "ID")});
+                    new String[] {DBUtils.getConvertedAutoGeneratedColumnName(dbProductName, "ID")});
 
             statementToAddCertificate.setString(1, serviceProvider.getApplicationName());
             setBlobValue(serviceProvider.getCertificateContent(), statementToAddCertificate, 2);
@@ -1491,7 +1505,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         FederatedAuthenticatorConfig defaultAuth = new FederatedAuthenticatorConfig();
                         defaultAuth.setName(defualtAuthName);
                         fedIdp.setDefaultAuthenticatorConfig(defaultAuth);
-                        fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{defaultAuth});
+                        fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[] {defaultAuth});
                     }
                 }
 
@@ -1519,7 +1533,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     try {
                         String dbProductName = connection.getMetaData().getDatabaseProductName();
                         storeStepPrepStmtz = connection.prepareStatement(
-                                ApplicationMgtDBQueries.STORE_STEP_INFO, new String[]{
+                                ApplicationMgtDBQueries.STORE_STEP_INFO, new String[] {
                                         DBUtils.getConvertedAutoGeneratedColumnName(dbProductName, "ID")});
                         // TENANT_ID, STEP_ORDER, APP_ID
                         storeStepPrepStmtz.setInt(1, tenantID);
@@ -1966,7 +1980,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setAccessUrl(basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL));
                 if (ApplicationMgtUtil.isConsoleOrMyAccount(applicationName)) {
                     serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                            basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+                            basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL), applicationName));
                 }
                 String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
                 if (ApplicationMgtUtil.isConsole(serviceProvider.getApplicationName())) {
@@ -2144,6 +2158,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     /**
      * Set values to the prepare statement for searching applications
+     *
      * @param getAppNamesStmt
      * @param tenantID
      * @param start
@@ -2152,6 +2167,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      */
     private void populateApplicationSearchQuery(PreparedStatement getAppNamesStmt, int tenantID,
                                                 List<String> filterValues, int start, int end) throws SQLException {
+
         String filterValueResolvedForSQL;
         getAppNamesStmt.setInt(1, tenantID);
         getAppNamesStmt.setString(2, LOCAL_SP);
@@ -2180,6 +2196,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
             serviceProvider.setTemplateId(getTemplateId(propertyList));
+            serviceProvider.setTemplateVersion(getTemplateVersion(propertyList));
+            serviceProvider.setApplicationEnabled(getIsApplicationEnabled(propertyList));
             serviceProvider.setManagementApp(getIsManagementApp(propertyList));
             serviceProvider.setB2BSelfServiceApp(getIsB2BSSApp(propertyList));
             serviceProvider.setAPIBasedAuthenticationEnabled(getIsAPIBasedAuthenticationEnabled(propertyList));
@@ -2193,6 +2211,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         (getAndroidAttestationServiceCredentials(serviceProvider));
             }
             serviceProvider.setClientAttestationMetaData(clientAttestationMetaData);
+            serviceProvider.setTrustedAppMetadata(
+                    getSpTrustedAppMetadata(applicationId, connection, tenantID, propertyList));
             serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                     applicationId, connection, tenantID));
             serviceProvider
@@ -2275,7 +2295,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             RoleManagementService roleManagementService = holder.getRoleManagementServiceV2();
             try {
                 List<RoleBasicInfo> chunkOfRoles;
-                int offset = 0;
+                int offset = 1;
                 int maximumPage = IdentityUtil.getMaximumItemPerPage();
                 List<RoleBasicInfo> allRoles = new ArrayList<>();
                 if (roleManagementService != null) {
@@ -2288,7 +2308,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             allRoles.addAll(chunkOfRoles);
                             offset += chunkOfRoles.size(); // Move to the next chunk
                         }
-                    } while (!chunkOfRoles.isEmpty());
+                    } while (chunkOfRoles.size() == maximumPage);
 
                     List<String> roleIds = allRoles.stream().map(RoleBasicInfo::getId).collect(Collectors.
                             toList());
@@ -2344,11 +2364,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
             if (serviceProvider == null) {
-                return  null;
+                return null;
             }
             tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getTenantDomain());
             return getLocalAndOutboundAuthenticationConfig(applicationId, connection, tenantID, null);
-        } catch (SQLException | IdentityRuntimeException  e) {
+        } catch (SQLException | IdentityRuntimeException e) {
             throw new IdentityApplicationManagementException("Failed to get configured authenticators for application" +
                     " id: " + applicationResourceId, e);
         }
@@ -2383,6 +2403,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     if (TEMPLATE_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setTemplateId(getTemplateId(propertyList));
                     }
+                    if (TEMPLATE_VERSION_SP_PROPERTY_NAME.equals(requiredAttribute)) {
+                        serviceProvider.setTemplateVersion(getTemplateVersion(propertyList));
+                    }
                     if (CLIENT_ID_SP_PROPERTY_NAME.equals(requiredAttribute) ||
                             ISSUER_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
@@ -2396,6 +2419,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                     AssociatedRolesConfig configExcludingRoles = new AssociatedRolesConfig();
                                     configExcludingRoles.setAllowedAudience(property.getValue());
                                     serviceProvider.setAssociatedRolesConfig(configExcludingRoles);
+                                });
+                    }
+                    if (ALLOWED_APPLICATION_ENABLED_REQUEST_ATTRIBUTE_NAME.equals(requiredAttribute)) {
+                        propertyList.stream()
+                                .filter(property -> IS_APPLICATION_ENABLED_PROPERTY_NAME.equals(property.getName()))
+                                .findFirst()
+                                .ifPresent(property -> {
+                                    serviceProvider.setApplicationEnabled(Boolean.parseBoolean(property.getValue()));
                                 });
                     }
                 }
@@ -2429,6 +2460,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
+        return Boolean.parseBoolean(value);
+    }
+
+    private boolean getIsApplicationEnabled(List<ServiceProviderProperty> propertyList) {
+
+        String value = propertyList.stream()
+                .filter(property -> IS_APPLICATION_ENABLED_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse("true");
+        // This is to ensure the previously created applications will have the flag,
+        // enabled unless set to false explicitly. Newly created apps will have this flag enabled by default.
         return Boolean.parseBoolean(value);
     }
 
@@ -2501,6 +2544,21 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .orElse(StringUtils.EMPTY);
     }
 
+    /**
+     * Retrieve the template version from the provided service provider property list.
+     *
+     * @param propertyList Service provider property list.
+     * @return Template version or an empty string.
+     */
+    private String getTemplateVersion(List<ServiceProviderProperty> propertyList) {
+
+        return propertyList.stream()
+                .filter(property -> TEMPLATE_VERSION_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+    }
+
     private String getJwksUri(List<ServiceProviderProperty> propertyList) {
 
         return propertyList.stream()
@@ -2508,6 +2566,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 .findFirst()
                 .map(ServiceProviderProperty::getValue)
                 .orElse(StringUtils.EMPTY);
+    }
+
+    private boolean getTrustedAppConsent(List<ServiceProviderProperty> propertyList) {
+
+        String consent = propertyList.stream()
+                .filter(property -> TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
+        if (StringUtils.EMPTY.equals(consent)) {
+            return false;
+        }
+        return Boolean.parseBoolean(consent);
     }
 
     /**
@@ -2543,7 +2614,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setAccessUrl(rs.getString(ApplicationTableColumns.ACCESS_URL));
                 if (ApplicationMgtUtil.isConsoleOrMyAccount(serviceProvider.getApplicationName())) {
                     serviceProvider.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                            rs.getString(ApplicationTableColumns.ACCESS_URL)));
+                            rs.getString(ApplicationTableColumns.ACCESS_URL), serviceProvider.getApplicationName()));
                 }
                 String tenantDomain = IdentityTenantUtil.getTenantDomain(rs.getInt(ApplicationTableColumns.TENANT_ID));
                 if (ApplicationMgtUtil.isConsole(serviceProvider.getApplicationName())) {
@@ -2629,7 +2700,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @return
      * @throws SQLException
      */
-    private String getAuthenticationType(int applicationid,  int tenantID, Connection connection)
+    private String getAuthenticationType(int applicationid, int tenantID, Connection connection)
             throws SQLException {
 
         PreparedStatement authTypeStmt = null;
@@ -2901,7 +2972,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             prop.setDisplayName(mappedProperty.getDisplayName());
                         }
                     }
-                    inboundAuthRequest.setProperties((ApplicationMgtUtil.concatArrays(new Property[]{prop},
+                    inboundAuthRequest.setProperties((ApplicationMgtUtil.concatArrays(new Property[] {prop},
                             inboundAuthRequest.getProperties())));
                 }
                 inboundAuthenticationRequestConfigMap.put(mapKey, inboundAuthRequest);
@@ -3354,8 +3425,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         claimConfig.setMappedLocalSubjectMandatory(true);
                         break;
                     default:
-                       claimConfig.setAlwaysSendMappedLocalSubjectId(false);
-                       claimConfig.setMappedLocalSubjectMandatory(false);
+                        claimConfig.setAlwaysSendMappedLocalSubjectId(false);
+                        claimConfig.setMappedLocalSubjectMandatory(false);
                 }
             }
         } catch (SQLException e) {
@@ -3485,6 +3556,134 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteReqAuthPrepStmt);
+        }
+    }
+
+    /**
+     * Get trusted app metadata of the application.
+     *
+     * @param applicationId  Application ID.
+     * @param connection     Database connection.
+     * @param tenantID       Tenant ID.
+     * @param spPropertyList Sp property list.
+     * @return trustedAppMetadata Trusted app configurations.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving trusted app configurations.
+     */
+    private SpTrustedAppMetadata getSpTrustedAppMetadata(int applicationId, Connection connection, int tenantID,
+                                                         List<ServiceProviderProperty> spPropertyList)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving trusted app configurations for application: " + applicationId);
+        }
+        SpTrustedAppMetadata spTrustedAppMetadata = null;
+
+        try (PreparedStatement loadAppConfigs = connection
+                .prepareStatement(ApplicationMgtDBQueries.LOAD_TRUSTED_APPS_BY_APP_ID)) {
+            loadAppConfigs.setInt(1, applicationId);
+            loadAppConfigs.setInt(2, tenantID);
+
+            try (ResultSet appConfigResultSet = loadAppConfigs.executeQuery()) {
+                if (appConfigResultSet.isBeforeFirst()) {
+                    spTrustedAppMetadata = new SpTrustedAppMetadata();
+
+                    // There should be maximum two entries for each service provider. One for Android and one for iOS.
+                    while (appConfigResultSet.next()) {
+                        PlatformType platformType = PlatformType.valueOf(appConfigResultSet.getString(1));
+                        if (PlatformType.ANDROID.equals(platformType)) {
+                            spTrustedAppMetadata.setAndroidPackageName(appConfigResultSet.getString(2));
+                            if (appConfigResultSet.getString(3) != null) {
+                                spTrustedAppMetadata.setAndroidThumbprints(
+                                        appConfigResultSet.getString(3).split(ATTRIBUTE_SEPARATOR));
+                            } else {
+                                spTrustedAppMetadata.setAndroidThumbprints(new String[0]);
+                            }
+                        } else if (PlatformType.IOS.equals(platformType)) {
+                            spTrustedAppMetadata.setAppleAppId(appConfigResultSet.getString(2));
+                        }
+                        spTrustedAppMetadata.setIsFidoTrusted(appConfigResultSet.getBoolean(4));
+                    }
+
+                    // If consent required property is disabled, consent is always considered as granted.
+                    spTrustedAppMetadata.setIsConsentGranted(!ApplicationMgtUtil.isTrustedAppConsentRequired() ||
+                            getTrustedAppConsent(spPropertyList));
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving trusted app configurations.", e);
+        }
+        return spTrustedAppMetadata;
+    }
+
+    /**
+     * Update trusted app metadata of the application.
+     *
+     * @param applicationId      Application ID.
+     * @param trustedAppMetadata Trusted app configurations.
+     * @param connection         Database connection.
+     * @param tenantID           Tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while updating trusted app configurations.
+     */
+    private void updateSpTrustedAppMetadata(int applicationId, SpTrustedAppMetadata trustedAppMetadata,
+                                            Connection connection, int tenantID)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Adding trusted app configurations for application: " + applicationId);
+        }
+
+        if (trustedAppMetadata != null) {
+            try (PreparedStatement storeAppConfigs = connection
+                    .prepareStatement(ApplicationMgtDBQueries.STORE_TRUSTED_APPS)) {
+
+                storeAppConfigs.setInt(1, applicationId);
+                storeAppConfigs.setBoolean(5, trustedAppMetadata.getIsFidoTrusted());
+                storeAppConfigs.setInt(6, tenantID);
+
+                if (StringUtils.isNotBlank(trustedAppMetadata.getAndroidPackageName())) {
+                    storeAppConfigs.setString(2, PlatformType.ANDROID.toString());
+                    storeAppConfigs.setString(3, trustedAppMetadata.getAndroidPackageName());
+                    if (trustedAppMetadata.getAndroidThumbprints() != null) {
+                        storeAppConfigs.setString(4, String.join(ATTRIBUTE_SEPARATOR,
+                                trustedAppMetadata.getAndroidThumbprints()));
+                    } else {
+                        storeAppConfigs.setString(4, null);
+                    }
+                    storeAppConfigs.addBatch();
+                }
+                if (StringUtils.isNotBlank(trustedAppMetadata.getAppleAppId())) {
+                    storeAppConfigs.setString(2, PlatformType.IOS.toString());
+                    storeAppConfigs.setString(3, trustedAppMetadata.getAppleAppId());
+                    storeAppConfigs.setString(4, null);
+                    storeAppConfigs.addBatch();
+                }
+                storeAppConfigs.executeBatch();
+            } catch (SQLException e) {
+                throw new IdentityApplicationManagementException("Error while storing trusted app configurations.", e);
+            }
+        }
+    }
+
+    /**
+     * Delete trusted app metadata of the application.
+     *
+     * @param applicationID Application ID.
+     * @param connection    Database connection.
+     * @param tenantID      Tenant ID.
+     * @throws SQLException If an error occurs while deleting trusted app configurations.
+     */
+    private void deleteSpTrustedAppMetadata(int applicationID, Connection connection, int tenantID)
+            throws SQLException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting trusted app configurations for application: " + applicationID);
+        }
+
+        try (PreparedStatement deleteAppConfigsPrepStmt = connection
+                .prepareStatement(ApplicationMgtDBQueries.REMOVE_TRUSTED_APPS)) {
+            deleteAppConfigsPrepStmt.setInt(1, applicationID);
+            deleteAppConfigsPrepStmt.setInt(2, tenantID);
+            deleteAppConfigsPrepStmt.execute();
         }
     }
 
@@ -3694,8 +3893,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     operationNode.getOperation() + " " + rightNodeFilterData.getFilterString());
             filterData.setFilterValues(
                     Stream.of(leftNodeFilterData.getFilterValues(), rightNodeFilterData.getFilterValues())
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
+                            .flatMap(Collection::stream)
+                            .collect(Collectors.toList()));
         }
         return filterData;
     }
@@ -3792,11 +3991,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     /**
      * Retrieve application basic information using the sp metadata property key and value.
      *
-     * @param key Name of the sp metadata property key
+     * @param key   Name of the sp metadata property key
      * @param value Value of the sp metadata property value
      * @return Filtered applications' basic information.
      * @throws IdentityApplicationManagementException if loading application information based on the
-     * SP properties is failed.
+     *                                                SP properties is failed.
      */
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfoBySPProperty(String key, String value)
@@ -3975,14 +4174,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     /**
      * Set values to the prepare statement for listing application names
+     *
      * @param start
      * @param end
      * @param tenantID
      * @param getAppNamesStmt
      * @throws SQLException
      */
-    private void populateListAppNamesQueryValues(int tenantID, int start, int end,  PreparedStatement
+    private void populateListAppNamesQueryValues(int tenantID, int start, int end, PreparedStatement
             getAppNamesStmt) throws SQLException {
+
         getAppNamesStmt.setInt(1, tenantID);
         getAppNamesStmt.setString(2, LOCAL_SP);
         getAppNamesStmt.setInt(3, start);
@@ -4425,7 +4626,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * Deletes all certificates of a given tenant id from the database.
      *
      * @param connection The database connection.
-     * @param tenantId The id of the tenant.
+     * @param tenantId   The id of the tenant.
      */
     private void deleteCertificatesByTenantId(Connection connection, int tenantId) throws SQLException {
 
@@ -4841,7 +5042,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String sqlStmt = ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR;
         try {
             String dbProductName = conn.getMetaData().getDatabaseProductName();
-            prepStmt = conn.prepareStatement(sqlStmt, new String[]{
+            prepStmt = conn.prepareStatement(sqlStmt, new String[] {
                     DBUtils.getConvertedAutoGeneratedColumnName(dbProductName, "ID")});
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, idpName);
@@ -5130,11 +5331,17 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty templateIdProperty = buildTemplateIdProperty(sp);
         spPropertyMap.put(templateIdProperty.getName(), templateIdProperty);
 
+        ServiceProviderProperty templateVersionProperty = buildTemplateVersionProperty(sp);
+        spPropertyMap.put(templateVersionProperty.getName(), templateVersionProperty);
+
         ServiceProviderProperty isManagementAppProperty = buildIsManagementAppProperty(sp);
         spPropertyMap.put(isManagementAppProperty.getName(), isManagementAppProperty);
 
         ServiceProviderProperty isB2BSSAppProperty = buildIsB2BSSAppProperty(sp);
         spPropertyMap.put(isB2BSSAppProperty.getName(), isB2BSSAppProperty);
+
+        ServiceProviderProperty isApplicationEnabledProperty = buildIsApplicationEnabledProperty(sp);
+        spPropertyMap.put(isApplicationEnabledProperty.getName(), isApplicationEnabledProperty);
 
         ServiceProviderProperty allowedRoleAudienceProperty = buildAllowedRoleAudienceProperty(sp);
         spPropertyMap.put(allowedRoleAudienceProperty.getName(), allowedRoleAudienceProperty);
@@ -5158,6 +5365,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAndroidAttestationServiceCredentialAsSecret(sp);
         }
 
+        // Store the trusted app consent granted status only if trusted app consent required property is enabled.
+        if (ApplicationMgtUtil.isTrustedAppConsentRequired() && sp.getTrustedAppMetadata() != null) {
+            ServiceProviderProperty trustedAppConsentProperty = buildTrustedAppConsentProperty(sp);
+            spPropertyMap.put(trustedAppConsentProperty.getName(), trustedAppConsentProperty);
+        }
         sp.setSpProperties(spPropertyMap.values().toArray(new ServiceProviderProperty[0]));
     }
 
@@ -5255,13 +5467,26 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return isB2BSSAppProperty;
     }
 
+    private ServiceProviderProperty buildIsApplicationEnabledProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty isAppEnabledProperty = new ServiceProviderProperty();
+        isAppEnabledProperty.setName(IS_APPLICATION_ENABLED_PROPERTY_NAME);
+        isAppEnabledProperty.setDisplayName(IS_APPLICATION_ENABLED_DISPLAY_NAME);
+        isAppEnabledProperty.setValue(String.valueOf(sp.isApplicationEnabled()));
+        return isAppEnabledProperty;
+    }
+
     private ServiceProviderProperty buildAllowedRoleAudienceProperty(ServiceProvider serviceProvider) {
 
         ServiceProviderProperty allowedRoleAudienceProperty = new ServiceProviderProperty();
         allowedRoleAudienceProperty.setName(ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME);
         AssociatedRolesConfig associatedRolesConfig = serviceProvider.getAssociatedRolesConfig();
         if (associatedRolesConfig == null) {
-            allowedRoleAudienceProperty.setValue(RoleConstants.ORGANIZATION);
+            if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+                allowedRoleAudienceProperty.setValue(RoleConstants.ORGANIZATION);
+            } else {
+                allowedRoleAudienceProperty.setValue(RoleConstants.APPLICATION);
+            }
             return allowedRoleAudienceProperty;
         }
         String allowedAudience = StringUtils.isNotBlank(associatedRolesConfig.getAllowedAudience()) ?
@@ -5269,7 +5494,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         allowedRoleAudienceProperty.setValue(allowedAudience);
         return allowedRoleAudienceProperty;
     }
-
 
     private ServiceProviderProperty buildTemplateIdProperty(ServiceProvider sp) {
 
@@ -5279,6 +5503,22 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         templateIdProperty
                 .setValue(StringUtils.isNotBlank(sp.getTemplateId()) ? sp.getTemplateId() : StringUtils.EMPTY);
         return templateIdProperty;
+    }
+
+    /**
+     * Build the template version service provider property from the service provider object.
+     *
+     * @param sp Service provider instance.
+     * @return Template version as a service provider property.
+     */
+    private ServiceProviderProperty buildTemplateVersionProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty templateVersionProperty = new ServiceProviderProperty();
+        templateVersionProperty.setName(TEMPLATE_VERSION_SP_PROPERTY_NAME);
+        templateVersionProperty.setDisplayName(TEMPLATE_VERSION_SP_PROPERTY_DISPLAY_NAME);
+        templateVersionProperty.setValue(
+                StringUtils.isNotBlank(sp.getTemplateVersion()) ? sp.getTemplateVersion() : StringUtils.EMPTY);
+        return templateVersionProperty;
     }
 
     private ServiceProviderProperty buildJwksProperty(ServiceProvider sp) {
@@ -5330,6 +5570,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         property.setValue(String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isUseUserstoreDomainInRoles()));
         return property;
+    }
+
+    private ServiceProviderProperty buildTrustedAppConsentProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty trustedAppConsentProperty = new ServiceProviderProperty();
+        trustedAppConsentProperty.setName(TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME);
+        trustedAppConsentProperty.setDisplayName(TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME);
+
+        trustedAppConsentProperty.setValue(String.valueOf(sp.getTrustedAppMetadata().getIsConsentGranted()));
+        return trustedAppConsentProperty;
     }
 
     private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)
@@ -6007,7 +6257,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
             if (ApplicationMgtUtil.isConsoleOrMyAccount(basicInfo.getApplicationName())) {
                 basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL),
+                        basicInfo.getApplicationName()));
             }
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
@@ -6064,7 +6315,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
             if (ApplicationMgtUtil.isConsoleOrMyAccount(basicInfo.getApplicationName())) {
                 basicInfo.setAccessUrl(ApplicationMgtUtil.resolveOriginUrlFromPlaceholders(
-                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL)));
+                        appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL),
+                        basicInfo.getApplicationName()));
             }
         } catch (URLBuilderException e) {
             throw new IdentityApplicationManagementException(
@@ -6152,7 +6404,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     /**
      * Returns the internal application id for a given resourceId.
      *
-     * @param resourceId        UUID of the application.
+     * @param resourceId UUID of the application.
      * @return applicationId    ID of the application.
      * @throws IdentityApplicationManagementException If an error occurred in retrieving application ID.
      */
@@ -6265,5 +6517,38 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
 
         AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, action, data, result));
+    }
+
+    @Override
+    public List<TrustedApp> getTrustedApps(PlatformType platformType) throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting trusted app details for platform type: " + platformType);
+        }
+
+        List<TrustedApp> trustedApps = new ArrayList<>();
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement statement = connection.prepareStatement(
+                     ApplicationMgtDBQueries.LOAD_TRUSTED_APPS_BY_PLATFORM_TYPE)) {
+            statement.setString(1, platformType.toString());
+            statement.execute();
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    TrustedApp app = new TrustedApp();
+                    app.setPlatformType(platformType);
+                    app.setAppIdentifier(resultSet.getString(1));
+                    app.setThumbprints(resultSet.getString(2) != null ?
+                            resultSet.getString(2).split(ATTRIBUTE_SEPARATOR) : new String[0]);
+                    app.setIsFIDOTrusted(resultSet.getBoolean(3));
+                    trustedApps.add(app);
+                }
+            }
+        } catch (SQLException e) {
+            String msg = "Error occurred while retrieving trusted app list for %s platform.";
+            throw new IdentityApplicationManagementException(String.format(msg, platformType), e);
+        }
+        return trustedApps;
     }
 }

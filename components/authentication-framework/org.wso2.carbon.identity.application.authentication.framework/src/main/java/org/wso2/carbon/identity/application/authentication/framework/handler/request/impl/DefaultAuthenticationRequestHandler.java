@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
@@ -98,7 +99,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieEnabled;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.removeNonceCookie;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.validateNonceCookie;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Default authentication request handler.
@@ -898,7 +898,17 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                                         user.getUserStoreDomain(), user.getUserName());
                         if (StringUtils.isNotEmpty(localUserId) &&
                                 !UserSessionStore.getInstance().isExistingMapping(localUserId, sessionContextKey)) {
-                            UserSessionStore.getInstance().storeUserSessionData(localUserId, sessionContextKey);
+                            try {
+                                UserSessionStore.getInstance().storeUserSessionData(localUserId, sessionContextKey);
+                            } catch (DuplicatedAuthUserException e) {
+                                // If isExistingMapping return false due to a database write latency issue,
+                                // the same user to session mapping will be persisted from the same node handling the
+                                // request. Thus, persisting the user to session mapping can be gracefully ignored here.
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Mapping between session Id: " + sessionContextKey + " and user Id: "
+                                            + userId + " is already persisted.");
+                                }
+                            }
                         }
                     }
                 } catch (UserSessionException e) {
@@ -1212,9 +1222,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                               String userTenantDomain, String traceId, Long lastAccessedTimestamp,
                               boolean isRememberMe) {
 
-        if (isLegacyAuditLogsDisabled()) {
-            return;
-        }
         JSONObject auditData = new JSONObject();
         auditData.put(SessionMgtConstants.SESSION_CONTEXT_ID, sessionKey);
         auditData.put(SessionMgtConstants.REMEMBER_ME, isRememberMe);

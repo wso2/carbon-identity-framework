@@ -101,6 +101,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY;
@@ -121,6 +122,8 @@ public class IdPManagementDAO {
     private static final Log log = LogFactory.getLog(IdPManagementDAO.class);
 
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
+    private static final String ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED
+            = "OnDemandConfig.OnInitialUse.EnableSMSOTPPasswordRecoveryIfConnectorEnabled";
 
     /**
      * @param dbConnection
@@ -186,7 +189,7 @@ public class IdPManagementDAO {
 
                     identityProvider.setId(rs.getString("ID"));
                     List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
-                            Integer.parseInt(identityProvider.getId()));
+                            Integer.parseInt(identityProvider.getId()), tenantId);
                     identityProvider
                             .setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
                     identityProvider.setImageUrl(rs.getString("IMAGE_URL"));
@@ -282,7 +285,7 @@ public class IdPManagementDAO {
                     identityProvider.setDisplayName(rs.getString("DISPLAY_NAME"));
                     identityProvider.setId(rs.getString("ID"));
                     List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(
-                            dbConnection, Integer.parseInt(identityProvider.getId()));
+                            dbConnection, Integer.parseInt(identityProvider.getId()), tenantId);
                     identityProvider.setIdpProperties(propertyList
                             .toArray(new IdentityProviderProperty[0]));
                     identityProvider.setImageUrl(rs.getString("IMAGE_URL"));
@@ -504,8 +507,9 @@ public class IdPManagementDAO {
                 prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
             }
             prepStmt.setInt(filterAttributeValueSize + 1, tenantId);
-            prepStmt.setInt(filterAttributeValueSize + 2, offset + limit);
-            prepStmt.setInt(filterAttributeValueSize + 3, offset);
+            prepStmt.setInt(filterAttributeValueSize + 2, tenantId);
+            prepStmt.setInt(filterAttributeValueSize + 3, offset + limit);
+            prepStmt.setInt(filterAttributeValueSize + 4, offset);
         } else if (databaseProductName.contains("Microsoft")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL;
             sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
@@ -625,6 +629,9 @@ public class IdPManagementDAO {
                     case IdPManagementConstants.IDP_PROVISIONING:
                         sqlQuery += ", " + IdPManagementConstants.PROVISIONING + " ";
                         break;
+                    case IdPManagementConstants.IDP_GROUPS:
+                        // Skip since the IDP groups are resolved and added to the IDP object separately.
+                        break;
                     default:
                         throw IdPManagementUtil.handleClientException(
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_IDP_ATTRIBUTE_INVALID, attribute);
@@ -676,7 +683,7 @@ public class IdPManagementDAO {
                 identityProviderList.add(identityProvider);
             }
             List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
-                    Integer.parseInt(resultSet.getString("ID")));
+                    Integer.parseInt(resultSet.getString("ID")), tenantId);
             identityProvider.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
         }
         return identityProviderList;
@@ -980,12 +987,16 @@ public class IdPManagementDAO {
      * @param idpId        IDP Id
      * @return Identity provider properties
      */
-    private List<IdentityProviderProperty> getIdentityPropertiesByIdpId(Connection dbConnection, int idpId)
+    private List<IdentityProviderProperty> getIdentityPropertiesByIdpId(Connection dbConnection,
+                                                                        int idpId, int tenantId)
             throws SQLException {
 
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<IdentityProviderProperty> idpProperties = new ArrayList<IdentityProviderProperty>();
+        boolean isRecoveryNotificationPasswordRecoveryEnabled = false;
+        boolean isEmailLinkNotificationPasswordRecoveryEnabled = false;
+        boolean isSmsOtpNotificationPasswordRecoveryEnabled = false;
 
         try {
             String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
@@ -996,9 +1007,26 @@ public class IdPManagementDAO {
             while (rs.next()) {
                 IdentityProviderProperty property = new IdentityProviderProperty();
                 property.setName(rs.getString("NAME"));
+                if (IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY.equals(property.getName())) {
+                    isRecoveryNotificationPasswordRecoveryEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isEmailLinkNotificationPasswordRecoveryEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isSmsOtpNotificationPasswordRecoveryEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
                 property.setValue(rs.getString("VALUE"));
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
+            }
+            // If recovery notification are inconsistent, correct the configurations.
+            if (isRecoveryNotificationPasswordRecoveryEnabled && !isEmailLinkNotificationPasswordRecoveryEnabled
+                    && !isSmsOtpNotificationPasswordRecoveryEnabled) {
+                performConfigCorrectionForPasswordRecoveryConfigs(dbConnection, tenantId, idpId, idpProperties);
             }
         } catch (DataAccessException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
@@ -1022,12 +1050,13 @@ public class IdPManagementDAO {
 
         PreparedStatement prepStmt = null;
         try {
+            boolean isOracleDB = isOracleDB();
             String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.ADD_IDP_METADATA_H2 :
                     IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
 
             for (IdentityProviderProperty property : properties) {
-                if (property.getValue() != null) {
+                if (isOracleDB ? StringUtils.isNotEmpty(property.getValue()) : property.getValue() != null) {
                     prepStmt.setInt(1, idpId);
                     prepStmt.setString(2, property.getName());
                     prepStmt.setString(3, property.getValue());
@@ -3120,7 +3149,7 @@ public class IdPManagementDAO {
                 federatedIdp.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
 
                 List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
-                        getIdentityPropertiesByIdpId(dbConnection, idpId));
+                        getIdentityPropertiesByIdpId(dbConnection, idpId, tenantId));
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
@@ -3397,7 +3426,8 @@ public class IdPManagementDAO {
                 federatedIdp.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
 
                 List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
-                        getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
+                        getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))
+                                ,tenantId));
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
                     fillResidentIdpProperties(federatedIdp, tenantDomain);
@@ -3559,7 +3589,8 @@ public class IdPManagementDAO {
                 federatedIdp.setIdPGroupConfig(getIdPGroupConfiguration(dbConnection, idpId));
 
                 List<IdentityProviderProperty> propertyList = filterIdentityProperties(federatedIdp,
-                        getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
+                        getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID")),
+                                tenantId));
 
                 if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
                     propertyList = resolveConnectorProperties(propertyList, tenantDomain);
@@ -5928,5 +5959,37 @@ public class IdPManagementDAO {
             propertiesFromConnectors.get(useNumericProperty).setValue(Boolean.FALSE.toString());
         }
         propertiesFromConnectors.get(otpLengthProperty).setValue(Integer.toString(otpLength));
+    }
+
+    private void performConfigCorrectionForPasswordRecoveryConfigs(Connection dbConnection, int tenantId,
+                                       int idpId, List<IdentityProviderProperty> idpProperties) throws SQLException {
+
+        // Enable all recovery options when Recovery.Notification.Password.Enable value is set as enabled.
+        // This keeps functionality consistent with previous API versions for migrating customers.
+        idpProperties.stream().filter(
+                idp -> IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
+                .ifPresentOrElse(
+                        emailLinkProperty -> emailLinkProperty.setValue(String.valueOf(true)),
+                        () -> {
+                            IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+                            identityProviderProperty.setName(
+                                    IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+                            identityProviderProperty.setValue("true");
+                            idpProperties.add(identityProviderProperty);
+                        });
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED))) {
+            idpProperties.stream().filter(
+                    idp -> IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
+                    .ifPresentOrElse(
+                            smsOtpProperty -> smsOtpProperty.setValue(String.valueOf(true)),
+                            () -> {
+                                IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+                                identityProviderProperty.setName(
+                                        IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
+                                identityProviderProperty.setValue("true");
+                                idpProperties.add(identityProviderProperty);
+                            });
+        }
+        updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
     }
 }

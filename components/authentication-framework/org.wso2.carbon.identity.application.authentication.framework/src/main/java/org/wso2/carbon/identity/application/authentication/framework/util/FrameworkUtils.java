@@ -66,7 +66,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graaljs.JsGraalGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.openjdk.nashorn.JsOpenJdkNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -195,6 +197,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.AUTHENTICATOR_NAME_IN_AUTH_CONFIG;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
@@ -252,6 +255,7 @@ public class FrameworkUtils {
     private static Boolean authenticatorNameInAuthConfigPreference;
     private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
+    private static final String GRAALJS_SCRIPTER_CLASS_NAME = "org.graalvm.polyglot.Context";
 
     private FrameworkUtils() {
     }
@@ -3013,7 +3017,8 @@ public class FrameworkUtils {
      */
     public static Object toJsSerializable(Object value) {
 
-        return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory().getJsUtil().toJsSerializable(value);
+        return FrameworkServiceDataHolder.getInstance().getJsGenericGraphBuilderFactory()
+                .getJsUtil().toJsSerializable(value);
     }
 
     /**
@@ -3904,10 +3909,10 @@ public class FrameworkUtils {
             serviceProvider = context.getSequenceConfig().getApplicationConfig().getApplicationName();
         }
         /*
-         Skip My Account application redirections to use ServiceURLBuilder for URL generation
-         since My Account is SaaS.
+         Skip My Account and Console application redirections to use ServiceURLBuilder for URL generation
+         since custom domain branding capabilities are not provided for them.
          */
-        if (!MY_ACCOUNT_APP.equals(serviceProvider)) {
+        if (!(MY_ACCOUNT_APP.equals(serviceProvider) || CONSOLE_APP.equals(serviceProvider))) {
             if (callerPath != null && callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
                 String callerTenant = callerPath.split("/")[2];
                 String callerPathWithoutTenant = callerPath.replaceFirst("/t/[^/]+/", "/");
@@ -4001,10 +4006,23 @@ public class FrameworkUtils {
 
     public static JsBaseGraphBuilderFactory createJsGraphBuilderFactoryFromConfig() {
 
+        JsGenericGraphBuilderFactory jsGenericGraphBuilderFactory = createJsGenericGraphBuilderFactoryFromConfig();
+        if (jsGenericGraphBuilderFactory instanceof JsBaseGraphBuilderFactory) {
+            return (JsBaseGraphBuilderFactory) jsGenericGraphBuilderFactory;
+        }
+        return null;
+    }
+
+    public static JsGenericGraphBuilderFactory createJsGenericGraphBuilderFactoryFromConfig() {
+
         String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.SCRIPT_ENGINE_CONFIG);
         if (scriptEngineName != null) {
-            if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
+            if (StringUtils.equalsIgnoreCase(FrameworkConstants.GRAAL_JS, scriptEngineName)) {
+                return new JsGraalGraphBuilderFactory();
+            } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.OPENJDK_NASHORN, scriptEngineName)) {
                 return new JsOpenJdkNashornGraphBuilderFactory();
+            } else if (StringUtils.equalsIgnoreCase(FrameworkConstants.NASHORN, scriptEngineName)) {
+                return new JsGraphBuilderFactory();
             }
         }
         // Config is not set. Hence going with class for name approach.
@@ -4016,7 +4034,12 @@ public class FrameworkUtils {
                 Class.forName(JDK_SCRIPTER_CLASS_NAME);
                 return new JsGraphBuilderFactory();
             } catch (ClassNotFoundException classNotFoundException) {
-                return null;
+                try {
+                    Class.forName(GRAALJS_SCRIPTER_CLASS_NAME);
+                    return new JsGraalGraphBuilderFactory();
+                } catch (ClassNotFoundException ex) {
+                    return null;
+                }
             }
         }
     }

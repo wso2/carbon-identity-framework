@@ -1144,6 +1144,24 @@
              <Scopes>internal_password_expired_user_view</Scopes>
          </Resource>
 
+         <!-- Action Management API -->
+         <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="POST">
+             <Scopes>internal_action_mgt_create</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="PUT">
+             <Scopes>internal_action_mgt_update</Scopes>
+         </Resource>
+        <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/actionmgt/update</Permissions>
+            <Scopes>internal_action_mgt_update</Scopes>
+        </Resource>
+         <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="DELETE">
+             <Scopes>internal_action_mgt_delete</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="GET">
+             <Scopes>internal_action_mgt_view</Scopes>
+         </Resource>
+
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
@@ -1215,6 +1233,8 @@
         <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
+        <Resource context="(.*)/.well-known/trusted-apps/android" secured="false" http-method="GET"/>
+        <Resource context="(.*)/.well-known/trusted-apps/ios" secured="false" http-method="GET"/>
 
         <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
         <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">

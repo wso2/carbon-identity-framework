@@ -22,6 +22,7 @@ package org.wso2.carbon.identity.api.resource.collection.mgt.constant;
  * API Resource Collection Management Constants.
  */
 public class APIResourceCollectionManagementConstants {
+
     public static final String ID = "id";
     public static final String NAME = "name";
     public static final String DISPLAY_NAME = "displayName";

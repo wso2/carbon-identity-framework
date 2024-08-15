@@ -18,24 +18,21 @@
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
 import org.apache.axiom.om.util.Base64;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.mockStatic;
 
-@PrepareForTest({MutualSSLManager.class})
-@PowerMockIgnore("org.mockito.*")
-public class MutualSSLManagerTest extends PowerMockTestCase {
+public class MutualSSLManagerTest {
 
     private String clientKeyStore = "./repository/resources/security/wso2carbon.jks";
     private String clientTrustStore = "./repository/resources/security/client-truststore.jks";
@@ -46,12 +43,8 @@ public class MutualSSLManagerTest extends PowerMockTestCase {
     @BeforeMethod
     public void setUp() throws Exception {
 
-        PowerMockito.spy(MutualSSLManager.class);
-        PowerMockito.doReturn(buildFilePath(clientKeyStore))
-                .when(MutualSSLManager.class, "buildFilePath", clientKeyStore);
-        PowerMockito.doReturn(buildFilePath(clientTrustStore))
-                .when(MutualSSLManager.class, "buildFilePath", clientTrustStore);
-
+        setPrivateStaticField(MutualSSLManager.class, "initialized", false);
+        setPrivateStaticField(MutualSSLManager.class, "carbonLogin", "");
     }
 
     @DataProvider(name = "configData")
@@ -68,12 +61,16 @@ public class MutualSSLManagerTest extends PowerMockTestCase {
     @Test(dataProvider = "configData")
     public void testInit(String configFilePath, String carbonLogin) throws Exception {
 
-        PowerMockito.doNothing().when(MutualSSLManager.class, "initMutualSSLConnection", anyBoolean());
+        try (MockedStatic<MutualSSLManager> mutualSSLManager = mockStatic(MutualSSLManager.class,
+                Mockito.CALLS_REAL_METHODS)) {
+            mutualSSLManager.when(() -> MutualSSLManager.buildFilePath(clientKeyStore)).thenReturn(buildFilePath(clientKeyStore));
+            mutualSSLManager.when(() -> MutualSSLManager.buildFilePath(clientTrustStore)).thenReturn(buildFilePath(clientTrustStore));
+            mutualSSLManager.when(() -> MutualSSLManager.buildFilePath(Constants.TenantConstants.CONFIG_RELATIVE_PATH)).thenReturn(buildFilePath(configFilePath));
+            mutualSSLManager.when(() -> MutualSSLManager.initMutualSSLConnection(anyBoolean())).thenAnswer(invocation -> null);
 
-        PowerMockito.doReturn(buildFilePath(configFilePath))
-                .when(MutualSSLManager.class, "buildFilePath", Constants.TenantConstants.CONFIG_RELATIVE_PATH);
-        MutualSSLManager.init();
-        Assert.assertEquals(carbonLogin, MutualSSLManager.getCarbonLogin());
+            MutualSSLManager.init();
+            Assert.assertEquals(MutualSSLManager.getCarbonLogin(), carbonLogin);
+        }
     }
 
     private String buildFilePath(String path) {
@@ -85,4 +82,11 @@ public class MutualSSLManagerTest extends PowerMockTestCase {
         return filepath;
     }
 
+    private void setPrivateStaticField(Class<?> clazz, String fieldName, Object newValue)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(null, newValue);
+    }
 }

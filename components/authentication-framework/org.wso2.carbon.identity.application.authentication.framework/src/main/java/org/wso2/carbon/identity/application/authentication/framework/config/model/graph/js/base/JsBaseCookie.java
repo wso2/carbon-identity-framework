@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base;
 
+import org.graalvm.polyglot.HostAccess;
+
 import javax.servlet.http.Cookie;
 
 /**
@@ -27,6 +29,7 @@ import javax.servlet.http.Cookie;
  * var commonAuthIdDomain = context.request.cookies.commonAuthId.domain
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime Cookie.
  */
+@HostAccess.Implementable
 public interface JsBaseCookie {
 
     Cookie getWrapped();

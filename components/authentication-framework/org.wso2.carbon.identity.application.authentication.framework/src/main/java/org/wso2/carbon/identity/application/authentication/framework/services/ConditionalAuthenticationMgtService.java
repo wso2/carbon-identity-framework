@@ -44,7 +44,9 @@ public class ConditionalAuthenticationMgtService extends AbstractAdmin {
      */
     public String[] getAllAvailableFunctions() {
 
-        List<String> jsFunctions = Stream.of("executeStep", "selectAcrFrom", "sendError", "Log.info", "require").collect
+        //provide JS function list for autocomplete in editor
+        List<String> jsFunctions =
+                Stream.of("executeStep", "selectAcrFrom", "sendError", "Log.info", "require", "secrets").collect
                 (Collectors.toList());
         JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
         Map<String, Object> functionsMap = jsFunctionRegistry.getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem

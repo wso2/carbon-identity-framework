@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -142,13 +142,15 @@ public class AuthenticationContextLoader {
                     authenticatorConfig.setIdPResourceIds(Collections.emptyList());
                     authenticatorConfig.setApplicationAuthenticator(null);
                     List<String> idPResourceId = new ArrayList<>();
-                    for (Map.Entry<String, IdentityProvider> entry : authenticatorConfig.getIdps().entrySet()) {
-                        String idpName = entry.getKey();
-                        IdentityProvider idp = entry.getValue();
-                        if (idp.getResourceId() == null) {
-                            idPResourceId.add(getIdPByIdPName(idpName, context.getTenantDomain()).getResourceId());
-                        } else {
-                            idPResourceId.add(idp.getResourceId());
+                    if (authenticatorConfig.getIdps() != null) {
+                        for (Map.Entry<String, IdentityProvider> entry : authenticatorConfig.getIdps().entrySet()) {
+                            String idpName = entry.getKey();
+                            IdentityProvider idp = entry.getValue();
+                            if (idp.getResourceId() == null) {
+                                idPResourceId.add(getIdPByIdPName(idpName, context.getTenantDomain()).getResourceId());
+                            } else {
+                                idPResourceId.add(idp.getResourceId());
+                            }
                         }
                     }
                     authenticatorConfig.setIdPResourceIds(idPResourceId);

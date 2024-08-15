@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -105,6 +105,9 @@ public class ApplicationConstants {
 
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
+    public static final String TRUSTED_APP_CONSENT_REQUIRED_PROPERTY = "ApplicationMgt.TrustedAppConsentRequired";
+    public static final String TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY =
+            "ApplicationMgt.TrustedAppMaxThumbprintCount";
 
     public static final String NON_EXISTING_USER_CODE = "30007 - ";
 
@@ -115,9 +118,14 @@ public class ApplicationConstants {
     public static final String MY_ACCOUNT_ACCESS_URL_FROM_SERVER_CONFIGS = "MyAccount.AccessURL";
     public static final String CONSOLE_APPLICATION_CLIENT_ID = "CONSOLE";
     public static final String CONSOLE_APPLICATION_INBOUND_TYPE = "oauth2";
+    public static final String MY_ACCOUNT_APPLICATION_CLIENT_ID = "MY_ACCOUNT";
     public static final String TENANT_DOMAIN_PLACEHOLDER = "{TENANT_DOMAIN}";
     public static final String CONSOLE_ACCESS_ORIGIN = "Console.Origin";
     public static final String MYACCOUNT_ACCESS_ORIGIN = "MyAccount.Origin";
+    public static final String CONSOLE_PORTAL_PATH = "Console.AppBaseName";
+    public static final String MYACCOUNT_PORTAL_PATH = "MyAccount.AppBaseName";
+    public static final String AUTHORIZE_ALL_SCOPES = "OAuth.AuthorizeAllScopes";
+    public static final String RBAC = "RBAC";
 
     /**
      * Group the constants related to logs.

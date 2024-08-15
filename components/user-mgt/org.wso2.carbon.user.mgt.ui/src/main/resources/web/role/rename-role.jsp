@@ -153,8 +153,8 @@
             <form action="rename-role-finish-ajaxprocessor.jsp" method="post" id="renameRoleForm">
 
                 <input type="hidden" id="role_regex" name="role_regex" value=<%=Encode.forHtmlAttribute(regEx)%>>
-                <input type="hidden" id="oldRoleName" name="oldRoleName" value=<%=Encode.forHtmlAttribute(roleName)%>>
-
+                <input type="hidden" id="oldRoleName" name="oldRoleName" value=<%=Encode.forJavaScript(Encode
+                .forUriComponent(roleName))%>>
                 <table class="styledLeft">
                     <thead>
                     <tr>

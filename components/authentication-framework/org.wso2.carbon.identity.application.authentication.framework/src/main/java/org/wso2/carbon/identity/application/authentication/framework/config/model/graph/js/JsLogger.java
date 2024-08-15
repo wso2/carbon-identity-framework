@@ -20,9 +20,13 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.utils.DiagnosticLog;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * Logger For javascript engine.
@@ -49,6 +53,7 @@ public class JsLogger {
      *
      * @param values
      */
+    @HostAccess.Export
     public void log(Object... values) {
 
         if (values != null) {
@@ -67,57 +72,96 @@ public class JsLogger {
                 logger.debug(stringBuilder.toString());
                 resultMessage = stringBuilder.toString();
             }
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                        FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                        FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
-                        .resultMessage("Debug: " + resultMessage)
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
-            }
+            logDiagnosticEvent("Debug: " + resultMessage, DiagnosticLog.ResultStatus.SUCCESS);
         }
     }
 
+    @HostAccess.Export
     public void debug(String value) {
 
         logger.debug(value);
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
-                    .resultMessage("Debug: " + value)
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+        logDiagnosticEvent("Debug: " + value, DiagnosticLog.ResultStatus.SUCCESS);
+    }
+
+    @HostAccess.Export
+    public void debug(Object... values) {
+
+        if (values != null) {
+            String resultMessage;
+            if (values.length == 0) {
+                resultMessage = "";
+            } else if (values.length == 1) {
+                resultMessage = String.valueOf(values[0]);
+            } else {
+                resultMessage = Arrays.stream(values).map(String::valueOf).collect(Collectors.joining(","));
+            }
+            logger.debug(resultMessage);
+            logDiagnosticEvent("Debug: " + resultMessage, DiagnosticLog.ResultStatus.SUCCESS);
         }
     }
 
+    @HostAccess.Export
     public void info(String value) {
 
         logger.info(value);
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
-                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
-                    FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
-                    .resultMessage("Info: " + value)
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS));
+        logDiagnosticEvent("Info: " + value, DiagnosticLog.ResultStatus.SUCCESS);
+    }
+
+    @HostAccess.Export
+    public void info(Object... values) {
+
+        if (values != null) {
+            String resultMessage;
+            if (values.length == 0) {
+                resultMessage = "";
+            } else if (values.length == 1) {
+                resultMessage = String.valueOf(values[0]);
+            } else {
+                resultMessage = Arrays.stream(values).map(String::valueOf).collect(Collectors.joining(","));
+            }
+            logger.info(resultMessage);
+            logDiagnosticEvent("Info: " + resultMessage, DiagnosticLog.ResultStatus.SUCCESS);
         }
     }
 
+    @HostAccess.Export
     public void error(String value) {
 
         logger.error(value);
+        logDiagnosticEvent("Error: " + value, DiagnosticLog.ResultStatus.FAILED);
+    }
+
+    @HostAccess.Export
+    public void error(Object... values) {
+
+        if (values != null) {
+            String resultMessage;
+            if (values.length == 0) {
+                resultMessage = "";
+            } else if (values.length == 1) {
+                resultMessage = String.valueOf(values[0]);
+            } else {
+                resultMessage = Arrays.stream(values).map(String::valueOf).collect(Collectors.joining(","));
+            }
+            logger.error(resultMessage);
+            logDiagnosticEvent("Error: " + resultMessage, DiagnosticLog.ResultStatus.FAILED);
+        }
+    }
+
+    @HostAccess.Export
+    public void log(String message, Object... values) {
+
+    }
+
+    private void logDiagnosticEvent(String resultMessage, DiagnosticLog.ResultStatus resultStatus) {
+
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             LoggerUtils.triggerDiagnosticLogEvent(new DiagnosticLog.DiagnosticLogBuilder(
                     FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
                     FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
-                    .resultMessage("Error: " + value)
+                    .resultMessage(resultMessage)
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.FAILED));
+                    .resultStatus(resultStatus));
         }
-    }
-
-    public void log(String message, Object... values) {
-
     }
 }
