@@ -22,9 +22,7 @@ import junit.framework.TestCase;
 import org.apache.axiom.om.OMElement;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.core.model.IdentityKeyStoreMapping;
@@ -73,6 +71,18 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     private static final String TENANT_DOMAIN = "foo.com";
     private static final String TENANT_ID = "1";
 
+    private KeyStore primaryKeyStore;
+    private KeyStore tenantKeyStore;
+    private KeyStore customKeyStore;
+
+    private static Key primaryKey;
+    private static Key tenantKey;
+    private static Key customKey;
+
+    private static Certificate primaryCertificate;
+    private static Certificate tenantCertificate;
+    private static Certificate customCertificate;
+
     @Mock
     private IdentityConfigParser mockIdentityConfigParser;
 
@@ -87,7 +97,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     private MockedStatic<IdentityConfigParser> identityConfigParser;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
-    @BeforeMethod
+    @BeforeClass
     public void setUp() throws Exception {
 
         // Mock key store mapping configurations.
@@ -105,16 +115,70 @@ public class IdentityKeyStoreResolverTest extends TestCase {
         keyStoreMappings.put(InboundProtocol.OAUTH, oauthKeyStoreMapping);
         keyStoreMappings.put(InboundProtocol.WS_TRUST, wsTrustKeyStoreMapping);
 
-        setFinalStatic(IdentityKeyStoreResolver.class.getDeclaredField("keyStoreMappings"), keyStoreMappings);
+        setPrivateStaticField(IdentityKeyStoreResolver.class, "keyStoreMappings", keyStoreMappings);
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN)).thenReturn(Integer.valueOf(SUPER_TENANT_ID));
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(Integer.valueOf(TENANT_ID));
 
         identityKeyStoreResolver = IdentityKeyStoreResolver.getInstance();
+
+        // Mock getKeyStore method of key store manager.
+        System.setProperty(CarbonBaseConstants.CARBON_HOME,
+                Paths.get(System.getProperty("user.dir"), "src", "test", "resources").toString());
+
+        primaryKeyStore = getKeyStoreFromFile(PRIMARY_KEY_STORE, PRIMARY_KEY_STORE_PASSWORD,
+                System.getProperty(CarbonBaseConstants.CARBON_HOME));
+        tenantKeyStore = getKeyStoreFromFile(TENANT_KEY_STORE, TENANT_KEY_STORE_PASSWORD,
+                System.getProperty(CarbonBaseConstants.CARBON_HOME));
+        customKeyStore = getKeyStoreFromFile(CUSTOM_KEY_STORE, CUSTOM_KEY_STORE_PASSWORD,
+                System.getProperty(CarbonBaseConstants.CARBON_HOME));
+
+        KeyStoreManager keyStoreManager = mock(KeyStoreManager.class);
+        ConcurrentHashMap<String, KeyStoreManager> mtKeyStoreManagers = new ConcurrentHashMap();
+
+        mtKeyStoreManagers.put(SUPER_TENANT_ID, keyStoreManager);
+        mtKeyStoreManagers.put(TENANT_ID, keyStoreManager);
+        setPrivateStaticField(KeyStoreManager.class, "mtKeyStoreManagers", mtKeyStoreManagers);
+
+        when(keyStoreManager.getPrimaryKeyStore()).thenReturn(primaryKeyStore);
+        when(keyStoreManager.getKeyStore(TENANT_KEY_STORE)).thenReturn(tenantKeyStore);
+        when(keyStoreManager.getKeyStore("CUSTOM/" + CUSTOM_KEY_STORE)).thenReturn(customKeyStore);
+
+        // Mock set private keys.
+        primaryKey = getKeyStoreFromFile(PRIMARY_KEY_STORE, PRIMARY_KEY_STORE_PASSWORD,
+                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getKey(PRIMARY_KEY_STORE_ALIAS, PRIMARY_KEY_STORE_PASSWORD.toCharArray());
+        tenantKey = getKeyStoreFromFile(TENANT_KEY_STORE, TENANT_KEY_STORE_PASSWORD,
+                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getKey(TENANT_KEY_STORE_ALIAS, TENANT_KEY_STORE_PASSWORD.toCharArray());
+        customKey = getKeyStoreFromFile(CUSTOM_KEY_STORE, CUSTOM_KEY_STORE_PASSWORD,
+                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getKey(CUSTOM_KEY_STORE_ALIAS, CUSTOM_KEY_STORE_PASSWORD.toCharArray());
+
+        Map<String, Key> privateKeys = new ConcurrentHashMap<>();
+        privateKeys.put(SUPER_TENANT_ID, primaryKey);
+        privateKeys.put(TENANT_ID, tenantKey);
+        privateKeys.put(InboundProtocol.OAUTH.toString(), customKey);
+        privateKeys.put(InboundProtocol.WS_TRUST.toString(), customKey);
+
+        setPrivateStaticField(IdentityKeyStoreResolver.class, "privateKeys", privateKeys);
+
+        // Mock set certificates.
+        primaryCertificate = getKeyStoreFromFile(PRIMARY_KEY_STORE, PRIMARY_KEY_STORE_PASSWORD,
+                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getCertificate(PRIMARY_KEY_STORE_ALIAS);
+        tenantCertificate = getKeyStoreFromFile(TENANT_KEY_STORE, TENANT_KEY_STORE_PASSWORD,
+                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getCertificate(TENANT_KEY_STORE_ALIAS);
+        customCertificate = getKeyStoreFromFile(CUSTOM_KEY_STORE, CUSTOM_KEY_STORE_PASSWORD,
+                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getCertificate(CUSTOM_KEY_STORE_ALIAS);
+
+        Map<String, Certificate> publicCerts = new ConcurrentHashMap<>();
+        publicCerts.put(SUPER_TENANT_ID, primaryCertificate);
+        publicCerts.put(TENANT_ID, tenantCertificate);
+        publicCerts.put(InboundProtocol.OAUTH.toString(), customCertificate);
+        publicCerts.put(InboundProtocol.WS_TRUST.toString(), customCertificate);
+
+        setPrivateStaticField(IdentityKeyStoreResolver.class, "publicCerts", publicCerts);
     }
 
-    @AfterMethod
+    @AfterClass
     public void close() {
 
         identityConfigParser.close();
@@ -130,112 +194,61 @@ public class IdentityKeyStoreResolverTest extends TestCase {
         assertEquals(identityKeyStoreResolver1, identityKeyStoreResolver2);
     }
 
-    @Test
-    public void testGetKeyStore() throws Exception {
+    @DataProvider(name = "KeyStoreDataProvider")
+    public Object[][] keyStoreDataProvider() {
 
-        System.setProperty(CarbonBaseConstants.CARBON_HOME,
-                Paths.get(System.getProperty("user.dir"), "src", "test", "resources").toString());
-
-        KeyStore primaryKeyStore = getKeyStoreFromFile(PRIMARY_KEY_STORE, PRIMARY_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME));
-        KeyStore tenantKeyStore = getKeyStoreFromFile(TENANT_KEY_STORE, TENANT_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME));
-        KeyStore customKeyStore = getKeyStoreFromFile(CUSTOM_KEY_STORE, CUSTOM_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME));
-
-        KeyStoreManager keyStoreManager = mock(KeyStoreManager.class);
-        ConcurrentHashMap<String, KeyStoreManager> mtKeyStoreManagers = new ConcurrentHashMap();
-
-        mtKeyStoreManagers.put(SUPER_TENANT_ID, keyStoreManager);
-        mtKeyStoreManagers.put(TENANT_ID, keyStoreManager);
-        setPrivateStaticField(KeyStoreManager.class, "mtKeyStoreManagers", mtKeyStoreManagers);
-
-        when(keyStoreManager.getPrimaryKeyStore()).thenReturn(primaryKeyStore);
-        when(keyStoreManager.getKeyStore(TENANT_KEY_STORE)).thenReturn(tenantKeyStore);
-        when(keyStoreManager.getKeyStore("CUSTOM/" + CUSTOM_KEY_STORE)).thenReturn(customKeyStore);
-
-        assertEquals(primaryKeyStore, identityKeyStoreResolver.getKeyStore(SUPER_TENANT_DOMAIN, InboundProtocol.WS_FEDERATION));
-        assertEquals(tenantKeyStore, identityKeyStoreResolver.getKeyStore(TENANT_DOMAIN, InboundProtocol.WS_FEDERATION));
-        assertEquals(customKeyStore, identityKeyStoreResolver.getKeyStore(SUPER_TENANT_DOMAIN, InboundProtocol.OAUTH));
-        assertEquals(customKeyStore, identityKeyStoreResolver.getKeyStore(TENANT_DOMAIN, InboundProtocol.OAUTH));
-        assertEquals(customKeyStore, identityKeyStoreResolver.getKeyStore(SUPER_TENANT_DOMAIN, InboundProtocol.WS_TRUST));
-        assertEquals(tenantKeyStore, identityKeyStoreResolver.getKeyStore(TENANT_DOMAIN, InboundProtocol.WS_TRUST));
+        return new Object[][] {
+                {SUPER_TENANT_DOMAIN, InboundProtocol.WS_FEDERATION, primaryKeyStore},
+                {TENANT_DOMAIN, InboundProtocol.WS_FEDERATION, tenantKeyStore},
+                {SUPER_TENANT_DOMAIN, InboundProtocol.OAUTH, customKeyStore},
+                {TENANT_DOMAIN, InboundProtocol.OAUTH, customKeyStore},
+                {SUPER_TENANT_DOMAIN, InboundProtocol.WS_TRUST, customKeyStore},
+                {TENANT_DOMAIN, InboundProtocol.WS_TRUST, tenantKeyStore}
+        };
     }
 
-    @Test
-    public void testGetPrivateKey() throws Exception {
+    @Test(dataProvider = "KeyStoreDataProvider")
+    public void testGetKeyStore(String tenantDomain, InboundProtocol inboundProtocol, KeyStore expectedKeyStore) throws Exception {
 
-        System.setProperty(CarbonBaseConstants.CARBON_HOME,
-                Paths.get(System.getProperty("user.dir"), "src", "test", "resources").toString());
-
-        Key primaryKey = getKeyStoreFromFile(PRIMARY_KEY_STORE, PRIMARY_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getKey(PRIMARY_KEY_STORE_ALIAS, PRIMARY_KEY_STORE_PASSWORD.toCharArray());
-        Key tenantKey = getKeyStoreFromFile(TENANT_KEY_STORE, TENANT_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getKey(TENANT_KEY_STORE_ALIAS, TENANT_KEY_STORE_PASSWORD.toCharArray());
-        Key customKey = getKeyStoreFromFile(CUSTOM_KEY_STORE, CUSTOM_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getKey(CUSTOM_KEY_STORE_ALIAS, CUSTOM_KEY_STORE_PASSWORD.toCharArray());
-
-        Map<String, Key> publicCerts = new ConcurrentHashMap<>();
-        publicCerts.put(SUPER_TENANT_ID, primaryKey);
-        publicCerts.put(TENANT_ID, tenantKey);
-        publicCerts.put(InboundProtocol.OAUTH.toString(), customKey);
-        publicCerts.put(InboundProtocol.WS_TRUST.toString(), customKey);
-
-        setFinalStatic(IdentityKeyStoreResolver.class.getDeclaredField("privateKeys"), publicCerts);
-
-        assertEquals(primaryKey, identityKeyStoreResolver.getPrivateKey(SUPER_TENANT_DOMAIN, InboundProtocol.WS_FEDERATION));
-        assertEquals(tenantKey, identityKeyStoreResolver.getPrivateKey(TENANT_DOMAIN, InboundProtocol.WS_FEDERATION));
-        assertEquals(customKey, identityKeyStoreResolver.getPrivateKey(SUPER_TENANT_DOMAIN, InboundProtocol.OAUTH));
-        assertEquals(customKey, identityKeyStoreResolver.getPrivateKey(TENANT_DOMAIN, InboundProtocol.OAUTH));
-        assertEquals(customKey, identityKeyStoreResolver.getPrivateKey(SUPER_TENANT_DOMAIN, InboundProtocol.WS_TRUST));
-        assertEquals(tenantKey, identityKeyStoreResolver.getPrivateKey(TENANT_DOMAIN, InboundProtocol.WS_TRUST));
+        assertEquals(expectedKeyStore, identityKeyStoreResolver.getKeyStore(tenantDomain, inboundProtocol));
     }
 
-    @Test
-    public void testGetCertificate() throws Exception {
+    @DataProvider(name = "PrivateKeyDataProvider")
+    public Object[][] privateKeyDataProvider() {
 
-        System.setProperty(CarbonBaseConstants.CARBON_HOME,
-                Paths.get(System.getProperty("user.dir"), "src", "test", "resources").toString());
-
-        Certificate primaryCertificate = getKeyStoreFromFile(PRIMARY_KEY_STORE, PRIMARY_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getCertificate(PRIMARY_KEY_STORE_ALIAS);
-        Certificate tenantCertificate = getKeyStoreFromFile(TENANT_KEY_STORE, TENANT_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getCertificate(TENANT_KEY_STORE_ALIAS);
-        Certificate customCertificate = getKeyStoreFromFile(CUSTOM_KEY_STORE, CUSTOM_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getCertificate(CUSTOM_KEY_STORE_ALIAS);
-
-        Map<String, Certificate> publicCerts = new ConcurrentHashMap<>();
-        publicCerts.put(SUPER_TENANT_ID, primaryCertificate);
-        publicCerts.put(TENANT_ID, tenantCertificate);
-        publicCerts.put(InboundProtocol.OAUTH.toString(), customCertificate);
-        publicCerts.put(InboundProtocol.WS_TRUST.toString(), customCertificate);
-
-        setFinalStatic(IdentityKeyStoreResolver.class.getDeclaredField("publicCerts"), publicCerts);
-
-        assertEquals(primaryCertificate, identityKeyStoreResolver.getCertificate(SUPER_TENANT_DOMAIN, InboundProtocol.WS_FEDERATION));
-        assertEquals(tenantCertificate, identityKeyStoreResolver.getCertificate(TENANT_DOMAIN, InboundProtocol.WS_FEDERATION));
-        assertEquals(customCertificate, identityKeyStoreResolver.getCertificate(SUPER_TENANT_DOMAIN, InboundProtocol.OAUTH));
-        assertEquals(customCertificate, identityKeyStoreResolver.getCertificate(TENANT_DOMAIN, InboundProtocol.OAUTH));
-        assertEquals(customCertificate, identityKeyStoreResolver.getCertificate(SUPER_TENANT_DOMAIN, InboundProtocol.WS_TRUST));
-        assertEquals(tenantCertificate, identityKeyStoreResolver.getCertificate(TENANT_DOMAIN, InboundProtocol.WS_TRUST));
+        return new Object[][] {
+                {SUPER_TENANT_DOMAIN, InboundProtocol.WS_FEDERATION, primaryKey},
+                {TENANT_DOMAIN, InboundProtocol.WS_FEDERATION, tenantKey},
+                {SUPER_TENANT_DOMAIN, InboundProtocol.OAUTH, customKey},
+                {TENANT_DOMAIN, InboundProtocol.OAUTH, customKey},
+                {SUPER_TENANT_DOMAIN, InboundProtocol.WS_TRUST, customKey},
+                {TENANT_DOMAIN, InboundProtocol.WS_TRUST, tenantKey}
+        };
     }
 
-    private void setFinalStatic(Field field, Object newValue) throws Exception {
+    @Test(dataProvider = "PrivateKeyDataProvider")
+    public void testGetPrivateKey(String tenantDomain, InboundProtocol inboundProtocol, Key expectedKey)  throws Exception {
 
-        Method getDeclaredFields0 = Class.class.getDeclaredMethod("getDeclaredFields0", boolean.class);
-        getDeclaredFields0.setAccessible(true);
-        Field[] fields = (Field[]) getDeclaredFields0.invoke(Field.class, false);
-        Field modifiers = null;
-        for (Field each : fields) {
-            if ("modifiers".equals(each.getName())) {
-                modifiers = each;
-                break;
-            }
-        }
-        field.setAccessible(true);
-        modifiers.setAccessible(true);
-        modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-        field.set(null, newValue);
+        assertEquals(expectedKey, identityKeyStoreResolver.getPrivateKey(tenantDomain, inboundProtocol));
+    }
+
+    @DataProvider(name = "PublicCertificateDataProvider")
+    public Object[][] publicCertificateDataProvider() {
+
+        return new Object[][] {
+                {SUPER_TENANT_DOMAIN, InboundProtocol.WS_FEDERATION, primaryCertificate},
+                {TENANT_DOMAIN, InboundProtocol.WS_FEDERATION, tenantCertificate},
+                {SUPER_TENANT_DOMAIN, InboundProtocol.OAUTH, customCertificate},
+                {TENANT_DOMAIN, InboundProtocol.OAUTH, customCertificate},
+                {SUPER_TENANT_DOMAIN, InboundProtocol.WS_TRUST, customCertificate},
+                {TENANT_DOMAIN, InboundProtocol.WS_TRUST, tenantCertificate}
+        };
+    }
+
+    @Test(dataProvider = "PublicCertificateDataProvider")
+    public void testGetCertificate(String tenantDomain, InboundProtocol inboundProtocol, Certificate expectedCert) throws Exception {
+
+        assertEquals(expectedCert, identityKeyStoreResolver.getCertificate(tenantDomain, inboundProtocol));
     }
 
     private KeyStore getKeyStoreFromFile(String keystoreName, String password, String home) throws Exception {
