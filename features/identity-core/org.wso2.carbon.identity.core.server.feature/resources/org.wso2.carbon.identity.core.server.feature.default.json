@@ -1287,7 +1287,9 @@
   "console.login_and_registration.scopes.update": [
     "internal_governance_update",
     "internal_validation_rule_mgt_update",
-    "internal_config_update"
+    "internal_config_update",
+    "internal_group_mgt_view",
+    "internal_role_mgt_view"
   ],
   "console.logs.enabled": false,
   "console.my_account.enabled": false,
