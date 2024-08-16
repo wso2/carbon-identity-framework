@@ -306,6 +306,77 @@
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
         <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
 
+        {% if oauth.endpoints.v2 is defined %}
+        <!-- V2 configs for oauth endpoints -->
+        <V2>
+            {% if oauth.endpoints.v2.oauth1_request_token_url is defined %}
+            <OAuth1RequestTokenUrl>{{oauth.endpoints.v2.oauth1_request_token_url}}</OAuth1RequestTokenUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth1_authorize_url is defined %}
+            <OAuth1AuthorizeUrl>{{oauth.endpoints.v2.oauth1_authorize_url}}</OAuth1AuthorizeUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth1_access_token_url is defined %}
+            <OAuth1AccessTokenUrl>{{oauth.endpoints.v2.oauth1_access_token_url}}</OAuth1AccessTokenUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_authz_url is defined %}
+            <OAuth2AuthzEPUrl>{{oauth.endpoints.v2.oauth2_authz_url}}</OAuth2AuthzEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_par_url is defined %}
+            <OAuth2ParEPUrl>{{oauth.endpoints.v2.oauth2_par_url}}</OAuth2ParEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_token_url is defined %}
+            <OAuth2TokenEPUrl>{{oauth.endpoints.v2.oauth2_token_url}}</OAuth2TokenEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_revoke_url is defined %}
+            <OAuth2RevokeEPUrl>{{oauth.endpoints.v2.oauth2_revoke_url}}</OAuth2RevokeEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_introspect_url is defined %}
+            <OAuth2IntrospectEPUrl>{{oauth.endpoints.v2.oauth2_introspect_url}}</OAuth2IntrospectEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_user_info_url is defined %}
+            <OAuth2UserInfoEPUrl>{{oauth.endpoints.v2.oauth2_user_info_url}}</OAuth2UserInfoEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_check_session_url is defined %}
+            <OIDCCheckSessionEPUrl>{{oauth.endpoints.v2.oidc_check_session_url}}</OIDCCheckSessionEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_logout_url is defined %}
+            <OIDCLogoutEPUrl>{{oauth.endpoints.v2.oidc_logout_url}}</OIDCLogoutEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_consent_page is defined %}
+            <OAuth2ConsentPage>{{oauth.endpoints.v2.oauth2_consent_page}}</OAuth2ConsentPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_error_page is defined %}
+            <OAuth2ErrorPage>{{oauth.endpoints.v2.oauth2_error_page}}</OAuth2ErrorPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_consent_page is defined %}
+            <OIDCConsentPage>{{oauth.endpoints.v2.oidc_consent_page}}</OIDCConsentPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_logout_consent_page is defined %}
+            <OIDCLogoutConsentPage>{{oauth.endpoints.v2.oidc_logout_consent_page}}</OIDCLogoutConsentPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_logout_page is defined %}
+            <OIDCLogoutPage>{{oauth.endpoints.v2.oidc_logout_page}}</OIDCLogoutPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_web_finger_url is defined %}
+            <OIDCWebFingerEPUrl>{{oauth.endpoints.v2.oidc_web_finger_url}}</OIDCWebFingerEPUrl>
+            {% endif %}
+
+            <!-- For tenants below urls will be modified as https://<hostname>:<port>/t/<tenant domain>/<path>-->
+            {% if oauth.endpoints.v2.oauth2_dcr_url is defined %}
+            <OAuth2DCREPUrl>{{oauth.endpoints.v2.oauth2_dcr_url}}</OAuth2DCREPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_jwks_url is defined %}
+            <OAuth2JWKSPage>{{oauth.endpoints.v2.oauth2_jwks_url}}</OAuth2JWKSPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_discovery_url is defined %}
+            <OIDCDiscoveryEPUrl>{{oauth.endpoints.v2.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_device_authz_url is defined %}
+            <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.v2.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
+            {% endif %}
+        </V2>
+        {% endif %}
+
         <MutualTLSAliases>
             <Enabled>{{oauth.mtls_aliases.enabled}}</Enabled>
             <Hostname>{{oauth.mtls_aliases.hostname}}</Hostname>
