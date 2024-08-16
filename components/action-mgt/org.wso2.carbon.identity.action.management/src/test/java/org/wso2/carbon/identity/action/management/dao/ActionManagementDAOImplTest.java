@@ -27,6 +27,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
@@ -72,24 +73,6 @@ public class ActionManagementDAOImplTest {
     private static final String PRE_ISSUE_ACCESS_TOKEN = "PRE_ISSUE_ACCESS_TOKEN";
     private static final int TENANT_ID = 2;
     private Action action;
-    private final AuthType authType = new AuthType.AuthTypeBuilder()
-            .type(AuthType.AuthenticationType.BASIC)
-            .properties(Arrays.asList(
-                    new AuthProperty.AuthPropertyBuilder()
-                            .name(AuthType.AuthenticationType
-                                    .AuthenticationProperty.USERNAME.getName())
-                            .value("newadmin")
-                            .isConfidential(AuthType.AuthenticationType.AuthenticationProperty
-                                    .USERNAME.getIsConfidential())
-                            .build(),
-                    new AuthProperty.AuthPropertyBuilder()
-                            .name(AuthType.AuthenticationType
-                                    .AuthenticationProperty.PASSWORD.getName())
-                            .value("newadmin")
-                            .isConfidential(AuthType.AuthenticationType.AuthenticationProperty
-                                    .PASSWORD.getIsConfidential())
-                            .build()))
-            .build();
 
     @BeforeClass
     public void setUpClass() throws Exception {
@@ -128,7 +111,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 1)
     public void testAddAction() throws ActionMgtException {
 
-        Action creatingAction = buildMockAction(false);
+        Action creatingAction = buildMockAction(true, true);
         action = daoImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, creatingAction.getId(), creatingAction, TENANT_ID);
         Assert.assertEquals(creatingAction.getId(), action.getId());
         Assert.assertEquals(creatingAction.getName(), action.getName());
@@ -141,6 +124,19 @@ public class ActionManagementDAOImplTest {
     }
 
     @Test(priority = 2)
+    public void testAddActionWithoutName() {
+
+        Action action = buildMockAction(true, false);
+        try {
+            this.action = daoImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), action, TENANT_ID);
+
+        } catch (Exception e) {
+            Assert.assertEquals(ActionMgtConstants.ErrorMessages.ERROR_WHILE_ADDING_ACTION.getMessage(),
+                    e.getMessage());
+        }
+    }
+
+    @Test(priority = 3)
     public void testGetActionsByActionType() throws ActionMgtException, SQLException {
 
         Assert.assertEquals(1, daoImpl.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN, TENANT_ID).size());
@@ -156,7 +152,7 @@ public class ActionManagementDAOImplTest {
                 result.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 3)
+    @Test(priority = 4)
     public void testGetActionByActionId() throws ActionMgtException {
 
         Action result = daoImpl.getActionByActionId(action.getId(), TENANT_ID);
@@ -170,7 +166,7 @@ public class ActionManagementDAOImplTest {
                 result.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 4)
+    @Test(priority = 5)
     public void testDeleteAction() throws ActionMgtException, SQLException {
 
         daoImpl.deleteAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), action, TENANT_ID);
@@ -178,10 +174,10 @@ public class ActionManagementDAOImplTest {
         Assert.assertNull(daoImpl.getActionByActionId(action.getId(), TENANT_ID));
     }
 
-    @Test(priority = 5)
+    @Test(priority = 6)
     public void testAddActionWithoutOptionalAttributes() throws ActionMgtException {
 
-        Action creatingAction = buildMockAction(true);
+        Action creatingAction = buildMockAction(false, true);
         action = daoImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, creatingAction.getId(), creatingAction, TENANT_ID);
         Assert.assertEquals(creatingAction.getId(), action.getId());
         Assert.assertEquals(creatingAction.getName(), action.getName());
@@ -193,30 +189,11 @@ public class ActionManagementDAOImplTest {
                 action.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 6)
+    @Test(priority = 7)
     public void testUpdateAction() throws ActionMgtException {
 
-        Action updatingAction = new Action.ActionRequestBuilder()
-                .name("Pre Issue Access Token")
-                .description("To configure pre issue access token")
-                .endpoint(new EndpointConfig.EndpointConfigBuilder()
-                        .uri("https://sample.com")
-                        .authentication(new AuthType.AuthTypeBuilder()
-                                .type(AuthType.AuthenticationType.BASIC)
-                                .properties(Arrays.asList(
-                                        new AuthProperty.AuthPropertyBuilder()
-                                                .name("username")
-                                                .value("updatingadmin")
-                                                .isConfidential(true)
-                                                .build(),
-                                        new AuthProperty.AuthPropertyBuilder()
-                                                .name("password")
-                                                .value("updatingadmin")
-                                                .isConfidential(true)
-                                                .build()))
-                                .build())
-                        .build())
-                .build();
+        Action updatingAction = buildMockUpdatingAction(true, true, true,
+                AuthType.AuthenticationType.BASIC);
         Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(updatingAction.getName(), result.getName());
@@ -228,28 +205,51 @@ public class ActionManagementDAOImplTest {
                 updatingAction.getEndpoint().getAuthentication().getType(),
                 result.getEndpoint().getAuthentication().getType()
         );
-    }
-
-    @Test(priority = 7)
-    public void testDeactivateAction() throws ActionMgtException {
-
-        Assert.assertEquals(Action.Status.ACTIVE, action.getStatus());
-        Action deactivatedAction = daoImpl.deactivateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), TENANT_ID);
-        Assert.assertEquals(Action.Status.INACTIVE, deactivatedAction.getStatus());
+        action = result;
     }
 
     @Test(priority = 8)
-    public void testActivateAction() throws ActionMgtException {
+    public void testUpdateActionWithoutNameAndDescription() throws ActionMgtException {
 
-        Action result = daoImpl.activateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), TENANT_ID);
-        Assert.assertEquals(Action.Status.ACTIVE, result.getStatus());
+        Action updatingAction = buildMockUpdatingAction(false, false, true,
+                AuthType.AuthenticationType.BASIC);
+        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Assert.assertEquals(action.getId(), result.getId());
+        Assert.assertEquals(action.getName(), result.getName());
+        Assert.assertEquals(action.getDescription(), result.getDescription());
+        Assert.assertEquals(action.getType(), result.getType());
+        Assert.assertEquals(action.getStatus(), result.getStatus());
+        Assert.assertEquals(updatingAction.getEndpoint().getUri(), result.getEndpoint().getUri());
+        Assert.assertEquals(
+                updatingAction.getEndpoint().getAuthentication().getType(),
+                result.getEndpoint().getAuthentication().getType()
+                           );
     }
 
     @Test(priority = 9)
+    public void testUpdateActionWithoutEndpointConfiguration() throws ActionMgtException {
+
+        Action updatingAction = buildMockUpdatingAction();
+        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Assert.assertEquals(action.getId(), result.getId());
+        Assert.assertEquals(updatingAction.getName(), result.getName());
+        Assert.assertEquals(updatingAction.getDescription(), result.getDescription());
+        Assert.assertEquals(action.getType(), result.getType());
+        Assert.assertEquals(action.getStatus(), result.getStatus());
+        Assert.assertEquals(action.getEndpoint().getUri(), result.getEndpoint().getUri());
+        Assert.assertEquals(
+                action.getEndpoint().getAuthentication().getType(),
+                result.getEndpoint().getAuthentication().getType()
+                           );
+    }
+
+    @Test(priority = 10)
     public void testUpdateActionEndpointAuthProperties() {
 
         try {
-            Action result = daoImpl.updateActionEndpointAuthProperties(action.getId(), authType, TENANT_ID);
+            Action result = daoImpl.updateActionEndpointAuthProperties(action.getId(),
+                    buildMockAuthType(true),
+                    TENANT_ID);
             Assert.assertEquals(AuthType.AuthenticationType.BASIC, result.getEndpoint().getAuthentication().getType());
             Assert.assertEquals(2, result.getEndpoint().getAuthentication().getProperties().size());
         } catch (Exception e) {
@@ -257,7 +257,113 @@ public class ActionManagementDAOImplTest {
         }
     }
 
-    @Test(priority = 10)
+    @Test(priority = 11)
+    public void testUpdateActionEndpointAuthPropertiesWithoutConfidentiality() {
+
+        try {
+            Action result = daoImpl.updateActionEndpointAuthProperties(action.getId(),
+                    buildMockAuthType(false),
+                    TENANT_ID);
+            Assert.assertEquals(AuthType.AuthenticationType.BASIC, result.getEndpoint().getAuthentication().getType());
+            Assert.assertEquals(2, result.getEndpoint().getAuthentication().getProperties().size());
+        } catch (Exception e) {
+            Assert.fail();
+        }
+    }
+
+    @Test(priority = 12)
+    public void testUpdateActionWithoutEndpointUri() throws ActionMgtException {
+
+        Action updatingAction = buildMockUpdatingAction(true, true, false,
+                AuthType.AuthenticationType.BASIC);
+        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Assert.assertEquals(action.getId(), result.getId());
+        Assert.assertEquals(updatingAction.getName(), result.getName());
+        Assert.assertEquals(updatingAction.getDescription(), result.getDescription());
+        Assert.assertEquals(action.getType(), result.getType());
+        Assert.assertEquals(action.getStatus(), result.getStatus());
+        Assert.assertEquals(action.getEndpoint().getUri(), result.getEndpoint().getUri());
+        Assert.assertEquals(
+                updatingAction.getEndpoint().getAuthentication().getType(),
+                result.getEndpoint().getAuthentication().getType()
+                           );
+    }
+
+    @Test(priority = 13)
+    public void testUpdateActionWithAuthType() throws ActionMgtException {
+
+        Action updatingAction = buildMockUpdatingAction(false, false, true,
+                AuthType.AuthenticationType.BEARER);
+        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Assert.assertEquals(action.getId(), result.getId());
+        Assert.assertEquals(action.getName(), result.getName());
+        Assert.assertEquals(action.getDescription(), result.getDescription());
+        Assert.assertEquals(action.getType(), result.getType());
+        Assert.assertEquals(action.getStatus(), result.getStatus());
+        Assert.assertEquals(updatingAction.getEndpoint().getUri(), result.getEndpoint().getUri());
+        Assert.assertEquals(
+                updatingAction.getEndpoint().getAuthentication().getType(),
+                result.getEndpoint().getAuthentication().getType()
+                           );
+        action = result;
+    }
+
+    @Test(priority = 14)
+    public void testUpdateActionWithUri() throws ActionMgtException {
+
+        Action updatingAction = new Action.ActionRequestBuilder()
+                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                        .uri("https://sample.com")
+                        .build())
+                .build();
+        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Assert.assertEquals(action.getId(), result.getId());
+        Assert.assertEquals(action.getName(), result.getName());
+        Assert.assertEquals(action.getDescription(), result.getDescription());
+        Assert.assertEquals(action.getType(), result.getType());
+        Assert.assertEquals(action.getStatus(), result.getStatus());
+        Assert.assertEquals(updatingAction.getEndpoint().getUri(), result.getEndpoint().getUri());
+        Assert.assertEquals(
+                action.getEndpoint().getAuthentication().getType(),
+                result.getEndpoint().getAuthentication().getType()
+                           );
+        action = result;
+    }
+
+    @Test(priority = 15)
+    public void testUpdateActionWithAuthTypeWithoutUri() throws ActionMgtException {
+
+        Action updatingAction = buildMockUpdatingAction(true, true, false,
+                AuthType.AuthenticationType.BASIC);
+        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Assert.assertEquals(action.getId(), result.getId());
+        Assert.assertEquals(updatingAction.getName(), result.getName());
+        Assert.assertEquals(updatingAction.getDescription(), result.getDescription());
+        Assert.assertEquals(action.getType(), result.getType());
+        Assert.assertEquals(action.getStatus(), result.getStatus());
+        Assert.assertEquals(action.getEndpoint().getUri(), result.getEndpoint().getUri());
+        Assert.assertEquals(
+                updatingAction.getEndpoint().getAuthentication().getType(),
+                result.getEndpoint().getAuthentication().getType()
+                           );
+    }
+
+    @Test(priority = 16)
+    public void testDeactivateAction() throws ActionMgtException {
+
+        Assert.assertEquals(Action.Status.ACTIVE, action.getStatus());
+        Action deactivatedAction = daoImpl.deactivateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), TENANT_ID);
+        Assert.assertEquals(Action.Status.INACTIVE, deactivatedAction.getStatus());
+    }
+
+    @Test(priority = 17)
+    public void testActivateAction() throws ActionMgtException {
+
+        Action result = daoImpl.activateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), TENANT_ID);
+        Assert.assertEquals(Action.Status.ACTIVE, result.getStatus());
+    }
+
+    @Test(priority = 18)
     public void testUpdateActionEndpoint() throws ActionMgtException {
 
         EndpointConfig endpointConfig = new EndpointConfig.EndpointConfigBuilder()
@@ -280,7 +386,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(AuthType.AuthenticationType.BEARER, result.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 11)
+    @Test(priority = 19)
     public void testGetActionsCountPerType() throws ActionMgtException {
 
         Map<String, Integer> actionMap = daoImpl.getActionsCountPerType(TENANT_ID);
@@ -290,14 +396,91 @@ public class ActionManagementDAOImplTest {
         }
     }
 
-    private Action buildMockAction(boolean isOptional) {
+    private AuthType buildMockAuthType(boolean isConfidential) {
+
+        return  new AuthType.AuthTypeBuilder()
+                .type(AuthType.AuthenticationType.BASIC)
+                .properties(Arrays.asList(
+                        new AuthProperty.AuthPropertyBuilder()
+                                .name(AuthType.AuthenticationType
+                                        .AuthenticationProperty.USERNAME.getName())
+                                .value("newadmin")
+                                .isConfidential(isConfidential)
+                                .build(),
+                        new AuthProperty.AuthPropertyBuilder()
+                                .name(AuthType.AuthenticationType
+                                        .AuthenticationProperty.PASSWORD.getName())
+                                .value("newadmin")
+                                .isConfidential(isConfidential)
+                                .build()))
+                .build();
+    }
+
+    private Action buildMockUpdatingAction() {
+
+        return new Action.ActionRequestBuilder()
+                .name("Pre Issue Access Token")
+                .description("To configure pre issue access token")
+                .build();
+    }
+
+    private Action buildMockUpdatingAction(boolean hasName, boolean hasDescription, boolean hasUri,
+                                           AuthType.AuthenticationType authenticationType) {
+
+        if (authenticationType == AuthType.AuthenticationType.BASIC) {
+            return new Action.ActionRequestBuilder()
+                    .name(hasName ? "Pre Issue Access Token" : null)
+                    .description(hasDescription ? "To configure pre issue access token" : null)
+                    .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                            .uri(hasUri ? "https://sample.com" : null)
+                            .authentication(new AuthType.AuthTypeBuilder()
+                                    .type(AuthType.AuthenticationType.BASIC)
+                                    .properties(Arrays.asList(
+                                            new AuthProperty.AuthPropertyBuilder()
+                                                    .name("username")
+                                                    .value("updatingadmin")
+                                                    .isConfidential(true)
+                                                    .build(),
+                                            new AuthProperty.AuthPropertyBuilder()
+                                                    .name("password")
+                                                    .value("updatingadmin")
+                                                    .isConfidential(true)
+                                                    .build()))
+                                    .build())
+                            .build())
+                    .build();
+        } else if (authenticationType == AuthType.AuthenticationType.BEARER) {
+            return new Action.ActionRequestBuilder()
+                    .name(hasName ? "Pre Issue Access Token" : null)
+                    .description(hasDescription ? "To configure pre issue access token" : null)
+                    .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                            .uri(hasUri ? "https://sample.com" : null)
+                            .authentication(new AuthType.AuthTypeBuilder()
+                                    .type(AuthType.AuthenticationType.BEARER)
+                                    .properties(Arrays.asList(
+                                            new AuthProperty.AuthPropertyBuilder()
+                                                    .name(AuthType.AuthenticationType
+                                                            .AuthenticationProperty.ACCESS_TOKEN.getName())
+                                                    .value("57c7df90-cacc-4f56-9b0a-f14bfbff3076")
+                                                    .isConfidential(AuthType.AuthenticationType
+                                                            .AuthenticationProperty.ACCESS_TOKEN.getIsConfidential())
+                                                    .build()))
+                                    .build())
+                            .build())
+                    .build();
+        } else {
+            return action;
+        }
+    }
+
+    private Action buildMockAction(boolean hasDescription, boolean hasName) {
 
         String id = String.valueOf(UUID.randomUUID());
         return new Action.ActionResponseBuilder()
                 .id(id)
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
-                .name("Pre Issue Access Token")
-                .description(!isOptional ? "To configure pre issue access token" : null)
+                .name(hasName ? "Pre Issue Access Token" : null)
+                .description(hasDescription ? "To configure pre issue access token" : null)
                 .status(Action.Status.ACTIVE)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri("https://example.com")
