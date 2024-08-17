@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
 import org.wso2.carbon.identity.entitlement.SimplePAPStatusDataHandler;
@@ -26,6 +28,8 @@ import org.wso2.carbon.identity.entitlement.SimplePAPStatusDataHandler;
 import static org.wso2.carbon.identity.entitlement.PDPConstants.POLICY_STORAGE_CONFIG;
 
 public class PersistenceManagerFactory {
+
+    private static final Log LOG = LogFactory.getLog(PersistenceManagerFactory.class);
 
     private static final String POLICY_STORAGE_TYPE = IdentityUtil.getProperty(POLICY_STORAGE_CONFIG);
     private static final String HYBRID = "hybrid";
@@ -41,12 +45,19 @@ public class PersistenceManagerFactory {
         if (StringUtils.isNotBlank(POLICY_STORAGE_TYPE)) {
             switch (POLICY_STORAGE_TYPE) {
                 case HYBRID:
+                    LOG.info("Hybrid XACML policy persistent manager initialized.");
                     return new HybridPolicyPersistenceManager();
                 case REGISTRY:
+                    LOG.warn("Registry based XACML policy persistent manager initialized.");
                     return new RegistryPolicyPersistenceManager();
                 default:
                     return defaultPolicyPersistenceManager;
             }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("XACML policy persistent manager initialized with the type: " +
+                    defaultPolicyPersistenceManager.getClass());
         }
         return defaultPolicyPersistenceManager;
     }
@@ -57,12 +68,19 @@ public class PersistenceManagerFactory {
         if (StringUtils.isNotBlank(POLICY_STORAGE_TYPE)) {
             switch (POLICY_STORAGE_TYPE) {
                 case HYBRID:
+                    LOG.info("Hybrid XACML config persistent manager initialized.");
                     return new HybridConfigPersistenceManager();
                 case REGISTRY:
+                    LOG.warn("Registry based XACML config persistent manager initialized.");
                     return new RegistryConfigPersistenceManager();
                 default:
                     return defaultConfigPersistenceManager;
             }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("XACML config persistent manager initialized with the type: " +
+                    defaultConfigPersistenceManager.getClass());
         }
         return defaultConfigPersistenceManager;
     }
@@ -73,12 +91,19 @@ public class PersistenceManagerFactory {
         if (StringUtils.isNotBlank(POLICY_STORAGE_TYPE)) {
             switch (POLICY_STORAGE_TYPE) {
                 case HYBRID:
+                    LOG.info("Hybrid XACML subscriber persistent manager initialized.");
                     return new HybridSubscriberPersistenceManager();
                 case REGISTRY:
+                    LOG.warn("Registry based XACML subscriber persistent manager initialized.");
                     return new RegistrySubscriberPersistenceManager();
                 default:
                     return defaultSubscriberPersistenceManager;
             }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("XACML subscriber persistent manager initialized with the type: " +
+                    defaultSubscriberPersistenceManager.getClass());
         }
         return defaultSubscriberPersistenceManager;
     }
@@ -89,12 +114,19 @@ public class PersistenceManagerFactory {
         if (StringUtils.isNotBlank(POLICY_STORAGE_TYPE)) {
             switch (POLICY_STORAGE_TYPE) {
                 case HYBRID:
+                    LOG.info("Hybrid XACML PAP status persistent manager initialized.");
                     return new HybridPAPStatusDataHandler();
                 case REGISTRY:
+                    LOG.warn("Registry based XACML PAP status persistent manager initialized.");
                     return new SimplePAPStatusDataHandler();
                 default:
                     return defaultPAPStatusDataHandler;
             }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("XACML PAP status persistent manager initialized with the type: " +
+                    defaultPAPStatusDataHandler.getClass());
         }
         return defaultPAPStatusDataHandler;
     }
