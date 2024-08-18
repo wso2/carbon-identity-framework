@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.entitlement;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.entitlement.persistence.ConfigPersistenceManager;
 import org.wso2.carbon.identity.entitlement.dto.PDPDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.PIPFinderDataHolder;
 import org.wso2.carbon.identity.entitlement.dto.PolicyFinderDataHolder;
@@ -527,8 +528,8 @@ public class EntitlementAdminService {
      */
     public String getGlobalPolicyAlgorithm() throws EntitlementException {
 
-        return EntitlementAdminEngine.getInstance().
-                getPolicyDataStore().getGlobalPolicyAlgorithmName();
+        ConfigPersistenceManager configPersistenceManager = EntitlementAdminEngine.getInstance().getConfigPersistenceManager();
+        return configPersistenceManager.getGlobalPolicyAlgorithmName();
     }
 
     /**
@@ -539,7 +540,8 @@ public class EntitlementAdminService {
      */
     public void setGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
-        EntitlementAdminEngine.getInstance().
-                getPolicyDataStore().setGlobalPolicyAlgorithm(policyCombiningAlgorithm);
+        ConfigPersistenceManager configPersistenceManager = EntitlementAdminEngine.getInstance().getConfigPersistenceManager();
+        configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyCombiningAlgorithm);
+        clearPolicyCache();
     }
 }

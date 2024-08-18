@@ -39,13 +39,13 @@ import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
+import org.wso2.carbon.identity.action.execution.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.action.execution.util.AuthMethods;
 import org.wso2.carbon.identity.action.execution.util.OperationComparator;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.AuthType;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,14 +80,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     @Override
     public boolean isExecutionEnabled(ActionType actionType) {
 
-        switch (actionType) {
-            case PRE_ISSUE_ACCESS_TOKEN:
-                return IdentityUtil.isPreIssueAccessTokenActionTypeEnabled();
-            case AUTHENTICATION:
-                return IdentityUtil.isPreIssueAccessTokenActionTypeEnabled();
-            default:
-                return false;
-        }
+        return ActionExecutorConfig.getInstance().isExecutionForActionTypeEnabled(actionType);
     }
 
     public ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain)
@@ -101,7 +94,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         try {
             Action action;
-            if (StringUtils.isNotBlank(actionId)) {
+            if (StringUtils.isBlank(actionId)) {
                 List<Action> actions = getActionsByActionType(actionType, tenantDomain);
                 validateActions(actions, actionType);
                 // As of now only one action is allowed.

@@ -258,6 +258,7 @@
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
+  "oauth.oidc.enable_claims_separation_for_access_tokens": false,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
@@ -783,6 +784,7 @@
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
   "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
   "authentication.adaptive.graaljs.script_statements_limit": "0",
+  "AdaptiveAuth.ScriptEngine": "graaljs",
 
   "federated.idp.role_claim_value_attribute_separator": ",",
   "configuration.store.query_length.max": "4194304",
@@ -1088,6 +1090,7 @@
     "OAuthRequestPathAuthenticator"
   ],
   "console.ui.hiddenConnectionTemplates": [ "swe-idp" ],
+  "console.ui.hiddenApplicationTemplates": [],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
@@ -1565,7 +1568,7 @@
   "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
 
   "actions.maximum_actions_per_action_type": 1,
-  "actions.types.pre_issue_access_token.enable": false,
+  "actions.types.pre_issue_access_token.enable": true,
 
   "oauth.authorize_all_scopes": false
 }

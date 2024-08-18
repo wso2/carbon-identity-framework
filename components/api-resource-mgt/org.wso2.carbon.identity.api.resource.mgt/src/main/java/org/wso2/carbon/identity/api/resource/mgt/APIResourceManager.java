@@ -144,6 +144,18 @@ public interface APIResourceManager {
             throws APIResourceMgtException;
 
     /**
+     * Patch scope by scope name.
+     *
+     * @param scope    Scope.
+     * @param tenantDomain      Tenant domain.
+     * @throws APIResourceMgtException If an error occurs while deleting API scope.
+     */
+    default void updateScopeMetadata(Scope scope, APIResource apiResource, String tenantDomain)
+            throws APIResourceMgtException {
+        // no implementation
+    }
+
+    /**
      * Put scopes to API resource.
      *
      * @param apiResourceId API resource id.

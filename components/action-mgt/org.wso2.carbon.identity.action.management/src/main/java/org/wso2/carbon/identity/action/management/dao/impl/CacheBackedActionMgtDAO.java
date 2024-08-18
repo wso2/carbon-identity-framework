@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.action.management.dao.impl;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.cache.ActionCacheByType;
@@ -101,7 +100,9 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
                 LOG.debug("Cache entry found for Action Type " + actionType);
             }
             Action actionFromCache = entry.getActionByActionId(actionId);
-            if (actionFromCache != null) return actionFromCache;
+            if (actionFromCache != null) {
+                return actionFromCache;
+            }
         }
 
         if (LOG.isDebugEnabled()) {

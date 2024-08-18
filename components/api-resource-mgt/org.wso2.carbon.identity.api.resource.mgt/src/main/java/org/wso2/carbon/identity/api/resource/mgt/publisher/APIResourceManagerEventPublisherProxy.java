@@ -174,6 +174,46 @@ public class APIResourceManagerEventPublisherProxy {
     }
 
     /**
+     * Publish the pre update API resource event.
+     *
+     * @param scope   Scope.
+     * @param apiResource   API resource.
+     * @param tenantDomain  Tenant domain.
+     * @throws APIResourceMgtException If an error occurred while publishing the event.
+     */
+    public void publishPreUpdateScopeMetadataWithException(Scope scope, APIResource apiResource, String tenantDomain)
+            throws APIResourceMgtException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.SCOPE, scope);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        eventProperties.put(IdentityEventConstants.EventProperty.API_RESOURCE, apiResource);
+        Event event = createEvent(IdentityEventConstants.Event.PRE_UPDATE_SCOPE_METADATA, eventProperties);
+        doPublishEvent(event);
+    }
+
+    /**
+     * Publish the post update API resource event.
+     *
+     * @param scope   Scope.
+     * @param apiResource   API resource.
+     * @param tenantDomain  Tenant domain.
+     */
+    public void publishPostUpdateScopeMetadataWithException(Scope scope, APIResource apiResource, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.SCOPE, scope);
+        eventProperties.put(IdentityEventConstants.EventProperty.API_RESOURCE, apiResource);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(IdentityEventConstants.Event.POST_UPDATE_SCOPE_METADATA, eventProperties);
+        try {
+            doPublishEvent(event);
+        } catch (APIResourceMgtException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
      * Publish the pre delete API scopes by API resource id event.
      *
      * @param apiResourceId API resource id.

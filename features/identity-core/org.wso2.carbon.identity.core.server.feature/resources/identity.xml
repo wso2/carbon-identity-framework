@@ -639,6 +639,7 @@
                 <EnableCibaProfile>false</EnableCibaProfile>
                 <EnableSecurityProfile>false</EnableSecurityProfile>
             </FAPI>
+            <EnableClaimsSeparationForAccessToken>false</EnableClaimsSeparationForAccessToken>
         </OpenIDConnect>
 
         <!--

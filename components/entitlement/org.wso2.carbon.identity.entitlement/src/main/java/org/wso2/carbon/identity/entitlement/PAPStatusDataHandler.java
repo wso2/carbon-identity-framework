@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.entitlement;
 
 import org.wso2.carbon.identity.entitlement.dto.StatusHolder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -50,7 +51,12 @@ public interface PAPStatusDataHandler {
      * @param statusHolder <code>StatusHolder</code>
      * @throws EntitlementException if fails to handle
      */
-    public void handle(String about, StatusHolder statusHolder) throws EntitlementException;
+    default void handle(String about, StatusHolder statusHolder) throws EntitlementException {
+
+        List<StatusHolder> list = new ArrayList<>();
+        list.add(statusHolder);
+        handle(about, statusHolder.getKey(), list);
+    }
 
     /**
      * @param about        indicates what is related with this admin status action

@@ -162,6 +162,16 @@ public class APIResourceManagerImpl implements APIResourceManager {
     }
 
     @Override
+    public void updateScopeMetadata(Scope scope, APIResource apiResource, String tenantDomain)
+            throws APIResourceMgtException {
+
+        APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
+        publisherProxy.publishPreUpdateScopeMetadataWithException(scope, apiResource, tenantDomain);
+        CACHE_BACKED_DAO.updateScopeMetadata(scope, apiResource, IdentityTenantUtil.getTenantId(tenantDomain));
+        publisherProxy.publishPostUpdateScopeMetadataWithException(scope, apiResource, tenantDomain);
+    }
+
+    @Override
     public APIResource getAPIResourceByIdentifier(String apiResourceIdentifier, String tenantDomain)
             throws APIResourceMgtException {
 

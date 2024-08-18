@@ -140,6 +140,8 @@ public class APIResourceManagementConstants {
                 "resource properties.", "Error while retrieving API resource properties from the database."),
         ERROR_CODE_ERROR_WHILE_ADDING_API_RESOURCE_PROPERTIES("65014", "Error while adding API resource " +
                 "properties.", "Error while adding API resource properties to the database."),
+        ERROR_CODE_ERROR_WHILE_UPDATING_SCOPE_METADATA("65015", "Error while updating scope metadata.",
+                "Error while updating scope metadata in the database."),
         ;
 
         private final String code;
