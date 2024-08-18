@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
@@ -86,37 +85,36 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     public ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
 
-        return execute(actionType, null, eventContext, tenantDomain);
+        try {
+            List<Action> actions = getActionsByActionType(actionType, tenantDomain);
+            validateActions(actions, actionType);
+            // As of now only one action is allowed.
+            Action action = actions.get(0);
+            return execute(action, actionType, eventContext);
+        } catch (ActionExecutionRuntimeException e) {
+            // todo: add to diagnostics
+            LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
+            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+        }
     }
 
     public ActionExecutionStatus execute(ActionType actionType, String actionId, Map<String, Object> eventContext,
                                          String tenantDomain) throws ActionExecutionException {
 
-        try {
-            Action action;
-            if (StringUtils.isBlank(actionId)) {
-                List<Action> actions = getActionsByActionType(actionType, tenantDomain);
-                validateActions(actions, actionType);
-                // As of now only one action is allowed.
-                action = actions.get(0);
-            } else {
-                action = getActionByActionId(actionId, tenantDomain);
-            }
+        return execute(getActionByActionId(actionType, actionId, tenantDomain), actionType, eventContext);
+    }
 
-            ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
-            ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
+    private ActionExecutionStatus execute(Action action, ActionType actionType, Map<String, Object> eventContext)
+            throws ActionExecutionException {
 
-            return Optional.ofNullable(action)
-                    .filter(activeAction -> activeAction.getStatus() == Action.Status.ACTIVE)
-                    .map(activeAction -> executeAction(activeAction, actionRequest, eventContext,
-                            actionExecutionResponseProcessor))
-                    .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext));
-        } catch (ActionExecutionRuntimeException e) {
-            // todo: add to diagnostics
-            LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
-            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+        ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
+        ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
 
-        }
+        return Optional.ofNullable(action)
+                .filter(activeAction -> activeAction.getStatus() == Action.Status.ACTIVE)
+                .map(activeAction -> executeAction(activeAction, actionRequest, eventContext,
+                        actionExecutionResponseProcessor))
+                .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext));
     }
 
     private List<Action> getActionsByActionType(ActionType actionType, String tenantDomain) throws
@@ -130,13 +128,14 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
-    private Action getActionByActionId(String actionId, String tenantDomain) throws ActionExecutionRuntimeException {
+    private Action getActionByActionId(ActionType actionType, String actionId, String tenantDomain)
+            throws ActionExecutionRuntimeException {
 
         try {
-            return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
-                    .getActionByActionId(actionId, tenantDomain);
+            return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService().getActionByActionId(
+                    Action.ActionTypes.valueOf(actionType.name()).getPathParam(), actionId, tenantDomain);
         } catch (ActionMgtException e) {
-            throw new ActionExecutionRuntimeException("Error occurred while retrieving actions.", e);
+            throw new ActionExecutionRuntimeException("Error occurred while retrieving action by action Id .", e);
         }
     }
 

@@ -51,7 +51,16 @@ public interface ActionExecutorService {
     ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain) throws
             ActionExecutionException;
 
-
+    /**
+     * Execute the action based on the action id and the event context.
+     *
+     * @param actionType   Action Type
+     * @param actionId     Action ID
+     * @param eventContext Context information required for the action execution.
+     * @param tenantDomain Tenant Domain
+     * @return {@link ActionExecutionStatus} The status of the action execution and the response context.
+     * @throws ActionExecutionException If an error occurs while executing the action.
+     */
     ActionExecutionStatus execute(ActionType actionType, String actionId, Map<String, Object> eventContext,
                                          String tenantDomain) throws ActionExecutionException;
 }

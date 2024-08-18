@@ -52,12 +52,13 @@ public interface ActionManagementService {
     List<Action> getActionsByActionType(String actionType, String tenantDomain) throws ActionMgtException;
 
     /**
-     * Get Actions of a given Action Type.
+     * Get Actions of a given Action Id.
      *
      * @param actionType   Action Type.
+     * @param actionId     Action Id.
      * @param tenantDomain Tenant domain.
      * @return List of Actions.
-     * @throws ActionMgtException If an error occurs while retrieving the Actions of a given Action Type.
+     * @throws ActionMgtException If an error occurs while retrieving the Actions of a given Action Id.
      */
     Action getActionByActionId(String actionType, String actionId, String tenantDomain) throws ActionMgtException;
 
