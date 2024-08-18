@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.cache;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 
@@ -43,5 +44,21 @@ public class ActionCacheEntry extends CacheEntry {
     public void setActions(List<Action> actionsOfActionType) {
 
         this.actionsOfActionType = actionsOfActionType;
+    }
+
+    public void addAction(Action action) {
+
+        actionsOfActionType.add(action);
+    }
+
+    public Action getActionByActionId(String actionId) {
+
+        for (Action action: actionsOfActionType) {
+            if (StringUtils.equals(action.getId(), actionId)) {
+                return action;
+            }
+        }
+
+        return null;
     }
 }

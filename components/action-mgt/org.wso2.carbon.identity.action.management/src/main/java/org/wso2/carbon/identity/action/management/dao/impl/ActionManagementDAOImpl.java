@@ -241,6 +241,11 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     }
 
     @Override
+    public Action getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException {
+        return getActionByActionId(actionId, tenantId);
+    }
+
+    @Override
     public Action getActionByActionId(String actionId, Integer tenantId) throws ActionMgtException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {

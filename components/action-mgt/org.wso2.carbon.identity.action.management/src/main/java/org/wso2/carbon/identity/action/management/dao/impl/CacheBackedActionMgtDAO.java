@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.cache.ActionCacheByType;
@@ -29,6 +30,8 @@ import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthType;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -85,6 +88,44 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
             }
         }
         return actions;
+    }
+
+    @Override
+    public Action getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException {
+
+        ActionTypeCacheKey cacheKey = new ActionTypeCacheKey(actionType);
+        ActionCacheEntry entry = actionCacheByType.getValueFromCache(cacheKey, tenantId);
+
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for Action Type " + actionType);
+            }
+            Action actionFromCache = entry.getActionByActionId(actionId);
+            if (actionFromCache != null) return actionFromCache;
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for Action Type " + actionType + ". Fetching entry from DB.");
+        }
+
+        Action action = actionManagementDAO.getActionByActionId(actionType, actionId, tenantId);
+
+        if (action != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Entry fetched from DB for Action Type " + actionType + ". Updating cache.");
+            }
+            if (entry != null) {
+                entry.addAction(action);
+            } else {
+                actionCacheByType.addToCache(cacheKey, new ActionCacheEntry(
+                        new ArrayList<>(Collections.singletonList(action))), tenantId);
+            }
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Entry for Action Type " + actionType + " not found in cache or DB.");
+            }
+        }
+        return action;
     }
 
     @Override

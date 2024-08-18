@@ -52,6 +52,16 @@ public interface ActionManagementService {
     List<Action> getActionsByActionType(String actionType, String tenantDomain) throws ActionMgtException;
 
     /**
+     * Get Actions of a given Action Type.
+     *
+     * @param actionType   Action Type.
+     * @param tenantDomain Tenant domain.
+     * @return List of Actions.
+     * @throws ActionMgtException If an error occurs while retrieving the Actions of a given Action Type.
+     */
+    Action getActionByActionId(String actionType, String actionId, String tenantDomain) throws ActionMgtException;
+
+    /**
      * Update Action by given Action type and Action ID.
      *
      * @param actionType   Action Type.

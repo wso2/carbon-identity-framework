@@ -117,6 +117,16 @@ public interface ActionManagementDAO {
      * @return <code>Action</code>.
      * @throws ActionMgtException If an error occurs while retrieving the Action of a given Action ID.
      */
+    Action getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException;
+
+    /**
+     * Get {@link Action} of a given Action Type and Action ID.
+     *
+     * @param actionId Action ID.
+     * @param tenantId Tenant Id.
+     * @return <code>Action</code>.
+     * @throws ActionMgtException If an error occurs while retrieving the Action of a given Action ID.
+     */
     Action getActionByActionId(String actionId, Integer tenantId) throws ActionMgtException;
 
     /**

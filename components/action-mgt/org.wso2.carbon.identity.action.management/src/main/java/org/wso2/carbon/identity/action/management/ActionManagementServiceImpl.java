@@ -82,6 +82,17 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     }
 
     @Override
+    public Action getActionByActionId(String actionType, String actionId, String tenantDomain)
+            throws ActionMgtException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving Actions for Action Type: %s.", actionType));
+        }
+        return CACHE_BACKED_DAO.getActionByActionId(getActionTypeFromPath(actionType), actionId,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
     public Action updateAction(String actionType, String actionId, Action action, String tenantDomain)
             throws ActionMgtException {
 

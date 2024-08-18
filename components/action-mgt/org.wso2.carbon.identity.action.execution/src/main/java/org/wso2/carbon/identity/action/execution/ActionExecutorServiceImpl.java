@@ -84,7 +84,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             case PRE_ISSUE_ACCESS_TOKEN:
                 return IdentityUtil.isPreIssueAccessTokenActionTypeEnabled();
             case AUTHENTICATION:
-                return IdentityUtil.isAuthenticationActionTypeEnabled();
+                return IdentityUtil.isPreIssueAccessTokenActionTypeEnabled();
             default:
                 return false;
         }
@@ -107,7 +107,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 // As of now only one action is allowed.
                 action = actions.get(0);
             } else {
-                action = getActionsByActionId(actionId, tenantDomain);
+                action = getActionByActionId(actionId, tenantDomain);
             }
 
             ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
@@ -137,7 +137,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
-    private Action getActionsByActionId(String actionId, String tenantDomain) throws ActionExecutionRuntimeException {
+    private Action getActionByActionId(String actionId, String tenantDomain) throws ActionExecutionRuntimeException {
 
         try {
             return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()

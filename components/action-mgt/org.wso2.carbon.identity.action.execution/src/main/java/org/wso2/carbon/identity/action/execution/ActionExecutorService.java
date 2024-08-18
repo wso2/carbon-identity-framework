@@ -51,4 +51,7 @@ public interface ActionExecutorService {
     ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain) throws
             ActionExecutionException;
 
+
+    ActionExecutionStatus execute(ActionType actionType, String actionId, Map<String, Object> eventContext,
+                                         String tenantDomain) throws ActionExecutionException;
 }
