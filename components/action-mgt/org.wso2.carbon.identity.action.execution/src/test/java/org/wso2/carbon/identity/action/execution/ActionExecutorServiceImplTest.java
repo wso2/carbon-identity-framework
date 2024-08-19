@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.action.execution.model.Tenant;
 import org.wso2.carbon.identity.action.execution.model.User;
 import org.wso2.carbon.identity.action.execution.model.UserStore;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
+import org.wso2.carbon.identity.action.execution.util.RequestFilter;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
@@ -84,6 +85,7 @@ public class ActionExecutorServiceImplTest {
     @InjectMocks
     private ActionExecutorServiceImpl actionExecutorService;
 
+    private MockedStatic<RequestFilter> requestFilter;
     private MockedStatic<ActionExecutionRequestBuilderFactory> actionExecutionRequestBuilderFactory;
     private MockedStatic<ActionExecutionResponseProcessorFactory> actionExecutionResponseProcessorFactory;
 
@@ -97,6 +99,7 @@ public class ActionExecutorServiceImplTest {
         // Set apiClient field using reflection
         setField(actionExecutorService, "apiClient", apiClient);
 
+        requestFilter = mockStatic(RequestFilter.class);
         actionExecutionRequestBuilderFactory = mockStatic(ActionExecutionRequestBuilderFactory.class);
         actionExecutionResponseProcessorFactory = mockStatic(ActionExecutionResponseProcessorFactory.class);
     }
@@ -104,6 +107,7 @@ public class ActionExecutorServiceImplTest {
     @AfterMethod
     public void tearDown() {
 
+        requestFilter.close();
         actionExecutionRequestBuilderFactory.close();
         actionExecutionResponseProcessorFactory.close();
     }
@@ -163,11 +167,59 @@ public class ActionExecutorServiceImplTest {
 
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
                 Collections.singletonList(mock(Action.class)));
+
+        when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(any())).thenReturn(
+                mock(ActionExecutionRequest.class));
+
         actionExecutionRequestBuilderFactory.when(
                         () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
                 .thenReturn(actionExecutionRequestBuilder);
 
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
+    }
+
+    @Test
+    public void testBuildActionExecutionRequestWithExcludedHeaders() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Map<String, Object> eventContext = Collections.emptyMap();
+
+        // Mock Action and its dependencies
+        Action action = createAction();
+
+        // Mock ActionManagementService
+        when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
+                Collections.singletonList(action));
+
+        // Mock ActionRequestBuilder and ActionResponseProcessor
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
+                .thenReturn(actionExecutionRequestBuilder);
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(any()))
+                .thenReturn(actionExecutionResponseProcessor);
+
+        // Mock RequestFilter used in Request class
+        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any())).thenReturn(new HashMap<>());
+        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any())).thenReturn(new HashMap<>());
+
+        ActionExecutionRequest actionExecutionRequest = createActionExecutionRequest(actionType);
+
+        when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
+                actionExecutionRequest);
+
+        // Mock APIClient response
+        ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
+
+        // Execute
+        actionExecutorService.execute(actionType, eventContext, "tenantDomain");
+
+        String payload = getJSONRequestPayload(actionExecutionRequest);
+        // Verify that the HTTP client was called with the expected request
+        verify(apiClient).callAPI(any(), any(), eq(payload));
     }
 
     @Test
@@ -192,6 +244,7 @@ public class ActionExecutorServiceImplTest {
                 .thenReturn(actionExecutionResponseProcessor);
 
         ActionExecutionRequest actionExecutionRequest = createActionExecutionRequest(actionType);
+
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
                 actionExecutionRequest);
@@ -355,13 +408,14 @@ public class ActionExecutorServiceImplTest {
         headers.put("Content-Type", new String[]{"application/json"});
         headers.put("X-Header-1", new String[]{"X-header-1-value"});
         headers.put("X-Header-2", new String[]{"X-header-2-value"});
+        headers.put("X-Header-3", new String[]{"X-header-3-value"});
 
         Map<String, String[]> params = new HashMap<>();
-        headers.put("Content-Type", new String[]{"application/json"});
-        headers.put("x-param-1", new String[]{"X-param-1-value"});
-        headers.put("x-param-2", new String[]{"X-param-2-value"});
+        params.put("x-param-1", new String[]{"X-param-1-value"});
+        params.put("x-param-2", new String[]{"X-param-2-value"});
+        params.put("x-param-3", new String[]{"X-param-3-value"});
 
-        Request request = spy(ConcreteRequest.class);
+        Request request = spy(mock(ConcreteRequest.class));
         setField(request, "additionalHeaders", headers);
         setField(request, "additionalParams", params);
 
