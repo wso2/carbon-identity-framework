@@ -90,7 +90,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             validateActions(actions, actionType);
             // As of now only one action is allowed.
             Action action = actions.get(0);
-            return execute(action, actionType, eventContext);
+            return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
             // todo: add to diagnostics
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
@@ -101,12 +101,13 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     public ActionExecutionStatus execute(ActionType actionType, String actionId, Map<String, Object> eventContext,
                                          String tenantDomain) throws ActionExecutionException {
 
-        return execute(getActionByActionId(actionType, actionId, tenantDomain), actionType, eventContext);
+        return execute(getActionByActionId(actionType, actionId, tenantDomain), eventContext);
     }
 
-    private ActionExecutionStatus execute(Action action, ActionType actionType, Map<String, Object> eventContext)
+    private ActionExecutionStatus execute(Action action, Map<String, Object> eventContext)
             throws ActionExecutionException {
 
+        ActionType actionType = ActionType.valueOf(action.getType().getActionType());
         ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
         ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
 
