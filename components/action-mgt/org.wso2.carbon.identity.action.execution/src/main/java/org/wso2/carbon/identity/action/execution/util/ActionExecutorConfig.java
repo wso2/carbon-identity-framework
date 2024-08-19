@@ -121,7 +121,6 @@ public class ActionExecutorConfig {
      * @param actionType Action Type
      * @return a set of params to exclude in the action request.
      */
-
     public Set<String> getExcludedParamsInActionRequestForActionType(ActionType actionType) {
 
         Set<String> excludedParams = getExcludedParamsInActionRequestForAllTypes();
