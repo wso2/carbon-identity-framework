@@ -37,10 +37,12 @@ import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessRe
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.model.PerformableOperation;
+import org.wso2.carbon.identity.action.execution.model.Request;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
 import org.wso2.carbon.identity.action.execution.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.action.execution.util.AuthMethods;
 import org.wso2.carbon.identity.action.execution.util.OperationComparator;
+import org.wso2.carbon.identity.action.execution.util.RequestFilter;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
@@ -139,7 +141,16 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             throw new ActionExecutionException("No request builder found for action type: " + actionType);
         }
         try {
-            return requestBuilder.buildActionExecutionRequest(eventContext);
+            ActionExecutionRequest actionExecutionRequest = requestBuilder.buildActionExecutionRequest(eventContext);
+            if (actionExecutionRequest.getEvent() == null || actionExecutionRequest.getEvent().getRequest() == null) {
+                return actionExecutionRequest;
+            }
+
+            Request request = actionExecutionRequest.getEvent().getRequest();
+            request.setAdditionalHeaders(
+                    RequestFilter.getFilteredHeaders(request.getAdditionalHeaders(), actionType));
+            request.setAdditionalParams(RequestFilter.getFilteredParams(request.getAdditionalParams(), actionType));
+            return actionExecutionRequest;
         } catch (ActionExecutionRequestBuilderException e) {
             throw new ActionExecutionRuntimeException("Error occurred while building the request payload.", e);
         }

@@ -1928,9 +1928,33 @@
 
     <Actions>
         <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
+        <ActionRequest>
+            <ExcludedHeaders>
+                 {% for header in actions.action_request.excluded_headers %}
+                    <Header>{{header}}</Header>
+                 {% endfor %}
+            </ExcludedHeaders>
+            <ExcludedParameters>
+                {% for param in actions.action_request.excluded_parameters %}
+                    <Parameter>{{param}}</Parameter>
+                {% endfor %}
+            </ExcludedParameters>
+        </ActionRequest>
         <Types>
             <PreIssueAccessToken>
                 <Enable>{{actions.types.pre_issue_access_token.enable}}</Enable>
+                <ActionRequest>
+                    <ExcludedHeaders>
+                         {% for header in actions.types.pre_issue_access_token.action_request.excluded_headers %}
+                            <Header>{{header}}</Header>
+                         {% endfor %}
+                    </ExcludedHeaders>
+                    <ExcludedParameters>
+                        {% for param in actions.types.pre_issue_access_token.action_request.excluded_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </ExcludedParameters>
+                </ActionRequest>
             </PreIssueAccessToken>
         </Types>
     </Actions>
