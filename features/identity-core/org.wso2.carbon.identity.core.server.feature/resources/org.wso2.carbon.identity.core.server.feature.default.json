@@ -1568,7 +1568,44 @@
   "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
 
   "actions.maximum_actions_per_action_type": 1,
+  "actions.action_request.excluded_headers": [
+    "authorization",
+    "cookie",
+    "set-cookie",
+    "accept-encoding",
+    "accept-language",
+    "content-length",
+    "content-type",
+    "connection",
+    "host",
+    "referer",
+    "user-agent",
+    "origin",
+    "x-forwarded-for",
+    "x-forwarded-host",
+    "x-forwarded-proto",
+    "x-forwarded-port",
+    "x-forwarded-server",
+    "x-forwarded-uri"
+  ],
   "actions.types.pre_issue_access_token.enable": true,
+  "actions.types.pre_issue_access_token.action_request.excluded_headers": [
+    "dpop"
+  ],
+  "actions.types.pre_issue_access_token.action_request.excluded_parameters": [
+    "code",
+    "redirect_uri",
+    "grant_type",
+    "scope",
+    "username",
+    "password",
+    "refresh_token",
+    "client_id",
+    "client_secret",
+    "client_assertion_type",
+    "client_assertion"
+  ],
+
 
   "oauth.authorize_all_scopes": false
 }

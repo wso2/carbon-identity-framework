@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.action.execution.util.OperationComparatorTest"/>
             <class name="org.wso2.carbon.identity.action.execution.util.APIClientTest"/>
             <class name="org.wso2.carbon.identity.action.execution.util.ActionExecutorConfigTest"/>
+            <class name="org.wso2.carbon.identity.action.execution.util.RequestFilterTest"/>
         </classes>
     </test>
     <test name="action-execution-configuration-test">

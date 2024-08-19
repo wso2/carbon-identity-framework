@@ -35,11 +35,21 @@ public abstract class Request {
 
     public Map<String, String[]> getAdditionalHeaders() {
 
-        return additionalHeaders != null ? additionalHeaders : Collections.emptyMap();
+        return additionalHeaders != null ? Collections.unmodifiableMap(additionalHeaders) : Collections.emptyMap();
+    }
+
+    public void setAdditionalHeaders(Map<String, String[]> additionalHeaders) {
+
+        this.additionalHeaders = additionalHeaders;
     }
 
     public Map<String, String[]> getAdditionalParams() {
 
-        return additionalParams != null ? additionalParams : Collections.emptyMap();
+        return additionalParams != null ? Collections.unmodifiableMap(additionalParams) : Collections.emptyMap();
+    }
+
+    public void setAdditionalParams(Map<String, String[]> additionalParams) {
+
+        this.additionalParams = additionalParams;
     }
 }
