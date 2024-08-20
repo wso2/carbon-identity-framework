@@ -19,11 +19,13 @@ package org.wso2.carbon.identity.core.model;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -650,5 +652,164 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     public void setIdpEntityIDAlias(String idpEntityIDAlias) {
 
         this.idpEntityIDAlias = idpEntityIDAlias;
+    }
+
+    /**
+     * Get optional configs of the SAML SSO IdP.
+     *
+     * @return List of ConfigTuples.
+     */
+    public List<ConfigTuple> getCustomAttributes() {
+
+        List<ConfigTuple> customAttributes = new ArrayList<>();
+
+        putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS,
+                idpEntityIDAlias);
+        putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER,
+                issuerQualifier);
+        putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_LOGIN_PAGE_URL,
+                loginPageURL);
+        putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX,
+                attributeConsumingServiceIndex);
+        putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
+                supportedAssertionQueryRequestTypes);
+
+        // Multi-valued attributes.
+        getAssertionConsumerUrlList().forEach(assertionConUrl ->
+                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_CONS_URLS,
+                        assertionConUrl));
+        getRequestedRecipientsList().forEach(requestedRecipient ->
+                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_RECIPIENTS, requestedRecipient));
+        getRequestedAudiencesList().forEach(requestedAudience ->
+                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_AUDIENCES, requestedAudience));
+        getRequestedClaimsList().forEach(requestedClaim ->
+                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS, requestedClaim));
+
+        if (isIdPInitSLOEnabled()) {
+            getIdpInitSLOReturnToURLList().forEach(idpInitSLOReturnToURL ->
+                    putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_IDP_INIT_SLO_RETURN_URLS,
+                            idpInitSLOReturnToURL));
+        }
+
+        if (isDoSingleLogout()) {
+            putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SLO_RESPONSE_URL,
+                    sloResponseURL);
+            putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SLO_REQUEST_URL,
+                    sloRequestURL);
+            // Convert boolean to string.
+            putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT,
+                    String.valueOf(doFrontChannelLogout));
+
+            if (doFrontChannelLogout) {
+                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING,
+                        frontChannelLogoutBinding);
+            }
+        }
+
+        if (nameIdClaimUri != null && nameIdClaimUri.trim().length() > 0) {
+            putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_NAMEID_CLAIMURI,
+                    nameIdClaimUri);
+        }
+
+        return customAttributes;
+    }
+
+    /**
+     * Add a list of custom attributes.
+     *
+     * @param customAttributes List of ConfigTuples.
+     */
+    public void addCustomAttributes(List<ConfigTuple> customAttributes) {
+
+        if (customAttributes == null) {
+            return;
+        }
+
+        customAttributes.forEach(this::addCustomAttribute);
+    }
+
+/**
+     * Add a custom attribute.
+     *
+     * @param customAttribute ConfigTuple.
+     */
+    private void addCustomAttribute(ConfigTuple customAttribute) {
+
+        if (customAttribute == null) {
+            return;
+        }
+        String key = customAttribute.getKey();
+        String value = customAttribute.getValue();
+
+        if (IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS.equals(key)) {
+            setIdpEntityIDAlias(value);
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER.equals(key)) {
+            setIssuerQualifier(value);
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_LOGIN_PAGE_URL.equals(key)) {
+            setLoginPageURL(value);
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX.equals(key)) {
+            setAttributeConsumingServiceIndex(value);
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES.equals(key)) {
+            setSupportedAssertionQueryRequestTypes(value);
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_CONS_URLS.equals(key)) {
+            List<String> attributeList = getAssertionConsumerUrlList();
+            if (attributeList.isEmpty()) {
+                attributeList = new ArrayList<>();
+            }
+            attributeList.add(value);
+            setAssertionConsumerUrls(attributeList);
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_RECIPIENTS.equals(key)) {
+            List<String> attributeList = getRequestedRecipientsList();
+            if (attributeList.isEmpty()) {
+                attributeList = new ArrayList<>();
+            }
+            attributeList.add(value);
+            setRequestedRecipients(attributeList);
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_AUDIENCES.equals(key)) {
+            List<String> attributeList = getRequestedAudiencesList();
+            if (attributeList.isEmpty()) {
+                attributeList = new ArrayList<>();
+            }
+            attributeList.add(value);
+            setRequestedAudiences(attributeList);
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS.equals(key)) {
+            List<String> attributeList = getRequestedClaimsList();
+            if (attributeList.isEmpty()) {
+                attributeList = new ArrayList<>();
+            }
+            attributeList.add(value);
+            setRequestedClaims(attributeList);
+        } else if (IdentityRegistryResources.PROP_SAML_IDP_INIT_SLO_RETURN_URLS.equals(key)) {
+            List<String> attributeList = getIdpInitSLOReturnToURLList();
+            if (attributeList.isEmpty()) {
+                attributeList = new ArrayList<>();
+            }
+            attributeList.add(value);
+            setIdpInitSLOReturnToURLs(attributeList);
+        } else if (IdentityRegistryResources.PROP_SAML_SLO_RESPONSE_URL.equals(key)) {
+            setSloResponseURL(value);
+        } else if (IdentityRegistryResources.PROP_SAML_SLO_REQUEST_URL.equals(key)) {
+            setSloRequestURL(value);
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT.equals(key)) {
+            setDoFrontChannelLogout(Boolean.parseBoolean(value));
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING.equals(key)) {
+            setFrontChannelLogoutBinding(value);
+        } else if (IdentityRegistryResources.PROP_SAML_SSO_NAMEID_CLAIMURI.equals(key)) {
+            setNameIdClaimUri(value);
+        }
+    }
+
+    /**
+     * Put a key value pair to a list if the value is not null.
+     *
+     * @param list  List of ConfigTuples.
+     * @param key   Key.
+     * @param value Value.
+     */
+    private void putIfNotNull(List<ConfigTuple> list, String key, String value) {
+
+        if (StringUtils.isNotBlank(value)) {
+            list.add(new ConfigTuple(key, value));
+        }
     }
 }
