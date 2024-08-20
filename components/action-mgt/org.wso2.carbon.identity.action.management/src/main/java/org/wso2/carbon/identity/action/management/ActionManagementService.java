@@ -108,12 +108,13 @@ public interface ActionManagementService {
     /**
      * Get Action of a given Action ID.
      *
-     * @param actionId     Action ID.
+     * @param actionType   Action Type.
+     * @param actionId     Action Id.
      * @param tenantDomain Tenant domain.
      * @return Action response.
      * @throws ActionMgtException If an error occurs while retrieving the Action of a given Action ID.
      */
-    Action getActionByActionId(String actionId, String tenantDomain) throws ActionMgtException;
+    Action getActionByActionId(String actionType, String actionId, String tenantDomain) throws ActionMgtException;
 
     /**
      * Update the authentication of the action endpoint.

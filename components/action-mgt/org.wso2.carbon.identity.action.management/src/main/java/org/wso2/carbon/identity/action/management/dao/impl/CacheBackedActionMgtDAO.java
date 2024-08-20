@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.cache.ActionCacheByType;
@@ -29,6 +30,8 @@ import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthType;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -124,16 +127,45 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
     }
 
     @Override
-    public Action getActionByActionId(String actionId, Integer tenantId) throws ActionMgtException {
+    public Action getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException {
 
-        return actionManagementDAO.getActionByActionId(actionId, tenantId);
+        ActionTypeCacheKey cacheKey = new ActionTypeCacheKey(actionType);
+        ActionCacheEntry entry = actionCacheByType.getValueFromCache(cacheKey, tenantId);
+        List<Action> actionsFromCache = new ArrayList<>();
+
+        /* If the entry for the given action type is not null, get the action list from cache and iterate to get the
+         action by matching action id. */
+        if (entry != null) {
+            actionsFromCache = entry.getActions();
+            for (Action action: actionsFromCache) {
+                if (StringUtils.equals(action.getId(), actionId)) {
+                    LOG.debug("Action is found from the cache with action Id " + actionId);
+                    return action;
+                }
+            }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Action is not found from the cache with action Id " + actionId + ". Fetching entry from DB.");
+        }
+
+        Action action = actionManagementDAO.getActionByActionId(actionType, actionId, tenantId);
+        if (action != null) {
+            updateCache(action, entry, cacheKey, actionsFromCache, tenantId);
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Action with action Id " + actionId + " is not found in cache or DB.");
+            }
+        }
+
+        return action;
     }
 
     @Override
-    public Action updateActionEndpointAuthProperties(String actionId, AuthType authentication, int tenantId)
-            throws ActionMgtException {
+    public Action updateActionEndpointAuthProperties(String actionType, String actionId, AuthType authentication,
+                                                     int tenantId) throws ActionMgtException {
 
-        return actionManagementDAO.updateActionEndpointAuthProperties(actionId, authentication, tenantId);
+        return actionManagementDAO.updateActionEndpointAuthProperties(actionType, actionId, authentication, tenantId);
     }
 
     @Override
@@ -144,5 +176,23 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
         actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantId);
         return actionManagementDAO.updateActionEndpoint(actionType, actionId, endpoint, currentAuthentication,
                 tenantId);
+    }
+
+    private void updateCache(Action action, ActionCacheEntry entry, ActionTypeCacheKey cacheKey,
+                                              List<Action> actionsFromCache, int tenantId) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Entry fetched from DB for Action Id " + action.getId() + ". Updating cache.");
+        }
+        /* If the entry for the given action type is not null, add the fetched action to the entry. Then, clear the
+         cache and add the updated entry to the cache. If the entry is null, create a new cache entry.*/
+        if (entry != null) {
+            actionsFromCache.add(action);
+            actionCacheByType.clearCacheEntry(cacheKey, tenantId);
+            actionCacheByType.addToCache(cacheKey, new ActionCacheEntry(actionsFromCache), tenantId);
+        } else {
+            actionCacheByType.addToCache(cacheKey, new ActionCacheEntry(
+                    new ArrayList<>(Collections.singletonList(action))), tenantId);
+        }
     }
 }
