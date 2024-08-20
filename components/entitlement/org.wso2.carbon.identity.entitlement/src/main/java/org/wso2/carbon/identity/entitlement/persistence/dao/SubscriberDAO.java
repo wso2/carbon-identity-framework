@@ -276,5 +276,4 @@ public class SubscriberDAO {
             throw new EntitlementException("Error while checking subscriber existence", e);
         }
     }
-
 }

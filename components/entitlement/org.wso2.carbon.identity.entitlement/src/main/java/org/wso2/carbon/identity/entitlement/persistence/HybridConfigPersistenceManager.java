@@ -59,7 +59,7 @@ public class HybridConfigPersistenceManager implements ConfigPersistenceManager 
     public boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
         boolean isUpdate = jdbcConfigPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyCombiningAlgorithm);
-        if (isUpdate) {
+        if (!isUpdate) {
             try {
                 registryConfigPersistenceManager.deleteGlobalPolicyAlgorithm();
             } catch (EntitlementException e) {
