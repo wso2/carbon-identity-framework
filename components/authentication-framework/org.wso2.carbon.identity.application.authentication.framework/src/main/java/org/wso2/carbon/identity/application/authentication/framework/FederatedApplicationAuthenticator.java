@@ -23,4 +23,9 @@ package org.wso2.carbon.identity.application.authentication.framework;
  */
 public interface FederatedApplicationAuthenticator extends ApplicationAuthenticator {
 
+    @Override
+    default AuthenticatorType getAuthenticatorType() {
+
+        return AuthenticatorType.FEDERATED;
+    }
 }

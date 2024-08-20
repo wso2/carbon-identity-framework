@@ -24,7 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator.AuthenticatorType;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
@@ -53,7 +53,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AuthenticatorType.CUSTOM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 
 /**
@@ -115,9 +114,9 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            FrameworkConstants.AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
-            if ((authenticator instanceof FederatedApplicationAuthenticator && !CUSTOM.equals(authenticatorType)) ||
-                    (CUSTOM.equals(authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
+            AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
+            if (AuthenticatorType.FEDERATED.equals(authenticatorType) || (AuthenticatorType.CUSTOM.equals(
+                    authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
                 if (stepConfig.isSubjectIdentifierStep()) {
                     if (log.isDebugEnabled()) {
                         log.debug(authenticator.getName() + " has been set up for subject identifier step.");

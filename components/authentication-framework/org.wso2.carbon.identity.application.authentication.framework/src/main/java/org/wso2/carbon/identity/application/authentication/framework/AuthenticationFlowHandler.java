@@ -23,4 +23,10 @@ package org.wso2.carbon.identity.application.authentication.framework;
  */
 public interface AuthenticationFlowHandler extends ApplicationAuthenticator {
 
+    @Override
+    default AuthenticatorType getAuthenticatorType() {
+
+        return AuthenticatorType.FLOW_HANDLER;
+    }
+
 }

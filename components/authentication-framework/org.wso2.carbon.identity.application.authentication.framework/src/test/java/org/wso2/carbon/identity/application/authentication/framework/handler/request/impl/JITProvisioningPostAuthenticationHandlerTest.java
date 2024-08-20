@@ -196,10 +196,10 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         if (isFederated) {
             applicationAuthenticator = mock(FederatedApplicationAuthenticator.class);
             lenient().when(applicationAuthenticator.getAuthenticatorType())
-                    .thenReturn(FrameworkConstants.AuthenticatorType.FEDERATED);
+                    .thenReturn(ApplicationAuthenticator.AuthenticatorType.FEDERATED);
         } else {
             lenient().when(applicationAuthenticator.getAuthenticatorType())
-                    .thenReturn(FrameworkConstants.AuthenticatorType.LOCAL);
+                    .thenReturn(ApplicationAuthenticator.AuthenticatorType.LOCAL);
         }
         lenient().when(applicationAuthenticator.getName()).thenReturn("Authenticator1");
 

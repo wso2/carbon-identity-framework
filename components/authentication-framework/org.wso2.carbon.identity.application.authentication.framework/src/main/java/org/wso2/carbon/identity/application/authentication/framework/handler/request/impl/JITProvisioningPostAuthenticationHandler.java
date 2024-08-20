@@ -34,7 +34,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator.AuthenticatorType;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -93,7 +93,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ALLOW_LOGIN_TO_IDP;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AuthenticatorType.CUSTOM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY;
@@ -188,9 +187,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            FrameworkConstants.AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
-            if ((authenticator instanceof FederatedApplicationAuthenticator && !CUSTOM.equals(authenticatorType)) ||
-                    (CUSTOM.equals(authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
+            AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
+            if (AuthenticatorType.FEDERATED.equals(authenticatorType) || (AuthenticatorType.CUSTOM.equals(
+                    authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 ExternalIdPConfig externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);
@@ -298,9 +297,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            FrameworkConstants.AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
-            if ((authenticator instanceof FederatedApplicationAuthenticator && !CUSTOM.equals(authenticatorType)) ||
-                    (CUSTOM.equals(authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
+            AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
+            if (AuthenticatorType.FEDERATED.equals(authenticatorType) || (AuthenticatorType.CUSTOM.equals(
+                            authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 ExternalIdPConfig externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);
                 context.setExternalIdP(externalIdPConfig);

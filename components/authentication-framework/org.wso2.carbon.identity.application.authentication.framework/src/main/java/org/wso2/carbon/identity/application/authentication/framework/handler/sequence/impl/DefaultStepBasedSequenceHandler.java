@@ -24,8 +24,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator.AuthenticatorType;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
-import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -60,9 +60,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AuthenticatorType.CUSTOM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONFIG_ALLOW_SP_REQUESTED_FED_CLAIMS_ONLY;
-
 
 /**
  * Default implementation of step based sequence handler.
@@ -291,9 +289,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
             stepCount++;
 
-            FrameworkConstants.AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
-            if ((authenticator instanceof FederatedApplicationAuthenticator && !CUSTOM.equals(authenticatorType)) ||
-                    (CUSTOM.equals(authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
+            AuthenticatorType authenticatorType =  authenticator.getAuthenticatorType();
+            if (AuthenticatorType.FEDERATED.equals(authenticatorType) || (AuthenticatorType.CUSTOM.equals(
+                    authenticatorType) && stepConfig.getAuthenticatedUser().isFederatedUser())) {
 
                 ExternalIdPConfig externalIdPConfig = null;
                 try {

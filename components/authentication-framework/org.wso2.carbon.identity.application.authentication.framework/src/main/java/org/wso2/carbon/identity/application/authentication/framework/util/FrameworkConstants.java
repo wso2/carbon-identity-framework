@@ -817,17 +817,4 @@ public abstract class FrameworkConstants {
         INFO,
         ERROR
     }
-
-    /**
-     * Default application related constants.
-     */
-    public enum AuthenticatorType {
-
-        LOCAL,
-        FEDERATED,
-        REQUEST_PATH,
-        FLOW_HANDLER,
-        CUSTOM,
-        UNDEFINED
-    }
 }

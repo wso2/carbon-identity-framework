@@ -212,10 +212,10 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         if (isFederated) {
             applicationAuthenticator = mock(FederatedApplicationAuthenticator.class);
             when(applicationAuthenticator.getAuthenticatorType())
-                    .thenReturn(FrameworkConstants.AuthenticatorType.FEDERATED);
+                    .thenReturn(ApplicationAuthenticator.AuthenticatorType.FEDERATED);
         } else {
             when(applicationAuthenticator.getAuthenticatorType())
-                    .thenReturn(FrameworkConstants.AuthenticatorType.LOCAL);
+                    .thenReturn(ApplicationAuthenticator.AuthenticatorType.LOCAL);
         }
         when(applicationAuthenticator.getName()).thenReturn("Authenticator1");
 
