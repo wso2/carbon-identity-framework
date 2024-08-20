@@ -65,6 +65,8 @@ public class ActionExecutorConfig {
         switch (actionType) {
             case PRE_ISSUE_ACCESS_TOKEN:
                 return isActionTypeEnabled(ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getActionTypeEnableProperty());
+            case AUTHENTICATION:
+                return isActionTypeEnabled(ActionTypeConfig.AUTHENTICATION.getActionTypeEnableProperty());
             default:
                 return false;
         }
@@ -92,11 +94,16 @@ public class ActionExecutorConfig {
     public Set<String> getExcludedHeadersInActionRequestForActionType(ActionType actionType) {
 
         Set<String> excludedHeaders = getExcludedHeadersInActionRequestForAllTypes();
-
+        List<String> excludedHeadersPropertyValue;
         switch (actionType) {
             case PRE_ISSUE_ACCESS_TOKEN:
-                List<String> excludedHeadersPropertyValue = getPropertyValues(
+                excludedHeadersPropertyValue = getPropertyValues(
                         ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty());
+                excludedHeaders.addAll(excludedHeadersPropertyValue);
+                break;
+            case AUTHENTICATION:
+                excludedHeadersPropertyValue = getPropertyValues(
+                        ActionTypeConfig.AUTHENTICATION.getExcludedHeadersProperty());
                 excludedHeaders.addAll(excludedHeadersPropertyValue);
                 break;
             default:
@@ -124,11 +131,16 @@ public class ActionExecutorConfig {
     public Set<String> getExcludedParamsInActionRequestForActionType(ActionType actionType) {
 
         Set<String> excludedParams = getExcludedParamsInActionRequestForAllTypes();
-
+        List<String> excludedParamsPropertyValue;
         switch (actionType) {
             case PRE_ISSUE_ACCESS_TOKEN:
-                List<String> excludedParamsPropertyValue = getPropertyValues(
+                excludedParamsPropertyValue = getPropertyValues(
                         ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty());
+                excludedParams.addAll(excludedParamsPropertyValue);
+                break;
+            case AUTHENTICATION:
+                excludedParamsPropertyValue = getPropertyValues(
+                        ActionTypeConfig.AUTHENTICATION.getExcludedParamsProperty());
                 excludedParams.addAll(excludedParamsPropertyValue);
                 break;
             default:
@@ -169,7 +181,10 @@ public class ActionExecutorConfig {
     private static enum ActionTypeConfig {
         PRE_ISSUE_ACCESS_TOKEN("Actions.Types.PreIssueAccessToken.Enable",
                 "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedHeaders.Header",
-                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter");
+                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter"),
+        AUTHENTICATION("Actions.Types.Authentication.Enable",
+                "Actions.Types.Authentication.ActionRequest.ExcludedHeaders.Header",
+                "Actions.Types.Authentication.ActionRequest.ExcludedParameters.Parameter");
 
         private final String actionTypeEnableProperty;
         private final String excludedHeadersProperty;
