@@ -138,6 +138,19 @@ public class ActionExecutorConfigTest {
     }
 
     @Test
+    public void testGetExcludedHeadersInActionRequestForValidConfigWithOneValueForDefinedTypeOnly() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedHeaders.Header", "header1");
+
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        Set<String> excludedHeaders =
+                actionExecutorConfig.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+        assertEquals(excludedHeaders, new HashSet<>(Collections.singletonList("header1")));
+    }
+
+    @Test
     public void testGetExcludedHeadersInActionRequestForValidConfigForAllAndDefinedType() {
 
         Map<String, Object> configMap = new HashMap<>();
@@ -156,7 +169,7 @@ public class ActionExecutorConfigTest {
     public void testGetExcludedHeadersInActionRequestForInvalidConfigForAllTypes() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.ActionRequest.ExcludedHeaders.Header", "invalid");
+        configMap.put("Actions.ActionRequest.ExcludedHeaders.Header", 12);
 
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
 
@@ -169,7 +182,7 @@ public class ActionExecutorConfigTest {
     public void testGetExcludedHeadersInActionRequestForInvalidConfigForDefinedType() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedHeaders.Header", "invalid");
+        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedHeaders.Header", 12);
 
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
 
@@ -253,7 +266,7 @@ public class ActionExecutorConfigTest {
     public void testGetExcludedParamsInActionRequestForInvalidConfigForAllTypes() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.ActionRequest.ExcludedParameters.Parameter", "invalid");
+        configMap.put("Actions.ActionRequest.ExcludedParameters.Parameter", 12);
 
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
 
@@ -266,7 +279,7 @@ public class ActionExecutorConfigTest {
     public void testGetExcludedParamsInActionRequestForInvalidConfigForDefinedType() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter", "invalid");
+        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter", 12);
 
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
 
