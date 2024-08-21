@@ -154,6 +154,10 @@ public class ActionExecutorConfig {
             return Collections.emptyList();
         }
 
+        if (propertyValue instanceof String) {
+            return Collections.singletonList(propertyValue.toString());
+        }
+
         if (propertyValue instanceof List) {
             return (List<String>) propertyValue;
         } else {
