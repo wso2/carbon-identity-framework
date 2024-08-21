@@ -2,7 +2,7 @@ name: "FOSSA Scanner"
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 jobs:
   fossa-scan:
