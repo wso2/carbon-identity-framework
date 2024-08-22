@@ -3702,6 +3702,8 @@
             <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
             <AddPreviousVersionKID>{{oauth.jwks_endpoint.add_previous_version_kid}}</AddPreviousVersionKID>
             <IsThumbprintHexifyRequired>{{oauth.jwks_endpoint.is_thumbprint_hexify_required}}</IsThumbprintHexifyRequired>
+            <!-- Configuration for allowing users to enable x5c parameter in JWKS response -->
+            <EnableX5CInResponse>{{oauth.jwks_endpoint.enable_x5c_in_response | default(true)}}</EnableX5CInResponse>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
