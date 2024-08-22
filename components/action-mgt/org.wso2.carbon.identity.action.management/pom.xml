@@ -184,7 +184,7 @@
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <configuration>
-                    <skip>true</skip>
+                    <threshold>High</threshold>
                 </configuration>
             </plugin>
         </plugins>
