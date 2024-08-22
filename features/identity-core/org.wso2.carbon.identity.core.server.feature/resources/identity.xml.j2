@@ -2028,6 +2028,21 @@
                     </ExcludedParameters>
                 </ActionRequest>
             </PreIssueAccessToken>
+            <Authentication>
+                <Enable>{{actions.authentication.enable}}</Enable>
+                <ActionRequest>
+                    <ExcludedHeaders>
+                         {% for header in actions.types.authentication.action_request.excluded_headers %}
+                            <Header>{{header}}</Header>
+                         {% endfor %}
+                    </ExcludedHeaders>
+                    <ExcludedParameters>
+                        {% for param in actions.types.authentication.action_request.excluded_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </ExcludedParameters>
+                </ActionRequest>
+            </Authentication>
         </Types>
     </Actions>
 

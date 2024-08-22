@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -54,7 +55,7 @@ public class ActionExecutorConfig {
     }
 
     /**
-     * Returns a boolean value based on the system configuration: 'actions.types.pre_issue_access_token.enable' that
+     * Returns a boolean value based on the system configuration: 'actions.types.{action_type}.enable' that
      * enables or disables action execution for the given action type.
      *
      * @param actionType Action Type
@@ -94,22 +95,20 @@ public class ActionExecutorConfig {
     public Set<String> getExcludedHeadersInActionRequestForActionType(ActionType actionType) {
 
         Set<String> excludedHeaders = getExcludedHeadersInActionRequestForAllTypes();
-        List<String> excludedHeadersPropertyValue;
+        List<String> excludedHeadersPropertyValue = new ArrayList<>();
         switch (actionType) {
             case PRE_ISSUE_ACCESS_TOKEN:
                 excludedHeadersPropertyValue = getPropertyValues(
                         ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty());
-                excludedHeaders.addAll(excludedHeadersPropertyValue);
                 break;
             case AUTHENTICATION:
                 excludedHeadersPropertyValue = getPropertyValues(
                         ActionTypeConfig.AUTHENTICATION.getExcludedHeadersProperty());
-                excludedHeaders.addAll(excludedHeadersPropertyValue);
                 break;
             default:
                 break;
         }
-
+        excludedHeaders.addAll(excludedHeadersPropertyValue);
         return Collections.unmodifiableSet(excludedHeaders);
     }
 
@@ -131,22 +130,21 @@ public class ActionExecutorConfig {
     public Set<String> getExcludedParamsInActionRequestForActionType(ActionType actionType) {
 
         Set<String> excludedParams = getExcludedParamsInActionRequestForAllTypes();
-        List<String> excludedParamsPropertyValue;
+        List<String> excludedParamsPropertyValue = new ArrayList<>();
         switch (actionType) {
             case PRE_ISSUE_ACCESS_TOKEN:
                 excludedParamsPropertyValue = getPropertyValues(
                         ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty());
-                excludedParams.addAll(excludedParamsPropertyValue);
+
                 break;
             case AUTHENTICATION:
                 excludedParamsPropertyValue = getPropertyValues(
                         ActionTypeConfig.AUTHENTICATION.getExcludedParamsProperty());
-                excludedParams.addAll(excludedParamsPropertyValue);
                 break;
             default:
                 break;
         }
-
+        excludedParams.addAll(excludedParamsPropertyValue);
         return Collections.unmodifiableSet(excludedParams);
     }
 
