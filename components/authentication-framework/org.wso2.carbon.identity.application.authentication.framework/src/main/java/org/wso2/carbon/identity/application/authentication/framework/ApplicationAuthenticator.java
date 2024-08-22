@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.AuthenticatorType;
 
 import java.io.Serializable;
 import java.util.List;
@@ -179,18 +180,5 @@ public interface ApplicationAuthenticator extends Serializable {
     default AuthenticatorType getAuthenticatorType() {
 
         return AuthenticatorType.UNDEFINED;
-    }
-
-    /**
-     * Authenticator Types.
-     */
-    public enum AuthenticatorType {
-
-        LOCAL,
-        FEDERATED,
-        REQUEST_PATH,
-        FLOW_HANDLER,
-        CUSTOM,
-        UNDEFINED
     }
 }

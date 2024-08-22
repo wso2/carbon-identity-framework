@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.AuthenticatorType;
+
 /**
  * Handler in the authentication flow but the authentication flow with this handler will be rejected.
  */

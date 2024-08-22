@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.AuthenticatorType;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
@@ -196,10 +197,10 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         if (isFederated) {
             applicationAuthenticator = mock(FederatedApplicationAuthenticator.class);
             lenient().when(applicationAuthenticator.getAuthenticatorType())
-                    .thenReturn(ApplicationAuthenticator.AuthenticatorType.FEDERATED);
+                    .thenReturn(AuthenticatorType.FEDERATED);
         } else {
             lenient().when(applicationAuthenticator.getAuthenticatorType())
-                    .thenReturn(ApplicationAuthenticator.AuthenticatorType.LOCAL);
+                    .thenReturn(AuthenticatorType.LOCAL);
         }
         lenient().when(applicationAuthenticator.getName()).thenReturn("Authenticator1");
 

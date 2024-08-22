@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.AuthenticatorType;
+
 /**
  * Request path application authenticator.
  */

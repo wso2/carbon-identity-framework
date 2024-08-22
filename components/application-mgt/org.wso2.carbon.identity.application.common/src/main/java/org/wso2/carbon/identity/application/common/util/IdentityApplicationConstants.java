@@ -142,6 +142,19 @@ public class IdentityApplicationConstants {
     public static final String ATTRIBUTE_SEPARATOR = ",";
 
     /**
+     * Authenticator Types.
+     */
+    public enum AuthenticatorType {
+
+        LOCAL,
+        FEDERATED,
+        REQUEST_PATH,
+        FLOW_HANDLER,
+        CUSTOM,
+        UNDEFINED
+    }
+
+    /**
      * Config elements.
      */
     public static class ConfigElements {

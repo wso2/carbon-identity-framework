@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -212,10 +213,10 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         if (isFederated) {
             applicationAuthenticator = mock(FederatedApplicationAuthenticator.class);
             when(applicationAuthenticator.getAuthenticatorType())
-                    .thenReturn(ApplicationAuthenticator.AuthenticatorType.FEDERATED);
+                    .thenReturn(IdentityApplicationConstants.AuthenticatorType.FEDERATED);
         } else {
             when(applicationAuthenticator.getAuthenticatorType())
-                    .thenReturn(ApplicationAuthenticator.AuthenticatorType.LOCAL);
+                    .thenReturn(IdentityApplicationConstants.AuthenticatorType.LOCAL);
         }
         when(applicationAuthenticator.getName()).thenReturn("Authenticator1");
 

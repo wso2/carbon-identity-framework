@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 
 import java.io.Serializable;
@@ -62,6 +63,9 @@ public class LocalAuthenticatorConfig implements Serializable {
 
     @XmlElement(name = "Tags")
     protected String[] tags;
+
+    @XmlElement(name = "Type")
+    protected IdentityApplicationConstants.AuthenticatorType type;
 
     /*
      * <LocalAuthenticatorConfig> <Name></Name> <DisplayName></DisplayName> <IsEnabled></IsEnabled>
@@ -223,5 +227,25 @@ public class LocalAuthenticatorConfig implements Serializable {
     public void setTags(String[] tagList) {
 
         tags = tagList;
+    }
+
+    /**
+     * Get the type of the Local authenticator.
+     *
+     * @return IdentityApplicationConstants.AuthenticatorType
+     */
+    public IdentityApplicationConstants.AuthenticatorType getType() {
+
+        return type;
+    }
+
+    /**
+     * Set the type for Local authenticator.
+     *
+     * @param type Authenticator Type.
+     */
+    public void setType(IdentityApplicationConstants.AuthenticatorType type) {
+
+        this.type = type;
     }
 }
