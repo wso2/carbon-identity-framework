@@ -211,6 +211,61 @@
           ]
         }
       ]
+    },
+    "legacy": {
+      "schemas.remove_from_default_schema" : [
+        {
+          "id": "urn:ietf:params:scim:schemas:core:2.0:User",
+          "attributes": [
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax",
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager"
+          ]
+        }
+      ],
+      "schemas.add_to_default_schema": [
+        {
+          "id": "urn:ietf:params:scim:schemas:core:2.0",
+          "attributes": [
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax",
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager"
+          ]
+        },
+        {
+          "id": "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User",
+          "attributes": [
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountDisabled",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountLocked",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountState",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:askPassword",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:country",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:dateOfBirth",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:emailOTPDisabled",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedEmailOTPAttempts",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginAttempts",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginAttemptsBeforeSuccess",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginLockoutCount",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedPasswordRecoveryAttempts",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedSMSOTPAttempts",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedTOTPAttempts",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:forcePasswordReset",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:isLiteUser",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lastLogonTime",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lastPasswordUpdateTime",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lockedReason",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:oneTimePassword",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingMobileNumber",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:phoneVerified",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:preferredChannel",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:smsOTPDisabled",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:tenantAdminAskPassword",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:unlockTime",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userSourceId",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyEmail",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyMobile",
+            "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingEmails.value"
+          ]
+        }
+      ]
     }
   },
   "server.legacy_mode": {
