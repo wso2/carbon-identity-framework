@@ -61,21 +61,6 @@
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.multitenancy</groupId>
-            <artifactId>org.wso2.carbon.tenant.mgt</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.role.mgt.core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.functions.library.mgt</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -184,7 +169,10 @@
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <configuration>
+                    <excludeFilterFile>../../../spotbugs-exclude.xml</excludeFilterFile>
+                    <effort>Max</effort>
                     <threshold>High</threshold>
+                    <xmlOutput>true</xmlOutput>
                 </configuration>
             </plugin>
         </plugins>
