@@ -224,9 +224,10 @@ public class ActionManagementDAOImplTest {
         action = result;
     }
 
-    @Test(priority = 8) //To be fixed in the implementation class
+    @Test(priority = 8)
     public void testUpdateActionWithoutNameAndDescription() throws ActionMgtException {
 
+        // TODO: This should be modified once the dao layer is fixed to handle null values.
         Action updatingAction = buildMockAction(
                 null,
                 null,
@@ -247,6 +248,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 9)
     public void testUpdateActionWithNameAndDescription() throws ActionMgtException {
 
+        // TODO: This should be modified once the dao layer is fixed to handle null values.
         Action updatingAction = buildMockAction(
                 "Pre Issue Access Token",
                 "To configure pre issue access token",
@@ -280,6 +282,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 11)
     public void testUpdateActionWithoutEndpointUri() throws ActionMgtException {
 
+        // TODO: This should be modified once the dao layer is fixed to handle null values.
         Action updatingAction = buildMockAction(
                 "Pre Issue Access Token",
                 "To configure pre issue access token",
@@ -321,6 +324,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 13)
     public void testUpdateActionWithUri() throws ActionMgtException {
 
+        // TODO: This should be modified once the dao layer is fixed to handle null values.
         Action updatingAction = buildMockAction(
                 null,
                 null,
@@ -342,6 +346,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 14)
     public void testUpdateActionWithAuthTypeWithoutUri() throws ActionMgtException {
 
+        // TODO: This should be modified once the dao layer is fixed to handle null values.
         Action updatingAction = buildMockAction(
                 "Pre Issue Access Token",
                 "To configure pre issue access token",
