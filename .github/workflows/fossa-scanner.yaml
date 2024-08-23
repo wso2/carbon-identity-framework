@@ -12,4 +12,4 @@ jobs:
       - uses: fossas/fossa-action@main
         with:
           api-key: ${{secrets.FOSSAAPIKEY}}
-          team-name: "Public-Repos"
+          team: ${{secrets.FOSSATEAM}}
