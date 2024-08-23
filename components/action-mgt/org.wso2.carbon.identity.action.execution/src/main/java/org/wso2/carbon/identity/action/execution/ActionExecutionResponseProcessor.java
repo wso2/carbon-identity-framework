@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.execution;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionResponseProcessorException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.Event;
@@ -44,5 +45,10 @@ public interface ActionExecutionResponseProcessor {
     ActionExecutionStatus processErrorResponse(Map<String, Object> eventContext,
                                                Event actionEvent,
                                                ActionInvocationErrorResponse errorResponse) throws
+            ActionExecutionResponseProcessorException;
+
+    ActionExecutionStatus processFailureResponse(Map<String, Object> eventContext,
+                                               Event actionEvent,
+                                               ActionInvocationFailureResponse failureResponse) throws
             ActionExecutionResponseProcessorException;
 }
