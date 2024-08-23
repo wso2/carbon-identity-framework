@@ -26,11 +26,13 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtServerException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.constant.SQLConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.APIResourceManagementDAO;
+import org.wso2.carbon.identity.api.resource.mgt.dao.AuthorizationDetailsTypeMgtDAO;
 import org.wso2.carbon.identity.api.resource.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.APIResourceProperty;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -55,6 +57,12 @@ import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceMana
  * This class implements the {@link APIResourceManagementDAO} interface.
  */
 public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
+
+    private final AuthorizationDetailsTypeMgtDAO authorizationDetailsTypeMgtDAO;
+
+    public APIResourceManagementDAOImpl() {
+        this.authorizationDetailsTypeMgtDAO = new AuthorizationDetailsTypeMgtDAOImpl();
+    }
 
     @Override
     public List<APIResource> getAPIResources(Integer limit, Integer tenantId, String sortOrder,
@@ -146,6 +154,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                     // Add properties.
                     addAPIResourceProperties(dbConnection, generatedAPIId, apiResource.getProperties());
                 }
+                if (CollectionUtils.isNotEmpty(apiResource.getAuthorizationDetailsTypes())) {
+                    // Add authorization details types.
+                    this.authorizationDetailsTypeMgtDAO.addAuthorizationDetailsTypes(generatedAPIId,
+                            apiResource.getAuthorizationDetailsTypes(), tenantId);
+                }
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
 
                 return getAPIResourceById(generatedAPIId, tenantId);
@@ -234,7 +247,10 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             preparedStatement.setInt(2, tenantId);
             ResultSet resultSet = preparedStatement.executeQuery();
             List<APIResourceProperty> apiResourceProperties = getAPIResourcePropertiesByAPIId(dbConnection, apiId);
-            return getApiResource(resultSet, apiResourceProperties);
+            List<AuthorizationDetailsType> authorizationDetailsTypes =
+                    this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypesByApiId(apiId, tenantId);
+
+            return getApiResource(resultSet, apiResourceProperties, authorizationDetailsTypes);
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
@@ -253,7 +269,10 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             ResultSet resultSet = preparedStatement.executeQuery();
             List<APIResourceProperty> apiResourceProperties =
                     getAPIResourcePropertiesByAPIIdentifier(dbConnection, identifier, tenantId);
-            return getApiResource(resultSet, apiResourceProperties);
+            List<AuthorizationDetailsType> authorizationDetailsTypes =
+                    this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypesByApiId(identifier, tenantId);
+
+            return getApiResource(resultSet, apiResourceProperties, authorizationDetailsTypes);
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
@@ -281,6 +300,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 if (CollectionUtils.isNotEmpty(addedScopes)) {
                     // Add Scopes.
                     addScopes(dbConnection, apiResource.getId(), addedScopes, tenantId);
+                }
+
+                if (CollectionUtils.isNotEmpty(apiResource.getAuthorizationDetailsTypes())) {
+                    this.authorizationDetailsTypeMgtDAO
+                            .updateAuthorizationDetailsTypes(apiResource.getAuthorizationDetailsTypes(), tenantId);
                 }
 
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
@@ -323,6 +347,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
+                authorizationDetailsTypeMgtDAO.deleteAuthorizationDetailsTypesByApiId(apiId, tenantId);
+
                 PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.DELETE_SCOPES_BY_API);
                 prepStmt.setString(1, apiId);
                 prepStmt.setInt(2, tenantId);
@@ -733,7 +759,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
      * @return API resource.
      * @throws SQLException If an error occurs while retrieving API resource.
      */
-    private static APIResource getApiResource(ResultSet resultSet, List<APIResourceProperty> apiResourceProperties)
+    private static APIResource getApiResource(ResultSet resultSet,
+                                              List<APIResourceProperty> apiResourceProperties,
+                                              List<AuthorizationDetailsType> authorizationDetailsTypes)
             throws SQLException {
 
         List<Scope> scopes = new ArrayList<>();
@@ -763,6 +791,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         }
         if (apiResource != null) {
             apiResource.setScopes(scopes);
+            apiResource.setAuthorizationDetailsTypes(authorizationDetailsTypes);
         }
         return apiResource;
     }

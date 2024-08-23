@@ -30,6 +30,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
+import org.wso2.carbon.identity.api.resource.mgt.AuthorizationDetailsTypeManager;
+import org.wso2.carbon.identity.api.resource.mgt.AuthorizationDetailsTypeManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -52,6 +54,8 @@ public class APIResourceManagementServiceComponent {
         try {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.registerService(APIResourceManager.class, APIResourceManagerImpl.getInstance(), null);
+            bundleCtx.registerService(AuthorizationDetailsTypeManager.class,
+                    new AuthorizationDetailsTypeManagerImpl(), null);
             // Register system APIs in the super tenant.
             APIResourceManagementUtil.addSystemAPIs();
             LOG.debug("API resource management bundle is activated");
@@ -66,6 +70,7 @@ public class APIResourceManagementServiceComponent {
         try {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.ungetService(bundleCtx.getServiceReference(APIResourceManager.class));
+            bundleCtx.ungetService(bundleCtx.getServiceReference(AuthorizationDetailsTypeManager.class));
             LOG.debug("API resource management bundle is deactivated");
         } catch (Throwable e) {
             LOG.error("Error while deactivating API resource management component.", e);

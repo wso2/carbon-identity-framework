@@ -110,6 +110,8 @@ public class APIResourceManagementConstants {
                 "API resource creation is restricted in organizations."),
         ERROR_CODE_INVALID_IDENTIFIER_VALUE("60007", "Unable to add API resources.",
                 "Invalid identifier value provided."),
+        ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EXISTS("60008", "Unable to add authorization details type.",
+                "Authorization details type already exists for the tenant: %s."),
 
         // Server errors.
         ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES("65001", "Error while retrieving API resources.",
@@ -142,6 +144,18 @@ public class APIResourceManagementConstants {
                 "properties.", "Error while adding API resource properties to the database."),
         ERROR_CODE_ERROR_WHILE_UPDATING_SCOPE_METADATA("65015", "Error while updating scope metadata.",
                 "Error while updating scope metadata in the database."),
+        ERROR_CODE_ERROR_WHILE_ADDING_AUTHORIZATION_DETAILS_TYPES("650016",
+                "Error while adding authorization details types.",
+                "Error while adding authorization details types to the database."),
+        ERROR_CODE_ERROR_WHILE_GETTING_AUTHORIZATION_DETAILS_TYPES("65017",
+                "Error while getting authorization details types.",
+                "Error while getting authorization details types from the database."),
+        ERROR_CODE_ERROR_WHILE_DELETING_AUTHORIZATION_DETAILS_TYPES("65018",
+                "Error while deleting authorization details types.",
+                "Error while deleting authorization details types from the database."),
+        ERROR_CODE_ERROR_WHILE_UPDATING_AUTHORIZATION_DETAILS_TYPES("65019",
+                "Error while updating authorization details types.",
+                "Error while updating authorization details types from the database."),
         ;
 
         private final String code;
