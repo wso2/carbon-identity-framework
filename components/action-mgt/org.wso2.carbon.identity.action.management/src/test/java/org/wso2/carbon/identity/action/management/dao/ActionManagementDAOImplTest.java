@@ -227,7 +227,8 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 8)
     public void testUpdateActionWithoutNameAndDescription() throws ActionMgtException {
 
-        // TODO: This should be modified once the dao layer is fixed to handle null values.
+        // TODO: 'Name' is a required attribute. Thus, DAO layer should throw an exception if name is null.
+        //  This should be fixed in DAO layer and test case needs to be updated accordingly.
         Action updatingAction = buildMockAction(
                 null,
                 null,
@@ -248,7 +249,9 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 9)
     public void testUpdateActionWithNameAndDescription() throws ActionMgtException {
 
-        // TODO: This should be modified once the dao layer is fixed to handle null values.
+        // TODO: 'Uri','AuthenticationType','AuthProperties' are required attributes. Thus, DAO layer should throw an
+        //  exception if those attributes are null. This should be fixed in DAO layer and test case needs to be updated
+        //  accordingly.
         Action updatingAction = buildMockAction(
                 "Pre Issue Access Token",
                 "To configure pre issue access token",
@@ -282,7 +285,8 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 11)
     public void testUpdateActionWithoutEndpointUri() throws ActionMgtException {
 
-        // TODO: This should be modified once the dao layer is fixed to handle null values.
+        // TODO: 'Uri' is a required attribute. Thus, DAO layer should throw an exception if Uri is null.
+        //  This should be fixed in DAO layer and test case needs to be updated accordingly.
         Action updatingAction = buildMockAction(
                 "Pre Issue Access Token",
                 "To configure pre issue access token",
@@ -324,7 +328,9 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 13)
     public void testUpdateActionWithUri() throws ActionMgtException {
 
-        // TODO: This should be modified once the dao layer is fixed to handle null values.
+        // TODO: 'Name','AuthenticationType' and 'AuthProperties' are required attributes. Thus, DAO layer should throw
+        //  an exception if those attributes are null. This should be fixed in DAO layer and test case needs to be
+        //  updated accordingly.
         Action updatingAction = buildMockAction(
                 null,
                 null,
@@ -346,7 +352,8 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 14)
     public void testUpdateActionWithAuthTypeWithoutUri() throws ActionMgtException {
 
-        // TODO: This should be modified once the dao layer is fixed to handle null values.
+        // TODO: 'Uri' is a required attribute. Thus, DAO layer should throw an exception if uri is null.
+        //  This should be fixed in DAO layer and test case needs to be updated accordingly.
         Action updatingAction = buildMockAction(
                 "Pre Issue Access Token",
                 "To configure pre issue access token",
