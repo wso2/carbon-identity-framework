@@ -27,7 +27,7 @@ import static org.wso2.carbon.identity.entitlement.PDPConstants.POLICY_STORAGE_C
 
 public class PersistenceManagerFactory {
 
-    private static final String POLICY_STORAGE_TYPE = IdentityUtil.getProperty(POLICY_STORAGE_CONFIG);
+    private static String POLICY_STORAGE_TYPE = IdentityUtil.getProperty(POLICY_STORAGE_CONFIG);
     private static final String HYBRID = "hybrid";
     private static final String REGISTRY = "registry";
 
