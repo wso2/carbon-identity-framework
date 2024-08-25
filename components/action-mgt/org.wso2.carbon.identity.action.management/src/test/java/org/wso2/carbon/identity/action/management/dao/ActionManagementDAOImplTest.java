@@ -26,6 +26,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
@@ -70,9 +71,10 @@ public class ActionManagementDAOImplTest {
     private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private static final String DB_NAME = "action_mgt";
-    private static final String PRE_ISSUE_ACCESS_TOKEN = "PRE_ISSUE_ACCESS_TOKEN";
     private static final int TENANT_ID = 2;
-    private Action action;
+    private static Action preIssueAccessTokenAction;
+    private static Action authenticationAction;
+
 
     @BeforeClass
     public void setUpClass() throws Exception {
@@ -108,8 +110,17 @@ public class ActionManagementDAOImplTest {
         closeH2Database();
     }
 
-    @Test(priority = 1)
-    public void testAddAction() throws ActionMgtException {
+    @DataProvider(name = "actionProvider")
+    public Object[][] actionDataProvider() {
+
+        return new Object[][]{
+                {Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType(), preIssueAccessTokenAction},
+                {Action.ActionTypes.AUTHENTICATION.getActionType(), authenticationAction}
+        };
+    }
+
+    @Test(priority = 1, dataProvider = "actionProvider")
+    public void testAddAction(String actionType, Action action) throws ActionMgtException {
 
         String id = String.valueOf(UUID.randomUUID());
         Action creatingAction = buildMockAction(
@@ -118,20 +129,20 @@ public class ActionManagementDAOImplTest {
                 "https://example.com",
                  AuthType.AuthenticationType.BASIC,
                 buildMockBasicAuthProperties("admin", "admin"));
-        action = daoImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, id, creatingAction, TENANT_ID);
+        action = daoImpl.addAction(actionType, id, creatingAction, TENANT_ID);
         Assert.assertEquals(id, action.getId());
         Assert.assertEquals(creatingAction.getName(), action.getName());
         Assert.assertEquals(creatingAction.getDescription(), action.getDescription());
-        Assert.assertEquals(PRE_ISSUE_ACCESS_TOKEN, action.getType().getActionType());
+        Assert.assertEquals(actionType, action.getType().getActionType());
         Assert.assertEquals(Action.Status.ACTIVE, action.getStatus());
         Assert.assertEquals(creatingAction.getEndpoint().getUri(), action.getEndpoint().getUri());
         Assert.assertEquals(creatingAction.getEndpoint().getAuthentication().getType(),
                 action.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 2, expectedExceptions = ActionMgtException.class,
+    @Test(priority = 2, dataProvider = "actionProvider", expectedExceptions = ActionMgtException.class,
             expectedExceptionsMessageRegExp = "Error while adding Action.")
-    public void testAddActionWithoutName() throws ActionMgtException {
+    public void testAddActionWithoutName(String actionType) throws ActionMgtException {
 
         Action action = buildMockAction(
                 null,
@@ -139,15 +150,15 @@ public class ActionManagementDAOImplTest {
                 "https://example.com",
                  AuthType.AuthenticationType.BASIC,
                 buildMockBasicAuthProperties("admin", "admin"));
-        this.action = daoImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), action, TENANT_ID);
+        daoImpl.addAction(actionType, action.getId(), action, TENANT_ID);
     }
 
-    @Test(priority = 3)
-    public void testGetActionsByActionType() throws ActionMgtException, SQLException {
+    @Test(priority = 3, dataProvider = "actionProvider")
+    public void testGetActionsByActionType(String actionType, Action action) throws ActionMgtException, SQLException {
 
-        Assert.assertEquals(1, daoImpl.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN, TENANT_ID).size());
+        Assert.assertEquals(1, daoImpl.getActionsByActionType(actionType, TENANT_ID).size());
         mockDBConnection();
-        Action result = daoImpl.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN, TENANT_ID).get(0);
+        Action result = daoImpl.getActionsByActionType(actionType, TENANT_ID).get(0);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(action.getName(), result.getName());
         Assert.assertEquals(action.getDescription(), result.getDescription());
@@ -158,10 +169,10 @@ public class ActionManagementDAOImplTest {
                 result.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 4)
-    public void testGetActionByActionId() throws ActionMgtException {
+    @Test(priority = 4, dataProvider = "actionProvider")
+    public void testGetActionByActionId(String actionType, Action action) throws ActionMgtException {
 
-        Action result = daoImpl.getActionByActionId(action.getId(), TENANT_ID);
+        Action result = daoImpl.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN, action.getId(), TENANT_ID);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(action.getName(), result.getName());
         Assert.assertEquals(action.getDescription(), result.getDescription());
@@ -172,16 +183,16 @@ public class ActionManagementDAOImplTest {
                 result.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 5)
-    public void testDeleteAction() throws ActionMgtException, SQLException {
+    @Test(priority = 5, dataProvider = "actionProvider")
+    public void testDeleteAction(String actionType, Action action) throws ActionMgtException, SQLException {
 
-        daoImpl.deleteAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), action, TENANT_ID);
+        daoImpl.deleteAction(actionType, action.getId(), action, TENANT_ID);
         mockDBConnection();
-        Assert.assertNull(daoImpl.getActionByActionId(action.getId(), TENANT_ID));
+        Assert.assertNull(daoImpl.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN, action.getId(), TENANT_ID));
     }
 
-    @Test(priority = 6)
-    public void testAddActionWithoutDescription() throws ActionMgtException {
+    @Test(priority = 6, dataProvider = "actionProvider")
+    public void testAddActionWithoutDescription(String actionType, Action action) throws ActionMgtException {
 
         String id = String.valueOf(UUID.randomUUID());
         Action creatingAction = buildMockAction(
@@ -190,19 +201,19 @@ public class ActionManagementDAOImplTest {
                 "https://example.com",
                  AuthType.AuthenticationType.BASIC,
                  buildMockBasicAuthProperties("admin", "admin"));
-        action = daoImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, id, creatingAction, TENANT_ID);
+        action = daoImpl.addAction(actionType, id, creatingAction, TENANT_ID);
         Assert.assertEquals(id, action.getId());
         Assert.assertEquals(creatingAction.getName(), action.getName());
         Assert.assertNull(null, action.getDescription());
-        Assert.assertEquals(PRE_ISSUE_ACCESS_TOKEN, action.getType().getActionType());
+        Assert.assertEquals(actionType, action.getType().getActionType());
         Assert.assertEquals(Action.Status.ACTIVE, action.getStatus());
         Assert.assertEquals(creatingAction.getEndpoint().getUri(), action.getEndpoint().getUri());
         Assert.assertEquals(creatingAction.getEndpoint().getAuthentication().getType(),
                 action.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 7)
-    public void testUpdateAction() throws ActionMgtException {
+    @Test(priority = 7, dataProvider = "actionProvider")
+    public void testUpdateAction(String actionType, Action action) throws ActionMgtException {
 
         Action updatingAction = buildMockAction(
                 "Pre Issue Access Token",
@@ -210,7 +221,7 @@ public class ActionManagementDAOImplTest {
                 "https://sample.com",
                  AuthType.AuthenticationType.BASIC,
                  buildMockBasicAuthProperties("updatingadmin", "updatingadmin"));
-        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Action result = daoImpl.updateAction(actionType, action.getId(), updatingAction, action, TENANT_ID);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(updatingAction.getName(), result.getName());
         Assert.assertEquals(updatingAction.getDescription(), result.getDescription());
@@ -221,11 +232,11 @@ public class ActionManagementDAOImplTest {
                 updatingAction.getEndpoint().getAuthentication().getType(),
                 result.getEndpoint().getAuthentication().getType()
         );
-        action = result;
+        updateAction(result);
     }
 
-    @Test(priority = 8)
-    public void testUpdateActionWithoutNameAndDescription() throws ActionMgtException {
+    @Test(priority = 8, dataProvider = "actionProvider")
+    public void testUpdateActionWithoutNameAndDescription(String actionType, Action action) throws ActionMgtException {
 
         // TODO: 'Name' is a required attribute. Thus, DAO layer should throw an exception if name is null.
         //  This should be fixed in DAO layer and test case needs to be updated accordingly.
@@ -235,7 +246,7 @@ public class ActionManagementDAOImplTest {
                 "https://sample.com",
                  AuthType.AuthenticationType.BASIC,
                  buildMockBasicAuthProperties("updatingadmin", "updatingadmin"));
-        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Action result = daoImpl.updateAction(actionType, action.getId(), updatingAction, action, TENANT_ID);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(action.getName(), result.getName());
         Assert.assertEquals(action.getDescription(), result.getDescription());
@@ -246,8 +257,8 @@ public class ActionManagementDAOImplTest {
                 result.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 9)
-    public void testUpdateActionWithNameAndDescription() throws ActionMgtException {
+    @Test(priority = 9, dataProvider = "actionProvider")
+    public void testUpdateActionWithNameAndDescription(String actionType, Action action) throws ActionMgtException {
 
         // TODO: 'Uri','AuthenticationType','AuthProperties' are required attributes. Thus, DAO layer should throw an
         //  exception if those attributes are null. This should be fixed in DAO layer and test case needs to be updated
@@ -258,7 +269,7 @@ public class ActionManagementDAOImplTest {
                 null,
                 null,
                 null);
-        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Action result = daoImpl.updateAction(actionType, action.getId(), updatingAction, action, TENANT_ID);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(updatingAction.getName(), result.getName());
         Assert.assertEquals(updatingAction.getDescription(), result.getDescription());
@@ -269,12 +280,14 @@ public class ActionManagementDAOImplTest {
                 result.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 10)
-    public void testUpdateActionEndpointAuthSecretProperties() throws ActionMgtException {
+    @Test(priority = 10, dataProvider = "actionProvider")
+    public void testUpdateActionEndpointAuthSecretProperties(String actionType, Action action)
+            throws ActionMgtException {
 
         AuthType authType = buildMockAuthType(AuthType.AuthenticationType.BASIC,
                 buildMockBasicAuthProperties("newadmin", "newadmin"));
-        Action result = daoImpl.updateActionEndpointAuthProperties(action.getId(), authType, TENANT_ID);
+        Action result = daoImpl.updateActionEndpointAuthProperties(PRE_ISSUE_ACCESS_TOKEN,
+                action.getId(), authType, TENANT_ID);
         Assert.assertEquals(AuthType.AuthenticationType.BASIC, result.getEndpoint().getAuthentication().getType());
         Assert.assertEquals(action.getEndpoint().getAuthentication().getProperties().get(0).getValue(),
                 result.getEndpoint().getAuthentication().getProperties().get(0).getValue());
@@ -282,8 +295,8 @@ public class ActionManagementDAOImplTest {
                 result.getEndpoint().getAuthentication().getProperties().get(1).getValue());
     }
 
-    @Test(priority = 11)
-    public void testUpdateActionWithoutEndpointUri() throws ActionMgtException {
+    @Test(priority = 11, dataProvider = "actionProvider")
+    public void testUpdateActionWithoutEndpointUri(String actionType, Action action) throws ActionMgtException {
 
         // TODO: 'Uri' is a required attribute. Thus, DAO layer should throw an exception if Uri is null.
         //  This should be fixed in DAO layer and test case needs to be updated accordingly.
@@ -293,7 +306,7 @@ public class ActionManagementDAOImplTest {
                 null,
                  AuthType.AuthenticationType.BASIC,
                  buildMockBasicAuthProperties("updatingadmin", "updatingadmin"));
-        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Action result = daoImpl.updateAction(actionType, action.getId(), updatingAction, action, TENANT_ID);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(updatingAction.getName(), result.getName());
         Assert.assertEquals(updatingAction.getDescription(), result.getDescription());
@@ -304,8 +317,8 @@ public class ActionManagementDAOImplTest {
                 result.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 12)
-    public void testUpdateActionWithAuthType() throws ActionMgtException {
+    @Test(priority = 12, dataProvider = "actionProvider")
+    public void testUpdateActionWithAuthType(String actionType, Action action) throws ActionMgtException {
 
         Action updatingAction = buildMockAction(
                 "Pre Issue Access Token",
@@ -313,7 +326,7 @@ public class ActionManagementDAOImplTest {
                 "https://sample.com",
                 AuthType.AuthenticationType.BEARER,
                 buildMockBearerAuthProperties("57c7df90-cacc-4f56-9b0a-f14bfbff3076"));
-        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Action result = daoImpl.updateAction(actionType, action.getId(), updatingAction, action, TENANT_ID);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(action.getName(), result.getName());
         Assert.assertEquals(action.getDescription(), result.getDescription());
@@ -322,11 +335,11 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(updatingAction.getEndpoint().getUri(), result.getEndpoint().getUri());
         Assert.assertEquals(updatingAction.getEndpoint().getAuthentication().getType(),
                 result.getEndpoint().getAuthentication().getType());
-        action = result;
+        updateAction(result);
     }
 
-    @Test(priority = 13)
-    public void testUpdateActionWithUri() throws ActionMgtException {
+    @Test(priority = 13, dataProvider = "actionProvider")
+    public void testUpdateActionWithUri(String actionType, Action action) throws ActionMgtException {
 
         // TODO: 'Name','AuthenticationType' and 'AuthProperties' are required attributes. Thus, DAO layer should throw
         //  an exception if those attributes are null. This should be fixed in DAO layer and test case needs to be
@@ -337,7 +350,7 @@ public class ActionManagementDAOImplTest {
                 "https://sample.com",
                 null,
                 null);
-        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Action result = daoImpl.updateAction(actionType, action.getId(), updatingAction, action, TENANT_ID);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(action.getName(), result.getName());
         Assert.assertEquals(action.getDescription(), result.getDescription());
@@ -346,11 +359,11 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(updatingAction.getEndpoint().getUri(), result.getEndpoint().getUri());
         Assert.assertEquals(action.getEndpoint().getAuthentication().getType(),
                 result.getEndpoint().getAuthentication().getType());
-        action = result;
+        updateAction(result);
     }
 
-    @Test(priority = 14)
-    public void testUpdateActionWithAuthTypeWithoutUri() throws ActionMgtException {
+    @Test(priority = 14, dataProvider = "actionProvider")
+    public void testUpdateActionWithAuthTypeWithoutUri(String actionType, Action action) throws ActionMgtException {
 
         // TODO: 'Uri' is a required attribute. Thus, DAO layer should throw an exception if uri is null.
         //  This should be fixed in DAO layer and test case needs to be updated accordingly.
@@ -360,7 +373,7 @@ public class ActionManagementDAOImplTest {
                 null,
                 AuthType.AuthenticationType.BASIC,
                 buildMockBasicAuthProperties("updatingadmin", "updatingadmin"));
-        Action result = daoImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, action, TENANT_ID);
+        Action result = daoImpl.updateAction(actionType, action.getId(), updatingAction, action, TENANT_ID);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(updatingAction.getName(), result.getName());
         Assert.assertEquals(updatingAction.getDescription(), result.getDescription());
@@ -371,8 +384,9 @@ public class ActionManagementDAOImplTest {
                 result.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 15)
-    public void testUpdateActionEndpointAuthNonSecretProperties() throws ActionMgtException, SQLException {
+    @Test(priority = 15, dataProvider = "actionProvider")
+    public void testUpdateActionEndpointAuthNonSecretProperties(String actionType, Action action)
+            throws ActionMgtException, SQLException {
 
         AuthType authType = buildMockAuthType(AuthType.AuthenticationType.API_KEY,
                 buildMockAPIKeyAuthProperties("updatingheader", "updatingvalue"));
@@ -382,10 +396,10 @@ public class ActionManagementDAOImplTest {
                 "https://sample.com",
                  AuthType.AuthenticationType.API_KEY,
                  buildMockAPIKeyAuthProperties("header", "value"));
-        Action updatingAction = daoImpl.updateAction(
-                PRE_ISSUE_ACCESS_TOKEN, action.getId(), sampleAction, action, TENANT_ID);
+        Action updatingAction = daoImpl.updateAction(actionType, action.getId(), sampleAction, action, TENANT_ID);
         mockDBConnection();
-        Action result = daoImpl.updateActionEndpointAuthProperties(updatingAction.getId(), authType, TENANT_ID);
+        Action result = daoImpl.updateActionEndpointAuthProperties(PRE_ISSUE_ACCESS_TOKEN, updatingAction.getId(),
+                authType, TENANT_ID);
         Assert.assertEquals(AuthType.AuthenticationType.API_KEY, result.getEndpoint().getAuthentication().getType());
         Assert.assertEquals(authType.getProperties().get(0).getValue(),
                 result.getEndpoint().getAuthentication().getProperties().get(0).getValue());
@@ -393,42 +407,56 @@ public class ActionManagementDAOImplTest {
                 result.getEndpoint().getAuthentication().getProperties().get(1).getValue());
     }
 
-    @Test(priority = 16)
-    public void testDeactivateAction() throws ActionMgtException {
+    @Test(priority = 16, dataProvider = "actionProvider")
+    public void testDeactivateAction(String actionType, Action action) throws ActionMgtException {
 
         Assert.assertEquals(Action.Status.ACTIVE, action.getStatus());
-        Action deactivatedAction = daoImpl.deactivateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), TENANT_ID);
+        Action deactivatedAction = daoImpl.deactivateAction(actionType, action.getId(), TENANT_ID);
         Assert.assertEquals(Action.Status.INACTIVE, deactivatedAction.getStatus());
     }
 
-    @Test(priority = 17)
-    public void testActivateAction() throws ActionMgtException {
+    @Test(priority = 17, dataProvider = "actionProvider")
+    public void testActivateAction(String actionType, Action action) throws ActionMgtException {
 
-        Action result = daoImpl.activateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), TENANT_ID);
+        Action result = daoImpl.activateAction(actionType, action.getId(), TENANT_ID);
         Assert.assertEquals(Action.Status.ACTIVE, result.getStatus());
     }
 
-    @Test(priority = 18)
-    public void testUpdateActionEndpoint() throws ActionMgtException {
+    @Test(priority = 18, dataProvider = "actionProvider")
+    public void testUpdateActionEndpoint(String actionType, Action action) throws ActionMgtException {
 
         EndpointConfig endpointConfig = buildMockEndpointConfig("https://template.com",
                 AuthType.AuthenticationType.BEARER,
                 buildMockBearerAuthProperties("c7fce95f-3f5b-4cda-8bb1-4cb7b3990f83"));
         Action result = daoImpl.updateActionEndpoint(
-                PRE_ISSUE_ACCESS_TOKEN, action.getId(), endpointConfig, action.getEndpoint()
+                actionType, action.getId(), endpointConfig, action.getEndpoint()
                 .getAuthentication(), TENANT_ID);
         Assert.assertNotEquals(action.getEndpoint().getUri(), result.getEndpoint().getUri());
         Assert.assertEquals(AuthType.AuthenticationType.BEARER.getType(),
                 result.getEndpoint().getAuthentication().getType().getType());
     }
 
-    @Test(priority = 19)
+    @Test(priority = 19, dataProvider = "actionProvider")
     public void testGetActionsCountPerType() throws ActionMgtException {
 
         Map<String, Integer> actionMap = daoImpl.getActionsCountPerType(TENANT_ID);
         for (Map.Entry<String, Integer> entry: actionMap.entrySet()) {
-            Assert.assertEquals(PRE_ISSUE_ACCESS_TOKEN, entry.getKey());
+            Assert.assertEquals("PRE_ISSUE_ACCESS_TOKEN", entry.getKey());
             Assert.assertEquals(1, entry.getValue().intValue());
+        }
+    }
+
+    private void updateAction(Action updatedAction) {
+
+        switch (updatedAction.getType()) {
+            case PRE_ISSUE_ACCESS_TOKEN:
+                preIssueAccessTokenAction = updatedAction;
+                return;
+            case AUTHENTICATION:
+                authenticationAction = updatedAction;
+                return;
+            default:
+                return;
         }
     }
 
