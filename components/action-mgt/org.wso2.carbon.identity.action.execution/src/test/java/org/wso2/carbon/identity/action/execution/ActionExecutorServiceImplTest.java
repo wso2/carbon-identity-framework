@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.action.execution.internal.ActionExecutionService
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
@@ -305,6 +306,49 @@ public class ActionExecutorServiceImplTest {
     }
 
     @Test
+    public void testExecuteFailure() throws Exception {
+        // Setup
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Map<String, Object> eventContext = Collections.emptyMap();
+
+        // Mock Action and its dependencies
+        Action action = createAction();
+
+        // Mock ActionManagementService
+        when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
+                Collections.singletonList(action));
+
+        // Mock ActionRequestBuilder and ActionResponseProcessor
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
+                .thenReturn(actionExecutionRequestBuilder);
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(any()))
+                .thenReturn(actionExecutionResponseProcessor);
+
+        // Configure request builder
+        when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
+                mock(ActionExecutionRequest.class));
+
+        // Mock APIClient response
+        ActionInvocationResponse actionInvocationResponse = createFailureActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
+
+        // Configure response processor
+        ActionExecutionStatus expectedStatus =
+                new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+        when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionResponseProcessor.processFailureResponse(any(), any(), any())).thenReturn(
+                expectedStatus);
+
+        // Execute and assert
+        ActionExecutionStatus actualStatus =
+                actionExecutorService.execute(actionType, eventContext, "tenantDomain");
+        assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
+    }
+
+    @Test
     public void testExecuteError() throws Exception {
         // Setup
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
@@ -337,7 +381,7 @@ public class ActionExecutorServiceImplTest {
 
         // Configure response processor
         ActionExecutionStatus expectedStatus =
-                new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+                new ActionExecutionStatus(ActionExecutionStatus.Status.ERROR, eventContext);
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processErrorResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
@@ -386,6 +430,20 @@ public class ActionExecutorServiceImplTest {
         setField(actionInvocationResponse, "actionStatus", ActionInvocationResponse.Status.SUCCESS);
         when(actionInvocationResponse.isSuccess()).thenReturn(true);
         when(actionInvocationResponse.getResponse()).thenReturn(successResponse);
+        return actionInvocationResponse;
+    }
+
+    private ActionInvocationResponse createFailureActionInvocationResponse() {
+
+        ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
+        when(failureResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.ERROR);
+        when(failureResponse.getFailureReason()).thenReturn("User is not found");
+        when(failureResponse.getFailureReason()).thenReturn("User is not found in the ABC system. " +
+                "Hence unable to authenticate user.");
+
+        ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
+        when(actionInvocationResponse.isFailure()).thenReturn(true);
+        when(actionInvocationResponse.getResponse()).thenReturn(failureResponse);
         return actionInvocationResponse;
     }
 
