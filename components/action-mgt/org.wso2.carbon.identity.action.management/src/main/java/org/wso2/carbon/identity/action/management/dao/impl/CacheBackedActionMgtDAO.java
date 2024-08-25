@@ -190,9 +190,6 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
             actionsFromCache.add(action);
             actionCacheByType.clearCacheEntry(cacheKey, tenantId);
             actionCacheByType.addToCache(cacheKey, new ActionCacheEntry(actionsFromCache), tenantId);
-        } else {
-            actionCacheByType.addToCache(cacheKey, new ActionCacheEntry(
-                    new ArrayList<>(Collections.singletonList(action))), tenantId);
         }
     }
 }

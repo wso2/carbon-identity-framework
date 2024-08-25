@@ -70,9 +70,7 @@ public class ActionMgtConstants {
                 "Error while retrieving Action basic info from the system."),
         ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES("65012",
                 "Error while decrypting Action Endpoint Authentication properties",
-                "Error while decrypting Action Endpoint Authentication properties in the system."),
-        ERROR_ACTION_TYPE_MISMATCH("65013",  "Given action type does not match",
-                "The action type of the retrieved action does not match with the given action type.");
+                "Error while decrypting Action Endpoint Authentication properties in the system.");
 
         private final String code;
         private final String message;

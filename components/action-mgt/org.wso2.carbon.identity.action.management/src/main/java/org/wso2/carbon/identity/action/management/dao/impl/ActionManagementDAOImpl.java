@@ -244,13 +244,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     public Action getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            Action action = getActionBasicInfoById(dbConnection, actionId, tenantId);
+            Action action = getActionBasicInfoById(dbConnection, actionType, actionId, tenantId);
             if (action != null) {
                 action.setEndpoint(getActionEndpointConfigById(dbConnection, actionId, tenantId));
-                if (action.getType() != null && StringUtils.equals(action.getType().getActionType(), actionType)) {
-                    throw ActionManagementUtil.handleServerException(
-                            ActionMgtConstants.ErrorMessages.ERROR_ACTION_TYPE_MISMATCH, null);
-                }
             }
 
             return action;
@@ -400,13 +396,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @return Action Basic Info.
      * @throws ActionMgtException If an error occurs while retrieving action basic info from the database.
      */
-    private Action getActionBasicInfoById(Connection dbConnection, String actionId, Integer tenantId)
+    private Action getActionBasicInfoById(Connection dbConnection, String actionType, String actionId, Integer tenantId)
             throws ActionMgtException {
 
         Action action = null;
         try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
                 ActionMgtSQLConstants.Query.GET_ACTION_BASIC_INFO_BY_ID)) {
 
+            statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
             statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
             statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
 
@@ -570,7 +567,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             statement.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(dbConnection);
 
-            return getActionBasicInfoById(dbConnection, actionId, tenantId);
+            return getActionBasicInfoById(dbConnection, actionType, actionId, tenantId);
         } catch (SQLException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while updating the Action Status to %s of Action type: %s in " +
