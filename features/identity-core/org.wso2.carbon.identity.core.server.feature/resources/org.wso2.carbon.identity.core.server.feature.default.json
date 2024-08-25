@@ -1606,10 +1606,6 @@
     "client_assertion"
   ],
   "actions.types.authentication.enable": true,
-  "actions.types.authentication.action_request.excluded_headers": [
-   ],
-  "actions.types.authentication.action_request.excluded_parameters": [
-  ],
 
   "oauth.authorize_all_scopes": false
 }
