@@ -96,6 +96,7 @@ public class JDBCSimplePAPStatusDataHandler implements PAPStatusDataHandler {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         List<StatusHolder> holders = statusDAO.getStatus(key, statusAboutType, tenantId);
+        // TODO: sort and return according to maxRecords
         return EntitlementUtil.filterStatus(holders, searchString, about, type);
     }
 

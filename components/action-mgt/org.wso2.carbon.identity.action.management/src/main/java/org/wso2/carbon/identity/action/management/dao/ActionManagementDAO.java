@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This interface performs CRUD operations for {@link Action}
+ * This interface performs CRUD operations for {@link Action}.
  */
 public interface ActionManagementDAO {
 
