@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * Class to handle import users from a CSV file.
  */
-public class CSVUserBulkImport extends UserBulkImport {
+public class CSVUserBulkImport extends UserBulkImport implements AutoCloseable {
 
     private static final Log log = LogFactory.getLog(CSVUserBulkImport.class);
     private BufferedReader reader;
@@ -179,5 +179,12 @@ public class CSVUserBulkImport extends UserBulkImport {
         }
 
         userStore.addUser(username, password, roles, claims, null, true);
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (reader != null) {
+            reader.close();
+        }
     }
 }
