@@ -51,6 +51,32 @@ import java.util.UUID;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ID;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.TENANT_UUID;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ISSUER;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.DEFAULT_ASSERTION_CONSUMER_URL;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ISSUER_CERT_ALIAS;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.NAME_ID_FORMAT;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SIGNING_ALGORITHM;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.DIGEST_ALGORITHM;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ASSERTION_ENCRYPTION_ALGORITHM;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.KEY_ENCRYPTION_ALGORITHM;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_SINGLE_LOGOUT;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_SIGN_RESPONSE;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_ASSERTION_QUERY_REQUEST_PROFILE;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_SAML2_ARTIFACT_BINDING;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_SIGN_ASSERTIONS;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_ECP;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_ATTRIBUTES_BY_DEFAULT;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_IDP_INIT_SSO;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_IDP_INIT_SLO;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_ENCRYPTED_ASSERTION;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.VALIDATE_SIGNATURE_IN_REQUESTS;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SAML2_SSO_ID;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ATTR_NAME;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ATTR_VALUE;
+
 public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO {
 
     private static final Log log = LogFactory.getLog(SAMLSSOServiceProviderDAOImpl.class);
@@ -329,8 +355,8 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 SAMLSSOServiceProviderConstants.SqlQueries.GET_SAML2_SSO_CONFIG_ID_BY_ISSUER)) {
-            statement.setString(1, issuer);
-            statement.setString(2, tenantUUID);
+            statement.setString(ISSUER, issuer);
+            statement.setString(TENANT_UUID, tenantUUID);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     isExist = true;
@@ -346,11 +372,11 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 SAMLSSOServiceProviderConstants.SqlQueries.GET_SAML2_SSO_CONFIG_ID_BY_ISSUER)) {
-            statement.setString(1, issuer);
-            statement.setString(2, tenantUUID);
+            statement.setString(ISSUER, issuer);
+            statement.setString(TENANT_UUID, tenantUUID);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    configId = resultSet.getString(1);
+                    configId = resultSet.getString(ID);
                 }
             }
         }
@@ -362,31 +388,31 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
             throws SQLException {
 
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.ADD_SAML2_SSO_CONFIG)) {
-            statement.setString(1, configId);
-            statement.setString(2, tenantUUID);
+                    SAMLSSOServiceProviderConstants.SqlQueries.ADD_SAML2_SSO_CONFIG)) {
+            statement.setString(ID, configId);
+            statement.setString(TENANT_UUID, tenantUUID);
 
-            statement.setString(3, serviceProviderDO.getIssuer());
-            statement.setString(4, serviceProviderDO.getDefaultAssertionConsumerUrl());
-            statement.setString(5, serviceProviderDO.getCertAlias());
-            statement.setString(6, serviceProviderDO.getNameIDFormat());
-            statement.setString(7, serviceProviderDO.getSigningAlgorithmUri());
-            statement.setString(8, serviceProviderDO.getDigestAlgorithmUri());
-            statement.setString(9, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
-            statement.setString(10, serviceProviderDO.getKeyEncryptionAlgorithmUri());
+            statement.setString(ISSUER, serviceProviderDO.getIssuer());
+            statement.setString(DEFAULT_ASSERTION_CONSUMER_URL, serviceProviderDO.getDefaultAssertionConsumerUrl());
+            statement.setString(ISSUER_CERT_ALIAS, serviceProviderDO.getCertAlias());
+            statement.setString(NAME_ID_FORMAT, serviceProviderDO.getNameIDFormat());
+            statement.setString(SIGNING_ALGORITHM, serviceProviderDO.getSigningAlgorithmUri());
+            statement.setString(DIGEST_ALGORITHM, serviceProviderDO.getDigestAlgorithmUri());
+            statement.setString(ASSERTION_ENCRYPTION_ALGORITHM, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
+            statement.setString(KEY_ENCRYPTION_ALGORITHM, serviceProviderDO.getKeyEncryptionAlgorithmUri());
 
-            statement.setBoolean(11, serviceProviderDO.isDoSingleLogout());
-            statement.setBoolean(12, serviceProviderDO.isDoSignResponse());
-            statement.setBoolean(13, serviceProviderDO.isAssertionQueryRequestProfileEnabled());
-            statement.setBoolean(14, serviceProviderDO.isEnableSAML2ArtifactBinding());
-            statement.setBoolean(15, serviceProviderDO.isDoSignAssertions());
-            statement.setBoolean(16, serviceProviderDO.isSamlECP());
-            statement.setBoolean(17, serviceProviderDO.isEnableAttributesByDefault());
-            statement.setBoolean(18, serviceProviderDO.isIdPInitSSOEnabled());
-            statement.setBoolean(19, serviceProviderDO.isIdPInitSLOEnabled());
-            statement.setBoolean(20, serviceProviderDO.isDoEnableEncryptedAssertion());
-            statement.setBoolean(21, serviceProviderDO.isDoValidateSignatureInRequests());
-            statement.setBoolean(22, serviceProviderDO.isDoValidateSignatureInArtifactResolve());
+            statement.setBoolean(ENABLE_SINGLE_LOGOUT, serviceProviderDO.isDoSingleLogout());
+            statement.setBoolean(ENABLE_SIGN_RESPONSE, serviceProviderDO.isDoSignResponse());
+            statement.setBoolean(ENABLE_ASSERTION_QUERY_REQUEST_PROFILE, serviceProviderDO.isAssertionQueryRequestProfileEnabled());
+            statement.setBoolean(ENABLE_SAML2_ARTIFACT_BINDING, serviceProviderDO.isEnableSAML2ArtifactBinding());
+            statement.setBoolean(ENABLE_SIGN_ASSERTIONS, serviceProviderDO.isDoSignAssertions());
+            statement.setBoolean(ENABLE_ECP, serviceProviderDO.isSamlECP());
+            statement.setBoolean(ENABLE_ATTRIBUTES_BY_DEFAULT, serviceProviderDO.isEnableAttributesByDefault());
+            statement.setBoolean(ENABLE_IDP_INIT_SSO, serviceProviderDO.isIdPInitSSOEnabled());
+            statement.setBoolean(ENABLE_IDP_INIT_SLO, serviceProviderDO.isIdPInitSLOEnabled());
+            statement.setBoolean(ENABLE_ENCRYPTED_ASSERTION, serviceProviderDO.isDoEnableEncryptedAssertion());
+            statement.setBoolean(VALIDATE_SIGNATURE_IN_REQUESTS, serviceProviderDO.isDoValidateSignatureInRequests());
+            statement.setBoolean(VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE, serviceProviderDO.isDoValidateSignatureInArtifactResolve());
 
             statement.executeUpdate();
         }
@@ -404,10 +430,10 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
             for (ConfigTuple customAttribute : customAttributes) {
                 String key = customAttribute.getKey();
                 String value = customAttribute.getValue();
-                statement.setString(1, UUID.randomUUID().toString());
-                statement.setString(2, configId);
-                statement.setString(3, key);
-                statement.setString(4, value);
+                statement.setString(ID, UUID.randomUUID().toString());
+                statement.setString(SAML2_SSO_ID, configId);
+                statement.setString(ATTR_NAME, key);
+                statement.setString(ATTR_VALUE, value);
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -420,30 +446,30 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 SAMLSSOServiceProviderConstants.SqlQueries.UPDATE_SAML2_SSO_CONFIG)) {
-            statement.setString(1, serviceProviderDO.getIssuer());
-            statement.setString(2, serviceProviderDO.getDefaultAssertionConsumerUrl());
-            statement.setString(3, serviceProviderDO.getCertAlias());
-            statement.setString(4, serviceProviderDO.getNameIDFormat());
-            statement.setString(5, serviceProviderDO.getSigningAlgorithmUri());
-            statement.setString(6, serviceProviderDO.getDigestAlgorithmUri());
-            statement.setString(7, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
-            statement.setString(8, serviceProviderDO.getKeyEncryptionAlgorithmUri());
+            statement.setString(ISSUER, serviceProviderDO.getIssuer());
+            statement.setString(DEFAULT_ASSERTION_CONSUMER_URL, serviceProviderDO.getDefaultAssertionConsumerUrl());
+            statement.setString(ISSUER_CERT_ALIAS, serviceProviderDO.getCertAlias());
+            statement.setString(NAME_ID_FORMAT, serviceProviderDO.getNameIDFormat());
+            statement.setString(SIGNING_ALGORITHM, serviceProviderDO.getSigningAlgorithmUri());
+            statement.setString(DIGEST_ALGORITHM, serviceProviderDO.getDigestAlgorithmUri());
+            statement.setString(ASSERTION_ENCRYPTION_ALGORITHM, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
+            statement.setString(KEY_ENCRYPTION_ALGORITHM, serviceProviderDO.getKeyEncryptionAlgorithmUri());
 
-            statement.setBoolean(9, serviceProviderDO.isDoSingleLogout());
-            statement.setBoolean(10, serviceProviderDO.isDoSignResponse());
-            statement.setBoolean(11, serviceProviderDO.isAssertionQueryRequestProfileEnabled());
-            statement.setBoolean(12, serviceProviderDO.isEnableSAML2ArtifactBinding());
-            statement.setBoolean(13, serviceProviderDO.isDoSignAssertions());
-            statement.setBoolean(14, serviceProviderDO.isSamlECP());
-            statement.setBoolean(15, serviceProviderDO.isEnableAttributesByDefault());
-            statement.setBoolean(16, serviceProviderDO.isIdPInitSSOEnabled());
-            statement.setBoolean(17, serviceProviderDO.isIdPInitSLOEnabled());
-            statement.setBoolean(18, serviceProviderDO.isDoEnableEncryptedAssertion());
-            statement.setBoolean(19, serviceProviderDO.isDoValidateSignatureInRequests());
-            statement.setBoolean(20, serviceProviderDO.isDoValidateSignatureInArtifactResolve());
+            statement.setBoolean(ENABLE_SINGLE_LOGOUT, serviceProviderDO.isDoSingleLogout());
+            statement.setBoolean(ENABLE_SIGN_RESPONSE, serviceProviderDO.isDoSignResponse());
+            statement.setBoolean(ENABLE_ASSERTION_QUERY_REQUEST_PROFILE, serviceProviderDO.isAssertionQueryRequestProfileEnabled());
+            statement.setBoolean(ENABLE_SAML2_ARTIFACT_BINDING, serviceProviderDO.isEnableSAML2ArtifactBinding());
+            statement.setBoolean(ENABLE_SIGN_ASSERTIONS, serviceProviderDO.isDoSignAssertions());
+            statement.setBoolean(ENABLE_ECP, serviceProviderDO.isSamlECP());
+            statement.setBoolean(ENABLE_ATTRIBUTES_BY_DEFAULT, serviceProviderDO.isEnableAttributesByDefault());
+            statement.setBoolean(ENABLE_IDP_INIT_SSO, serviceProviderDO.isIdPInitSSOEnabled());
+            statement.setBoolean(ENABLE_IDP_INIT_SLO, serviceProviderDO.isIdPInitSLOEnabled());
+            statement.setBoolean(ENABLE_ENCRYPTED_ASSERTION, serviceProviderDO.isDoEnableEncryptedAssertion());
+            statement.setBoolean(VALIDATE_SIGNATURE_IN_REQUESTS, serviceProviderDO.isDoValidateSignatureInRequests());
+            statement.setBoolean(VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE, serviceProviderDO.isDoValidateSignatureInArtifactResolve());
 
-            statement.setString(21, configId);
-            statement.setString(22, tenantUUID);
+            statement.setString(ID, configId);
+            statement.setString(TENANT_UUID, tenantUUID);
 
             statement.executeUpdate();
         }
@@ -457,7 +483,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         // Delete existing custom attributes.
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 SAMLSSOServiceProviderConstants.SqlQueries.DELETE_SAML_SSO_ATTR_BY_ID)) {
-            statement.setString(1, configId);
+            statement.setString(SAML2_SSO_ID, configId);
             statement.executeUpdate();
         }
 
@@ -467,10 +493,10 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
             for (ConfigTuple customAttribute : customAttributes) {
                 String key = customAttribute.getKey();
                 String value = customAttribute.getValue();
-                statement.setString(1, UUID.randomUUID().toString());
-                statement.setString(2, configId);
-                statement.setString(3, key);
-                statement.setString(4, value);
+                statement.setString(ID, UUID.randomUUID().toString());
+                statement.setString(SAML2_SSO_ID, configId);
+                statement.setString(ATTR_NAME, key);
+                statement.setString(ATTR_VALUE, value);
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -483,8 +509,8 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         SAMLSSOServiceProviderDO serviceProviderDO = null;
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 SAMLSSOServiceProviderConstants.SqlQueries.GET_SAML2_SSO_CONFIG_BY_ISSUER)) {
-            statement.setString(1, issuer);
-            statement.setString(2, tenantUUID);
+            statement.setString(ISSUER, issuer);
+            statement.setString(TENANT_UUID, tenantUUID);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     serviceProviderDO = resourceToObject(resultSet);
@@ -502,7 +528,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         List<SAMLSSOServiceProviderDO> serviceProvidersList = new ArrayList<>();
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 SAMLSSOServiceProviderConstants.SqlQueries.GET_SAML2_SSO_CONFIGS)) {
-            statement.setString(1, tenantUUID);
+            statement.setString(TENANT_UUID, tenantUUID);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     SAMLSSOServiceProviderDO serviceProviderDO = resourceToObject(resultSet);
@@ -521,11 +547,11 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         List<ConfigTuple> customAttributes = new ArrayList<>();
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 SAMLSSOServiceProviderConstants.SqlQueries.GET_SAML_SSO_ATTR_BY_ID)) {
-            statement.setString(1, configId);
+            statement.setString(SAML2_SSO_ID, configId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    String key = resultSet.getString(2);
-                    String value = resultSet.getString(3);
+                    String key = resultSet.getString(ATTR_NAME);
+                    String value = resultSet.getString(ATTR_VALUE);
                     customAttributes.add(new ConfigTuple(key, value));
                 }
             }
@@ -537,16 +563,16 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 SAMLSSOServiceProviderConstants.SqlQueries.DELETE_SAML2_SSO_CONFIG_BY_ISSUER)) {
-            statement.setString(1, issuer);
-            statement.setString(2, tenantUUID);
+            statement.setString(ISSUER, issuer);
+            statement.setString(TENANT_UUID, tenantUUID);
             statement.executeUpdate();
         }
 
         // Delete custom attributes.
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 SAMLSSOServiceProviderConstants.SqlQueries.DELETE_SAML_SSO_ATTR)) {
-            statement.setString(1, issuer);
-            statement.setString(2, tenantUUID);
+            statement.setString(ISSUER, issuer);
+            statement.setString(TENANT_UUID, tenantUUID);
             statement.executeUpdate();
         }
     }
@@ -555,27 +581,27 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
 
-        serviceProviderDO.setIssuer(resultSet.getString(2));
-        serviceProviderDO.setDefaultAssertionConsumerUrl(resultSet.getString(3));
-        serviceProviderDO.setCertAlias(resultSet.getString(4));
-        serviceProviderDO.setNameIDFormat(resultSet.getString(5));
-        serviceProviderDO.setSigningAlgorithmUri(resultSet.getString(6));
-        serviceProviderDO.setDigestAlgorithmUri(resultSet.getString(7));
-        serviceProviderDO.setAssertionEncryptionAlgorithmUri(resultSet.getString(8));
-        serviceProviderDO.setKeyEncryptionAlgorithmUri(resultSet.getString(9));
+        serviceProviderDO.setIssuer(resultSet.getString(ISSUER));
+        serviceProviderDO.setDefaultAssertionConsumerUrl(resultSet.getString(DEFAULT_ASSERTION_CONSUMER_URL));
+        serviceProviderDO.setCertAlias(resultSet.getString(ISSUER_CERT_ALIAS));
+        serviceProviderDO.setNameIDFormat(resultSet.getString(NAME_ID_FORMAT));
+        serviceProviderDO.setSigningAlgorithmUri(resultSet.getString(SIGNING_ALGORITHM));
+        serviceProviderDO.setDigestAlgorithmUri(resultSet.getString(DIGEST_ALGORITHM));
+        serviceProviderDO.setAssertionEncryptionAlgorithmUri(resultSet.getString(ASSERTION_ENCRYPTION_ALGORITHM));
+        serviceProviderDO.setKeyEncryptionAlgorithmUri(resultSet.getString(KEY_ENCRYPTION_ALGORITHM));
 
-        serviceProviderDO.setDoSingleLogout(resultSet.getBoolean(10));
-        serviceProviderDO.setDoSignResponse(resultSet.getBoolean(11));
-        serviceProviderDO.setAssertionQueryRequestProfileEnabled(resultSet.getBoolean(12));
-        serviceProviderDO.setEnableSAML2ArtifactBinding(resultSet.getBoolean(13));
-        serviceProviderDO.setDoSignAssertions(resultSet.getBoolean(14));
-        serviceProviderDO.setSamlECP(resultSet.getBoolean(15));
-        serviceProviderDO.setEnableAttributesByDefault(resultSet.getBoolean(16));
-        serviceProviderDO.setIdPInitSSOEnabled(resultSet.getBoolean(17));
-        serviceProviderDO.setIdPInitSLOEnabled(resultSet.getBoolean(18));
-        serviceProviderDO.setDoEnableEncryptedAssertion(resultSet.getBoolean(19));
-        serviceProviderDO.setDoValidateSignatureInRequests(resultSet.getBoolean(20));
-        serviceProviderDO.setDoValidateSignatureInArtifactResolve(resultSet.getBoolean(21));
+        serviceProviderDO.setDoSingleLogout(resultSet.getBoolean(ENABLE_SINGLE_LOGOUT));
+        serviceProviderDO.setDoSignResponse(resultSet.getBoolean(ENABLE_SIGN_RESPONSE));
+        serviceProviderDO.setAssertionQueryRequestProfileEnabled(resultSet.getBoolean(ENABLE_ASSERTION_QUERY_REQUEST_PROFILE));
+        serviceProviderDO.setEnableSAML2ArtifactBinding(resultSet.getBoolean(ENABLE_SAML2_ARTIFACT_BINDING));
+        serviceProviderDO.setDoSignAssertions(resultSet.getBoolean(ENABLE_SIGN_ASSERTIONS));
+        serviceProviderDO.setSamlECP(resultSet.getBoolean(ENABLE_ECP));
+        serviceProviderDO.setEnableAttributesByDefault(resultSet.getBoolean(ENABLE_ATTRIBUTES_BY_DEFAULT));
+        serviceProviderDO.setIdPInitSSOEnabled(resultSet.getBoolean(ENABLE_IDP_INIT_SSO));
+        serviceProviderDO.setIdPInitSLOEnabled(resultSet.getBoolean(ENABLE_IDP_INIT_SLO));
+        serviceProviderDO.setDoEnableEncryptedAssertion(resultSet.getBoolean(ENABLE_ENCRYPTED_ASSERTION));
+        serviceProviderDO.setDoValidateSignatureInRequests(resultSet.getBoolean(VALIDATE_SIGNATURE_IN_REQUESTS));
+        serviceProviderDO.setDoValidateSignatureInArtifactResolve(resultSet.getBoolean(VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE));
 
         return serviceProviderDO;
     }
