@@ -92,8 +92,8 @@ public class ActionInvocationFailureResponse implements ActionInvocationResponse
                 throw new IllegalArgumentException("The actionStatus must not be null.");
             }
 
-            if (!ActionInvocationResponse.Status.FAILURE.equals(actionStatus)) {
-                throw new IllegalArgumentException("The actionStatus must be failureReason.");
+            if (!ActionInvocationResponse.Status.FAILED.equals(actionStatus)) {
+                throw new IllegalArgumentException("The actionStatus must be FAILED.");
             }
 
             if (failureReason == null || failureReason.isEmpty()) {

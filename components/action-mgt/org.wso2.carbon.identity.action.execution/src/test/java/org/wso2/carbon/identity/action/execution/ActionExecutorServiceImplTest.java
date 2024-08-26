@@ -436,7 +436,7 @@ public class ActionExecutorServiceImplTest {
     private ActionInvocationResponse createFailureActionInvocationResponse() {
 
         ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
-        when(failureResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.ERROR);
+        when(failureResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.FAILED);
         when(failureResponse.getFailureReason()).thenReturn("User is not found");
         when(failureResponse.getFailureReason()).thenReturn("User is not found in the ABC system. " +
                 "Hence unable to authenticate user.");

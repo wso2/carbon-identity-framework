@@ -47,7 +47,7 @@ public class ActionInvocationResponse {
 
     public boolean isFailure() {
 
-        return Status.FAILURE.equals(actionStatus);
+        return Status.FAILED.equals(actionStatus);
     }
 
     public boolean isError() {
@@ -70,7 +70,7 @@ public class ActionInvocationResponse {
      */
     public enum Status {
         SUCCESS,
-        FAILURE,
+        FAILED,
         ERROR
     }
 
