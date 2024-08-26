@@ -1281,7 +1281,6 @@
   "console.identity_verification_providers.scopes.delete": ["internal_idvp_delete"],
   "console.insights.enabled": false,
   "console.login_and_registration.enabled": true,
-  "console.login_and_registration.disabled_features": ["ruleBasedPasswordExpiry"],
   "console.login_and_registration.scopes.feature": ["console:loginAndRegistration"],
   "console.login_and_registration.scopes.read": [
     "internal_governance_view",
