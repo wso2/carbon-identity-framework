@@ -587,7 +587,7 @@ public class IdentityManagementEndpointUtil {
             }
         }
 
-        Map<String, String> encodedQueryMap = getEncodedQueryParamMap(url.getQuery());
+        Map<String, String> encodedQueryMap = getEncodedQueryParamMap(queryParams.toString());
 
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
             encodedCallbackUrl.append("?");
