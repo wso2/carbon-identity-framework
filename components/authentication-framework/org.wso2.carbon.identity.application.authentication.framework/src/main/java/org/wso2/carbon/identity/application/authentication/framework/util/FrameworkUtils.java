@@ -139,6 +139,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -3364,5 +3365,17 @@ public class FrameworkUtils {
     public static boolean isAuthenticationContextExpiryEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION));
+    }
+
+    /**
+     * This method return true if the given URL is relative URL.
+     *
+     * @param uriString
+     * @return true if the given URL is relative URL.
+     * @throws URISyntaxException
+     */
+    public static boolean isURLRelative(String uriString) throws URISyntaxException {
+
+        return !new URI(uriString).isAbsolute();
     }
 }
