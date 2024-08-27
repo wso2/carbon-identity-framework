@@ -22,7 +22,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
@@ -57,6 +56,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,10 +75,13 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
     private static final Log log = LogFactory.getLog(DefaultLogoutRequestHandler.class);
     private static volatile DefaultLogoutRequestHandler instance;
-    private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static final String LOGOUT_RETURN_URL_SP_PROPERTY = "logoutReturnUrl";
     private static final String ENABLE_VALIDATING_LOGOUT_RETURN_URL_CONFIG = "CommonAuthCallerPath.EnableValidation";
     private static final String DEFAULT_LOGOUT_URL_CONFIG = "CommonAuthCallerPath.DefaultUrl";
+    private static final String DEFAULT_LOGOUT_URL = "/authenticationendpoint/samlsso_logout.do";
+    private static final String CONFIGURED_RETURN_URL = ".*";
+    private static final String ENABLE_FALLBACK_TO_DEFAULT_LOGOUT_URL_CONFIG =
+            "CommonAuthCallerPath.EnableFallbackToDefaultOnNoReturnUrl";
 
     public static DefaultLogoutRequestHandler getInstance() {
 
@@ -273,13 +276,16 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // attributes
         request.setAttribute(FrameworkConstants.ResponseParams.LOGGED_OUT, isLoggedOut);
 
-
-        if (isLoggedOut && !isValidCallerPath(context)) {
-            if (log.isDebugEnabled()) {
-                log.debug("The commonAuthCallerPath param specified in the request does not satisfy the logout return" +
-                        " url specified. Therefore directing to the default logout return url.");
+        if (Boolean.valueOf(IdentityUtil.getProperty(ENABLE_VALIDATING_LOGOUT_RETURN_URL_CONFIG))) {
+            if (isLoggedOut && !isValidCallerPath(context)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("The commonAuthCallerPath param specified in the request does not satisfy the logout return" +
+                            " url specified. Therefore directing to the default logout return url.");
+                }
+                context.setCallerPath(getDefaultLogoutReturnUrl());
             }
-            context.setCallerPath(getDefaultLogoutReturnUrl());
+        } else {
+            log.debug("Skipping validation of the commonAuthCallerPath param as this validation is not enabled.");
         }
 
         String redirectURL;
@@ -393,9 +399,16 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
     private boolean isValidCallerPath(AuthenticationContext context) {
 
-        String urlRegex = "^((https?)://|(www)\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+([/?].*)?$";
-        if (!context.getCallerPath().matches(urlRegex)) {
-            return true;
+        // Internal redirection urls will always be relevant paths and validation can therefore be skipped.
+        try {
+            if (FrameworkUtils.isURLRelative(context.getCallerPath())) {
+                return true;
+            }
+        } catch (URISyntaxException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+            return false;
         }
 
         // This is an external redirection.
@@ -403,15 +416,23 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             try {
                 String configuredReturnUrl = getRegisteredLogoutReturnUrl(context.getRelyingParty(), context
                         .getRequestType(), context.getTenantDomain());
+                // If the config to fallback to default logout url when the logout return url is not set at the
+                // application level is enabled, then the validation should return false when the configured Return Url
+                // is set to .*. This will set the logout return url to default logout url after this method execution.
+                if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_FALLBACK_TO_DEFAULT_LOGOUT_URL_CONFIG))
+                        && CONFIGURED_RETURN_URL.equals(configuredReturnUrl)) {
+                    log.debug("The configured return url is set to .*. Logout return url validation will be failed "
+                            + "to fallback to default logout url.");
+                    return false;
+                }
                 return context.getCallerPath().matches(configuredReturnUrl);
             } catch (IdentityApplicationManagementException e) {
                 return false;
             }
-        } else {
-            String enableValidatingLogoutReturnUrl = IdentityUtil.getProperty
-                    (ENABLE_VALIDATING_LOGOUT_RETURN_URL_CONFIG);
-            return !Boolean.valueOf(enableValidatingLogoutReturnUrl);
         }
+        log.debug("The relying party in the authentication context is empty. Therefore, the logout return url"
+                + " cannot not be validated.");
+        return false;
     }
 
     private String getRegisteredLogoutReturnUrl(String relyingParty, String requestType, String tenantDomain) throws
@@ -420,7 +441,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         if (FrameworkConstants.OIDC.equals(requestType)) {
             requestType = FrameworkConstants.OAUTH2;
         }
-        String configuredReturnUrl = ".*";
+        String configuredReturnUrl = CONFIGURED_RETURN_URL;
         ApplicationManagementService appMgtService = ApplicationManagementService.getInstance();
         ServiceProvider serviceProvider = appMgtService.getServiceProviderByClientId(relyingParty, requestType,
                 tenantDomain);
@@ -444,10 +465,10 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         String defaultLogoutUrl = IdentityUtil.getProperty(DEFAULT_LOGOUT_URL_CONFIG);
         if (StringUtils.isBlank(defaultLogoutUrl)) {
             if (log.isDebugEnabled()) {
-                log.debug("The default logout URL is not set in the identity.xml file. Therefore directing to the " +
-                        "default logout page of the server.");
+                log.debug("The default logout URL is not set in the identity.xml file. Therefore directing to the "
+                        + "default logout page of the server at " + DEFAULT_LOGOUT_URL + ".");
             }
-            defaultLogoutUrl = "/authenticationendpoint/samlsso_logout.do";
+            defaultLogoutUrl = DEFAULT_LOGOUT_URL;
         }
         return defaultLogoutUrl;
     }

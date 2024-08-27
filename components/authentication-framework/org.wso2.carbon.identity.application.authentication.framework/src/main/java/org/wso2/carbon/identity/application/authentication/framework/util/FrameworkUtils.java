@@ -139,6 +139,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -177,6 +178,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RETAIN_EMAIL_DOMAIN_ON_PROVISIONING;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
@@ -3364,5 +3366,29 @@ public class FrameworkUtils {
     public static boolean isAuthenticationContextExpiryEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION));
+    }
+
+    /**
+     * This method return true if the given URL is relative URL.
+     *
+     * @param uriString
+     * @return true if the given URL is relative URL.
+     * @throws URISyntaxException
+     */
+    public static boolean isURLRelative(String uriString) throws URISyntaxException {
+
+        return !new URI(uriString).isAbsolute();
+    }
+
+    /**
+     * Returns whether email domain should be retained/dropped for federating users while JIT provisioning
+     * when EnableEmailUsername is not enabled.
+     *
+     * @return whether email usernames are allowed for federating users while JIT provisioning when
+     * EnableEmailUsername is not enabled.
+     */
+    public static boolean retainEmailDomainOnProvisioning() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(RETAIN_EMAIL_DOMAIN_ON_PROVISIONING));
     }
 }

@@ -39,5 +39,7 @@
   "authentication.authenticator.email_otp.parameters.email_otp_login_page":   "authentication.authenticator.email_otp.parameters.EMAILOTPAuthenticationEndpointURL",
   "authentication.authenticator.email_otp.parameters.email_otp_error_page":   "authentication.authenticator.email_otp.parameters.EmailOTPAuthenticationEndpointErrorPage",
   "authentication.authenticator.email_otp.parameters.email_capture_page": "authentication.authenticator.email_otp.parameters.EmailAddressRequestPage",
-  "authentication.authenticator.email_otp.parameters.use_event_handler_based_email_sender": "authentication.authenticator.email_otp.parameters.useEventHandlerBasedEmailSender"
+  "authentication.authenticator.email_otp.parameters.use_event_handler_based_email_sender": "authentication.authenticator.email_otp.parameters.useEventHandlerBasedEmailSender",
+
+  "authentication.jit_provisioning.allow_email_username_when_email_as_username_not_enabled": "authentication.jit_provisioning.retain_email_domain_on_provisioning"
 }

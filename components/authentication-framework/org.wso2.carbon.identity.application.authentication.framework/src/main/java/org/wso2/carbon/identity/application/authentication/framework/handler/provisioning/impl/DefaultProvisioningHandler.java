@@ -68,6 +68,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AT_SYMBOL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_MANUALLY_ADDED_LOCAL_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
@@ -120,8 +121,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
                     realmService, tenantDomain);
-            String username = MultitenantUtils.getTenantAwareUsername(subject);
-
+            String username;
+            if (!MultitenantUtils.isEmailUserName() && FrameworkUtils.retainEmailDomainOnProvisioning()
+                    && subject.contains(AT_SYMBOL)) {
+                username = subject;
+            } else {
+                username = MultitenantUtils.getTenantAwareUsername(subject);
+            }
             String userStoreDomain;
             UserStoreManager userStoreManager;
             if (IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT
@@ -397,7 +403,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         User user = new User();
         user.setTenantDomain(tenantDomain);
         user.setUserStoreDomain(userStoreDomain);
-        user.setUserName(MultitenantUtils.getTenantAwareUsername(username));
+        if (!MultitenantUtils.isEmailUserName() && FrameworkUtils.retainEmailDomainOnProvisioning()) {
+            user.setUserName(username);
+        } else {
+            user.setUserName(MultitenantUtils.getTenantAwareUsername(username));
+        }
         return user;
     }
 

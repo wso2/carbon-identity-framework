@@ -122,6 +122,7 @@ public abstract class FrameworkConstants {
     public static final String IDP_RESOURCE_ID = "IDPResourceID";
     public static final String ENABLE_JIT_PROVISION_ENHANCE_FEATURE = "JITProvisioning.EnableEnhancedFeature";
     public static final String ALLOW_ASSOCIATING_TO_EXISTING_USER = "JITProvisioning.AllowAssociatingToExistingUser";
+    public static final String RETAIN_EMAIL_DOMAIN_ON_PROVISIONING = "JITProvisioning.RetainEmailDomainOnProvisioning";
     public static final String ERROR_CODE_INVALID_ATTRIBUTE_UPDATE = "SUO-10000";
 
     // Error details sent from authenticators
@@ -199,6 +200,7 @@ public abstract class FrameworkConstants {
     public static final String SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.ScriptEngine";
     public static final String OPENJDK_NASHORN = "openjdkNashorn";
     public static final String NASHORN = "nashorn";
+    public static final String AT_SYMBOL = "@";
 
     public static final String BOOLEAN_TRUE_AS_STRING = "true";
     public static final String BOOLEAN_ONE_AS_STRING = "1";

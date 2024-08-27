@@ -223,5 +223,7 @@
     "http://wso2.org/claims/created",
     "http://wso2.org/claims/modified",
     "http://wso2.org/claims/groups"
-  ]
+  ],
+
+  "common_auth_caller_path.enable_common_auth_caller_path_validation": true
 }

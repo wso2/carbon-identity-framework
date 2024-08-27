@@ -28,9 +28,12 @@ import org.wso2.carbon.identity.user.store.configuration.stub.UserStoreConfigAdm
 import org.wso2.carbon.identity.user.store.configuration.stub.api.Properties;
 import org.wso2.carbon.identity.user.store.configuration.stub.dto.UserStoreDTO;
 
+import java.util.regex.Pattern;
+
 public class UserStoreConfigAdminServiceClient {
     private UserStoreConfigAdminServiceStub stub;
     protected static final Log log = LogFactory.getLog(UserStoreConfigAdminServiceClient.class);
+    private static final String EXPRESSION_LANGUAGE_REGEX = "^.*(\\$\\{|#\\{).*}.*$";
 
     /**
      * Constructor UserStoreConfigAdminServiceClient
@@ -211,9 +214,13 @@ public class UserStoreConfigAdminServiceClient {
 
     public boolean testRDBMSConnection(String domainName, String driverName, String connectionURL, String username,
                                        String connectionPassword, String messageID) throws Exception {
-        boolean result = false;
+        boolean result;
 
         try {
+            Pattern pattern = Pattern.compile(EXPRESSION_LANGUAGE_REGEX);
+            if (pattern.matcher(driverName).matches()) {
+                throw new Exception("Invalid driverName format");
+            }
             result =  stub.testRDBMSConnection(domainName, driverName, connectionURL, username, connectionPassword,
                     messageID);
         } catch (UserStoreConfigAdminServiceIdentityUserStoreMgtException e) {
