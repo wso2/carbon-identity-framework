@@ -29,7 +29,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum Operation {
     ADD("add"),
     REMOVE("remove"),
-    REPLACE("replace");
+    REPLACE("replace"),
+    REDIRECT("redirect");
 
     private final String value;
 

@@ -38,6 +38,8 @@ public class ActionExecutionResponseProcessorFactory {
         switch (actionType) {
             case PRE_ISSUE_ACCESS_TOKEN:
                 return actionInvocationResponseProcessors.get(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+            case AUTHENTICATION:
+                return actionInvocationResponseProcessors.get(ActionType.AUTHENTICATION);
             default:
                 return null;
         }
