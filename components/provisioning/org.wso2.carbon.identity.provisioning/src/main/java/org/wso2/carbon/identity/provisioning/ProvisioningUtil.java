@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -560,12 +561,18 @@ public class ProvisioningUtil {
     public static boolean isOutboundProvisioningEnabled(String serviceProviderIdentifier,
                                                         String tenantDomainName) throws IdentityApplicationManagementException {
 
+        if (!isApplicationBasedOutboundProvisioningEnabled()) {
+            return true;
+        }
+
         ServiceProvider serviceProvider = ApplicationManagementService.getInstance()
                 .getServiceProvider(serviceProviderIdentifier, tenantDomainName);
-
         if (serviceProvider == null) {
             throw new IdentityApplicationManagementException("Cannot find the service provider " +
                     serviceProviderIdentifier);
+        }
+        if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(serviceProvider.getApplicationName())) {
+            return true;
         }
 
         OutboundProvisioningConfig outboundProvisioningConfiguration = serviceProvider

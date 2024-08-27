@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.provisioning.internal;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
+import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.RolePermissionManagementService;
 
@@ -35,6 +37,8 @@ public class ProvisioningServiceDataHolder {
     private EntitlementService entitlementService;
     private RolePermissionManagementService rolePermissionManagementService;
     private Map<String, AbstractProvisioningConnectorFactory> connectorFactories = new HashMap<String, AbstractProvisioningConnectorFactory>();
+    private DefaultInboundUserProvisioningListener defaultInboundUserProvisioningListener;
+    private RoleManagementService roleManagementService;
 
     private ProvisioningServiceDataHolder() {
     }
@@ -93,6 +97,27 @@ public class ProvisioningServiceDataHolder {
             throw new RuntimeException("Role permission management service cannot be found.");
         }
         return rolePermissionManagementService;
+    }
+
+    public DefaultInboundUserProvisioningListener getDefaultInboundUserProvisioningListener() {
+
+        return defaultInboundUserProvisioningListener;
+    }
+
+    public void setDefaultInboundUserProvisioningListener(
+            DefaultInboundUserProvisioningListener defaultInboundUserProvisioningListener) {
+
+        this.defaultInboundUserProvisioningListener = defaultInboundUserProvisioningListener;
+    }
+
+    public RoleManagementService getRoleManagementService() {
+
+        return roleManagementService;
+    }
+
+    public void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        this.roleManagementService = roleManagementService;
     }
 }
 
