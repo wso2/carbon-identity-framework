@@ -213,8 +213,14 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             UserRealm realm = getUserRealm(context.getTenantDomain());
                             UserStoreManager userStoreManager = getUserStoreManager(context.getExternalIdP()
                                     .getProvisioningUserStoreId(), realm, username);
-                            String sanitizedUserName = UserCoreUtil.removeDomainFromName(
-                                    MultitenantUtils.getTenantAwareUsername(username));
+                            String sanitizedUserName;
+                            if (!MultitenantUtils.isEmailUserName()
+                                    && FrameworkUtils.retainEmailDomainOnProvisioning()) {
+                                sanitizedUserName = UserCoreUtil.removeDomainFromName(username);
+                            } else {
+                                sanitizedUserName = UserCoreUtil.removeDomainFromName(
+                                        MultitenantUtils.getTenantAwareUsername(username));
+                            }
                             if (userStoreManager.isExistingUser(sanitizedUserName)) {
                                 // Logging the error because the thrown exception is handled in the UI.
                                 log.error(ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode() + " - "
@@ -705,7 +711,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 uriBuilder.addParameter(FrameworkConstants.PASSWORD_PROVISION_ENABLED, String.valueOf(true));
             }
             if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-                uriBuilder.addParameter(MultitenantConstants.TENANT_DOMAIN_HEADER_NAME, context.getTenantDomain());
+                uriBuilder.addParameter(MultitenantConstants.TENANT_DOMAIN, context.getTenantDomain());
             }
             uriBuilder.addParameter(FrameworkConstants.SERVICE_PROVIDER, context.getSequenceConfig()
                     .getApplicationConfig().getApplicationName());
