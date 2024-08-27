@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthType;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -130,13 +129,11 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
 
         ActionTypeCacheKey cacheKey = new ActionTypeCacheKey(actionType);
         ActionCacheEntry entry = actionCacheByType.getValueFromCache(cacheKey, tenantId);
-        List<Action> actionsFromCache = new ArrayList<>();
 
         /* If the entry for the given action type is not null, get the action list from cache and iterate to get the
          action by matching action id. */
         if (entry != null) {
-            actionsFromCache = entry.getActions();
-            for (Action action: actionsFromCache) {
+            for (Action action: entry.getActions()) {
                 if (StringUtils.equals(action.getId(), actionId)) {
                     LOG.debug("Action is found from the cache with action Id " + actionId);
                     return action;
@@ -150,7 +147,7 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
 
         Action action = actionManagementDAO.getActionByActionId(actionType, actionId, tenantId);
         if (action != null) {
-            updateCache(action, entry, cacheKey, actionsFromCache, tenantId);
+            updateCache(action, entry, cacheKey, tenantId);
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Action with action Id " + actionId + " is not found in cache or DB.");
@@ -177,8 +174,7 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
                 tenantId);
     }
 
-    private void updateCache(Action action, ActionCacheEntry entry, ActionTypeCacheKey cacheKey,
-                                              List<Action> actionsFromCache, int tenantId) {
+    private void updateCache(Action action, ActionCacheEntry entry, ActionTypeCacheKey cacheKey, int tenantId) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Entry fetched from DB for Action Id " + action.getId() + ". Updating cache.");
@@ -186,6 +182,7 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
         /* If the entry for the given action type is not null, add the fetched action to the entry. Then, clear the
          cache and add the updated entry to the cache. If the entry is null, create a new cache entry.*/
         if (entry != null) {
+            List<Action> actionsFromCache = entry.getActions();
             actionsFromCache.add(action);
             actionCacheByType.clearCacheEntry(cacheKey, tenantId);
             actionCacheByType.addToCache(cacheKey, new ActionCacheEntry(actionsFromCache), tenantId);
