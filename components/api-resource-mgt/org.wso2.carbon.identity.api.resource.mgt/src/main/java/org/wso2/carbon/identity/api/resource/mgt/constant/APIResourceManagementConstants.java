@@ -60,6 +60,9 @@ public class APIResourceManagementConstants {
     public static final Map<String, String> ATTRIBUTE_COLUMN_MAP = Collections.unmodifiableMap(attributeColumnMap);
     public static final Map<String, String> SCOPE_ATTRIBUTE_COLUMN_MAP =
             Collections.unmodifiableMap(scopeAttributeColumnMap);
+    private static final Map<String, String> authorizationDetailsTypesAttributeColumnMap = new HashMap<>();
+    public static final Map<String, String> AUTHORIZATION_DETAILS_TYPES_ATTRIBUTE_COLUMN_MAP =
+            Collections.unmodifiableMap(authorizationDetailsTypesAttributeColumnMap);
 
     static {
         attributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
@@ -69,6 +72,9 @@ public class APIResourceManagementConstants {
         attributeColumnMap.put(TYPE, SQLConstants.TYPE_COLUMN_NAME);
 
         scopeAttributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
+
+        authorizationDetailsTypesAttributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
+        authorizationDetailsTypesAttributeColumnMap.put(TYPE, SQLConstants.TYPE_COLUMN_NAME);
     }
 
     /**
@@ -111,7 +117,7 @@ public class APIResourceManagementConstants {
         ERROR_CODE_INVALID_IDENTIFIER_VALUE("60007", "Unable to add API resources.",
                 "Invalid identifier value provided."),
         ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EXISTS("60008", "Unable to add authorization details type.",
-                "Authorization details type already exists for the tenant: %s."),
+                "The authorization details of type '%s' already exist for tenant."),
 
         // Server errors.
         ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES("65001", "Error while retrieving API resources.",

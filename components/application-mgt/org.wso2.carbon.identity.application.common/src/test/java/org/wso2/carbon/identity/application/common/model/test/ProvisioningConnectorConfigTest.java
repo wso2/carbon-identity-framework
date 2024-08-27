@@ -18,15 +18,19 @@
 
 package org.wso2.carbon.identity.application.common.model.test;
 
+import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
 
 /**
  * Testing the ProvisioningConnectorConfig class
  */
 public class ProvisioningConnectorConfigTest {
 
+    @Test
     public void shouldGenerateDifferentHashCodesForDifferentNames() {
         ProvisioningConnectorConfig config1 = new ProvisioningConnectorConfig();
         config1.setName("Name1");
@@ -36,9 +40,10 @@ public class ProvisioningConnectorConfigTest {
         config2.setName("Name2");
         config2.setProvisioningProperties(new Property[0]);
 
-//        assertNotEquals(config1.hashCode(), config2.hashCode());
+        assertNotEquals(config1.hashCode(), config2.hashCode());
     }
 
+    @Test
     public void shouldReturnFalseByEqualsForDifferentNames() {
         ProvisioningConnectorConfig config1 = new ProvisioningConnectorConfig();
         config1.setName("Name1");
@@ -48,6 +53,6 @@ public class ProvisioningConnectorConfigTest {
         config2.setName("Name2");
         config2.setProvisioningProperties(new Property[0]);
 
-//        assertFalse(config1.equals(config2));
+        assertFalse(config1.equals(config2));
     }
 }

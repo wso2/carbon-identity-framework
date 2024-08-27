@@ -26,10 +26,9 @@ public class AuthorizationDetailsType {
     private String description;
     private String schema;
     private String apiId;
-    private String orgId;
+    private Integer orgId;
 
     public AuthorizationDetailsType() {
-
     }
 
     public AuthorizationDetailsType(final String id, final String type, final String name,
@@ -39,7 +38,7 @@ public class AuthorizationDetailsType {
     }
 
     public AuthorizationDetailsType(final String id, final String type, final String name, final String description,
-                                    final String schema, final String apiId, final String orgId) {
+                                    final String schema, final String apiId, final Integer orgId) {
 
         this.id = id;
         this.type = type;
@@ -98,11 +97,11 @@ public class AuthorizationDetailsType {
         this.apiId = apiId;
     }
 
-    public String getOrgId() {
+    public Integer getOrgId() {
         return this.orgId;
     }
 
-    public void setOrgId(final String orgId) {
+    public void setOrgId(final Integer orgId) {
         this.orgId = orgId;
     }
 }
