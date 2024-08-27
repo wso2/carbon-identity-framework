@@ -91,6 +91,7 @@ public class IdentityManagementEndpointUtil {
     public static final String PADDING_CHAR = "=";
     public static final String UNDERSCORE = "_";
     public static final String SPLITTING_CHAR = "&";
+    public static final String FRAGMENT_CHAR = "#";
     public static final String PII_CATEGORIES = "piiCategories";
     public static final String PII_CATEGORY = "piiCategory";
     public static final String PURPOSES = "purposes";
@@ -558,6 +559,7 @@ public class IdentityManagementEndpointUtil {
     /**
      * Encode query params of the call back url. Method supports all URL formats supported in
      * {@link #getURLEncodedCallback(String)} and URLs containing spaces
+     * NOTE: This method will not support URLs that contain a fragment part.
      *
      * @param callbackUrl callback url from the request.
      * @return encoded callback url.
@@ -568,6 +570,23 @@ public class IdentityManagementEndpointUtil {
         URL url = new URL(callbackUrl);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath(), null).toString());
+
+        /*
+         * If the given URL contains query parameters that include a `#` symbol,
+         * the URL class will store the content after the `#` in the `ref` field.
+         * This logic checks if both query parameters and the `ref` field exist,
+         * and if so, appends the `ref` part, prefixed with a `#`, to the query
+         * parameters.
+         */
+        StringBuilder queryParams = new StringBuilder();
+        if (StringUtils.isNotBlank(url.getQuery())) {
+            queryParams.append(url.getQuery());
+            if (StringUtils.isNotBlank(url.getRef())) {
+                queryParams.append(FRAGMENT_CHAR);
+                queryParams.append(url.getRef());
+            }
+        }
+
         Map<String, String> encodedQueryMap = getEncodedQueryParamMap(url.getQuery());
 
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
