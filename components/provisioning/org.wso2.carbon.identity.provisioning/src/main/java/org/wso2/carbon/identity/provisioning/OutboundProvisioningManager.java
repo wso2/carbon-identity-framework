@@ -65,6 +65,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APPLICATION_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
@@ -73,6 +74,7 @@ import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstant
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.SELF_SIGNUP_ROLE;
 import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isApplicationBasedOutboundProvisioningEnabled;
 import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedOutboundProvisioningEnabled;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_DOMAIN;
 
 /**
  *
@@ -877,7 +879,9 @@ public class OutboundProvisioningManager {
                 StringUtils.isNotBlank(provisioningEntity.getEntityName())) {
             String userName = provisioningEntity.getEntityName();
             List<String> provisioningRoleList = Arrays.asList(provisionByRoleList);
-
+            provisioningRoleList = provisioningRoleList.stream()
+                    .map(role -> INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + role)
+                    .collect(Collectors.toList());
             List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
             if (userHasProvisioningRoles(roleListOfUser, provisioningRoleList, userName)) {
                 return true;
