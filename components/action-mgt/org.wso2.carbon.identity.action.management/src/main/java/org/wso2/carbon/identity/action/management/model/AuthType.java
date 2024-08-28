@@ -35,6 +35,12 @@ import java.util.List;
  */
 public class AuthType {
 
+    public static final String AUTH_PROPERTY_USERNAME = "username";
+    public static final String AUTH_PROPERTY_PASSWORD = "password";
+    public static final String AUTH_PROPERTY_HEADER = "header";
+    public static final String AUTH_PROPERTY_VALUE = "value";
+    public static final String AUTH_PROPERTY_ACCESS_TOKEN = "accessToken";
+
     /**
      * Authentication Type.
      */
@@ -77,11 +83,12 @@ public class AuthType {
          * Authentication Property.
          */
         public enum AuthenticationProperty {
-            ACCESS_TOKEN("accessToken", true),
-            USERNAME("username", true),
-            PASSWORD("password", true),
-            HEADER("header", false),
-            VALUE("value", true);
+
+            ACCESS_TOKEN(AUTH_PROPERTY_ACCESS_TOKEN, true),
+            USERNAME(AUTH_PROPERTY_USERNAME, true),
+            PASSWORD(AUTH_PROPERTY_PASSWORD, true),
+            HEADER(AUTH_PROPERTY_HEADER, false),
+            VALUE(AUTH_PROPERTY_VALUE, true);
 
             private final String name;
             private final boolean isConfidential;

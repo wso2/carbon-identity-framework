@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.execution.util;
 
 import org.apache.http.client.methods.HttpPost;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
+import org.wso2.carbon.identity.action.management.model.AuthType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -55,7 +56,7 @@ public final class AuthMethods {
         public BearerAuth(List<AuthProperty> authPropertyList) {
 
             authPropertyList.stream()
-                    .filter(authProperty -> "ACCESS_TOKEN".equals(authProperty.getName()))
+                    .filter(authProperty -> AuthType.AUTH_PROPERTY_ACCESS_TOKEN.equals(authProperty.getName()))
                     .findFirst()
                     .ifPresent(authProperty -> this.token = authProperty.getValue());
         }
@@ -69,7 +70,7 @@ public final class AuthMethods {
         @Override
         public String getAuthType() {
 
-            return "BEARER";
+            return AuthType.AuthenticationType.BEARER.getType();
         }
     }
 
@@ -85,10 +86,10 @@ public final class AuthMethods {
 
             authPropertyList.forEach(authProperty -> {
                 switch (authProperty.getName()) {
-                    case "USERNAME":
+                    case AuthType.AUTH_PROPERTY_USERNAME:
                         this.username = authProperty.getValue();
                         break;
-                    case "PASSWORD":
+                    case AuthType.AUTH_PROPERTY_PASSWORD:
                         this.password = authProperty.getValue();
                         break;
                     default:
@@ -109,7 +110,7 @@ public final class AuthMethods {
         @Override
         public String getAuthType() {
 
-            return "BASIC";
+            return AuthType.AuthenticationType.BASIC.getType();
         }
     }
 
@@ -125,10 +126,10 @@ public final class AuthMethods {
 
             authPropertyList.forEach(authProperty -> {
                 switch (authProperty.getName()) {
-                    case "HEADER":
+                    case AuthType.AUTH_PROPERTY_HEADER:
                         this.apiHeader = authProperty.getValue();
                         break;
-                    case "VALUE":
+                    case AuthType.AUTH_PROPERTY_VALUE:
                         this.apiKey = authProperty.getValue();
                         break;
                     default:
@@ -146,7 +147,7 @@ public final class AuthMethods {
         @Override
         public String getAuthType() {
 
-            return "API-KEY";
+            return AuthType.AuthenticationType.API_KEY.getType();
         }
     }
 }
