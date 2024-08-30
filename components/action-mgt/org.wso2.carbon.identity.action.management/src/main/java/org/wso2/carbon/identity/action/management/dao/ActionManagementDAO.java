@@ -117,7 +117,7 @@ public interface ActionManagementDAO {
      * @return <code>Action</code>.
      * @throws ActionMgtException If an error occurs while retrieving the Action of a given Action ID.
      */
-    Action getActionByActionId(String actionId, Integer tenantId) throws ActionMgtException;
+    Action getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException;
 
     /**
      * Update the endpoint authentication properties of an {@link Action} by given Action ID.
@@ -128,7 +128,7 @@ public interface ActionManagementDAO {
      * @return Updated <code>Action</code>.
      * @throws ActionMgtException If an error occurs while updating the Action endpoint authentication properties.
      */
-    Action updateActionEndpointAuthProperties(String actionId, AuthType authentication, int tenantId)
+    Action updateActionEndpointAuthProperties(String actionType, String actionId, AuthType authentication, int tenantId)
             throws ActionMgtException;
 
     /**

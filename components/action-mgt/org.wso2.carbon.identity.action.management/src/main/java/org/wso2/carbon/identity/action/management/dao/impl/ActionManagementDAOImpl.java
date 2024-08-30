@@ -84,7 +84,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         action.getEndpoint().getAuthentication().getType().name(), encryptedAuthProperties), tenantId);
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
 
-                return getActionByActionId(actionId, tenantId);
+                return getActionByActionId(actionType, actionId, tenantId);
             } catch (SQLException | ActionMgtException e) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format("Error while creating the Action of Action Type: %s in Tenant Domain: %s." +
@@ -160,7 +160,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
 
-            return getActionByActionId(actionId, tenantId);
+            return getActionByActionId(actionType, actionId, tenantId);
         } catch (SQLException | ActionMgtException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while updating the Action of Action Type: %s and Action ID: %s in" +
@@ -241,10 +241,10 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     }
 
     @Override
-    public Action getActionByActionId(String actionId, Integer tenantId) throws ActionMgtException {
+    public Action getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            Action action = getActionBasicInfoById(dbConnection, actionId, tenantId);
+            Action action = getActionBasicInfoById(dbConnection, actionType, actionId, tenantId);
             if (action != null) {
                 action.setEndpoint(getActionEndpointConfigById(dbConnection, actionId, tenantId));
             }
@@ -257,13 +257,13 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     }
 
     @Override
-    public Action updateActionEndpointAuthProperties(String actionId, AuthType authentication, int tenantId)
-            throws ActionMgtException {
+    public Action updateActionEndpointAuthProperties(String actionType, String actionId, AuthType authentication,
+                                                     int tenantId) throws ActionMgtException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
         updateActionEndpointAuthProperties(dbConnection, actionId, authentication, tenantId);
         IdentityDatabaseUtil.closeConnection(dbConnection);
-        return getActionByActionId(actionId, tenantId);
+        return getActionByActionId(actionType, actionId, tenantId);
     }
 
     @Override
@@ -274,7 +274,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
         updateActionEndpoint(dbConnection, actionType, actionId, endpoint, currentAuthentication, tenantId);
         IdentityDatabaseUtil.closeConnection(dbConnection);
-        return getActionByActionId(actionId, tenantId);
+        return getActionByActionId(actionType, actionId, tenantId);
     }
 
     /**
@@ -396,13 +396,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @return Action Basic Info.
      * @throws ActionMgtException If an error occurs while retrieving action basic info from the database.
      */
-    private Action getActionBasicInfoById(Connection dbConnection, String actionId, Integer tenantId)
+    private Action getActionBasicInfoById(Connection dbConnection, String actionType, String actionId, Integer tenantId)
             throws ActionMgtException {
 
         Action action = null;
         try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
                 ActionMgtSQLConstants.Query.GET_ACTION_BASIC_INFO_BY_ID)) {
 
+            statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
             statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
             statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
 
@@ -566,7 +567,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             statement.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(dbConnection);
 
-            return getActionBasicInfoById(dbConnection, actionId, tenantId);
+            return getActionBasicInfoById(dbConnection, actionType, actionId, tenantId);
         } catch (SQLException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while updating the Action Status to %s of Action type: %s in " +

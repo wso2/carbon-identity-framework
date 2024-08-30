@@ -398,8 +398,8 @@ public class ActionManagementDAOImplTest {
                  buildMockAPIKeyAuthProperties("header", "value"));
         Action updatingAction = daoImpl.updateAction(actionType, action.getId(), sampleAction, action, TENANT_ID);
         mockDBConnection();
-        Action result = daoImpl.updateActionEndpointAuthProperties(PRE_ISSUE_ACCESS_TOKEN, updatingAction.getId(),
-                authType, TENANT_ID);
+        Action result = daoImpl.updateActionEndpointAuthProperties(PRE_ISSUE_ACCESS_TOKEN,
+                updatingAction.getId(), authType, TENANT_ID);
         Assert.assertEquals(AuthType.AuthenticationType.API_KEY, result.getEndpoint().getAuthentication().getType());
         Assert.assertEquals(authType.getProperties().get(0).getValue(),
                 result.getEndpoint().getAuthentication().getProperties().get(0).getValue());

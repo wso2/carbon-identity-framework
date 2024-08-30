@@ -140,12 +140,14 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     }
 
     @Override
-    public Action getActionByActionId(String actionId, String tenantDomain) throws ActionMgtException {
+    public Action getActionByActionId(String actionType, String actionId, String tenantDomain)
+            throws ActionMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving Action of Action ID: %s", actionId));
         }
-        return CACHE_BACKED_DAO.getActionByActionId(actionId, IdentityTenantUtil.getTenantId(tenantDomain));
+        return CACHE_BACKED_DAO.getActionByActionId(getActionTypeFromPath(actionType), actionId,
+                IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
@@ -208,7 +210,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private Action checkIfActionExists(String actionType, String actionId, String tenantDomain)
             throws ActionMgtException {
 
-        Action action = CACHE_BACKED_DAO.getActionByActionId(actionId, IdentityTenantUtil.getTenantId(tenantDomain));
+        Action action = CACHE_BACKED_DAO.getActionByActionId(actionType, actionId,
+                IdentityTenantUtil.getTenantId(tenantDomain));
         if (action == null || !actionType.equals(action.getType().name())) {
             throw ActionManagementUtil.handleClientException(
                     ActionMgtConstants.ErrorMessages.ERROR_NO_ACTION_CONFIGURED_ON_GIVEN_ACTION_TYPE_AND_ID);
@@ -259,7 +262,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug(String.format("Updating endpoint authentication properties of Action Type: %s " +
                     "Action ID: %s and AuthType: %s", actionType, actionId, authentication.getType().name()));
         }
-        return CACHE_BACKED_DAO.updateActionEndpointAuthProperties(actionId, authentication,
+        return CACHE_BACKED_DAO.updateActionEndpointAuthProperties(actionType, actionId, authentication,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 }
