@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
 import org.wso2.carbon.identity.provisioning.OutboundProvisioningManager;
@@ -174,7 +175,16 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
                 outboundAttributes);
 
         // set the in-bound attribute list.
-        provisioningEntity.setInboundAttributes(inboundAttributes);
+        Map<String, String> provisioningAttributes = new HashMap<>(inboundAttributes);
+        if (IdentityUtil.threadLocalProperties.get().get("newClaimList") instanceof HashMap<?,?>) {
+            Map<?, ?> newClaimList = (HashMap<?, ?>) IdentityUtil.threadLocalProperties.get().get("newClaimList");
+            for (Map.Entry<?, ?> entry : newClaimList.entrySet()) {
+                if (entry.getKey() instanceof String && entry.getValue() instanceof String) {
+                    provisioningAttributes.computeIfAbsent((String) entry.getKey(), k -> (String) entry.getValue());
+                }
+            }
+        }
+        provisioningEntity.setInboundAttributes(provisioningAttributes);
 
         String tenantDomainName = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
