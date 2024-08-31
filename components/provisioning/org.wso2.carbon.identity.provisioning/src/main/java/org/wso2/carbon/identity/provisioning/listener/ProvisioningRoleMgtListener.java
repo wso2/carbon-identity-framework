@@ -18,10 +18,14 @@
 
 package org.wso2.carbon.identity.provisioning.listener;
 
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.AbstractRoleManagementListener;
+import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
@@ -30,15 +34,25 @@ import java.util.List;
 public class ProvisioningRoleMgtListener extends AbstractRoleManagementListener {
 
     @Override
-    public int getDefaultOrderId() {
+    public boolean isEnable() {
 
-        return 999;
+        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+                (RoleManagementListener.class.getName(), this.getClass().getName());
+        if (identityEventListenerConfig == null) {
+            return true;
+        }
+        return Boolean.parseBoolean(identityEventListenerConfig.getEnable());
     }
 
     @Override
-    public boolean isEnable() {
+    public int getDefaultOrderId() {
 
-        return true;
+        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+                (RoleManagementListener.class.getName(), this.getClass().getName());
+        if (identityEventListenerConfig == null) {
+            return IdentityCoreConstants.EVENT_LISTENER_ORDER_ID;
+        }
+        return identityEventListenerConfig.getOrder();
     }
 
     @Override
@@ -66,9 +80,11 @@ public class ProvisioningRoleMgtListener extends AbstractRoleManagementListener 
                 }
             }).toArray(String[]::new);
 
-            String roleName = ProvisioningServiceDataHolder.getInstance().getRoleManagementService().getRoleNameByRoleId(roleId, tenantDomain);
+            if (deletedUserNames.length > 0 && newUserNames.length > 0) {
+                return;
+            }
             ProvisioningServiceDataHolder.getInstance().getDefaultInboundUserProvisioningListener()
-                    .doPostUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager);
+                    .doPostUpdateUserListOfRole(roleId, deletedUserNames, newUserNames, userStoreManager);
         } catch (UserStoreException e) {
             throw new IdentityRoleManagementException(e.getMessage(), e);
         }
