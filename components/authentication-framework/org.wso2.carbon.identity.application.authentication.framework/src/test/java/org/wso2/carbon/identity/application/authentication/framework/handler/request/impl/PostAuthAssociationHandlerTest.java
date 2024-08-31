@@ -212,6 +212,8 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         if (isFederated) {
             applicationAuthenticator = mock(FederatedApplicationAuthenticator.class);
         }
+        when(applicationAuthenticator.getAuthenticatorType())
+                .thenReturn(ApplicationAuthenticator.AuthenticatorType.SYSTEM);
         when(applicationAuthenticator.getName()).thenReturn("Authenticator1");
 
         if (withAuthenticatedUser) {

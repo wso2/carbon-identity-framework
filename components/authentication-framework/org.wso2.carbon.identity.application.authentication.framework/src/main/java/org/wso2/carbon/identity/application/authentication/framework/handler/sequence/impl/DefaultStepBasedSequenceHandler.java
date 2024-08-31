@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator.AuthenticatorType;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
@@ -289,7 +290,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
             stepCount++;
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
+            AuthenticatorType authenticatorType = authenticator.getAuthenticatorType();
+            if ((AuthenticatorType.SYSTEM.equals(authenticatorType) && authenticator instanceof
+                    FederatedApplicationAuthenticator) || (AuthenticatorType.CUSTOM.equals(authenticatorType)
+                    && stepConfig.getAuthenticatedUser().isFederatedUser())) {
 
                 ExternalIdPConfig externalIdPConfig = null;
                 try {

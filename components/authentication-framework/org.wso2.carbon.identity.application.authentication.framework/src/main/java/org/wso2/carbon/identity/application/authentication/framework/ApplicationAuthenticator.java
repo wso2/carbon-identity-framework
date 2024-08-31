@@ -171,4 +171,17 @@ public interface ApplicationAuthenticator extends Serializable {
         return StringUtils.EMPTY;
     }
 
+    default AuthenticatorType getAuthenticatorType() {
+
+        return AuthenticatorType.SYSTEM;
+    }
+
+    /**
+     * The Authentication Type - SYSTEM: system define authenticator, CUSTOM: user defined authentication extension.
+     */
+    enum AuthenticatorType {
+
+        SYSTEM,
+        CUSTOM
+    }
 }

@@ -28,6 +28,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator.AuthenticatorType;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
@@ -771,7 +772,10 @@ public class DefaultStepHandler implements StepHandler {
                 context.getSubject().setAccessingOrganization(userResidentOrganization);
             }
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
+            AuthenticatorType authenticatorType = authenticator.getAuthenticatorType();
+            if ((AuthenticatorType.SYSTEM.equals(authenticatorType) && authenticator instanceof
+                    FederatedApplicationAuthenticator) || (AuthenticatorType.CUSTOM.equals(authenticatorType)
+                    && context.getSubject().isFederatedUser())) {
 
                 if (context.getSubject().getUserName() == null) {
                     // Set subject identifier as the default username for federated users

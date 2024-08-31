@@ -38,6 +38,7 @@ import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator.AuthenticatorType;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -3395,7 +3396,11 @@ public class FrameworkUtils {
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
+            AuthenticatorType authenticatorType = authenticator.getAuthenticatorType();
+            if ((AuthenticatorType.SYSTEM.equals(authenticatorType) && authenticator instanceof
+                    FederatedApplicationAuthenticator) || (AuthenticatorType.CUSTOM.equals(authenticatorType)
+                    && stepConfig.getAuthenticatedUser().isFederatedUser())) {
+                
                 ExternalIdPConfig externalIdPConfig;
                 String externalIdPConfigName = stepConfig.getAuthenticatedIdP();
                 externalIdPConfig = getExternalIdpConfig(externalIdPConfigName, context);

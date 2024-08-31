@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator.AuthenticatorType;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -114,7 +115,11 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
-            if (authenticator instanceof FederatedApplicationAuthenticator) {
+           AuthenticatorType authenticatorType = authenticator.getAuthenticatorType();
+            if ((AuthenticatorType.SYSTEM.equals(authenticatorType) && authenticator instanceof
+                    FederatedApplicationAuthenticator) || (AuthenticatorType.CUSTOM.equals(authenticatorType)
+                    && stepConfig.getAuthenticatedUser().isFederatedUser())) {
+
                 if (stepConfig.isSubjectIdentifierStep()) {
                     if (log.isDebugEnabled()) {
                         log.debug(authenticator.getName() + " has been set up for subject identifier step.");

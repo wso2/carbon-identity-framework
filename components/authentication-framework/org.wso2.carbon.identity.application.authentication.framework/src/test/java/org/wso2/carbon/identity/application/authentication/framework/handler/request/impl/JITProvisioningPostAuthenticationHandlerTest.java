@@ -66,7 +66,6 @@ import javax.xml.stream.XMLStreamException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -165,7 +164,8 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
             configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
             IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
             ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
-            doReturn(externalIdPConfig).when(mockConfigurationFacade).getIdPConfigByName(eq(null), anyString());
+            lenient().doReturn(externalIdPConfig).when(mockConfigurationFacade)
+                    .getIdPConfigByName(eq(null), anyString());
 
             PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler
                     .handle(request, response, context);
