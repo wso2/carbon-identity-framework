@@ -93,7 +93,8 @@ public class IdentityProvisionServiceComponent {
             ProvisioningServiceDataHolder.getInstance().setBundleContext(context.getBundleContext());
             DefaultInboundUserProvisioningListener provisioningListener = new DefaultInboundUserProvisioningListener();
             ProvisioningServiceDataHolder.getInstance().setDefaultInboundUserProvisioningListener(provisioningListener);
-            ProvisioningServiceDataHolder.getInstance().getBundleContext().registerService(UserOperationEventListener.class.getName(), provisioningListener, null);
+            ProvisioningServiceDataHolder.getInstance().getBundleContext()
+                    .registerService(UserOperationEventListener.class.getName(), provisioningListener, null);
             if (log.isDebugEnabled()) {
                 log.debug("Identity Provision Event listener registered successfully");
             }

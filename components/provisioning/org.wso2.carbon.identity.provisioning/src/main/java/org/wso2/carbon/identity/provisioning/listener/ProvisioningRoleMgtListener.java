@@ -31,6 +31,9 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.util.List;
 
+/**
+ * The implementation for outbound user provisioning based on role.
+ */
 public class ProvisioningRoleMgtListener extends AbstractRoleManagementListener {
 
     @Override
