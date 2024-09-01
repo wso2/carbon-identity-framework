@@ -42,7 +42,10 @@ import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningCo
 import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.identity.provisioning.dao.ProvisioningManagementDAO;
 import org.wso2.carbon.identity.provisioning.internal.IdentityProvisionServiceComponent;
+import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
 import org.wso2.carbon.identity.provisioning.rules.XACMLBasedRuleHandler;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -67,6 +70,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ID_CLAIM;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APPLICATION_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.ASK_PASSWORD_CLAIM;
@@ -686,7 +690,7 @@ public class OutboundProvisioningManager {
                     IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
                                    Arrays.asList(new String[]{userName}));
         }
-        List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
+        List<String> roleListOfUser = getUserGroups(userName, tenantDomain);
         if (roleListOfUser != null) {
             outboundAttributes.put(ClaimMapping.build(
                     GROUP_CLAIM_URI, null, null, false), roleListOfUser);
@@ -872,18 +876,32 @@ public class OutboundProvisioningManager {
             // we apply restrictions only for users.
             // if service provider's out-bound provisioning configuration does not define any roles
             // to be provisioned then we apply no restrictions.
+            /*  After group role separation, the internal roles should be not be provisioned. Only groups should be
+                provisioned.
+            */
+            if (isInternalRole(provisioningEntity.getEntityName(), tenantDomain)) {
+                return false;
+            }
             return true;
         }
 
         if (provisioningEntity.getAttributes() != null &&
                 StringUtils.isNotBlank(provisioningEntity.getEntityName())) {
             String userName = provisioningEntity.getEntityName();
+            isInternalRole(provisioningEntity.getEntityName(), tenantDomain);
             List<String> provisioningRoleList = Arrays.asList(provisionByRoleList);
-            provisioningRoleList = provisioningRoleList.stream()
-                    .map(role -> INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + role)
-                    .collect(Collectors.toList());
-            List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
-            if (userHasProvisioningRoles(roleListOfUser, provisioningRoleList, userName)) {
+            if (provisioningEntity.getInboundAttributes() == null ||
+                    provisioningEntity.getInboundAttributes().get(USER_ID_CLAIM) == null) {
+                return false;
+            }
+            List<String> roleListOfUser = getUserRoles(provisioningEntity.getInboundAttributes().get(USER_ID_CLAIM),
+                    tenantDomain);
+            List<String> groupRoleListOfUser = new ArrayList<>(roleListOfUser);
+
+            List<String> groupListOfUser = getUserGroups(userName, tenantDomain);
+            groupRoleListOfUser.addAll(groupListOfUser);
+
+            if (userHasProvisioningRoles(groupRoleListOfUser, provisioningRoleList, userName)) {
                 return true;
             }
             List<String> newRoleListOfUser = provisioningEntity.getAttributes().get(ClaimMapping.build
@@ -922,7 +940,7 @@ public class OutboundProvisioningManager {
      * @throws CarbonException
      * @throws UserStoreException
      */
-    private List<String> getUserRoles(String userName, String tenantDomain) throws UserStoreException {
+    private List<String> getUserGroups(String userName, String tenantDomain) throws UserStoreException {
 
         RealmService realmService = IdentityProvisionServiceComponent.getRealmService();
         int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
@@ -931,7 +949,30 @@ public class OutboundProvisioningManager {
 
         UserStoreManager userstore = realm.getUserStoreManager();
         String[] newRoles = userstore.getRoleListOfUser(userName);
-        return Arrays.asList(newRoles);
+        return Arrays.stream(newRoles).filter(role -> !role.startsWith(INTERNAL_DOMAIN)).collect(Collectors.toList());
+    }
+
+    private List<String> getUserRoles(String userId, String tenantDomain) throws UserStoreException {
+
+        try {
+            return ProvisioningServiceDataHolder.getInstance().getRoleManagementService()
+                    .getRoleIdListOfUser(userId, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
+    }
+
+    private boolean isInternalRole(String roleId, String tenantDomain) throws UserStoreException {
+
+        try {
+            String roleName = ProvisioningServiceDataHolder.getInstance().getRoleManagementService().
+                    getRoleNameByRoleId(roleId, tenantDomain);
+            return StringUtils.isNotEmpty(roleName);
+        } catch (IdentityRoleManagementClientException e) {
+            return false;
+        } catch (IdentityRoleManagementException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
     }
 
     /**
