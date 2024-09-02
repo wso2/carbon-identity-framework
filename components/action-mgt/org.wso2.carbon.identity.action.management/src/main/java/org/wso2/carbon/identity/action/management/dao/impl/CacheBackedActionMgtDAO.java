@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.action.management.cache.ActionTypeCacheKey;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
 import java.util.List;
@@ -158,7 +158,7 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
     }
 
     @Override
-    public Action updateActionEndpointAuthProperties(String actionType, String actionId, AuthType authentication,
+    public Action updateActionEndpointAuthProperties(String actionType, String actionId, Authentication authentication,
                                                      int tenantId) throws ActionMgtException {
 
         return actionManagementDAO.updateActionEndpointAuthProperties(actionType, actionId, authentication, tenantId);
@@ -166,7 +166,7 @@ public class CacheBackedActionMgtDAO implements ActionManagementDAO {
 
     @Override
     public Action updateActionEndpoint(String actionType, String actionId, EndpointConfig endpoint,
-                                       AuthType currentAuthentication, int tenantId)
+                                       Authentication currentAuthentication, int tenantId)
             throws ActionMgtException {
 
         actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantId);
