@@ -128,8 +128,8 @@ public interface ActionManagementDAO {
      * @return Updated <code>Action</code>.
      * @throws ActionMgtException If an error occurs while updating the Action endpoint authentication properties.
      */
-    Action updateActionEndpointAuthProperties(String actionType, String actionId, Authentication authentication, int tenantId)
-            throws ActionMgtException;
+    Action updateActionEndpointAuthProperties(String actionType, String actionId, Authentication authentication,
+                                              int tenantId) throws ActionMgtException;
 
     /**
      * Update the endpoint authentication properties of an {@link Action} by given Action ID.
