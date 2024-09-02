@@ -450,7 +450,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 Authentication authentication = null;
                 Authentication.Type authnType = null;
                 Map<String, String> authnPropertiesMap = new HashMap<>();
-                List<AuthProperty> authnProperties = new ArrayList<>();
 
                 while (rs.next()) {
                     String propName = rs.getString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME);
