@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -257,7 +257,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     }
 
     @Override
-    public Action updateActionEndpointAuthProperties(String actionType, String actionId, AuthType authentication,
+    public Action updateActionEndpointAuthProperties(String actionType, String actionId, Authentication authentication,
                                                      int tenantId) throws ActionMgtException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
@@ -268,7 +268,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
     @Override
     public Action updateActionEndpoint(String actionType, String actionId, EndpointConfig endpoint,
-                                       AuthType currentAuthentication, int tenantId)
+                                       Authentication currentAuthentication, int tenantId)
             throws ActionMgtException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
@@ -286,8 +286,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param tenantId       Tenant Id.
      * @throws ActionMgtServerException If an error occurs while updating the Action endpoint authentication properties.
      */
-    private void updateActionEndpointAuthProperties(Connection dbConnection, String actionId, AuthType authentication,
-                                                      int tenantId) throws ActionMgtServerException {
+    private void updateActionEndpointAuthProperties(Connection dbConnection, String actionId,
+                                                    Authentication authentication, int tenantId)
+            throws ActionMgtServerException {
 
         try {
             Map<String, String> nonSecretEndpointProperties = authentication.getProperties().stream()
@@ -323,7 +324,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @throws ActionMgtServerException If an error occurs while updating the Action endpoint.
      */
     private void updateActionEndpoint(Connection dbConnection, String actionType, String actionId,
-                                        EndpointConfig endpoint, AuthType currentAuthentication, int tenantId)
+                                      EndpointConfig endpoint, Authentication currentAuthentication, int tenantId)
             throws ActionMgtServerException {
 
         try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
@@ -446,7 +447,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             try (ResultSet rs = statement.executeQuery()) {
 
                 String endpointUri = null;
-                AuthType.AuthenticationType authnType = null;
+                Authentication authentication = null;
+                Authentication.Type authnType = null;
                 Map<String, String> authnPropertiesMap = new HashMap<>();
                 List<AuthProperty> authnProperties = new ArrayList<>();
 
@@ -457,7 +459,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     if (propName.equals(ActionMgtConstants.URI_ATTRIBUTE)) {
                         endpointUri = propValue;
                     } else if (propName.equals(ActionMgtConstants.AUTHN_TYPE_ATTRIBUTE)) {
-                        authnType = AuthType.AuthenticationType.valueOf(propValue);
+                        authnType = Authentication.Type.valueOf(propValue);
                     } else {
                         // Authentication properties.
                         authnPropertiesMap.put(propName, propValue);
@@ -465,22 +467,36 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 }
 
                 if (authnType != null) {
-                    for (AuthType.AuthenticationType.AuthenticationProperty property : authnType.getProperties()) {
-                        if (authnPropertiesMap.containsKey(property.getName())) {
-                            authnProperties.add(new AuthProperty.AuthPropertyBuilder()
-                                    .name(property.getName())
-                                    .value(authnPropertiesMap.get(property.getName()))
-                                    .isConfidential(property.getIsConfidential())
-                                    .build());
-                        }
+                    switch (authnType) {
+                        case BASIC:
+                            authentication = new Authentication.BasicAuthBuilder(
+                                    authnPropertiesMap.get(Authentication.Property.USERNAME.getName()),
+                                    authnPropertiesMap.get(Authentication.Property.PASSWORD.getName())).build();
+                            break;
+                        case BEARER:
+                            authentication = new Authentication.BearerAuthBuilder(
+                                    authnPropertiesMap.get(Authentication.Property.ACCESS_TOKEN.getName())).build();
+                            break;
+                        case API_KEY:
+                            authentication = new Authentication.APIKeyAuthBuilder(
+                                    authnPropertiesMap.get(Authentication.Property.HEADER.getName()),
+                                    authnPropertiesMap.get(Authentication.Property.VALUE.getName())).build();
+                            break;
+                        case NONE:
+                            authentication = new Authentication.NoneAuthBuilder().build();
+                            break;
+                        default:
+                            break;
                     }
+                } else {
+                    ActionMgtConstants.ErrorMessages error =
+                            ActionMgtConstants.ErrorMessages.ERROR_NO_AUTHENTICATION_TYPE;
+                    throw new ActionMgtServerException(error.getMessage(), error.getDescription(), error.getCode());
                 }
 
                 return new EndpointConfig.EndpointConfigBuilder()
                         .uri(endpointUri)
-                        .authentication(new AuthType.AuthTypeBuilder()
-                                .type(authnType)
-                                .properties(authnProperties).build()).build();
+                        .authentication(authentication).build();
             }
         } catch (SQLException e) {
             throw ActionManagementUtil.handleServerException(
@@ -603,8 +619,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return;
         }
 
-        AuthType updatingAuthentication = updatingEndpoint.getAuthentication();
-        AuthType existingAuthentication = existingAction.getEndpoint().getAuthentication();
+        Authentication updatingAuthentication = updatingEndpoint.getAuthentication();
+        Authentication existingAuthentication = existingAction.getEndpoint().getAuthentication();
         boolean isUriUpdating = !StringUtils.isEmpty(updatingEndpoint.getUri());
         boolean isAuthUpdating = updatingAuthentication != null;
         boolean isSameAuthType = isAuthUpdating && updatingAuthentication.getType()

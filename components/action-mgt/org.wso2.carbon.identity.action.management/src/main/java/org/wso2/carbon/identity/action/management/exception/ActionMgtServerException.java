@@ -28,6 +28,11 @@ public class ActionMgtServerException extends ActionMgtException {
         super(message, errorCode);
     }
 
+    public ActionMgtServerException(String message, String description, String errorCode) {
+
+        super(message, description, errorCode);
+    }
+
     public ActionMgtServerException(String message, String errorCode, Throwable cause) {
 
         super(message, errorCode, cause);
