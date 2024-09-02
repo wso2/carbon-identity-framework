@@ -264,7 +264,8 @@ public class ActionManagementDAOImplTest {
     public void testUpdateActionEndpointAuthSecretProperties() throws ActionMgtException {
 
         Authentication authentication = buildMockBasicAuthentication("newadmin", "newadmin");
-        Action result = daoImpl.updateActionEndpointAuthProperties(action.getId(), authentication, TENANT_ID);
+        Action result = daoImpl.updateActionEndpointAuthProperties(PRE_ISSUE_ACCESS_TOKEN, action.getId(),
+                authentication, TENANT_ID);
         Assert.assertEquals(Authentication.Type.BASIC, result.getEndpoint().getAuthentication().getType());
         Assert.assertEquals(
                 action.getEndpoint().getAuthentication().getProperty(Authentication.Property.USERNAME).getValue(),
@@ -371,7 +372,8 @@ public class ActionManagementDAOImplTest {
                 PRE_ISSUE_ACCESS_TOKEN, action.getId(), sampleAction, action, TENANT_ID);
         mockDBConnection();
         Authentication authentication = buildMockAPIKeyAuthentication("updatingheader", "updatingvalue");
-        Action result = daoImpl.updateActionEndpointAuthProperties(updatingAction.getId(), authentication, TENANT_ID);
+        Action result = daoImpl.updateActionEndpointAuthProperties(PRE_ISSUE_ACCESS_TOKEN, updatingAction.getId(),
+                authentication, TENANT_ID);
         Assert.assertEquals(Authentication.Type.API_KEY, result.getEndpoint().getAuthentication().getType());
         Assert.assertEquals(authentication.getProperty(Authentication.Property.HEADER).getValue(),
                 result.getEndpoint().getAuthentication().getProperty(Authentication.Property.HEADER).getValue());
