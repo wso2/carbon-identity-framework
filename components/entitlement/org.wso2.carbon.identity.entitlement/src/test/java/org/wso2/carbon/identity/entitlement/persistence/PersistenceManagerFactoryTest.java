@@ -33,7 +33,9 @@ import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertTrue;
 
