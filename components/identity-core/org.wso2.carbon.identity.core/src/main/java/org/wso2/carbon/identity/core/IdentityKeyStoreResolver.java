@@ -577,7 +577,9 @@ public class IdentityKeyStoreResolver {
                 IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
                         IdentityKeyStoreResolverConstants.ATTR_NAME_USE_IN_ALL_TENANTS));
         if (useInAllTenantsElement == null || useInAllTenantsElement.getText().isEmpty()) {
-            LOG.debug("use_in_all_tenants config null for " + protocol.toString() + ". Using default value as false.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("use_in_all_tenants config null for " + protocol.toString() + ". Using default value as false.");
+            }
         }
         Boolean useInAllTenants = Boolean.valueOf(useInAllTenantsElement.getText());
 
