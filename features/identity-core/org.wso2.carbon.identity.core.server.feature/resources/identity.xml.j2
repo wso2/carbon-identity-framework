@@ -2028,6 +2028,21 @@
                     </ExcludedParameters>
                 </ActionRequest>
             </PreIssueAccessToken>
+            <Authentication>
+                <Enable>{{actions.authentication.enable}}</Enable>
+                <ActionRequest>
+                    <ExcludedHeaders>
+                         {% for header in actions.types.authentication.action_request.excluded_headers %}
+                            <Header>{{header}}</Header>
+                         {% endfor %}
+                    </ExcludedHeaders>
+                    <ExcludedParameters>
+                        {% for param in actions.types.authentication.action_request.excluded_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </ExcludedParameters>
+                </ActionRequest>
+            </Authentication>
         </Types>
     </Actions>
 
@@ -2511,7 +2526,11 @@
     {% if identity.cookies is defined %}
     <Cookies>
     {% for cookie in identity.cookies %}
-        <Cookie name="{{cookie.name}}" domain="{{cookie.domain}}" httpOnly="{{cookie.httpOnly}}" secure="{{cookie.secure}}" sameSite="{{cookie.sameSite}}" />
+        <Cookie
+        {% for key,value in cookie.items() %}
+            {{key}}="{{value}}"
+        {% endfor %}
+        />
     {% endfor %}
     </Cookies>
     {% endif %}
@@ -3921,6 +3940,7 @@
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
     <DefaultItemsPerPage>{{pagination.default_items_per_page}}</DefaultItemsPerPage>
+    <MaximumUsersListPerRole>{{pagination.max_users_list_per_role}}</MaximumUsersListPerRole>
 
     <UserFiltering>
         <ShowDisplayName>{{user_filtering.show_display_name_of_user}}</ShowDisplayName>

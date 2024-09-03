@@ -48,7 +48,12 @@ public class Action  {
                 "preRegistration",
                 "PRE_REGISTRATION",
                 "Pre Registration.",
-                "Configure an extension point for modifying user registration via a custom service.");
+                "Configure an extension point for modifying user registration via a custom service."),
+        AUTHENTICATION(
+                "authentication",
+                "AUTHENTICATION",
+                "Authentication.",
+                "Configure an extension point for user authentication via a custom service.");
 
         private final String pathParam;
         private final String actionType;

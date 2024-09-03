@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.action.execution.internal.ActionExecutionService
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
@@ -46,7 +47,7 @@ import org.wso2.carbon.identity.action.execution.util.RequestFilter;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.Authentication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -173,7 +174,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                 ActionExecutionResponseProcessor actionExecutionResponseProcessor)
             throws ActionExecutionRuntimeException {
 
-        AuthType endpointAuthentication = action.getEndpoint().getAuthentication();
+        Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
         AuthMethods.AuthMethod authenticationMethod;
 
         try {
@@ -232,6 +233,9 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             return processSuccessResponse(action,
                     (ActionInvocationSuccessResponse) actionInvocationResponse.getResponse(),
                     eventContext, actionRequest, actionExecutionResponseProcessor);
+        } else if (actionInvocationResponse.isFailure() && actionInvocationResponse.getResponse() != null) {
+            return processFailureResponse(action, (ActionInvocationFailureResponse) actionInvocationResponse
+                    .getResponse(), eventContext, actionRequest, actionExecutionResponseProcessor);
         } else if (actionInvocationResponse.isError() && actionInvocationResponse.getResponse() != null) {
             return processErrorResponse(action, (ActionInvocationErrorResponse) actionInvocationResponse.getResponse(),
                     eventContext, actionRequest, actionExecutionResponseProcessor);
@@ -277,6 +281,19 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 errorResponse);
     }
 
+    private ActionExecutionStatus processFailureResponse(Action action,
+                                                       ActionInvocationFailureResponse failureResponse,
+                                                       Map<String, Object> eventContext,
+                                                       ActionExecutionRequest actionRequest,
+                                                       ActionExecutionResponseProcessor
+                                                               actionExecutionResponseProcessor)
+            throws ActionExecutionResponseProcessorException {
+
+        logFailureResponse(action, failureResponse);
+        return actionExecutionResponseProcessor.processFailureResponse(eventContext, actionRequest.getEvent(),
+                failureResponse);
+    }
+
     private void logSuccessResponse(Action action, ActionInvocationSuccessResponse successResponse) {
 
         try {
@@ -316,6 +333,27 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
+    private void logFailureResponse(Action action, ActionInvocationFailureResponse failureResponse) {
+
+        if (LOG.isDebugEnabled()) {
+            // todo: add to diagnostic logs
+            try {
+                String responseBody = serializeFailureResponse(failureResponse);
+                LOG.debug(String.format(
+                        "Received failure response from API: %s for action type: %s action id: %s with " +
+                                "authentication: %s. Response: %s",
+                        action.getEndpoint().getUri(),
+                        action.getType().getActionType(),
+                        action.getId(),
+                        action.getEndpoint().getAuthentication().getType(),
+                        responseBody));
+            } catch (JsonProcessingException e) {
+                LOG.debug("Error occurred while deserializing the failure response for action: " +
+                        action.getId() + " for action type: " + action.getType().getActionType(), e);
+            }
+        }
+    }
+
     private void logErrorResponse(Action action, ActionInvocationResponse actionInvocationResponse) {
         // todo: add to diagnostic logs
         if (LOG.isDebugEnabled()) {
@@ -345,6 +383,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private String serializeErrorResponse(ActionInvocationErrorResponse response) throws JsonProcessingException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(response);
+    }
+
+    private String serializeFailureResponse(ActionInvocationFailureResponse response) throws JsonProcessingException {
 
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(response);
@@ -381,12 +425,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return allowedPerformableOperations;
     }
 
-    private AuthMethods.AuthMethod getAuthenticationMethod(String actionId, AuthType authType)
+    private AuthMethods.AuthMethod getAuthenticationMethod(String actionId, Authentication authentication)
             throws ActionMgtException {
 
-        List<AuthProperty> authProperties = authType.getPropertiesWithDecryptedValues(actionId);
+        List<AuthProperty> authProperties = authentication.getPropertiesWithDecryptedValues(actionId);
 
-        switch (authType.getType()) {
+        switch (authentication.getType()) {
             case BASIC:
                 return new AuthMethods.BasicAuth(authProperties);
             case BEARER:
@@ -396,7 +440,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             case NONE:
                 return null;
             default:
-                throw new ActionMgtException("Unsupported authentication type: " + authType.getType());
+                throw new ActionMgtException("Unsupported authentication type: " + authentication.getType());
 
         }
     }

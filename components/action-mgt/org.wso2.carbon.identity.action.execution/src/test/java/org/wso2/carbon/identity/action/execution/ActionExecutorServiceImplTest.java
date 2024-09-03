@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.action.execution.internal.ActionExecutionService
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
@@ -51,8 +52,7 @@ import org.wso2.carbon.identity.action.execution.util.RequestFilter;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
 import java.lang.reflect.Field;
@@ -305,6 +305,49 @@ public class ActionExecutorServiceImplTest {
     }
 
     @Test
+    public void testExecuteFailure() throws Exception {
+        // Setup
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Map<String, Object> eventContext = Collections.emptyMap();
+
+        // Mock Action and its dependencies
+        Action action = createAction();
+
+        // Mock ActionManagementService
+        when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
+                Collections.singletonList(action));
+
+        // Mock ActionRequestBuilder and ActionResponseProcessor
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
+                .thenReturn(actionExecutionRequestBuilder);
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(any()))
+                .thenReturn(actionExecutionResponseProcessor);
+
+        // Configure request builder
+        when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
+                mock(ActionExecutionRequest.class));
+
+        // Mock APIClient response
+        ActionInvocationResponse actionInvocationResponse = createFailureActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
+
+        // Configure response processor
+        ActionExecutionStatus expectedStatus =
+                new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+        when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionResponseProcessor.processFailureResponse(any(), any(), any())).thenReturn(
+                expectedStatus);
+
+        // Execute and assert
+        ActionExecutionStatus actualStatus =
+                actionExecutorService.execute(actionType, eventContext, "tenantDomain");
+        assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
+    }
+
+    @Test
     public void testExecuteError() throws Exception {
         // Setup
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
@@ -337,7 +380,7 @@ public class ActionExecutorServiceImplTest {
 
         // Configure response processor
         ActionExecutionStatus expectedStatus =
-                new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+                new ActionExecutionStatus(ActionExecutionStatus.Status.ERROR, eventContext);
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processErrorResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
@@ -346,26 +389,6 @@ public class ActionExecutorServiceImplTest {
         ActionExecutionStatus actualStatus =
                 actionExecutorService.execute(actionType, eventContext, "tenantDomain");
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
-    }
-
-    private List<AuthProperty> createAuthProperties() {
-
-        List<AuthProperty> authPropertyList = new ArrayList<>();
-        for (AuthType.AuthenticationType.AuthenticationProperty property :
-                AuthType.AuthenticationType.BASIC.getProperties()) {
-            AuthProperty authProperty;
-            if (property.getName().equals("username")) {
-                authProperty = new AuthProperty.AuthPropertyBuilder().name(property.getName()).value("testuser")
-                        .isConfidential(true).build();
-            } else if (property.getName().equals("password")) {
-                authProperty = new AuthProperty.AuthPropertyBuilder().name(property.getName()).value("testpassword")
-                        .isConfidential(true).build();
-            } else {
-                authProperty = new AuthProperty.AuthPropertyBuilder().name(property.getName()).value("unknown").build();
-            }
-            authPropertyList.add(authProperty);
-        }
-        return authPropertyList;
     }
 
     private String getJSONRequestPayload(ActionExecutionRequest actionExecutionRequest) throws JsonProcessingException {
@@ -386,6 +409,20 @@ public class ActionExecutorServiceImplTest {
         setField(actionInvocationResponse, "actionStatus", ActionInvocationResponse.Status.SUCCESS);
         when(actionInvocationResponse.isSuccess()).thenReturn(true);
         when(actionInvocationResponse.getResponse()).thenReturn(successResponse);
+        return actionInvocationResponse;
+    }
+
+    private ActionInvocationResponse createFailureActionInvocationResponse() {
+
+        ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
+        when(failureResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.FAILED);
+        when(failureResponse.getFailureReason()).thenReturn("User is not found");
+        when(failureResponse.getFailureReason()).thenReturn("User is not found in the ABC system. " +
+                "Hence unable to authenticate user.");
+
+        ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
+        when(actionInvocationResponse.isFailure()).thenReturn(true);
+        when(actionInvocationResponse.getResponse()).thenReturn(failureResponse);
         return actionInvocationResponse;
     }
 
@@ -442,12 +479,14 @@ public class ActionExecutorServiceImplTest {
         when(action.getEndpoint()).thenReturn(endpointConfig);
         when(endpointConfig.getUri()).thenReturn("http://example.com");
 
-        // Mock AuthType and its properties
-        List<AuthProperty> authPropertyList = createAuthProperties();
-        AuthType authType = mock(AuthType.class);
-        when(authType.getPropertiesWithDecryptedValues(any())).thenReturn(authPropertyList);
-        when(authType.getType()).thenReturn(AuthType.AuthenticationType.BASIC);
-        when(endpointConfig.getAuthentication()).thenReturn(authType);
+        // Mock Authentication and its properties
+        Authentication mockAuthenticationConfig = new Authentication.BasicAuthBuilder("testuser",
+                "testpassword").build();
+        Authentication authenticationConfig = mock(Authentication.class);
+        when(authenticationConfig.getPropertiesWithDecryptedValues(any()))
+                .thenReturn(mockAuthenticationConfig.getProperties());
+        when(authenticationConfig.getType()).thenReturn(mockAuthenticationConfig.getType());
+        when(endpointConfig.getAuthentication()).thenReturn(authenticationConfig);
         return action;
     }
 
