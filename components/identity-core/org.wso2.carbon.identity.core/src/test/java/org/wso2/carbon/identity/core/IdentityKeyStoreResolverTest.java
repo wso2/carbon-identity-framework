@@ -28,6 +28,7 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.core.model.IdentityKeyStoreMapping;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.FileInputStream;
@@ -100,22 +101,13 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @BeforeClass
     public void setUp() throws Exception {
 
-        // Mock key store mapping configurations.
+        // Mock IdentityConfigParser.
+        String identityXmlPath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources",
+                "identity.xml").toString();
+        System.setProperty(ServerConstants.CARBON_HOME, ".");
+        mockIdentityConfigParser = IdentityConfigParser.getInstance(identityXmlPath);
         identityConfigParser = mockStatic(IdentityConfigParser.class);
-        mockIdentityConfigParser = mock(IdentityConfigParser.class);
         identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
-
-        mockConfig = mock(OMElement.class);
-        when(mockIdentityConfigParser.getConfigElement(anyString())).thenReturn(mockConfig);
-        when(mockConfig.getFirstChildWithName(any())).thenReturn(null);
-
-        IdentityKeyStoreMapping oauthKeyStoreMapping = new IdentityKeyStoreMapping(CUSTOM_KEY_STORE, InboundProtocol.OAUTH, true);
-        IdentityKeyStoreMapping wsTrustKeyStoreMapping = new IdentityKeyStoreMapping(CUSTOM_KEY_STORE, InboundProtocol.WS_TRUST, false);
-
-        keyStoreMappings.put(InboundProtocol.OAUTH, oauthKeyStoreMapping);
-        keyStoreMappings.put(InboundProtocol.WS_TRUST, wsTrustKeyStoreMapping);
-
-        setPrivateStaticField(IdentityKeyStoreResolver.class, "keyStoreMappings", keyStoreMappings);
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN)).thenReturn(Integer.valueOf(SUPER_TENANT_ID));

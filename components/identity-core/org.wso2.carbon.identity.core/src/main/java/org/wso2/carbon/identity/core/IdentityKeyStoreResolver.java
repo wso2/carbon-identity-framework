@@ -29,6 +29,7 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
 import org.wso2.carbon.identity.core.model.IdentityKeyStoreMapping;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.InboundProtocol;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverException;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil;
@@ -40,18 +41,10 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ATTR_NAME_KEYSTORE_NAME;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ATTR_NAME_PROTOCOL;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ATTR_NAME_USE_IN_ALL_TENANTS;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPINGS;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.CONFIG_ELEM_SECURITY;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.PRIMARY_KEYSTORE_CONFIG_PATH;
 
 
 /**
@@ -472,7 +465,7 @@ public class IdentityKeyStoreResolver {
         try {
             KeyStoreUtil.validateKeyStoreConfigName(configName);
 
-            String fullConfigPath = PRIMARY_KEYSTORE_CONFIG_PATH + configName;
+            String fullConfigPath = IdentityKeyStoreResolverConstants.PRIMARY_KEYSTORE_CONFIG_PATH + configName;
             return CarbonUtils.getServerConfiguration().getFirstProperty(fullConfigPath);
         } catch (CarbonException e) {
             throw new IdentityKeyStoreResolverException(
@@ -537,76 +530,60 @@ public class IdentityKeyStoreResolver {
 
     private void parseIdentityKeyStoreMappingConfigs() {
 
-        OMElement securityElem = IdentityConfigParser.getInstance().getConfigElement(
-                CONFIG_ELEM_SECURITY);
-        OMElement keyStoreMappingsElem = securityElem.getFirstChildWithName(
+        OMElement keyStoreMappingsElem = IdentityConfigParser.getInstance().getConfigElement(
+                IdentityKeyStoreResolverConstants.CONFIG_ELEM_SECURITY).getFirstChildWithName(
                 IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                        CONFIG_ELEM_KEYSTORE_MAPPINGS));
+                        IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING));
 
-        if (keyStoreMappingsElem == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No CustomKeyStoreMapping configurations found.");
-            }
+        // Parse OAuth KeyStore Mapping.
+        OMElement oauthKeyStoreMapping = keyStoreMappingsElem.getFirstChildWithName(
+                IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
+                        IdentityKeyStoreResolverConstants.CONFIG_ELEM_OAUTH));
+        if (oauthKeyStoreMapping != null) {
+            addKeyStoreMapping(InboundProtocol.OAUTH, oauthKeyStoreMapping);
+        }
+
+        // Parse WS-Trust KeyStore Mapping.
+        OMElement wsTrustKeyStoreMapping = keyStoreMappingsElem.getFirstChildWithName(
+                IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
+                        IdentityKeyStoreResolverConstants.CONFIG_ELEM_WS_TRUST));
+        if (wsTrustKeyStoreMapping != null) {
+            addKeyStoreMapping(InboundProtocol.WS_TRUST, wsTrustKeyStoreMapping);
+        }
+
+        // Parse WS-Federation KeyStore Mapping.
+        OMElement wsFedKeyStoreMapping = keyStoreMappingsElem.getFirstChildWithName(
+                IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
+                        IdentityKeyStoreResolverConstants.CONFIG_ELEM_WS_FEDERATION));
+        if (wsFedKeyStoreMapping != null) {
+            addKeyStoreMapping(InboundProtocol.WS_FEDERATION, wsFedKeyStoreMapping);
+        }
+    }
+
+    private void addKeyStoreMapping(InboundProtocol protocol, OMElement keyStoreMapping) {
+
+        // Parse keystore name
+        OMElement keyStoreNameElement = keyStoreMapping.getFirstChildWithName(
+                IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
+                        IdentityKeyStoreResolverConstants.ATTR_NAME_KEYSTORE_NAME));
+        if (keyStoreNameElement == null || keyStoreNameElement.getText().isEmpty()) {
+            LOG.error("Error occurred when reading KeyStoreMapping configuration. KeyStoreName value null.");
             return;
         }
+        String keyStoreName = keyStoreNameElement.getText();
 
-        Iterator<OMElement> iterator = keyStoreMappingsElem.getChildrenWithName(
+        // Parse UseInAllTenants config
+        OMElement useInAllTenantsElement = keyStoreMapping.getFirstChildWithName(
                 IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                        CONFIG_ELEM_KEYSTORE_MAPPING));
-        while (iterator.hasNext()) {
-            OMElement keyStoreMapping = iterator.next();
-
-            // Parse inbound protocol
-            OMElement protocolElement = keyStoreMapping.getFirstChildWithName(
-                    IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                            ATTR_NAME_PROTOCOL));
-            if (protocolElement == null) {
-                LOG.error("Error occurred when reading configuration. CustomKeyStoreMapping Protocol value null.");
-                continue;
-            }
-
-            // Parse inbound protocol name
-            InboundProtocol protocol = InboundProtocol.fromString(protocolElement.getText());
-            if (protocol == null) {
-                LOG.warn("Invalid authentication protocol configuration in CustomKeyStoreMappings. Config ignored.");
-                continue;
-            }
-            if (keyStoreMappings.containsKey(protocol)) {
-                LOG.warn("Multiple CustomKeyStoreMappings configured for " + protocol.toString() +
-                        " protocol. Second config ignored.");
-                continue;
-            }
-            // TODO: Remove after SAML implementation
-            if (protocol == InboundProtocol.SAML) {
-                LOG.warn("CustomKeyStoreMapping for SAML configured. This is not supported yet." +
-                        " Please use [keystore.saml] configuration.");
-            }
-
-            // Parse keystore name
-            OMElement keyStoreNameElement = keyStoreMapping.getFirstChildWithName(
-                    IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                            ATTR_NAME_KEYSTORE_NAME));
-            if (keyStoreNameElement == null) {
-                LOG.error("Error occurred when reading configuration. CustomKeyStoreMapping KeyStoreName value null.");
-                continue;
-            }
-            String keyStoreName = keyStoreNameElement.getText();
-
-            // Parse UseInAllTenants config
-            OMElement useInAllTenantsElement = keyStoreMapping.getFirstChildWithName(
-                    IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                            ATTR_NAME_USE_IN_ALL_TENANTS));
-            if (useInAllTenantsElement == null) {
-                LOG.error("Error occurred when reading configuration. " +
-                        "CustomKeyStoreMapping useInAllTenants value null.");
-                continue;
-            }
-            Boolean useInAllTenants = Boolean.valueOf(useInAllTenantsElement.getText());
-
-            // Add custom keystore mapping to the map
-            IdentityKeyStoreMapping identityKeyStoreMapping = new IdentityKeyStoreMapping(
-                    keyStoreName, protocol, useInAllTenants);
-            keyStoreMappings.put(protocol, identityKeyStoreMapping);
+                        IdentityKeyStoreResolverConstants.ATTR_NAME_USE_IN_ALL_TENANTS));
+        if (useInAllTenantsElement == null || useInAllTenantsElement.getText().isEmpty()) {
+            LOG.debug("use_in_all_tenants config null for " + protocol.toString() + ". Using default value as false.");
         }
+        Boolean useInAllTenants = Boolean.valueOf(useInAllTenantsElement.getText());
+
+        // Add custom keystore mapping to the map
+        IdentityKeyStoreMapping identityKeyStoreMapping = new IdentityKeyStoreMapping(
+                keyStoreName, protocol, useInAllTenants);
+        keyStoreMappings.put(protocol, identityKeyStoreMapping);
     }
 }

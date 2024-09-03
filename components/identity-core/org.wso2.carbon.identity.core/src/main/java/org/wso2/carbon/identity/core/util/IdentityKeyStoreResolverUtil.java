@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages;
 
@@ -37,7 +38,7 @@ public class IdentityKeyStoreResolverUtil {
      */
     public static String buildTenantKeyStoreName(String tenantDomain) throws IdentityKeyStoreResolverException {
 
-        if (tenantDomain == null || tenantDomain.isEmpty()) {
+        if (StringUtils.isEmpty(tenantDomain)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
@@ -55,7 +56,7 @@ public class IdentityKeyStoreResolverUtil {
      */
     public static String buildCustomKeyStoreName(String keyStoreName) throws IdentityKeyStoreResolverException {
 
-        if (keyStoreName == null || keyStoreName.isEmpty()) {
+        if (StringUtils.isEmpty(keyStoreName)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "KeyStore name"));
