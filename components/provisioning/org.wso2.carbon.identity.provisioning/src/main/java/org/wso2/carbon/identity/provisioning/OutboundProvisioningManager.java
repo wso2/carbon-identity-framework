@@ -888,7 +888,6 @@ public class OutboundProvisioningManager {
         if (provisioningEntity.getAttributes() != null &&
                 StringUtils.isNotBlank(provisioningEntity.getEntityName())) {
             String userName = provisioningEntity.getEntityName();
-            isInternalRole(provisioningEntity.getEntityName(), tenantDomain);
             List<String> provisioningRoleList = Arrays.asList(provisionByRoleList);
             if (provisioningEntity.getInboundAttributes() == null ||
                     provisioningEntity.getInboundAttributes().get(USER_ID_CLAIM) == null) {
