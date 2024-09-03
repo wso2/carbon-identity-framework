@@ -22,6 +22,7 @@
         <test name="action-mgt-tests" preserve-order="true" parallel="false">
                 <classes>
                         <class name="org.wso2.carbon.identity.action.management.dao.ActionManagementDAOImplTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.ActionManagementServiceImplTest"></class>
                 </classes>
         </test>
 </suite>
