@@ -91,31 +91,31 @@ public class IdentityKeyStoreResolverConstants {
      * IKSR stands for Identity Key Store Resolver.
      */
     public enum ErrorMessages {
-        // Error codes for errors occurred in Carbon Kernel KeyStoreManager side
+        // Error codes for errors occurred in Carbon Kernel KeyStoreManager side.
         ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE(
-                "IKSR-10001", "Error retrieving tenant keystore",
-                "Error occurred when retrieving keystore for tenant: %s"),
+                "IKSR-10001", "Error retrieving tenant keystore.",
+                "Error occurred when retrieving keystore for tenant: %s."),
         ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE(
-                "IKSR-10002", "Error retrieving custom keystore",
-                "Error occurred when retrieving custom keystore: %s"),
+                "IKSR-10002", "Error retrieving custom keystore.",
+                "Error occurred when retrieving custom keystore: %s."),
         ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY(
-                "IKSR-10003", "Error retrieving tenant private key",
-                "Error occurred when retrieving private key for tenant: %s"),
+                "IKSR-10003", "Error retrieving tenant private key.",
+                "Error occurred when retrieving private key for tenant: %s."),
         ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PRIVATE_KEY(
-                "IKSR-10004", "Error retrieving custom keystore private key",
-                "Error occurred when retrieving private key from key store: %s"),
+                "IKSR-10004", "Error retrieving custom keystore private key.",
+                "Error occurred when retrieving private key from key store: %s."),
         ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE(
-                "IKSR-10005", "Error retrieving tenant public certificate",
-                "Error occurred when retrieving public certificate for tenant: %s"),
+                "IKSR-10005", "Error retrieving tenant public certificate.",
+                "Error occurred when retrieving public certificate for tenant: %s."),
         ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PUBLIC_CERTIFICATE(
-                "IKSR-10006", "Error retrieving custom keystore public certificate",
-                "Error occurred when retrieving public certificate from key store: %s"),
+                "IKSR-10006", "Error retrieving custom keystore public certificate.",
+                "Error occurred when retrieving public certificate from key store: %s."),
         ERROR_CODE_ERROR_RETRIEVING_PRIMARY_KEYSTORE_CONFIGURATION(
-                "IKSR-10007", "Error retrieving primary keystore configuration",
-                "Error occurred when retrieving primary keystore configuration"),
+                "IKSR-10007", "Error retrieving primary keystore configuration.",
+                "Error occurred when retrieving primary keystore configuration."),
         ERROR_CODE_ERROR_RETRIEVING_TENANT_KEYSTORE_CONFIGURATION(
-                "IKSR-10008", "Error retrieving tenant keystore configuration",
-                "Error occurred when retrieving tenant keystore configuration for tenant: %s"),
+                "IKSR-10008", "Error retrieving tenant keystore configuration.",
+                "Error occurred when retrieving tenant keystore configuration for tenant: %s."),
         ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE_CONFIGURATION(
                 "IKSR-10009", "Error retrieving custom keystore configuration",
                 "Error occurred when retrieving custom keystore configuration for: %s"),

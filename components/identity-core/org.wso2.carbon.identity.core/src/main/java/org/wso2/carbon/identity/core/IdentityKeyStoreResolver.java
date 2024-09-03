@@ -222,7 +222,7 @@ public class IdentityKeyStoreResolver {
 
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Custom key store configuration available for " + inboundProtocol + " protocol. " +
-                            "Retrieving primary key from " + keyStoreName + " key store.");
+                            "Retrieving private key from " + keyStoreName + " key store.");
                 }
 
                 if (privateKeys.containsKey(inboundProtocol.toString())) {
