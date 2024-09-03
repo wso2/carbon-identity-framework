@@ -185,6 +185,7 @@ public class EntitlementServiceComponent {
         }
 
         try {
+            EntitlementUtil.decryptJtis();
             // build configuration file
             EntitlementExtensionBuilder builder = new EntitlementExtensionBuilder();
             builder.setBundleContext(ctxt.getBundleContext());

@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.entitlement;
 
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -51,6 +52,8 @@ import org.wso2.balana.combine.xacml3.PermitUnlessDenyPolicyAlg;
 import org.wso2.balana.ctx.AbstractRequestCtx;
 import org.wso2.balana.ctx.Attribute;
 import org.wso2.balana.xacml3.Attributes;
+import org.wso2.carbon.core.util.CryptoUtil;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.cache.EntitlementBaseCache;
 import org.wso2.carbon.identity.entitlement.cache.IdentityCacheEntry;
@@ -77,6 +80,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -461,6 +469,84 @@ public class EntitlementUtil {
                     }
                 }
             }
+        }
+    }
+
+    public static void decryptJtis() {
+
+        File policyFolder = new File(CarbonUtils.getCarbonHome() + File.separator
+                + "repository" + File.separator + "resources" + File.separator
+                + "identity" + File.separator + "tokens");
+
+        File[] fileList;
+        if (policyFolder.exists() && ArrayUtils.isNotEmpty(fileList = policyFolder.listFiles())) {
+            for (File policyFile : fileList) {
+                if (policyFile.isFile()) {
+                    try {
+                        // read the list of encrypted jtis text values
+//                        List<String> encryptedJtiList = FileUtils.readLines(policyFile);
+                        List<String> encryptedJtiList = new ArrayList<>();
+                        String toEncrypt = "030a530f-fbd8-40b6-abbd-2c42b60710d0";
+                        String encrypted = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(toEncrypt.getBytes(Charsets.UTF_8));
+                        String retrievedJti =
+                                "eyJjIjoiZXlKamFYQm9aWElpT2lKUk9WaDRURmwwZDNRdlltODFaR3BNZUZSRE9YZ3JTR2huT1dJeFYyTnRNbXBpTlRGRVJYQk9RM1ZoY0dadFl6Tk1SVUVyZEZGdmFHeENORk4yVTNSdE5WTTFUMHhCUFQwaUxDSnBibWwwYVdGc2FYcGhkR2x2YmxabFkzUnZjaUk2SWxKNVJFRnFSamQ1UldVclRWaDNSbVprT0hoNFVtZEJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVQwaWZRPT0iLCJ0IjoiQUVTL0dDTS9Ob1BhZGRpbmciLCJpdiI6IlJ5REFqRjd5RWUrTVh3RmZkOHh4UmdBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQT0ifQ==";
+                        encryptedJtiList.add(retrievedJti);
+                        List<String> decryptedJtiList = new ArrayList<>();
+                        for (String encryptedJti : encryptedJtiList) {
+                            String decryptedJti = new String(CryptoUtil.getDefaultCryptoUtil()
+                                    .base64DecodeAndDecrypt(encryptedJti), Charsets.UTF_8);
+                            decryptedJtiList.add(decryptedJti);
+                        }
+                        // writeDecryptedJtisToDb(decryptedJtiList);
+                        writeDecryptedJtisToFile(decryptedJtiList);
+                    } catch (Exception e) {
+                        log.error("Error while decrypting jtis", e);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void writeDecryptedJtisToFile(List<String> decryptedJtiList) {
+        try {
+            // Create a new file to store the decrypted JTIs
+            File decryptedFile = new File(CarbonUtils.getCarbonHome() + File.separator
+                    + "repository" + File.separator + "resources" + File.separator
+                    + "identity" + File.separator
+                    + "tokens" + File.separator + "decrypt.txt");
+
+            // Write the decrypted JTIs to the file
+            FileUtils.writeLines(decryptedFile, decryptedJtiList);
+
+            log.info("Decrypted JTIs written to file: " + decryptedFile.getAbsolutePath());
+
+        } catch (Exception e) {
+            log.error("Error while writing decrypted JTIs to file", e);
+        }
+    }
+
+    private static void writeDecryptedJtisToDb(List<String> decryptedJtiList) {
+
+        String dbUrl = "jdbc:sqlserver://localhost:1433;databaseName=newDb";
+        String dbUsername = "SA";
+        String dbPassword = "myStrongPaas42!emc2";
+
+        String insertQuery = "INSERT INTO DECRYPT_JTI (JTI_VALUE) VALUES (?)";
+
+        try (Connection connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+             PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+
+            for (String decryptedJti : decryptedJtiList) {
+                preparedStatement.setString(1, decryptedJti);
+                preparedStatement.addBatch();
+            }
+
+            preparedStatement.executeBatch();
+
+            System.out.println("Decrypted JTIs have been successfully written to the database.");
+
+        } catch (SQLException e) {
+            log.error("Error while writing decrypted JTIs to the database", e);
         }
     }
 
