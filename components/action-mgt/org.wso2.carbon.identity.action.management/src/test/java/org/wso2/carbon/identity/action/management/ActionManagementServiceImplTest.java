@@ -31,8 +31,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
@@ -48,7 +47,6 @@ import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,8 +116,7 @@ public class ActionManagementServiceImplTest {
                 "PreIssueAccessToken",
                 "To configure PreIssueAccessToken",
                 "https://example.com",
-                AuthType.AuthenticationType.BASIC,
-                buildMockBasicAuthProperties("admin", "admin"));
+                buildMockBasicAuthentication("admin", "admin"));
         action = serviceImpl.addAction(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam(), creatingAction,
                 tenantDomain);
         Assert.assertNotNull(action.getId());
@@ -143,8 +140,7 @@ public class ActionManagementServiceImplTest {
                 "PreIssueAccessToken",
                 "To configure PreIssueAccessToken",
                 "https://example.com",
-                AuthType.AuthenticationType.BASIC,
-                buildMockBasicAuthProperties("admin", "admin"));
+                buildMockBasicAuthentication("admin", "admin"));
         action = serviceImpl.addAction(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam(), creatingAction,
                 tenantDomain);
     }
@@ -172,8 +168,7 @@ public class ActionManagementServiceImplTest {
                 "Pre Issue Access Token",
                 "To update configuration pre issue access token",
                 "https://sample.com",
-                AuthType.AuthenticationType.BASIC,
-                buildMockBasicAuthProperties("updatingadmin", "updatingadmin"));
+                buildMockBasicAuthentication("updatingadmin", "updatingadmin"));
         Action result = serviceImpl.updateAction(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam(),
                 action.getId(), updatingAction, tenantDomain);
         Assert.assertEquals(action.getId(), result.getId());
@@ -209,7 +204,7 @@ public class ActionManagementServiceImplTest {
     @Test(priority = 8)
     public void testGetActionByActionId() throws ActionMgtException {
 
-        Action result = serviceImpl.getActionByActionId(action.getId(), tenantDomain);
+        Action result = serviceImpl.getActionByActionId(action.getType().getPathParam(), action.getId(), tenantDomain);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(action.getName(), result.getName());
         Assert.assertEquals(action.getDescription(), result.getDescription());
@@ -233,11 +228,10 @@ public class ActionManagementServiceImplTest {
     @Test(priority = 10)
     public void testUpdateEndpointConfigWithSameAuth() throws ActionMgtException {
 
-        AuthType authType = buildMockAuthType(AuthType.AuthenticationType.BASIC,
-                buildMockBasicAuthProperties("newadmin", "newadmin"));
+        Authentication authType = buildMockBasicAuthentication("newadmin", "newadmin");
         Action result = serviceImpl.updateActionEndpointAuthentication(
                 Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam(), action.getId(), authType, tenantDomain);
-        Assert.assertEquals(AuthType.AuthenticationType.BASIC, result.getEndpoint().getAuthentication().getType());
+        Assert.assertEquals(Authentication.Type.BASIC, result.getEndpoint().getAuthentication().getType());
         Assert.assertEquals(action.getEndpoint().getAuthentication().getProperties().get(0).getValue(),
                 result.getEndpoint().getAuthentication().getProperties().get(0).getValue());
         Assert.assertEquals(action.getEndpoint().getAuthentication().getProperties().get(1).getValue(),
@@ -247,11 +241,10 @@ public class ActionManagementServiceImplTest {
     @Test(priority = 11)
     public void testUpdateEndpointConfigWithDifferentAuth() throws ActionMgtException {
 
-        AuthType authType = buildMockAuthType(AuthType.AuthenticationType.BEARER,
-                buildMockBearerAuthProperties(ACCESS_TOKEN));
+        Authentication authType = buildMockBearerAuthentication(ACCESS_TOKEN);
         Action result = serviceImpl.updateActionEndpointAuthentication(
                 Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam(), action.getId(), authType, tenantDomain);
-        Assert.assertEquals(AuthType.AuthenticationType.BEARER, result.getEndpoint().getAuthentication().getType());
+        Assert.assertEquals(Authentication.Type.BEARER, result.getEndpoint().getAuthentication().getType());
         Assert.assertNotEquals(authType.getProperties().get(0).getValue(),
                 result.getEndpoint().getAuthentication().getProperties().get(0).getValue());
     }
@@ -261,66 +254,41 @@ public class ActionManagementServiceImplTest {
 
         serviceImpl.deleteAction(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam(),
                 action.getId(), tenantDomain);
-        Assert.assertNull(serviceImpl.getActionByActionId(action.getId(), tenantDomain));
+        Assert.assertNull(serviceImpl.getActionByActionId(action.getType().getPathParam(), action.getId(),
+                tenantDomain));
     }
 
-    private AuthProperty buildMockAuthProperty(
-            AuthType.AuthenticationType.AuthenticationProperty authenticationProperty, String value) {
+    private Authentication buildMockBasicAuthentication(String username, String password) {
 
-        return new AuthProperty.AuthPropertyBuilder()
-                .name(authenticationProperty.getName())
-                .value(value)
-                .isConfidential(authenticationProperty.getIsConfidential())
-                .build();
+        return new Authentication.BasicAuthBuilder(username, password).build();
     }
 
-    private List<AuthProperty> buildMockBasicAuthProperties(String username, String password) {
+    private Authentication buildMockBearerAuthentication(String accessToken) {
 
-        return Arrays.asList(
-                buildMockAuthProperty(AuthType.AuthenticationType.AuthenticationProperty.USERNAME, username),
-                buildMockAuthProperty(AuthType.AuthenticationType.AuthenticationProperty.PASSWORD, password));
+        return new Authentication.BearerAuthBuilder(accessToken).build();
     }
 
-    private List<AuthProperty> buildMockBearerAuthProperties(String accessToken) {
+    private EndpointConfig buildMockEndpointConfig(String uri, Authentication authentication) {
 
-        return Arrays.asList(
-                buildMockAuthProperty(AuthType.AuthenticationType.AuthenticationProperty.ACCESS_TOKEN, accessToken));
-    }
-
-    private EndpointConfig buildMockEndpointConfig(String uri, AuthType.AuthenticationType authenticationType,
-                                                   List<AuthProperty> authProperties) {
-
-        if (uri == null && authProperties == null) {
+        if (uri == null && authentication == null) {
             return null;
         }
+
         return new EndpointConfig.EndpointConfigBuilder()
                 .uri(uri)
-                .authentication(buildMockAuthType(authenticationType, authProperties))
-                .build();
-    }
-
-    private AuthType buildMockAuthType(AuthType.AuthenticationType authenticationType,
-                                       List<AuthProperty> authProperties) {
-
-        if (authenticationType == null || authProperties == null) {
-            return null;
-        }
-        return new AuthType.AuthTypeBuilder()
-                .type(authenticationType)
-                .properties(authProperties)
+                .authentication(authentication)
                 .build();
     }
 
     private Action buildMockAction(String name,
                                    String description,
                                    String uri,
-                                   AuthType.AuthenticationType authType,
-                                   List<AuthProperty> authProperties) {
+                                   Authentication authentication) {
 
         return new Action.ActionRequestBuilder()
                 .name(name)
                 .description(description)
-                .endpoint(buildMockEndpointConfig(uri, authType, authProperties))
+                .endpoint(buildMockEndpointConfig(uri, authentication))
                 .build();
     }
 
