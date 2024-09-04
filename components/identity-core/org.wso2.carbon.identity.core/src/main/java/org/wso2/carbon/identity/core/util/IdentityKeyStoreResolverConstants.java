@@ -117,13 +117,13 @@ public class IdentityKeyStoreResolverConstants {
                 "IKSR-10008", "Error retrieving tenant keystore configuration.",
                 "Error occurred when retrieving tenant keystore configuration for tenant: %s."),
         ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE_CONFIGURATION(
-                "IKSR-10009", "Error retrieving custom keystore configuration",
-                "Error occurred when retrieving custom keystore configuration for: %s"),
+                "IKSR-10009", "Error retrieving custom keystore configuration.",
+                "Error occurred when retrieving custom keystore configuration for: %s."),
 
         // Errors occurred within the IdentityKeyStoreResolver
         ERROR_CODE_INVALID_ARGUMENT(
-                "IKSR-20001", "Illegal arguments provided",
-                "%s must not be null or empty");
+                "IKSR-20001", "Illegal arguments provided.",
+                "%s must not be null or empty.");
 
         private final String code;
         private final String message;
