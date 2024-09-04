@@ -55,9 +55,8 @@ public class RegistryConfigPersistenceManager implements ConfigPersistenceManage
      * @throws EntitlementException If an error occurs.
      */
     @Override
-    public boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
+    public void addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
-        boolean isUpdate = false;
         try {
             Collection policyCollection;
             if (registry.resourceExists(POLICY_DATA_COLLECTION)) {
@@ -65,16 +64,11 @@ public class RegistryConfigPersistenceManager implements ConfigPersistenceManage
             } else {
                 policyCollection = registry.newCollection();
             }
-            if (StringUtils.isNotBlank(policyCollection.getProperty(GLOBAL_POLICY_COMBINING_ALGORITHM))) {
-                isUpdate = true;
-            }
             policyCollection.setProperty(GLOBAL_POLICY_COMBINING_ALGORITHM, policyCombiningAlgorithm);
             registry.put(POLICY_DATA_COLLECTION, policyCollection);
-
         } catch (RegistryException e) {
             throw new EntitlementException("Error while updating global policy combining algorithm in policy store", e);
         }
-        return isUpdate;
     }
 
     /**
@@ -84,6 +78,18 @@ public class RegistryConfigPersistenceManager implements ConfigPersistenceManage
      */
     @Override
     public String getGlobalPolicyAlgorithmName() {
+
+        String algorithm = getGlobalPolicyAlgorithmValue();
+
+        // set default
+        if (algorithm == null) {
+            algorithm = PDPConstants.Algorithms.DENY_OVERRIDES;
+        }
+
+        return algorithm;
+    }
+
+    private String getGlobalPolicyAlgorithmValue() {
 
         String algorithm = null;
         try {
@@ -96,12 +102,6 @@ public class RegistryConfigPersistenceManager implements ConfigPersistenceManage
                 LOG.debug(e);
             }
         }
-
-        // set default
-        if (algorithm == null) {
-            algorithm = PDPConstants.Algorithms.DENY_OVERRIDES;
-        }
-
         return algorithm;
     }
 
@@ -119,5 +119,11 @@ public class RegistryConfigPersistenceManager implements ConfigPersistenceManage
         } catch (RegistryException e) {
             throw new EntitlementException("Error while deleting global policy combining algorithm in policy store", e);
         }
+    }
+
+    boolean isGlobalPolicyAlgorithmExist() {
+
+        return getGlobalPolicyAlgorithmValue() != null;
+
     }
 }
