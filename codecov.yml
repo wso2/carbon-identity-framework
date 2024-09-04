@@ -1,0 +1,16 @@
+
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    wait_for_ci: yes
+coverage:
+  status:
+    project:
+      default:
+        enabled: yes
+        threshold: null
+        target: auto
+    patch:
+      default:
+        target: 80%
+        threshold: 40%
