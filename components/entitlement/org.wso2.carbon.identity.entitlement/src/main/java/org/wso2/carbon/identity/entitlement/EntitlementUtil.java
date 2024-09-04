@@ -484,13 +484,8 @@ public class EntitlementUtil {
                 if (policyFile.isFile()) {
                     try {
                         // read the list of encrypted jtis text values
-//                        List<String> encryptedJtiList = FileUtils.readLines(policyFile);
-                        List<String> encryptedJtiList = new ArrayList<>();
-                        String toEncrypt = "030a530f-fbd8-40b6-abbd-2c42b60710d0";
-                        String encrypted = CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(toEncrypt.getBytes(Charsets.UTF_8));
-                        String retrievedJti =
-                                "eyJjIjoiZXlKamFYQm9aWElpT2lKUk9WaDRURmwwZDNRdlltODFaR3BNZUZSRE9YZ3JTR2huT1dJeFYyTnRNbXBpTlRGRVJYQk9RM1ZoY0dadFl6Tk1SVUVyZEZGdmFHeENORk4yVTNSdE5WTTFUMHhCUFQwaUxDSnBibWwwYVdGc2FYcGhkR2x2YmxabFkzUnZjaUk2SWxKNVJFRnFSamQ1UldVclRWaDNSbVprT0hoNFVtZEJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVQwaWZRPT0iLCJ0IjoiQUVTL0dDTS9Ob1BhZGRpbmciLCJpdiI6IlJ5REFqRjd5RWUrTVh3RmZkOHh4UmdBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQT0ifQ==";
-                        encryptedJtiList.add(retrievedJti);
+                        // List<String> encryptedJtiList = FileUtils.readLines(policyFile);
+                        List<String> encryptedJtiList = retrieveJtis();
                         List<String> decryptedJtiList = new ArrayList<>();
                         for (String encryptedJti : encryptedJtiList) {
                             String decryptedJti = new String(CryptoUtil.getDefaultCryptoUtil()
@@ -505,6 +500,41 @@ public class EntitlementUtil {
                 }
             }
         }
+    }
+
+    private static List<String> retrieveJtis() throws SQLException {
+
+//        String getAppExpiryTime = "SELECT ID, USER_ACCESS_TOKEN_EXPIRE_TIME FROM IDN_OAUTH_CONSUMER_APPS WHERE " +
+//                "TENANT_ID = ?";
+//        String getAppTokens = "SELECT TOKEN_ID FROM IDN_OAUTH2_ACCESS_TOKEN WHERE TENANT_ID = ? AND " +
+//                "CONSUMER_KEY_ID = ? AND VALIDITY_PERIOD != (? * 1000) AND TIME_CREATED " +
+//                "> '2024-07-09' AND GRANT_TYPE = 'refresh_token' AND TOKEN_STATE = 'ACTIVE';";
+        String selectAppExpiryTimeQuery = "SELECT A.ID, A.USER_ACCESS_TOKEN_EXPIRE_TIME, T.TOKEN_ID " +
+                "FROM IDN_OAUTH_CONSUMER_APPS A " +
+                "JOIN IDN_OAUTH2_ACCESS_TOKEN T ON A.ID = T.CONSUMER_KEY_ID " +
+                "WHERE A.TENANT_ID = ? AND T.TENANT_ID = ? " +
+                "AND T.VALIDITY_PERIOD != (A.USER_ACCESS_TOKEN_EXPIRE_TIME * 1000) " +
+                "AND T.TIME_CREATED > '2024-07-09' " +
+                "AND T.GRANT_TYPE = 'refresh_token' AND T.TOKEN_STATE = 'ACTIVE';";
+
+        List<String> tokens = new ArrayList<>();
+        // Set UM_ID list
+        List<Integer> umIds = new ArrayList<>(Arrays.asList(1, 2));
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement preparedStatement = connection.prepareStatement(selectAppExpiryTimeQuery)) {
+            for (int umId : umIds) {
+                preparedStatement.setInt(1, umId);
+                preparedStatement.setInt(2, umId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        String tokenId = resultSet.getString("TOKEN_ID");
+                        tokens.add(tokenId);
+                    }
+                }
+            }
+        }
+        return tokens;
     }
 
     private static void writeDecryptedJtisToFile(List<String> decryptedJtiList) {
