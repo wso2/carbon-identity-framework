@@ -2128,7 +2128,7 @@
 
         <!-- Unit test versions -->
         <testng.version>7.10.1</testng.version>
-        <jacoco.version>0.8.4</jacoco.version>
+        <jacoco.version>0.8.12</jacoco.version>
         <jmockit.version>1.44</jmockit.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <mockito.version>5.3.1</mockito.version>
@@ -2263,6 +2263,25 @@
                             <phase>compile</phase>
                             <goals>
                                 <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
                             </goals>
                         </execution>
                     </executions>
