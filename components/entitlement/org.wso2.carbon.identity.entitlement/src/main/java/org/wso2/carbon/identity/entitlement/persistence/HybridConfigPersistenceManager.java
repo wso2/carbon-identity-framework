@@ -56,16 +56,15 @@ public class HybridConfigPersistenceManager implements ConfigPersistenceManager 
     }
 
     @Override
-    public boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
+    public void addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
-        boolean isUpdate = jdbcConfigPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyCombiningAlgorithm);
-        if (!isUpdate) {
+        jdbcConfigPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyCombiningAlgorithm);
+        if (registryConfigPersistenceManager.isGlobalPolicyAlgorithmExist()) {
             try {
                 registryConfigPersistenceManager.deleteGlobalPolicyAlgorithm();
             } catch (EntitlementException e) {
                 LOG.debug("Error while deleting global policy combining algorithm from registry", e);
             }
         }
-        return isUpdate;
     }
 }
