@@ -64,23 +64,23 @@ public abstract class ConfigPersistenceManagerTest {
     }
 
     @Test(dataProvider = "globalPolicyAlgorithmData")
-    public void testAddGlobalPolicyAlgorithm(String policyAlgorithmNameFromStorage) throws Exception {
+    public void testAddGlobalPolicyAlgorithm(String policyAlgorithmName) throws Exception {
 
         // Add the first global policy combining algorithm.
-        configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmNameFromStorage);
-        String policyAlgorithmNameFromDb = configPersistenceManager.getGlobalPolicyAlgorithmName();
-        assertEquals(policyAlgorithmNameFromDb, policyAlgorithmNameFromStorage);
+        configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmName);
+        String policyAlgorithmNameFromStorage = configPersistenceManager.getGlobalPolicyAlgorithmName();
+        assertEquals(policyAlgorithmNameFromStorage, policyAlgorithmName);
     }
 
     @Test(dataProvider = "globalPolicyAlgorithmData")
-    public void testUpdateGlobalPolicyAlgorithm(String policyAlgorithmNameFromStorage) throws Exception {
+    public void testUpdateGlobalPolicyAlgorithm(String policyAlgorithmName) throws Exception {
 
         configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(DENY_OVERRIDES);
         // Update the global policy combining algorithm.
-        configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmNameFromStorage);
+        configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmName);
 
-        String policyAlgorithmNameFromDb = configPersistenceManager.getGlobalPolicyAlgorithmName();
-        assertEquals(policyAlgorithmNameFromDb, policyAlgorithmNameFromStorage);
+        String policyAlgorithmNameFromStorage = configPersistenceManager.getGlobalPolicyAlgorithmName();
+        assertEquals(policyAlgorithmNameFromStorage, policyAlgorithmName);
     }
 
     public void deletePolicyCombiningAlgorithmInDatabase() throws EntitlementException {

@@ -60,44 +60,44 @@ public class HybridConfigPersistenceManagerTest extends ConfigPersistenceManager
     }
 
     @Test(dataProvider = "globalPolicyAlgorithmData")
-    public void testGetGlobalPolicyAlgorithmNameFromRegistry(String policyAlgorithmNameFromStorage) throws Exception {
+    public void testGetGlobalPolicyAlgorithmNameFromRegistry(String policyAlgorithmName) throws Exception {
 
         // Add the global policy combining algorithm.
-        registryConfigPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmNameFromStorage);
+        registryConfigPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmName);
         String policyAlgorithmFromRegistry = configPersistenceManager.getGlobalPolicyAlgorithmName();
-        assertEquals(policyAlgorithmFromRegistry, policyAlgorithmNameFromStorage);
+        assertEquals(policyAlgorithmFromRegistry, policyAlgorithmName);
     }
 
     @Test(dataProvider = "globalPolicyAlgorithmData")
-    public void testGetGlobalPolicyAlgorithmNameFromDatabase(String policyAlgorithmNameFromStorage) throws Exception {
+    public void testGetGlobalPolicyAlgorithmNameFromDatabase(String policyAlgorithmName) throws Exception {
 
         // Add the global policy combining algorithm.
-        jdbcConfigPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmNameFromStorage);
+        jdbcConfigPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmName);
         String policyAlgorithmFromDatabase = configPersistenceManager.getGlobalPolicyAlgorithmName();
-        assertEquals(policyAlgorithmFromDatabase, policyAlgorithmNameFromStorage);
+        assertEquals(policyAlgorithmFromDatabase, policyAlgorithmName);
     }
 
     @Test(dataProvider = "globalPolicyAlgorithmData")
-    public void testUpdateGlobalPolicyAlgorithmInRegistry(String policyAlgorithmNameFromStorage) throws Exception {
+    public void testUpdateGlobalPolicyAlgorithmInRegistry(String policyAlgorithmName) throws Exception {
 
         registryConfigPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(DENY_OVERRIDES);
-        configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmNameFromStorage);
+        configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmName);
         // Verify that the global policy combining algorithm value was deleted from the registry.
         assertFalse(registryConfigPersistenceManager.isGlobalPolicyAlgorithmExist());
 
         String policyAlgorithmFromDatabase = configPersistenceManager.getGlobalPolicyAlgorithmName();
-        assertEquals(policyAlgorithmFromDatabase, policyAlgorithmNameFromStorage);
+        assertEquals(policyAlgorithmFromDatabase, policyAlgorithmName);
     }
 
     @Test(dataProvider = "globalPolicyAlgorithmData")
-    public void testUpdateGlobalPolicyAlgorithmInDatabase(String policyAlgorithmNameFromStorage) throws Exception {
+    public void testUpdateGlobalPolicyAlgorithmInDatabase(String policyAlgorithmName) throws Exception {
 
         // Add the global policy combining algorithm.
         configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(DENY_OVERRIDES);
         assertFalse(registryConfigPersistenceManager.isGlobalPolicyAlgorithmExist());
-        configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmNameFromStorage);
+        configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmName);
         assertFalse(registryConfigPersistenceManager.isGlobalPolicyAlgorithmExist());
         String policyAlgorithmFromDatabase = configPersistenceManager.getGlobalPolicyAlgorithmName();
-        assertEquals(policyAlgorithmFromDatabase, policyAlgorithmNameFromStorage);
+        assertEquals(policyAlgorithmFromDatabase, policyAlgorithmName);
     }
 }

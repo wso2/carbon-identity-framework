@@ -47,5 +47,4 @@ public class RegistryConfigPersistenceManagerTest extends ConfigPersistenceManag
 
         ((RegistryConfigPersistenceManager) configPersistenceManager).deleteGlobalPolicyAlgorithm();
     }
-
 }
