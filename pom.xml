@@ -58,7 +58,7 @@
         <module>components/policy-editor</module>
         <module>components/carbon-authenticators</module>
         <module>components/consent-mgt</module>
-<!--        <module>components/functions-library-mgt</module>-->
+        <module>components/functions-library-mgt</module>
         <module>components/template-mgt</module>
         <module>components/extension-mgt</module>
         <module>components/configuration-mgt</module>
@@ -91,7 +91,7 @@
         <module>features/categories</module>
         <module>features/carbon-authenticators</module>
         <module>features/consent-mgt</module>
-<!--        <module>features/functions-library-mgt</module>-->
+        <module>features/functions-library-mgt</module>
         <module>features/template-mgt</module>
         <module>features/configuration-mgt</module>
         <module>features/user-functionality-mgt</module>
