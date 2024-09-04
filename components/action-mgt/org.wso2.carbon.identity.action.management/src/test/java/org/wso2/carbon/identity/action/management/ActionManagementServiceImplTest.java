@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.action.management;
 
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.lang.StringUtils;
 import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -323,11 +322,8 @@ public class ActionManagementServiceImplTest {
 
     private static String getFilePath() {
 
-        if (StringUtils.isNotBlank("h2.sql")) {
-            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", "h2.sql")
-                    .toString();
-        }
-        throw new IllegalArgumentException("DB Script file name cannot be empty.");
+        return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", "h2.sql")
+                .toString();
     }
 
     private static void closeH2Database() throws SQLException {
