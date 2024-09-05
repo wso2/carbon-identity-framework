@@ -152,7 +152,9 @@
                   <artifactId>maven-surefire-plugin</artifactId>
                   <version>${maven.surefire.plugin.version}</version>
                   <configuration>
+                      <!--suppress UnresolvedMavenProperty -->
                       <argLine>
+                          ${argLine}
                           --add-opens=java.base/sun.nio.fs=ALL-UNNAMED
                           --add-opens=java.base/java.lang=ALL-UNNAMED
                       </argLine>
