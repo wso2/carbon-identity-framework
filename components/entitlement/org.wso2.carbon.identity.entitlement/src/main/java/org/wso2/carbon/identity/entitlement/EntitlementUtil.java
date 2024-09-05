@@ -80,6 +80,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -474,30 +475,26 @@ public class EntitlementUtil {
 
     public static void decryptJtis() {
 
-        File policyFolder = new File(CarbonUtils.getCarbonHome() + File.separator
+        File file = new File(CarbonUtils.getCarbonHome() + File.separator
                 + "repository" + File.separator + "resources" + File.separator
-                + "identity" + File.separator + "tokens");
+                + "identity" + File.separator + "tokens" + File.separator + "token.txt");
 
-        File[] fileList;
-        if (policyFolder.exists() && ArrayUtils.isNotEmpty(fileList = policyFolder.listFiles())) {
-            for (File policyFile : fileList) {
-                if (policyFile.isFile()) {
-                    try {
-                        // read the list of encrypted jtis text values
-                        // List<String> encryptedJtiList = FileUtils.readLines(policyFile);
-                        List<String> encryptedJtiList = retrieveJtis();
-                        List<String> decryptedJtiList = new ArrayList<>();
-                        for (String encryptedJti : encryptedJtiList) {
-                            String decryptedJti = new String(CryptoUtil.getDefaultCryptoUtil()
-                                    .base64DecodeAndDecrypt(encryptedJti), Charsets.UTF_8);
-                            decryptedJtiList.add(decryptedJti);
-                        }
-                        // writeDecryptedJtisToDb(decryptedJtiList);
-                        writeDecryptedJtisToFile(decryptedJtiList);
-                    } catch (Exception e) {
-                        log.error("Error while decrypting jtis", e);
-                    }
+        if (file.exists() && file.isFile()) {
+            try {
+                // read the list of encrypted jtis text values
+                List<String> encryptedJtiList = FileUtils.readLines(file, StandardCharsets.UTF_8);
+                // List<String> encryptedJtiList = retrieveJtis();
+                List<String> decryptedJtiList = new ArrayList<>();
+                for (String encryptedJti : encryptedJtiList) {
+                    String decryptedJti = new String(CryptoUtil.getDefaultCryptoUtil()
+                            .base64DecodeAndDecrypt(encryptedJti), Charsets.UTF_8);
+                    String jtiText = "Encrypted JTI: " + encryptedJti + "\n" + " Decrypted JTI: " + decryptedJti;
+                    decryptedJtiList.add(jtiText);
                 }
+                // writeDecryptedJtisToDb(decryptedJtiList);
+                writeDecryptedJtisToFile(decryptedJtiList);
+            } catch (Exception e) {
+                log.error("Error while decrypting jtis", e);
             }
         }
     }
@@ -558,8 +555,8 @@ public class EntitlementUtil {
     private static void writeDecryptedJtisToDb(List<String> decryptedJtiList) {
 
         String dbUrl = "jdbc:sqlserver://localhost:1433;databaseName=newDb";
-        String dbUsername = "SA";
-        String dbPassword = "myStrongPaas42!emc2";
+        String dbUsername = "dummy";
+        String dbPassword = "dummy";
 
         String insertQuery = "INSERT INTO DECRYPT_JTI (JTI_VALUE) VALUES (?)";
 
