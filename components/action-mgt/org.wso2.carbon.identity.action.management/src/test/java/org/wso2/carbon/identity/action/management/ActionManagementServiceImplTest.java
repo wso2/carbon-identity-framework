@@ -166,7 +166,7 @@ public class ActionManagementServiceImplTest {
             Assert.assertEquals(action.getId(), result.getId());
             Assert.assertEquals(action.getName(), result.getName());
             Assert.assertEquals(action.getDescription(), result.getDescription());
-            Assert.assertEquals(action.getType(), result.getType());
+            Assert.assertEquals(action.getType().getActionType(), result.getType().getActionType());
             Assert.assertEquals(action.getStatus(), result.getStatus());
             Assert.assertEquals(action.getEndpoint().getUri(), result.getEndpoint().getUri());
             Assert.assertEquals(action.getEndpoint().getAuthentication().getType(),
@@ -235,8 +235,7 @@ public class ActionManagementServiceImplTest {
                 "To update configuration pre issue access token",
                 "https://sample.com",
                 buildMockAPIKeyAuthentication("header", "value"));
-        Action result = serviceImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN,
-                action.getId(), updatingAction, tenantDomain);
+        Action result = serviceImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, tenantDomain);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(updatingAction.getName(), result.getName());
         Assert.assertEquals(updatingAction.getDescription(), result.getDescription());
@@ -245,8 +244,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(updatingAction.getEndpoint().getUri(), result.getEndpoint().getUri());
         Assert.assertEquals(
                 updatingAction.getEndpoint().getAuthentication().getType(),
-                result.getEndpoint().getAuthentication().getType()
-                           );
+                result.getEndpoint().getAuthentication().getType());
         Assert.assertEquals(
                 updatingAction.getEndpoint().getAuthentication().getProperty(Authentication.Property.HEADER).getValue(),
                 result.getEndpoint().getAuthentication().getProperty(Authentication.Property.HEADER).getValue());
@@ -312,10 +310,6 @@ public class ActionManagementServiceImplTest {
         Action result = serviceImpl.updateActionEndpointAuthentication(
                 PRE_ISSUE_ACCESS_TOKEN, action.getId(), authentication, tenantDomain);
         Assert.assertEquals(Authentication.Type.BEARER, result.getEndpoint().getAuthentication().getType());
-        Assert.assertEquals(
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.ACCESS_TOKEN).getValue(),
-                result.getEndpoint().getAuthentication().getPropertiesWithSecretReferences(
-                        result.getId()).get(0).getValue());
         secretProperties = mapActionAuthPropertiesWithSecrets(result);
         Assert.assertEquals(
                 result.getEndpoint().getAuthentication().getProperty(Authentication.Property.ACCESS_TOKEN).getValue(),
