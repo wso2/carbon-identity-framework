@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.provisioning.ProvisioningEntity;
 import org.wso2.carbon.identity.provisioning.ProvisioningEntityType;
 import org.wso2.carbon.identity.provisioning.ProvisioningOperation;
 import org.wso2.carbon.identity.provisioning.ProvisioningUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -435,7 +436,11 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
                 return true;
             }
 
-            String[] userList = userStoreManager.getUserListOfRole(roleName);
+            String[] userList = new String[0];
+            // Passing all user list of the role is not used, hence we can remove this logic if unnecessary.
+            if (!RoleManagementUtils.isHybridRole(roleName)) {
+                userList = userStoreManager.getUserListOfRole(roleName);
+            }
 
             Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
 
