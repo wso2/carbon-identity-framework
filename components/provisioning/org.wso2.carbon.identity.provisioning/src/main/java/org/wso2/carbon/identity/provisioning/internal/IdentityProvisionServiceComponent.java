@@ -36,6 +36,9 @@ import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisio
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningApplicationMgtListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningIdentityProviderMgtListener;
+import org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListener;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
@@ -88,7 +91,10 @@ public class IdentityProvisionServiceComponent {
     protected void activate(ComponentContext context) {
         try {
             ProvisioningServiceDataHolder.getInstance().setBundleContext(context.getBundleContext());
-            ProvisioningServiceDataHolder.getInstance().getBundleContext().registerService(UserOperationEventListener.class.getName(), new DefaultInboundUserProvisioningListener(), null);
+            DefaultInboundUserProvisioningListener provisioningListener = new DefaultInboundUserProvisioningListener();
+            ProvisioningServiceDataHolder.getInstance().setDefaultInboundUserProvisioningListener(provisioningListener);
+            ProvisioningServiceDataHolder.getInstance().getBundleContext()
+                    .registerService(UserOperationEventListener.class.getName(), provisioningListener, null);
             if (log.isDebugEnabled()) {
                 log.debug("Identity Provision Event listener registered successfully");
             }
@@ -103,6 +109,9 @@ public class IdentityProvisionServiceComponent {
             ProvisioningServiceDataHolder.getInstance().getBundleContext()
                     .registerService(UserManagementErrorEventListener.class.getName(), new ProvisioningErrorListener(),
                             null);
+            ProvisioningServiceDataHolder.getInstance().getBundleContext()
+                    .registerService(RoleManagementListener.class, new ProvisioningRoleMgtListener(), null);
+            log.debug("Provisioning role management listener registered successfully");
             if (log.isDebugEnabled()) {
                 log.debug("Identity provisioning error event listener registered successfully");
             }
@@ -206,6 +215,24 @@ public class IdentityProvisionServiceComponent {
             log.debug("Role Permission Management Service is unset to Identity Provisioning bundle.");
         }
         ProvisioningServiceDataHolder.getInstance().setRolePermissionManagementService(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService",
+            service = org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementServiceV2")
+    protected void setRoleManagementServiceV2(RoleManagementService roleManagementService) {
+
+        ProvisioningServiceDataHolder.getInstance().setRoleManagementService(roleManagementService);
+        log.debug("RoleManagementService set in ProvisioningServiceDataHolder bundle.");
+    }
+
+    protected void unsetRoleManagementServiceV2(RoleManagementService roleManagementService) {
+
+        ProvisioningServiceDataHolder.getInstance().setRoleManagementService(null);
+        log.debug("RoleManagementService unset in ProvisioningServiceDataHolder bundle.");
     }
 }
 
