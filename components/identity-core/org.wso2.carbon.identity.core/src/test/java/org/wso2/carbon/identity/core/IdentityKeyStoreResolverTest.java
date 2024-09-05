@@ -101,11 +101,13 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @BeforeClass
     public void setUp() throws Exception {
 
-        // Mock IdentityConfigParser.
+        // Use identity.xml file from test resources.
         String identityXmlPath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources",
                 "identity.xml").toString();
         System.setProperty(ServerConstants.CARBON_HOME, ".");
         mockIdentityConfigParser = IdentityConfigParser.getInstance(identityXmlPath);
+
+        // Mock IdentityConfigParser.
         identityConfigParser = mockStatic(IdentityConfigParser.class);
         identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
 
